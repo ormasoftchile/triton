@@ -490,6 +490,12 @@ R5. **Avoid gantt-chart defaults in the IR and renderer.** The IR must not have 
 
 **Implications:** core must avoid Node-only assumptions in the hot path so it can also run in a webview/worker (extension live preview); SVG-as-string + a synchronous `compile()` path are part of the public API contract.
 
+### Ratified Productization Parameters (owner-confirmed 2026-06-10)
+
+1. **MVP acceptance bar:** reproduce target **T2** (horizontal numbered nodes) from its IR to **byte-deterministic SVG + PNG via the CLI**, with validate-before-render and a published JSON Schema. This is the v0.1.0 gate.
+2. **PPTX strategy:** use **`pptxgenjs`** (pure JS, MIT) — **no Python**. python-pptx is not used; if any Python path is ever revisited it must be an isolated optional sidecar, never in the core dependency graph.
+3. **Phase ordering:** **agents/MCP (Phase 3) before art effects/PPTX (Phase 4)** — the MCP server + agent generation is the primary differentiator and ships before the Skia raster backend and PPTX.
+
 ---
 
 ## Governance
