@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="422" version="1.1" viewBox="0 0 1200 422" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="422" width="1200" x="0" y="0"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="34">2026 Product Roadmap</text>
+  <line stroke="#374151" stroke-width="1" x1="140" x2="1164" y1="72" y2="72"/>
+  <line stroke="#374151" stroke-width="1" x1="140" x2="140" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="140" x2="140" y1="72" y2="378"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="140" y="60.4">Q1 2026</text>
+  <line stroke="#374151" stroke-width="1" x1="393" x2="393" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="393" x2="393" y1="72" y2="378"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="393" y="60.4">Q2</text>
+  <line stroke="#374151" stroke-width="1" x1="649" x2="649" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="649" x2="649" y1="72" y2="378"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="649" y="60.4">Q3</text>
+  <line stroke="#374151" stroke-width="1" x1="908" x2="908" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="908" x2="908" y1="72" y2="378"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="908" y="60.4">Q4</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="136" y2="136"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="104">Strategy &amp; Design</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="210" y2="210"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="178">Platform</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="304" y2="304"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="262">Mobile</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="378" y2="378"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="346">Data &amp; Analytics</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="73" x="151" y="82"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="73" x="151" y="97"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="187.5" y="92">Vision Doc</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="163" x="227" y="82"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="163" x="227" y="97"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="308.5" y="92">UX Research</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="253" x="393" y="82"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="139" x="393" y="97"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="519.5" y="92">Design System v2</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="256" x="908" y="82"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1036" y="92">Go-to-Market Plan</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="219" x="171" y="156"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="219" x="171" y="171"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="280.5" y="166">Core API v2</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="169" x="393" y="156"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="118" x="393" y="171"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="477.5" y="166">SSO Integration</text>
+  <rect fill="#FCD34D" height="20" opacity="1" rx="4" stroke="#F59E0B" stroke-width="0.5" width="169" x="565" y="156"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="34" x="565" y="171"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="649.5" y="166">Performance Sprint</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="340" x="824" y="156"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="994" y="166">Platform Beta</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="296" x="179" y="230"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="296" x="179" y="245"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="327" y="240">iOS v3</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="335" x="227" y="250"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="268" x="227" y="265"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="394.5" y="260">Android v3</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="256" x="649" y="230"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="777" y="240">Offline Mode</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="256" x="908" y="230"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1036" y="240">Push Notifications</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="225" x="165" y="324"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="225" x="165" y="339"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="277.5" y="334">Data Lake Setup</text>
+  <rect fill="#FCD34D" height="20" opacity="1" rx="4" stroke="#F59E0B" stroke-width="0.5" width="253" x="393" y="324"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="76" x="393" y="339"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="519.5" y="334">ML Pipeline</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="256" x="649" y="324"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="777" y="334">Dashboard v2</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="256" x="908" y="324"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1036" y="334">Real-Time Analytics</text>
+  <circle cx="390" cy="225" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="390" y="225">01</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="390.01" y="201.21">31st March 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="390" y="261">Q1 Review</text>
+  <circle cx="646" cy="225" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="646" y="225">02</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="646" y="201.21">30th June 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="646.01" y="261">Platform Launch</text>
+  <circle cx="905" cy="225" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="905" y="225">03</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="905" y="201.21">30th September 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="905.01" y="261">Mobile GA</text>
+  <circle cx="1119" cy="225" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1119" y="225">04</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1119" y="201.21">15th December 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1119" y="261">Year-End Release</text>
+</svg>

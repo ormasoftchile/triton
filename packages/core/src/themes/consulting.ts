@@ -43,6 +43,7 @@ export const consultingTheme: ResolvedTheme = {
     fontWeightLabel:  600,
     fontWeightAxis:   400,
     fontWeightHeader: 700,
+    titleColor:       '#111111',  // matches existing hardcoded value
   },
 
   axis: {
@@ -53,6 +54,8 @@ export const consultingTheme: ResolvedTheme = {
     gridlineWidth:      0,    // Consulting: no gridlines
     gridlineOpacity:    0,
     gridlineStyle:    'none',
+    axisLineColor:    '#333333',  // matches existing hardcoded value
+    tickLabelColor:   '#555555',  // matches existing hardcoded value
     todayMarker: {
       enabled: false,
       color:   RED,

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="452" version="1.1" viewBox="0 0 1200 452" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0D1B2A" height="452" width="1200" x="0" y="0"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="42.67">Project Phoenix — Program Timeline</text>
+  <line stroke="#2A4060" stroke-width="1" x1="148" x2="1156" y1="92" y2="92"/>
+  <line stroke="#2A4060" stroke-width="1" x1="148" x2="148" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="148" x2="148" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="148" y="78">2026</text>
+  <line stroke="#2A4060" stroke-width="1" x1="234" x2="234" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="234" x2="234" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="234" y="78">Feb</text>
+  <line stroke="#2A4060" stroke-width="1" x1="311" x2="311" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="311" x2="311" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="311" y="78">Mar</text>
+  <line stroke="#2A4060" stroke-width="1" x1="397" x2="397" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="397" x2="397" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="397" y="78">Apr</text>
+  <line stroke="#2A4060" stroke-width="1" x1="480" x2="480" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="480" x2="480" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="480" y="78">May</text>
+  <line stroke="#2A4060" stroke-width="1" x1="566" x2="566" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="566" x2="566" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="566" y="78">Jun</text>
+  <line stroke="#2A4060" stroke-width="1" x1="649" x2="649" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="649" x2="649" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="649" y="78">Jul</text>
+  <line stroke="#2A4060" stroke-width="1" x1="735" x2="735" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="735" x2="735" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="735" y="78">Aug</text>
+  <line stroke="#2A4060" stroke-width="1" x1="821" x2="821" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="821" x2="821" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="821" y="78">Sep</text>
+  <line stroke="#2A4060" stroke-width="1" x1="904" x2="904" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="904" x2="904" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="904" y="78">Oct</text>
+  <line stroke="#2A4060" stroke-width="1" x1="990" x2="990" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="990" x2="990" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="990" y="78">Nov</text>
+  <line stroke="#2A4060" stroke-width="1" x1="1073" x2="1073" y1="86" y2="92"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="1073" x2="1073" y1="92" y2="396"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="1073" y="78">Dec</text>
+  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="180" y2="180"/>
+  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="136">Discovery</text>
+  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="288" y2="288"/>
+  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="244">Development</text>
+  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="396" y2="396"/>
+  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="352">Quality &amp; Release</text>
+  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="72" x="159" y="106"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="72" x="159" y="129"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="195" y="120">Stakeholder Interviews</text>
+  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="75" x="234" y="106"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="75" x="234" y="129"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="271.5" y="120">Requirements</text>
+  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="125" x="311" y="106"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="125" x="311" y="129"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="373.5" y="120">Architecture Design</text>
+  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="125" x="311" y="214"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="125" x="311" y="237"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="373.5" y="228">Sprint 1 — Foundation</text>
+  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="166" x="439" y="214"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="108" x="439" y="237"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="522" y="228">Sprint 2 — Core Features</text>
+  <rect fill="#E05252" height="28" opacity="1" rx="8" stroke="#B03030" stroke-width="0.5" width="210" x="608" y="214"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="713" y="228">Sprint 3 — Integrations</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="166" x="821" y="214"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="904" y="228">Sprint 4 — Polish</text>
+  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="166" x="480" y="322"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="66" x="480" y="345"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="563" y="336">Regression Testing</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="252" x="649" y="322"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="775" y="336">Beta Program</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="166" x="904" y="322"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="987" y="336">Launch Preparation</text>
+  <circle cx="159" cy="136" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="159" y="136">01</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="159" y="108.24">5th January 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="159" y="177.33">Project Kick-off</text>
+  <circle cx="436" cy="244" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="436" y="244">02</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="436.01" y="216.24">15th April 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="436" y="285.33">Architecture Approval</text>
+  <circle cx="818" cy="244" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="818" y="244">03</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="818" y="216.24">31st August 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="818.01" y="285.33">Feature Freeze</text>
+  <circle cx="1029" cy="352" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="1029" y="352">04</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1029.01" y="324.24">15th November 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1029" y="393.33">Product Launch</text>
+  <circle cx="1073" cy="352" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="1073" y="352">05</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1073" y="324.24">1st December 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1073.01" y="421.33">General Availability</text>
+</svg>

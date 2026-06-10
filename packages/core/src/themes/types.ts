@@ -31,6 +31,8 @@ export interface TypographyTheme {
   fontWeightLabel: number;
   fontWeightAxis: number;
   fontWeightHeader: number;
+  /** Fill colour for the document title text element. */
+  titleColor: string;
 }
 
 export interface AxisTheme {
@@ -41,6 +43,10 @@ export interface AxisTheme {
   gridlineWidth: number;
   gridlineOpacity: number;
   gridlineStyle: 'solid' | 'dashed' | 'none';
+  /** Stroke colour for the axis baseline and tick marks. */
+  axisLineColor: string;
+  /** Fill colour for tick label text. */
+  tickLabelColor: string;
   todayMarker: {
     enabled: boolean;
     color: string;
@@ -82,7 +88,7 @@ export interface ActivityTheme {
 }
 
 /** Shape style for milestone markers. */
-export type MilestoneShape = 'diamond' | 'circle';
+export type MilestoneShape = 'diamond' | 'circle' | 'triangle';
 
 export interface MilestoneTheme {
   /** Visual shape for milestone markers. */

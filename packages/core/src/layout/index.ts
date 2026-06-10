@@ -439,7 +439,7 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
       fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
       fontSize:        titleSizePx,
       fontWeight:      theme.typography.fontWeightHeader,
-      fill:            '#111111',
+      fill:            theme.typography.titleColor,
       textAnchor:      'middle',
       dominantBaseline:'middle',
     });
@@ -453,7 +453,7 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
     y1:          axisY,
     x2:          rhu(offset + wDraw),
     y2:          axisY,
-    stroke:      '#333333',
+    stroke:      theme.axis.axisLineColor,
     strokeWidth: 1,
   });
 
@@ -468,7 +468,7 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
       y1:          rhu(axisY - ax.tickHeight),
       x2:          xk,
       y2:          axisY,
-      stroke:      '#333333',
+      stroke:      theme.axis.axisLineColor,
       strokeWidth: 1,
     });
     // Gridlines (only if configured)
@@ -497,7 +497,7 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
         fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
         fontSize:        axisFontPx,
         fontWeight:      theme.typography.fontWeightAxis,
-        fill:            '#555555',
+        fill:            theme.axis.tickLabelColor,
         textAnchor:      'middle',
         dominantBaseline:'alphabetic',
       });
@@ -652,16 +652,38 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
     const catOverride = cat ? theme.categoryMap[cat] : undefined;
     const fill = catOverride?.fill ?? base?.fill ?? '#1F497D';
 
-    // Circle fill
-    primitives.push({
-      kind:        'circle',
-      cx:          xCenter,
-      cy:          yCenter,
-      r:           ms.size,
-      fill,
-      stroke:      ms.strokeColor,
-      strokeWidth: ms.strokeWidth,
-    });
+    // Milestone shape primitive
+    if (ms.shape === 'circle') {
+      primitives.push({
+        kind:        'circle',
+        cx:          xCenter,
+        cy:          yCenter,
+        r:           ms.size,
+        fill,
+        stroke:      ms.strokeColor,
+        strokeWidth: ms.strokeWidth,
+      });
+    } else if (ms.shape === 'triangle') {
+      // Downward-pointing triangle centered at (xCenter, yCenter)
+      const s = ms.size;
+      primitives.push({
+        kind:   'path',
+        d:      `M ${rhu(xCenter - s)} ${rhu(yCenter - s)} L ${rhu(xCenter + s)} ${rhu(yCenter - s)} L ${xCenter} ${rhu(yCenter + s)} Z`,
+        fill,
+        stroke:      ms.strokeColor,
+        strokeWidth: ms.strokeWidth,
+      });
+    } else {
+      // diamond
+      const s = ms.size;
+      primitives.push({
+        kind:   'path',
+        d:      `M ${xCenter} ${rhu(yCenter - s)} L ${rhu(xCenter + s)} ${yCenter} L ${xCenter} ${rhu(yCenter + s)} L ${rhu(xCenter - s)} ${yCenter} Z`,
+        fill,
+        stroke:      ms.strokeColor,
+        strokeWidth: ms.strokeWidth,
+      });
+    }
 
     // Ordinal number inside circle
     if (ms.showOrdinalNumber) {

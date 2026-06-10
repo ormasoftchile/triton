@@ -16,6 +16,7 @@ import { buildJsonSchema } from './schema.js';
 import { parseIR, IRParseError } from './load.js';
 import { validateDocument } from './validate.js';
 import { renderDocument } from './render/index.js';
+import { listThemeInfos } from './themes/index.js';
 import type {
   Diagnostic,
   IRDocument,
@@ -46,13 +47,8 @@ export class NotImplementedError extends Error {
 export { IRParseError } from './load.js';
 
 // ---------------------------------------------------------------------------
-// Built-in theme catalogue (Phase 1: reflects Barbara's theme registry)
+// Built-in theme catalogue (delegates to themes/index.ts registry)
 // ---------------------------------------------------------------------------
-
-const BUILT_IN_THEMES: ThemeInfo[] = [
-  { id: 'consulting', title: 'Consulting', tier: 1 },
-  { id: 'default',    title: 'Default',    tier: 1 },
-];
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -98,7 +94,7 @@ export function compile(input: IRDocument | string, options: RenderOptions): Ren
  * List all built-in themes.  Returns metadata only; theme assets are not loaded.
  */
 export function listThemes(): ThemeInfo[] {
-  return BUILT_IN_THEMES.slice();
+  return listThemeInfos();
 }
 
 /**

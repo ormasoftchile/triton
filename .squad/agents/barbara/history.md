@@ -430,3 +430,77 @@ Three renderer/theme bugs surfaced via the gallery were fixed. Golden and all 8 
 - `examples/golden/our-timeline.svg` + `.png` — regenerated golden artifacts
 - `examples/gallery/*.svg` + `*.png` — all 8 gallery renders regenerated
 
+
+---
+
+## 2026-06-10 — Four New Themes + Theme Showcase (Barbara)
+
+### New Themes Added
+
+Four new themes implemented as pure data/style in `packages/core/src/themes/`:
+
+1. **executive** (`tier: 2`) — Boardroom/presentation dark theme. Deep navy canvas (`#0D1B2A`), near-white text (`#E8EEF5`), rounded bars (radius 8), subtle gridlines, full 7-status semantic palette in vivid-on-dark colours (blue/cyan/steel/gold/crimson). Generous spacing (margin 56px, rowHeight 88).
+
+2. **minimal** (`tier: 1`) — Academic/mono theme. White canvas, ALL status fills are greyscale only (R=G=B hex), status differentiated by opacity and fill weight. Thin strokes (strokeWidth 1.5), dashed gridlines at 50% opacity, no ordinal numbers in milestones, subdued typography (fontWeight 400 labels).
+
+3. **product** (`tier: 2`) — Engineering roadmap theme. White canvas, dense rows (rowHeight 64, rowGap 10), prominent progress fills (height 5px), rich `categoryMap` with 10+ track/category colour overrides (strategy=indigo, platform=sky, mobile=emerald, analytics=amber, backend=violet, frontend=pink, infra=teal, etc.), vivid status palette (blue/green/yellow/red).
+
+4. **release** (`tier: 1`) — CI/dashboard theme. White canvas, traffic-light status colours (done=`#16A34A` green, in-progress=`#2563EB` blue, at-risk=`#D97706` amber, blocked=`#DC2626` red, planned=`#6B7280` grey). **Triangle milestone shape** (downward-pointing `▼`), crisp vertical gridlines (style: solid), monospace fallback stack.
+
+### Types Extended (additive, consulting output unchanged)
+
+`themes/types.ts`:
+- `TypographyTheme.titleColor: string` — fill for the document title text element
+- `AxisTheme.axisLineColor: string` — stroke for axis baseline and tick marks
+- `AxisTheme.tickLabelColor: string` — fill for axis tick label text
+- `MilestoneShape` extended: `'diamond' | 'circle' | 'triangle'`
+
+`consulting.ts` updated to set these to the exact hardcoded values they replace (`#111111`, `#333333`, `#555555`), ensuring the Consulting golden output is byte-identical before and after.
+
+### Milestone Shape Tokenization
+
+`layout/index.ts` updated to render milestone shapes conditionally:
+- `circle` → `<circle cx cy r>` (existing behaviour)
+- `triangle` → `<path>` downward-pointing triangle: `M (cx-s)(cy-s) L (cx+s)(cy-s) L cx(cy+s) Z`
+- `diamond` → `<path>` diamond: `M cx(cy-s) L (cx+s)cy L cx(cy+s) L (cx-s)cy Z`
+
+Label positioning uses `ms.size` as the "half-extent" from center in all directions, which works identically for all three shapes.
+
+### listThemeInfos / listThemes Wiring
+
+`themes/index.ts` now exports `listThemeInfos(): ThemeInfo[]` returning all 6 entries (consulting, default, minimal, release, executive, product).
+
+`api.ts` `listThemes()` now delegates directly to `listThemeInfos()` (1-import + 1-return edit, signature unchanged).
+
+### Theme Showcase Generated
+
+`examples/gallery/themes.html` — self-contained HTML matrix contact sheet: 3 rows (product-roadmap, program-timeline, milestones-only) × 5 theme columns. Each cell embeds the PNG with SVG/PNG links. Theme legend cards at top with visual identity description.
+
+`examples/gallery/themes/<theme>/<slug>.{svg,png}` — 30 render artifacts (5 themes × 3 examples × 2 formats).
+
+`examples/gallery/index.html` — link added to themes.html.
+
+### Green Status
+| Check | Result |
+|-------|--------|
+| `pnpm typecheck` | ✓ 0 errors |
+| `pnpm lint` | ✓ 0 warnings |
+| `pnpm test` | ✓ 191/191 (37 new themes tests) |
+| `pnpm -r build` | ✓ all packages |
+
+Consulting golden SVG hash unchanged — the new tokens in consulting.ts match the hardcoded values they replaced.
+
+### Files Modified/Created
+- `packages/core/src/themes/types.ts` — extended TypographyTheme, AxisTheme, MilestoneShape
+- `packages/core/src/themes/consulting.ts` — added titleColor/axisLineColor/tickLabelColor tokens
+- `packages/core/src/themes/executive.ts` — new file
+- `packages/core/src/themes/minimal.ts` — new file
+- `packages/core/src/themes/product.ts` — new file
+- `packages/core/src/themes/release.ts` — new file
+- `packages/core/src/themes/index.ts` — register all 5 + listThemeInfos()
+- `packages/core/src/api.ts` — listThemes() delegates to listThemeInfos()
+- `packages/core/src/layout/index.ts` — use theme tokens for title/axis colours; shape-conditional milestone rendering
+- `packages/core/test/themes.test.ts` — new file (37 tests)
+- `examples/gallery/themes/` — 30 SVG + PNG render artifacts
+- `examples/gallery/themes.html` — new matrix contact sheet
+- `examples/gallery/index.html` — link to themes.html
