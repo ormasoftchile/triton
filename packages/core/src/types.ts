@@ -228,6 +228,12 @@ export interface RenderOptions {
   format: RenderFormat;
   /** Output tier (1 = basic, 2 = full-fidelity, 3 = premium). */
   tier?: number;
+  /**
+   * Layout family.  Defaults to 'horizontal'.
+   *   'horizontal'     — time axis left→right, track rows, T2/T4/T6 targets.
+   *   'vertical-spine' — central vertical spine, alternating L/R entries, T1/T3/T5 targets.
+   */
+  layout?: 'horizontal' | 'vertical-spine';
 }
 
 export interface RenderResult {

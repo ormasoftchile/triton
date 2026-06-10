@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="1000" version="1.1" viewBox="0 0 1200 1000" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="1000" width="1200" x="0" y="0"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="34">Founder Journey — From Idea to Series B</text>
+  <rect fill="#4ADE80" height="215" opacity="0.6" width="6" x="597" y="68"/>
+  <rect fill="#4ADE80" height="305" opacity="0.6" width="6" x="597" y="368"/>
+  <rect fill="#3B82F6" height="173" opacity="0.7" width="6" x="597" y="674"/>
+  <line stroke="#374151" stroke-width="2" x1="600" x2="600" y1="68" y2="906"/>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="592" x2="608" y1="68" y2="68"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="66">2021</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="592" x2="608" y1="220" y2="220"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="218">2022</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="592" x2="608" y1="480" y2="480"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="478">2023</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="592" x2="608" y1="739" y2="739"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="737">2024</text>
+  <line opacity="0.8" stroke="#4ADE80" stroke-width="1.5" x1="609.9" x2="648" y1="68" y2="68"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#4ADE80" stroke-width="1" width="330" x="648" y="27"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="658" y="51.45">1st June 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="start" x="658" y="77.45">Stealth / Build Phase</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="start" x="658" y="96.45">Core product development</text>
+  <line opacity="0.8" stroke="#3B82F6" stroke-width="1.5" x1="590.1" x2="552" y1="168" y2="168"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#3B82F6" stroke-width="1" width="330" x="222" y="127"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="542" y="151.45">15th June 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="end" x="542" y="177.45">The Idea</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="end" x="542" y="196.45">First whiteboard session; founding team aligned</text>
+  <text dominant-baseline="alphabetic" fill="#3B82F6" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.7" text-anchor="start" x="232" y="151.45">💡</text>
+  <line opacity="0.8" stroke="#3B82F6" stroke-width="1.5" x1="609.9" x2="648" y1="268" y2="268"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#3B82F6" stroke-width="1" width="330" x="648" y="227"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="658" y="251.45">20th January 2022</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="start" x="658" y="277.45">First 10 Customers</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="start" x="658" y="296.45">Initial design-partner cohort onboarded</text>
+  <text dominant-baseline="alphabetic" fill="#3B82F6" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.7" text-anchor="end" x="968" y="251.45">🤝</text>
+  <line opacity="0.8" stroke="#4ADE80" stroke-width="1.5" x1="590.1" x2="552" y1="368" y2="368"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#4ADE80" stroke-width="1" width="330" x="222" y="327"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="542" y="351.45">1st July 2022</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="end" x="542" y="377.45">Seed-fuelled Growth</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="end" x="542" y="396.45">Team scaling, GTM iteration</text>
+  <line opacity="0.8" stroke="#3B82F6" stroke-width="1.5" x1="609.9" x2="648" y1="468" y2="468"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#3B82F6" stroke-width="1" width="330" x="648" y="427"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="658" y="451.45">1st July 2022</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="start" x="658" y="477.45">Seed Round Closed</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="start" x="658" y="496.45">$3.5M at $18M post-money valuation</text>
+  <text dominant-baseline="alphabetic" fill="#3B82F6" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.7" text-anchor="end" x="968" y="451.45">🌱</text>
+  <line opacity="0.8" stroke="#3B82F6" stroke-width="1.5" x1="590.1" x2="552" y1="674" y2="674"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#3B82F6" stroke-width="1" width="330" x="222" y="633"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="542" y="657.45">1st October 2023</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="end" x="542" y="683.45">Series A Deployment</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="end" x="542" y="702.45">Enterprise motion, international</text>
+  <line opacity="0.8" stroke="#3B82F6" stroke-width="1.5" x1="609.9" x2="648" y1="774" y2="774"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#3B82F6" stroke-width="1" width="330" x="648" y="733"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="658" y="757.45">1st October 2023</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="start" x="658" y="783.45">Series A — $15M</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="start" x="658" y="802.45">Led by Horizon Ventures</text>
+  <text dominant-baseline="alphabetic" fill="#3B82F6" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.7" text-anchor="end" x="968" y="757.45">🚀</text>
+  <line opacity="0.8" stroke="#3B82F6" stroke-width="1.5" x1="590.1" x2="552" y1="874" y2="874"/>
+  <rect fill="#F4F6F8" height="82" opacity="0.95" rx="6" stroke="#3B82F6" stroke-width="1" width="330" x="222" y="833"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="542" y="857.45">1st April 2024</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="end" x="542" y="883.45">Series B — $42M</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" opacity="0.85" text-anchor="end" x="542" y="902.45">Targeting enterprise expansion</text>
+  <text dominant-baseline="alphabetic" fill="#3B82F6" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.7" text-anchor="start" x="232" y="857.45">📈</text>
+  <circle cx="600" cy="68" fill="#4ADE80" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="600" cy="168" fill="#3B82F6" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="600" cy="268" fill="#3B82F6" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="600" cy="368" fill="#4ADE80" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="600" cy="468" fill="#3B82F6" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="600" cy="674" fill="#3B82F6" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="600" cy="774" fill="#3B82F6" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="600" cy="874" fill="#3B82F6" r="9.9" stroke="#FFFFFF" stroke-width="1.5"/>
+</svg>

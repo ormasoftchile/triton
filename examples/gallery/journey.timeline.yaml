@@ -1,0 +1,78 @@
+version: "1.0"
+metadata:
+  title: "Founder Journey — From Idea to Series B"
+  subtitle: "T1-style vertical spine: five milestones with subjects and descriptions"
+  time_range:
+    start: 2021-06
+    end: 2024-06
+  axis_unit: year
+  theme: executive
+  today: 2026-06-10
+  description: "A founder's journey from initial idea to Series B funding"
+tracks:
+  - id: journey
+    label: "Company Journey"
+    index: 0
+activities:
+  - id: stealth
+    label: "Stealth / Build Phase"
+    track: journey
+    start: 2021-06-01
+    end: 2022-03-31
+    status: done
+    description: "Core product development"
+  - id: growth
+    label: "Seed-fuelled Growth"
+    track: journey
+    start: 2022-07-01
+    end: 2023-09-30
+    status: done
+    description: "Team scaling, GTM iteration"
+  - id: scale
+    label: "Series A Deployment"
+    track: journey
+    start: 2023-10-01
+    end: 2024-06-01
+    status: in-progress
+    description: "Enterprise motion, international"
+milestones:
+  - id: idea-day
+    label: "The Idea"
+    date: 2021-06-15
+    track: journey
+    status: done
+    category: standard-node
+    description: "First whiteboard session; founding team aligned"
+    icon: "💡"
+  - id: first-customers
+    label: "First 10 Customers"
+    date: 2022-01-20
+    track: journey
+    status: done
+    category: standard-node
+    description: "Initial design-partner cohort onboarded"
+    icon: "🤝"
+  - id: seed-close
+    label: "Seed Round Closed"
+    date: 2022-07-01
+    track: journey
+    status: done
+    category: standard-node
+    description: "$3.5M at $18M post-money valuation"
+    icon: "🌱"
+  - id: series-a
+    label: "Series A — $15M"
+    date: 2023-10-01
+    track: journey
+    status: done
+    category: standard-node
+    description: "Led by Horizon Ventures"
+    icon: "🚀"
+  - id: series-b
+    label: "Series B — $42M"
+    date: 2024-04-01
+    track: journey
+    status: planned
+    category: standard-node
+    description: "Targeting enterprise expansion"
+    icon: "📈"

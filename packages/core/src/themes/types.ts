@@ -154,4 +154,12 @@ export interface ResolvedTheme {
 
   /** Optional category-id → { fill, stroke } override map. */
   categoryMap: Record<string, { fill: string; stroke: string }>;
+
+  /**
+   * Entry display style for the vertical-spine layout family.
+   *   'card'  — rounded rect background + status-coloured border around each entry block.
+   *   'plain' — text only; no background rect.
+   * Defaults to 'plain' when not set.  Has NO effect on horizontal layout output.
+   */
+  entryStyle?: 'card' | 'plain';
 }

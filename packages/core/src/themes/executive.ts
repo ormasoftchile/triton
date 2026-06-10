@@ -134,4 +134,6 @@ export const executiveTheme: ResolvedTheme = {
   categoryMap: {
     'standard-node': { fill: BLUE, stroke: '#2A6A9E' },
   },
+
+  entryStyle: 'card',
 };

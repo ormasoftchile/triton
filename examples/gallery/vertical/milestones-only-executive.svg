@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="792" version="1.1" viewBox="0 0 1200 792" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0D1B2A" height="792" width="1200" x="0" y="0"/>
+  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="42.67">Corporate Milestone Calendar 2026</text>
+  <line stroke="#2A4060" stroke-width="2" x1="600" x2="600" y1="80" y2="686"/>
+  <line opacity="0.5" stroke="#2A4060" stroke-width="1" x1="592" x2="608" y1="80" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="78">2026</text>
+  <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="611" x2="648" y1="154" y2="154"/>
+  <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="648" y="120.5"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="146.65">15th February 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="658" y="174.65">Q1 Board Approval</text>
+  <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="589" x2="552" y1="254" y2="254"/>
+  <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="222" y="220.5"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="542" y="246.65">1st April 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="542" y="274.65">Product Beta</text>
+  <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="611" x2="648" y1="354" y2="354"/>
+  <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="648" y="320.5"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="346.65">1st June 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="658" y="374.65">Series B Close</text>
+  <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="589" x2="552" y1="454" y2="454"/>
+  <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="222" y="420.5"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="542" y="446.65">15th August 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="542" y="474.65">International Launch</text>
+  <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="611" x2="648" y1="554" y2="554"/>
+  <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="648" y="520.5"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="546.65">1st October 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="658" y="574.65">Profitability Target</text>
+  <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="589" x2="552" y1="654" y2="654"/>
+  <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="222" y="620.5"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="542" y="646.65">1st December 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="542" y="674.65">IPO Preparation</text>
+  <circle cx="600" cy="154" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <circle cx="600" cy="254" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <circle cx="600" cy="354" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <circle cx="600" cy="454" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <circle cx="600" cy="554" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <circle cx="600" cy="654" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+</svg>

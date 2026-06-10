@@ -131,4 +131,6 @@ export const productTheme: ResolvedTheme = {
     'discovery':     { fill: '#A78BFA', stroke: '#8B5CF6' },
     'development':   { fill: '#34D399', stroke: '#10B981' },
   },
+
+  entryStyle: 'card',
 };

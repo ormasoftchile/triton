@@ -125,10 +125,18 @@ program
   .option('-o, --output <path>', 'output file path (default: input basename with .svg/.png)')
   .option('--theme <theme>', 'theme id', 'consulting')
   .option('--format <format>', 'output format: svg or png', 'svg')
-  .action((inputPath: string, options: { output?: string; theme: string; format: string }) => {
+  .option('--layout <layout>', 'layout family: horizontal or vertical-spine', 'horizontal')
+  .action((inputPath: string, options: { output?: string; theme: string; format: string; layout: string }) => {
     const format = options.format as 'svg' | 'png';
     if (format !== 'svg' && format !== 'png') {
       console.error(`Error: --format must be "svg" or "png", got "${format}"`);
+      process.exit(1);
+      return;
+    }
+
+    const layoutFamily = options.layout as 'horizontal' | 'vertical-spine';
+    if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine') {
+      console.error(`Error: --layout must be "horizontal" or "vertical-spine", got "${options.layout}"`);
       process.exit(1);
       return;
     }
@@ -181,7 +189,7 @@ program
     // ── Render ────────────────────────────────────────────────────────────
     let result;
     try {
-      result = render(ir, { format, theme: options.theme });
+      result = render(ir, { format, theme: options.theme, layout: layoutFamily });
     } catch (e) {
       console.error(`Render error: ${(e as Error).message}`);
       process.exit(1);

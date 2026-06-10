@@ -130,4 +130,6 @@ export const consultingTheme: ResolvedTheme = {
   categoryMap: {
     'standard-node': { fill: NAVY, stroke: '#163760' },
   },
+
+  entryStyle: 'plain',
 };

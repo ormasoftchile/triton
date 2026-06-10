@@ -130,4 +130,6 @@ export const releaseTheme: ResolvedTheme = {
   categoryMap: {
     'standard-node': { fill: GREY, stroke: '#4B5563' },
   },
+
+  entryStyle: 'plain',
 };

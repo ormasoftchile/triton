@@ -504,3 +504,38 @@ Consulting golden SVG hash unchanged — the new tokens in consulting.ts match t
 - `examples/gallery/themes/` — 30 SVG + PNG render artifacts
 - `examples/gallery/themes.html` — new matrix contact sheet
 - `examples/gallery/index.html` — link to themes.html
+
+---
+
+## 2026-06-10 — Vertical-Spine Layout Family (Phase 1 Extension)
+
+### Design: dateY + Central Spine
+
+The vertical-spine family maps the time axis TOP (earliest) → BOTTOM (latest). A `dateY(ord)` function analogous to horizontal's `dateX` is used: `spineTopY + floor(((ord - tsOrd) * hDraw) / (teOrd - tsOrd) + 0.5)`, clamped to `[spineTopY, spineBottomY]`. Same integer-ordinal arithmetic, round-half-up, and coarse-date coercion helpers from `layout/dates.ts` are reused. The spine is a central vertical line at `W/2`. `hDraw` is calibrated so uniformly-spaced entries naturally respect `ENTRY_MIN_SPACING = 100px`; a top-to-bottom pass corrects clustered entries.
+
+### Alternating L/R Entries + Connectors
+
+Entries (milestones + activities sorted by `(date_ordinal, id)`) alternate RIGHT (even index) / LEFT (odd index). Each gets: a node marker on the spine (reusing `theme.milestone.shape`: circle/diamond/triangle at ~55% of `milestone.size`), a horizontal connector line, and a content block (date label + title + optional description).
+
+### Entry Style Token (`entryStyle`)
+
+Added `entryStyle?: 'card' | 'plain'` to `ResolvedTheme`. Default is `'plain'`. Card-oriented themes (product, executive) declare `entryStyle: 'card'` (rounded rect background + status-coloured border per entry block). Plain themes (consulting, minimal, release) declare `'plain'` (text-only, no rects). **This token has zero effect on the horizontal layout path** — horizontal golden output (Consulting) is provably unchanged (golden test passes, diff confirms byte-identity).
+
+### Layout Dispatcher + `RenderOptions.layout`
+
+The original `layout/index.ts` was split: `layout/horizontal.ts` (renamed export `layoutHorizontal`) and `layout/vertical-spine.ts` (new `layoutVerticalSpine`). A new `layout/index.ts` dispatcher re-exports both and dispatches on the optional third parameter `family?: 'horizontal' | 'vertical-spine'` (default: `'horizontal'`). `RenderOptions.layout?: 'horizontal' | 'vertical-spine'` was added (additive, no Zod/schema changes). CLI got `--layout <horizontal|vertical-spine>` (default `horizontal`).
+
+### Activity Duration on Spine
+
+Activities with `endKind === 'fixed'` render a 6px-wide colored rect along the spine from `nodeY` to `dateY(endOrd)`. Ongoing activities render a dashed vertical line to the spine bottom (open indicator). TBD activities render a more-dashed, lower-opacity line.
+
+### Vertical Showcase
+
+Generated `examples/gallery/vertical/` with 8 SVG+PNG renders: `ai-timeline` (12 milestones, T3-dense) and `journey` (5 milestones + activities, T1-style) each in consulting+executive; plus `milestones-only` and `program-timeline` in consulting+executive. Contact sheet at `examples/gallery/vertical.html`, linked from `index.html`. All sceneHashes stable; determinism confirmed by double-render diff.
+
+### What's Deferred
+
+- **Pictographic icon badges** (full emoji/SVG badge per entry, T1 spec) — currently a 2-char text glyph placeholder is emitted when `milestone.icon` is set. Full badges require Tier-2/Skia pipeline.
+- **Serpentine / S-curve spine variant** — T5 alternating-card layout with arcing spine is deferred.
+- **Year tick placement after min-spacing** — year ticks use the initial `hDraw` scale, not adjusted entry positions; acceptable for Phase 1 visual fidelity.
+- **Theme-preferred default layout token** — a `preferredLayout` theme token (optional) was not added; the `--layout` flag and `RenderOptions.layout` cover this use case.

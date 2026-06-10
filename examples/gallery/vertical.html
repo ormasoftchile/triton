@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline Compiler — Vertical-Spine Gallery</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f4f5f7;
+      color: #111;
+      padding: 32px 24px 64px;
+    }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto 40px;
+      border-left: 4px solid #4F46E5;
+      padding-left: 20px;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #4F46E5;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+      max-width: 780px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-primary { background: #4F46E5; color: #fff; }
+    .badge-outline { background: transparent; color: #4F46E5; border: 1px solid #4F46E5; }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #4F46E5;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .section-heading {
+      max-width: 1100px;
+      margin: 0 auto 20px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #d8dbdf;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+      gap: 28px;
+      max-width: 1100px;
+      margin: 0 auto 48px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #dde1e7;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+
+    .card-header {
+      padding: 14px 18px 10px;
+      border-bottom: 1px solid #eef0f3;
+    }
+
+    .card-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: #4F46E5;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: #666;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .meta-tag {
+      background: #eef2ff;
+      color: #4F46E5;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .meta-tag.theme-plain  { background: #f0f9f0; color: #166534; }
+    .meta-tag.theme-card   { background: #fff7ed; color: #9a3412; }
+    .meta-tag.theme-dark   { background: #1e2938; color: #8baac8; }
+
+    .card-desc {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .card-img {
+      display: block;
+      width: 100%;
+      background: #fafafa;
+      padding: 4px 0;
+    }
+
+    .card-img img {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-height: 560px;
+      object-fit: contain;
+    }
+
+    .card-footer {
+      padding: 10px 18px;
+      border-top: 1px solid #eef0f3;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-footer a {
+      font-size: 12px;
+      color: #4F46E5;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 3px 8px;
+      border: 1px solid #c7d2fe;
+      border-radius: 3px;
+      background: #eef2ff;
+      transition: background 0.15s;
+    }
+
+    .card-footer a:hover { background: #dde6ff; }
+  </style>
+</head>
+<body>
+
+  <div style="max-width:1100px;margin:0 auto 8px;">
+    <a class="back-link" href="index.html">← Back to Gallery Index</a>
+  </div>
+
+  <header>
+    <h1>Vertical-Spine Layout Family</h1>
+    <p>
+      The VERTICAL CENTRAL-SPINE family places the time axis top→bottom with a central spine line.
+      Entries alternate left and right, connected by short horizontal connectors.
+      Card-oriented themes (product, executive) render rounded-rect entry blocks;
+      plain themes (consulting, minimal) render clean text-only entries.
+      All renders are deterministic — sceneHash is stable across runs.
+    </p>
+    <div class="badges">
+      <span class="badge badge-primary">layout=vertical-spine</span>
+      <span class="badge badge-outline">T1 / T3 / T5 targets</span>
+      <span class="badge badge-outline">deterministic SVG + PNG</span>
+    </div>
+  </header>
+
+  <!-- ── New examples ───────────────────────────────────────────────────── -->
+
+  <h2 class="section-heading">New Vertical-Spine-Native Examples</h2>
+
+  <div class="gallery">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-01 · ai-timeline</div>
+        <div class="card-title">AI &amp; Foundation Models — Key Milestones 2019–2024</div>
+        <div class="card-meta">
+          <span class="meta-tag">consulting</span>
+          <span class="meta-tag theme-plain">plain style</span>
+          <span class="meta-tag">12 milestones</span>
+          <span class="meta-tag">T3-style dense</span>
+        </div>
+        <div class="card-desc">Dense alternating layout: 12 AI milestones from GPT-2 to GPT-4o, layout=vertical-spine, theme=consulting.</div>
+      </div>
+      <div class="card-img">
+        <img src="vertical/ai-timeline-consulting.png" alt="AI Timeline — Consulting theme">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/ai-timeline-consulting.svg">SVG</a>
+        <a href="vertical/ai-timeline-consulting.png">PNG</a>
+        <a href="ai-timeline.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-02 · ai-timeline</div>
+        <div class="card-title">AI &amp; Foundation Models — Executive Dark Theme</div>
+        <div class="card-meta">
+          <span class="meta-tag">executive</span>
+          <span class="meta-tag theme-card">card style</span>
+          <span class="meta-tag theme-dark">dark background</span>
+          <span class="meta-tag">12 milestones</span>
+        </div>
+        <div class="card-desc">Same IR rendered with the executive dark theme — card style, rounded-rect entry blocks with status-coloured borders.</div>
+      </div>
+      <div class="card-img" style="background:#0D1B2A;">
+        <img src="vertical/ai-timeline-executive.png" alt="AI Timeline — Executive theme">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/ai-timeline-executive.svg">SVG</a>
+        <a href="vertical/ai-timeline-executive.png">PNG</a>
+        <a href="ai-timeline.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-03 · journey</div>
+        <div class="card-title">Founder Journey — From Idea to Series B (Executive)</div>
+        <div class="card-meta">
+          <span class="meta-tag">executive</span>
+          <span class="meta-tag theme-card">card style</span>
+          <span class="meta-tag">5 milestones + activities</span>
+          <span class="meta-tag">T1-style</span>
+        </div>
+        <div class="card-desc">T1-style: milestones with descriptions + activity duration bars on spine. Ongoing and fixed-duration activities rendered. executive card theme.</div>
+      </div>
+      <div class="card-img" style="background:#0D1B2A;">
+        <img src="vertical/journey-executive.png" alt="Journey — Executive theme">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/journey-executive.svg">SVG</a>
+        <a href="vertical/journey-executive.png">PNG</a>
+        <a href="journey.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-04 · journey</div>
+        <div class="card-title">Founder Journey — Product Card Theme</div>
+        <div class="card-meta">
+          <span class="meta-tag">product</span>
+          <span class="meta-tag theme-card">card style</span>
+          <span class="meta-tag">5 milestones + activities</span>
+        </div>
+        <div class="card-desc">Same journey IR with the product card theme — vivid status colours, rounded card backgrounds.</div>
+      </div>
+      <div class="card-img">
+        <img src="vertical/journey-product.png" alt="Journey — Product theme">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/journey-product.svg">SVG</a>
+        <a href="vertical/journey-product.png">PNG</a>
+        <a href="journey.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-05 · journey</div>
+        <div class="card-title">Founder Journey — Consulting Plain Style</div>
+        <div class="card-meta">
+          <span class="meta-tag">consulting</span>
+          <span class="meta-tag theme-plain">plain style</span>
+          <span class="meta-tag">5 milestones + activities</span>
+        </div>
+        <div class="card-desc">Journey IR in the consulting (plain text, no card rects) style. Clean minimal text entries with navy status nodes.</div>
+      </div>
+      <div class="card-img">
+        <img src="vertical/journey-consulting.png" alt="Journey — Consulting theme">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/journey-consulting.svg">SVG</a>
+        <a href="vertical/journey-consulting.png">PNG</a>
+        <a href="journey.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Reused examples re-rendered with vertical-spine ────────────────── -->
+
+  <h2 class="section-heading">Existing Examples — Vertical-Spine Re-render</h2>
+
+  <div class="gallery">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-06 · milestones-only</div>
+        <div class="card-title">Corporate Milestone Calendar 2026 (Consulting)</div>
+        <div class="card-meta">
+          <span class="meta-tag">consulting</span>
+          <span class="meta-tag theme-plain">plain style</span>
+          <span class="meta-tag">6 milestones</span>
+        </div>
+        <div class="card-desc">The milestones-only gallery fixture re-rendered with layout=vertical-spine, consulting theme.</div>
+      </div>
+      <div class="card-img">
+        <img src="vertical/milestones-only-consulting.png" alt="Milestones Only — Consulting">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/milestones-only-consulting.svg">SVG</a>
+        <a href="vertical/milestones-only-consulting.png">PNG</a>
+        <a href="milestones-only.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-07 · milestones-only</div>
+        <div class="card-title">Corporate Milestone Calendar 2026 (Executive)</div>
+        <div class="card-meta">
+          <span class="meta-tag">executive</span>
+          <span class="meta-tag theme-card">card style</span>
+          <span class="meta-tag theme-dark">dark background</span>
+        </div>
+        <div class="card-desc">Same IR with the executive dark + card theme — card backgrounds highlight each milestone block.</div>
+      </div>
+      <div class="card-img" style="background:#0D1B2A;">
+        <img src="vertical/milestones-only-executive.png" alt="Milestones Only — Executive">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/milestones-only-executive.svg">SVG</a>
+        <a href="vertical/milestones-only-executive.png">PNG</a>
+        <a href="milestones-only.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">VS-08 · program-timeline</div>
+        <div class="card-title">Project Phoenix — Program Timeline (Consulting)</div>
+        <div class="card-meta">
+          <span class="meta-tag">consulting</span>
+          <span class="meta-tag theme-plain">plain style</span>
+          <span class="meta-tag">5 milestones + 10 activities</span>
+        </div>
+        <div class="card-desc">Multi-activity IR with milestones; activities shown as duration bars on the spine, milestones as entry nodes. Ongoing/fixed ends rendered.</div>
+      </div>
+      <div class="card-img">
+        <img src="vertical/program-timeline-consulting.png" alt="Program Timeline — Consulting">
+      </div>
+      <div class="card-footer">
+        <a href="vertical/program-timeline-consulting.svg">SVG</a>
+        <a href="vertical/program-timeline-consulting.png">PNG</a>
+        <a href="program-timeline.timeline.yaml">YAML</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="max-width:1100px;margin:0 auto;font-size:12px;color:#999;border-top:1px solid #e0e0e0;padding-top:16px;">
+    Layout family: <strong>vertical-spine</strong> |
+    Generated by <strong>Timeline Compiler CLI</strong> —
+    <code>--layout vertical-spine</code> |
+    All renders are deterministic (sceneHash stable across runs) |
+    <a href="index.html" style="color:#4F46E5;">← Gallery Index</a>
+  </div>
+
+</body>
+</html>

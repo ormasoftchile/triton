@@ -136,4 +136,6 @@ export const minimalTheme: ResolvedTheme = {
   categoryMap: {
     'standard-node': { fill: FILL_IN_PROGRESS, stroke: GREY_700 },
   },
+
+  entryStyle: 'plain',
 };

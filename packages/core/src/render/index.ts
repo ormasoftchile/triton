@@ -33,7 +33,7 @@ export function renderDocument(ir: IRDocument, options: RenderOptions): RenderRe
   const theme   = resolveTheme(themeId);
 
   // 2. Layout → Scene
-  const scene = layout(ir, theme);
+  const scene = layout(ir, theme, options.layout);
 
   // 3. Scene → SVG string
   const svg = sceneToSvg(scene);
