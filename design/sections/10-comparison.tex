@@ -1,0 +1,329 @@
+% =============================================================================
+% Section 10 — Comparison Analysis
+% Author: David (Research Lead)
+% =============================================================================
+
+\section{Comparison Analysis}
+\label{sec:comparison}
+
+\subsection{Framing the Comparison}
+
+Timeline Compiler is not a project-management tool, a Gantt chart engine,
+or an interactive web application.
+It is a \emph{visual-communication compiler}: a system that accepts structured
+temporal data (or natural-language plans) and deterministically renders
+presentation-quality timeline artefacts --- SVG, PNG, PDF, and PPTX --- from
+a stable, version-controlled, LLM-friendly Intermediate Representation (IR).
+
+The competitive landscape therefore contains two distinct clusters:
+
+\begin{itemize}
+  \item \textbf{Diagram-as-code tools} (Mermaid, PlantUML, D2) --- source-
+        control friendly, developer-facing, but limited in presentation fidelity
+        and output format breadth.
+  \item \textbf{Presentation / project-management tools} (think-cell,
+        PowerPoint, MS Project) --- presentation-quality, but proprietary,
+        manual, and hostile to automation and version control.
+\end{itemize}
+
+\noindent
+Timeline Compiler is designed to occupy the empty cell at the intersection:
+open-source, git-friendly, agent-generation-friendly, \emph{and}
+presentation-quality.
+Each tool below is evaluated on the axes most relevant to that position.
+
+% -----------------------------------------------------------------------------
+\subsection{Tool-by-Tool Analysis}
+% -----------------------------------------------------------------------------
+
+\subsubsection{Mermaid (timeline and gantt)}
+
+Mermaid~\cite{mermaid2023} is an MIT-licensed JavaScript diagramming library
+with over 88{,}000 GitHub stars~\cite{mermaidwiki} and native rendering on
+GitHub, GitLab, Notion, Obsidian, Azure DevOps, and hundreds of other
+platforms~\cite{mermaid2023}.
+Its \texttt{timeline} diagram type~\cite{mermaiddocs2024} graduated from beta
+in 2023.
+The syntax groups events under named sections on a horizontal time axis:
+
+\begin{Verbatim}[fontsize=\small]
+timeline
+  title 2025 Platform Roadmap
+  section Infrastructure
+    2025 Q1 : Database migration
+    2025 Q2 : CDN rollout
+  section Product
+    2025 Q2 : v2 public beta
+    2025 Q4 : GA launch : milestone
+\end{Verbatim}
+
+\noindent
+Mermaid also provides a \texttt{gantt} diagram type~\cite{mermaidgantt2024}
+with sections, task durations, dependencies, and a today-marker.
+
+\medskip\noindent
+\textbf{What Mermaid does well.}
+Git-friendly plain text; effortless integration into Markdown-driven
+workflows; zero-install web rendering; large community; MIT license;
+AI/LLM tools already generate valid Mermaid syntax.
+
+\medskip\noindent
+\textbf{Where Mermaid falls short for our goal.}
+\begin{itemize}
+  \item \emph{Presentation quality is limited.}
+        Output is SVG/PNG rendered by a JavaScript engine. The \texttt{timeline}
+        type lacks per-row swimlane formatting, precise font control, brand
+        themes, or layout tuning suitable for executive slides.
+  \item \emph{No PPTX or PDF output.}
+        Export is browser-dependent; no native headless PPTX generation.
+  \item \emph{The gantt type defaults to project-management idioms.}
+        It renders task bars with dependency arrows and progress indicators ---
+        appropriate for engineering sprints, not for McKinsey-style roadmaps
+        where visual communication is the goal.
+  \item \emph{Non-deterministic layout at scale.}
+        Label placement and bar sizing change with viewport width; large
+        roadmaps (>~50 events) degrade in readability.
+  \item \emph{No first-class theme layer.}
+        Theming is CSS injection, not a typed theme schema.
+\end{itemize}
+
+\subsubsection{PlantUML}
+
+PlantUML~\cite{plantuml} is a GPL/commercial text-to-diagram tool built on
+GraphViz.  Its \texttt{@startgantt}~\cite{plantumlgantt} mode is experimental
+as of 2024 and materially less capable than Mermaid's gantt: no section
+grouping, no resource assignment, no today-marker, and limited coloring.
+Its timeline diagram type is likewise minimal.
+
+PlantUML outputs PNG, SVG, ASCII art, and PDF, and integrates with
+Confluence, Jenkins, and many JetBrains plugins.  The server-side rendering
+architecture (a Java process) is reliable for CI pipelines.
+
+\medskip\noindent
+\textbf{Where it falls short.}
+Gantt/timeline support is a secondary feature.  Syntax is verbose and
+UML-centric --- not natural for non-technical stakeholders.
+Visual output has a distinctly technical aesthetic; unsuitable for polished
+executive deliverables.
+The GPL license creates friction for proprietary embedding.
+
+\subsubsection{vis-timeline}
+
+vis-timeline~\cite{vistimeline} (MIT) is an interactive JavaScript timeline
+widget.  Items and groups are defined as JavaScript objects; the library
+renders them in the browser as scrollable, zoomable, drag-and-drop timelines.
+
+\medskip\noindent
+\textbf{Where it falls short.}
+It is entirely browser-interactive: there is no declarative text format
+(source data is a JavaScript data structure), no static SVG/PDF export, and
+no presentation layer.  It is the right tool for dashboard UIs, not for
+printed roadmaps or slide decks.  Version-controlling the rendered output
+is not meaningful because the output is dynamic HTML.
+
+\subsubsection{Frappe Gantt}
+
+Frappe Gantt~\cite{frappegantt} (MIT) is a lightweight SVG-based Gantt
+library used in ERPNext.  Tasks are provided as JavaScript objects with
+\texttt{start}, \texttt{end}, \texttt{progress}, and \texttt{dependencies}
+fields.  It renders to SVG in the browser.
+
+\medskip\noindent
+\textbf{Where it falls short.}
+Like vis-timeline, input is programmatic JavaScript, not a text-serialisable
+data format.  There is no declarative IR, no file-format input (YAML/JSON
+from a file), no PPTX/PDF output, and no theme system.  The presentation
+quality of the output is good for a project-tracking dashboard but lacks the
+typography and layout control needed for executive presentations.
+
+\subsubsection{Microsoft Project}
+
+MS Project~\cite{msproject} is the industry-standard project-management
+application.
+It exports to a custom XML schema (\texttt{Project.xsd})~\cite{msprojectxml}
+that is non-deterministic between saves: GUIDs and timestamps change on each
+export, making diffs meaningless without post-processing.
+Output formats are proprietary \texttt{.mpp} binary and the unstable XML.
+No git-friendly text format exists natively.
+
+\medskip\noindent
+\textbf{Where it falls short.}
+Proprietary, expensive (\$\textasciitilde{}30/user/month), entirely
+interactive, and requires manual visual design for presentation quality.
+Resource allocation and critical-path scheduling are first-class concerns ---
+exactly the project-management semantics Timeline Compiler intentionally
+excludes~(see \S\ref{sec:comparison-intent}).
+The binary format is hostile to LLM generation.
+
+\subsubsection{think-cell}
+
+think-cell~\cite{thinkcell} is a PowerPoint add-in widely used by management
+consultancies (McKinsey, BCG, Bain).
+It produces presentation-quality Gantt/timeline charts~\cite{thinkcellgantt}
+with quarter/month/week granularity, responsibility columns, and smart
+label placement.
+Excel data-linking enables live updates.
+Pricing is approximately \$27.30/user/month~\cite{thinkcell}.
+
+\medskip\noindent
+\textbf{Where it falls short.}
+Proprietary, expensive, and tightly coupled to PowerPoint.
+There is no text-format input (no YAML/JSON), no CLI, no version-control
+workflow, and no programmatic (agent) generation path.
+Every change requires a human with PowerPoint.
+Git-diffing a \texttt{.pptx} file is not meaningful.
+The tool is excellent at its intended task (consulting slide production) but
+solves a different problem from Timeline Compiler.
+
+\subsubsection{PowerPoint Timeline (native SmartArt)}
+
+PowerPoint includes SmartArt-based timeline shapes~\cite{powerpoint-timeline}.
+
+\medskip\noindent
+\textbf{Where it falls short.}
+Fully manual.  No source format, no determinism, no agent path, no
+version control.  Visual quality is constrained by SmartArt templates;
+professional roadmaps almost always require manual box placement, which
+is time-consuming and fragile when dates change.
+
+% -----------------------------------------------------------------------------
+\subsection{Comparison Table}
+\label{sec:comparison-table}
+% -----------------------------------------------------------------------------
+
+Table~\ref{tab:comparison} scores each tool on seven axes relevant to
+Timeline Compiler's goals.
+Ratings are qualitative (H = High / M = Medium / L = Low) based on the
+analysis above and are not precise benchmarks.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of timeline and roadmap tools on axes relevant to
+         Timeline Compiler.
+         \textnormal{H = High, M = Medium, L = Low.
+         ``Agent-gen'' = suitability for automated generation by an LLM/agent.
+         ``Determinism'' = stable, reproducible output from the same input.
+         ``SCM'' = source-control management friendliness.}}
+\label{tab:comparison}
+\small
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Tool} &
+\rotatebox{60}{\textbf{Pres.\ quality}} &
+\rotatebox{60}{\textbf{Determinism}} &
+\rotatebox{60}{\textbf{SCM}} &
+\rotatebox{60}{\textbf{Agent-gen}} &
+\rotatebox{60}{\textbf{Open source}} &
+\rotatebox{60}{\textbf{PPTX out}} &
+\rotatebox{60}{\textbf{SVG/PDF out}} \\
+\midrule
+Mermaid timeline~\cite{mermaiddocs2024}   & M & M & H & H & H & L & M \\
+Mermaid gantt~\cite{mermaidgantt2024}     & L & M & H & H & H & L & M \\
+PlantUML~\cite{plantuml}                  & L & H & H & M & H & L & H \\
+vis-timeline~\cite{vistimeline}           & M & L & L & L & H & L & L \\
+Frappe Gantt~\cite{frappegantt}           & M & L & L & L & H & L & L \\
+MS Project~\cite{msproject}               & M & L & L & L & L & L & M \\
+think-cell~\cite{thinkcell}               & H & M & L & L & L & H & L \\
+PowerPoint~\cite{powerpoint-timeline}     & M & L & L & L & L & H & L \\
+\midrule
+\textbf{Timeline Compiler (target)}       & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The table shows that no existing tool simultaneously achieves high scores
+across all seven axes.
+think-cell scores highest on presentation quality but is closed-source with
+no agent path.
+Mermaid scores highest on openness and SCM friendliness but is limited in
+presentation fidelity and output format breadth.
+Timeline Compiler's design targets every axis at High --- a combination that
+is, at the time of writing, unoccupied.
+
+% -----------------------------------------------------------------------------
+\subsection{Where Timeline Compiler Intentionally Differs}
+\label{sec:comparison-intent}
+% -----------------------------------------------------------------------------
+
+Three design choices explicitly diverge from the dominant approaches in
+this landscape.
+
+\paragraph{1.\ Visual-communication grammar, not task-scheduling grammar.}
+Mermaid's \texttt{gantt}, MS Project, and Frappe Gantt all model a project
+schedule: tasks have durations, dependencies, progress percentages, and
+critical paths.
+Timeline Compiler's IR models a \emph{narrative} about time: events, spans,
+milestones, and swimlane groups, with an explicit visual-communication intent.
+Resource allocation, dependency graphs, and critical-path analysis are
+intentionally out of scope.
+The Grammar of Graphics~\cite{grammarofgraphics2005} and Vega-Lite's
+declarative approach~\cite{vegalite2017} inform this separation of
+``what to show'' from ``how to render it''.
+
+\paragraph{2.\ Deterministic rendering as a first-class property.}
+Mermaid's layout is viewport-dependent; MS Project XML changes on every
+save; PowerPoint files are binary blobs.
+Timeline Compiler requires that identical IR input produces bit-identical
+output.
+This property is essential for CI/CD pipelines, git-based review, and
+reliable LLM round-trips.
+
+\paragraph{3.\ Agent generation as a primary use case.}
+Existing tools treat human-in-the-loop as the default workflow: a user
+opens an application, adjusts bars, and exports.
+Timeline Compiler is designed to be driven by an AI agent with no human in
+the loop: the agent generates a valid IR (JSON or YAML conforming to the
+Timeline IR schema), the compiler renders it, and the artefact lands in
+a pull request.
+This requires a small, well-typed, documented IR that LLMs can target
+reliably --- more analogous to Vega-Lite's JSON grammar~\cite{vegalite2017}
+than to Mermaid's informal text syntax or MS Project's XML schema.
+
+% -----------------------------------------------------------------------------
+\subsection{Real-Data Crawl: Practical Patterns Observed}
+\label{sec:comparison-patterns}
+% -----------------------------------------------------------------------------
+
+During the research phase, several real-world examples of the artefacts
+Timeline Compiler targets were surveyed.
+The following recurring patterns constrain the IR and rendering model.
+
+\begin{enumerate}
+  \item \textbf{Quarter granularity dominates executive roadmaps.}
+        McKinsey/BCG-style roadmaps consistently use Q1--Q4 as the primary
+        time unit, with sub-quarter resolution reserved for milestones.
+        The IR must support a \texttt{granularity} hint (year, quarter, month,
+        week) so the renderer scales the time axis appropriately.
+
+  \item \textbf{Swimlane + milestone is the universal visual idiom.}
+        Horizontal swimlanes (one per product, workstream, or business unit)
+        with diamond or dot milestones at key dates is the dominant
+        structural pattern across consulting firms, product teams, and
+        programme offices.
+        The IR needs first-class \texttt{lane} and \texttt{milestone} elements.
+
+  \item \textbf{Spans and points coexist.}
+        Real roadmaps mix spans (``Migration: Q2--Q4 2025'') and point events
+        (``GA Launch: 15 Sep 2025'').
+        Both must be first-class IR entities.
+
+  \item \textbf{Azure DevOps and GitHub Projects are dominant data sources.}
+        ADO work items~\cite{ado-workitems} carry iteration path
+        (\texttt{System.IterationPath}) for sprint/quarter mapping.
+        GitHub Projects~\cite{github-projects} use \texttt{DATE} and
+        \texttt{ITERATION} custom fields for roadmap bars.
+        An ingestion layer must map these fields to IR span/milestone events.
+
+  \item \textbf{Mermaid syntax is the lowest-common-denominator input.}
+        Mermaid is already widely embedded in documentation.
+        An ingester that accepts Mermaid \texttt{timeline} and \texttt{gantt}
+        blocks lowers the migration barrier significantly.
+
+  \item \textbf{Manual PowerPoint is the current state-of-the-art for
+        presentation quality.}
+        The gap between what Mermaid can produce and what think-cell
+        produces is large.
+        Meeting (or approaching) think-cell output quality is the primary
+        rendering challenge.
+\end{enumerate}

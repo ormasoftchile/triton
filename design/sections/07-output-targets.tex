@@ -1,0 +1,379 @@
+\section{Output Targets}
+\label{sec:outputs}
+
+The rendering pipeline produces a single deterministic geometry from an IR document and
+theme. That geometry is then serialised into one or more output formats. The central
+architectural choice is to treat \textbf{SVG as the primary geometry format}: all other
+formats are derived from the SVG representation. This design means the determinism
+guarantee established in Section~\ref{sec:rendering-determinism} is inherited by every
+format: if the SVG output is deterministic, any format produced from it by a deterministic
+transformation is also deterministic.
+
+\begin{figure}[h]
+\centering
+\begin{Verbatim}[frame=single,fontsize=\small]
+  IR Document + Theme
+         |
+         v
+  Rendering Model (§5 -- deterministic geometry computation)
+         |
+         v
+    SVG  <-------- primary format (deterministic, vector, archival)
+    /  |  \  \
+   /   |   \  \
+  PNG  PDF PPTX HTML
+  (raster) (print) (editable) (interactive)
+\end{Verbatim}
+\caption{Output pipeline: SVG as primary geometry; all formats derived}
+\label{fig:output-pipeline}
+\end{figure}
+
+\subsection{SVG --- Primary Geometry Format}
+\label{sec:output-svg}
+
+\textbf{Format:} Scalable Vector Graphics~1.1 (W3C Recommendation).
+
+\paragraph{Benefits.}
+\begin{itemize}
+  \item \textbf{Deterministic.} SVG coordinates are integers or fixed-decimal values
+        derived from the layout algorithm. Given fixed embedded font metrics, output is
+        byte-stable across runs, platforms, and renderer versions.
+  \item \textbf{Scalable.} Vector format; renders crisply at any resolution, from
+        screen preview to A0 conference poster.
+  \item \textbf{Inspectable.} XML text format; human-readable, version-controllable with
+        meaningful diffs, and inspectable in browser developer tools.
+  \item \textbf{Embeddable.} Can be inlined in HTML, referenced in Markdown (\texttt{![]()}),
+        embedded in \LaTeX\ via \texttt{\textbackslash{}includegraphics}, or opened directly
+        in Inkscape, Figma, and Affinity Designer.
+  \item \textbf{Accessible.} Live text elements remain as SVG \texttt{<text>} nodes,
+        enabling copy-paste, search, and screen-reader access.
+\end{itemize}
+
+\paragraph{Limitations.}
+\begin{itemize}
+  \item Text rendering varies across SVG viewers when system fonts are used. Mitigation:
+        embed font files or convert text to paths for archival exports.
+  \item Not natively editable as shapes in PowerPoint or Keynote without conversion.
+  \item Complex diagrams with many activities produce proportionally large SVG files
+        (no rasterization compression).
+\end{itemize}
+
+\paragraph{Implementation strategy.}
+\begin{enumerate}
+  \item Execute all six layout phases to produce an abstract scene graph (ordered list of
+        typed drawing primitives: \texttt{Rect}, \texttt{Diamond}, \texttt{Line},
+        \texttt{Text}, \texttt{Path}, \texttt{Group}).
+  \item Serialise the scene graph to SVG~1.1 with the following invariants:
+        \begin{itemize}
+          \item All coordinates rounded to 2 decimal places (round-half-up).
+          \item All colour values expressed as 6-digit hex (\texttt{\#RRGGBB}); no named
+                colours, no \texttt{rgb()} syntax.
+          \item All dimension values as integers for rectangles, lines, and polygons;
+                2-decimal for text positions.
+          \item Font references via \texttt{<style>} or \texttt{@font-face} in
+                \texttt{<defs>}; no inline \texttt{style=} font declarations.
+          \item Pattern definitions (\texttt{<pattern>}) in \texttt{<defs>},
+                referenced by ID (\texttt{url(\#tc-pattern-diagonal-hatch)}).
+          \item Diamond vertices computed directly; no \texttt{transform="rotate(...)"}
+                on individual elements.
+          \item Element IDs use the stable prefix \texttt{tc-} followed by the entity
+                \texttt{id} from the IR (e.g., \texttt{tc-api-redesign}).
+          \item Elements serialised in painting order: sections, gridlines, activity bars,
+                milestones, annotations, labels.
+        \end{itemize}
+  \item Two SVG outputs from identical inputs must be byte-identical: same element order,
+        same attribute order within each element, same \texttt{<defs>} structure.
+\end{enumerate}
+
+\paragraph{Text-as-paths option.}
+For archival, print, and PPTX export, an optional \texttt{--text-as-paths} flag converts all
+\texttt{<text>} elements to \texttt{<path>} elements using pre-computed glyph outlines from
+embedded font files. This eliminates font-dependent text rendering differences at the cost of
+SVG searchability and file size. It is not the default.
+
+\subsection{PNG --- Raster Output}
+\label{sec:output-png}
+
+\textbf{Format:} Portable Network Graphics (ISO/IEC 15948).
+
+\paragraph{Benefits.}
+\begin{itemize}
+  \item Universal compatibility: pasteable into Google Docs, Microsoft Office, Notion,
+        Slack messages, GitHub issue comments, and presentation tools without conversion.
+  \item Lossless at the selected rendering resolution.
+  \item Predictable, inspectable output; readily embedded in email.
+\end{itemize}
+
+\paragraph{Limitations.}
+\begin{itemize}
+  \item Not scalable; resolution is fixed at export time. Upscaling produces pixelation.
+  \item Text is rasterised; not searchable or selectable.
+  \item File size grows quadratically with DPI; 300~DPI exports of large canvases can be
+        several megabytes.
+\end{itemize}
+
+\paragraph{Implementation strategy.}
+\begin{enumerate}
+  \item Rasterise the primary SVG output at a caller-specified DPI.
+        Default: 150~DPI for web/screen use; 300~DPI for print-quality output.
+  \item Use a headless SVG rasteriser with embedded font support and no system-font
+        dependency. Recommended: \texttt{resvg} (Rust, permissive licence) or
+        \texttt{librsvg} (C, LGPL). Both accept WOFF2 font files directly.
+  \item Anti-aliasing: MSAA at 4$\times$ (fixed). Sub-pixel AA disabled (produces
+        different results across LCD orientations). Font rendering uses pre-computed glyph
+        outlines (not system hinting).
+  \item PNG compression: deflate level~6. Level~9 is not used (marginal size savings;
+        produces different byte sequences on different zlib versions, breaking
+        byte-identity guarantee).
+  \item The rasteriser is treated as a deterministic function: same SVG $+$ same DPI
+        $+$ same rasteriser version $\to$ identical PNG bytes.
+\end{enumerate}
+
+\subsection{PDF --- Archival and Print}
+\label{sec:output-pdf}
+
+\textbf{Format:} PDF~1.7 (ISO~32000-1); PDF/A-1b recommended for archival.
+
+\paragraph{Benefits.}
+\begin{itemize}
+  \item Industry-standard archival and print format universally accepted by email,
+        cloud storage, and document workflows.
+  \item Vector quality at any print size (A4 through A0 and beyond).
+  \item Font embedding guarantees identical rendering across all compliant PDF viewers.
+  \item PDF/A profile ensures long-term readability without external dependencies.
+\end{itemize}
+
+\paragraph{Limitations.}
+\begin{itemize}
+  \item Not editable as shapes in PowerPoint or Keynote; read-only in presentation tools.
+  \item Some SVG features (advanced filter effects, certain gradient types) require
+        PDF equivalents that may not render identically across all PDF viewers.
+  \item Larger file size than PNG for complex diagrams at equivalent visual fidelity.
+\end{itemize}
+
+\paragraph{Implementation strategy.}
+\begin{enumerate}
+  \item Convert the primary SVG to PDF using a programmatic library.
+        Recommended: \texttt{svg2pdf} (Rust, Apache~2.0) or \texttt{cairosvg}
+        (Python, MIT). \textbf{Not} LibreOffice, headless Chrome, or Puppeteer
+        (too heavyweight; introduces rendering non-determinism from browser layout engine).
+  \item Embed all fonts from the theme's \texttt{font\_files} entries, converted to
+        Type~1/CFF for PDF. Subsetting to used glyphs is permitted.
+  \item Set PDF metadata fields deterministically:
+        \begin{itemize}
+          \item \texttt{/Title} $\leftarrow$ \texttt{metadata.title}
+          \item \texttt{/Author} $\leftarrow$ \texttt{metadata.author} (if set)
+          \item \texttt{/CreationDate} $\leftarrow$ \texttt{metadata.created} (NOT system
+                timestamp; if \texttt{created} absent, omit the field)
+        \end{itemize}
+  \item Generate the PDF document ID as a SHA-256 hash of the SVG content bytes, truncated
+        to 16 bytes and formatted as a PDF hex string. This ensures byte-stable output
+        without relying on random UUIDs.
+\end{enumerate}
+
+\subsection{PPTX --- Editable Presentation}
+\label{sec:output-pptx}
+
+\textbf{Format:} Office Open XML Presentation (ISO/IEC~29500).
+\textbf{Library:} \texttt{python-pptx} (MIT licence)~\cite{python-pptx}.
+
+\paragraph{The fidelity--editability trade-off.}
+
+PPTX is the most architecturally complex output target because it offers a fundamental
+design choice between two strategies, each with distinct properties:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lXXX}
+\toprule
+\textbf{Strategy} & \textbf{Fidelity} & \textbf{Editability} & \textbf{Implementation} \\
+\midrule
+Image embedding &
+  Perfect: SVG or EMF embedded as an opaque image element &
+  None: users cannot move, resize, or recolour individual elements &
+  Low: one API call per slide \\[6pt]
+Native shapes &
+  High: geometry reconstructed as native MSO shape objects &
+  Full: bars, diamonds, and labels are editable PowerPoint shapes &
+  High: requires full geometry-to-EMU conversion and shape API \\[6pt]
+Hybrid &
+  High for standard elements; exact for decorations &
+  Partial: bars/labels editable; gradient patterns as image overlay &
+  Medium: native shapes with fallback image layer \\
+\bottomrule
+\end{tabularx}
+\caption{PPTX output strategies and trade-offs}
+\label{tab:pptx-strategies}
+\end{table}
+
+\paragraph{Think-cell comparison.}
+Think-cell~\cite{thinkcell} achieves the highest-quality editable output: every timeline
+element is a native PowerPoint shape at the XML level, with full fidelity in font, colour,
+and position regardless of slide dimensions. Its approach is PowerPoint-locked and requires
+a proprietary COM add-in, precluding text-format authoring or agent generation paths. Our
+target is to approach think-cell's editability for the standard element vocabulary (bars,
+diamonds, text boxes) while retaining full pipeline determinism and text-format IR.
+
+\paragraph{Recommended strategy: native shapes with image fallback.}
+
+\begin{enumerate}
+  \item \textbf{Slide dimensions.} Set slide width and height to the theme's canvas width
+        and computed height. Coordinate conversion: 1 logical pixel~$= 914.4$~EMU
+        (English Metric Units, the PPTX coordinate unit at 96~DPI logical resolution).
+        Apply round-half-up rounding; this conversion is deterministic.
+  \item \textbf{Canvas background.} A full-slide rectangle fill in
+        \texttt{theme.canvas.background\_color}.
+  \item \textbf{Track headers.} \texttt{MSO\_AUTO\_SHAPE\_TYPE.RECTANGLE} with
+        \texttt{TextFrame}. Font from \texttt{theme.typography}. No fill (transparent) or
+        light fill per theme.
+  \item \textbf{Activity bars.} \texttt{ROUNDED\_RECTANGLE} with corner radius
+        proportional to \texttt{theme.activity.bar\_radius}. Fill colour from the
+        resolved status/category style. For diagonal-hatch pattern: a second
+        semi-transparent rectangle with a hatch pattern fill layer overlaid.
+  \item \textbf{Milestone diamonds.} \texttt{MSO\_AUTO\_SHAPE\_TYPE.DIAMOND} shape,
+        filled with the resolved status colour.
+  \item \textbf{Labels.} \texttt{TextFrame} inside each shape. Font size, weight, and
+        colour from theme. For labels placed outside bars: free-floating \texttt{TextBox}
+        shapes positioned at the coordinates computed in Phase~3/6.
+  \item \textbf{Axis header.} Rectangle shape with tick-label \texttt{TextBox} elements.
+        Gridlines as thin Line shapes.
+  \item \textbf{Today marker (if enabled).} A vertical Line shape spanning the full track
+        height, styled per \texttt{theme.axis.today\_marker}.
+  \item \textbf{Gradient and complex pattern fallback.} Approximate-date gradient fades
+        and annotation connectors that cannot be faithfully represented as native MSO shapes
+        are rasterised to a PNG layer at 150~DPI and embedded as a transparent image shape
+        above the native shapes. The native shapes remain editable beneath the overlay.
+\end{enumerate}
+
+\paragraph{Limitations.}
+\begin{itemize}
+  \item Diagonal-hatch patterns require an MSO hatch fill, which is supported in
+        python-pptx~1.x via the \texttt{pptx.oxml} XML interface; it is not a first-class
+        \texttt{python-pptx} API.
+  \item Gradient fills at activity bar edges (approximate-date treatment) fall back to the
+        image overlay strategy.
+  \item The slide must be set to a fixed pixel dimension; PPTX files opened on displays
+        with different DPI settings will be scaled by the viewer but remain geometrically
+        faithful.
+\end{itemize}
+
+\subsection{HTML --- Interactive Preview}
+\label{sec:output-html}
+
+\textbf{Format:} HTML5 with inline SVG.
+
+\paragraph{Benefits.}
+\begin{itemize}
+  \item \textbf{Zero-install preview.} Any browser can display the file. Ideal for the
+        VS~Code extension live-preview pane and for sharing timelines via URL.
+  \item \textbf{Interactive.} JavaScript hover handlers can display \texttt{description}
+        and \texttt{metadata} fields from the IR as tooltips, without altering geometry.
+  \item \textbf{Accessible.} SVG \texttt{<text>} nodes remain live text; labels are
+        searchable and selectable. \texttt{<title>} elements on shapes are readable by
+        assistive technology.
+  \item \textbf{MCP-agent integration.} The MCP server (Section~\ref{sec:agent}) can
+        return an HTML URL as the rendering result, allowing agents to preview timelines
+        in a browser tab without file-system access.
+\end{itemize}
+
+\paragraph{Limitations.}
+\begin{itemize}
+  \item The interactive state (hover, click, tooltip visibility) is not deterministic
+        and is not part of the rendering contract. The underlying SVG geometry is identical
+        to the standalone SVG output; only the interactive layer varies.
+  \item Not suitable for archival or print without stripping the JavaScript layer.
+  \item Browser-to-browser rendering differences in SVG gradients and filter effects may
+        produce minor visual variations; these are HTML rendering environment differences,
+        not Timeline Compiler defects.
+\end{itemize}
+
+\paragraph{Implementation strategy.}
+\begin{enumerate}
+  \item Take the primary SVG output (from \S\ref{sec:output-svg}) as-is.
+  \item Wrap in an HTML5 document shell: \texttt{<!DOCTYPE html>},
+        \texttt{<meta charset="utf-8">}, \texttt{<title>} from \texttt{metadata.title},
+        minimal CSS for page background and centre alignment.
+  \item Inject the SVG inline (not as \texttt{<img src="...svg">}) to allow JavaScript
+        access to SVG DOM nodes.
+  \item Attach a lightweight JavaScript event listener (no framework dependency) that
+        reads \texttt{data-description} and \texttt{data-id} attributes from SVG elements
+        (set during SVG serialisation from activity/milestone \texttt{description} and
+        \texttt{id} fields) and displays a tooltip \texttt{<div>} on hover.
+  \item The JS listener is the only non-deterministic component; it has no effect on SVG
+        geometry. A \texttt{--no-js} flag produces geometry-identical HTML with the
+        JavaScript block omitted.
+\end{enumerate}
+
+\subsection{Output Priority Recommendation}
+\label{sec:output-priority}
+
+The following priority ordering is recommended for implementation, based on the value
+delivered per implementation unit and the dependency structure of the pipeline:
+
+\begin{enumerate}
+  \item \textbf{SVG} --- \emph{Build first, always.} SVG is the primary geometry format
+        and the foundation of every other output. Without a correct, deterministic SVG
+        output, no other format is trustworthy. It also serves as the primary debugging
+        surface during development: every layout defect is visible in SVG before any
+        rasterisation or conversion step can obscure it.
+
+  \item \textbf{PNG} --- \emph{Immediate universal value.} PNG requires only a rasteriser
+        (one well-tested library call) and unlocks the most common real-world use case:
+        pasting a timeline into a document, email, or Slack message. The effort is minimal
+        once SVG is correct.
+
+  \item \textbf{PDF} --- \emph{Print and archival; consulting use case.} The primary
+        differentiator vs.\ Mermaid~\cite{mermaid2023} is presentation quality; PDF is
+        the delivery format for consulting deliverables. The SVG-to-PDF conversion path is
+        well-understood and deterministic. Priority~3 because it requires font subsetting
+        and PDF metadata handling, but the engineering effort is low relative to PPTX.
+
+  \item \textbf{PPTX} --- \emph{Highest value, highest complexity.} PPTX native shapes
+        are the closest equivalent to think-cell~\cite{thinkcell} editability---the quality
+        benchmark identified in David's research. The implementation is the most complex
+        (EMU coordinate conversion, MSO shape API, hatch pattern XML). Priority~4 because
+        it requires a stable SVG geometry first, and its correctness depends on all earlier
+        priorities being solid.
+
+  \item \textbf{HTML} --- \emph{Developer experience and agent integration.} HTML is
+        nearly free once SVG is correct (wrap in an HTML shell, attach JS). It is essential
+        for the VS~Code extension live preview and the MCP agent integration path described
+        in Section~\ref{sec:agent}. Priority~5 because its primary consumers (the extension
+        and the MCP server) are themselves lower-priority deliverables in the distribution
+        architecture.
+\end{enumerate}
+
+\subsection{Format Comparison Summary}
+\label{sec:format-comparison}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lXXXXX}
+\toprule
+\textbf{Property} & \textbf{SVG} & \textbf{PNG} & \textbf{PDF} & \textbf{PPTX} & \textbf{HTML} \\
+\midrule
+Scalable          & Yes          & No           & Yes          & Yes           & Yes \\
+Byte-deterministic & Yes         & Yes          & Yes          & Yes           & Yes (geometry) \\
+Editable shapes   & Via Inkscape & No           & No           & Yes (native)  & No \\
+Text searchable   & Yes          & No           & Yes          & Yes           & Yes \\
+Print-ready       & Via viewer   & At 300~DPI   & Yes          & Via PPT       & No \\
+Universal compat. & High         & Very high    & Very high    & Office-only   & Browser-only \\
+Interactive       & No           & No           & No           & No            & Yes \\
+Impl.\ complexity & Foundation   & Low          & Low--medium  & High          & Low \\
+Build priority    & 1            & 2            & 3            & 4             & 5 \\
+\bottomrule
+\end{tabularx}
+\caption{Output format properties and recommended build priority}
+\label{tab:format-comparison}
+\end{table}
+
+\paragraph{Determinism across formats.}
+SVG, PNG, and PDF satisfy the full byte-determinism contract defined in
+Section~\ref{sec:rendering-determinism}. PPTX satisfies geometric determinism (same EMU
+coordinates across runs) but PPTX files contain internal XML IDs (\texttt{r:id}) that
+may vary across \texttt{python-pptx} versions; renderers should stabilise these by deriving
+them from entity \texttt{id} values rather than using auto-generated values. HTML satisfies
+SVG geometry determinism; its interactive JavaScript layer is explicitly excluded from the
+determinism contract.

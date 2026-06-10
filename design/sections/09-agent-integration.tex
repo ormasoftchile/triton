@@ -1,0 +1,1141 @@
+\section{Agent Integration}
+\label{sec:agent-integration}
+
+AI agents are first-class users of Timeline Compiler. They are not an afterthought wired to
+a human-facing CLI; they are a primary consumer of the IR, the primary beneficiary of a
+published JSON Schema, and the primary audience for the MCP server surface. This section
+designs the full agent integration path: from raw inputs through ingestion to a valid IR,
+through validation and repair, and through round-trip editing without loss of provenance.
+
+The fundamental unit of agent work is the \emph{ingestion task}: given a \textbf{data source}
+(work items, prose, structured export) and a \textbf{natural-language prompt}, produce a valid
+Timeline IR. The prompt is a first-class input---it determines what is selected, how it is
+framed, which entities are promoted to milestones, and which are dropped entirely. An agent
+that ignores the prompt and imports everything it can find is not doing its job.
+
+
+%%============================================================================
+\subsection{The Ingestion Contract}
+\label{sec:ingestion-contract}
+%%============================================================================
+
+The ingestion contract defines what the ingestion path is permitted to do with the inputs it
+receives. Table~\ref{tab:ingestion-contract} captures the four categories of ingestion
+decision. Violations of this contract---particularly silent data loss or silent inference---
+are the most common source of incorrect or misleading timelines.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lp{4.5cm}p{6cm}}
+\toprule
+\textbf{Category} & \textbf{Definition} & \textbf{Examples} \\
+\midrule
+\textbf{Assumed} & Facts taken from the prompt or schema without source evidence & Title derived from prompt instruction; version \texttt{"1.0"} \\
+\addlinespace
+\textbf{Inferred} & Derived from source data by a deterministic rule & \texttt{axis\_unit} from date span; \texttt{time\_range} from min/max activity dates; track from \texttt{AreaPath} \\
+\addlinespace
+\textbf{Defaulted} & Omitted from IR, relying on documented schema default & \texttt{status: planned} omitted when all items are future; \texttt{locale} omitted \\
+\addlinespace
+\textbf{Rejected} & Source data discarded, reason logged & Bugs dropped when prompt says ``features and milestones only''; items outside prompted time window; duplicate or zero-duration events with no label \\
+\bottomrule
+\end{tabular}
+\caption{Ingestion decision categories}
+\label{tab:ingestion-contract}
+\end{table}
+
+\subsubsection{The Prompt as First-Class Input}
+\label{sec:prompt-as-input}
+
+The prompt directs every non-trivial ingestion decision. Table~\ref{tab:prompt-controls}
+lists what the prompt controls and what the ingestion layer must extract from it before
+touching the source data.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lp{9cm}}
+\toprule
+\textbf{Prompt Signal} & \textbf{Ingestion Effect} \\
+\midrule
+Time horizon (\textit{``Q1--Q3 2026''}) & Sets or constrains \texttt{time\_range}; items outside window are rejected \\
+Entity filter (\textit{``features and milestones only''}) & Restricts work item types included; bugs, tasks dropped \\
+Track grouping (\textit{``group by team''}) & Maps source field (e.g., \texttt{AreaPath}) to tracks \\
+Emphasis (\textit{``highlight at-risk items''}) & Promotes \texttt{status} field; may add annotation \\
+Framing (\textit{``executive summary''}) & Reduces label verbosity; promotes high-level items \\
+Title / subtitle & Populates \texttt{metadata.title} / \texttt{metadata.subtitle} \\
+Milestone promotion (\textit{``mark GA as a milestone''}) & Converts matching activity to milestone entity \\
+\bottomrule
+\end{tabular}
+\caption{Prompt signals and their ingestion effects}
+\label{tab:prompt-controls}
+\end{table}
+
+\subsubsection{What Ingestion May Not Do}
+
+\begin{itemize}
+  \item \textbf{Must not compute dates.} If a source item has no date, it must use
+        \texttt{tbd}, not invent one. Timeline Grammar does not compute schedules
+        (see \S\ref{sec:scope}).
+  \item \textbf{Must not collapse ambiguous status silently.} An ADO work item in state
+        ``On Hold'' that has no clear IR equivalent must log a rejection warning, not
+        silently map to \texttt{planned}.
+  \item \textbf{Must not import the whole backlog.} The prompt defines the editorial
+        scope. Importing everything that exists and hoping the renderer trims it is a
+        contract violation.
+  \item \textbf{Must not generate non-stable IDs.} IDs derived from sequential numbers
+        (\texttt{act-1}, \texttt{act-2}) are permitted only as a last resort. IDs should
+        be derived from the item's title slug for git-friendliness (see
+        \S\ref{sec:round-trip}).
+\end{itemize}
+
+
+%%============================================================================
+\subsection{Ingestion Workflows}
+\label{sec:ingestion-workflows}
+%%============================================================================
+
+The following subsections describe four concrete ingestion flows, each with a source
+excerpt, a prompt, the resulting IR YAML, and an explicit account of what the prompt
+selected, inferred, and rejected.
+
+%% ---------------------------------------------------------------------------
+\subsubsection{Azure DevOps Work Items}
+\label{sec:ingest-ado}
+%% ---------------------------------------------------------------------------
+
+\textbf{Source format.} The ADO Work Items REST API \cite{ado-workitems} returns JSON
+objects. The fields relevant to timeline ingestion are listed in
+Table~\ref{tab:ado-field-mapping}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{ADO Field} & \textbf{IR Target} & \textbf{Notes} \\
+\midrule
+\texttt{System.Title} & \texttt{activity.label} / \texttt{milestone.label} & Verbatim or
+  prompt-shortened \\
+\texttt{System.State} & \texttt{activity.status} & Via Table~\ref{tab:ado-state-map} \\
+\texttt{System.WorkItemType} & \texttt{activity.category} / entity type & Feature $\to$
+  activity; Milestone $\to$ milestone \\
+\texttt{System.IterationPath} & \texttt{span} or \texttt{start}/\texttt{end} & E.g.
+  \texttt{Platform\textbackslash 2026\textbackslash Q2} $\to$ \texttt{span: 2026-Q2} \\
+\texttt{System.AreaPath} & \texttt{track} & Leaf segment becomes track label/id \\
+\texttt{Microsoft.VSTS.Scheduling.TargetDate} & \texttt{milestone.date} & Used when
+  promoting to milestone \\
+\texttt{System.Tags} & \texttt{activity.tags} & Passed through \\
+\texttt{System.Id} & \texttt{metadata.ado\_id} & Provenance (not rendered) \\
+\bottomrule
+\end{tabular}
+\caption{ADO work item field mapping}
+\label{tab:ado-field-mapping}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{ADO State} & \textbf{IR Status} \\
+\midrule
+New          & \texttt{planned} \\
+Active       & \texttt{in-progress} \\
+Resolved     & \texttt{done} \\
+Closed       & \texttt{done} \\
+Removed      & \texttt{cancelled} \\
+On Hold      & \texttt{blocked} \\
+\textit{(other)} & \texttt{planned} (warn: unmapped state) \\
+\bottomrule
+\end{tabular}
+\caption{ADO state to IR status mapping}
+\label{tab:ado-state-map}
+\end{table}
+
+\textbf{Source excerpt.}
+
+\begin{lstlisting}[language=yaml,caption={ADO work item JSON (abridged)}]
+# ADO API response (workItems array, fields selected)
+- id: 1024
+  fields:
+    System.Title: "API Gateway Migration"
+    System.State: "Active"
+    System.WorkItemType: "Feature"
+    System.IterationPath: "Platform\\2026\\Q2"
+    System.AreaPath: "Platform Team"
+- id: 1025
+  fields:
+    System.Title: "Mobile App 3.0 GA"
+    System.State: "New"
+    System.WorkItemType: "Milestone"
+    System.AreaPath: "Mobile Team"
+    Microsoft.VSTS.Scheduling.TargetDate: "2026-09-15"
+- id: 1031
+  fields:
+    System.Title: "Fix login timeout bug"
+    System.State: "Active"
+    System.WorkItemType: "Bug"
+    System.AreaPath: "Platform Team"
+\end{lstlisting}
+
+\textbf{Prompt.} \textit{``Show the Q1--Q3 2026 Platform and Mobile roadmap. Include
+features and milestones only. Group by team. Drop bugs and tasks.''}
+
+\textbf{Resulting IR.}
+
+\begin{lstlisting}[language=yaml,caption={IR produced from ADO work items}]
+version: "1.0"
+metadata:
+  title: Platform & Mobile Roadmap
+  subtitle: Q1-Q3 2026
+  time_range:
+    start: 2026-Q1
+    end: 2026-Q3
+  axis_unit: quarter   # inferred: 3-quarter window -> quarter granularity
+
+tracks:
+  - id: platform
+    label: Platform Team
+  - id: mobile
+    label: Mobile Team
+
+activities:
+  - id: api-gateway-migration
+    label: API Gateway Migration
+    track: platform
+    span: 2026-Q2        # inferred from IterationPath "Platform\2026\Q2"
+    status: in-progress   # mapped from ADO state "Active"
+    category: feature
+    metadata:
+      source: ado
+      ado_id: 1024
+      ado_iteration: "Platform\\2026\\Q2"
+
+milestones:
+  - id: mobile-app-3-ga
+    label: Mobile App 3.0 GA
+    date: 2026-09-15    # from TargetDate field
+    track: mobile
+    status: planned      # mapped from ADO state "New"
+    metadata:
+      source: ado
+      ado_id: 1025
+\end{lstlisting}
+
+\textbf{What the prompt did.}
+\begin{itemize}
+  \item \textbf{Selected:} Items 1024 (Feature) and 1025 (Milestone). Item 1031 (Bug)
+        was rejected because the prompt said ``features and milestones only''.
+  \item \textbf{Framed:} \texttt{time\_range} set to Q1--Q3 2026 from prompt instruction.
+        Item 1025's target date (2026-09-15) falls within Q3, so it is included.
+  \item \textbf{Inferred:} Tracks derived from \texttt{AreaPath} leaf segments. \texttt{axis\_unit}
+        inferred as \texttt{quarter} from the three-quarter window.
+  \item \textbf{Dropped:} Bug work item 1031 (not in filter). Had the time range excluded
+        any item, it would be dropped with a logged rejection.
+\end{itemize}
+
+
+%% ---------------------------------------------------------------------------
+\subsubsection{Natural Language Prose}
+\label{sec:ingest-prose}
+%% ---------------------------------------------------------------------------
+
+When the source is free-form text---a planning document, a briefing note, an email
+thread---the agent must extract temporal structure from prose. This is the most
+ambiguity-prone ingestion path; the contract requires explicit handling of every point
+of uncertainty.
+
+\textbf{Source text.}
+
+\begin{lstlisting}[caption={Natural language source}]
+We are planning to migrate the data warehouse in the first half of 2026.
+The new customer portal is targeted for Q3. Both initiatives are owned
+by the Engineering org. An executive review is scheduled for 15 July 2026.
+The legacy decommission date is TBD, pending the warehouse cutover.
+\end{lstlisting}
+
+\textbf{Prompt.} \textit{``Show this as a two-track roadmap: Infrastructure and Product.
+Mark the executive review as a milestone. Include the decommission even though its date
+is not fixed.''}
+
+\textbf{Resulting IR.}
+
+\begin{lstlisting}[language=yaml,caption={IR produced from natural language prose}]
+version: "1.0"
+metadata:
+  title: 2026 Engineering Roadmap
+  time_range:
+    start: 2026-H1
+    end: 2026-Q3
+  axis_unit: quarter  # inferred: H1+Q3 window, quarterly detail
+
+tracks:
+  - id: infrastructure
+    label: Infrastructure
+  - id: product
+    label: Product
+
+activities:
+  - id: data-warehouse-migration
+    label: Data Warehouse Migration
+    track: infrastructure
+    span: 2026-H1
+    status: planned
+
+  - id: customer-portal
+    label: New Customer Portal
+    track: product
+    span: 2026-Q3
+    status: planned
+
+  - id: legacy-decommission
+    label: Legacy Decommission
+    track: infrastructure
+    start: tbd          # explicit: date not yet determined
+    status: planned
+
+milestones:
+  - id: executive-review
+    label: Executive Review
+    date: 2026-07-15
+    status: planned
+\end{lstlisting}
+
+\textbf{What the prompt did.}
+\begin{itemize}
+  \item \textbf{Structured:} Track assignments (Infrastructure vs.\ Product) came from the
+        prompt. The source text only named ``Engineering org''.
+  \item \textbf{Promoted:} The executive review was elevated to a milestone (not an
+        activity) by explicit prompt instruction.
+  \item \textbf{Included with uncertainty:} Legacy decommission included despite no
+        fixed date; \texttt{start: tbd} preserves the fact on the timeline without
+        inventing a date.
+  \item \textbf{Inferred:} \texttt{time\_range} derived from the earliest (\texttt{2026-H1}
+        start) and latest (\texttt{2026-07-15}) concrete dates. \texttt{axis\_unit}
+        set to \texttt{quarter} as the coarsest granularity that fits the items.
+\end{itemize}
+
+\textbf{Ambiguity resolution.} ``First half of 2026'' is unambiguously \texttt{2026-H1}
+(ISO half, per the date model). ``Q3'' without a year is inferred as \texttt{2026-Q3}
+from context (all other dates are 2026). If the year were ambiguous, the agent must
+surface a warning rather than guess.
+
+
+%% ---------------------------------------------------------------------------
+\subsubsection{GitHub Projects}
+\label{sec:ingest-github}
+%% ---------------------------------------------------------------------------
+
+GitHub Projects (ProjectV2) \cite{github-projects,github-graphql-projectv2} supports
+custom field types that carry roadmap-relevant data. The ingestion mapping is
+summarised in Table~\ref{tab:github-field-mapping}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{GitHub ProjectV2 Field} & \textbf{IR Target} & \textbf{Notes} \\
+\midrule
+\texttt{title} (built-in) & \texttt{activity.label} / \texttt{milestone.label} & Verbatim or shortened \\
+\texttt{status} (select field) & \texttt{activity.status} & Label mapped to IR enum \\
+\texttt{DATE} custom field & \texttt{start} / \texttt{milestone.date} & Named field determines role \\
+\texttt{ITERATION} custom field & \texttt{span} & Iteration title maps to quarter \\
+\texttt{labels} & \texttt{activity.category} (first) / \texttt{activity.tags} & First label to category \\
+\texttt{milestone} (linked) & \texttt{milestones} entry & Promoted to IR milestone \\
+\texttt{repository} & \texttt{track} & When prompt says ``group by repo'' \\
+\texttt{assignees} & \texttt{metadata.assignees} & Not rendered; preserved for provenance \\
+\texttt{number} (issue \#) & \texttt{metadata.github\_issue} & Provenance link \\
+\bottomrule
+\end{tabular}
+\caption{GitHub ProjectV2 field mapping}
+\label{tab:github-field-mapping}
+\end{table}
+
+The ITERATION field type is the most useful for quarterly roadmaps: iteration titles
+like ``2026 Q2'' map directly to \texttt{span: 2026-Q2}, making the ingestion path
+from GitHub Projects to a quarterly roadmap nearly lossless.
+
+\textbf{Gap note.} GitHub Projects does not have a first-class concept analogous to
+``work item type'' (Feature vs.\ Bug vs.\ Task). Filtering by type requires label or
+custom field conventions, which vary per team. The prompt must specify the filter
+criterion explicitly.
+
+
+%% ---------------------------------------------------------------------------
+\subsubsection{Mermaid Timeline Syntax}
+\label{sec:ingest-mermaid}
+%% ---------------------------------------------------------------------------
+
+Mermaid's \texttt{timeline} diagram \cite{mermaiddocs2024,mermaid2023} is the most
+common structured timeline format already embedded in team documentation. Its syntax
+maps cleanly to IR sections and activities.
+
+\textbf{Source.}
+\begin{lstlisting}[caption={Mermaid timeline source}]
+timeline
+    title Platform Evolution 2026
+    section H1 2026
+        API Gateway : Q1 : Migration complete
+        Auth Refresh : Q2 : New OAuth2 provider
+    section H2 2026
+        Mobile 3.0 GA : Q3
+        Legacy Cutover : Q4 : Final decommission
+\end{lstlisting}
+
+\textbf{Resulting IR.}
+\begin{lstlisting}[language=yaml,caption={IR produced from Mermaid timeline syntax}]
+version: "1.0"
+metadata:
+  title: Platform Evolution 2026
+  time_range:
+    start: 2026-Q1
+    end: 2026-Q4
+  axis_unit: quarter
+
+tracks:
+  - id: platform
+    label: Platform      # default single-track when Mermaid has no swimlanes
+
+sections:
+  - id: h1-2026
+    label: H1 2026
+    time_range:
+      start: 2026-Q1
+      end: 2026-Q2
+
+  - id: h2-2026
+    label: H2 2026
+    time_range:
+      start: 2026-Q3
+      end: 2026-Q4
+
+activities:
+  - id: api-gateway
+    label: API Gateway
+    track: platform
+    span: 2026-Q1
+    description: "Migration complete"
+    status: planned
+
+  - id: auth-refresh
+    label: Auth Refresh
+    track: platform
+    span: 2026-Q2
+    description: "New OAuth2 provider"
+    status: planned
+
+  - id: mobile-3-ga
+    label: Mobile 3.0 GA
+    track: platform
+    span: 2026-Q3
+    status: planned
+
+  - id: legacy-cutover
+    label: Legacy Cutover
+    track: platform
+    span: 2026-Q4
+    description: "Final decommission"
+    status: planned
+\end{lstlisting}
+
+\textbf{Mapping notes.}
+Mermaid \texttt{timeline} does not have a swimlane concept; all events are rendered in
+a single horizontal flow grouped by section. When promoting to IR, a default single track
+is created unless the prompt specifies a multi-track structure. Mermaid's colon-separated
+description field maps to \texttt{description}. Because Mermaid \texttt{gantt}
+\cite{mermaidgantt2024} uses a different syntax (task dependencies, progress), Mermaid
+gantt ingestion requires a separate mapping pass; that mapping is out of scope for the
+initial IR but is an extension point (see \S\ref{sec:scope}).
+
+
+%%============================================================================
+\subsection{Reliable IR Generation by Agents}
+\label{sec:agent-ir-generation}
+%%============================================================================
+
+LLM-based agents generate IR reliably when three conditions hold: (1) the target schema
+is machine-readable and published, (2) the generation call is constrained to valid
+output shapes, and (3) the IR's structural choices minimise the surface area for
+generation errors.
+
+%% ---------------------------------------------------------------------------
+\subsubsection{JSON Schema Publication}
+\label{sec:json-schema}
+%% ---------------------------------------------------------------------------
+
+The IR schema must be published as a JSON Schema document \cite{openai-structured-outputs}.
+This is a binding requirement established by David's research constraints (Constraint~7 in
+\S\ref{sec:david-research}): without a machine-readable schema, agent generation is
+unreliable. The schema is a first-class deliverable of this project, versioned alongside
+the spec.
+
+The top-level JSON Schema structure mirrors the IR document structure directly:
+
+\begin{lstlisting}[language=yaml,caption={Abbreviated JSON Schema for the IR (YAML representation)}]
+# $schema: https://json-schema.org/draft/2020-12/schema
+# $id: https://timeline-compiler.dev/schema/v1/timeline.json
+title: Timeline IR
+type: object
+required: [version, metadata, tracks, activities]
+properties:
+  version:
+    type: string
+    description: "Specification version, e.g. \"1.0\""
+
+  metadata:
+    type: object
+    required: [title, time_range]
+    properties:
+      title:       { type: string }
+      subtitle:    { type: string }
+      time_range:
+        type: object
+        required: [start]
+        properties:
+          start: { "$ref": "#/$defs/Date" }
+          end:   { "$ref": "#/$defs/Date" }
+      axis_unit:   { "$ref": "#/$defs/AxisUnit" }
+      theme:       { type: string }
+      locale:      { type: string }
+
+  tracks:
+    type: array
+    minItems: 1
+    items: { "$ref": "#/$defs/Track" }
+
+  activities:
+    type: array
+    items: { "$ref": "#/$defs/Activity" }
+
+  milestones:
+    type: array
+    items: { "$ref": "#/$defs/Milestone" }
+
+  # groups, annotations, sections, legend all optional arrays
+
+$defs:
+  ID:
+    type: string
+    pattern: "^[a-z][a-z0-9-]*$"
+
+  Date:
+    type: string
+    description: "ISO date, quarter (2026-Q2), half (2026-H1), relative (+3m),
+                  symbolic (now), or uncertain token (tbd, ongoing, unknown,
+                  or tilde-prefix ~2026-Q2)"
+
+  AxisUnit:
+    type: string
+    enum: [day, week, month, quarter, half, year]
+
+  Status:
+    type: string
+    enum: [planned, in-progress, done, at-risk, blocked, cancelled, tentative]
+
+  Track:
+    type: object
+    required: [id, label]
+    properties:
+      id:    { "$ref": "#/$defs/ID" }
+      label: { type: string }
+      color: { type: string }
+      order: { type: integer, minimum: 0 }
+
+  Activity:
+    type: object
+    required: [id, label, track]
+    oneOf:
+      - required: [start]    # start + optional end
+      - required: [span]     # span shorthand
+    properties:
+      id:       { "$ref": "#/$defs/ID" }
+      label:    { type: string }
+      track:    { type: string }   # bare string ref to Track.id
+      start:    { "$ref": "#/$defs/Date" }
+      end:      { "$ref": "#/$defs/Date" }
+      span:     { "$ref": "#/$defs/Date" }
+      status:   { "$ref": "#/$defs/Status", default: planned }
+      progress: { type: number, minimum: 0, maximum: 1 }
+      category: { type: string }
+      group:    { type: string }
+      description: { type: string }
+      metadata: { type: object }
+
+  Milestone:
+    type: object
+    required: [id, label, date]
+    properties:
+      id:     { "$ref": "#/$defs/ID" }
+      label:  { type: string }
+      date:   { "$ref": "#/$defs/Date" }
+      track:  { type: string }
+      status: { "$ref": "#/$defs/Status", default: planned }
+      category: { type: string }
+      icon:     { type: string }
+      description: { type: string }
+      metadata: { type: object }
+\end{lstlisting}
+
+The schema is published at a versioned URL. Minor version bumps to the IR may add
+optional fields; the schema handles this via \texttt{additionalProperties: true} for
+\texttt{metadata} maps and by allowing unknown top-level fields on minor revisions.
+
+\paragraph{New cite key needed.} The JSON Schema specification itself does not have a
+cite key in \texttt{references.bib}. A key \texttt{json-schema2020} pointing to the
+IETF JSON Schema draft (2020-12) should be added by David.
+
+
+%% ---------------------------------------------------------------------------
+\subsubsection{Structured Output Constraints}
+\label{sec:structured-outputs}
+%% ---------------------------------------------------------------------------
+
+Platforms that support constrained generation \cite{openai-structured-outputs} should
+use the published JSON Schema as the output schema for the IR generation call. This
+eliminates entire classes of generation errors:
+
+\begin{itemize}
+  \item Required fields can never be missing when the schema enforces \texttt{required}.
+  \item ID format is enforced by the \texttt{pattern} constraint on the \texttt{ID}
+        definition, preventing spaces, uppercase, or other invalid characters.
+  \item Status values are constrained to the enum; the model cannot hallucinate
+        ``completed'' or ``active''.
+  \item References are just bare strings---the model emits \texttt{track: "platform"},
+        not a nested object, which is trivially correct.
+\end{itemize}
+
+When structured output is not available, the agent prompt must include the JSON Schema
+inline and instruct the model to validate its own output before returning it.
+
+%% ---------------------------------------------------------------------------
+\subsubsection{IR Design Choices That Help Agents}
+\label{sec:ir-agent-friendly}
+%% ---------------------------------------------------------------------------
+
+Several deliberate IR design choices reduce the error rate for LLM-generated documents:
+
+\begin{description}
+  \item[Optional fields default to safe values.] \texttt{status} defaults to
+        \texttt{planned}; \texttt{progress} defaults to \texttt{null}. An agent that
+        omits these fields produces a valid document. Agents only need to emit fields
+        they have evidence for.
+
+  \item[\texttt{span} shorthand reduces reasoning load.] Instead of requiring an agent
+        to compute both a \texttt{start} and \texttt{end} date for a quarter-length
+        activity, it can emit \texttt{span: 2026-Q2} and let the compiler expand it.
+        This avoids off-by-one boundary errors (is Q2 end June 30 or July 1?).
+
+  \item[References are bare strings.] \texttt{track: platform} is far easier for an
+        LLM to emit correctly than a nested reference object. The schema context (field
+        name) determines the target type; no wrapper object is needed.
+
+  \item[IDs are kebab-case slugs.] Agents derive IDs from labels:
+        ``API Gateway Migration'' $\to$ \texttt{api-gateway-migration}. This is a
+        simple and reliable transformation. UUIDs would be safe but opaque; sequential
+        numbers would collide with re-generation.
+
+  \item[No dependency scheduling.] Since the IR is a Timeline Grammar (not a Task
+        Scheduling Grammar), there is no dependency resolution. Each activity is
+        independently valid. Agents do not need to compute a topological order or
+        check resource constraints.
+\end{description}
+
+
+%%============================================================================
+\subsection{Validation Pipeline}
+\label{sec:validation-pipeline}
+%%============================================================================
+
+Validation is layered. Each layer is a gate: failure at an earlier layer produces
+errors that block later layers. This design prevents cryptic failures (e.g., a
+reference-resolution error caused by a silently malformed ID).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{clp{4cm}p{4.5cm}}
+\toprule
+\textbf{Layer} & \textbf{Name} & \textbf{What it checks} & \textbf{Failure mode} \\
+\midrule
+1 & Syntactic parse       & Valid YAML or JSON; no parse errors & Hard error: stop \\
+2 & Schema conformance    & Required fields present; types match; enum values valid; ID regex; \texttt{oneOf} for start/span & Hard error: list all violations \\
+3 & Well-formedness       & Referential integrity; ID uniqueness; date ordering; progress bounds; group acyclicity & Hard error: list all violations \\
+4 & Render-readiness      & See \S\ref{sec:rendering} (Barbara) & Error or warning depending on severity \\
+5 & Semantic advisory     & Degenerate documents; empty \texttt{activities} and \texttt{milestones}; items outside \texttt{time\_range} & Warning only \\
+\bottomrule
+\end{tabular}
+\caption{Validation pipeline layers}
+\label{tab:validation-layers}
+\end{table}
+
+\textbf{Layer 4 dependency.} Render-readiness validation---checking that the IR can
+produce a legible visual output---is defined and owned by Barbara in \S\ref{sec:rendering}.
+This includes checks such as overlapping activities on the same track that cannot be
+visually separated, labels that exceed track width at the chosen axis unit, and milestone
+dates that fall outside the document's \texttt{time\_range}. The validation pipeline
+calls Barbara's render-readiness checks as Layer 4; this section does not duplicate them.
+
+\subsubsection{Errors vs.\ Warnings}
+
+\begin{description}
+  \item[Error] Prevents rendering. The document is invalid and the renderer must refuse
+        to proceed. Errors come from Layers 1--3 and from Layer 4 severity ``fatal''.
+        The validator must return \emph{all} errors in a single pass, not just the first.
+  \item[Warning] The document is valid but the output may be suboptimal. Warnings come
+        from Layer 4 (advisory) and Layer 5. Renderers proceed and may annotate the
+        output (e.g., a clipped activity) or log the warning and continue.
+\end{description}
+
+
+%%============================================================================
+\subsection{Error Handling and Agent Repair Cycle}
+\label{sec:error-repair}
+%%============================================================================
+
+\subsubsection{Error Message Format}
+
+Every validation error is \textbf{path-anchored}: it identifies the exact location in
+the document, the nature of the violation, and a suggested fix. This design enables
+an agent to mechanically apply repairs without re-reading the whole document.
+
+The error message format is:
+
+\begin{lstlisting}[caption={Validation error message format}]
+ERROR  <path>: <description>
+       Expected: <constraint>
+       Found:    <actual value>
+       Fix:      <suggested correction>
+\end{lstlisting}
+
+\textbf{Concrete error examples:}
+
+\begin{lstlisting}[caption={Example validation errors with suggested fixes}]
+# Missing required field
+ERROR  activities[0].id: required field 'id' is missing
+       Expected: string matching ^[a-z][a-z0-9-]*$
+       Found:    (absent)
+       Fix:      add id: api-gateway-migration
+
+# Invalid ID format
+ERROR  activities[1].id: "API Migration" does not match ^[a-z][a-z0-9-]*$
+       Expected: kebab-case slug
+       Found:    "API Migration"
+       Fix:      id: api-migration
+
+# Unresolved track reference
+ERROR  activities[2].track: "eng" references a non-existent track
+       Expected: one of [platform, mobile, data]
+       Found:    "eng"
+       Fix:      track: platform  (or add a track with id: eng)
+
+# Invalid status value
+ERROR  activities[3].status: "active" is not a valid Status
+       Expected: one of [planned, in-progress, done, at-risk,
+                          blocked, cancelled, tentative]
+       Found:    "active"
+       Fix:      status: in-progress
+
+# Date ordering violation
+ERROR  activities[4]: end precedes start
+       Expected: end >= start
+       Found:    start: 2026-Q3, end: 2026-Q1
+       Fix:      swap dates, or use span: 2026-Q3 if this is
+                 a single-quarter activity
+
+# Progress out of range
+ERROR  activities[5].progress: 1.4 is outside [0, 1]
+       Expected: number in [0, 1]
+       Found:    1.4
+       Fix:      progress: 1.0
+
+# Duplicate ID
+ERROR  milestones[1].id: "platform-launch" is already used by activities[2].id
+       Expected: globally unique identifier
+       Found:    duplicate
+       Fix:      id: platform-launch-ms  (or another unique slug)
+
+# Missing date source (neither start nor span present)
+ERROR  activities[6]: no temporal anchor defined
+       Expected: exactly one of: (start [+ optional end]) or span
+       Found:    neither start nor span present
+       Fix:      add  span: 2026-Q2  or  start: 2026-04-01
+\end{lstlisting}
+
+\subsubsection{Agent Repair Cycle}
+\label{sec:repair-cycle}
+
+The validation-error-repair loop is the core of reliable agent IR generation. The
+cycle is:
+
+\begin{enumerate}
+  \item \textbf{Generate.} Agent generates an IR document, optionally using structured
+        output constraints (\S\ref{sec:structured-outputs}).
+  \item \textbf{Validate.} The IR is submitted to the \texttt{validate\_timeline} MCP
+        tool (\S\ref{sec:mcp-tools}). All layers are run; all errors collected.
+  \item \textbf{Report.} Errors are returned to the agent as a structured list with
+        path, description, and suggested fix.
+  \item \textbf{Repair.} The agent applies targeted fixes. Because errors are
+        path-anchored and include suggested fixes, repairs are surgical: the agent
+        patches \texttt{activities[2].track} rather than regenerating the entire document.
+  \item \textbf{Re-validate.} The patched document is re-submitted. This loop repeats
+        until validation passes with no errors (warnings may remain).
+  \item \textbf{Render.} Once validation passes, the agent calls \texttt{render\_timeline}
+        to produce output.
+\end{enumerate}
+
+In practice, structured output constraints eliminate most Layer~2 errors on the first
+generation pass. Layers~3 (referential integrity, date ordering) are the most common
+source of residual errors for agents generating multi-track documents.
+
+
+%%============================================================================
+\subsection{MCP Server}
+\label{sec:mcp-server}
+%%============================================================================
+
+The MCP server \cite{mcp-spec} exposes Timeline Compiler as a tool-callable service for
+AI agents. It is a first-class distribution target, not an afterthought (see the
+distribution architecture in \S\ref{sec:distribution}). The server hosts four tools.
+
+%% ---------------------------------------------------------------------------
+\subsubsection{Tool Contracts}
+\label{sec:mcp-tools}
+%% ---------------------------------------------------------------------------
+
+\paragraph{\texttt{validate\_timeline}}
+
+Runs the full validation pipeline (Layers 1--5) against a provided IR document.
+Returns all errors and warnings in structured form.
+
+\begin{lstlisting}[language=yaml,caption={\texttt{validate\_timeline} tool contract}]
+tool: validate_timeline
+description: >
+  Validate a Timeline IR document. Runs syntactic, schema, well-formedness,
+  render-readiness, and semantic advisory checks. Returns structured errors
+  and warnings with path anchors and suggested fixes.
+
+input:
+  ir:
+    type: object | string   # IR as parsed object or raw YAML/JSON string
+    required: true
+  stop_at_layer:
+    type: integer           # optional; 1-5; default: 5 (run all layers)
+    required: false
+
+output:
+  valid:     boolean        # true iff zero errors (warnings do not block)
+  errors:
+    - path:    string       # e.g. "activities[2].track"
+      code:    string       # machine-readable error code, e.g. UNRESOLVED_REF
+      message: string       # human-readable description
+      fix:     string       # suggested correction
+  warnings:
+    - path:    string
+      code:    string
+      message: string
+  layers_run: integer       # how many layers were executed before stopping
+\end{lstlisting}
+
+\paragraph{\texttt{render\_timeline}}
+
+Renders a valid Timeline IR to a visual output format. Returns the rendered output
+as a base64-encoded string or a file path (for local MCP deployments).
+
+\begin{lstlisting}[language=yaml,caption={\texttt{render\_timeline} tool contract}]
+tool: render_timeline
+description: >
+  Render a Timeline IR document to SVG, PNG, PDF, or PPTX. The IR must
+  be valid (validate_timeline returns valid: true) before rendering.
+  Rendering is deterministic: identical IR + theme + format always
+  produces bit-identical output.
+
+input:
+  ir:
+    type: object | string   # IR as parsed object or raw YAML/JSON string
+    required: true
+  format:
+    type: string
+    enum: [svg, png, pdf, pptx]
+    default: svg
+    required: false
+  theme:
+    type: string            # theme identifier, e.g. "default", "corporate"
+    default: "default"
+    required: false
+  width:
+    type: integer           # output width in pixels (PNG/PDF only)
+    required: false
+
+output:
+  format:  string           # echo of requested format
+  data:    string           # base64-encoded output bytes
+  mime_type: string         # e.g. "image/svg+xml"
+  warnings:                 # render-layer warnings (does not block output)
+    - message: string
+\end{lstlisting}
+
+\paragraph{\texttt{describe\_schema}}
+
+Returns the full JSON Schema for the IR and field-level documentation. Agents call
+this to bootstrap IR generation or to recover from schema errors.
+
+\begin{lstlisting}[language=yaml,caption={\texttt{describe\_schema} tool contract}]
+tool: describe_schema
+description: >
+  Return the JSON Schema for the Timeline IR, plus human-readable
+  documentation for each field. Use this to understand what fields are
+  required, their types, allowed values, and defaults.
+
+input:
+  version:
+    type: string            # IR version to describe; default: latest
+    required: false
+  entity:
+    type: string            # optional: limit to one entity, e.g. "Activity"
+    required: false
+
+output:
+  version:     string       # IR version described
+  schema:      object       # full JSON Schema document
+  docs:
+    - entity:  string       # entity name
+      fields:
+        - name:        string
+          type:        string
+          required:    boolean
+          default:     string | null
+          description: string
+          example:     string
+\end{lstlisting}
+
+\paragraph{\texttt{suggest\_time\_range}}
+
+A convenience tool for agents that need to derive a sensible \texttt{time\_range} and
+\texttt{axis\_unit} from a collection of candidate activities before composing the full
+document. This is especially useful when ingesting data from sources that lack explicit
+time windows.
+
+\begin{lstlisting}[language=yaml,caption={\texttt{suggest\_time\_range} tool contract}]
+tool: suggest_time_range
+description: >
+  Given a list of activity date hints (start, end, span values), suggest
+  appropriate time_range and axis_unit values for the IR metadata. Does not
+  require a complete IR document.
+
+input:
+  dates:
+    type: array             # list of date strings, e.g. ["2026-Q1", "2026-09-15"]
+    items: { type: string }
+    required: true
+  prefer_unit:
+    type: string            # optional hint: "quarter", "month", etc.
+    required: false
+
+output:
+  time_range:
+    start: string
+    end:   string
+  axis_unit: string         # recommended AxisUnit
+  rationale: string         # explanation of the choice
+\end{lstlisting}
+
+\subsubsection{MCP Server Deployment}
+
+The MCP server is deployed in two modes:
+
+\begin{description}
+  \item[Local server] Runs as a subprocess alongside the agent environment. Started
+        via the CLI (\texttt{timeline mcp-server --port 3000}) or as an npm/pip
+        package. Suitable for development, CI, and agent runtimes on the same host.
+  \item[Hosted endpoint] A cloud-deployed instance of the MCP server. Suitable for
+        cloud-native agent runtimes where a local subprocess is impractical.
+\end{description}
+
+Both modes expose identical tool contracts. The local server operates on the local
+filesystem (output file paths are local); the hosted server returns base64-encoded
+output in all cases.
+
+
+%%============================================================================
+\subsection{Round-Trip and Iterative Editing}
+\label{sec:round-trip}
+%%============================================================================
+
+A Timeline IR document lives in version control alongside the source data it was derived
+from. Humans and agents edit it directly. Re-syncing against an updated source must not
+silently overwrite editorial decisions made in the IR. This section designs the mechanisms
+that make round-trip editing safe.
+
+%% ---------------------------------------------------------------------------
+\subsubsection{Source Provenance via Metadata}
+\label{sec:provenance}
+%% ---------------------------------------------------------------------------
+
+Every entity produced by an ingestion workflow includes a \texttt{metadata} block that
+records the source of record:
+
+\begin{lstlisting}[language=yaml,caption={Provenance metadata block (ADO example)}]
+activities:
+  - id: api-gateway-migration
+    label: API Gateway Migration
+    track: platform
+    span: 2026-Q2
+    status: in-progress
+    metadata:
+      source: ado
+      ado_id: 1024
+      ado_revision: 42           # ADO ETag for change detection
+      ado_area: "Platform Team"
+      ado_iteration: "Platform\\2026\\Q2"
+      ingested_at: 2026-06-09
+\end{lstlisting}
+
+\begin{lstlisting}[language=yaml,caption={Provenance metadata block (GitHub Projects example)}]
+activities:
+  - id: customer-portal-redesign
+    label: Customer Portal Redesign
+    track: product
+    span: 2026-Q3
+    status: planned
+    metadata:
+      source: github
+      github_project_id: PVT_kwDOA12345
+      github_issue: 214
+      github_url: "https://github.com/acme/portal/issues/214"
+      ingested_at: 2026-06-09
+\end{lstlisting}
+
+The \texttt{source} key in \texttt{metadata} is a reserved provenance marker. The
+ingester writes it; the renderer ignores it. Re-sync logic uses it to correlate IR
+entities back to their source records.
+
+\subsubsection{Re-Sync Strategy}
+\label{sec:resync}
+
+When source data is updated (e.g., a work item's state changes from Active to Resolved),
+the re-sync operation must:
+
+\begin{enumerate}
+  \item \textbf{Match by source ID.} Use \texttt{metadata.ado\_id} or
+        \texttt{metadata.github\_issue} as the stable foreign key, not the IR \texttt{id}.
+        The IR \texttt{id} is a human-edited slug that may have been renamed.
+  \item \textbf{Update only source-mapped fields.} Fields that the ingestion workflow
+        maps from the source (e.g., \texttt{status}, \texttt{span} derived from
+        IterationPath) are overwritten. Fields the human may have edited in the IR
+        (\texttt{label}, \texttt{category}, \texttt{description}, \texttt{color},
+        \texttt{progress}) are \emph{not} overwritten.
+  \item \textbf{Preserve the IR \texttt{id}.} The kebab-case slug must not be
+        regenerated on re-sync. Once set, it is stable.
+  \item \textbf{Log what changed.} The re-sync operation must produce a structured
+        change log (entity id, field, old value, new value) before writing, enabling
+        human review.
+  \item \textbf{Reject destructive deletions.} If a source item is deleted or removed
+        from scope, the re-sync must flag it as a warning rather than silently removing
+        the IR entity. A human or agent must confirm removal.
+\end{enumerate}
+
+\subsubsection{Stable IDs and Git-Friendly YAML}
+\label{sec:stable-ids}
+
+The combination of stable kebab-case IDs and line-oriented YAML serialisation produces
+IR documents that diff well under version control:
+
+\begin{lstlisting}[caption={Git diff of an IR update (status change + progress update)}]
+  activities:
+    - id: api-gateway-migration
+      label: API Gateway Migration
+      track: platform
+      span: 2026-Q2
+-     status: in-progress
+-     progress: 0.4
++     status: done
++     progress: 1.0
+      metadata:
+        source: ado
+        ado_id: 1024
+\end{lstlisting}
+
+Key properties of the YAML serialisation that preserve git-friendliness:
+
+\begin{itemize}
+  \item Fields within each entity are emitted in a \textbf{canonical order} (required
+        fields first, optional fields in schema definition order). Reordering fields
+        does not change semantics but does generate spurious diffs; canonical order
+        prevents this.
+  \item \textbf{No auto-generated IDs or timestamps} in non-\texttt{metadata} fields.
+        The IR ID is derived from content and frozen; \texttt{ingested\_at} in
+        \texttt{metadata} only changes when the entity is re-ingested from source.
+  \item \textbf{Consistent quoting conventions.} Strings that are safe as bare YAML
+        scalars are not quoted; strings with special characters use double quotes.
+        Serialisers must apply this consistently to avoid quote-flip diffs.
+  \item \textbf{Lists maintain insertion order}, not alphabetical. New entities appended
+        to the end of a list produce a single-line diff at the bottom.
+\end{itemize}
+
+\subsubsection{Human Edits and Incremental Refinement}
+
+A human author may open the IR YAML in any editor, add annotations, adjust labels,
+add a milestone the ingester missed, or change a \texttt{status} value to reflect a
+decision made after ingestion. These edits are valid IR operations and must survive
+re-sync (per the strategy above).
+
+An agent may similarly refine an IR: for example, an editorial agent might re-read the
+document, notice that five activities in one track are unlabelled, and add descriptions.
+Because the agent is editing a YAML file with stable IDs and a well-defined schema, this
+is a safe, auditable operation. The MCP \texttt{validate\_timeline} tool can be called
+after any edit to confirm the document remains valid.
+
+The editing workflow is:
+
+\begin{lstlisting}[caption={Iterative refinement loop (human or agent)}]
+1. ingest(source, prompt)   -> roadmap.yaml          # initial ingestion
+2. validate(roadmap.yaml)   -> valid, 0 errors        # confirm valid
+3. edit(roadmap.yaml)       -> roadmap.yaml (modified) # human/agent edit
+4. validate(roadmap.yaml)   -> valid, 0 errors        # re-confirm
+5. render(roadmap.yaml, svg) -> roadmap.svg            # deterministic output
+6. (commit roadmap.yaml + roadmap.svg to git)
+\end{lstlisting}
+
+Step~6 commits both the IR source and the rendered output. Because rendering is
+deterministic, the SVG in the repository is always reproducible from the YAML. The YAML
+is the source of truth; the SVG is a derived artefact that can be regenerated on demand.
+
+
+%%============================================================================
+\subsection{IR Gaps and Open Questions}
+\label{sec:ir-gaps}
+%%============================================================================
+
+During the design of this section, three gaps or ambiguities in the IR contract were
+identified. These are flagged here for Leslie (reviewer) and Mark to reconcile; they
+have \emph{not} been silently resolved in this section's examples.
+
+\begin{enumerate}
+  \item \textbf{\texttt{today} field missing from metadata.} Leslie's scope decisions
+        specify that the \texttt{now} symbolic date must be evaluated from an explicit
+        \texttt{today} field in the IR (not from the system clock), in order to preserve
+        determinism. However, the \texttt{metadata} table in Mark's IR contract does not
+        include a \texttt{today} field. Until this is resolved, the annotation type
+        \texttt{today-marker} with \texttt{date: now} is non-deterministic. Suggested
+        resolution: add \texttt{today: date?} to the \texttt{metadata} schema; if absent,
+        render-time clock is used and a warning is emitted.
+
+  \item \textbf{Track sort field: \texttt{index} vs.\ \texttt{order}.} Mark's binding
+        contract (well-formedness invariant~14) refers to a \texttt{track.index} field
+        with the rule ``track index order values unique and non-negative''. The
+        \texttt{04-ir.tex} specification defines the same field as \texttt{order}
+        (type \texttt{int?}). The canonical field name should be resolved to one term;
+        this section uses \texttt{order} to match the spec, but the contract should
+        be updated to match.
+
+  \item \textbf{\texttt{span} vs.\ \texttt{start}+\texttt{end} mutual exclusion.}
+        The IR allows either \texttt{span} (shorthand) or \texttt{start} plus optional
+        \texttt{end}, but does not specify the behaviour when both are present (e.g.,
+        \texttt{span: 2026-Q2} and \texttt{start: 2026-05-01} coexist in the same
+        activity). Should this be a schema error, or should one take precedence?
+        For agent generation, structured output can prevent this from occurring, but the
+        validation specification needs an explicit ruling. Suggested resolution: treat
+        co-presence of \texttt{span} and \texttt{start}/\texttt{end} as a schema error.
+\end{enumerate}

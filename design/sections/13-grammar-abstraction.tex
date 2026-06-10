@@ -1,0 +1,263 @@
+\section{Timeline Grammar vs.\ Task Scheduling Grammar}
+\label{sec:grammar-abstraction}
+
+This section presents the central thesis of Timeline Compiler: the correct abstraction for this problem is a \textbf{Timeline Grammar} (optimized for visual communication) rather than a \textbf{Task Scheduling Grammar} (optimized for project management). This distinction is not merely terminological — it fundamentally shapes the IR design, scope boundaries, and long-term extensibility.
+
+\subsection{The Thesis}
+
+\begin{quote}
+\emph{Gantt-thinking is the wrong default. Timeline Compiler should not model tasks, dependencies, and schedules. It should model visual narratives: tracks, phases, milestones, emphasis, and annotations. The IR is a grammar for visual communication, not a grammar for work decomposition.}
+\end{quote}
+
+\subsection{Two Grammars Compared}
+
+\subsubsection{Task Scheduling Grammar}
+
+A Task Scheduling Grammar models \emph{work to be done}. Its primitives:
+
+\begin{description}
+  \item[Tasks] Discrete units of work with effort estimates, assignees, and dependencies.
+  
+  \item[Dependencies] Relationships between tasks (finish-to-start, start-to-start, etc.) that constrain scheduling.
+  
+  \item[Resources] People, teams, or assets assigned to tasks, subject to capacity constraints.
+  
+  \item[Dates] Computed from dependencies and resource availability, not directly authored.
+  
+  \item[Critical Path] The longest chain of dependent tasks; determines project duration.
+  
+  \item[Milestones] Markers for task completion or deliverable readiness, often derived from task dependencies.
+\end{description}
+
+This grammar powers MS Project, Primavera, Jira Advanced Roadmaps, and enterprise scheduling tools. Its purpose is \emph{operational}: compute feasible schedules, optimize resource allocation, identify bottlenecks.
+
+A Gantt chart is the canonical visualization of a task scheduling grammar. It shows tasks as bars, dependencies as arrows, resources as assignments, and the critical path highlighted. The visual is a \emph{byproduct} of the scheduling model.
+
+\subsubsection{Timeline Grammar}
+
+A Timeline Grammar models \emph{communication about time}. Its primitives:
+
+\begin{description}
+  \item[Tracks] Visual lanes that organize content by theme, workstream, or category — chosen for \emph{narrative clarity}, not operational structure.
+  
+  \item[Activities] Time-bounded visual elements representing initiatives, phases, or efforts. Dates are directly authored, not computed. Activities have no inherent dependencies.
+  
+  \item[Milestones] Emphasized points in time representing decisions, deliverables, or checkpoints. Their meaning is communicative, not operational.
+  
+  \item[Sections] Temporal divisions (quarters, phases, years) that provide visual structure and context.
+  
+  \item[Annotations] Callouts, emphasis, and labels that direct attention.
+  
+  \item[Status and Progress] Visual indicators that communicate state to an audience, not operational data for a scheduler.
+\end{description}
+
+This grammar powers McKinsey roadmaps, BCG transformation timelines, board-deck quarterly plans, and executive communication artifacts. Its purpose is \emph{rhetorical}: convey a plan, tell a story about time, align stakeholders.
+
+\subsection{Why Gantt-Thinking Is Wrong Here}
+
+If Timeline Compiler adopted a Task Scheduling Grammar, it would inherit these problems:
+
+\subsubsection{Computational Complexity}
+
+Task scheduling is NP-hard in the general case (resource-constrained project scheduling). A scheduling grammar implies:
+\begin{itemize}
+  \item Dependency resolution algorithms
+  \item Constraint satisfaction
+  \item Resource leveling
+  \item What-if scenario computation
+\end{itemize}
+
+None of this is relevant to producing a PDF for a board presentation. It is massive accidental complexity.
+
+\subsubsection{Semantic Overload}
+
+A scheduling grammar interprets user input operationally. If users declare:
+\begin{lstlisting}[language=yaml]
+activities:
+  - id: design
+    depends_on: [requirements]
+\end{lstlisting}
+
+A scheduling grammar must:
+\begin{itemize}
+  \item Validate that \texttt{requirements} exists
+  \item Compute \texttt{design}'s start date from \texttt{requirements}' end date
+  \item Propagate changes transitively
+  \item Detect cycles
+\end{itemize}
+
+A timeline grammar simply draws an arrow from \texttt{requirements} to \texttt{design}. The dependency is a \emph{visual annotation}, not a scheduling constraint.
+
+\subsubsection{Schema Bloat}
+
+Scheduling grammars require:
+\begin{itemize}
+  \item Resource definitions (people, teams, capacities)
+  \item Effort estimates (person-days, story points)
+  \item Calendars (working days, holidays)
+  \item Dependency types (FS, SS, FF, SF with lags)
+  \item Constraint types (must-start-on, no-earlier-than)
+\end{itemize}
+
+None of this serves the communication use case. It bloats the IR, confuses authors, and distracts from the actual goal.
+
+\subsubsection{Agent Hostility}
+
+LLMs can easily generate timeline grammars. ``Show Platform work from January to March, with a milestone in February'' maps directly to:
+\begin{lstlisting}[language=yaml]
+tracks:
+  - label: "Platform"
+    activities:
+      - label: "Core Development"
+        range: { start: 2026-01, end: 2026-03 }
+milestones:
+  - label: "Alpha Release"
+    date: 2026-02-15
+\end{lstlisting}
+
+Agents struggle with scheduling grammars because:
+\begin{itemize}
+  \item Dependencies must be globally consistent (cycles are invalid)
+  \item Dates must satisfy constraint propagation
+  \item Resource assignments must respect capacities
+\end{itemize}
+
+These invariants are hard to maintain without iterative refinement. Timeline grammars are \emph{flat}: each element is independently valid.
+
+\subsubsection{The Gantt Trap}
+
+Gantt charts are so ubiquitous that ``timeline'' often defaults to ``Gantt chart.'' But Gantt charts are poor communication artifacts:
+\begin{itemize}
+  \item Dense with dependency arrows that obscure the narrative
+  \item Emphasize task-level detail over strategic phases
+  \item Require operational context (resources, constraints) that audiences lack
+  \item Visually noisy — optimized for schedulers, not executives
+\end{itemize}
+
+Timeline Compiler explicitly rejects the Gantt default. It produces \emph{timeline visualizations}, not Gantt charts. Gantt-style output may be achievable via themes, but it is not the design center.
+
+\subsection{Timeline Grammar: Design Implications}
+
+Adopting a Timeline Grammar shapes the architecture:
+
+\subsubsection{IR Simplicity}
+
+The IR is a flat description of visual elements:
+\begin{lstlisting}[language=yaml]
+timeline:
+  title: "Product Roadmap 2026"
+  range: { start: 2026-01, end: 2026-12 }
+  tracks:
+    - id: platform
+      label: "Core Platform"
+      activities:
+        - label: "API v2"
+          range: { start: 2026-01, end: 2026-04 }
+        - label: "Scale Testing"
+          range: { start: 2026-05, end: 2026-07 }
+  milestones:
+    - label: "GA Launch"
+      date: 2026-08-01
+\end{lstlisting}
+
+No dependencies to resolve. No resources to level. No constraints to satisfy. The IR \emph{is} the plan, directly.
+
+\subsubsection{No Computation}
+
+The compiler performs no computation on plan semantics:
+\begin{itemize}
+  \item Dates are taken as given
+  \item Progress is taken as given
+  \item Status is taken as given
+\end{itemize}
+
+The compiler's job is \emph{layout and rendering}, not interpretation.
+
+\subsubsection{Visual-First Extensions}
+
+Future extensions follow the timeline grammar:
+\begin{itemize}
+  \item \textbf{Annotations} — callouts, emphasis, arrows (visual, not operational)
+  \item \textbf{Sections} — phase labels, quarter markers (narrative structure)
+  \item \textbf{Legends} — explaining visual encodings (communication aid)
+  \item \textbf{Dependency arrows} — optional visual hints, not scheduling constraints
+\end{itemize}
+
+Extensions that imply computation (resource leveling, critical path) are rejected by the grammar's philosophy.
+
+\subsubsection{Determinism by Default}
+
+Timeline grammars are inherently deterministic. There is no computation that could introduce variability. The IR fully specifies the content; the theme fully specifies the style; the renderer maps one to the other.
+
+Scheduling grammars resist determinism because scheduling is sensitive to algorithm implementation, floating-point accumulation, and tie-breaking heuristics.
+
+\subsection{Addressing the Counter-Arguments}
+
+\subsubsection{``But I need dependency arrows''}
+
+\textbf{Response:} Timeline Compiler can render dependency arrows as visual annotations. The IR may include:
+\begin{lstlisting}[language=yaml]
+activities:
+  - id: alpha
+    label: "Alpha Phase"
+    range: { start: 2026-01, end: 2026-03 }
+  - id: beta
+    label: "Beta Phase"
+    range: { start: 2026-04, end: 2026-06 }
+    depends_on: [alpha]  # Visual arrow, not scheduling constraint
+\end{lstlisting}
+
+The \texttt{depends\_on} field means ``draw an arrow from alpha to beta.'' It does not mean ``compute beta's start from alpha's end.'' The dates are author-provided. The arrow is visual.
+
+\subsubsection{``What if my dates are inconsistent?''}
+
+\textbf{Response:} The validator may warn if beta starts before alpha ends (given a declared dependency). But this is a \emph{warning}, not an error. The compiler renders what the author specified. Fixing inconsistencies is the author's job, or an upstream tool's job.
+
+This matches the communication use case. A roadmap slide may intentionally show overlapping phases. The compiler should not second-guess the author.
+
+\subsubsection{``Project management tools already have timeline views''}
+
+\textbf{Response:} True, and those views are outputs of a scheduling grammar. They:
+\begin{itemize}
+  \item Look like their source tool (Jira exports look like Jira)
+  \item Include scheduling clutter (dependencies, resources)
+  \item Require the source tool to generate
+\end{itemize}
+
+Timeline Compiler is a \emph{standalone} rendering target. It accepts a simple IR that any tool (or agent) can generate. It produces presentation-quality output that looks like a designed slide, not a tool export.
+
+\subsubsection{``Won't users expect scheduling features?''}
+
+\textbf{Response:} Clear positioning is essential. Timeline Compiler is a \emph{communication compiler}, not a scheduling engine. Users who need scheduling should use MS Project, Jira, or Linear — and then export to Timeline IR for rendering.
+
+This is the \LaTeX{} model: \LaTeX{} is a typesetting system, not a word processor. It does one thing excellently. Timeline Compiler is a timeline renderer, not a project manager.
+
+\subsection{Optimization Goals Alignment}
+
+The brief specifies five optimization goals. Timeline Grammar aligns with all five:
+
+\begin{description}
+  \item[Presentation Quality] Timeline Grammar focuses on visual communication, not operational detail. Outputs are clean, narrative-driven, and boardroom-ready.
+  
+  \item[Agent Generation] Timeline Grammar is flat and simple. Agents generate valid IR without constraint satisfaction. The schema fits in a context window.
+  
+  \item[Deterministic Rendering] No scheduling computation means no computational variability. Same IR, same output, always.
+  
+  \item[Long-Term Extensibility] The grammar is a foundation for visual extensions (annotations, animations, interactive elements) without importing scheduling complexity.
+  
+  \item[Simplicity] The IR is small. The compiler is focused. There is no hidden complexity in dependency resolution or resource leveling.
+\end{description}
+
+\subsection{Conclusion}
+
+Timeline Compiler adopts a \textbf{Timeline Grammar}: a model for visual communication about time, not operational scheduling. This is the correct abstraction because:
+
+\begin{enumerate}
+  \item It produces presentation-quality visuals without scheduling complexity.
+  \item It is agent-friendly: flat, simple, constraint-free.
+  \item It is deterministic by construction.
+  \item It is extensible along visual dimensions without inheriting scheduling scope creep.
+  \item It is simple: the IR describes what to render, not what to compute.
+\end{enumerate}
+
+The Gantt chart is not the design center. The McKinsey slide is. Timeline Compiler is a compiler from structured communication intent to visual artifact — and that is all it should be.

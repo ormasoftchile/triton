@@ -1,0 +1,18 @@
+{
+  "universe_usage_history": [],
+  "assignment_cast_snapshots": {
+    "initial": {
+      "assignment_id": "timeline-initial-2026-06-10",
+      "created_at": "2026-06-10",
+      "universe": "user-provided",
+      "note": "Names supplied explicitly by the user; casting algorithm not applied.",
+      "cast": {
+        "leslie": "Lead / Spec Architect",
+        "david": "Research Lead",
+        "mark": "IR & Data Modeling",
+        "barbara": "Semantics & Rendering",
+        "bjarne": "Ingestion Design"
+      }
+    }
+  }
+}

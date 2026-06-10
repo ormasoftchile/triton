@@ -1,0 +1,9 @@
+{
+  "agents": {
+    "leslie": { "persistent_name": "Leslie", "universe": "user-provided", "created_at": "2026-06-10", "legacy_named": true, "status": "active", "role": "Lead / Spec Architect", "pronouns": "he/him" },
+    "david": { "persistent_name": "David", "universe": "user-provided", "created_at": "2026-06-10", "legacy_named": true, "status": "active", "role": "Research Lead" },
+    "mark": { "persistent_name": "Mark", "universe": "user-provided", "created_at": "2026-06-10", "legacy_named": true, "status": "active", "role": "IR & Data Modeling" },
+    "barbara": { "persistent_name": "Barbara", "universe": "user-provided", "created_at": "2026-06-10", "legacy_named": true, "status": "active", "role": "Semantics & Rendering" },
+    "bjarne": { "persistent_name": "Bjarne", "universe": "user-provided", "created_at": "2026-06-10", "legacy_named": true, "status": "active", "role": "Ingestion Design" }
+  }
+}

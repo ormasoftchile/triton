@@ -1,0 +1,229 @@
+\section{Design Principles}
+\label{sec:principles}
+
+The following principles govern Timeline Compiler's architecture. They are listed in priority order; when principles conflict, earlier principles take precedence.
+
+\subsection{Presentation-First}
+\label{principle:presentation-first}
+
+\textbf{Principle:} Every design decision optimizes for presentation-quality visual output.
+
+\textbf{Rationale:} The distinguishing feature of Timeline Compiler is producing visuals suitable for board presentations, investor decks, and executive communication. This is not a documentation tool (Mermaid serves that purpose) nor a project management tool (many exist). If a feature does not improve presentation quality, it should not exist.
+
+\textbf{Implications:}
+\begin{itemize}
+  \item Typography, spacing, and color receive first-class treatment in the theme engine
+  \item The IR includes presentation hints (emphasis, annotations, callouts) that have no project-management semantics
+  \item Output formats prioritize fidelity (PDF, SVG) over convenience
+\end{itemize}
+
+\subsection{Deterministic Output}
+\label{principle:determinism}
+
+\textbf{Principle:} The same IR plus the same theme produces byte-identical output across all runs.
+
+\textbf{Rationale:} Determinism enables:
+\begin{itemize}
+  \item Version control — changes to the IR produce predictable visual diffs
+  \item CI/CD integration — automated rendering in pipelines
+  \item Agent reliability — agents can trust their output
+  \item Reproducibility — artifacts can be regenerated exactly
+\end{itemize}
+
+\textbf{Implications:}
+\begin{itemize}
+  \item No random layout algorithms; all positioning is computed deterministically
+  \item Timestamps, UUIDs, and other entropy sources are excluded from output
+  \item Font metrics must be stable (system fonts are problematic; embedded or specified fonts are required)
+  \item Floating-point operations must be reproducible (or avoided)
+\end{itemize}
+
+\subsection{Human-Readable Source}
+\label{principle:human-readable}
+
+\textbf{Principle:} The IR must be readable and writable by humans without tooling.
+
+\textbf{Rationale:} The IR serves dual audiences (humans and agents). Human readability ensures:
+\begin{itemize}
+  \item Onboarding friction is low — a PM can write a roadmap without learning a complex DSL
+  \item Debugging is possible — when output is wrong, the IR is inspectable
+  \item Manual overrides are feasible — humans can adjust agent-generated IR
+  \item Version control diffs are meaningful
+\end{itemize}
+
+\textbf{Implications:}
+\begin{itemize}
+  \item YAML or YAML-like syntax preferred over JSON (less visual noise)
+  \item Field names are descriptive English, not abbreviations
+  \item Nesting depth is minimized
+  \item Dates use ISO 8601; durations use human-readable formats where possible
+\end{itemize}
+
+\subsection{Agent-Friendly Authoring}
+\label{principle:agent-friendly}
+
+\textbf{Principle:} AI agents must be able to generate valid IR without special prompting or examples.
+
+\textbf{Rationale:} A primary use case is agent-generated timelines. If agents struggle to produce valid IR, the system fails its purpose.
+
+\textbf{Implications:}
+\begin{itemize}
+  \item The IR has a formal schema (JSON Schema or equivalent) that agents can reference
+  \item Field names and structure align with how LLMs naturally express plans
+  \item The IR avoids footguns — common mistakes should be invalid or auto-corrected
+  \item Validation provides clear, actionable error messages
+  \item The schema is small enough to fit in a context window
+\end{itemize}
+
+\subsection{Theme-Driven Rendering}
+\label{principle:theme-driven}
+
+\textbf{Principle:} Visual styling is entirely separated from content; all presentation decisions flow from the theme.
+
+\textbf{Rationale:} Separation of content and presentation enables:
+\begin{itemize}
+  \item Rebranding without changing content — swap themes, regenerate
+  \item Consistent organizational aesthetics across timelines
+  \item Agents authoring content without making design decisions
+  \item Themes as a distribution mechanism (theme marketplaces, branded themes)
+\end{itemize}
+
+\textbf{Implications:}
+\begin{itemize}
+  \item The IR contains no colors, fonts, or sizes — only semantic hints
+  \item Themes define all visual properties
+  \item The rendering model maps semantic IR elements to themed visual primitives
+  \item Inline style overrides, if permitted, are explicit escapes from theme control
+\end{itemize}
+
+\subsection{Separation of Planning and Rendering}
+\label{principle:separation}
+
+\textbf{Principle:} The IR represents \emph{what to communicate}, not \emph{how to compute it}.
+
+\textbf{Rationale:} Timeline Compiler is a rendering compiler, not a scheduling engine. The IR is a communication artifact, not a project plan. This separation:
+\begin{itemize}
+  \item Keeps the IR minimal and focused
+  \item Avoids reimplementing project-management semantics
+  \item Allows integration with any upstream planning tool
+  \item Clarifies scope boundaries
+\end{itemize}
+
+\textbf{Implications:}
+\begin{itemize}
+  \item No dependency resolution, critical path calculation, or resource leveling
+  \item Dates are provided, not computed
+  \item Progress is asserted, not measured
+  \item The IR describes the \emph{output} of planning, not the \emph{inputs} to planning
+\end{itemize}
+
+\subsection{Minimal Visual Clutter}
+\label{principle:minimal-clutter}
+
+\textbf{Principle:} Default output favors clarity over information density.
+
+\textbf{Rationale:} Presentation-quality visuals communicate one message clearly rather than many messages densely. Executive audiences prefer clean visuals over comprehensive ones.
+
+\textbf{Implications:}
+\begin{itemize}
+  \item Default themes use generous whitespace
+  \item Labels are concise; detail lives in supporting materials
+  \item Gridlines, axes, and chrome are minimized by default
+  \item Information hierarchy is clear — not all elements receive equal visual weight
+\end{itemize}
+
+\subsection{Source-Control Friendly}
+\label{principle:vcs-friendly}
+
+\textbf{Principle:} The IR is designed for version control workflows.
+
+\textbf{Rationale:} Modern teams version everything. If the IR produces noisy diffs or merge conflicts, adoption suffers.
+
+\textbf{Implications:}
+\begin{itemize}
+  \item Text-based format (YAML preferred)
+  \item Stable field ordering (or sorted keys)
+  \item No generated IDs unless explicitly authored
+  \item Changes to one element do not cascade spuriously to others
+  \item Line-oriented structure where possible (each item on its own line)
+\end{itemize}
+
+\subsection{Composability}
+\label{principle:composability}
+
+\textbf{Principle:} Timeline definitions can reference, include, and compose other definitions.
+
+\textbf{Rationale:} Real-world use involves:
+\begin{itemize}
+  \item Shared track definitions across timelines
+  \item Theme inheritance and overrides
+  \item Milestone libraries
+  \item Multi-file organization for large timelines
+\end{itemize}
+
+\textbf{Implications:}
+\begin{itemize}
+  \item Support for file includes or references
+  \item Namespacing to avoid collisions
+  \item Clear resolution rules for overrides
+  \item Themes can extend other themes
+\end{itemize}
+
+\subsection{Graceful Degradation}
+\label{principle:graceful-degradation}
+
+\textbf{Principle:} Invalid or incomplete IR produces useful output or clear errors, not silent failures.
+
+\textbf{Rationale:} Authors (especially agents) make mistakes. The system should:
+\begin{itemize}
+  \item Validate early and report clearly
+  \item Render partial output when possible (with warnings)
+  \item Never produce corrupt or misleading visuals silently
+\end{itemize}
+
+\textbf{Implications:}
+\begin{itemize}
+  \item Schema validation runs before rendering
+  \item Semantic validation catches contradictions (e.g., end before start)
+  \item Warnings are visible but do not block output when the issue is cosmetic
+  \item Errors specify exactly what is wrong and where
+\end{itemize}
+
+\subsection{Extensibility Without Complexity}
+\label{principle:extensibility}
+
+\textbf{Principle:} The IR and theme systems support extension without requiring core changes.
+
+\textbf{Rationale:} Long-term success requires community contribution — new themes, new semantic elements, integration with new upstream tools. But extension points must not compromise core simplicity.
+
+\textbf{Implications:}
+\begin{itemize}
+  \item Unknown IR fields are ignored (forward compatibility)
+  \item Themes support custom properties via namespacing
+  \item Plugin or extension architecture for renderers (future)
+  \item Versioned schemas with clear migration paths
+\end{itemize}
+
+\subsection{Principle Summary}
+
+\begin{table}[h]
+\centering
+\caption{Design Principles Summary}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Principle} & \textbf{Core Commitment} \\
+\midrule
+Presentation-First & Optimize for board-ready visuals \\
+Deterministic Output & Same input, same output, always \\
+Human-Readable Source & Writable without tooling \\
+Agent-Friendly Authoring & Agents generate valid IR naturally \\
+Theme-Driven Rendering & Content and style fully separated \\
+Separation of Planning and Rendering & Describe output, not compute schedule \\
+Minimal Visual Clutter & Clarity over density \\
+Source-Control Friendly & Clean diffs, easy merges \\
+Composability & Reference, include, extend \\
+Graceful Degradation & Clear errors, useful partial output \\
+Extensibility Without Complexity & Extend without core changes \\
+\bottomrule
+\end{tabularx}
+\end{table}

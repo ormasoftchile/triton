@@ -1,0 +1,1417 @@
+\section{Timeline IR}
+\label{sec:ir}
+
+The Timeline Intermediate Representation (IR) is the central contract of this system. It defines
+\emph{what} a timeline communicates---entities, relationships, temporal structure, and semantic
+status---while remaining agnostic to \emph{how} that communication is rendered. This separation
+enables deterministic rendering, source-control-friendly editing, and reliable generation by
+both humans and AI agents.
+
+\subsection{Design Principles}
+
+\begin{enumerate}
+  \item \textbf{Make illegal states unrepresentable.} The IR's type system should prevent
+        malformed timelines at the structural level, not merely validate them after the fact.
+  \item \textbf{Rendering-agnostic.} The IR describes meaning, not pixels. Visual
+        decisions---colors, fonts, positioning---belong to the theme engine.
+  \item \textbf{Git-friendly.} Stable field ordering, line-oriented YAML syntax, deterministic
+        serialization, minimal diff churn.
+  \item \textbf{Agent-generatable.} Clear required-vs-optional distinctions, explicit defaults,
+        forgiving structure that remains validatable.
+  \item \textbf{Orthogonal core.} A small set of primitives; convenience features are optional
+        layers, not core complexity.
+\end{enumerate}
+
+\subsection{Type Vocabulary}
+\label{sec:ir-types}
+
+The IR uses the following type vocabulary consistently throughout this specification:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Type} & \textbf{Description} \\
+\midrule
+\texttt{string} & UTF-8 text, non-empty unless explicitly noted \\
+\texttt{string?} & Optional string (may be omitted or null) \\
+\texttt{int} & Integer \\
+\texttt{number} & Decimal number \\
+\texttt{number[0..1]} & Decimal in closed interval $[0, 1]$ \\
+\texttt{bool} & Boolean (\texttt{true}/\texttt{false}) \\
+\texttt{date} & A temporal point (see \S\ref{sec:date-model}) \\
+\texttt{daterange} & A temporal interval with start and optional end \\
+\texttt{id} & Document-unique identifier (kebab-case slug, e.g., \texttt{alpha-release}) \\
+\texttt{ref<T>} & Reference to an entity of type \texttt{T} by its \texttt{id} \\
+\texttt{list<T>} & Ordered list of elements of type \texttt{T} \\
+\texttt{optional<T>} & Value of type \texttt{T} that may be omitted \\
+\texttt{enum\{...\}} & One of the listed literal values \\
+\texttt{map<K,V>} & Key-value mapping \\
+\bottomrule
+\end{tabular}
+\caption{IR type vocabulary}
+\label{tab:type-vocab}
+\end{table}
+
+\subsection{Document Structure}
+\label{sec:ir-structure}
+
+A Timeline IR document is a single YAML file with the following root structure:
+
+\begin{lstlisting}[language=yaml,caption={Root document structure}]
+version: "1.0"
+metadata: { ... }
+tracks: [ ... ]
+groups: [ ... ]       # optional
+activities: [ ... ]
+milestones: [ ... ]   # optional
+annotations: [ ... ]  # optional
+sections: [ ... ]     # optional
+legend: { ... }       # optional
+\end{lstlisting}
+
+\subsubsection{Root Fields}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{version} & \texttt{string} & Yes & --- & Specification version (semver, e.g., \texttt{"1.0"}) \\
+\texttt{metadata} & \texttt{Metadata} & Yes & --- & Document-level metadata \\
+\texttt{tracks} & \texttt{list<Track>} & Yes & --- & Swimlanes/rows; at least one required \\
+\texttt{groups} & \texttt{list<Group>} & No & \texttt{[]} & Logical groupings of activities \\
+\texttt{activities} & \texttt{list<Activity>} & Yes & --- & Time-spanning items; may be empty \\
+\texttt{milestones} & \texttt{list<Milestone>} & No & \texttt{[]} & Point-in-time markers \\
+\texttt{annotations} & \texttt{list<Annotation>} & No & \texttt{[]} & Callouts, notes, highlights \\
+\texttt{sections} & \texttt{list<Section>} & No & \texttt{[]} & Visual/logical document sections \\
+\texttt{legend} & \texttt{Legend} & No & auto & Legend mapping; auto-generated if omitted \\
+\bottomrule
+\end{tabular}
+\caption{Root document fields}
+\label{tab:root-fields}
+\end{table}
+
+\textbf{Invariant:} The document must contain at least one track. Activities and milestones
+may both be empty, but a timeline with neither is semantically vacuous (valid but degenerate).
+
+
+%% ============================================================================
+%% METADATA
+%% ============================================================================
+\subsection{Metadata}
+\label{sec:ir-metadata}
+
+The \texttt{metadata} object contains document-level information and temporal framing.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{title} & \texttt{string} & Yes & --- & Primary document title \\
+\texttt{subtitle} & \texttt{string?} & No & \texttt{null} & Secondary title or tagline \\
+\texttt{author} & \texttt{string?} & No & \texttt{null} & Author or team name \\
+\texttt{created} & \texttt{date} & No & now & Document creation date \\
+\texttt{updated} & \texttt{date} & No & now & Last modification date \\
+\texttt{time\_range} & \texttt{TimeRange} & Yes & --- & Temporal bounds of the timeline \\
+\texttt{axis\_unit} & \texttt{AxisUnit} & No & inferred & Granularity of the time axis \\
+\texttt{theme} & \texttt{string?} & No & \texttt{null} & Theme identifier (resolved by renderer) \\
+\texttt{locale} & \texttt{string?} & No & \texttt{"en"} & BCP-47 locale for date formatting \\
+\texttt{today} & \texttt{date?} & No & eval time & Reference date for \texttt{now}, relative dates, and today-marker; see \S\ref{sec:date-anchor} \\
+\texttt{fiscal\_year\_start} & \texttt{int [1..12]} & No & \texttt{1} & Calendar month on which the fiscal year begins (1~=~January); see \S\ref{sec:date-anchor} \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Extended description or notes \\
+\bottomrule
+\end{tabular}
+\caption{Metadata fields}
+\label{tab:metadata-fields}
+\end{table}
+
+\subsubsection{TimeRange}
+
+The \texttt{time\_range} defines the temporal viewport of the timeline---the span that will
+be rendered. Activities or milestones outside this range are valid but may be clipped.
+
+\begin{lstlisting}[language=yaml]
+time_range:
+  start: 2026-Q1
+  end: 2026-Q4
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llccp{5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{start} & \texttt{date} & Yes & --- & Inclusive start of the viewport \\
+\texttt{end} & \texttt{date} & No & open & Inclusive end; omit for open-ended \\
+\bottomrule
+\end{tabular}
+\caption{TimeRange fields}
+\label{tab:timerange-fields}
+\end{table}
+
+\subsubsection{AxisUnit}
+
+\begin{lstlisting}
+enum AxisUnit { day, week, month, quarter, half, year }
+\end{lstlisting}
+
+If omitted, the renderer infers axis unit from the time range span. The axis unit affects
+visual tick marks and labels, not the precision of individual dates.
+
+\subsubsection{Date Anchor and Fiscal Calendar}
+\label{sec:date-anchor}
+
+\paragraph{Date anchor (\texttt{today}).}
+The symbolic date \texttt{now} and all relative date offsets (\texttt{+3m}, \texttt{-2w},
+etc.) resolve against the \emph{date anchor}, evaluated in this order:
+\begin{enumerate}
+  \item \texttt{metadata.today} — if present, this value is used exclusively.
+  \item \texttt{metadata.created} — fallback when \texttt{today} is absent.
+  \item \textbf{Hard error} — if neither is present and any \texttt{now} or relative date
+        appears in the document, the document is not deterministically evaluable and
+        validation must reject it.
+\end{enumerate}
+
+Renderers \textbf{must not} consult the system clock to resolve \texttt{now} or relative
+dates. The today-marker annotation (\texttt{type: today-marker}) also uses this anchor.
+
+\textbf{Determinism caveat:} When \texttt{today} is omitted and \texttt{created} serves
+as the anchor, output is deterministic (the \texttt{created} date is fixed in the
+document). However, the document's visual "current position" does not advance with real
+time. Authors and agents \textbf{should} set \texttt{today} explicitly whenever \texttt{now}
+or relative dates appear, so that the document's meaning is unambiguous and byte-stable
+across environments and rendering runs.
+
+\paragraph{Fiscal calendar (\texttt{fiscal\_year\_start}).}
+\texttt{fiscal\_year\_start} specifies the calendar month (1--12) on which the fiscal year
+begins. The default is~1 (January), which makes fiscal and calendar years identical.
+
+Fiscal quarter dates (\texttt{FYnn-Qk}) map to calendar dates as follows. \texttt{FY}$nn$
+denotes the fiscal year beginning on month \texttt{fiscal\_year\_start} of calendar year
+$20nn$. Fiscal quarter $k$ ($k \in \{1,2,3,4\}$) spans three consecutive calendar months
+starting at calendar month $m_k$, where:
+\[
+  m_k = ((\texttt{fiscal\_year\_start} - 1) + (k - 1) \times 3) \bmod 12 + 1
+\]
+and the calendar year is $20nn$ if $m_k \ge \texttt{fiscal\_year\_start}$, otherwise
+$20nn + 1$.
+
+\textbf{Examples with \texttt{fiscal\_year\_start: 1} (default):}
+FY26-Q1 = Jan--Mar 2026; FY26-Q2 = Apr--Jun 2026 (identical to calendar quarters).
+
+\textbf{Examples with \texttt{fiscal\_year\_start: 4} (April fiscal year):}
+FY26-Q1 = Apr--Jun 2026; FY26-Q2 = Jul--Sep 2026; FY26-Q3 = Oct--Dec 2026;
+FY26-Q4 = Jan--Mar 2027.
+
+If any \texttt{FY...} date appears in the document and \texttt{fiscal\_year\_start}
+$\neq 1$, authors \textbf{should} set \texttt{fiscal\_year\_start} explicitly to ensure
+all renderers produce consistent x-coordinates for fiscal dates.
+
+
+%% ============================================================================
+%% DATE MODEL
+%% ============================================================================
+\subsection{Date Model}
+\label{sec:date-model}
+
+Timelines present temporal information at varying granularities. A product roadmap may show
+quarters; a conference schedule shows hours. The IR must represent this heterogeneity without
+forcing false precision or losing meaningful vagueness.
+
+\subsubsection{Date Representations}
+
+A \texttt{date} in the IR is one of the following forms:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Form} & \textbf{Example} & \textbf{Semantics} \\
+\midrule
+ISO date & \texttt{2026-06-09} & Specific calendar day \\
+ISO datetime & \texttt{2026-06-09T14:00} & Specific moment (minute precision) \\
+Year-month & \texttt{2026-06} & Entire month (June 2026) \\
+Year only & \texttt{2026} & Entire year \\
+Quarter & \texttt{2026-Q2} & Calendar quarter (Apr--Jun) \\
+Half & \texttt{2026-H1} & Calendar half (Jan--Jun) \\
+Fiscal quarter & \texttt{FY26-Q2} & Fiscal quarter (calendar mapping per \texttt{fiscal\_year\_start}; see \S\ref{sec:date-anchor}) \\
+Relative & \texttt{+3m} & 3 months from the date anchor (\texttt{metadata.today} $\to$ \texttt{metadata.created}; see \S\ref{sec:date-anchor}) \\
+Symbolic & \texttt{now} & Resolves to the date anchor (\texttt{metadata.today} $\to$ \texttt{metadata.created}; see \S\ref{sec:date-anchor}) \\
+\bottomrule
+\end{tabular}
+\caption{Date representation forms}
+\label{tab:date-forms}
+\end{table}
+
+\textbf{Design rationale:} We deliberately support coarse granularity (quarters, halves, years)
+as first-class concepts rather than forcing conversion to day-level dates. This preserves
+authorial intent: ``Q3 2026'' means the entire quarter, not ``2026-07-01''.
+
+\subsubsection{Uncertain and Open Dates}
+
+For dates that are genuinely unknown, tentative, or open-ended, the IR provides explicit
+encodings rather than using null-as-magic:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lp{8cm}}
+\toprule
+\textbf{Value} & \textbf{Semantics} \\
+\midrule
+\texttt{tbd} & Date is not yet determined; renders as ``TBD'' \\
+\texttt{ongoing} & No planned end; activity continues indefinitely \\
+\texttt{unknown} & Date exists but is not known to the author \\
+\texttt{\textasciitilde 2026-Q3} & Approximate/tentative (prefix tilde) \\
+\bottomrule
+\end{tabular}
+\caption{Uncertain and open date markers}
+\label{tab:uncertain-dates}
+\end{table}
+
+\textbf{Invariant:} \texttt{tbd}, \texttt{ongoing}, and \texttt{unknown} are valid only in
+positions where the schema allows uncertainty (e.g., \texttt{end} of a daterange, not
+\texttt{start} of the document's \texttt{time\_range}).
+
+\subsubsection{DateRange}
+
+A \texttt{daterange} represents a temporal interval:
+
+\begin{lstlisting}[language=yaml]
+# Explicit start and end
+start: 2026-04-01
+end: 2026-06-30
+
+# Open-ended (no planned end)
+start: 2026-04-01
+end: ongoing
+
+# Shorthand for single-granularity span
+span: 2026-Q2    # equivalent to start: 2026-04-01, end: 2026-06-30
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llccp{5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{start} & \texttt{date} & Yes* & --- & Interval start (inclusive) \\
+\texttt{end} & \texttt{date|ongoing|tbd} & No & \texttt{ongoing} & Interval end (inclusive); omitting is equivalent to \texttt{end: ongoing} \\
+\texttt{span} & \texttt{date} & Yes* & --- & Single-unit shorthand; mutually exclusive with \texttt{start}/\texttt{end} \\
+\bottomrule
+\end{tabular}
+\caption{DateRange fields (*exactly one of \texttt{span} or \texttt{start} (+ optional \texttt{end}) is required; co-presence of \texttt{span} with \texttt{start} or \texttt{end} is a well-formedness error)}
+\label{tab:daterange-fields}
+\end{table}
+
+\textbf{Invariant:} When both \texttt{start} and \texttt{end} are concrete dates,
+\texttt{end >= start}. The \texttt{span} shorthand expands to the natural bounds of its
+granularity (e.g., \texttt{span: 2026-Q2} expands to Q2's first and last days).
+
+\textbf{Invariant (exclusivity):} \texttt{span} is \emph{mutually exclusive} with
+\texttt{start} and \texttt{end}. A daterange must use exactly one of:
+\begin{itemize}
+  \item \texttt{span} alone (shorthand form), or
+  \item \texttt{start} alone or \texttt{start} + \texttt{end} (explicit form).
+\end{itemize}
+Co-presence of \texttt{span} with \texttt{start} or \texttt{end} on the same entity is
+a well-formedness error (\texttt{SPAN\_START\_CONFLICT}).
+
+\textbf{Open/ongoing semantics:} An Activity or daterange with \texttt{start} specified
+but \texttt{end} omitted is an \emph{open/ongoing interval}. This is semantically
+identical to writing \texttt{end: ongoing} and is an explicit, valid state (not an
+authoring error). Renderers must extend the bar to the canvas right edge and apply
+an open-end indicator (e.g., right-pointing chevron).
+
+
+%% ============================================================================
+%% TRACKS
+%% ============================================================================
+\subsection{Tracks (Swimlanes)}
+\label{sec:ir-tracks}
+
+Tracks are horizontal lanes that organize activities visually. Every activity belongs to
+exactly one track. Tracks appear in document order (first track at top).
+
+\begin{lstlisting}[language=yaml,caption={Track examples}]
+tracks:
+  - id: platform
+    label: Platform Team
+    description: Core infrastructure work
+
+  - id: mobile
+    label: Mobile Apps
+    color: blue         # optional hint
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{id} & \texttt{id} & Yes & --- & Unique track identifier \\
+\texttt{label} & \texttt{string} & Yes & --- & Display label \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Extended description \\
+\texttt{color} & \texttt{string?} & No & theme & Color hint (theme may override) \\
+\texttt{group} & \texttt{ref<Group>?} & No & \texttt{null} & Parent group (for nested tracks) \\
+\texttt{index} & \texttt{int?} & No & position & Explicit sort index; unique non-negative integer; tracks render top-to-bottom in ascending \texttt{index} order \\
+\texttt{collapsed} & \texttt{bool} & No & \texttt{false} & Initial collapsed state (if renderer supports) \\
+\bottomrule
+\end{tabular}
+\caption{Track fields}
+\label{tab:track-fields}
+\end{table}
+
+\textbf{Invariant:} Track \texttt{id} values must be unique within the document.
+
+%% ============================================================================
+%% GROUPS
+%% ============================================================================
+\subsection{Groups}
+\label{sec:ir-groups}
+
+Groups provide logical clustering of activities, tracks, or other groups. They enable
+hierarchical organization (e.g., ``Engineering'' containing ``Platform'' and ``Mobile'' tracks)
+without conflating logical grouping with visual swimlanes.
+
+\begin{lstlisting}[language=yaml,caption={Group example}]
+groups:
+  - id: engineering
+    label: Engineering
+    children:
+      - platform    # ref to track
+      - mobile      # ref to track
+
+  - id: releases
+    label: Release Milestones
+    members:
+      - alpha-release   # ref to milestone
+      - beta-release
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{id} & \texttt{id} & Yes & --- & Unique group identifier \\
+\texttt{label} & \texttt{string} & Yes & --- & Display label \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Extended description \\
+\texttt{parent} & \texttt{ref<Group>?} & No & \texttt{null} & Parent group (for nesting) \\
+\texttt{children} & \texttt{list<ref<Track|Group>>} & No & \texttt{[]} & Ordered child tracks/groups \\
+\texttt{members} & \texttt{list<ref<Activity|Milestone>>} & No & \texttt{[]} & Member entities \\
+\texttt{color} & \texttt{string?} & No & theme & Color hint \\
+\bottomrule
+\end{tabular}
+\caption{Group fields}
+\label{tab:group-fields}
+\end{table}
+
+\textbf{Invariant:} Group hierarchies must be acyclic. A group cannot be its own ancestor.
+
+
+%% ============================================================================
+%% ACTIVITIES
+%% ============================================================================
+\subsection{Activities}
+\label{sec:ir-activities}
+
+Activities are time-spanning items---phases, projects, tasks, or efforts. They are the
+primary content of most timelines.
+
+\begin{lstlisting}[language=yaml,caption={Activity examples}]
+activities:
+  - id: api-redesign
+    label: API Redesign
+    track: platform
+    start: 2026-Q1
+    end: 2026-Q2
+    status: in-progress
+    progress: 0.4
+
+  - id: mobile-launch
+    label: Mobile App Launch
+    track: mobile
+    span: 2026-Q3
+    status: planned
+    category: launch
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{id} & \texttt{id} & Yes & --- & Unique activity identifier \\
+\texttt{label} & \texttt{string} & Yes & --- & Display label (shown on bar) \\
+\texttt{track} & \texttt{ref<Track>} & Yes & --- & Containing track \\
+\texttt{start} & \texttt{date} & Yes* & --- & Start date \\
+\texttt{end} & \texttt{date|ongoing|tbd} & No & \texttt{ongoing} & End date; omitting is equivalent to \texttt{end: ongoing} (open interval) \\
+\texttt{span} & \texttt{date} & Yes* & --- & Single-unit shorthand; mutually exclusive with \texttt{start}/\texttt{end} \\
+\texttt{status} & \texttt{Status} & No & \texttt{planned} & Visual communication status \\
+\texttt{progress} & \texttt{number[0..1]?} & No & \texttt{null} & Completion fraction \\
+\texttt{category} & \texttt{string?} & No & \texttt{null} & Semantic category (for styling) \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Extended description \\
+\texttt{group} & \texttt{ref<Group>?} & No & \texttt{null} & Logical group membership \\
+\texttt{url} & \texttt{string?} & No & \texttt{null} & External link \\
+\texttt{tags} & \texttt{list<string>} & No & \texttt{[]} & Freeform tags \\
+\texttt{metadata} & \texttt{map<string,any>} & No & \texttt{\{\}} & Extension metadata \\
+\bottomrule
+\end{tabular}
+\caption{Activity fields (*exactly one of \texttt{span} or \texttt{start} (+ optional \texttt{end}) is required; co-presence of \texttt{span} with \texttt{start} or \texttt{end} is a well-formedness error)}
+\label{tab:activity-fields}
+\end{table}
+
+\subsubsection{Status Enum}
+\label{sec:status-enum}
+
+The \texttt{status} field communicates \emph{visual} state for presentation purposes.
+This is explicitly \textbf{not} a project-management workflow state; it describes what
+the audience should understand about the item's current condition.
+
+\begin{lstlisting}
+enum Status {
+  planned,      # Scheduled but not yet started
+  in-progress,  # Currently active
+  done,         # Completed
+  at-risk,      # May miss target (visual warning)
+  blocked,      # Cannot proceed (visual alert)
+  cancelled,    # No longer planned
+  tentative     # Not yet confirmed
+}
+\end{lstlisting}
+
+\textbf{Design rationale:} We include \texttt{at-risk} and \texttt{blocked} because executive
+timelines frequently need to communicate risk visually. We omit workflow states like
+``in review'' or ``approved'' which belong to project-management tools, not visual
+communication artifacts.
+
+\subsubsection{Progress}
+
+The \texttt{progress} field is a number in $[0, 1]$ representing completion fraction.
+It has no inherent visual meaning---the theme decides whether to render it as a
+progress bar, percentage label, or ignore it entirely.
+
+\textbf{Invariant:} If \texttt{progress} is provided, it must be in $[0, 1]$.
+\texttt{progress: 1.0} does not imply \texttt{status: done}; these are orthogonal.
+
+
+%% ============================================================================
+%% MILESTONES
+%% ============================================================================
+\subsection{Milestones}
+\label{sec:ir-milestones}
+
+Milestones are point-in-time markers---releases, deadlines, decision points, or events.
+Unlike activities, they have no duration.
+
+\begin{lstlisting}[language=yaml,caption={Milestone examples}]
+milestones:
+  - id: alpha-release
+    label: Alpha Release
+    date: 2026-03-15
+    track: platform
+    status: done
+    icon: flag
+
+  - id: board-review
+    label: Board Review
+    date: 2026-Q2        # first day of Q2
+    category: governance
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{id} & \texttt{id} & Yes & --- & Unique milestone identifier \\
+\texttt{label} & \texttt{string} & Yes & --- & Display label \\
+\texttt{date} & \texttt{date} & Yes & --- & Point in time \\
+\texttt{track} & \texttt{ref<Track>?} & No & global & Associated track (or global) \\
+\texttt{status} & \texttt{Status} & No & \texttt{planned} & Visual status \\
+\texttt{category} & \texttt{string?} & No & \texttt{null} & Semantic category \\
+\texttt{icon} & \texttt{string?} & No & theme & Icon hint (diamond, flag, star, etc.) \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Extended description \\
+\texttt{group} & \texttt{ref<Group>?} & No & \texttt{null} & Logical group membership \\
+\texttt{url} & \texttt{string?} & No & \texttt{null} & External link \\
+\texttt{tags} & \texttt{list<string>} & No & \texttt{[]} & Freeform tags \\
+\bottomrule
+\end{tabular}
+\caption{Milestone fields}
+\label{tab:milestone-fields}
+\end{table}
+
+\textbf{Note:} When \texttt{track} is omitted, the milestone is ``global'' and may be
+rendered spanning all tracks (e.g., a vertical line with label at top).
+
+%% ============================================================================
+%% ANNOTATIONS
+%% ============================================================================
+\subsection{Annotations}
+\label{sec:ir-annotations}
+
+Annotations add contextual information---callouts, notes, highlights, or today-markers---
+without being first-class timeline entities.
+
+\begin{lstlisting}[language=yaml,caption={Annotation examples}]
+annotations:
+  - type: today-marker
+    date: now
+
+  - type: callout
+    target: api-redesign
+    text: "Critical path item"
+    position: above
+
+  - type: bracket
+    targets: [alpha-release, beta-release]
+    label: "Testing Phase"
+
+  - type: period
+    start: 2026-06-01
+    end: 2026-06-15
+    label: "Code Freeze"
+    style: highlight
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{type} & \texttt{AnnotationType} & Yes & --- & Annotation kind \\
+\texttt{id} & \texttt{id?} & No & auto & Optional identifier \\
+\texttt{target} & \texttt{ref<Activity|Milestone>?} & Cond & --- & Single target entity \\
+\texttt{targets} & \texttt{list<ref<...>>?} & Cond & --- & Multiple targets \\
+\texttt{date} & \texttt{date?} & Cond & --- & Point annotation \\
+\texttt{start}/\texttt{end} & \texttt{date?} & Cond & --- & Range annotation \\
+\texttt{text}/\texttt{label} & \texttt{string?} & No & \texttt{null} & Display text \\
+\texttt{position} & \texttt{enum\{above,below,left,right\}?} & No & auto & Hint only \\
+\texttt{style} & \texttt{string?} & No & theme & Style hint \\
+\bottomrule
+\end{tabular}
+\caption{Annotation fields (conditional fields depend on type)}
+\label{tab:annotation-fields}
+\end{table}
+
+\subsubsection{Annotation Types}
+
+\begin{lstlisting}
+enum AnnotationType {
+  today-marker,  # Vertical line at current date
+  callout,       # Note attached to an entity
+  bracket,       # Visual bracket spanning entities
+  period,        # Highlighted time period
+  note,          # Freestanding note
+  connector      # Line connecting two entities
+}
+\end{lstlisting}
+
+
+%% ============================================================================
+%% SECTIONS
+%% ============================================================================
+\subsection{Sections}
+\label{sec:ir-sections}
+
+Sections divide the timeline into logical or visual chapters. They enable multi-page
+timelines or distinct phases that should be visually separated.
+
+\begin{lstlisting}[language=yaml,caption={Section example}]
+sections:
+  - id: current-state
+    label: "Current State (Q1-Q2)"
+    time_range:
+      start: 2026-Q1
+      end: 2026-Q2
+
+  - id: future-state
+    label: "Future Roadmap (Q3-Q4)"
+    time_range:
+      start: 2026-Q3
+      end: 2026-Q4
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{id} & \texttt{id} & Yes & --- & Unique section identifier \\
+\texttt{label} & \texttt{string} & Yes & --- & Section title \\
+\texttt{time\_range} & \texttt{TimeRange?} & No & inherit & Override document time range \\
+\texttt{tracks} & \texttt{list<ref<Track>>?} & No & all & Subset of tracks to show \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Section description \\
+\texttt{page\_break} & \texttt{bool} & No & \texttt{false} & Hint for paginated output \\
+\bottomrule
+\end{tabular}
+\caption{Section fields}
+\label{tab:section-fields}
+\end{table}
+
+%% ============================================================================
+%% LEGEND
+%% ============================================================================
+\subsection{Legend}
+\label{sec:ir-legend}
+
+The legend documents the meaning of statuses, categories, and visual conventions used
+in the timeline. If omitted, the renderer may auto-generate a legend from used values.
+
+\begin{lstlisting}[language=yaml,caption={Legend example}]
+legend:
+  show: true
+  position: bottom-right
+  entries:
+    - key: in-progress
+      label: In Progress
+      description: Currently being worked on
+    - key: at-risk
+      label: At Risk
+      description: May miss planned date
+    - key: launch
+      label: Launch Event
+      category: true
+\end{lstlisting}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{show} & \texttt{bool} & No & \texttt{true} & Whether to render legend \\
+\texttt{position} & \texttt{string?} & No & theme & Position hint \\
+\texttt{title} & \texttt{string?} & No & \texttt{"Legend"} & Legend title \\
+\texttt{entries} & \texttt{list<LegendEntry>} & No & auto & Legend entries \\
+\bottomrule
+\end{tabular}
+\caption{Legend fields}
+\label{tab:legend-fields}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{key} & \texttt{string} & Yes & --- & Status or category key \\
+\texttt{label} & \texttt{string} & Yes & --- & Human-readable label \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Extended description \\
+\texttt{category} & \texttt{bool} & No & \texttt{false} & True if this is a category (not status) \\
+\bottomrule
+\end{tabular}
+\caption{LegendEntry fields}
+\label{tab:legend-entry-fields}
+\end{table}
+
+
+%% ============================================================================
+%% ID AND REFERENCE SYSTEM
+%% ============================================================================
+\subsection{ID and Reference System}
+\label{sec:ir-refs}
+
+\subsubsection{Identifier Format}
+
+All \texttt{id} fields must be:
+\begin{itemize}
+  \item Non-empty strings
+  \item Composed of lowercase letters, digits, and hyphens
+  \item Starting with a letter
+  \item Unique within their entity type AND globally within the document
+\end{itemize}
+
+\textbf{Regex:} \verb|^[a-z][a-z0-9-]*$|
+
+\textbf{Rationale for global uniqueness:} References may appear in contexts where the
+entity type is ambiguous (e.g., annotation targets). Global uniqueness eliminates
+the need for type prefixes in references.
+
+\begin{lstlisting}[language=yaml,caption={ID examples}]
+# Valid IDs
+id: api-v2
+id: q3-release
+id: mobile-team-ios
+
+# Invalid IDs
+id: API-v2         # uppercase
+id: 2026-release   # starts with digit
+id: api_v2         # underscore
+\end{lstlisting}
+
+\subsubsection{References}
+
+A reference is a string containing the \texttt{id} of another entity. The IR uses
+bare strings for references (not structured objects) for YAML terseness:
+
+\begin{lstlisting}[language=yaml]
+activities:
+  - id: feature-a
+    track: platform      # ref<Track>
+    group: engineering   # ref<Group>
+
+annotations:
+  - type: callout
+    target: feature-a    # ref<Activity>
+\end{lstlisting}
+
+\textbf{Invariant:} Every reference must resolve to exactly one entity in the document.
+A validator must reject documents with dangling references.
+
+\subsubsection{Reference Namespacing}
+
+Because IDs are globally unique, references are unambiguous without type prefixes.
+The schema context determines what types are valid:
+
+\begin{itemize}
+  \item \texttt{activity.track}: must reference a Track
+  \item \texttt{annotation.target}: may reference Activity or Milestone
+  \item \texttt{group.children}: may reference Track or Group
+\end{itemize}
+
+A validator checks that the referenced entity has the correct type for its context.
+
+%% ============================================================================
+%% WELL-FORMEDNESS AND INVARIANTS
+%% ============================================================================
+\subsection{Well-Formedness Rules}
+\label{sec:ir-invariants}
+
+A Timeline IR document is \textbf{well-formed} if and only if all the following
+invariants hold:
+
+\subsubsection{Structural Invariants}
+
+\begin{enumerate}
+  \item \textbf{Version present:} \texttt{version} field exists and matches a known
+        specification version.
+  \item \textbf{Required fields:} All fields marked ``Req: Yes'' are present and non-null.
+  \item \textbf{At least one track:} The \texttt{tracks} list is non-empty.
+  \item \textbf{Unique IDs:} All \texttt{id} values are globally unique within the document.
+  \item \textbf{Valid ID format:} All \texttt{id} values match \verb|^[a-z][a-z0-9-]*$|.
+\end{enumerate}
+
+\subsubsection{Referential Invariants}
+
+\begin{enumerate}[resume]
+  \item \textbf{References resolve:} Every reference points to an existing entity.
+  \item \textbf{Reference types match:} References point to entities of the expected type
+        (e.g., \texttt{activity.track} references a Track, not a Group).
+  \item \textbf{No circular groups:} The group parent-child graph is acyclic.
+\end{enumerate}
+
+\subsubsection{Temporal Invariants}
+
+\begin{enumerate}[resume]
+  \item \textbf{Valid time range:} If \texttt{metadata.time\_range} has both start and end,
+        then \texttt{end >= start}.
+  \item \textbf{Activity duration non-negative:} For activities with concrete start and end,
+        \texttt{end >= start}.
+  \item \textbf{Date format valid:} All date values conform to the date model
+        (\S\ref{sec:date-model}).
+  \item \textbf{Activity date-source exclusive:} Every activity must satisfy exactly one of:
+        (a)~\texttt{span} is present and neither \texttt{start} nor \texttt{end} is present; or
+        (b)~\texttt{start} is present and \texttt{span} is absent (\texttt{end} optional).
+        Co-presence of \texttt{span} with \texttt{start} or \texttt{end} is a hard
+        well-formedness error: \texttt{SPAN\_START\_CONFLICT}.
+  \item \textbf{Date anchor present when required:} If any date field in the document
+        contains \texttt{now} or a relative offset (e.g., \texttt{+3m}, \texttt{-2w}),
+        then at least one of \texttt{metadata.today} or \texttt{metadata.created} must be
+        present. Absence of both is a hard error: \texttt{DATE\_ANCHOR\_MISSING}.
+  \item \textbf{Track index values unique:} When \texttt{track.index} is present, all
+        supplied values must be unique non-negative integers within the document.
+\end{enumerate}
+
+\subsubsection{Value Invariants}
+
+\begin{enumerate}[resume]
+  \item \textbf{Progress in range:} If \texttt{progress} is present, $0 \le \text{progress} \le 1$.
+  \item \textbf{Status valid:} All \texttt{status} values are members of the Status enum.
+  \item \textbf{Axis unit valid:} If present, \texttt{axis\_unit} is a member of AxisUnit enum.
+\end{enumerate}
+
+\subsubsection{Soft Warnings (Valid but Suspicious)}
+
+The following are not errors but may indicate authorial mistakes:
+
+\begin{itemize}
+  \item Activity or milestone outside \texttt{metadata.time\_range} (will be clipped)
+  \item \texttt{progress: 1.0} with \texttt{status: in-progress} (likely stale)
+  \item Empty \texttt{activities} and \texttt{milestones} lists (vacuous timeline)
+  \item Unused tracks (no activities reference them)
+\end{itemize}
+
+
+%% ============================================================================
+%% EXAMPLES
+%% ============================================================================
+\subsection{Complete Examples}
+\label{sec:ir-examples}
+
+The following examples demonstrate realistic Timeline IR documents. Each is a complete,
+valid document showcasing different timeline use cases.
+
+\subsubsection{Example 1: Product Roadmap}
+
+A quarterly product roadmap with multiple teams, showing how the IR represents a
+typical software planning artifact.
+
+\begin{lstlisting}[language=yaml,caption={Product roadmap example},label={lst:roadmap-example}]
+version: "1.0"
+
+metadata:
+  title: "Product Roadmap 2026"
+  subtitle: "Engineering & Design"
+  author: "Product Team"
+  created: 2026-06-09
+  time_range:
+    start: 2026-Q1
+    end: 2026-Q4
+  axis_unit: quarter
+  theme: corporate-blue
+
+tracks:
+  - id: platform
+    label: Platform
+    description: Core infrastructure and APIs
+
+  - id: mobile
+    label: Mobile Apps
+    description: iOS and Android applications
+
+  - id: design
+    label: Design System
+    description: Component library and guidelines
+
+groups:
+  - id: foundation
+    label: Foundation Work
+    members: [api-v2, component-lib]
+
+activities:
+  - id: api-v2
+    label: API v2 Migration
+    track: platform
+    start: 2026-Q1
+    end: 2026-Q2
+    status: in-progress
+    progress: 0.6
+    category: infrastructure
+
+  - id: mobile-redesign
+    label: Mobile App Redesign
+    track: mobile
+    start: 2026-Q2
+    end: 2026-Q3
+    status: planned
+    description: Complete visual refresh
+
+  - id: component-lib
+    label: Component Library
+    track: design
+    start: 2026-Q1
+    end: 2026-Q4
+    status: in-progress
+    progress: 0.3
+
+  - id: analytics
+    label: Analytics Integration
+    track: platform
+    span: 2026-Q3
+    status: planned
+
+milestones:
+  - id: api-ga
+    label: API v2 GA
+    date: 2026-06-30
+    track: platform
+    status: planned
+    icon: flag
+
+  - id: app-launch
+    label: App Store Launch
+    date: 2026-Q4
+    track: mobile
+    status: planned
+    category: launch
+
+annotations:
+  - type: today-marker
+    date: now
+
+legend:
+  show: true
+  entries:
+    - key: infrastructure
+      label: Infrastructure
+      category: true
+    - key: launch
+      label: Launch Event
+      category: true
+\end{lstlisting}
+
+\subsubsection{Example 2: Executive Program Timeline}
+
+A high-level transformation program timeline suitable for board presentations,
+demonstrating status communication and risk visibility.
+
+\begin{lstlisting}[language=yaml,caption={Executive program timeline},label={lst:exec-timeline}]
+version: "1.0"
+
+metadata:
+  title: "Digital Transformation Program"
+  subtitle: "FY26 Executive View"
+  author: "PMO"
+  created: 2026-06-09
+  time_range:
+    start: 2026-01-01
+    end: 2026-12-31
+  axis_unit: month
+  theme: executive
+
+tracks:
+  - id: strategy
+    label: Strategy & Governance
+
+  - id: technology
+    label: Technology Modernization
+
+  - id: people
+    label: People & Change
+
+activities:
+  - id: strategy-define
+    label: Strategy Definition
+    track: strategy
+    start: 2026-01-01
+    end: 2026-03-31
+    status: done
+    progress: 1.0
+
+  - id: vendor-selection
+    label: Vendor Selection
+    track: technology
+    start: 2026-02-01
+    end: 2026-04-30
+    status: done
+
+  - id: platform-build
+    label: Platform Build
+    track: technology
+    start: 2026-04-01
+    end: 2026-09-30
+    status: in-progress
+    progress: 0.35
+
+  - id: data-migration
+    label: Data Migration
+    track: technology
+    start: 2026-07-01
+    end: 2026-11-30
+    status: at-risk
+    description: Dependency on legacy system documentation
+
+  - id: training
+    label: Training Program
+    track: people
+    start: 2026-06-01
+    end: 2026-12-31
+    status: planned
+
+  - id: change-mgmt
+    label: Change Management
+    track: people
+    start: 2026-03-01
+    end: ongoing
+    status: in-progress
+
+milestones:
+  - id: board-approval
+    label: Board Approval
+    date: 2026-03-15
+    status: done
+    icon: star
+
+  - id: go-live
+    label: Go Live
+    date: 2026-10-01
+    track: technology
+    status: planned
+    icon: flag
+
+  - id: program-close
+    label: Program Close
+    date: 2026-12-15
+    status: planned
+
+annotations:
+  - type: today-marker
+    date: now
+
+  - type: callout
+    target: data-migration
+    text: "Risk: Legacy documentation gaps"
+    position: above
+
+  - type: bracket
+    targets: [platform-build, data-migration]
+    label: "Critical Path"
+
+sections:
+  - id: h1
+    label: "H1 2026: Foundation"
+    time_range:
+      start: 2026-01-01
+      end: 2026-06-30
+
+  - id: h2
+    label: "H2 2026: Execution"
+    time_range:
+      start: 2026-07-01
+      end: 2026-12-31
+\end{lstlisting}
+
+
+\subsubsection{Example 3: Architecture Evolution Timeline}
+
+A technical architecture timeline showing system evolution over multiple years,
+demonstrating coarse granularity and technical categorization.
+
+\begin{lstlisting}[language=yaml,caption={Architecture evolution timeline},label={lst:arch-timeline}]
+version: "1.0"
+
+metadata:
+  title: "Platform Architecture Evolution"
+  subtitle: "2026-2028 Technical Roadmap"
+  author: "Architecture Team"
+  created: 2026-06-09
+  time_range:
+    start: 2026
+    end: 2028
+  axis_unit: half
+  theme: technical
+
+tracks:
+  - id: frontend
+    label: Frontend
+
+  - id: backend
+    label: Backend Services
+
+  - id: data
+    label: Data Platform
+
+  - id: infra
+    label: Infrastructure
+
+activities:
+  - id: react-migration
+    label: React 19 Migration
+    track: frontend
+    start: 2026-H1
+    end: 2026-H2
+    status: in-progress
+    category: modernization
+
+  - id: micro-frontend
+    label: Micro-Frontend Architecture
+    track: frontend
+    start: 2027-H1
+    end: 2027-H2
+    status: planned
+    category: architecture
+
+  - id: api-gateway
+    label: API Gateway
+    track: backend
+    span: 2026-H1
+    status: done
+    category: infrastructure
+
+  - id: service-mesh
+    label: Service Mesh Adoption
+    track: backend
+    start: 2026-H2
+    end: 2027-H1
+    status: planned
+    category: infrastructure
+
+  - id: event-driven
+    label: Event-Driven Architecture
+    track: backend
+    start: 2027
+    end: 2028
+    status: tentative
+    category: architecture
+
+  - id: lakehouse
+    label: Data Lakehouse
+    track: data
+    start: 2026-H1
+    end: 2027-H1
+    status: in-progress
+    progress: 0.4
+    category: data
+
+  - id: ml-platform
+    label: ML Platform
+    track: data
+    start: 2027
+    end: ongoing
+    status: tentative
+    category: ai
+
+  - id: k8s-migration
+    label: Kubernetes Migration
+    track: infra
+    span: 2026
+    status: in-progress
+    progress: 0.7
+    category: infrastructure
+
+  - id: multi-cloud
+    label: Multi-Cloud Strategy
+    track: infra
+    start: 2027
+    end: 2028
+    status: planned
+    category: infrastructure
+
+milestones:
+  - id: legacy-sunset
+    label: Legacy System Sunset
+    date: 2027-H1
+    track: backend
+    status: planned
+    icon: flag
+
+  - id: cloud-native
+    label: Cloud Native Milestone
+    date: 2026
+    track: infra
+    status: planned
+
+annotations:
+  - type: period
+    start: 2026-H2
+    end: 2027-H1
+    label: "Transition Period"
+    style: highlight
+
+legend:
+  entries:
+    - key: modernization
+      label: Modernization
+      category: true
+    - key: architecture
+      label: Architecture Change
+      category: true
+    - key: infrastructure
+      label: Infrastructure
+      category: true
+    - key: data
+      label: Data Platform
+      category: true
+    - key: ai
+      label: AI/ML
+      category: true
+\end{lstlisting}
+
+
+%% ============================================================================
+%% EXTENSIBILITY
+%% ============================================================================
+\subsection{Extensibility}
+\label{sec:ir-extensibility}
+
+The IR is designed to be extended without breaking existing consumers.
+
+\subsubsection{Metadata Extension}
+
+Every entity type includes a \texttt{metadata} field (type \texttt{map<string,any>})
+for application-specific data:
+
+\begin{lstlisting}[language=yaml]
+activities:
+  - id: feature-x
+    label: Feature X
+    track: platform
+    span: 2026-Q2
+    metadata:
+      jira_key: PROJ-1234
+      owner: alice@example.com
+      priority: high
+\end{lstlisting}
+
+Renderers should ignore unrecognized metadata keys. Source integrations may use
+metadata to preserve round-trip fidelity with external systems.
+
+\subsubsection{Custom Categories}
+
+The \texttt{category} field accepts arbitrary strings. The theme engine maps
+categories to visual styles. New categories can be introduced without IR changes:
+
+\begin{lstlisting}[language=yaml]
+activities:
+  - id: security-audit
+    category: security   # custom category
+    # ...
+
+legend:
+  entries:
+    - key: security
+      label: Security Work
+      category: true
+\end{lstlisting}
+
+\subsubsection{Version Compatibility}
+
+The \texttt{version} field enables forward compatibility:
+
+\begin{itemize}
+  \item Consumers should accept documents with higher minor versions (1.1, 1.2, etc.)
+        and ignore unknown fields.
+  \item Major version changes (2.0) may introduce breaking changes; consumers should
+        reject documents with unsupported major versions.
+\end{itemize}
+
+%% ============================================================================
+%% SERIALIZATION
+%% ============================================================================
+\subsection{Serialization and Syntax}
+\label{sec:ir-serialization}
+
+\subsubsection{Canonical Format}
+
+YAML 1.2 is the canonical surface syntax for Timeline IR documents. Design decisions
+prioritizing YAML:
+
+\begin{itemize}
+  \item \textbf{Minimal punctuation:} No braces for simple mappings, no quotes for
+        most strings.
+  \item \textbf{Line-oriented:} Each field on its own line for clean diffs.
+  \item \textbf{Stable ordering:} Fields should appear in specification order for
+        consistency; validators may enforce this.
+  \item \textbf{Comments preserved:} YAML allows comments; tools should preserve them.
+\end{itemize}
+
+\subsubsection{Alternative Formats}
+
+Tooling may support additional formats with lossless conversion:
+
+\begin{itemize}
+  \item \textbf{JSON:} Direct mapping; verbose but universally parseable.
+  \item \textbf{TOML:} Alternative for users who prefer it.
+\end{itemize}
+
+The IR is defined abstractly; the YAML syntax is one serialization, not the definition.
+
+\subsubsection{Git Friendliness}
+
+For minimal diff churn:
+
+\begin{enumerate}
+  \item Lists use block style (one item per line), not flow style.
+  \item Fields appear in consistent order.
+  \item Auto-generated fields (like \texttt{updated} timestamps) are optional and
+        may be omitted in version-controlled documents.
+  \item IDs are stable slugs, not generated UUIDs.
+\end{enumerate}
+
+\begin{lstlisting}[language=yaml,caption={Git-friendly style}]
+# Good: block style, stable order
+activities:
+  - id: feature-a
+    label: Feature A
+    track: platform
+    span: 2026-Q2
+
+# Avoid: flow style, hard to diff
+activities: [{id: feature-a, label: Feature A, track: platform, span: 2026-Q2}]
+\end{lstlisting}
+
+%% ============================================================================
+%% VALIDATION
+%% ============================================================================
+\subsection{Validation}
+\label{sec:ir-validation}
+
+A conforming validator must check all invariants in \S\ref{sec:ir-invariants}.
+Validation is a function:
+
+\[
+\text{validate} : \text{Document} \to \text{Valid} \mid \text{Errors}
+\]
+
+\subsubsection{Error Reporting}
+
+Validation errors should include:
+\begin{itemize}
+  \item Path to the offending field (e.g., \texttt{activities[2].track})
+  \item The invariant violated
+  \item The actual value
+  \item Suggested fix (when determinable)
+\end{itemize}
+
+\subsubsection{Strict vs. Lenient Mode}
+
+\begin{itemize}
+  \item \textbf{Strict mode:} All invariants enforced; required for rendering.
+  \item \textbf{Lenient mode:} Warnings instead of errors for soft issues; useful
+        for work-in-progress documents.
+\end{itemize}
+
+%% ============================================================================
+%% RELATIONSHIP TO OTHER COMPONENTS
+%% ============================================================================
+\subsection{Relationship to Other Components}
+\label{sec:ir-relationships}
+
+The IR is the stable contract between pipeline stages:
+
+\begin{description}
+  \item[Ingestion (upstream)] Source adapters (ADO, GitHub, Markdown, etc.) produce
+        IR documents. The IR defines the target shape; adapters handle mapping.
+
+  \item[Theme Engine (downstream)] Themes consume IR and produce styled visual
+        specifications. Themes interpret \texttt{status}, \texttt{category}, and
+        hint fields (\texttt{color}, \texttt{icon}) but cannot require additional
+        IR fields.
+
+  \item[Renderer (downstream)] The renderer consumes themed IR (or IR + theme) and
+        produces output (SVG, PNG, PDF, PPTX). The IR remains rendering-agnostic;
+        pixel-level decisions are not IR concerns.
+
+  \item[Agent Integration] AI agents generate IR directly. The IR's explicit typing,
+        clear required/optional fields, and forgiving structure enable reliable
+        generation. Agents need not understand rendering.
+\end{description}
+
+\textbf{Contract stability:} Downstream components may not require IR fields beyond
+this specification. Extension fields (\texttt{metadata}) are pass-through.
+

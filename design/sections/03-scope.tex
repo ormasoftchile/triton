@@ -1,0 +1,241 @@
+\section{Scope Boundaries}
+\label{sec:scope}
+
+This section defines explicit boundaries for Timeline Compiler. Clarity here prevents scope creep and ensures the system remains focused on its core value proposition: transforming structured plan descriptions into presentation-quality visual timelines.
+
+\subsection{Governing Principle}
+
+The scope boundary is defined by the \emph{rendering abstraction}: Timeline Compiler transforms a communication-oriented intermediate representation into visual output. It does not generate, compute, or manage the plan data itself.
+
+\begin{quote}
+\emph{If a feature requires understanding the semantics of work — dependencies, resources, costs, velocity — it is out of scope. If a feature improves the visual communication of a plan already decided, it is potentially in scope.}
+\end{quote}
+
+\subsection{In Scope}
+
+The following capabilities are within Timeline Compiler's scope:
+
+\subsubsection{Visual Artifact Types}
+
+\begin{description}
+  \item[Timelines] Horizontal time-based visualizations showing activities, milestones, and phases across a date range.
+  
+  \item[Roadmaps] Product or program roadmaps with tracks (swimlanes), grouped activities, and strategic milestones.
+  
+  \item[Milestone Views] Focused views highlighting key dates and deliverables without detailed activity bars.
+  
+  \item[Phase Summaries] High-level views showing phases or stages of a program without granular activities.
+  
+  \item[Swimlane Diagrams] Multi-track views where parallel workstreams are visually separated.
+\end{description}
+
+\subsubsection{IR Elements}
+
+The IR supports the following semantic elements (detailed in Section~\ref{sec:ir}):
+
+\begin{description}
+  \item[\texttt{tracks}] Named swimlanes or rows that group related activities. Tracks provide visual and semantic organization.
+  
+  \item[\texttt{groups}] Logical groupings within or across tracks for nested organization (e.g., workstreams within a track).
+  
+  \item[\texttt{activities}] Time-bounded items (bars) representing work, initiatives, or phases. Activities have start/end dates, labels, and optional metadata.
+  
+  \item[\texttt{milestones}] Point-in-time markers representing key dates, deliverables, or decisions.
+  
+  \item[\texttt{sections}] Temporal divisions of the timeline (e.g., quarters, phases) that span all tracks.
+  
+  \item[\texttt{range}] The overall time window for the visualization.
+  
+  \item[\texttt{date ranges}] Start and end dates for activities and sections. Supports dates, months, quarters, and years.
+  
+  \item[\texttt{progress}] Numeric (0.0–1.0) indication of completion for activities. Purely visual — not computed.
+  
+  \item[\texttt{status}] Semantic status indicators (e.g., \texttt{planned}, \texttt{in-progress}, \texttt{complete}, \texttt{at-risk}, \texttt{blocked}).
+  
+  \item[\texttt{labels}] Text labels for all elements. Brief, presentation-appropriate text.
+  
+  \item[\texttt{annotations}] Callouts, notes, or emphasis markers attached to dates or elements.
+  
+  \item[\texttt{legends}] Explanatory legends for status colors, track semantics, or custom indicators.
+\end{description}
+
+\subsubsection{Presentation Features}
+
+\begin{description}
+  \item[Theming] Complete visual customization via theme files: colors, typography, spacing, shapes.
+  
+  \item[Emphasis] Visual mechanisms to highlight specific activities or milestones (e.g., bold, glow, callout).
+  
+  \item[Today Markers] Visual indicator for the current date (provided as input, not computed).
+  
+  \item[Progress Visualization] Visual representation of progress within activity bars.
+  
+  \item[Status Indicators] Color or icon mapping for semantic statuses.
+  
+  \item[Annotations] Callouts, arrows, or labels that highlight specific points.
+\end{description}
+
+\subsubsection{Output Formats}
+
+\begin{description}
+  \item[SVG] Primary vector output for web embedding and further processing.
+  
+  \item[PNG] Rasterized output for contexts requiring bitmap images.
+  
+  \item[PDF] Print-quality vector output for documents and decks.
+  
+  \item[PPTX] PowerPoint-compatible output for direct use in presentations.
+\end{description}
+
+\subsubsection{Tooling}
+
+\begin{description}
+  \item[CLI] Command-line interface for rendering (\texttt{timeline render input.yaml -o output.pdf}).
+  
+  \item[Library API] Programmatic access for embedding in other tools.
+  
+  \item[Schema Validation] Validation of IR against formal schema.
+  
+  \item[Theme Validation] Validation of theme files.
+\end{description}
+
+\subsection{Out of Scope}
+
+The following capabilities are explicitly excluded:
+
+\subsubsection{Project Management Semantics}
+
+\begin{description}
+  \item[Dependency Scheduling] Timeline Compiler does not compute dates from dependencies. If Activity B depends on Activity A, the author must provide both dates explicitly. The IR may optionally \emph{record} dependencies for visual rendering (e.g., arrows), but it does not \emph{resolve} them.
+  
+  \textbf{Rationale:} Dependency resolution is core project-management logic. It requires understanding task semantics, durations, constraints, and often iterative solving. This is the domain of MS Project, Primavera, and similar tools. Timeline Compiler consumes the \emph{output} of scheduling, not the inputs.
+  
+  \item[Resource Management] No support for assigning people, teams, or resource pools to activities. No resource leveling or capacity planning.
+  
+  \textbf{Rationale:} Resource management requires organizational context (who is available, at what capacity, with what skills) that is outside the scope of a rendering compiler.
+  
+  \item[Critical Path Analysis] No calculation of critical paths or slack time.
+  
+  \textbf{Rationale:} Critical path analysis is a scheduling concern, not a rendering concern. Upstream tools compute this; Timeline Compiler may visualize the result if provided.
+  
+  \item[Sprint/Iteration Tracking] No support for agile sprints, velocity tracking, burndowns, or iteration planning.
+  
+  \textbf{Rationale:} Sprint tracking is operational work management. Timeline Compiler visualizes strategic communication, not operational tracking.
+  
+  \item[Cost Management] No budgets, cost tracking, earned value, or financial projections.
+  
+  \textbf{Rationale:} Financial data requires integration with accounting and project-control systems. This is far outside the rendering scope.
+  
+  \item[Portfolio Optimization] No multi-project prioritization, resource allocation across projects, or strategic portfolio balancing.
+  
+  \textbf{Rationale:} Portfolio management is a strategic planning function, not a visualization function.
+  
+  \item[Baseline Comparison] No tracking of baseline vs.\ actual schedules over time.
+  
+  \textbf{Rationale:} Baseline tracking requires temporal versioning and comparison logic. This is project-control functionality.
+  
+  \item[Risk Registers] No formal risk tracking, probability/impact matrices, or mitigation planning.
+  
+  \textbf{Rationale:} Risk management is a project-management discipline with its own tooling requirements.
+\end{description}
+
+\subsubsection{Data Management}
+
+\begin{description}
+  \item[Persistent Storage] Timeline Compiler does not store timelines. It transforms input files to output files. Storage is the user's responsibility.
+  
+  \item[Collaboration Features] No real-time collaboration, comments, change tracking, or multi-user editing.
+  
+  \item[Version History] No built-in versioning. Users should use Git or similar tools.
+\end{description}
+
+\subsubsection{Interactive Features}
+
+\begin{description}
+  \item[Clickable Outputs] Output formats (SVG, PNG, PDF, PPTX) are static. Hyperlinking or interactive drill-down is out of scope for MVP, though SVG hyperlinks may be a future extension.
+  
+  \item[WYSIWYG Editing] No drag-and-drop authoring. Timeline Compiler is a compiler, not an editor.
+  
+  \item[Live Preview During Authoring] Out of scope for core; a VS Code extension may provide this separately.
+\end{description}
+
+\subsubsection{Data Ingestion}
+
+\begin{description}
+  \item[Native Integrations] Timeline Compiler does not natively read from Jira, Azure DevOps, Asana, GitHub Projects, or other systems. It consumes only its IR format.
+  
+  \textbf{Note:} Separate adapter tools or scripts may transform external data to the IR, but these are outside Timeline Compiler's core scope.
+\end{description}
+
+\subsection{Boundary Cases}
+
+Some features lie at the boundary and require explicit decisions:
+
+\subsubsection{Dependency Arrows (Visual Only)}
+
+\textbf{Decision:} IN SCOPE — visual only.
+
+The IR may include dependency declarations for the purpose of rendering arrows or lines between activities. However, dependencies are purely visual annotations; they do not affect date computation or validation.
+
+\begin{lstlisting}[language=yaml,caption={Dependencies as visual annotations}]
+activities:
+  - id: design
+    label: "Design Phase"
+    range: { start: 2026-01, end: 2026-03 }
+  - id: build
+    label: "Build Phase"
+    range: { start: 2026-04, end: 2026-08 }
+    depends_on: [design]  # Visual arrow only
+\end{lstlisting}
+
+\subsubsection{Today Line}
+
+\textbf{Decision:} IN SCOPE — provided as input.
+
+The ``today'' date may be provided in the IR (e.g., \texttt{today: 2026-06-09}) and rendered as a vertical marker. The compiler does not infer today's date from the system clock; determinism requires all inputs to be explicit.
+
+\subsubsection{Auto-Layout}
+
+\textbf{Decision:} IN SCOPE — deterministic algorithms only.
+
+The compiler automatically lays out activities within tracks (e.g., stacking overlapping items). Layout algorithms must be deterministic. No randomized or heuristic placement that could vary between runs.
+
+\subsubsection{External Image Embedding}
+
+\textbf{Decision:} DEFERRED to future.
+
+Embedding external images (logos, icons) in output is not in MVP scope. Theme-provided icons (e.g., milestone diamonds) are in scope.
+
+\subsection{Scope Summary}
+
+\begin{table}[h]
+\centering
+\caption{Scope Boundaries Summary}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Category} & \textbf{Scope Status} \\
+\midrule
+Timelines, roadmaps, milestone views & In Scope \\
+Tracks, activities, milestones, sections, annotations & In Scope \\
+Progress and status visualization & In Scope \\
+Theming and visual customization & In Scope \\
+SVG, PNG, PDF, PPTX output & In Scope \\
+CLI and library API & In Scope \\
+Dependency arrows (visual only) & In Scope \\
+Today marker (explicit input) & In Scope \\
+\midrule
+Dependency scheduling/resolution & Out of Scope \\
+Resource management & Out of Scope \\
+Critical path analysis & Out of Scope \\
+Sprint/iteration tracking & Out of Scope \\
+Cost management & Out of Scope \\
+Portfolio optimization & Out of Scope \\
+Baseline comparison & Out of Scope \\
+Risk registers & Out of Scope \\
+Data storage and collaboration & Out of Scope \\
+Interactive/clickable output & Out of Scope \\
+WYSIWYG editing & Out of Scope \\
+Native data source integrations & Out of Scope \\
+\bottomrule
+\end{tabularx}
+\end{table}

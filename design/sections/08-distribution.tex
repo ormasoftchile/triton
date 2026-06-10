@@ -1,0 +1,292 @@
+\section{Distribution Strategy}
+\label{sec:distribution}
+
+This section evaluates packaging and distribution models for Timeline Compiler, recommending an architecture that serves human authors, AI agents, and embedding use cases.
+
+\subsection{Distribution Requirements}
+
+Timeline Compiler must be accessible to multiple audiences:
+
+\begin{description}
+  \item[CLI Users] — Developers, DevOps engineers, and technical users who invoke rendering from terminal or scripts.
+  
+  \item[Application Embedders] — Tools that integrate Timeline Compiler as a library (documentation generators, planning tools, dashboards).
+  
+  \item[AI Agents] — LLM-based agents that need to render timelines as a tool capability.
+  
+  \item[Non-Technical Users] — Product managers and executives who want live preview while authoring (via IDE integration).
+  
+  \item[CI/CD Pipelines] — Automated rendering in build processes.
+\end{description}
+
+Key requirements:
+\begin{itemize}
+  \item Zero-friction installation for common platforms
+  \item Embeddable as a library
+  \item Invocable by AI agents (MCP server or similar)
+  \item Deterministic output regardless of invocation method
+  \item Self-contained — minimal or no external dependencies at runtime
+\end{itemize}
+
+\subsection{Packaging Options}
+
+\subsubsection{Core Library}
+
+\textbf{Concept:} A core rendering library with programmatic API, distributed as a package in the target ecosystem's package manager.
+
+\textbf{Options:}
+\begin{description}
+  \item[\texttt{@timeline-compiler/core} (npm)] Node.js/TypeScript library. Pros: large ecosystem, easy embedding in JS/TS tools, npm distribution is well-understood. Cons: Node runtime dependency, potentially slow for large renders, binary output (PDF, PNG) may require native dependencies.
+  
+  \item[Go Module] Single-binary compilation, embeddable via Go's module system. Pros: no runtime dependency, fast, easy cross-compilation. Cons: embedding in non-Go tools requires FFI or subprocess.
+  
+  \item[Rust Crate] Similar to Go — single binary, high performance. Smaller ecosystem adoption than Go for CLI tools. WASM compilation possible.
+  
+  \item[Python Package (pip)] Broad adoption in data/ML communities. Cons: runtime dependency, packaging complexity, slower execution.
+\end{description}
+
+\textbf{Recommendation:} Implementation language is not decided in this spec, but the core library should expose:
+\begin{itemize}
+  \item A stable programmatic API (\texttt{render(ir, theme, options) -> output})
+  \item Schema validation functions
+  \item Theme loading and composition
+\end{itemize}
+
+\subsubsection{Command-Line Interface}
+
+\textbf{Concept:} A CLI tool for rendering from terminal.
+
+\begin{lstlisting}[language=bash,caption={CLI usage examples}]
+# Basic rendering
+timeline render roadmap.yaml -o roadmap.pdf
+
+# With theme
+timeline render roadmap.yaml --theme corporate-blue -o roadmap.svg
+
+# Validate only
+timeline validate roadmap.yaml
+
+# Watch mode (optional)
+timeline watch roadmap.yaml -o roadmap.svg
+\end{lstlisting}
+
+\textbf{Distribution:}
+\begin{description}
+  \item[npm global install] \texttt{npm install -g @timeline-compiler/cli} — Easy for Node.js users, but requires Node runtime.
+  
+  \item[Standalone Binary] Distributed via GitHub Releases, Homebrew, apt, etc. No runtime dependency. Cross-platform (macOS, Linux, Windows).
+  
+  \item[Docker Image] \texttt{docker run timeline-compiler render ...} — Isolated environment, good for CI/CD.
+  
+  \item[npx] \texttt{npx @timeline-compiler/cli render ...} — Zero-install execution for one-off use.
+\end{description}
+
+\textbf{Recommendation:} Provide both:
+\begin{itemize}
+  \item npm package for Node.js ecosystems
+  \item Standalone binaries for users without Node.js
+\end{itemize}
+
+\subsubsection{VS Code Extension}
+
+\textbf{Concept:} IDE integration providing:
+\begin{itemize}
+  \item Syntax highlighting for \texttt{.timeline.yaml} files
+  \item Live preview panel (re-renders on save or keystroke)
+  \item Export commands (PDF, PNG, SVG, PPTX)
+  \item Schema validation and error highlighting
+  \item Theme selection
+\end{itemize}
+
+\textbf{Value:} Dramatically improves authoring experience for non-CLI users. Live preview is critical for iterative refinement.
+
+\textbf{Implementation:} The extension embeds the core library (via WASM, bundled Node module, or subprocess call to CLI).
+
+\textbf{Distribution:} VS Code Marketplace.
+
+\textbf{Recommendation:} High-priority for adoption. Authors should see their timeline update as they type.
+
+\subsubsection{MCP Server (Model Context Protocol)}
+
+\textbf{Concept:} A server exposing Timeline Compiler as a tool for AI agents.
+
+\begin{lstlisting}[language=yaml,caption={MCP tool definition (conceptual)}]
+tools:
+  - name: render_timeline
+    description: "Renders a timeline IR to visual output"
+    inputSchema:
+      type: object
+      properties:
+        ir:
+          type: object
+          description: "Timeline IR conforming to schema"
+        theme:
+          type: string
+          description: "Theme name or inline theme object"
+        format:
+          type: string
+          enum: [svg, png, pdf]
+    returns:
+      type: string
+      description: "Base64-encoded output or file path"
+\end{lstlisting}
+
+\textbf{Value:} Agents can render timelines as a native capability. The agent generates IR, invokes the tool, receives visual output.
+
+\textbf{Deployment:} 
+\begin{itemize}
+  \item Local MCP server (runs alongside the agent environment)
+  \item Hosted MCP endpoint (cloud-deployed rendering service)
+\end{itemize}
+
+\textbf{Recommendation:} Essential for the agent use case. MCP server should be a first-class distribution target, not an afterthought.
+
+\subsubsection{NPM Package for Embedding}
+
+\textbf{Concept:} The core library packaged for use in JavaScript/TypeScript applications.
+
+\begin{lstlisting}[language=javascript,caption={Embedding in a Node.js application}]
+import { render, loadTheme, validate } from '@timeline-compiler/core';
+
+const ir = loadYAML('roadmap.yaml');
+const errors = validate(ir);
+if (errors.length > 0) throw new ValidationError(errors);
+
+const theme = await loadTheme('corporate-blue');
+const svg = await render(ir, theme, { format: 'svg' });
+
+res.setHeader('Content-Type', 'image/svg+xml');
+res.send(svg);
+\end{lstlisting}
+
+\textbf{Use Cases:}
+\begin{itemize}
+  \item Documentation sites that render timelines dynamically
+  \item Internal tools with timeline visualization
+  \item SaaS products embedding Timeline Compiler
+\end{itemize}
+
+\textbf{Recommendation:} Core distribution path for the JavaScript ecosystem.
+
+\subsubsection{Standalone Go Binary}
+
+\textbf{Concept:} If the implementation uses Go, the CLI is a single statically-linked binary.
+
+\textbf{Pros:}
+\begin{itemize}
+  \item No runtime dependencies
+  \item Fast startup
+  \item Easy cross-compilation (macOS, Linux, Windows, ARM)
+  \item Simple distribution (download and run)
+\end{itemize}
+
+\textbf{Cons:}
+\begin{itemize}
+  \item Embedding in non-Go applications requires subprocess or FFI
+  \item Community contribution may be lower than TypeScript (smaller Go population among target users)
+\end{itemize}
+
+\textbf{Recommendation:} Attractive for CLI distribution. If TypeScript is the core language, a Go wrapper or WASM compilation may achieve similar benefits.
+
+\subsection{Implementation Language Trade-offs}
+
+The distribution strategy depends on implementation language. Key considerations:
+
+\begin{table}[h]
+\centering
+\caption{Language Trade-offs for Distribution}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Factor} & \textbf{TypeScript/Node} & \textbf{Go} \\
+\midrule
+CLI standalone binary & Requires pkg/nexe or similar & Native \\
+npm embedding & Native & Requires WASM or subprocess \\
+WASM (browser/edge) & Via esbuild or similar & Native compilation \\
+MCP server & Native (Node ecosystem) & Native \\
+VS Code extension & Native embedding & Subprocess or WASM \\
+Community contributions & Larger pool (frontend devs) & Smaller but growing \\
+PDF generation & Needs native dep (puppeteer, etc.) & Native libraries available \\
+Startup time & Slower (V8 init) & Fast \\
+Binary size & Larger (bundled runtime) & Smaller \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Recommendation:} This spec does not mandate implementation language. However, the distribution architecture should support:
+\begin{enumerate}
+  \item A core library embeddable in JavaScript/TypeScript contexts (npm)
+  \item A standalone CLI that does not require a runtime install
+  \item An MCP server for agent integration
+  \item A VS Code extension with live preview
+\end{enumerate}
+
+A TypeScript core with WASM or native compilation for CLI may satisfy all requirements. Alternatively, a Go core with a thin Node wrapper for npm distribution is viable.
+
+\subsection{Recommended Architecture}
+
+\begin{verbatim}
+                        +-------------------+
+                        |   Core Library    |
+                        | (render, validate |
+                        |   theme, schema)  |
+                        +-------------------+
+                                 |
+         +-----------+-----------+-----------+-----------+
+         |           |           |           |           |
+    +----+----+ +----+----+ +----+----+ +----+----+ +----+----+
+    |   CLI   | |   npm   | |   MCP   | | VS Code | | Docker  |
+    |  Binary | | Package | | Server  | |   Ext   | |  Image  |
+    +---------+ +---------+ +---------+ +---------+ +---------+
+\end{verbatim}
+
+\textbf{Core Library:} Single implementation of IR parsing, validation, theme loading, layout, and rendering. All distribution targets wrap this core.
+
+\textbf{CLI Binary:} Wraps core library. Distributed via:
+\begin{itemize}
+  \item GitHub Releases (tarballs for each platform)
+  \item Homebrew (\texttt{brew install timeline-compiler})
+  \item npm global install (if Node.js-based)
+  \item curl one-liner for quick install
+\end{itemize}
+
+\textbf{npm Package:} The core library published to npm for JavaScript/TypeScript embedding.
+
+\textbf{MCP Server:} Wraps core library, exposes \texttt{render\_timeline} and \texttt{validate\_timeline} tools. Distributed as:
+\begin{itemize}
+  \item npm package (for local MCP server)
+  \item Docker image (for hosted deployment)
+\end{itemize}
+
+\textbf{VS Code Extension:} Embeds core library (via bundled WASM or Node module). Published to VS Code Marketplace.
+
+\textbf{Docker Image:} Contains CLI binary. For CI/CD pipelines and isolated execution.
+
+\subsection{Versioning and Compatibility}
+
+\textbf{Semantic Versioning:} All packages follow semver. Breaking changes to IR schema or theme format require major version bump.
+
+\textbf{Schema Versioning:} The IR declares its schema version (\texttt{version: "1.0"}). The compiler reports errors if the IR version is unsupported.
+
+\textbf{Theme Versioning:} Themes declare compatibility with IR/compiler versions.
+
+\textbf{CLI Version Reporting:} \texttt{timeline --version} reports compiler version, supported IR versions, and supported output formats.
+
+\subsection{Distribution Priorities}
+
+For MVP, distribution priority order:
+
+\begin{enumerate}
+  \item \textbf{CLI Binary} — Core functionality, scriptable, CI/CD compatible
+  \item \textbf{npm Package} — Embedding in JS/TS tools
+  \item \textbf{VS Code Extension} — Authoring experience
+  \item \textbf{MCP Server} — Agent integration
+  \item \textbf{Docker Image} — Isolated execution
+\end{enumerate}
+
+Post-MVP:
+\begin{itemize}
+  \item Homebrew formula
+  \item apt/yum packages
+  \item GitHub Action for rendering in workflows
+  \item Hosted rendering API (optional commercial offering)
+\end{itemize}

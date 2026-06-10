@@ -1,0 +1,100 @@
+\documentclass{MastersThesis}
+
+% ============================================================================
+% ADDITIONAL PACKAGES
+% ============================================================================
+
+% Bibliography with biblatex/biber
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{references.bib}
+
+% Code listings for IR/YAML examples
+\usepackage{listings}
+\usepackage{inconsolata}
+
+% Graphics
+\usepackage{graphicx}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+
+% Captions
+\usepackage{caption}
+
+% For inline code and verbatim
+\usepackage{fancyvrb}
+
+% ============================================================================
+% LISTINGS CONFIGURATION (for YAML/IR examples)
+% ============================================================================
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=true,
+  frame=single,
+  framerule=0.5pt,
+  rulecolor=\color{gray!50},
+  backgroundcolor=\color{gray!5},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  tabsize=2,
+  showstringspaces=false,
+  captionpos=b
+}
+
+\lstdefinelanguage{yaml}{
+  keywords={true, false, null},
+  sensitive=false,
+  comment=[l]{\#},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+% ============================================================================
+% DOCUMENT METADATA
+% ============================================================================
+
+\title{Timeline Compiler\\[0.5em]\Large Technical Specification \& Architecture}
+\author{Timeline Compiler Project}
+\date{June 2026}
+
+% ============================================================================
+% DOCUMENT
+% ============================================================================
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+% ----------------------------------------------------------------------------
+% SECTIONS
+% ----------------------------------------------------------------------------
+
+\input{sections/01-problem}
+\input{sections/02-principles}
+\input{sections/03-scope}
+\input{sections/04-ir}
+\input{sections/05-rendering}
+\input{sections/06-themes}
+\input{sections/07-output-targets}
+\input{sections/08-distribution}
+\input{sections/09-agent-integration}
+\input{sections/10-comparison}
+\input{sections/11-mvp}
+\input{sections/12-oss-strategy}
+\input{sections/13-grammar-abstraction}
+
+% ----------------------------------------------------------------------------
+% BIBLIOGRAPHY
+% ----------------------------------------------------------------------------
+
+\printbibliography[heading=bibintoc,title={References}]
+
+\end{document}

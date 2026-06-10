@@ -1,0 +1,518 @@
+\section{Theme Architecture}
+\label{sec:themes}
+
+A theme is a \emph{pure styling layer}: it accepts the geometry produced by the rendering
+model (Section~\ref{sec:rendering}) and assigns colors, typography, shapes, and decorations,
+producing a final visual specification. A theme operates exclusively on signals the renderer
+has already computed---coordinates, status values, categories, progress fractions. It may not
+alter geometry, and it may not require IR fields beyond those defined in
+Section~\ref{sec:ir}~\cite{thinkcell,vegalite2017}.
+
+\begin{quote}
+\textbf{Theme-engine contract (binding):} A theme MUST accept all valid IR documents. A theme
+MUST NOT require IR fields beyond the specification. Two valid themes applied to the same IR
+may produce visually different outputs, but their underlying geometries---coordinates, stacking
+order, label positions---must be identical.
+\end{quote}
+
+This section defines the complete theme schema, describes the five built-in themes, and
+illustrates how the same IR renders visually differently under each.
+
+\subsection{Theme Design Philosophy}
+\label{sec:themes-philosophy}
+
+Themes are built on four principles:
+
+\begin{itemize}
+  \item \textbf{Data-independent.} A theme knows nothing about the content of the IR. It maps
+        semantic signals (status, category) to visual treatments through fixed lookup tables.
+        No IR field other than those defined in Section~\ref{sec:ir} is read.
+  \item \textbf{Composable.} Themes support single inheritance. A child theme specifies only
+        the properties that differ from its parent; all others inherit. This enables branded
+        variants (\texttt{acme-consulting} extending \texttt{consulting}) with minimal
+        duplication.
+  \item \textbf{Separable.} Swapping themes requires zero IR changes. The same YAML document
+        renders correctly under any theme. Content and style are fully orthogonal.
+  \item \textbf{Deterministic.} Themes introduce no layout variability. Given the same IR,
+        theme, and rendering algorithm, output is fully determined (see
+        Section~\ref{sec:rendering-determinism}).
+\end{itemize}
+
+\subsection{Theme Schema}
+\label{sec:themes-schema}
+
+The theme schema defines all visual properties a theme may configure. Properties not set by a
+theme are inherited from its \texttt{extends} parent, defaulting to the built-in
+\texttt{default} theme if no parent is specified. The schema is organized into blocks; all
+property names, types, and defaults apply uniformly across themes.
+
+\subsubsection{Canvas and Margins}
+\label{sec:schema-canvas}
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: canvas block}]
+canvas:
+  width:            1200  # logical pixels; height is always computed
+  background_color: "#FFFFFF"
+  margin:
+    top:    48            # px above the axis header
+    right:  40            # px right of the last tick
+    bottom: 48            # px below the last track row
+    left:    0            # px left of the track header column
+\end{lstlisting}
+
+The canvas height is computed from track heights and inter-track gaps (\S\ref{sec:rendering-coords})
+and is never specified in a theme.
+
+\subsubsection{Typography}
+\label{sec:schema-typography}
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: typography block}]
+typography:
+  font_family:         "Helvetica Neue, Arial, sans-serif"
+  # Embedded font files required for deterministic metric computation:
+  font_files:
+    regular: "fonts/HelveticaNeue-Regular.woff2"
+    bold:    "fonts/HelveticaNeue-Bold.woff2"
+  font_size_base:    11  # pt; body text and activity labels
+  font_size_axis:    10  # pt; axis tick labels
+  font_size_title:   18  # pt; document title in canvas header
+  font_size_subtitle: 13 # pt
+  font_size_track:   11  # pt; track header labels
+  font_weight_label:  600
+  font_weight_axis:   400
+  font_weight_header: 700
+  locale_aware:      true # use metadata.locale for date label formatting
+\end{lstlisting}
+
+\paragraph{Font embedding requirement.}
+Themes must specify embedded font files (WOFF2 or equivalent) for all families used in
+layout-critical computations (label width, line height, character advance widths). System
+fonts are permitted only for decorative text---e.g., HTML tooltip overlays---where exact
+cross-platform metric agreement is not required. The renderer ships the embedded metrics
+tables at build time.
+
+\subsubsection{Axis Styling}
+\label{sec:schema-axis}
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: axis block}]
+axis:
+  height:                40  # px; height of the time-axis header band
+  tick_height:            6  # px; length of tick marks
+  tick_label_offset:      4  # px; gap between tick mark base and label top
+  gridline_color:    "#E0E0E0"
+  gridline_width:       0.5  # px
+  gridline_opacity:     0.8
+  gridline_style:    "solid" # solid | dashed | none
+  section_band_alpha:   0.04 # alternating column shading opacity (0 = off)
+  today_marker:
+    enabled:           false
+    color:        "#CC2222"
+    width:             1.5  # px
+    style:           "solid" # solid | dashed
+    label:           "Today"
+    label_visible:    true
+\end{lstlisting}
+
+\subsubsection{Track Styling}
+\label{sec:schema-track}
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: track block}]
+track:
+  header_width:         160  # px; fixed left column for track label text
+  row_height:            48  # px; single-lane track height (no sub-lanes)
+  sub_lane_height:       24  # px; height added per additional overlap lane
+  max_sub_lanes:          8  # hard cap; excess activities go to last lane
+  row_gap:                8  # px; vertical gap between consecutive tracks
+  header_font_size:      11  # pt
+  header_font_weight:   600
+  header_color:    "#111111"
+  header_background:   null  # null = transparent
+  header_align:    "right"   # right | left | center
+  separator_color: "#CCCCCC"
+  separator_width:       0.5
+  group_bracket_width:    4  # px; left-edge bracket for grouped tracks
+  group_label_size:      10  # pt; group label above bracket
+\end{lstlisting}
+
+\subsubsection{Activity Styling}
+\label{sec:schema-activity}
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: activity block}]
+activity:
+  bar_height:            24  # px; height within a single lane
+  bar_radius:             2  # px; corner radius
+  bar_top_margin:        12  # px; from lane top to bar top (centres bar in lane)
+  min_width:              4  # px; minimum rendered bar width (see edge cases)
+  tbd_extension_px:    null  # null = 2 * mean tick spacing in pixels
+  approx_fade_px:         8  # px; gradient fade width for approximate-date edges
+  label_inside_min_width: 40 # px; bar must be >= this to place label inside
+  label_font_size:       10  # pt
+  label_color_inside: "#FFFFFF"
+  label_color_outside: "#111111"
+  label_truncate_chars:  32  # max chars before ellipsis truncation
+  progress_bar_height:    4  # px; filled strip at bar bottom for progress value
+  progress_bar_alpha:    0.35
+  progress_label_visible: false
+\end{lstlisting}
+
+\subsubsection{Milestone Styling}
+\label{sec:schema-milestone}
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: milestone block}]
+milestone:
+  diamond_size:          14  # px; half-diagonal of the diamond polygon
+  diamond_stroke_width: 1.5  # px
+  cross_track_label_scale: 1.2  # label font size multiplier for cross-track
+  label_offset_x:         8  # px; gap from diamond right vertex to label left
+  label_font_size:        9  # pt
+  label_max_width:       80  # px; truncate label if wider
+  label_stack_offset:    14  # px; y-shift per collision pass (Phase 6)
+  stack_offset_y:        20  # px; y-offset per stacking slot (Phase 4)
+\end{lstlisting}
+
+\subsubsection{Annotation and Legend Styling}
+\label{sec:schema-annotation}
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: annotation and legend blocks}]
+annotation:
+  font_size:             9   # pt
+  background_color: "#FFFFF0"
+  background_alpha:      0.9
+  border_color:    "#CCCC88"
+  border_width:          0.5
+  padding:               6   # px; all sides
+  connector_style: "elbow"   # elbow | straight | none
+
+legend:
+  position:         "bottom" # bottom | right | top | none
+  item_height:          14   # px
+  item_gap:              8   # px
+  font_size:             9   # pt
+  swatch_size:          10   # px square
+  column_spacing:       16   # px between columns
+\end{lstlisting}
+
+\subsubsection{Status-to-Style Map}
+\label{sec:status-style-map}
+
+Every theme must define a complete \texttt{status\_map} covering all seven IR status values.
+The map is a lookup table: \texttt{status} $\to$ \{\,fill, stroke, opacity, pattern\,\}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llllp{3.8cm}}
+\toprule
+\textbf{Status} & \textbf{Fill role} & \textbf{Opacity} & \textbf{Pattern} & \textbf{Visual intent} \\
+\midrule
+\texttt{planned}     & Accent-light  & 1.0  & \texttt{solid}          & Default; not yet started \\
+\texttt{in-progress} & Accent-dark   & 1.0  & \texttt{solid}          & Active; full saturation \\
+\texttt{done}        & Grey-mid      & 0.85 & \texttt{solid}          & Muted; completed \\
+\texttt{at-risk}     & Amber         & 1.0  & \texttt{solid}          & Warning; attention needed \\
+\texttt{blocked}     & Red           & 1.0  & \texttt{solid}          & Danger; cannot proceed \\
+\texttt{cancelled}   & Grey-light    & 0.60 & \texttt{diagonal-hatch} & De-emphasized; struck through \\
+\texttt{tentative}   & Grey-light    & 0.70 & \texttt{dashed-border}  & Uncertain; may not happen \\
+\bottomrule
+\end{tabular}
+\caption{Status-to-style map structure (colour roles; each theme supplies hex values)}
+\label{tab:status-style}
+\end{table}
+
+\paragraph{Pattern vocabulary.}
+Patterns are defined as named SVG \texttt{<pattern>} elements in the theme's \texttt{<defs>}
+block. All themes must use the same pattern geometry so that cross-theme pattern rendering
+is consistent:
+\begin{itemize}
+  \item \texttt{solid} --- no pattern; fill and stroke colours only.
+  \item \texttt{diagonal-hatch} --- 45° lines at 4~px spacing, 0.5~px stroke width,
+        stroke colour = \texttt{status.stroke}, fill = \texttt{status.fill} at 30\% opacity.
+  \item \texttt{dashed-border} --- solid fill at \texttt{status.fill}; border rendered as a
+        dashed stroke (4~px on, 4~px off) at \texttt{status.stroke}.
+\end{itemize}
+
+\paragraph{Status-map completeness.}
+A theme with a missing status entry is malformed. The renderer must detect and report this
+at theme load time, not at render time.
+
+\subsubsection{Category-to-Style Map}
+\label{sec:category-style-map}
+
+Categories are arbitrary strings defined by IR authors. Themes provide an optional
+\texttt{category\_map} that overrides colour for activities carrying a matching
+\texttt{category} value:
+
+\begin{lstlisting}[language=yaml,caption={Category map example}]
+category_map:
+  infrastructure: { fill: "#2D6A8F", stroke: "#1A4A6A" }
+  security:       { fill: "#8B0000", stroke: "#5A0000" }
+  ux:             { fill: "#4A7C59", stroke: "#2A5C39" }
+\end{lstlisting}
+
+Category styling overrides \emph{only} the \texttt{fill} and \texttt{stroke} of the status
+entry. Opacity and pattern are always drawn from the status map. This preserves the semantic
+visual signal of status (done $=$ muted, cancelled $=$ hatched) while allowing brand-aligned
+colour coding per initiative type.
+
+If an activity's category is absent from \texttt{category\_map}, status-only styling applies
+without error or warning.
+
+\subsection{Built-in Themes}
+\label{sec:builtin-themes}
+
+Five built-in themes address the primary use cases identified in David's research. Each is a
+complete, self-contained style specification; none requires IR changes or additional IR
+fields.
+
+\subsubsection{Consulting Theme}
+\label{sec:theme-consulting}
+
+\textbf{Visual identity.}
+McKinsey/BCG-style executive roadmap. Black, white, and a single accent colour (default
+navy \texttt{\#1F497D}). Heavy typography, generous whitespace, no decorative chrome.
+Optimised for A4/Letter printing and A3 poster output. Visual language matches consulting
+deliverables that non-technical executives expect~\cite{thinkcell}.
+
+\begin{itemize}
+  \item \textbf{Font:} Helvetica Neue (Arial fallback); weights 400/600/700. Embedded for
+        metric determinism.
+  \item \textbf{Canvas:} 1200~px wide; 48~px top/bottom margins; track header width 180~px.
+  \item \textbf{Axis:} No gridlines. Tick marks only. Quarter labels in bold uppercase
+        (e.g., \textbf{Q1\,2026}). Today marker disabled by default.
+  \item \textbf{Tracks:} Wide headers (180~px). Thick separator (1~px, \texttt{\#333333}).
+        No row background colour alternation.
+  \item \textbf{Activities:} Square corners (\texttt{bar\_radius: 0}). Two status colours:
+        navy for planned/in-progress, mid-grey for done. Cancelled activities are rendered
+        at 0\% opacity with diagonal hatching at 20\% opacity (structural presence without
+        visual weight). No progress bar by default.
+  \item \textbf{Milestones:} Solid black diamonds, 14~px half-diagonal. Label right, bold,
+        9~pt.
+  \item \textbf{Legend:} Suppressed (\texttt{position: none}). Status is communicated by
+        colour; a legend would clutter the clean aesthetic.
+\end{itemize}
+
+\textbf{Use case:} Programme timelines, transformation roadmaps, board presentations. The
+deliberate sparseness focuses attention on the strategic narrative rather than operational
+detail.
+
+\subsubsection{Executive Theme}
+\label{sec:theme-executive}
+
+\textbf{Visual identity.}
+Corporate boardroom aesthetic. Navy/slate palette on white, with subtle alternating quarter
+column shading and a gentle border radius on bars. Status is communicated by both colour and
+a small status icon at the left of each bar. Designed for 16:9 slide dimensions.
+
+\begin{itemize}
+  \item \textbf{Font:} Georgia or Garamond (serif headings); Helvetica Neue (body). Both
+        embedded.
+  \item \textbf{Canvas:} 1600~px wide (16:9 target); 40~px margins; header width 160~px.
+  \item \textbf{Axis:} Light grey gridlines (0.5~px). Month abbreviation labels. Alternating
+        quarter shading (\texttt{section\_band\_alpha: 0.04}). Today marker enabled
+        (red dashed line, ``Today'' label).
+  \item \textbf{Tracks:} Medium headers (150~px). Alternating row background: white /
+        \texttt{\#F8F8F8}. Thin separator (0.5~px, \texttt{\#DDDDDD}).
+  \item \textbf{Activities:} Rounded corners (\texttt{bar\_radius: 4}). Full status palette:
+        navy (planned), royal blue (in-progress), silver (done), amber (at-risk), coral
+        (blocked), grey hatched (cancelled), grey dashed-border (tentative). Status icon
+        (8~pt glyph) at bar left edge; icon colour is white on dark fills.
+  \item \textbf{Milestones:} Navy diamonds with a white centre dot (4~px radius inset fill).
+        Label right, 9~pt.
+  \item \textbf{Legend:} Right-aligned, full status legend.
+\end{itemize}
+
+\textbf{Use case:} Quarterly business reviews, investor roadmaps, product strategy
+presentations. Polished without being sparse; the status palette lets executives absorb
+delivery health at a glance.
+
+\subsubsection{Product Theme}
+\label{sec:theme-product}
+
+\textbf{Visual identity.}
+Developer-friendly; information-dense. Per-track colour coding from the \texttt{color} hint
+field. Category colours take visual precedence over status colours; status is communicated
+by a small icon rather than fill. Progress bars always visible when set.
+
+\begin{itemize}
+  \item \textbf{Font:} Inter or Roboto (system-friendly sans-serif), 10~pt base. Compact
+        sizing for high information density.
+  \item \textbf{Canvas:} 1400~px wide; tighter margins (32~px top/bottom); header 140~px.
+  \item \textbf{Axis:} Dashed monthly gridlines. Today marker always visible and prominent.
+        Week numbers as secondary axis labels when \texttt{axis\_unit = week}.
+  \item \textbf{Tracks:} Color-coded header backgrounds when \texttt{track.color} hint is
+        set. Compact rows (36~px). Sub-lanes shown without track-height expansion cue ---
+        the density is expected.
+  \item \textbf{Activities:} Slightly rounded bars (\texttt{bar\_radius: 3}). Category
+        colours override status fill; status glyph icon at bar left edge. Progress bar
+        always rendered (even if thin) when \texttt{progress} is set.
+  \item \textbf{Milestones:} Smaller diamonds (10~px half-diagonal). Label \emph{below}
+        diamond, 8~pt. Stacks horizontally when space permits.
+  \item \textbf{Legend:} Bottom; full category $+$ status legend in two rows.
+\end{itemize}
+
+\textbf{Use case:} Product roadmaps for engineering and product-management audiences.
+Dense information; appropriate for teams who need per-track status at a glance.
+
+\subsubsection{Release Theme}
+\label{sec:theme-release}
+
+\textbf{Visual identity.}
+Engineering release calendar. Traffic-light status palette (green/amber/red). Monochrome
+headers. Today marker is the most prominent element. Optimised for CI/CD dashboard display
+and dense sprint/release schedules.
+
+\begin{itemize}
+  \item \textbf{Font:} JetBrains Mono or Courier New (monospace). Consistent character
+        widths simplify label truncation computations.
+  \item \textbf{Canvas:} 1200~px wide; tight margins (24~px top/bottom); header 120~px.
+  \item \textbf{Axis:} Solid weekly gridlines (1~px, \texttt{\#CCCCCC}). Today marker:
+        bold red solid line (2~px), ``TODAY'' label in uppercase red above axis.
+  \item \textbf{Tracks:} No separator lines; alternating row backgrounds (\texttt{\#FFFFFF}
+        / \texttt{\#F4F4F4}) imply boundaries. Minimal header (dark text on light bg).
+  \item \textbf{Activities:} No border radius (\texttt{bar\_radius: 0}). Traffic-light fill:
+        \texttt{\#2E7D32} (done), \texttt{\#1565C0} (in-progress), \texttt{\#757575}
+        (planned), \texttt{\#F57F17} (at-risk), \texttt{\#C62828} (blocked); diagonal
+        hatching for cancelled; dashed border for tentative. No status icon; colour is
+        the sole status signal.
+  \item \textbf{Milestones:} Upward-pointing triangle (shape: \texttt{triangle-up}),
+        12~px height, filled with status colour. This is a theme-level shape override;
+        the IR still uses the Milestone entity type.
+  \item \textbf{Legend:} Top-right; compact icon $+$ one-word label per status.
+\end{itemize}
+
+\textbf{Use case:} Software release schedules, deployment windows, sprint calendars.
+Engineers over executives; clarity of status over aesthetic refinement.
+
+\subsubsection{Minimal Theme}
+\label{sec:theme-minimal}
+
+\textbf{Visual identity.}
+Maximum whitespace, minimum decoration. All bars are a single dark grey regardless of status;
+status is communicated by pattern alone (hatching for cancelled, dashed border for tentative).
+Print-optimised; renders correctly in greyscale. Designed to blend into reports and LaTeX
+documents without visual dominance.
+
+\begin{itemize}
+  \item \textbf{Font:} Times New Roman or Latin Modern (LaTeX-compatible serif). 10~pt base.
+  \item \textbf{Canvas:} 900~px wide; narrow margins (24~px top/bottom); header 140~px.
+  \item \textbf{Axis:} No gridlines. No tick marks. Period labels only (year or quarter),
+        in 9~pt regular weight. No today marker.
+  \item \textbf{Tracks:} No header background. Single thin separator (0.5~px,
+        \texttt{\#AAAAAA}). No row alternation.
+  \item \textbf{Activities:} No border radius. All bars \texttt{\#333333} fill, regardless
+        of status. Pattern differentiates cancelled (diagonal-hatch) and tentative
+        (dashed-border). No progress bar. No icons. Done activities rendered at 65\% opacity.
+  \item \textbf{Milestones:} Open diamonds (stroke only, no fill), 1~px stroke. Label right,
+        9~pt regular.
+  \item \textbf{Legend:} None (\texttt{position: none}).
+\end{itemize}
+
+\textbf{Use case:} Academic papers, internal reports, LaTeX-embedded timelines, any context
+where the diagram must be subordinate to surrounding text.
+
+\subsection{Cross-Theme Visual Comparison}
+\label{sec:theme-comparison}
+
+To illustrate data-independence, consider a single IR with three tracks (Platform, Mobile,
+Data), six activities across statuses planned / in-progress / done / at-risk / cancelled /
+tentative, and two milestones (Beta, GA), spanning 2026-Q1 through 2026-Q4.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lXXXXX}
+\toprule
+\textbf{Property} & \textbf{Consulting} & \textbf{Executive} & \textbf{Product} & \textbf{Release} & \textbf{Minimal} \\
+\midrule
+Background       & White        & White            & White           & White           & White \\
+Axis labels      & Bold Q labels & Small-caps months & Week numbers   & Week dates      & Year only \\
+Gridlines        & None         & Light quarterly  & Dashed monthly  & Solid weekly    & None \\
+Track header     & 180~px bold  & 150~px serif     & 140~px colored  & 120~px mono     & 140~px serif \\
+Bar corners      & Square       & Rounded 4~px     & Rounded 3~px    & Square          & Square \\
+Status signal    & Colour only  & Colour $+$ icon  & Icon $+$ colour & Colour only     & Pattern only \\
+Done bar         & Grey         & Silver muted     & Grey + icon     & Green           & Dark 65\% opacity \\
+Cancelled bar    & 0\% opacity  & Grey hatch       & Grey hatch      & Grey hatch      & Hatch \\
+Progress bar     & Hidden       & Shown            & Always shown    & Hidden          & Hidden \\
+Milestones       & Filled black & Navy $+$ dot     & Small, below    & Triangle        & Open diamond \\
+Today marker     & Off          & Red dashed       & Red solid       & Bold red        & None \\
+Legend           & None         & Right, full      & Bottom, full    & Top-right       & None \\
+\bottomrule
+\end{tabularx}
+\caption{Visual comparison: same IR rendered under five built-in themes}
+\label{tab:theme-comparison}
+\end{table}
+
+\paragraph{Geometric invariant.}
+All five renderings share \emph{identical} geometry: the same bar widths, milestone
+$x$-positions, track heights, and label coordinate values. Only style differs. This
+invariant can be verified by asserting coordinate equality across the five outputs before
+applying theme styling.
+
+\subsection{Theme Inheritance and Extension}
+\label{sec:theme-inheritance}
+
+Themes support single-level inheritance via the \texttt{extends} key:
+
+\begin{lstlisting}[language=yaml,caption={Custom theme extending Consulting}]
+theme_id:     "acme-corp"
+display_name: "ACME Corporate"
+extends:      "consulting"
+
+canvas:
+  background_color: "#F5F5F0"   # warm paper white
+
+typography:
+  font_family: "Futura, Century Gothic, sans-serif"
+  font_files:
+    regular: "fonts/Futura-Book.woff2"
+    bold:    "fonts/Futura-Bold.woff2"
+
+status_map:
+  planned:
+    fill:   "#005A8E"   # ACME primary brand blue
+    stroke: "#003A5E"
+  in-progress:
+    fill:   "#003A5E"
+    stroke: "#001A2E"
+\end{lstlisting}
+
+Inheritance rules:
+\begin{enumerate}
+  \item Properties not specified in the child are taken from the parent exactly.
+  \item \texttt{status\_map} and \texttt{category\_map} are merged entry-by-entry: a child
+        overrides only the entries it declares; unspecified entries inherit from parent.
+  \item Introducing a new font family requires supplying the corresponding embedded font
+        files. A theme that names a font without providing files is malformed.
+  \item Inheritance depth is exactly one level. Chains (\texttt{A} extends \texttt{B}
+        extends \texttt{C}) are not supported; each theme must be resolvable from its
+        parent alone.
+  \item A theme may \texttt{extend: "default"} explicitly to inherit from the baseline
+        default theme without inheriting any of the five named built-in themes.
+\end{enumerate}
+
+\subsection{Theme-Engine Contract (Formal)}
+\label{sec:theme-contract}
+
+A conforming theme engine must satisfy all of the following:
+
+\begin{enumerate}
+  \item \textbf{Accept all valid IR.} A theme engine must not reject a well-formed IR
+        document for content-related reasons. An unrecognised \texttt{status} value emits
+        a warning and falls back to \texttt{planned} styling.
+  \item \textbf{Require no additional IR fields.} The theme engine reads only the fields
+        defined in Section~\ref{sec:ir}. It may read hint fields (\texttt{activity.color},
+        \texttt{activity.icon}) as advisory inputs but must not fail if they are absent.
+  \item \textbf{Full status-map coverage.} The theme's \texttt{status\_map} must contain
+        entries for all seven IR status values. A missing entry is a theme authoring error
+        detectable at theme-load time.
+  \item \textbf{Geometry immutability.} The theme engine applies visual treatment only; it
+        may not alter any coordinate computed by the rendering phases in
+        Section~\ref{sec:layout-algorithm}. Style does not affect geometry.
+  \item \textbf{Hint fields are advisory.} The \texttt{activity.color} and
+        \texttt{activity.icon} hint fields may be silently ignored by the theme engine. If
+        honoured, they supplement status styling (colour override only); they do not replace
+        the pattern or opacity components of the status-map entry.
+  \item \textbf{Unknown categories fall back silently.} If an activity's \texttt{category}
+        is absent from the theme's \texttt{category\_map}, status-only styling applies
+        without error or warning. New categories never require theme changes; they are
+        transparent to the theme engine until explicitly mapped.
+\end{enumerate}

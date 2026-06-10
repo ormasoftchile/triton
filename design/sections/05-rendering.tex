@@ -1,0 +1,662 @@
+\section{Rendering Model}
+\label{sec:rendering}
+
+The rendering model defines a \emph{deterministic mapping} from a Timeline IR document and a
+theme to a concrete visual geometry: positions, dimensions, label placements, and visual
+treatments. ``Deterministic'' is not aspirational; it is a hard contract. Two conforming
+renderers, given identical IR and theme, must produce geometrically identical output. If they
+diverge, a defect exists in one renderer---not an interpretation ambiguity in this
+specification~\cite{vegalite2017}.
+
+The model is organized as an ordered six-phase pipeline. Each phase consumes only outputs
+of preceding phases and produces geometry for later phases. The pipeline is \emph{pure}: no
+phase reads from the IR after its designated turn, and no phase performs I/O, reads a system
+clock, or invokes a random number generator.
+
+\subsection{Determinism Contract}
+\label{sec:rendering-determinism}
+
+Two conforming renderers $R_1$ and $R_2$, given the same IR document $D$ and theme $\theta$,
+must produce identical coordinate values, label positions, and visual-treatment assignments.
+This contract requires:
+
+\begin{enumerate}
+  \item \textbf{Pure function.}
+        Output is a pure function of $(D,\,\theta)$. No external state---timestamps, random
+        values, environment variables, system locale, or screen resolution---influences any
+        computed value.
+
+  \item \textbf{Stable sort keys.}
+        Every ordered collection is sorted by an explicit, unambiguous key sequence.
+        Collections without semantic ordering sort by \texttt{id} alphabetically:
+        \begin{itemize}
+          \item Tracks: by \texttt{index} ascending (integer, unique by well-formedness invariant).
+          \item Activities within a track: by \texttt{(start\_ordinal,\;id)} ascending.
+          \item Milestones: by \texttt{(date\_ordinal,\;id)} ascending.
+          \item Annotations, sections, groups: by \texttt{id} ascending.
+        \end{itemize}
+        The ID values break all ties; global uniqueness is guaranteed by the IR invariant.
+
+  \item \textbf{Fixed rounding.}
+        All intermediate floating-point values are rounded using \emph{round-half-up}
+        ($\lfloor v + 0.5 \rfloor$). SVG coordinate values are expressed to two decimal
+        places using the same convention. No other rounding rule is used anywhere in the
+        pipeline.
+
+  \item \textbf{Deterministic symbolic date resolution.}
+        The symbolic date \texttt{now} and relative dates (\texttt{+3m}, \texttt{-2w})
+        resolve to a fixed anchor. The anchor is: \texttt{metadata.today} if present;
+        else \texttt{metadata.created}; else a validation error (see Gap~1 in
+        \S\ref{sec:rendering-gaps}). The system clock is never consulted.
+
+  \item \textbf{Embedded font metrics.}
+        Label-width and line-height computations use metrics from font files bundled with
+        the theme. System fonts are not consulted for any layout-critical measurement.
+        This guarantees that label placement is identical on macOS, Linux, and Windows.
+
+  \item \textbf{Specification-version governance.}
+        The renderer reads \texttt{version} from the IR document and verifies it against a
+        supported specification version before beginning layout. A version mismatch is a
+        hard error, not a warning.
+\end{enumerate}
+
+\paragraph{Consequence.}
+If $R_1$ and $R_2$ both satisfy this contract and their outputs diverge, the divergent
+renderer has a defect. The specification is the arbiter.
+
+\subsection{Coordinate System}
+\label{sec:rendering-coords}
+
+The renderer works in a \emph{logical-pixel} coordinate system. The top-left corner of
+the canvas is the origin $(0,\,0)$; $x$ increases rightward, $y$ downward. All layout
+computations use integer arithmetic in logical pixels; SVG output converts to decimal
+coordinates at the end.
+
+\begin{figure}[h]
+\centering
+\begin{Verbatim}[frame=single,fontsize=\small]
+  x=0           x=Hhdr+mL              x=canvas.width
+  +--------------+----------------------------------+
+  |              |  Axis header (Haxis px)          |  y = mT
+  |  Track       +----------------------------------+
+  |  header      |  Track[0]  (row_height px)       |
+  |  column      |  [activity bars, milestones]     |
+  |  (Hhdr px)   +----------------------------------+
+  |              |  Track[1]  (row_height px)       |
+  |              |    ...                            |
+  |              +----------------------------------+
+  |              |  Track[N-1]                      |
+  +--------------+----------------------------------+
+                                         y = canvas.height
+\end{Verbatim}
+\caption{Canvas coordinate system and layout zones}
+\label{fig:canvas-layout}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lp{9.5cm}}
+\toprule
+\textbf{Symbol} & \textbf{Definition} \\
+\midrule
+$W$ & \texttt{theme.canvas.width} --- total canvas width in logical pixels \\
+$m_L,\,m_R,\,m_T,\,m_B$ & Left, right, top, bottom margins \\
+$H_{\mathrm{hdr}}$ & \texttt{theme.track.header\_width} --- left column for track labels \\
+$H_{\mathrm{axis}}$ & \texttt{theme.axis.height} --- horizontal time-axis strip \\
+$W_{\mathrm{draw}}$ & $W - m_L - m_R - H_{\mathrm{hdr}}$ --- drawable timeline width \\
+$H_{\mathrm{draw}}$ & $\displaystyle\sum_{i} h_i + \sum_{i>0} g$ --- total height of all track rows plus gaps \\
+$H$ & Computed canvas height: $m_T + H_{\mathrm{axis}} + H_{\mathrm{draw}} + m_B$ \\
+\bottomrule
+\end{tabular}
+\caption{Coordinate system symbols}
+\label{tab:coord-symbols}
+\end{table}
+
+The canvas \emph{width} is fixed by the theme. The canvas \emph{height} is always computed
+from track count and sub-lane expansion; it must never be truncated.
+
+\subsection{Timeline Axis}
+\label{sec:rendering-axis}
+
+\subsubsection{Axis Unit and Inference}
+\label{sec:axis-inference}
+
+\texttt{metadata.axis\_unit} controls tick granularity. If absent, the renderer infers a
+suitable unit from the \texttt{time\_range} span, applying the first matching threshold:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{time\_range span (days, inclusive)} & \textbf{Inferred axis\_unit} \\
+\midrule
+$\leq 14$  & \texttt{day}     \\
+$\leq 91$  & \texttt{week}    \\
+$\leq 548$ & \texttt{month}   \\
+$\leq 1461$& \texttt{quarter} \\
+$\leq 2922$& \texttt{half}    \\
+$> 2922$   & \texttt{year}    \\
+\bottomrule
+\end{tabular}
+\caption{Axis unit inference thresholds (first match wins)}
+\label{tab:axis-inference}
+\end{table}
+
+These thresholds yield 4--26 visible ticks at a 1200-pixel canvas width---the range that
+avoids crowding while remaining informative for the executive-roadmap use cases described
+in Section~\ref{sec:principles}.
+
+\subsubsection{Date-to-Coordinate Function}
+\label{sec:date-to-x}
+
+All horizontal positions derive from a single deterministic function $x(T)$. Let
+$T_{\mathrm{ord}}$ denote the \emph{day ordinal} of date $T$: an integer count of days
+since 2000-01-01 (epoch day~0). Coarser-precision dates are resolved to their period-start
+day before ordinal conversion (see \S\ref{sec:date-coercion}).
+
+\[
+  x(T) \;=\; H_{\mathrm{hdr}} + m_L \;+\;
+  \left\lfloor
+    \dfrac{
+      (T_{\mathrm{ord}} - T_{s,\mathrm{ord}}) \;\cdot\; W_{\mathrm{draw}}
+    }{
+      T_{e,\mathrm{ord}} - T_{s,\mathrm{ord}}
+    }
+    \;+\; 0.5
+  \right\rfloor
+\]
+
+where $T_{s,\mathrm{ord}}$ and $T_{e,\mathrm{ord}}$ are the day ordinals of the axis domain
+start and end after coercion. The numerator product
+$(T_{\mathrm{ord}} - T_{s,\mathrm{ord}}) \cdot W_{\mathrm{draw}}$ is computed before division
+to prevent precision loss. For a 1200-pixel canvas spanning ten years (3\,650 days), the
+intermediate product is at most $1200 \times 3650 = 4\,380\,000$, well within 32-bit
+integer range.
+
+\paragraph{Boundary invariants.}
+$x(T_s) = H_{\mathrm{hdr}} + m_L$ exactly;
+$x(T_e) = H_{\mathrm{hdr}} + m_L + W_{\mathrm{draw}}$ exactly. Any date at or before $T_s$
+maps to the left canvas boundary; any date at or after $T_e$ maps to the right canvas
+boundary, before clipping.
+
+\subsubsection{Date Coercion for Bar Edges}
+\label{sec:date-coercion}
+
+Dates coarser than \texttt{day} must be coerced to a specific calendar day before ordinal
+conversion. The rule depends on whether the date is a \emph{left edge} (start of a bar) or
+a \emph{right edge} (end of a bar):
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Date form} & \textbf{As left edge (start)} & \textbf{As right edge (end)} \\
+\midrule
+\texttt{2026-06-09}  (day)    & 2026-06-09 & 2026-06-09 \\
+\texttt{2026-06}     (month)  & 2026-06-01 & 2026-06-30 \\
+\texttt{2026}        (year)   & 2026-01-01 & 2026-12-31 \\
+\texttt{2026-Q2}     (quarter)& 2026-04-01 & 2026-06-30 \\
+\texttt{2026-H1}     (half)   & 2026-01-01 & 2026-06-30 \\
+\texttt{FY26-Q2}     (fiscal) & First day of fiscal Q2 & Last day of fiscal Q2 \\
+\bottomrule
+\end{tabular}
+\caption{Date coercion to day boundaries by edge role}
+\label{tab:date-coercion}
+\end{table}
+
+\textbf{Fiscal dates} require a fiscal-year start month that is currently absent from the IR
+contract (see Gap~2 in \S\ref{sec:rendering-gaps}).
+
+The same left-edge/right-edge coercion applies to \texttt{time\_range.start} (left) and
+\texttt{time\_range.end} (right) when establishing the axis domain.
+
+\subsubsection{Tick and Gridline Placement}
+\label{sec:tick-placement}
+
+\begin{enumerate}
+  \item Enumerate all \texttt{axis\_unit} period-start dates within $[T_s,\,T_e]$ inclusive.
+  \item For each period boundary $T_k$: compute $x_k = x(T_k)$ per \S\ref{sec:date-to-x}.
+  \item Place a tick mark of height \texttt{theme.axis.tick\_height}~px at $x_k$, at the
+        bottom of the axis header band.
+  \item Place a vertical gridline at $x_k$ spanning from the top of Track[0] to the bottom
+        of Track[$N-1$], styled per \texttt{theme.axis.gridline\_*} properties.
+  \item Place a tick label centered at $x_k$, \texttt{theme.axis.tick\_label\_offset}~px
+        below the tick. Format using \texttt{metadata.locale} and the label rules in
+        Table~\ref{tab:tick-label-density}. If a label would overlap its neighbor (right
+        edge $>$ neighbor's left edge), suppress the label for this tick only.
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{axis\_unit} & \textbf{Primary label content} & \textbf{Secondary label (every $N$ ticks)} \\
+\midrule
+\texttt{day}     & Day-of-month number         & Month name (every 7) \\
+\texttt{week}    & Week-start day              & Month name (every 4) \\
+\texttt{month}   & Month abbreviation          & Year number (every 12) \\
+\texttt{quarter} & Q1 / Q2 / Q3 / Q4           & Year number (every 4) \\
+\texttt{half}    & H1 / H2                     & Year number (every 2) \\
+\texttt{year}    & Year number                 & None \\
+\bottomrule
+\end{tabular}
+\caption{Tick label content rules per axis unit}
+\label{tab:tick-label-density}
+\end{table}
+
+\paragraph{Week ticks.}
+For \texttt{axis\_unit = week}, week boundaries are ISO~8601 Monday starts regardless of
+locale. The locale affects label string formatting only (language, order), never tick positions.
+
+\paragraph{Section bands.}
+If \texttt{sections[]} is non-empty, the theme may render alternating column shading between
+section boundaries. Band edges coincide with section start/end dates coerced per
+Table~\ref{tab:date-coercion}. Section bands are painted at the lowest z-order, below
+gridlines and all content elements.
+
+\subsection{The Six-Phase Layout Algorithm}
+\label{sec:layout-algorithm}
+
+The renderer executes geometry computation in exactly six phases in the order given below.
+Each phase's output is immutable input to subsequent phases. No phase may invoke logic from
+a later phase.
+
+\begin{lstlisting}[caption={Layout pipeline overview}]
+Phase 1 | AXIS COMPUTATION
+        |   Input:  IR metadata (time_range, axis_unit, today-anchor)
+        |   Output: axis domain [Ts, Te], axis_unit, tick_positions[]
+
+Phase 2 | TRACK PLACEMENT
+        |   Input:  tracks[] sorted by index
+        |   Output: track.y_top[], track.height[] (provisional)
+
+Phase 3 | ACTIVITY GEOMETRY
+        |   Input:  activities[], Phase-1 axis, Phase-2 track positions
+        |   Output: activity.{x_left, x_right, y, lane, width}
+        |           track.height[] (final, expanded for sub-lanes)
+
+Phase 4 | MILESTONE GEOMETRY
+        |   Input:  milestones[], Phase-1 axis, Phase-3 final track heights
+        |   Output: milestone.{x_center, y_center, stack_index}
+
+Phase 5 | SECTIONS AND ANNOTATIONS
+        |   Input:  sections[], annotations[], all Phase 1-4 geometry
+        |   Output: section.{x_left, x_right}, annotation.{x, y}
+
+Phase 6 | LABEL COLLISION RESOLUTION
+        |   Input:  all geometry from Phases 3-5
+        |   Output: final label positions for milestones
+\end{lstlisting}
+
+\subsubsection{Phase 1: Axis Computation}
+\label{sec:phase1}
+
+\begin{lstlisting}[caption={Phase 1: Axis computation}]
+1. Resolve today-anchor:
+     if metadata.today is set : anchor = metadata.today
+     elif metadata.created is set : anchor = metadata.created
+     else : ERROR("Cannot resolve symbolic/relative dates: no today/created")
+
+2. Resolve time_range.start:
+     a. Expand 'now' -> anchor; expand '+3m' -> anchor + 3 months; etc.
+     b. Coerce to period start (left-edge rule, Table 5.3).  -> T_s
+
+3. Resolve time_range.end (same expansion; coerce to period end -> T_e).
+     ASSERT T_e >= T_s; else ERROR.
+
+4. Infer axis_unit if absent:
+     span_days = T_e_ord - T_s_ord
+     Apply Table 5.2 thresholds in order; assign axis_unit.
+
+5. Compute W_draw = canvas.width - mL - mR - theme.track.header_width.
+
+6. Enumerate tick positions:
+     T_k = all period-start dates of axis_unit in [T_s, T_e] inclusive.
+     For each T_k: x_k = x(T_k) per Section 5.3.2.
+     Compute tick label strings using metadata.locale.
+\end{lstlisting}
+
+\subsubsection{Phase 2: Track Placement}
+\label{sec:phase2}
+
+\begin{lstlisting}[caption={Phase 2: Track placement}]
+1. Sort tracks by index ascending.
+   ASSERT all index values are unique non-negative integers.
+
+2. y_cursor = mT + Haxis
+
+3. For i in 0 .. N_tracks-1:
+     track[i].y_top  = y_cursor
+     track[i].height = theme.track.row_height     -- provisional
+     y_cursor       += theme.track.row_height + theme.track.row_gap
+
+4. Record group bracket extents after Phase 3 finalises track heights.
+\end{lstlisting}
+
+Track heights set here are provisional. Phase~3 may expand them when overlapping activities
+require sub-lanes. Downstream phases must use the Phase-3-finalised heights.
+
+\subsubsection{Phase 3: Activity Geometry}
+\label{sec:phase3}
+
+\paragraph{Sub-lane assignment.}
+
+\begin{lstlisting}[caption={Phase 3: Activity geometry and greedy sub-lane assignment}]
+For each track T (in index order):
+  1. A = activities where A.track == T.id.
+  2. Resolve each A.start_ord = ordinal(coerce_left(A.start)).
+     Resolve each A.end_x per special-end-date rules below.
+  3. Sort A by (start_ord, id) ascending (stable sort).
+  4. Greedy sub-lane assignment:
+       lane_end_x = [-infinity]
+       For each A_i in sort order:
+         k = smallest index where lane_end_x[k] <= x(A_i.start_ord)
+         if no such k exists:
+           if len(lane_end_x) < theme.track.max_sub_lanes:
+             append -infinity to lane_end_x; k = new last index
+           else:
+             k = theme.track.max_sub_lanes - 1   -- cap; emit WARNING
+         A_i.lane    = k
+         lane_end_x[k] = A_i.end_x
+  5. n_lanes = max(A.lane) + 1
+  6. if n_lanes > 1:
+       track[T].height = theme.track.row_height
+                       + (n_lanes - 1) * theme.track.sub_lane_height
+  7. For each A_i:
+       A_i.y = track[T].y_top
+             + theme.activity.bar_top_margin
+             + A_i.lane * theme.track.sub_lane_height
+       A_i.x_left  = x(A_i.start_ord)
+       A_i.x_right = A_i.end_x
+       logical_w   = A_i.x_right - A_i.x_left
+       if logical_w < theme.activity.min_width:
+         mid         = (A_i.x_left + A_i.x_right) / 2   -- round-half-up
+         A_i.x_left  = mid - theme.activity.min_width / 2
+         A_i.x_right = A_i.x_left + theme.activity.min_width
+       A_i.width = A_i.x_right - A_i.x_left
+\end{lstlisting}
+
+\paragraph{Special end-date resolution.}
+\begin{itemize}
+  \item \texttt{end} absent (omitted): treated identically to \texttt{ongoing}.
+  \item \texttt{ongoing}: \texttt{end\_x} $=$ $H_{\mathrm{hdr}} + m_L + W_{\mathrm{draw}}$
+        (right canvas boundary); append right-chevron ($\rightarrow$) decoration.
+  \item \texttt{tbd}: \texttt{end\_x} $=$ \texttt{x\_left} $+$
+        \texttt{theme.activity.tbd\_extension\_px}
+        (default: $2 \times \overline{\Delta x_{\text{tick}}}$, the mean tick spacing in pixels);
+        render rightward extension with dashed border at 50\% opacity;
+        place ``TBD'' label inside extension zone.
+  \item \texttt{unknown}: same geometry as \texttt{tbd}; use \texttt{unknown} visual
+        treatment from theme status map.
+  \item \texttt{\textasciitilde{}date}: coerce date normally to ordinal; \texttt{end\_x}
+        $= x(\text{date\_ord})$; flag right edge as approximate for gradient-fade rendering.
+\end{itemize}
+
+\paragraph{Label placement (deterministic three-way rule).}
+The rule is applied exactly once per activity; no iteration:
+\begin{enumerate}
+  \item \textbf{Inside}: if \texttt{A.width} $\geq$ \texttt{theme.activity.label\_inside\_min\_width},
+        render label horizontally centered in bar, vertically centered on bar height, in
+        \texttt{theme.activity.label\_color\_inside}.
+  \item \textbf{Right}: render label starting at $\texttt{A.x\_right} + 4$~px in
+        \texttt{theme.activity.label\_color\_outside}.
+        If label right edge $>$ $H_{\mathrm{hdr}} + m_L + W_{\mathrm{draw}} - 4$, proceed to
+        step~3.
+  \item \textbf{Left}: render label ending at $\texttt{A.x\_left} - 4$~px.
+        If label left edge $<$ $H_{\mathrm{hdr}} + m_L$, truncate label to
+        \texttt{theme.activity.label\_truncate\_chars} characters $+$
+        ``\ldots'' (U+2026) and re-attempt step~2.
+\end{enumerate}
+
+\paragraph{Progress indicator.}
+If \texttt{activity.progress} is set: render a filled strip of height
+\texttt{theme.activity.progress\_bar\_height}~px at the bottom of the bar, width $=
+\lfloor \texttt{A.width} \cdot \texttt{A.progress} + 0.5 \rfloor$~px, inset inside the
+bar border.
+
+\subsubsection{Phase 4: Milestone Geometry}
+\label{sec:phase4}
+
+\paragraph{Placement and stacking.}
+
+\begin{lstlisting}[caption={Phase 4: Milestone placement and stacking}]
+For each milestone M (sorted by date_ord, id):
+  1. x_center = x(M.date_ordinal).
+  2. Determine base_y:
+       if M.track is set:
+         base_y = track[M.track].y_top + track[M.track].height / 2
+       else (cross-track):
+         base_y = mT + Haxis + H_draw / 2
+
+  3. Stacking within (effective_track_id, x_center) group:
+       Sort group members by id ascending.
+       Assign stack_index k = 0, 1, 2, ...
+       M.y_center = base_y + k * theme.milestone.stack_offset_y
+
+  4. Diamond vertices (integer arithmetic):
+       d = theme.milestone.diamond_size
+       top    = (x_center,     M.y_center - d)
+       right  = (x_center + d, M.y_center    )
+       bottom = (x_center,     M.y_center + d)
+       left   = (x_center - d, M.y_center    )
+\end{lstlisting}
+
+The diamond is a four-vertex polygon with vertices computed directly. No
+\texttt{transform="rotate(...)"} attribute is used; rotation-transform-dependent rendering
+differences across SVG viewers are avoided.
+
+\paragraph{Cross-track milestones.}
+When \texttt{track} is null, the milestone is drawn at the vertical centre of the full
+rendered area. Its diamond size is \texttt{theme.milestone.diamond\_size} (not scaled);
+visual emphasis comes from the spanning vertical extent of the label, which may be increased
+by a theme multiplier \texttt{theme.milestone.cross\_track\_label\_scale} (default: 1.2).
+
+\subsubsection{Phase 5: Sections and Annotations}
+\label{sec:phase5}
+
+\paragraph{Section bands.}
+For each section $S$ (sorted by start date, then id):
+\begin{itemize}
+  \item $x_{\text{left}}(S) = x(\text{coerce\_left}(S.\texttt{start}))$.
+  \item $x_{\text{right}}(S) = x(\text{coerce\_right}(S.\texttt{end}))$.
+  \item Band spans vertically from $m_T + H_{\mathrm{axis}}$ to
+        $m_T + H_{\mathrm{axis}} + H_{\mathrm{draw}}$.
+  \item Z-order: sections paint first (below gridlines, activities, milestones, labels).
+\end{itemize}
+Overlapping sections are valid; a later section in sort order paints over an earlier one.
+
+\paragraph{Annotation placement.}
+\begin{enumerate}
+  \item Sort annotations by \texttt{id} ascending.
+  \item For each annotation: compute anchor as centre of target entity's bounding box.
+  \item Place annotation box in the first quadrant that keeps it entirely within the canvas.
+        Preference order: top-right, top-left, bottom-right, bottom-left.
+        If no quadrant fits, use top-right and clip to canvas boundary.
+  \item Draw connector (line/elbow) from annotation box edge to anchor,
+        styled per \texttt{theme.annotation.connector\_style}.
+\end{enumerate}
+
+\subsubsection{Phase 6: Label Collision Resolution}
+\label{sec:phase6}
+
+Activity labels are placed definitively in Phase~3 (no iteration). Milestone labels require
+a collision-resolution pass because multiple milestones at similar $x$ positions can produce
+overlapping labels.
+
+\begin{lstlisting}[caption={Phase 6: Milestone label collision resolution}]
+1. Collect all milestone label bounding boxes (x_label, y_label, width, height, id).
+2. Sort by (x_label, y_label, id) ascending (stable).
+3. Scan pass (bounded by N iterations, N = label count):
+     For each consecutive pair (L_i, L_{i+1}):
+       if L_i.right_edge > L_{i+1}.left_edge
+          AND |L_i.y_label - L_{i+1}.y_label| < label_height:
+         L_{i+1}.y_label += theme.milestone.label_stack_offset
+4. Repeat step 3 until no overlapping pairs remain OR N iterations reached.
+   If overlaps persist after N iterations: truncate labels to
+   theme.milestone.label_max_width px, accepting visual overlap.
+5. Clamp all final y_label values to [mT, mT + Haxis + H_draw + mB].
+\end{lstlisting}
+
+Because the input sort and every shift decision are deterministic, two renderers executing
+this algorithm on identical inputs produce identical label placements.
+
+\subsection{Edge Cases}
+\label{sec:edge-cases}
+
+Every case below is normative. A renderer that produces different behaviour for any case
+has a defect. The summary table gives the complete catalogue; extended descriptions follow
+for the most structurally complex cases.
+
+\begin{longtable}{@{}p{3.2cm}p{3.4cm}p{5.8cm}@{}}
+\caption{Edge-case definitions (normative)}
+\label{tab:edge-cases} \\
+\toprule
+\textbf{Case} & \textbf{Condition} & \textbf{Rendering Rule} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{c}{\small\textit{Table~\ref{tab:edge-cases} continued}} \\[2pt]
+\toprule
+\textbf{Case} & \textbf{Condition} & \textbf{Rendering Rule} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small\textit{continued \ldots}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+Zero-duration activity &
+  \texttt{start == end} or \texttt{span} that resolves to a single point &
+  Render bar of \texttt{min\_width}~px centred at $x(\text{start})$. Never render 0-width. Label placed right (outside). \\[4pt]
+Overlapping activities (same track) &
+  Two activities in same track whose date ranges overlap &
+  Greedy sub-lane assignment (Phase 3). Track height expands. Cap at \texttt{max\_sub\_lanes}. \\[4pt]
+Open interval (\texttt{ongoing}) &
+  \texttt{end: ongoing} or \texttt{end} absent &
+  Bar extends to right canvas boundary. Right-chevron decoration. No overflow beyond canvas edge. \\[4pt]
+TBD end date &
+  \texttt{end: tbd} &
+  Bar extends \texttt{tbd\_extension\_px} beyond \texttt{x\_left}. Dashed, 50\% opacity. ``TBD'' label inside extension. \\[4pt]
+Both dates TBD &
+  \texttt{start: tbd} or equivalent &
+  Full-track-width hatched block at 40\% opacity. Activity label $+$ ``(TBD)''. \\[4pt]
+Unknown start &
+  \texttt{start: unknown} &
+  Left edge placed at $x(T_s)$. Left-fade gradient over \texttt{approx\_fade\_px}. \\[4pt]
+Unknown end &
+  \texttt{end: unknown} &
+  Same geometry as \texttt{tbd}; rendered with \texttt{unknown} visual treatment from theme. \\[4pt]
+Approximate start &
+  \texttt{start: \textasciitilde{}date} &
+  Geometry at nominal date; left edge rendered with gradient fade of \texttt{approx\_fade\_px}. \\[4pt]
+Approximate end &
+  \texttt{end: \textasciitilde{}date} &
+  Geometry at nominal date; right edge rendered with gradient fade. \\[4pt]
+Activity fully before range &
+  $\text{end} < T_s$ &
+  Not rendered. Renderer warning. Activity still appears in legend. \\[4pt]
+Activity fully after range &
+  $\text{start} > T_e$ &
+  Not rendered. Renderer warning. Activity still appears in legend. \\[4pt]
+Activity partially before range &
+  $\text{start} < T_s$, $\text{end} \geq T_s$ &
+  Bar clipped to $[x(T_s),\;x(\text{end})]$. Left-clip indicator on clipped edge. \\[4pt]
+Activity partially after range &
+  $\text{start} \leq T_e$, $\text{end} > T_e$ &
+  Bar clipped to $[x(\text{start}),\;x(T_e)]$. Right-clip indicator on clipped edge. \\[4pt]
+Very short span &
+  $x(\text{end}) - x(\text{start}) < \text{min\_width}$ after rounding &
+  Render at \texttt{min\_width}; centre on logical midpoint (round-half-up). Label right (outside). \\[4pt]
+Very long span &
+  Bar occupies $> 80\%$ of $W_{\mathrm{draw}}$ &
+  Render normally. Prefer inside label placement if label fits within bar. \\[4pt]
+Simultaneous milestones (same track) &
+  Two milestones with equal \texttt{date} on the same \texttt{track} &
+  Stack vertically by \texttt{stack\_offset\_y}, sorted by \texttt{id} ascending (Phase 4). \\[4pt]
+Simultaneous milestones (cross-track) &
+  Two milestones with \texttt{track: null} and equal \texttt{date} &
+  Stack at full-timeline vertical centre, sorted by \texttt{id} ascending. \\[4pt]
+Milestone outside range &
+  Milestone date $< T_s$ or $> T_e$ &
+  Not rendered. Renderer warning. Appears in legend. \\[4pt]
+Empty track &
+  Track has no activities and no milestones &
+  Row rendered at \texttt{row\_height}. Label visible. Body empty. Never collapsed. \\[4pt]
+Sub-lane cap exceeded &
+  Overlapping activities require $>$ \texttt{max\_sub\_lanes} lanes &
+  Excess activities placed in the last lane (visible overlap). Renderer warning. \\
+\end{longtable}
+
+\paragraph{Overlapping activities: sub-lane assignment in detail.}
+
+The greedy algorithm assigns each activity (in stable \texttt{(start\_ord,\;id)} order) to the
+lowest-indexed lane where it does not overlap any previously placed activity. Overlap is
+defined as $x_{\text{left}}(A_j) < x_{\text{right}}(A_i)$ for activities $A_i$, $A_j$ in
+the same lane. Because sort order is deterministic and each assignment is a pure function of
+the current \texttt{lane\_end\_x} state, all renderers produce identical lane assignments
+for identical inputs.
+
+\paragraph{Simultaneous milestones in detail.}
+
+When milestones share an $(\texttt{track},\,x_{\text{center}})$ pair, they are stacked downward
+from the nominal track centre. The first milestone in \texttt{id}-ascending order is at the
+base position (stack index 0). Subsequent milestones are offset by
+$k \times \texttt{theme.milestone.stack\_offset\_y}$. Stacking is permitted to overflow into
+the inter-track gap; milestones must \emph{not} be silently suppressed if they cannot fit
+within track height.
+
+\paragraph{Clip indicators.}
+
+An activity bar clipped at the axis boundary receives a \emph{clip indicator}: a small
+``/\!/'' mark (two angled lines, $4 \times 8$~px) drawn in the activity's fill colour at
+full opacity, positioned at the clipped edge centre. The indicator signals to the reader
+that the activity continues beyond the visible axis range.
+
+\paragraph{Minimum-width semantics.}
+
+\texttt{theme.activity.min\_width} (default: 4~px) prevents activities from being rendered
+invisibly narrow at coarse zoom levels. A zero-duration activity and a very-short-span
+activity both produce a bar of exactly \texttt{min\_width} px. The two cases are
+\emph{visually indistinguishable}; distinguishing them would require a separate icon or
+tooltip, which is a theme-level option outside the core rendering contract.
+
+\subsection{Known IR Gaps}
+\label{sec:rendering-gaps}
+
+The following gaps in Mark's IR contract (\S\ref{sec:ir}) affect rendering determinism.
+They are flagged here for Mark and Leslie to resolve; this spec does \emph{not} unilaterally
+extend the IR. Renderers encountering these gaps should apply the documented fallback and
+emit a validation warning.
+
+\begin{description}
+  \item[Gap 1 --- \texttt{metadata.today} field missing.]
+    Leslie's decision record mandates an explicit \texttt{today} field in the IR for
+    deterministic resolution of the \texttt{now} symbolic date and the today-marker
+    feature. Mark's current \texttt{metadata} object does not include this field.
+    \textbf{Proposed resolution:} add \texttt{today} (type \texttt{date}, optional) to
+    \texttt{metadata}. Renderer fallback chain:
+    \texttt{metadata.today} $\to$ \texttt{metadata.created} $\to$ validation error.
+
+  \item[Gap 2 --- \texttt{metadata.fiscal\_year\_start} missing.]
+    The \texttt{FY26-Q2} fiscal-date format requires knowing the fiscal-year start month.
+    Two renderers assuming different organisations' fiscal calendars (US federal: October;
+    UK: April; common corporate: January) will produce different $x$-coordinates for
+    identical fiscal dates.
+    \textbf{Proposed resolution:} add \texttt{fiscal\_year\_start} (type \texttt{int},
+    range 1--12, default 1 = January) to \texttt{metadata}.
+
+  \item[Gap 3 --- Relative date anchor undefined.]
+    Relative dates (\texttt{+3m}, \texttt{-2w}) are described in Mark's contract as
+    resolving from ``context'', which is insufficient. A renderer must know the anchor date
+    to compute an ordinal.
+    \textbf{Proposed resolution:} define that relative dates use the same anchor as Gap~1
+    (\texttt{today} $\to$ \texttt{created} $\to$ error).
+
+  \item[Gap 4 --- Omitted \texttt{end} semantics ambiguous.]
+    Mark's Activity contract marks \texttt{end} as optional but does not state whether an
+    absent \texttt{end} is equivalent to \texttt{ongoing} or a validation error. This
+    rendering model treats omitted \texttt{end} as \texttt{ongoing} (see the open-interval
+    row in Table~\ref{tab:edge-cases}). The IR spec should make this explicit.
+\end{description}
