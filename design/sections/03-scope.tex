@@ -130,6 +130,10 @@ The following capabilities are explicitly excluded:
   
   \textbf{Rationale:} Portfolio management is a strategic planning function, not a visualization function.
   
+  \item[Non-Timeline Chart Views] No aggregate or statistical chart views of timeline data --- for example, per-year histograms, bar charts, or pie charts. The ``YEARLY CHART'' view shown in the Gitline reference (\S\ref{sec:target-outputs}) is explicitly excluded.
+  
+  \textbf{Rationale:} Timeline Compiler renders \emph{timelines}. Aggregate or statistical chart views are a different visualization grammar served well by general charting tools; including them would dilute the system's focus and its deterministic timeline-layout mandate.
+  
   \item[Baseline Comparison] No tracking of baseline vs.\ actual schedules over time.
   
   \textbf{Rationale:} Baseline tracking requires temporal versioning and comparison logic. This is project-control functionality.
@@ -236,6 +240,7 @@ Data storage and collaboration & Out of Scope \\
 Interactive/clickable output & Out of Scope \\
 WYSIWYG editing & Out of Scope \\
 Native data source integrations & Out of Scope \\
+Non-timeline chart/aggregate views & Out of Scope \\
 \bottomrule
 \end{tabularx}
 \end{table}

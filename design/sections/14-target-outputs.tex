@@ -498,8 +498,10 @@ Section~\ref{sec:theme-showcase}); the effect registry already contains
   \item \textbf{Theme/mood:} Dark navy background (\texttt{\#0D1117} range), subtle
         swirl/radial background texture (Tier-3 art effect), rounded cards with soft
         border--shadow, pagination control.
-  \item \textbf{Alternate view:} A ``YEARLY CHART'' tab shows the same IR data in a
-        histogram/chart layout --- a separate render target, not a different IR.
+  \item \textbf{Alternate view (out of scope):} The ``YEARLY CHART'' tab shows a
+        per-year histogram of the same data. This is a non-timeline chart view and is
+        \emph{explicitly out of scope} (see \S\ref{sec:scope}); it is noted here only
+        to delimit the boundary, not as a supported render target.
 \end{itemize}
 
 \paragraph{Worked Timeline IR.}
@@ -559,7 +561,7 @@ annotations:
     style: warning                # theme maps 'warning' to amber callout style
 # activity.url --> "VIEW REPOSITORY" CTA button (renderer generates button label)
 # Org avatar header: theme asset / web-app shell; not IR data
-# YEARLY CHART tab: alternate render of the same IR; no IR schema change needed
+# YEARLY CHART tab: out of scope (non-timeline aggregate view); see Scope Boundaries
 # Swirl background texture: theme fidelity.effects.noise_texture (Tier-3 Raster)
 # Pagination: HTML backend concern; no IR field needed
 \end{lstlisting}
@@ -572,8 +574,8 @@ annotations:
 is a theme-level string constant (render concern, not IR data).
 \texttt{annotations[].style: warning} maps to the warning callout via
 \texttt{theme.annotation} styling.
-The ``YEARLY CHART'' alternate view is a second render pass on the same IR document
-with a different \texttt{spine\_geometry} or chart backend---no IR change required.
+The ``YEARLY CHART'' tab is a non-timeline aggregate view and is \emph{out of scope}
+(see \S\ref{sec:scope}); the timeline card view is the target reproduced here.
 
 \paragraph{Layout, theme, effects, and tier.}
 \begin{itemize}
@@ -795,9 +797,10 @@ vertical-spine + card-entry render gap; showcase-dark theme variant gap \\
         annotation \texttt{type: connector} is already in the IR; only the visual
         style is missing.
 
-  \item[Render-6: ``YEARLY CHART'' alternate view (out of scope / future).]
-        Covers T5 tab. A chart/histogram render pass on the same IR; not in scope
-        for the Timeline Compiler's timeline rendering mandate. Deferred.
+  \item[Render-6: ``YEARLY CHART'' aggregate view --- out of scope.]
+        The T5 reference includes a ``YEARLY CHART'' tab (a per-year histogram). This
+        is a non-timeline aggregate visualization and is \emph{out of scope}
+        (\S\ref{sec:scope}); it is not a deferred feature but an explicit boundary.
 \end{description}
 
 \paragraph{(c) Theme additions --- owned by Barbara}
