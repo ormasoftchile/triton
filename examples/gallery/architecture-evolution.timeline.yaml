@@ -1,0 +1,119 @@
+version: "1.0"
+metadata:
+  title: "Architecture Evolution 2022–2028"
+  subtitle: "Platform transformation: Monolith → Services → Platform"
+  time_range:
+    start: "2022"
+    end: "2028"
+  axis_unit: year
+  theme: consulting
+  today: 2026-06-10
+tracks:
+  - id: backend
+    label: "Backend"
+    index: 0
+  - id: frontend
+    label: "Frontend"
+    index: 1
+  - id: infrastructure
+    label: "Infrastructure"
+    index: 2
+activities:
+  - id: monolith-phase
+    label: "Monolithic Application"
+    track: backend
+    start: 2022-01-01
+    end: 2023-06-30
+    status: done
+    progress: 1.0
+  - id: service-decomp
+    label: "Service Decomposition"
+    track: backend
+    start: 2022-07-01
+    end: 2025-12-31
+    status: done
+    progress: 1.0
+  - id: event-mesh
+    label: "Event Mesh"
+    track: backend
+    start: 2025-01-01
+    end: 2026-12-31
+    status: in-progress
+    progress: 0.5
+  - id: platform-api-layer
+    label: "Platform API Layer"
+    track: backend
+    start: 2026-06-01
+    end: 2028-12-31
+    status: planned
+  - id: spa-migration
+    label: "SPA Migration"
+    track: frontend
+    start: 2022-01-01
+    end: 2023-06-30
+    status: done
+    progress: 1.0
+  - id: design-system-fe
+    label: "Design System"
+    track: frontend
+    start: 2023-07-01
+    end: 2024-12-31
+    status: done
+    progress: 1.0
+  - id: micro-frontends
+    label: "Micro-Frontends"
+    track: frontend
+    start: 2025-01-01
+    end: 2027-06-30
+    status: in-progress
+    progress: 0.3
+  - id: bare-metal
+    label: "Bare Metal"
+    track: infrastructure
+    start: 2022-01-01
+    end: 2022-12-31
+    status: done
+    progress: 1.0
+  - id: containerisation
+    label: "Containerisation"
+    track: infrastructure
+    start: 2022-06-01
+    end: 2024-06-30
+    status: done
+    progress: 1.0
+  - id: kubernetes-prod
+    label: "Kubernetes"
+    track: infrastructure
+    start: 2023-07-01
+    end: 2025-12-31
+    status: done
+    progress: 1.0
+  - id: multi-cloud
+    label: "Multi-Cloud"
+    track: infrastructure
+    start: 2025-01-01
+    end: 2027-12-31
+    status: in-progress
+    progress: 0.2
+  - id: edge-compute
+    label: "Edge Compute"
+    track: infrastructure
+    start: 2027-01-01
+    end: 2028-12-31
+    status: planned
+milestones:
+  - id: first-microservice
+    label: "First Microservice"
+    date: 2023-06-01
+    status: done
+    category: standard-node
+  - id: k8s-production
+    label: "Kubernetes in Prod"
+    date: 2024-03-01
+    status: done
+    category: standard-node
+  - id: platform-v1-ga
+    label: "Platform v1 GA"
+    date: 2027-01-01
+    status: planned
+    category: standard-node

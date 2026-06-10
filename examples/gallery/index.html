@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline Compiler — Phase 1 Gallery</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f4f5f7;
+      color: #111;
+      padding: 32px 24px 64px;
+    }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto 40px;
+      border-left: 4px solid #1F497D;
+      padding-left: 20px;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1F497D;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+      max-width: 780px;
+    }
+
+    header .badge {
+      display: inline-block;
+      background: #1F497D;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-top: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+      gap: 28px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #dde1e7;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+
+    .card-header {
+      padding: 14px 18px 10px;
+      border-bottom: 1px solid #eef0f3;
+    }
+
+    .card-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: #1F497D;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .card-img {
+      display: block;
+      width: 100%;
+      background: #fafafa;
+      padding: 4px 0;
+    }
+
+    .card-img img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .card-footer {
+      padding: 10px 18px;
+      border-top: 1px solid #eef0f3;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-footer a {
+      font-size: 12px;
+      color: #1F497D;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 3px 8px;
+      border: 1px solid #c5d5e8;
+      border-radius: 3px;
+      background: #f0f5fb;
+      transition: background 0.15s;
+    }
+
+    .card-footer a:hover { background: #dce8f5; }
+
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .tag-quarter  { background: #e8f0e8; color: #2a6a2a; }
+    .tag-month    { background: #e8eef8; color: #1a3a7a; }
+    .tag-year     { background: #f5ece0; color: #7a3a10; }
+    .tag-milestones { background: #f0e8f5; color: #5a1a7a; }
+    .tag-sublanes { background: #fef3e0; color: #8a5000; }
+    .tag-ongoing  { background: #e0f5f5; color: #006060; }
+
+    footer {
+      max-width: 1100px;
+      margin: 40px auto 0;
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #dde1e7;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Timeline Compiler — Example Gallery</h1>
+  <p>
+    Eight representative IR documents rendered with the <strong>Horizontal layout</strong>
+    and <strong>Consulting (Tier-1)</strong> theme. Each example exercises a distinct
+    combination of axis unit, track density, activity statuses, milestones, and edge-case
+    behaviours. Use this contact sheet to bulk-check Phase 1 visual output.
+  </p>
+  <span class="badge">Phase 1 MVP · Horizontal / Consulting theme</span>
+</header>
+
+<div class="gallery">
+
+  <!-- 1. milestones-only -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 1 · milestones-only</div>
+      <div class="card-title">Corporate Milestone Calendar 2026
+        <span class="tag tag-quarter">quarter axis</span>
+        <span class="tag tag-milestones">milestones only</span>
+      </div>
+      <div class="card-desc">
+        Six numbered milestone circles (T2 shape) across a full year — date label above,
+        title below. No activity bars. Exercises: quarterly axis ticks, milestone ordinal
+        numbering, label collision resolution, mixed statuses (done / in-progress / planned).
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="milestones-only.png" alt="milestones-only render">
+    </div>
+    <div class="card-footer">
+      <a href="milestones-only.svg">SVG</a>
+      <a href="milestones-only.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 2. open-ended -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 2 · open-ended</div>
+      <div class="card-title">Open-Ended &amp; Span Activity Behaviours
+        <span class="tag tag-month">month axis</span>
+        <span class="tag tag-ongoing">ongoing / span</span>
+      </div>
+      <div class="card-desc">
+        Demonstrates all end-date variants: omitted end (implicitly ongoing → bar to right
+        edge), <code>end: ongoing</code> (explicit), <code>span: 2026-Q1</code> shorthand
+        (quarter-wide bars), and <code>end: tbd</code> (stub bar). Two tracks; two milestones.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="open-ended.png" alt="open-ended render">
+    </div>
+    <div class="card-footer">
+      <a href="open-ended.svg">SVG</a>
+      <a href="open-ended.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 3. architecture-evolution -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 3 · architecture-evolution</div>
+      <div class="card-title">Architecture Evolution 2022–2028
+        <span class="tag tag-year">year axis</span>
+      </div>
+      <div class="card-desc">
+        Yearly axis spanning 7 years, 3 tracks (Backend / Frontend / Infrastructure),
+        overlapping phases shown as activity bars (done / in-progress / planned). Three
+        milestones mark phase transitions. Exercises: year-granularity axis, multi-year
+        sub-lane stacking, long-span bars.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="architecture-evolution.png" alt="architecture-evolution render">
+    </div>
+    <div class="card-footer">
+      <a href="architecture-evolution.svg">SVG</a>
+      <a href="architecture-evolution.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 4. release-timeline -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 4 · release-timeline</div>
+      <div class="card-title">v3 Release Train — H1 2026
+        <span class="tag tag-month">month axis</span>
+      </div>
+      <div class="card-desc">
+        Monthly axis, 2 tracks (Backend / Frontend), sequential short activities with an
+        <strong>at-risk</strong> item (Search API / RC1 milestone). Four release milestones
+        (Alpha → Beta → RC1 → GA). Exercises: at-risk status colouring, milestone stacking
+        near date boundaries.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="release-timeline.png" alt="release-timeline render">
+    </div>
+    <div class="card-footer">
+      <a href="release-timeline.svg">SVG</a>
+      <a href="release-timeline.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 5. program-timeline -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 5 · program-timeline</div>
+      <div class="card-title">Project Phoenix — Program Timeline
+        <span class="tag tag-month">month axis</span>
+      </div>
+      <div class="card-desc">
+        Monthly axis, 3 tracks (Discovery / Development / Quality), activities + 5 milestones
+        including Kick-off, Architecture Approval, Feature Freeze, Launch, and GA.
+        Exercises: <strong>blocked</strong> status, milestone track assignment, overlapping
+        activity date ranges across tracks.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="program-timeline.png" alt="program-timeline render">
+    </div>
+    <div class="card-footer">
+      <a href="program-timeline.svg">SVG</a>
+      <a href="program-timeline.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 6. product-roadmap -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 6 · product-roadmap</div>
+      <div class="card-title">2026 Product Roadmap
+        <span class="tag tag-quarter">quarter axis</span>
+        <span class="tag tag-sublanes">sub-lanes</span>
+      </div>
+      <div class="card-desc">
+        Quarterly axis, 4 tracks (Strategy / Platform / Mobile / Analytics), 16 activity
+        bars with mixed statuses (done / in-progress / at-risk / planned) and progress
+        fractions, 4 milestones. Mobile track demonstrates sub-lane stacking (iOS v3 and
+        Android v3 overlap).
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="product-roadmap.png" alt="product-roadmap render">
+    </div>
+    <div class="card-footer">
+      <a href="product-roadmap.svg">SVG</a>
+      <a href="product-roadmap.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 7. transformation-plan -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 7 · transformation-plan</div>
+      <div class="card-title">Digital Transformation 2026–2027
+        <span class="tag tag-quarter">quarter axis</span>
+      </div>
+      <div class="card-desc">
+        Quarterly axis spanning 8 quarters, 4 workstream tracks (People / Process /
+        Technology / Data), 13 long-span activity bars with progress indicators, 3
+        milestones. Exercises: multi-year quarterly axis, wide canvas fill, all status
+        colours in one document.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="transformation-plan.png" alt="transformation-plan render">
+    </div>
+    <div class="card-footer">
+      <a href="transformation-plan.svg">SVG</a>
+      <a href="transformation-plan.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 8. dense-roadmap -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 8 · dense-roadmap</div>
+      <div class="card-title">H1 2026 — Dense Engineering Roadmap
+        <span class="tag tag-month">month axis</span>
+        <span class="tag tag-sublanes">sub-lanes</span>
+      </div>
+      <div class="card-desc">
+        Monthly axis, 3 tracks, 15 activities with intentional overlaps to stress sub-lane
+        assignment and label placement (Infra: Monitoring Stack + CI/CD overlap; Backend:
+        User/Billing/Inventory chain; Frontend: Component Library + Routing v2 overlap).
+        4 milestones crowd the right half.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="dense-roadmap.png" alt="dense-roadmap render">
+    </div>
+    <div class="card-footer">
+      <a href="dense-roadmap.svg">SVG</a>
+      <a href="dense-roadmap.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Timeline Compiler · Phase 1 Gallery · Rendered with the Horizontal layout engine + Consulting (Tier-1) theme.
+  Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>
+  · See <a href="README.md" style="color:#999">README.md</a> for full commands.
+</footer>
+
+</body>
+</html>

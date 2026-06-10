@@ -1,0 +1,118 @@
+version: "1.0"
+metadata:
+  title: "Project Phoenix — Program Timeline"
+  subtitle: "Discovery through General Availability, FY 2026"
+  time_range:
+    start: 2026-01
+    end: 2026-12
+  axis_unit: month
+  theme: consulting
+  today: 2026-06-10
+tracks:
+  - id: discovery
+    label: "Discovery"
+    index: 0
+  - id: development
+    label: "Development"
+    index: 1
+  - id: quality
+    label: "Quality & Release"
+    index: 2
+activities:
+  - id: stakeholder-interviews
+    label: "Stakeholder Interviews"
+    track: discovery
+    start: 2026-01-05
+    end: 2026-01-31
+    status: done
+    progress: 1.0
+  - id: requirements-capture
+    label: "Requirements"
+    track: discovery
+    start: 2026-02-01
+    end: 2026-02-28
+    status: done
+    progress: 1.0
+  - id: arch-design
+    label: "Architecture Design"
+    track: discovery
+    start: 2026-03-01
+    end: 2026-04-15
+    status: done
+    progress: 1.0
+  - id: sprint-1
+    label: "Sprint 1 — Foundation"
+    track: development
+    start: 2026-03-01
+    end: 2026-04-15
+    status: done
+    progress: 1.0
+  - id: sprint-2
+    label: "Sprint 2 — Core Features"
+    track: development
+    start: 2026-04-16
+    end: 2026-06-15
+    status: in-progress
+    progress: 0.65
+  - id: sprint-3
+    label: "Sprint 3 — Integrations"
+    track: development
+    start: 2026-06-16
+    end: 2026-08-31
+    status: blocked
+  - id: sprint-4
+    label: "Sprint 4 — Polish"
+    track: development
+    start: 2026-09-01
+    end: 2026-10-31
+    status: planned
+  - id: regression-testing
+    label: "Regression Testing"
+    track: quality
+    start: 2026-05-01
+    end: 2026-06-30
+    status: in-progress
+    progress: 0.4
+  - id: beta-program
+    label: "Beta Program"
+    track: quality
+    start: 2026-07-01
+    end: 2026-09-30
+    status: planned
+  - id: launch-prep
+    label: "Launch Preparation"
+    track: quality
+    start: 2026-10-01
+    end: 2026-11-30
+    status: planned
+milestones:
+  - id: kickoff
+    label: "Project Kick-off"
+    date: 2026-01-05
+    track: discovery
+    status: done
+    category: standard-node
+  - id: arch-approval
+    label: "Architecture Approval"
+    date: 2026-04-15
+    track: development
+    status: done
+    category: standard-node
+  - id: feature-freeze
+    label: "Feature Freeze"
+    date: 2026-08-31
+    track: development
+    status: planned
+    category: standard-node
+  - id: product-launch
+    label: "Product Launch"
+    date: 2026-11-15
+    track: quality
+    status: planned
+    category: standard-node
+  - id: ga-release
+    label: "General Availability"
+    date: 2026-12-01
+    track: quality
+    status: planned
+    category: standard-node

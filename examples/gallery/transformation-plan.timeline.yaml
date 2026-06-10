@@ -1,0 +1,124 @@
+version: "1.0"
+metadata:
+  title: "Digital Transformation 2026–2027"
+  subtitle: "Enterprise-wide workstream execution plan"
+  time_range:
+    start: 2026-Q1
+    end: 2027-12-31
+  axis_unit: quarter
+  theme: consulting
+  today: 2026-06-10
+tracks:
+  - id: people
+    label: "People & Culture"
+    index: 0
+  - id: process
+    label: "Process"
+    index: 1
+  - id: technology
+    label: "Technology"
+    index: 2
+  - id: data
+    label: "Data"
+    index: 3
+activities:
+  - id: leadership-alignment
+    label: "Leadership Alignment"
+    track: people
+    start: 2026-01-01
+    end: 2026-03-31
+    status: done
+    progress: 1.0
+  - id: change-management
+    label: "Change Management"
+    track: people
+    start: 2026-04-01
+    end: 2026-09-30
+    status: in-progress
+    progress: 0.45
+  - id: training-programme
+    label: "Training Programme"
+    track: people
+    start: 2026-07-01
+    end: 2027-06-30
+    status: planned
+  - id: talent-acquisition
+    label: "Talent Acquisition"
+    track: people
+    start: 2027-01-01
+    end: 2027-12-31
+    status: planned
+  - id: process-audit
+    label: "Process Audit"
+    track: process
+    start: 2026-01-01
+    end: 2026-06-30
+    status: done
+    progress: 1.0
+  - id: lean-rollout
+    label: "Lean Rollout"
+    track: process
+    start: 2026-07-01
+    end: 2027-03-31
+    status: planned
+  - id: process-automation
+    label: "Process Automation"
+    track: process
+    start: 2026-10-01
+    end: 2027-12-31
+    status: planned
+  - id: cloud-migration
+    label: "Cloud Migration"
+    track: technology
+    start: 2026-01-01
+    end: 2026-09-30
+    status: in-progress
+    progress: 0.6
+  - id: api-gateway
+    label: "API Gateway"
+    track: technology
+    start: 2026-04-01
+    end: 2026-12-31
+    status: planned
+  - id: erp-upgrade
+    label: "ERP Upgrade"
+    track: technology
+    start: 2026-10-01
+    end: 2027-09-30
+    status: planned
+  - id: data-governance
+    label: "Data Governance"
+    track: data
+    start: 2026-01-01
+    end: 2026-06-30
+    status: done
+    progress: 1.0
+  - id: data-platform
+    label: "Data Platform"
+    track: data
+    start: 2026-04-01
+    end: 2027-03-31
+    status: in-progress
+    progress: 0.35
+  - id: analytics-centre
+    label: "Analytics Centre"
+    track: data
+    start: 2027-01-01
+    end: 2027-12-31
+    status: planned
+milestones:
+  - id: phase1-complete
+    label: "Phase 1 Complete"
+    date: 2026-06-30
+    status: in-progress
+    category: standard-node
+  - id: cloud-go-live
+    label: "Cloud Go-Live"
+    date: 2026-09-30
+    status: planned
+    category: standard-node
+  - id: transformation-complete
+    label: "Transformation Complete"
+    date: 2027-12-31
+    status: planned
+    category: standard-node

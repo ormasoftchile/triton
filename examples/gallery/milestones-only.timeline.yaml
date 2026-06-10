@@ -1,0 +1,52 @@
+version: "1.0"
+metadata:
+  title: "Corporate Milestone Calendar 2026"
+  subtitle: "Board-level delivery commitments — six numbered milestones"
+  time_range:
+    start: 2026-01-01
+    end: 2026-12-31
+  axis_unit: quarter
+  theme: consulting
+  today: 2026-06-10
+tracks:
+  - id: milestones
+    label: " "
+    index: 0
+activities: []
+milestones:
+  - id: board-q1-approval
+    label: "Q1 Board Approval"
+    date: 2026-02-15
+    track: milestones
+    status: done
+    category: standard-node
+  - id: product-beta-release
+    label: "Product Beta"
+    date: 2026-04-01
+    track: milestones
+    status: done
+    category: standard-node
+  - id: series-b-close
+    label: "Series B Close"
+    date: 2026-06-01
+    track: milestones
+    status: in-progress
+    category: standard-node
+  - id: international-launch
+    label: "International Launch"
+    date: 2026-08-15
+    track: milestones
+    status: planned
+    category: standard-node
+  - id: profitability-target
+    label: "Profitability Target"
+    date: 2026-10-01
+    track: milestones
+    status: planned
+    category: standard-node
+  - id: ipo-prep-start
+    label: "IPO Preparation"
+    date: 2026-12-01
+    track: milestones
+    status: planned
+    category: standard-node

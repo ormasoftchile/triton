@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="448" version="1.1" viewBox="0 0 1200 448" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="448" width="1200" x="0" y="0"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="26.67" font-weight="700" text-anchor="middle" x="600" y="37.33">Open-Ended &amp; Span Activity Behaviours</text>
+  <line stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="80" y2="80"/>
+  <line stroke="#333333" stroke-width="1" x1="0" x2="0" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="0" y="66">2026</text>
+  <line stroke="#333333" stroke-width="1" x1="99" x2="99" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="99" y="66">Feb</text>
+  <line stroke="#333333" stroke-width="1" x1="188" x2="188" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="188" y="66">Mar</text>
+  <line stroke="#333333" stroke-width="1" x1="287" x2="287" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="287" y="66">Apr</text>
+  <line stroke="#333333" stroke-width="1" x1="382" x2="382" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="382" y="66">May</text>
+  <line stroke="#333333" stroke-width="1" x1="481" x2="481" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="481" y="66">Jun</text>
+  <line stroke="#333333" stroke-width="1" x1="577" x2="577" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="577" y="66">Jul</text>
+  <line stroke="#333333" stroke-width="1" x1="676" x2="676" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="676" y="66">Aug</text>
+  <line stroke="#333333" stroke-width="1" x1="774" x2="774" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="774" y="66">Sep</text>
+  <line stroke="#333333" stroke-width="1" x1="870" x2="870" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="870" y="66">Oct</text>
+  <line stroke="#333333" stroke-width="1" x1="969" x2="969" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="969" y="66">Nov</text>
+  <line stroke="#333333" stroke-width="1" x1="1064" x2="1064" y1="74" y2="80"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="1064" y="66">Dec</text>
+  <line opacity="0.3" stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="208" y2="208"/>
+  <line opacity="0.3" stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="400" y2="400"/>
+  <rect fill="#1F497D" height="24" opacity="1" rx="0" stroke="#163760" stroke-width="0.5" width="1160" x="0" y="92"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="580" y="104">Production Monitoring</text>
+  <rect fill="#1F497D" height="24" opacity="1" rx="0" stroke="#163760" stroke-width="0.5" width="972" x="188" y="116"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="674" y="128">On-Call Rotation</text>
+  <rect fill="#1F497D" height="24" opacity="1" rx="0" stroke="#163760" stroke-width="0.5" width="679" x="481" y="140"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="820.5" y="152">SLA Management</text>
+  <rect fill="#888888" height="24" opacity="0.85" rx="0" stroke="#666666" stroke-width="0.5" width="1160" x="0" y="236"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="580" y="248">Q1 Sprint</text>
+  <rect fill="#1F497D" height="24" opacity="1" rx="0" stroke="#163760" stroke-width="0.5" width="873" x="287" y="260"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="723.5" y="272">Q2 Sprint</text>
+  <rect fill="#1F497D" height="24" opacity="1" rx="0" stroke="#163760" stroke-width="0.5" width="583" x="577" y="284"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="868.5" y="296">Q3 Sprint</text>
+  <rect fill="#CCCCCC" height="24" opacity="0.7" rx="0" stroke="#AAAAAA" stroke-width="0.5" width="16" x="870" y="308"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="890" y="320">Future Project (TBD)</text>
+  <rect fill="#1F497D" height="24" opacity="1" rx="0" stroke="#163760" stroke-width="0.5" width="290" x="870" y="332"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1015" y="344">Q4 Sprint</text>
+  <circle cx="287" cy="144" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="287" y="144">01</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="287.01" y="114.24">1st April 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="287" y="187.33">Service v2 GA</text>
+  <circle cx="774" cy="312" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="774" y="312">02</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="774.01" y="282.24">1st September 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="774" y="355.33">Roadmap Review</text>
+</svg>

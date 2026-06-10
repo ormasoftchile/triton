@@ -353,3 +353,38 @@ import { resolveTheme } from './themes/index.js';
 
 - `packages/core/package.json` — added `postbuild` font-copy script; `src/fonts` to `files`
 
+---
+
+## 2026-06-10 — Phase 1 Example Gallery
+
+### Gallery Location
+`examples/gallery/` — 8 example IR documents with rendered SVG + PNG outputs and an
+`index.html` contact sheet.
+
+### Examples Authored
+
+| Slug | Axis | Key features |
+|------|------|--------------|
+| `milestones-only` | quarter | 6 numbered milestones, no activities, label collision |
+| `open-ended` | month | Ongoing bars (omitted end + `end: ongoing`), span shorthand, `end: tbd` stub |
+| `architecture-evolution` | year | 7-year span, overlapping phase bars, 3 tracks |
+| `release-timeline` | month | Sequential short bars, at-risk status, 4 milestones |
+| `program-timeline` | month | blocked status, 5 milestones incl. GA, 3 tracks |
+| `product-roadmap` | quarter | 4 tracks, 16 activities, sub-lane stacking, mixed statuses |
+| `transformation-plan` | quarter | 8-quarter span, 4 workstream tracks, all status colours |
+| `dense-roadmap` | month | 15 overlapping activities, sub-lane stress test |
+
+### Renderer Limitations Observed (Phase 1)
+
+1. **Progress not visualised**: `progress` values pass validation but no progress-fill is
+   drawn on bars. All bars render as solid regardless of progress value.
+2. **Track labels not shown**: Consulting theme sets `headerWidth: 0` — track label column
+   is zero-width; no visible swimlane header.
+3. **TBD end stub very short**: `end: tbd` → `minWidth × 4 = 16px` stub; no "TBD" label
+   or dashed extension. Visually indistinguishable from a narrow planned bar.
+4. **OUTSIDE_TIME_RANGE false positive**: validator compares milestone dates against the
+   *start* of the time_range end period (e.g., Q4 → Oct 1) rather than end (Dec 31).
+   Workaround: use exact ISO `YYYY-MM-DD` end dates in `time_range.end`.
+5. **Year value in YAML**: bare year integers (e.g., `2022`) must be quoted (`"2022"`) in
+   the YAML to be parsed as IRDate strings, not numbers.
+

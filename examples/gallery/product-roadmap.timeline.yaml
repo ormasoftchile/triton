@@ -1,0 +1,151 @@
+version: "1.0"
+metadata:
+  title: "2026 Product Roadmap"
+  subtitle: "Quarterly execution plan across four streams"
+  time_range:
+    start: 2026-Q1
+    end: 2026-12-31
+  axis_unit: quarter
+  theme: consulting
+  today: 2026-06-10
+tracks:
+  - id: strategy
+    label: "Strategy & Design"
+    index: 0
+  - id: platform
+    label: "Platform"
+    index: 1
+  - id: mobile
+    label: "Mobile"
+    index: 2
+  - id: analytics
+    label: "Data & Analytics"
+    index: 3
+activities:
+  - id: vision-doc
+    label: "Vision Doc"
+    track: strategy
+    start: 2026-01-05
+    end: 2026-01-31
+    status: done
+    progress: 1.0
+  - id: ux-research
+    label: "UX Research"
+    track: strategy
+    start: 2026-02-01
+    end: 2026-03-31
+    status: done
+    progress: 1.0
+  - id: design-system-v2
+    label: "Design System v2"
+    track: strategy
+    start: 2026-04-01
+    end: 2026-06-30
+    status: in-progress
+    progress: 0.55
+  - id: go-to-market
+    label: "Go-to-Market Plan"
+    track: strategy
+    start: 2026-10-01
+    end: 2026-12-31
+    status: planned
+  - id: core-api-v2
+    label: "Core API v2"
+    track: platform
+    start: 2026-01-12
+    end: 2026-03-31
+    status: done
+    progress: 1.0
+  - id: auth-sso
+    label: "SSO Integration"
+    track: platform
+    start: 2026-04-01
+    end: 2026-05-31
+    status: in-progress
+    progress: 0.7
+  - id: perf-sprint
+    label: "Performance Sprint"
+    track: platform
+    start: 2026-06-01
+    end: 2026-07-31
+    status: at-risk
+    progress: 0.2
+  - id: platform-beta
+    label: "Platform Beta"
+    track: platform
+    start: 2026-09-01
+    end: 2026-12-31
+    status: planned
+  - id: ios-v3
+    label: "iOS v3"
+    track: mobile
+    start: 2026-01-15
+    end: 2026-04-30
+    status: done
+    progress: 1.0
+  - id: android-v3
+    label: "Android v3"
+    track: mobile
+    start: 2026-02-01
+    end: 2026-05-31
+    status: in-progress
+    progress: 0.8
+  - id: offline-mode
+    label: "Offline Mode"
+    track: mobile
+    start: 2026-07-01
+    end: 2026-09-30
+    status: planned
+  - id: push-notifs
+    label: "Push Notifications"
+    track: mobile
+    start: 2026-10-01
+    end: 2026-12-31
+    status: planned
+  - id: data-lake
+    label: "Data Lake Setup"
+    track: analytics
+    start: 2026-01-10
+    end: 2026-03-31
+    status: done
+    progress: 1.0
+  - id: ml-pipeline
+    label: "ML Pipeline"
+    track: analytics
+    start: 2026-04-01
+    end: 2026-06-30
+    status: at-risk
+    progress: 0.3
+  - id: dashboard-v2
+    label: "Dashboard v2"
+    track: analytics
+    start: 2026-07-01
+    end: 2026-09-30
+    status: planned
+  - id: realtime-analytics
+    label: "Real-Time Analytics"
+    track: analytics
+    start: 2026-10-01
+    end: 2026-12-31
+    status: planned
+milestones:
+  - id: q1-review
+    label: "Q1 Review"
+    date: 2026-03-31
+    status: done
+    category: standard-node
+  - id: platform-launch
+    label: "Platform Launch"
+    date: 2026-06-30
+    status: at-risk
+    category: standard-node
+  - id: mobile-ga
+    label: "Mobile GA"
+    date: 2026-09-30
+    status: planned
+    category: standard-node
+  - id: year-end-release
+    label: "Year-End Release"
+    date: 2026-12-15
+    status: planned
+    category: standard-node
