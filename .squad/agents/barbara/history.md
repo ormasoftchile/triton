@@ -78,3 +78,75 @@ Mark's reconciliation resolved all gaps surgically — no IR redesign required.
 **Status:** All 17 IR invariants now consistent across Rendering (this), Agent Integration (Bjarne), and IR spec (Mark)
 
 Six-phase layout order and determinism contract are normative for all renderers.
+
+---
+
+## 2026-06-10 — Scene/Render IR Architecture Rework (Owner Design Review)
+
+### Driving Decision
+The owner identified a fundamental architectural flaw: SVG was set as the universal root
+from which all other formats derived. This capped the system's visual ceiling — rich art
+effects (glow, bloom, cloud textures, soft shadows, volumetric atmospheres) were either
+unavailable or non-portable. Resolution: demote SVG to one backend; introduce a
+deterministic, backend-agnostic Scene/Render IR as the root.
+
+### Scene / Render IR as Root (§5.7 + §7.1)
+The six-phase layout pipeline's output is now formally named the **Scene / Render IR** —
+a byte-deterministic, backend-agnostic record of all drawing primitives, resolved
+coordinates, visual treatments, and effect requests. Key fields: `canvas`, `elements`
+(ordered drawing primitives: Rect, Polygon, Line, Text, Path, Image, Group), `effects`
+(EffectDefinition registry with fallback_policy per effect), `meta` (scene_hash, theme_id,
+fidelity_tier). The Scene is the stable handoff contract between the layout engine and any
+backend. Backends are pluggable; they do not feed back into the pipeline.
+
+### Backend Capability / Fidelity-Tier Model (§7.2 + §6.5 + §6.2.10)
+Four fidelity tiers defined:
+- **Tier 0 Minimal**: no effects; SVG backend sufficient
+- **Tier 1 Crisp**: gradients, hatch, patterns; SVG backend sufficient; fully deterministic
+- **Tier 2 Polished**: drop shadows, glow; SVG safe-filter set (determinism caveat) OR Raster; PPTX native shape effects (a:glow, a:outerShdw)
+- **Tier 3 Showcase**: bloom, cloud/atmosphere, noise textures, gradient meshes; Raster backend required
+
+Six built-in themes: Minimal (Tier 0), Consulting/Release (Tier 1), Executive/Product
+(Tier 2), Showcase/Keynote (Tier 3, new).
+
+Each backend has a capability profile table (§7.5 / Table 7.4). Effects unsupported
+natively use the Scene's `fallback_policy` (approximate, omit, embed-raster, error).
+
+### Layered Determinism Contract (§5.1 item 7 + §7.1.2)
+Determinism now has three distinct levels:
+1. **Scene geometry** — always byte-deterministic; pure pipeline guarantee; unconditional.
+2. **Per-backend output** — deterministic given pinned backend version + fixed effect
+   seeds (derived from scene_hash + effect_id; no random state). Backend version is an
+   explicit contract parameter, recorded in output metadata.
+3. **Cross-backend pixel identity** — explicitly NOT promised and NOT required. SVG and
+   Raster backends are expected to differ. This is a feature, not a defect. Cross-backend
+   tests use per-backend golden images, not cross-backend pixel equality.
+
+### PPTX Native Effects Exploitation
+PowerPoint's OOXML shape model includes native glow (a:glow), shadow (a:outerShdw), and
+soft-edge properties that satisfy Tier-2 effect requests without embedded rasters. The
+PPTX backend exploits these natively. Tier-3 art layers (clouds, noise) fall back to
+embedded PNG overlays atop the editable native-shape scaffold.
+
+### SVG Honest Limitations (§7.3)
+SVG filters exist but are non-deterministic across renderers. The spec now:
+- Restricts SVG filters to a "safe filter" set at Tier 2 with an explicit determinism
+  caveat comment in the SVG output
+- Forbids Tier-3 effects on SVG without fallback
+- Includes Table 7.2 itemising each SVG effect construct and its determinism status
+
+### IR Gaps — None New
+No new IR gaps introduced by this rework. The Timeline IR (§4) is unaffected — this is
+all below the IR boundary. The `fidelity_tier` is a theme property, not an IR field.
+
+### New Cite Keys Needed (for David)
+- `skia` — Skia Graphics Library
+- `webgl` — HTML Canvas / WebGL specification
+- `golden-image-testing` — golden-image / snapshot testing methodology
+- `ooxml` — Office Open XML ISO/IEC 29500 (PPTX native shape effects)
+
+### Files Modified
+- `design/sections/07-output-targets.tex` — full architecture rewrite
+- `design/sections/05-rendering.tex` — determinism contract + Scene output subsection
+- `design/sections/06-themes.tex` — fidelity tier schema, Showcase theme, degradation model
+- `.squad/decisions/inbox/barbara-render-backends.md` — decision record created

@@ -246,14 +246,21 @@ Barbara (Rendering/Themes §5–7) and Bjarne (Agent Integration §9) independen
 
 ### Determinism Contract (binding for all renderers)
 
-A conforming renderer satisfies these six conditions:
+A conforming renderer satisfies these conditions, applied at three layers:
 
+**Layer 1 — Scene geometry (always byte-deterministic):**
 1. **Pure function** — output is a function of (IR, theme) only; no system clock, random values, environment variables.
 2. **Stable sort keys** — tracks by `index` asc; activities per track by `(start_ordinal, id)` asc; milestones by `(date_ordinal, id)` asc; annotations/sections by `id` asc. IDs break all ties (globally unique by IR invariant).
-3. **Fixed rounding** — round-half-up (`floor(v + 0.5)`) throughout; SVG coordinates to 2 decimal places.
+3. **Fixed rounding** — round-half-up (`floor(v + 0.5)`) throughout; Scene geometry values to 2 decimal places.
 4. **Symbolic/relative date anchor** — `now` and `+Nm` dates resolve to `metadata.today` → `metadata.created` → hard error. Never the system clock.
 5. **Embedded font metrics** — label-width computations use bundled WOFF2 font metrics; system fonts are never consulted for layout.
 6. **Version governance** — renderer verifies `version` field before layout begins; mismatch is a hard error.
+
+**Layer 2 — Per-backend output (deterministic given pinned backend version):**
+Effect seeds for procedural effects (NoiseTexture, CloudLayer) are derived from `scene_hash + effect_id`. Backend version is recorded in output metadata.
+
+**Layer 3 — Cross-backend pixel identity: explicitly NOT promised.**
+SVG and Raster backends are expected and correct to differ. Cross-backend tests use per-backend golden images, not cross-backend pixel equality.
 
 ### Date→X Coordinate Formula (normative)
 
@@ -307,26 +314,40 @@ A theme configures:
 - `legend`: position, font_size, swatch_size
 - `status_map`: complete 7-entry map (planned/in-progress/done/at-risk/blocked/cancelled/tentative → fill/stroke/opacity/pattern)
 - `category_map`: optional; string → {fill, stroke}; overrides status fill/stroke; pattern and opacity from status_map
+- `fidelity`: tier (0=Minimal/1=Crisp/2=Polished/3=Showcase) + effect knobs (drop_shadow, glow, cloud_layer, noise_texture), each with fallback_policy
 
-Theme-engine contract: MUST accept all valid IR; MUST NOT require additional IR fields; MUST have all 7 status_map entries (missing entry = malformed theme, detectable at load time).
+Theme-engine contract: MUST accept all valid IR; MUST NOT require additional IR fields; MUST have all 7 status_map entries (missing entry = malformed theme, detectable at load time). Fidelity tier and effects are theme properties; backend selection is not.
 
-### Five Built-in Themes (summary)
+### Six Built-in Themes (summary)
 
-| Theme | Visual Identity | Use Case |
-|-------|----------------|----------|
-| **Consulting** | Navy + black + white; square bars; no gridlines; no legend | Board presentations, transformation roadmaps |
-| **Executive** | Serif headings; rounded bars; full status palette + icons; today marker | QBRs, investor roadmaps, slide decks |
-| **Product** | Dense; colored track headers; category-colored bars; progress always shown | Engineering product roadmaps |
-| **Release** | Traffic-light colors; monospace font; bold today marker; triangle milestones | Release calendars, sprint plans |
-| **Minimal** | All bars dark grey; pattern-only status signals; no legend; print-safe | Academic papers, LaTeX reports |
+| Theme | Fidelity Tier | Visual Identity | Use Case |
+|-------|--------------|----------------|----------|
+| **Consulting** | Tier 1 Crisp | Navy + black + white; square bars; no gridlines; no legend | Board presentations, transformation roadmaps |
+| **Executive** | Tier 2 Polished | Serif headings; rounded bars; full status palette + icons; today marker | QBRs, investor roadmaps, slide decks |
+| **Product** | Tier 2 Polished | Dense; colored track headers; category-colored bars; progress always shown | Engineering product roadmaps |
+| **Release** | Tier 1 Crisp | Traffic-light colors; monospace font; bold today marker; triangle milestones | Release calendars, sprint plans |
+| **Minimal** | Tier 0 Minimal | All bars dark grey; pattern-only status signals; no legend; print-safe | Academic papers, LaTeX reports |
+| **Showcase** | Tier 3 Showcase | Drop shadows; glow; cloud layer; Raster backend required for full fidelity | Keynotes, investor presentations |
+
+### Scene / Render IR Architecture (2026-06-10 rework)
+
+SVG is **no longer the universal root**. The pipeline output is the **Scene/Render IR** — a
+byte-deterministic, backend-agnostic record of all drawing primitives and effect requests.
+Three pluggable backends (SVG, Raster, PPTX native-shape) consume the Scene.
+
+**Backend capability ceilings:**
+- SVG: Tier 1 (fully deterministic); Tier 2 (safe SVG filters, determinism caveat)
+- Raster (Skia/Canvas): Tier 3 (all art effects; deterministic given pinned version)
+- PPTX: Tier 2 native (a:glow, a:outerShdw); Tier 3 hybrid (native + embedded raster overlay)
 
 ### Output Priority Recommendation
 
-1. **SVG** — foundation; must be correct first; everything derives from it
-2. **PNG** — immediate universal value; one rasteriser library call on top of SVG
-3. **PDF** — consulting/print deliverable; deterministic via svg2pdf or cairosvg
-4. **PPTX** — native shapes for think-cell-comparable editability; highest complexity
-5. **HTML** — developer/agent preview; trivially derived from SVG once SVG is done
+1. **Scene IR + SVG backend** — foundation; correct, inspectable, Tier 0/1 full byte-determinism
+2. **PNG via SVG backend** — immediate universal value; one library call on SVG output
+3. **PDF via SVG backend** — consulting/print; deterministic via svg2pdf or cairosvg
+4. **PPTX native-shape backend** — think-cell-comparable editability; Tier 2 native effects
+5. **Raster backend (Skia/Canvas)** — art-effect differentiator; optional plugin; Tier 3
+6. **HTML** — developer/agent preview; SVG-backed (Tier 0/1) or canvas-backed (Tier 2/3)
 
 ### Rendering-Validation Notes for Agent Integration
 

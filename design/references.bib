@@ -457,3 +457,54 @@
                   generation. Candidate for the PPTX output target of
                   Timeline Compiler.}
 }
+
+% -----------------------------------------------------------------------------
+% RENDERING ENGINES AND IMAGE TESTING
+% -----------------------------------------------------------------------------
+
+@misc{skia,
+  author       = {{Google, Inc.}},
+  title        = {Skia: An Open Source 2D Graphics Library},
+  year         = {2026},
+  howpublished          = {\url{https://skia.org}},
+  urldate      = {2026-06-10},
+  note         = {Open source 2D graphics engine. Powers Chrome, ChromeOS,
+                  Android, Flutter, and many other products. Candidate
+                  rendering backend for deterministic, high-quality SVG
+                  and raster timeline output.}
+}
+
+@misc{webgl,
+  author       = {{Khronos Group}},
+  title        = {{WebGL}: 3D Graphics for the Web},
+  year         = {2026},
+  howpublished          = {\url{https://www.khronos.org/webgl/}},
+  urldate      = {2026-06-10},
+  note         = {Low-level 3D graphics API based on OpenGL ES, implemented
+                  in all major browsers. Enables GPU-accelerated rendering
+                  of complex timeline visualizations in web contexts.}
+}
+
+@misc{golden-image-testing,
+  author       = {{Google Flutter Team}},
+  title        = {Writing a Golden File Test for Package \texttt{flutter}},
+  year         = {2026},
+  howpublished          = {\url{https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package%3Aflutter}},
+  urldate      = {2026-06-10},
+  note         = {Reference-image / golden-image testing pattern for
+                  deterministic visual regression in timeline rendering.
+                  Essential for ensuring output consistency and catching
+                  unintended visual changes across builds.}
+}
+
+@misc{ooxml,
+  author       = {{ECMA International}},
+  title        = {{ECMA-376}: Office Open {XML} File Formats},
+  year         = {2026},
+  howpublished          = {\url{https://ecma-international.org/publications-and-standards/standards/ecma-376/}},
+  urldate      = {2026-06-10},
+  note         = {Standard for Office Open XML, including DrawingML shapes
+                  and effects (\texttt{a:glow}, \texttt{a:outerShdw}, etc.)
+                  embedded in PPTX. Informs Timeline Compiler's PPTX shape
+                  generation and styling fidelity.}
+}

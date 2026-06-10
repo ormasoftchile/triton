@@ -17,3 +17,4 @@ design/*.toc
 design/*.log
 design/*.bak
 design/sections/*.aux
+.DS_Store

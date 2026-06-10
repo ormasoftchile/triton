@@ -39,7 +39,7 @@ This contract requires:
 
   \item \textbf{Fixed rounding.}
         All intermediate floating-point values are rounded using \emph{round-half-up}
-        ($\lfloor v + 0.5 \rfloor$). SVG coordinate values are expressed to two decimal
+        ($\lfloor v + 0.5 \rfloor$). Scene geometry values are expressed to two decimal
         places using the same convention. No other rounding rule is used anywhere in the
         pipeline.
 
@@ -58,6 +58,18 @@ This contract requires:
         The renderer reads \texttt{version} from the IR document and verifies it against a
         supported specification version before beginning layout. A version mismatch is a
         hard error, not a warning.
+
+  \item \textbf{Layered determinism.}
+        The determinism contract applies at three levels. (i)~\emph{Scene geometry} is
+        always byte-deterministic: the layout pipeline output is bitwise-reproducible
+        across runs, platforms, and renderer implementations. (ii)~\emph{Per-backend
+        output} is deterministic given a pinned backend version and fixed effect seeds;
+        the backend version is an explicit parameter of the contract.
+        (iii)~\emph{Cross-backend pixel identity} is explicitly \emph{not} promised: the
+        SVG backend and the Raster backend are permitted and expected to produce visually
+        different outputs from the same Scene. This is correct behaviour at different
+        fidelity tiers, not a defect. See Section~\ref{sec:scene-determinism} for the
+        full layered contract.
 \end{enumerate}
 
 \paragraph{Consequence.}
@@ -69,8 +81,8 @@ renderer has a defect. The specification is the arbiter.
 
 The renderer works in a \emph{logical-pixel} coordinate system. The top-left corner of
 the canvas is the origin $(0,\,0)$; $x$ increases rightward, $y$ downward. All layout
-computations use integer arithmetic in logical pixels; SVG output converts to decimal
-coordinates at the end.
+computations use integer arithmetic in logical pixels; the Scene/Render IR records
+decimal-valued coordinates as its output (see Section~\ref{sec:scene-output}).
 
 \begin{figure}[h]
 \centering
@@ -502,6 +514,42 @@ overlapping labels.
 
 Because the input sort and every shift decision are deterministic, two renderers executing
 this algorithm on identical inputs produce identical label placements.
+
+\subsection{Scene / Render IR --- Output of the Pipeline}
+\label{sec:scene-output}
+
+The six-phase layout pipeline does not target any output format directly. Its output is the
+\textbf{Scene / Render IR}: a byte-deterministic, backend-agnostic record of every drawing
+primitive, resolved coordinate, visual treatment, and effect request. The Scene is described
+fully in Section~\ref{sec:scene-ir}; its role here is to name what the pipeline produces
+and to record what each phase contributes.
+
+Every value computed in Phases 1--6 becomes a field of a Scene drawing primitive or a
+top-level Scene property. The Scene is a pure data record: it carries no rendering
+instructions specific to SVG, rasterisation, or PowerPoint. Rendering backends (SVG,
+Raster, PPTX, HTML) consume the Scene and emit their respective formats; they are described
+in Section~\ref{sec:outputs}.
+
+\paragraph{What the Scene preserves from the pipeline.}
+\begin{itemize}
+  \item \textbf{Phase 1} outputs: axis domain $[T_s,\,T_e]$, axis unit, tick positions
+        $x_k$, and tick label strings.
+  \item \textbf{Phases 2--3} outputs: all activity bar coordinates
+        $(x_{\text{left}},\,x_{\text{right}},\,y,\,\text{width})$, lane assignments,
+        and final track heights.
+  \item \textbf{Phase 4} outputs: all milestone vertex coordinates and stack indices.
+  \item \textbf{Phase 5} outputs: section band bounds
+        $(x_{\text{left}},\,x_{\text{right}})$, annotation positions, and connector
+        endpoints.
+  \item \textbf{Phase 6} outputs: final label positions after collision resolution.
+  \item \textbf{Theme-resolved visual treatments}: fill colours, stroke styles, opacity,
+        corner radii, pattern references, and effect requests with their fallback policies
+        (see Section~\ref{sec:schema-fidelity}).
+\end{itemize}
+
+The Scene does not carry the IR document or theme; it is the fully resolved,
+self-contained rendering specification. A backend needs only the Scene and its own
+capability profile to produce output.
 
 \subsection{Edge Cases}
 \label{sec:edge-cases}

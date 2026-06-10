@@ -256,6 +256,52 @@ colour coding per initiative type.
 If an activity's category is absent from \texttt{category\_map}, status-only styling applies
 without error or warning.
 
+\subsubsection{Fidelity Tier and Effect Knobs}
+\label{sec:schema-fidelity}
+
+A theme declares its intended \emph{fidelity tier} and the effect classes it requests. The
+rendering backend uses the tier to determine which capability profile to activate; themes
+degrade gracefully when targeting a backend with lower capability
+(Section~\ref{sec:fidelity-tiers}).
+
+\begin{lstlisting}[language=yaml,caption={Theme schema: fidelity block}]
+fidelity:
+  tier: 1        # 0=Minimal | 1=Crisp | 2=Polished | 3=Showcase
+  effects:
+    drop_shadow:
+      enabled:          false
+      color:            "#000000"
+      opacity:          0.25
+      offset_x:         2          # px
+      offset_y:         2          # px
+      blur_radius:      4          # px
+      fallback_policy:  "approximate"  # approximate|omit|embed-raster
+    glow:
+      enabled:          false
+      color:            "#FFFFFF"
+      radius_px:        6
+      intensity:        0.6
+      fallback_policy:  "omit"
+    cloud_layer:
+      enabled:          false
+      opacity:          0.12
+      scale:            1.0
+      color_stops:
+        - { offset: 0.0, color: "#FFFFFF" }
+        - { offset: 1.0, color: "#A0C8FF" }
+      fallback_policy:  "embed-raster"
+    noise_texture:
+      enabled:          false
+      opacity:          0.05
+      scale:            0.8
+      turbulence_type:  "fractalNoise"
+      fallback_policy:  "omit"
+\end{lstlisting}
+
+Effect blocks not declared in a theme default to \texttt{enabled: false}. A Tier-0 or
+Tier-1 theme SHOULD leave all effect knobs disabled; the renderer emits a warning if a
+low-tier theme requests an effect that requires Tier-2 or above.
+
 \subsection{Built-in Themes}
 \label{sec:builtin-themes}
 
@@ -265,6 +311,8 @@ fields.
 
 \subsubsection{Consulting Theme}
 \label{sec:theme-consulting}
+
+\textbf{Fidelity tier: Tier~1 (Crisp).}
 
 \textbf{Visual identity.}
 McKinsey/BCG-style executive roadmap. Black, white, and a single accent colour (default
@@ -297,6 +345,8 @@ detail.
 \subsubsection{Executive Theme}
 \label{sec:theme-executive}
 
+\textbf{Fidelity tier: Tier~2 (Polished).}
+
 \textbf{Visual identity.}
 Corporate boardroom aesthetic. Navy/slate palette on white, with subtle alternating quarter
 column shading and a gentle border radius on bars. Status is communicated by both colour and
@@ -327,6 +377,8 @@ delivery health at a glance.
 \subsubsection{Product Theme}
 \label{sec:theme-product}
 
+\textbf{Fidelity tier: Tier~2 (Polished).}
+
 \textbf{Visual identity.}
 Developer-friendly; information-dense. Per-track colour coding from the \texttt{color} hint
 field. Category colours take visual precedence over status colours; status is communicated
@@ -354,6 +406,8 @@ Dense information; appropriate for teams who need per-track status at a glance.
 
 \subsubsection{Release Theme}
 \label{sec:theme-release}
+
+\textbf{Fidelity tier: Tier~1 (Crisp).}
 
 \textbf{Visual identity.}
 Engineering release calendar. Traffic-light status palette (green/amber/red). Monochrome
@@ -385,6 +439,8 @@ Engineers over executives; clarity of status over aesthetic refinement.
 \subsubsection{Minimal Theme}
 \label{sec:theme-minimal}
 
+\textbf{Fidelity tier: Tier~0 (Minimal).}
+
 \textbf{Visual identity.}
 Maximum whitespace, minimum decoration. All bars are a single dark grey regardless of status;
 status is communicated by pattern alone (hatching for cancelled, dashed border for tentative).
@@ -409,6 +465,55 @@ documents without visual dominance.
 \textbf{Use case:} Academic papers, internal reports, LaTeX-embedded timelines, any context
 where the diagram must be subordinate to surrounding text.
 
+\subsubsection{Showcase / Keynote Theme}
+\label{sec:theme-showcase}
+
+\textbf{Fidelity tier: Tier~3 (Showcase).}
+
+\textbf{Visual identity.}
+Premium presentation aesthetic with rich art effects. Designed for high-visibility keynotes,
+external investor presentations, and conference material where the timeline is the centrepiece
+of the slide. Requires the Raster backend for full fidelity; degrades gracefully to Polished
+on PPTX (via native PowerPoint effects) and to Crisp on the SVG backend.
+
+\begin{itemize}
+  \item \textbf{Font:} Inter or SF Pro (premium sans-serif), embedded. Bold headings,
+        regular body. 12~pt base for comfortable large-screen reading.
+  \item \textbf{Canvas:} 1920~px wide (full-HD target); 60~px margins; header 180~px.
+        Deep navy (\texttt{\#0A1628}) background variant or crisp white---two palette
+        options, both at Tier~3.
+  \item \textbf{Axis:} Subtle gridlines with soft luminous separation. Soft glow on the
+        today-marker line. Large, premium-weighted quarter labels.
+  \item \textbf{Tracks:} Frosted-glass-style header backgrounds (white at 8\% opacity over
+        the deep background). Thin separator with a faint glow ring.
+  \item \textbf{Activities:} Generously rounded bars (\texttt{bar\_radius: 8}). Gradient
+        fill from accent-light to accent-dark per status. Drop shadow on each bar
+        (\texttt{offset\_x/y: 2~px}, \texttt{blur\_radius: 6~px},
+        \texttt{fallback\_policy: approximate}). The Raster backend renders per-pixel;
+        the SVG backend emits \texttt{feDropShadow} with a determinism caveat; the PPTX
+        backend applies native \texttt{a:outerShdw}.
+  \item \textbf{Cloud layer:} A subtle atmospheric gradient overlay across the full canvas
+        at 10\% opacity via the \texttt{cloud\_layer} effect
+        (\texttt{fallback\_policy: embed-raster}). Requires Raster backend; falls back to
+        \texttt{omit} on SVG-only targets with no impact on geometry.
+  \item \textbf{Milestones:} Large filled diamonds (18~px half-diagonal) with a soft glow
+        ring (\texttt{radius\_px: 6}, \texttt{intensity: 0.6}, white,
+        \texttt{fallback\_policy: approximate}). Glow maps to native \texttt{a:glow} on
+        PPTX; to per-pixel compositing on Raster; to SVG \texttt{feGaussianBlur} with
+        caveat on SVG backend.
+  \item \textbf{Today marker:} Bold dashed line with a bloom halo effect
+        (\texttt{radius\_px: 8}, \texttt{threshold: 0.8},
+        \texttt{fallback\_policy: omit}). Falls back to bold solid line on SVG/PPTX with
+        no geometry change.
+  \item \textbf{Legend:} Bottom; white text on a dark translucent background.
+\end{itemize}
+
+\textbf{Use case:} External investor roadmaps, conference keynote slides, and marketing
+material where the timeline must make an impact. The PPTX hybrid backend provides an
+editable version with native effects for Tier-2 elements (drop shadows, glow on
+milestones) and an embedded raster overlay for the cloud layer; the Raster backend
+produces the full-fidelity PNG or PDF for print and screen.
+
 \subsection{Cross-Theme Visual Comparison}
 \label{sec:theme-comparison}
 
@@ -419,33 +524,105 @@ tentative, and two milestones (Beta, GA), spanning 2026-Q1 through 2026-Q4.
 \begin{table}[h]
 \centering
 \small
-\begin{tabularx}{\textwidth}{lXXXXX}
+\begin{tabularx}{\textwidth}{lXXXXXX}
 \toprule
-\textbf{Property} & \textbf{Consulting} & \textbf{Executive} & \textbf{Product} & \textbf{Release} & \textbf{Minimal} \\
+\textbf{Property} & \textbf{Consulting} & \textbf{Executive} & \textbf{Product} & \textbf{Release} & \textbf{Minimal} & \textbf{Showcase} \\
 \midrule
-Background       & White        & White            & White           & White           & White \\
-Axis labels      & Bold Q labels & Small-caps months & Week numbers   & Week dates      & Year only \\
-Gridlines        & None         & Light quarterly  & Dashed monthly  & Solid weekly    & None \\
-Track header     & 180~px bold  & 150~px serif     & 140~px colored  & 120~px mono     & 140~px serif \\
-Bar corners      & Square       & Rounded 4~px     & Rounded 3~px    & Square          & Square \\
-Status signal    & Colour only  & Colour $+$ icon  & Icon $+$ colour & Colour only     & Pattern only \\
-Done bar         & Grey         & Silver muted     & Grey + icon     & Green           & Dark 65\% opacity \\
-Cancelled bar    & 0\% opacity  & Grey hatch       & Grey hatch      & Grey hatch      & Hatch \\
-Progress bar     & Hidden       & Shown            & Always shown    & Hidden          & Hidden \\
-Milestones       & Filled black & Navy $+$ dot     & Small, below    & Triangle        & Open diamond \\
-Today marker     & Off          & Red dashed       & Red solid       & Bold red        & None \\
-Legend           & None         & Right, full      & Bottom, full    & Top-right       & None \\
+Fidelity tier    & Tier~1 Crisp  & Tier~2 Polished  & Tier~2 Polished & Tier~1 Crisp    & Tier~0 Minimal & Tier~3 Showcase \\
+Background       & White         & White            & White           & White           & White          & Deep navy/white \\
+Axis labels      & Bold Q labels & Small-caps months & Week numbers   & Week dates      & Year only      & Large Q labels \\
+Gridlines        & None          & Light quarterly  & Dashed monthly  & Solid weekly    & None           & Soft glow lines \\
+Track header     & 180~px bold   & 150~px serif     & 140~px colored  & 120~px mono     & 140~px serif   & 180~px frosted \\
+Bar corners      & Square        & Rounded 4~px     & Rounded 3~px    & Square          & Square         & Rounded 8~px \\
+Bar effects      & None          & None             & None            & None            & None           & Drop shadow \\
+Status signal    & Colour only   & Colour $+$ icon  & Icon $+$ colour & Colour only     & Pattern only   & Colour $+$ glow \\
+Milestones       & Filled black  & Navy $+$ dot     & Small, below    & Triangle        & Open diamond   & Large $+$ glow ring \\
+Today marker     & Off           & Red dashed       & Red solid       & Bold red        & None           & Bloom halo \\
+Cloud layer      & None          & None             & None            & None            & None           & 10\% opacity \\
+Legend           & None          & Right, full      & Bottom, full    & Top-right       & None           & Bottom, white \\
 \bottomrule
 \end{tabularx}
-\caption{Visual comparison: same IR rendered under five built-in themes}
+\caption{Visual comparison: same IR rendered under six themes; Showcase requires Raster backend for full fidelity}
 \label{tab:theme-comparison}
 \end{table}
 
 \paragraph{Geometric invariant.}
-All five renderings share \emph{identical} geometry: the same bar widths, milestone
-$x$-positions, track heights, and label coordinate values. Only style differs. This
-invariant can be verified by asserting coordinate equality across the five outputs before
-applying theme styling.
+All six renderings share \emph{identical} geometry: the same bar widths, milestone
+$x$-positions, track heights, and label coordinate values. Only style and effects differ.
+This invariant can be verified by asserting coordinate equality across all outputs before
+applying theme styling and effect layers.
+
+\subsection{Fidelity Tiers and Backend Effect Profiles}
+\label{sec:fidelity-tiers}
+
+Fidelity tiers define what class of visual richness a theme requests and therefore which
+rendering backend is sufficient to honour it fully. A backend that cannot satisfy the
+requested tier applies the fallback policies declared in each effect's
+\texttt{fallback\_policy} field and degrades gracefully; \emph{the geometry is never
+affected}.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lXXXX}
+\toprule
+\textbf{Tier} & \textbf{Name} & \textbf{Effect classes} & \textbf{Min.\ backend} & \textbf{Themes} \\
+\midrule
+0 & Minimal &
+  No effects; solid fills, patterns, and opacity only &
+  SVG backend &
+  Minimal \\[4pt]
+1 & Crisp &
+  Linear/radial gradients, diagonal hatch, dashed borders, clip paths &
+  SVG backend &
+  Consulting, Release \\[4pt]
+2 & Polished &
+  Drop shadows, soft glow; native PPTX effects; SVG safe-filter set (determinism caveat) &
+  SVG (caveat) or Raster &
+  Executive, Product \\[4pt]
+3 & Showcase &
+  Bloom, cloud/atmosphere layers, noise textures, gradient meshes, volumetric compositing &
+  Raster backend required &
+  Showcase \\
+\bottomrule
+\end{tabularx}
+\caption{Fidelity tier definitions, effect classes, minimum required backend, and theme assignments}
+\label{tab:fidelity-tiers}
+\end{table}
+
+\paragraph{Same Scene, three backends.}
+Consider a Tier-2 (Polished) theme with drop shadows and a subtle glow on milestone
+diamonds applied to an identical Scene:
+
+\begin{itemize}
+  \item \textbf{SVG backend:} Emits \texttt{feDropShadow} and
+        \texttt{feGaussianBlur+feComposite} filters. Includes a determinism caveat
+        comment. Output is slightly renderer-dependent but fully inspectable as vector
+        geometry with live text.
+  \item \textbf{Raster backend:} Renders glow and shadows pixel-perfectly via Skia or
+        Canvas compositing. Fully deterministic given a pinned backend version. PNG at
+        requested DPI.
+  \item \textbf{PPTX backend:} Maps glow to native PowerPoint \texttt{a:glow} property
+        and shadow to \texttt{a:outerShdw}. No embedded raster layers needed for Tier-2.
+        All bars, diamonds, and labels remain fully editable MSO shapes.
+\end{itemize}
+
+\paragraph{Degradation policy example.}
+A Tier-3 (Showcase) cloud-layer effect targets the SVG backend (e.g., the raster
+plugin is not installed):
+\begin{enumerate}
+  \item The SVG backend checks its capability against \texttt{CloudLayer}: ``not available.''
+  \item It reads the effect's \texttt{fallback\_policy}: \texttt{embed-raster}.
+  \item It invokes the Raster backend for the cloud-layer group only, receives a PNG, and
+        embeds it as a \texttt{<image>} element. The rest of the timeline remains clean
+        vector.
+  \item If the Raster backend is also unavailable, the policy chain falls back to
+        \texttt{omit}: the cloud layer is silently dropped; no geometry is changed.
+\end{enumerate}
+
+\paragraph{Geometry invariant under degradation.}
+Fallback decisions never alter coordinates, dimensions, or label positions. The Scene
+geometry is the invariant shared across all backends and all fidelity levels.
 
 \subsection{Theme Inheritance and Extension}
 \label{sec:theme-inheritance}
@@ -515,4 +692,9 @@ A conforming theme engine must satisfy all of the following:
         is absent from the theme's \texttt{category\_map}, status-only styling applies
         without error or warning. New categories never require theme changes; they are
         transparent to the theme engine until explicitly mapped.
+  \item \textbf{Effect-tier transparency.} The theme engine declares the fidelity tier and
+        effect knobs; it does not select the rendering backend. Fallback decisions are
+        backend-local: the theme engine is never invoked during fallback resolution; the
+        backend applies the \texttt{fallback\_policy} from the Scene's EffectDefinition
+        directly. This separation ensures themes degrade without requiring theme changes.
 \end{enumerate}

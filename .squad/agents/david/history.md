@@ -11,6 +11,7 @@
 - Design is authored in LaTeX with a bibliography (references.bib) where research papers and references are collected.
 - The architecture separates three layers: ingestion (data + prompt -> IR), the IR itself, and rendering semantics (IR -> render).
 - Added `json-schema2020` BibTeX entry to references.bib for Bjarne's agent-integration section (§9) cite requirement.
+- Added `skia`, `webgl`, `golden-image-testing`, and `ooxml` BibTeX entries to references.bib for Barbara's render-backends rework (§5/§6/§7).
 
 ### 2026-06-09 — Research Sprint: Comparison Analysis and OSS Strategy
 
