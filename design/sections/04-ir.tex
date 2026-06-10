@@ -527,6 +527,7 @@ milestones:
     track: platform
     status: done
     icon: flag
+    color: cyan
 
   - id: board-review
     label: Board Review
@@ -548,10 +549,12 @@ milestones:
 \texttt{status} & \texttt{Status} & No & \texttt{planned} & Visual status \\
 \texttt{category} & \texttt{string?} & No & \texttt{null} & Semantic category \\
 \texttt{icon} & \texttt{string?} & No & theme & Icon hint (diamond, flag, star, etc.) \\
+\texttt{color} & \texttt{string?} & No & theme & Color hint (theme may override) \\
 \texttt{description} & \texttt{string?} & No & \texttt{null} & Extended description \\
 \texttt{group} & \texttt{ref<Group>?} & No & \texttt{null} & Logical group membership \\
 \texttt{url} & \texttt{string?} & No & \texttt{null} & External link \\
 \texttt{tags} & \texttt{list<string>} & No & \texttt{[]} & Freeform tags \\
+\texttt{metadata} & \texttt{map<string,any>} & No & \texttt{\{\}} & Application data; renderers ignore unknown keys \\
 \bottomrule
 \end{tabular}
 \caption{Milestone fields}

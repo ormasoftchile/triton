@@ -146,7 +146,55 @@ all below the IR boundary. The `fidelity_tier` is a theme property, not an IR fi
 - `ooxml` — Office Open XML ISO/IEC 29500 (PPTX native shape effects)
 
 ### Files Modified
-- `design/sections/07-output-targets.tex` — full architecture rewrite
-- `design/sections/05-rendering.tex` — determinism contract + Scene output subsection
-- `design/sections/06-themes.tex` — fidelity tier schema, Showcase theme, degradation model
-- `.squad/decisions/inbox/barbara-render-backends.md` — decision record created
+- `design/sections/07-output-targets.tex` --- full architecture rewrite
+- `design/sections/05-rendering.tex` --- determinism contract + Scene output subsection
+- `design/sections/06-themes.tex` --- fidelity tier schema, Showcase theme, degradation model
+- `.squad/decisions/inbox/barbara-render-backends.md` --- decision record created
+
+---
+
+## 2026-06-10 --- Section 14: Target Outputs Coverage Analysis
+
+### Five Target Layout Families
+
+Analysis of the five owner-provided reference images reveals four layout families
+(including the current one):
+
+| Family | Targets | Status in design |
+|--------|---------|-----------------|
+| Horizontal swimlane Gantt (current) | (baseline) | Fully implemented in §5 |
+| Vertical central-spine, alternating entries | T1, T3, T5 | **Gap Render-1** -- not in §5 pipeline |
+| Horizontal single-line, numbered milestones | T2 | Edge case of current pipeline; numbered-circle node shape missing |
+| Serpentine/winding path | T4 | **Gap Render-3** -- fundamentally novel spine geometry; future scope |
+
+The IR is layout-agnostic (confirmed). Layout family belongs in the theme schema as
+`layout_family: { orientation, spine_geometry, entry_placement }` -- not in the IR.
+
+### Coverage Verdict
+
+- **IR data coverage**: All five targets are representable with current IR fields.
+  Two true IR gaps flagged for Mark: milestones lack `metadata: map<string,any>`
+  (Gap IR-1), and neither activities nor milestones have a direct `color: string?`
+  hint field (Gap IR-2; workaround: category + category_map).
+- **Layout coverage**: 1 of 5 targets (T2) maps to the current pipeline; 3 (T1, T3, T5)
+  need the vertical-spine family; 1 (T4) needs the serpentine family.
+- **Theme coverage**: None of the five targets is fully served by the current five themes.
+  Four new themes/variants needed: dark-executive (T1/T5), light-minimal-corporate (T2),
+  colorful-infographic (T3), showcase-dark child theme (T5).
+- **Effect coverage**: All required effects (glow/bloom, noise texture, drop shadow) are
+  already defined in the Scene effect registry and Showcase theme. No new effect types needed.
+
+### Prioritised Additions
+
+1. Vertical central-spine layout module (covers T1, T3, T5)
+2. dark-executive and showcase-dark themes
+3. Card-entry renderer + numbered-circle milestone shape
+4. light-minimal-corporate and colorful-infographic themes
+5. Dashed-leader-arrow annotation connector style
+6. Serpentine spine geometry (post-MVP)
+
+### Files Modified
+- `design/sections/14-target-outputs.tex` -- new section created
+- `design/main.tex` -- \input{sections/14-target-outputs} added after §13
+- `.squad/decisions/inbox/barbara-target-outputs.md` -- decision record created
+

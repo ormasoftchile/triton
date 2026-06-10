@@ -53,3 +53,4 @@ All 6 gaps flagged by Barbara & Bjarne have been resolved:
 **Design Spec Location:** `design/` (LaTeX source, ready to compile)
 
 No IR schema changes required — surgical fixes only.
+- **Milestone parity (2026-06-10):** Milestone gained `color` (string?, opt, default theme) and `metadata` (map<string,any>, opt, default {}) in §4 for parity with Activity, supporting the owner's target outputs: colored markers (T1, T3) and source provenance for re-sync (T5/Gitline).
