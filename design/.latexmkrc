@@ -1,5 +1,6 @@
 # .latexmkrc — Latexmk configuration for Timeline Compiler spec
-# Produces PDF output using pdflatex and runs biber for bibliography
+# Produces PDF output and runs bibtex (natbib) for the bibliography.
+# Primary engine is tectonic (see Makefile); latexmk is an alternative.
 
-$pdf_mode = 1;        # Generate PDF via pdflatex
-$bibtex_use = 2;      # Run biber when needed, delete .bbl on clean
+$pdf_mode = 1;        # Generate PDF
+$bibtex_use = 2;      # Run bibtex when needed, delete .bbl on clean

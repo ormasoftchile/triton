@@ -6,3 +6,14 @@
 .squad/.scratch/
 # Squad: SubSquad activation file (local to this machine)
 .squad-workstream
+
+# LaTeX build artifacts (keep design/main.pdf as the deliverable)
+design/build/
+design/*.aux
+design/*.bbl
+design/*.blg
+design/*.out
+design/*.toc
+design/*.log
+design/*.bak
+design/sections/*.aux

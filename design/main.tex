@@ -4,9 +4,21 @@
 % ADDITIONAL PACKAGES
 % ============================================================================
 
-% Bibliography with biblatex/biber
-\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
-\addbibresource{references.bib}
+% Math (\text, \overline, aligned environments used in IR and rendering sections)
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Map literal Unicode characters used in the source to LaTeX equivalents
+% (the T1/lmodern fonts otherwise silently drop them).
+\usepackage{textcomp}
+\usepackage{newunicodechar}
+\newunicodechar{—}{\textemdash}
+\newunicodechar{–}{\textendash}
+\newunicodechar{§}{\S}
+\newunicodechar{°}{\textdegree}
+
+% Bibliography with natbib/bibtex (tectonic runs bibtex internally; no external biber needed)
+\usepackage[numbers,sort&compress]{natbib}
 
 % Code listings for IR/YAML examples
 \usepackage{listings}
@@ -54,6 +66,16 @@
   morestring=[b]"
 }
 
+\lstdefinelanguage{javascript}{
+  keywords={const, let, var, function, return, import, from, export, async, await, if, else, for, while, new, class, extends, this, typeof, null, undefined, true, false},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+  morestring=[b]`
+}
+
 % ============================================================================
 % DOCUMENT METADATA
 % ============================================================================
@@ -95,6 +117,7 @@
 % BIBLIOGRAPHY
 % ----------------------------------------------------------------------------
 
-\printbibliography[heading=bibintoc,title={References}]
+\bibliographystyle{plainnat}
+\bibliography{references}
 
 \end{document}

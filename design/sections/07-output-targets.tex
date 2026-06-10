@@ -272,7 +272,7 @@ diamonds, text boxes) while retaining full pipeline determinism and text-format 
   \item \textbf{Accessible.} SVG \texttt{<text>} nodes remain live text; labels are
         searchable and selectable. \texttt{<title>} elements on shapes are readable by
         assistive technology.
-  \item \textbf{MCP-agent integration.} The MCP server (Section~\ref{sec:agent}) can
+  \item \textbf{MCP-agent integration.} The MCP server (Section~\ref{sec:agent-integration}) can
         return an HTML URL as the rendering result, allowing agents to preview timelines
         in a browser tab without file-system access.
 \end{itemize}
@@ -339,7 +339,7 @@ delivered per implementation unit and the dependency structure of the pipeline:
   \item \textbf{HTML} --- \emph{Developer experience and agent integration.} HTML is
         nearly free once SVG is correct (wrap in an HTML shell, attach JS). It is essential
         for the VS~Code extension live preview and the MCP agent integration path described
-        in Section~\ref{sec:agent}. Priority~5 because its primary consumers (the extension
+        in Section~\ref{sec:agent-integration}. Priority~5 because its primary consumers (the extension
         and the MCP server) are themselves lower-priority deliverables in the distribution
         architecture.
 \end{enumerate}
