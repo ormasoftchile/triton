@@ -18,3 +18,11 @@ design/*.log
 design/*.bak
 design/sections/*.aux
 .DS_Store
+
+# Node / monorepo build artefacts
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.turbo/

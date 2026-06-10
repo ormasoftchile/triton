@@ -98,3 +98,73 @@ Created a full productization plan translating the design spec into an actionabl
 - Package boundary: `@timeline-compiler/core` must be pure (no Node-only deps) to enable future webview/worker execution.
 - zod recommended for schema: single source of truth for TS types + JSON Schema generation + runtime validation.
 - Extension transparency contract: never spawn process; diagnostics map 1:1 to vscode.Diagnostic.
+
+## 2026-06-10 — Phase 0 Scaffold Complete (Leslie)
+
+🏗️ **Monorepo Scaffolded and Verified Green**
+
+### Monorepo Layout
+
+```
+packages/
+  core/     — @timeline-compiler/core  (pure library, public API contract)
+  cli/      — @timeline-compiler/cli   (commander-based CLI)
+  schema/   — @timeline-compiler/schema (JSON Schema artefacts)
+pnpm-workspace.yaml
+pnpm-settings.json    — onlyBuiltDependencies: [esbuild]
+tsconfig.base.json    — ES2022, NodeNext, strict
+eslint.config.js      — ESLint 9 flat config + typescript-eslint v8
+.prettierrc
+.nvmrc                — Node 22
+README.md
+.github/workflows/ci.yml  — ubuntu+macos × Node 20+22 matrix
+```
+
+### Public API Surface — packages/core/src/
+
+- `src/types.ts` — IRDocument, Activity, Milestone, Track, Group, Section, Legend, Annotation,
+  Diagnostic, ValidationResult, RenderOptions, RenderResult, IncrementalResult, Session, ThemeInfo
+- `src/api.ts` — loadIR, validate, render, compile, listThemes, getSchema, createSession,
+  NotImplementedError
+- `src/schema.ts` — Zod irDocumentSchema, buildJsonSchema()
+- `src/index.ts` — barrel re-export of entire public surface
+
+### Tool Versions Pinned
+
+| Tool | Version |
+|------|---------|
+| pnpm | 11.5.3 |
+| TypeScript | 5.9.3 |
+| eslint | 9.39.4 |
+| typescript-eslint | 8.61.0 |
+| prettier | 3.8.4 |
+| vitest | 3.2.6 |
+| zod | 3.25.76 |
+| zod-to-json-schema | 3.25.2 |
+| commander | 13.1.0 |
+| @types/node | 22.19.20 |
+
+### Verify Commands (all PASS)
+
+```bash
+pnpm install --frozen-lockfile  # ✅ PASS
+pnpm -r build                   # ✅ PASS
+pnpm -r typecheck               # ✅ PASS
+pnpm -r lint                    # ✅ PASS
+pnpm -r test                    # ✅ PASS (22 tests: 15 core + 3 cli + 4 schema)
+node packages/cli/dist/index.js --version  # ✅ prints 0.1.0
+packages/schema/v1/timeline.json           # ✅ valid JSON, 487 lines
+```
+
+### Key Implementation Notes
+
+- pnpm 11 requires explicit script approval for esbuild; solved via `pnpm-settings.json`
+  with `{ "onlyBuiltDependencies": ["esbuild"] }` — tested on fresh `rm -rf node_modules`
+- `zod-to-json-schema` default import fails with NodeNext; use named import
+  `import { zodToJsonSchema } from 'zod-to-json-schema'`
+- CLI package needs `@types/node` + explicit `"types": ["node"]` in tsconfig to resolve
+  Node builtins under strict ModuleResolution: NodeNext
+- pnpm -r respects topological order — schema package builds after core automatically
+
+## Learnings
+

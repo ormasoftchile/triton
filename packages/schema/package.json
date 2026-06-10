@@ -1,0 +1,20 @@
+{
+  "name": "@timeline-compiler/schema",
+  "version": "0.1.0",
+  "description": "Timeline Compiler — versioned JSON Schema artefacts",
+  "type": "module",
+  "scripts": {
+    "generate": "node src/generate.js",
+    "build": "node src/generate.js",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@timeline-compiler/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}
