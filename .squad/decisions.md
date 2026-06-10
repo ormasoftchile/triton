@@ -473,6 +473,25 @@ R5. **Avoid gantt-chart defaults in the IR and renderer.** The IR must not have 
 
 ---
 
+## Productization
+
+### Core Implementation Language — RATIFIED: TypeScript/Node
+
+**Decision (owner-ratified 2026-06-10):** The Timeline Compiler core (`@timeline-compiler/core`) and its CLI, MCP server, and npm package are implemented in **TypeScript/Node**.
+
+**Rationale (three constraints satisfied simultaneously):**
+- **Python excluded** (owner preference): no Python in the core dependency graph; PPTX later via `pptxgenjs` (pure JS), not python-pptx.
+- **Transparent VS Code extension** (owner's stated follow-on goal): a TS core lets the future extension `import { render, validate }` and call it IN-PROCESS — no subprocess, IPC, or WASM bridge. SVG output is a string dropped straight into a webview; diagnostics map to `vscode.Diagnostic`. The extension becomes a thin UI shell over the same library the CLI uses.
+- **Agent/MCP + npm ecosystem fit**: MCP SDK and VS Code APIs are TS-native; one core serves CLI + MCP + extension with zero glue.
+
+**Render backends (cross-ecosystem libs, adopted not built):** SVG (native serialization) + PNG via `resvg-js` (WASM) for MVP; Skia raster (`skia-canvas`/`canvaskit`) for art effects and `pptxgenjs` for PPTX in later phases.
+
+**Trade-off accepted:** standalone single-binary is less turnkey than Go (use Node SEA / `pkg` / `bun build --compile`).
+
+**Implications:** core must avoid Node-only assumptions in the hot path so it can also run in a webview/worker (extension live preview); SVG-as-string + a synchronous `compile()` path are part of the public API contract.
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
