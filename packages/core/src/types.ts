@@ -167,6 +167,7 @@ export interface LegendEntry {
 export interface Legend {
   show?: boolean;
   position?: string;
+  title?: string;
   entries?: LegendEntry[];
 }
 

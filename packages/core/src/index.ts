@@ -34,6 +34,7 @@ export type {
 
 export {
   NotImplementedError,
+  IRParseError,
   compile,
   createSession,
   getSchema,
@@ -45,3 +46,10 @@ export {
 
 export { irDocumentSchema, buildJsonSchema } from './schema.js';
 export type { IRDocumentInput } from './schema.js';
+
+// Lower-level exports for CLI / MCP / VS Code consumers that want direct access.
+export { parseIR } from './load.js';
+export { validateDocument } from './validate.js';
+export { renderDocument } from './render/index.js';
+export { resolveTheme } from './themes/index.js';
+export { sceneHash } from './scene.js';

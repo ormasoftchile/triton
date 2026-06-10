@@ -198,3 +198,158 @@ The IR is layout-agnostic (confirmed). Layout family belongs in the theme schema
 - `design/main.tex` -- \input{sections/14-target-outputs} added after §13
 - `.squad/decisions/inbox/barbara-target-outputs.md` -- decision record created
 
+---
+
+## 2026-06-10 — Phase 1 Implementation: Layout Engine + SVG/PNG Backends + Consulting Theme
+
+### Deliverables Shipped
+
+All six deliverables from the Phase 1 spec were implemented and verified green
+(typecheck ✓, lint ✓, 110/110 tests ✓, `pnpm -r build` ✓).
+
+#### Scene / Render IR (`src/scene.ts`)
+
+```typescript
+// Scene root
+interface Scene { width: number; height: number; background: string; primitives: ScenePrimitive[]; }
+
+// ScenePrimitive discriminated union:
+//   'line' | 'rect' | 'circle' | 'text' | 'path' | 'group'
+
+// Deterministic hash
+function sceneHash(scene: Scene): string  // SHA-256 of canonical JSON (sorted keys)
+```
+
+#### Layout Engine (`src/layout/index.ts`)
+
+```typescript
+function layout(ir: IRDocument, theme: ResolvedTheme): Scene
+```
+
+Full six-phase pipeline for the horizontal family:
+- **Phase 1**: Axis computation (date→x via integer ordinals, tick enumeration)
+- **Phase 2**: Track placement (sorted by index, provisional height)
+- **Phase 3**: Activity geometry (greedy sub-lane assignment, min-width enforcement)
+- **Phase 4**: Milestone geometry (numbered circles, stacking, date formatting)
+- **Phase 5**: Sections/annotations (stub; no T2 data)
+- **Phase 6**: Label collision resolution (bounded passes, y-shift per overlap)
+
+#### Theme (`src/themes/`)
+
+```typescript
+// Phase 1 Consulting theme: numbered circles, navy #1F497D, DejaVu Sans
+// resolveTheme('consulting') and resolveTheme('default') both return consultingTheme
+function resolveTheme(id: string): ResolvedTheme
+```
+
+`ResolvedTheme` fields: `canvas`, `typography`, `axis`, `track`, `activity`,
+`milestone` (with `shape: 'circle' | 'diamond'`, `showOrdinalNumber`, `dateLabelAbove`,
+`titleLabelBelow`), `statusMap` (all 7 statuses), `categoryMap`.
+
+#### Text Metrics (`src/fonts/metrics.ts`)
+
+```typescript
+function measureText(text: string, fontSizePx: number): { width: number; height: number }
+function ptToPx(pt: number): number
+```
+
+Hardcoded per-character advance-width table derived from DejaVu Sans (OFL).
+Deterministic compile-time constants — no file I/O, no opentype.js.
+
+#### SVG Backend (`src/render/svg.ts`)
+
+```typescript
+function sceneToSvg(scene: Scene): string
+```
+
+Stable attribute ordering (alphabetical); 2-dp round-half-up precision;
+complete self-contained SVG document string; no embedded fonts.
+
+#### PNG Backend (`src/render/png.ts`)
+
+```typescript
+function svgToPng(svg: string, fontPath?: string): Uint8Array
+```
+
+`@resvg/resvg-js` with bundled `DejaVuSans.ttf`, `loadSystemFonts: false`.
+Font is discovered via `import.meta.url`; fallback searches both `src/fonts/`
+and `dist/fonts/` (populated by `postbuild` script).
+
+#### `renderDocument` (`src/render/index.ts`)
+
+```typescript
+function renderDocument(ir: IRDocument, options: RenderOptions): RenderResult
+```
+
+Wires: `resolveTheme` → `layout` → `sceneToSvg` → (optional `svgToPng`) → `sceneHash`.
+Always populates `svg` and `sceneHash`; populates `png` when `format === 'png'`.
+
+### Embedded Font
+
+**DejaVu Sans Regular** (OFL licence), committed to `packages/core/src/fonts/DejaVuSans.ttf`
+(739 KB).  Copied to `dist/fonts/` by `postbuild` script.  Used as:
+- The `fontFamily` name in SVG `<text>` elements
+- The `fontFiles[0]` argument to `@resvg/resvg-js` for deterministic PNG text shaping
+
+### Determinism Approach
+
+1. **Stable sorts**: tracks by `index`; activities by `(start_ordinal, id)`; milestones
+   by `(date_ordinal, id)`.
+2. **round-half-up** (`Math.floor(v + 0.5)`) for all coordinate values.
+3. **Day-ordinal arithmetic** (integer days since 2000-01-01) with no floating-point
+   division accumulation.
+4. **Hardcoded metrics table** for text measurement (no runtime font parsing).
+5. **Same embedded font** for layout metrics AND resvg shaping; `loadSystemFonts: false`.
+6. **Canonical JSON** (sorted keys, recursive) → SHA-256 for `sceneHash`.
+7. **No Date.now(), Math.random(), process.env, system locale**.
+
+### T2 Acceptance Target
+
+T2 renders correctly to SVG and PNG:
+- Three numbered circles (01, 02, 03) in navy on a horizontal axis
+- "15th May 2021" / "20th June 2021" / "1st September 2021" date labels above
+- "Application Deadline" / "Qualifying Exam" / "Training Starts" title labels below
+- Document title "Our Timeline" at top
+- Month axis ticks (Mar–Nov 2021)
+
+### Green Status
+
+| Check | Result |
+|-------|--------|
+| `pnpm typecheck` | ✓ 0 errors |
+| `pnpm lint` | ✓ 0 warnings |
+| `pnpm test` | ✓ 110/110 (19 new render tests) |
+| `pnpm -r build` | ✓ all packages |
+
+### Leslie Wiring Notes (Wave 2)
+
+To wire the public `render()` in `api.ts`, import and call:
+```typescript
+import { renderDocument } from './render/index.js';
+// then inside render(): return renderDocument(ir, options);
+```
+
+To wire `resolveTheme`:
+```typescript
+import { resolveTheme } from './themes/index.js';
+```
+
+### Files Created
+
+- `packages/core/src/scene.ts`
+- `packages/core/src/layout/dates.ts`
+- `packages/core/src/layout/index.ts`
+- `packages/core/src/themes/types.ts`
+- `packages/core/src/themes/consulting.ts`
+- `packages/core/src/themes/index.ts`
+- `packages/core/src/fonts/metrics.ts`
+- `packages/core/src/fonts/DejaVuSans.ttf`  (OFL; 739 KB)
+- `packages/core/src/render/svg.ts`
+- `packages/core/src/render/png.ts`
+- `packages/core/src/render/index.ts`
+- `packages/core/test/render.test.ts`
+
+### Files Modified
+
+- `packages/core/package.json` — added `postbuild` font-copy script; `src/fonts` to `files`
+

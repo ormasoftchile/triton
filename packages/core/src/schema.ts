@@ -1,11 +1,15 @@
 /**
  * @file schema.ts — Zod schema for Timeline IR documents.
  *
- * This is the single source of truth for structural validation.  Phase 0 schema
- * is intentionally permissive — Phase 1 (Mark) will tighten invariants.
+ * This is the single source of truth for structural (syntactic/schema) validation.
+ * The schema faithfully encodes the IR contract from §4 (design/sections/04-ir.tex):
+ * required vs optional fields, enums, ID pattern, and date string shapes.
  *
- * `getSchema()` uses zod-to-json-schema to emit a JSON Schema object that the
- * schema package writes to v1/timeline.json.
+ * Well-formedness invariants (cross-entity references, date comparisons, cycle
+ * detection, etc.) are checked in validate.ts, not here.
+ *
+ * `buildJsonSchema()` emits a JSON Schema object; `getSchema()` in api.ts depends
+ * on this export name and signature — do not rename or change the return type.
  */
 
 import { z } from 'zod';
@@ -15,8 +19,38 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 // Primitive schemas
 // ---------------------------------------------------------------------------
 
-const idSchema = z.string().min(1);
-const irDateSchema = z.string().min(1);
+/**
+ * Document-unique identifier: ^[a-z][a-z0-9-]*$
+ * Lowercase letters, digits, and hyphens; must start with a letter.
+ */
+const idSchema = z
+  .string()
+  .regex(/^[a-z][a-z0-9-]*$/, {
+    message:
+      'ID must match ^[a-z][a-z0-9-]*$ — start with a lowercase letter, then lowercase letters, digits, or hyphens only (e.g. "api-v2", "mobile-team")',
+  });
+
+/**
+ * Temporal value string covering all forms from §4 date model:
+ *   ISO date          2026-06-09
+ *   ISO datetime      2026-06-09T14:00  or  2026-06-09T14:00:00
+ *   Quarter           2026-Q2
+ *   Half              2026-H1
+ *   Year-month        2026-06
+ *   Year              2026
+ *   Fiscal quarter    FY26-Q2  (2–4 digit fiscal year suffix)
+ *   Relative          +3m  -2w  +1q  +1y  (sign, digits, unit letter)
+ *   Symbolic          now
+ *   Uncertain         tbd | ongoing | unknown
+ *   Approximate       ~2026-Q3  (tilde prefix + any suffix)
+ */
+const IR_DATE_RE =
+  /^(\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2})?)?|\d{4}-Q[1-4]|\d{4}-H[12]|\d{4}-\d{2}|\d{4}|FY\d{2,4}-Q[1-4]|[+-]\d+[a-z]|now|tbd|ongoing|unknown|~.+)$/;
+
+const irDateSchema = z.string().regex(IR_DATE_RE, {
+  message:
+    'Date must be ISO (2026-06-09), year-month (2026-06), year (2026), quarter (2026-Q2), half (2026-H1), fiscal quarter (FY26-Q2), relative (+3m), symbolic (now), or uncertain (tbd, ongoing, unknown, ~approx)',
+});
 
 const statusSchema = z.enum([
   'planned',
@@ -149,6 +183,7 @@ const legendEntrySchema = z.object({
 const legendSchema = z.object({
   show: z.boolean().optional(),
   position: z.string().optional(),
+  title: z.string().optional(),
   entries: z.array(legendEntrySchema).optional(),
 });
 

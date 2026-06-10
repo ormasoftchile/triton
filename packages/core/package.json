@@ -11,14 +11,20 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "src/fonts"
+  ],
   "scripts": {
     "build": "tsc --project tsconfig.json",
+    "postbuild": "node --input-type=module -e \"import{cpSync}from'node:fs';cpSync('src/fonts','dist/fonts',{recursive:true});\"",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "eslint src test",
     "test": "vitest run"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "yaml": "^2.9.0",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.5"
   },

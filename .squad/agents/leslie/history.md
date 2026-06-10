@@ -166,5 +166,62 @@ packages/schema/v1/timeline.json           # ✅ valid JSON, 487 lines
   Node builtins under strict ModuleResolution: NodeNext
 - pnpm -r respects topological order — schema package builds after core automatically
 
+## 2026-06-10 — Phase 1 Integration Complete (Leslie, Wave 2)
+
+🔗 **Wiring Complete — All Phase 1 Exit Criteria MET**
+
+### Modules Wired
+
+| File | Change |
+|------|--------|
+| `packages/core/src/api.ts` | Replaced all 4 Phase-0 stubs with real delegations to `parseIR` / `validateDocument` / `renderDocument`; wired stateful `createSession`; kept `NotImplementedError` exported for backward compat; re-exported `IRParseError` |
+| `packages/core/src/index.ts` | Added lower-level exports: `parseIR`, `validateDocument`, `renderDocument`, `resolveTheme`, `sceneHash`, `IRParseError` |
+| `packages/cli/src/index.ts` | Full Phase 1 CLI: `validate` prints `severity code path: message`+suggestion, exits 0/1; `render` does validate-before-render, default output path = input basename, prints sceneHash; `schema` supports `-o`; global uncaught-exception handler; removed `NotImplementedError` handling |
+| `packages/core/test/smoke.test.ts` | Updated from Phase-0 (tests that functions throw) to Phase-1 (tests that functions work) |
+
+### T2 Fixture + Golden Harness
+
+- **Fixture:** `examples/our-timeline.timeline.yaml` — T2 design spec §14.2, "Our Timeline", 3 milestones, consulting theme
+- **Golden SVG:** `examples/golden/our-timeline.svg` — generated on first test run, committed as reference
+- **Golden PNG:** `examples/golden/our-timeline.png` — visual artifact committed alongside SVG
+- **Harness:** `packages/core/test/golden.test.ts` — 10 tests covering (a) validation, (b) determinism, (c) SVG golden comparison, (d) PNG signature
+- **Note:** Fixture uses `label: " "` (space) instead of `label: ""` because schema requires min-1-char; track header is invisible anyway (`headerWidth: 0` in consulting theme). This is a minor schema/design-spec mismatch — minimal adaptation in fixture, no schema changes.
+
+### CLI Command Behavior
+
+```bash
+# validate — exit 0 if valid, exit 1 if errors
+node packages/cli/dist/index.js validate examples/our-timeline.timeline.yaml
+# → prints: info  UNUSED_TRACK  /tracks/0: ...
+# → prints: ✅ Valid  (exit 0)
+
+# render — validate-before-render, writes default output basename.svg
+node packages/cli/dist/index.js render examples/our-timeline.timeline.yaml -o out.svg
+# → prints: Written: out.svg  +  sceneHash: <64-hex>
+
+# render PNG
+node packages/cli/dist/index.js render examples/our-timeline.timeline.yaml -o out.png --format png
+# → PNG with 0x89 50 4E 47 signature
+
+# broken input → diagnostics + exit 1
+node packages/cli/dist/index.js validate broken.yaml  # exit 1 + error diagnostics
+```
+
+### Verify Status (all GREEN)
+
+| Command | Result |
+|---------|--------|
+| `pnpm install` | ✅ PASS |
+| `pnpm -r typecheck` | ✅ PASS |
+| `pnpm -r lint` | ✅ PASS |
+| `pnpm -r test` | ✅ PASS — 137 tests (130 core + 3 cli + 4 schema) |
+| `pnpm -r build` | ✅ PASS |
+| CLI validate T2 | ✅ PASS (exit 0) |
+| CLI render T2 → SVG×2 byte-identical | ✅ PASS (sceneHash matches) |
+| CLI render T2 → PNG signature | ✅ PASS (0x89 50 4E 47) |
+| CLI validate broken IR | ✅ PASS (exit 1, diagnostics printed) |
+
+**MVP Acceptance Bar:** T2 renders from IR to byte-deterministic SVG+PNG via CLI, with validate-before-render. **MET. ✅**
+
 ## Learnings
 

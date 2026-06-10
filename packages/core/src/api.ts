@@ -1,5 +1,5 @@
 /**
- * @file api.ts — Public function stubs for Timeline Compiler.
+ * @file api.ts — Public API for Timeline Compiler.
  *
  * TRANSPARENCY CONTRACT
  * ---------------------
@@ -9,13 +9,15 @@
  * - `Diagnostic` objects map 1:1 to `vscode.Diagnostic` — same path/severity/range shape.
  * - `createSession` returns a stateful, synchronous `Session`; the caller disposes it.
  *
- * Phase 0: All rendering/layout/validation functions throw `NotImplementedError`.
- *          Only `getSchema()`, `listThemes()`, and `createSession()` return real values.
- * Phase 1: Replace stubs with real implementations.
+ * Phase 1: Real implementations delegate to parseIR / validateDocument / renderDocument.
  */
 
 import { buildJsonSchema } from './schema.js';
+import { parseIR, IRParseError } from './load.js';
+import { validateDocument } from './validate.js';
+import { renderDocument } from './render/index.js';
 import type {
+  Diagnostic,
   IRDocument,
   IncrementalResult,
   RenderOptions,
@@ -30,8 +32,8 @@ import type {
 // ---------------------------------------------------------------------------
 
 /**
- * Thrown by Phase 0 stubs to signal unimplemented functionality.
- * Consumers should catch this and surface a graceful "not yet implemented" message.
+ * Kept for backward compatibility — no longer thrown by the public API in Phase 1.
+ * Consumers that previously caught this may still reference it safely.
  */
 export class NotImplementedError extends Error {
   constructor(feature: string) {
@@ -40,15 +42,16 @@ export class NotImplementedError extends Error {
   }
 }
 
+// Re-export IRParseError so consumers don't need to import from load.js directly.
+export { IRParseError } from './load.js';
+
 // ---------------------------------------------------------------------------
-// Built-in theme catalogue (stub — real themes added in Phase 1)
+// Built-in theme catalogue (Phase 1: reflects Barbara's theme registry)
 // ---------------------------------------------------------------------------
 
 const BUILT_IN_THEMES: ThemeInfo[] = [
-  { id: 'default', title: 'Default', tier: 1 },
-  { id: 'minimal', title: 'Minimal', tier: 1 },
-  { id: 'executive', title: 'Executive', tier: 2 },
-  { id: 'dark', title: 'Dark', tier: 1 },
+  { id: 'consulting', title: 'Consulting', tier: 1 },
+  { id: 'default',    title: 'Default',    tier: 1 },
 ];
 
 // ---------------------------------------------------------------------------
@@ -56,41 +59,39 @@ const BUILT_IN_THEMES: ThemeInfo[] = [
 // ---------------------------------------------------------------------------
 
 /**
- * Parse a YAML or JSON string into an IRDocument.
+ * Parse a YAML or JSON string into a validated IRDocument.
  *
- * @throws {NotImplementedError} Phase 0 — parsing not yet implemented.
+ * @throws {IRParseError} On syntax or schema validation failure.
  */
-export function loadIR(_text: string, _format?: 'yaml' | 'json'): IRDocument {
-  throw new NotImplementedError('loadIR');
+export function loadIR(text: string, format?: 'yaml' | 'json'): IRDocument {
+  return parseIR(text, format);
 }
 
 /**
  * Validate an IRDocument against the 17 well-formedness invariants from §4.
- *
- * @throws {NotImplementedError} Phase 0 — validator not yet implemented.
  */
-export function validate(_ir: IRDocument): ValidationResult {
-  throw new NotImplementedError('validate');
+export function validate(ir: IRDocument): ValidationResult {
+  return validateDocument(ir);
 }
 
 /**
  * Render an IRDocument to SVG or PNG.
- *
- * @throws {NotImplementedError} Phase 0 — renderer not yet implemented.
+ * SVG is always populated; PNG is populated when options.format === 'png'.
  */
-export function render(_ir: IRDocument, _options: RenderOptions): RenderResult {
-  throw new NotImplementedError('render');
+export function render(ir: IRDocument, options: RenderOptions): RenderResult {
+  return renderDocument(ir, options);
 }
 
 /**
- * Synchronous convenience wrapper for live-preview use cases.
- * Accepts an already-parsed IRDocument or a raw YAML/JSON string.
+ * Synchronous convenience wrapper: accepts a pre-parsed IRDocument or a raw
+ * YAML/JSON string.  Parses when necessary, then renders.
  * SVG is returned as a plain string — no spawning, no I/O.
  *
- * @throws {NotImplementedError} Phase 0 — compile not yet implemented.
+ * @throws {IRParseError} When `input` is a string that fails to parse.
  */
-export function compile(_input: IRDocument | string, _options: RenderOptions): RenderResult {
-  throw new NotImplementedError('compile');
+export function compile(input: IRDocument | string, options: RenderOptions): RenderResult {
+  const doc = typeof input === 'string' ? parseIR(input) : input;
+  return renderDocument(doc, options);
 }
 
 /**
@@ -111,21 +112,56 @@ export function getSchema(): object {
 /**
  * Create a stateful live-preview session.
  *
- * The session parses and validates the document on each `update()` call and returns an
- * incremental result.  Phase 0: returns a placeholder result (no real parse/render).
+ * Each `update(text)` call parses, validates, and renders the document.
+ * Problems are surfaced as diagnostics — `update()` never throws.
+ * Call `dispose()` when done to release internal state.
  */
-export function createSession(_options?: { theme?: string }): Session {
+export function createSession(options?: { theme?: string }): Session {
   let disposed = false;
+  let lastSceneHash: string | undefined;
+  let lastSvg = '';
 
   return {
-    update(_text: string): IncrementalResult {
+    update(text: string): IncrementalResult {
       if (disposed) throw new Error('Session has been disposed');
-      // Phase 0 stub — returns placeholder values so callers can test the shape.
-      return {
-        svg: '<!-- Timeline Compiler Phase 0 stub — not yet implemented -->',
-        diagnostics: [],
-        changed: false,
-      };
+
+      // ── Parse ──────────────────────────────────────────────────────────────
+      let ir: IRDocument;
+      try {
+        ir = parseIR(text);
+      } catch (e) {
+        const diagnostics: Diagnostic[] =
+          e instanceof IRParseError
+            ? [...e.diagnostics]
+            : [{ path: '', code: 'INTERNAL_ERROR', message: String(e), severity: 'error' }];
+        return { svg: lastSvg, diagnostics, changed: false };
+      }
+
+      // ── Validate ───────────────────────────────────────────────────────────
+      const vr = validateDocument(ir);
+      const allDiagnostics: Diagnostic[] = [...vr.errors, ...vr.warnings];
+
+      if (vr.errors.length > 0) {
+        return { svg: lastSvg, diagnostics: allDiagnostics, changed: false };
+      }
+
+      // ── Render ─────────────────────────────────────────────────────────────
+      try {
+        const result = renderDocument(ir, { format: 'svg', theme: options?.theme });
+        const newHash = result.sceneHash;
+        const changed = newHash !== lastSceneHash;
+        lastSceneHash = newHash;
+        lastSvg = result.svg ?? '';
+        return { svg: lastSvg, diagnostics: allDiagnostics, changed };
+      } catch (e) {
+        const diag: Diagnostic = {
+          path: '',
+          code: 'RENDER_ERROR',
+          message: e instanceof Error ? e.message : String(e),
+          severity: 'error',
+        };
+        return { svg: lastSvg, diagnostics: [diag], changed: false };
+      }
     },
 
     dispose(): void {

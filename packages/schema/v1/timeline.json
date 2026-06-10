@@ -23,22 +23,22 @@
             },
             "created": {
               "type": "string",
-              "minLength": 1
+              "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
             },
             "updated": {
               "type": "string",
-              "minLength": 1
+              "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
             },
             "time_range": {
               "type": "object",
               "properties": {
                 "start": {
                   "type": "string",
-                  "minLength": 1
+                  "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
                 },
                 "end": {
                   "type": "string",
-                  "minLength": 1
+                  "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
                 }
               },
               "required": [
@@ -65,7 +65,7 @@
             },
             "today": {
               "type": "string",
-              "minLength": 1
+              "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
             },
             "fiscal_year_start": {
               "type": "integer",
@@ -89,7 +89,7 @@
             "properties": {
               "id": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "label": {
                 "type": "string",
@@ -103,7 +103,7 @@
               },
               "group": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "index": {
                 "type": "integer",
@@ -128,7 +128,7 @@
             "properties": {
               "id": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "label": {
                 "type": "string",
@@ -139,20 +139,20 @@
               },
               "parent": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "children": {
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "minLength": 1
+                  "pattern": "^[a-z][a-z0-9-]*$"
                 }
               },
               "members": {
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "minLength": 1
+                  "pattern": "^[a-z][a-z0-9-]*$"
                 }
               },
               "color": {
@@ -173,7 +173,7 @@
             "properties": {
               "id": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "label": {
                 "type": "string",
@@ -181,19 +181,19 @@
               },
               "track": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "start": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
               },
               "end": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
               },
               "span": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
               },
               "status": {
                 "type": "string",
@@ -220,7 +220,7 @@
               },
               "group": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "url": {
                 "type": "string"
@@ -251,7 +251,7 @@
             "properties": {
               "id": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "label": {
                 "type": "string",
@@ -259,11 +259,11 @@
               },
               "date": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
               },
               "track": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "status": {
                 "type": "string",
@@ -291,7 +291,7 @@
               },
               "group": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "url": {
                 "type": "string"
@@ -333,30 +333,30 @@
               },
               "id": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "target": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "targets": {
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "minLength": 1
+                  "pattern": "^[a-z][a-z0-9-]*$"
                 }
               },
               "date": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
               },
               "start": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
               },
               "end": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
               },
               "text": {
                 "type": "string"
@@ -390,7 +390,7 @@
             "properties": {
               "id": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-z][a-z0-9-]*$"
               },
               "label": {
                 "type": "string",
@@ -401,11 +401,11 @@
                 "properties": {
                   "start": {
                     "type": "string",
-                    "minLength": 1
+                    "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
                   },
                   "end": {
                     "type": "string",
-                    "minLength": 1
+                    "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
                   }
                 },
                 "required": [
@@ -417,7 +417,7 @@
                 "type": "array",
                 "items": {
                   "type": "string",
-                  "minLength": 1
+                  "pattern": "^[a-z][a-z0-9-]*$"
                 }
               },
               "description": {
@@ -441,6 +441,9 @@
               "type": "boolean"
             },
             "position": {
+              "type": "string"
+            },
+            "title": {
               "type": "string"
             },
             "entries": {

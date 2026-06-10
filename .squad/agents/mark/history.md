@@ -54,3 +54,91 @@ All 6 gaps flagged by Barbara & Bjarne have been resolved:
 
 No IR schema changes required — surgical fixes only.
 - **Milestone parity (2026-06-10):** Milestone gained `color` (string?, opt, default theme) and `metadata` (map<string,any>, opt, default {}) in §4 for parity with Activity, supporting the owner's target outputs: colored markers (T1, T3) and source provenance for re-sync (T5/Gitline).
+
+## Phase 1 Implementation — 2026-06-10
+
+### Modules Added
+
+**`packages/core/src/schema.ts`** (tightened from Phase 0 stub):
+- `idSchema` tightened to enforce `^[a-z][a-z0-9-]*$` regex.
+- `irDateSchema` tightened with comprehensive `IR_DATE_RE` regex covering: ISO date/datetime, quarter, half, year-month, year, fiscal quarter (FY26-Q2), relative (+3m/-2w), symbolic (now), uncertain (tbd/ongoing/unknown), approximate (~prefix).
+- Added `title?: string` to `legendSchema` (missing from Phase 0, per §4 spec table).
+- `buildJsonSchema()` export preserved with same signature.
+
+**`packages/core/src/load.ts`** (new):
+```typescript
+export class IRParseError extends Error {
+  readonly diagnostics: readonly Diagnostic[];
+  constructor(message: string, diagnostics: Diagnostic[])
+}
+
+export function parseIR(text: string, format?: 'yaml' | 'json'): IRDocument
+```
+- Auto-detects format: `{`-prefix → JSON, else YAML.
+- On YAML parse failure: throws `IRParseError` with `YAML_PARSE_ERROR` code and `range` (line/column from `yaml` package's `linePos`).
+- On JSON parse failure: throws `IRParseError` with `JSON_PARSE_ERROR` code.
+- On Zod schema failure: throws `IRParseError` with `SCHEMA_<code>` diagnostics carrying JSON-Pointer paths.
+
+**`packages/core/src/validate.ts`** (new):
+```typescript
+export function validateDocument(ir: IRDocument): ValidationResult
+```
+
+### Invariant Codes Implemented
+
+All 17 well-formedness invariants from §4:
+
+| # | Code | Severity | Description |
+|---|------|----------|-------------|
+| 1 | `VERSION_PRESENT` | error/warning | Version field non-empty; warn on unknown major |
+| 3 | `AT_LEAST_ONE_TRACK` | error | tracks.length >= 1 |
+| 4 | `UNIQUE_IDS` | error | All entity ids globally unique |
+| 5 | `VALID_ID_FORMAT` | error | IDs match `^[a-z][a-z0-9-]*$` |
+| 6 | `REF_RESOLVES` | error | All references point to existing entities |
+| 7 | `REF_TYPE_MATCH` | error | References point to correct entity type |
+| 8 | `NO_CIRCULAR_GROUPS` | error | Group parent chain is acyclic |
+| 9 | `VALID_TIME_RANGE` | error | metadata.time_range end >= start |
+| 10 | `ACTIVITY_DURATION_NONNEG` | error | Activity end >= start (concrete dates) |
+| 11 | `DATE_FORMAT_VALID` | error | All date strings match IR_DATE_RE |
+| 12 | `SPAN_START_CONFLICT` | error | span mutually exclusive with start/end |
+| 13 | `DATE_ANCHOR_MISSING` | error | today/created present when now/relative used |
+| 14 | `TRACK_INDEX_UNIQUE` | error | track.index values unique when present |
+| 15 | `PROGRESS_IN_RANGE` | error | progress in [0, 1] |
+| 16 | `STATUS_VALID` | error | status in Status enum |
+| 17 | `AXIS_UNIT_VALID` | error | axis_unit in AxisUnit enum |
+
+Soft warnings: `VACUOUS_TIMELINE`, `UNUSED_TRACK`, `STALE_PROGRESS`, `OUTSIDE_TIME_RANGE`.
+
+### Type Refinements in types.ts
+
+- Added `title?: string` to `Legend` interface (parity with §4 spec, §4 legend table).
+
+### Wiring Notes for Leslie (Wave 2)
+
+`api.ts` stubs (`loadIR`, `validate`) can be wired to:
+```typescript
+// In api.ts:
+import { parseIR, IRParseError } from './load.js';
+import { validateDocument } from './validate.js';
+
+export function loadIR(text: string, format?: 'yaml' | 'json'): IRDocument {
+  return parseIR(text, format);
+}
+
+export function validate(ir: IRDocument): ValidationResult {
+  return validateDocument(ir);
+}
+```
+`IRParseError` should be re-exported from `index.ts` for consumer access.
+
+### Test Coverage
+
+- `test/load.test.ts` — 21 tests: YAML/JSON parsing, format auto-detection, IRParseError diagnostics, schema violations.
+- `test/validate.test.ts` — 55 tests: each invariant targeted individually, soft warnings, roadmap example from §4.
+
+### Build Status
+
+- `pnpm typecheck` ✅
+- `pnpm lint` ✅ (also fixed pre-existing unused-var in layout/index.ts from concurrent agent)
+- `pnpm test` ✅ (110 tests, 4 test files)
+- `pnpm -r build` ✅
