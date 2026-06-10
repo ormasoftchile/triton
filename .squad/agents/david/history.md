@@ -94,3 +94,35 @@
 **Archive:** Decisions merged into `.squad/decisions.md`
 
 Next phase: OSS launch planning and agent integration validation.
+
+### 2026-06-10 — Build-vs-Adopt Output/Render Layer Survey
+
+**Layer A: Scene / Render IR → BUILD-but-BORROW**
+
+No existing scene IR is adoptable wholesale. Three disqualifying gaps:
+1. No surveyed format carries a typed effect registry with per-effect fallback policies.
+2. No generic scene IR retains entity-type awareness needed for PPTX native-shape binding (ROUNDED_RECTANGLE vs DIAMOND).
+3. None carry a fidelity_tier + scene_hash in the scene root.
+
+Two patterns explicitly borrowed:
+- **Typed-mark / display-list** (Vega scenegraph, usvg): ordered typed primitives + canvas descriptor + group nesting.
+- **Multi-backend dispatch** (Matplotlib Figure/Artist): same scene tree dispatched to swappable renderers.
+
+**Layer B: Rendering Toolchain → ADOPT / BUILD-ON per backend**
+
+| Backend | Library | Licence | Determinism |
+|---------|---------|---------|-------------|
+| SVG serialiser | Write directly (XML) | — | Byte-deterministic |
+| SVG→PNG rasterisation | resvg (Rust) | Apache-2/MIT | Full (platform-independent) |
+| Raster/art effects | Skia (C++) | BSL-1 | Pinned version + fixed seeds |
+| PDF (vector path) | svg2pdf / cairosvg | Apache-2 / MIT | Full with pinning |
+| PPTX | python-pptx + pptx.oxml | MIT | Geometric only |
+| HTML | Browser SVG / Node.js canvas | Open std. | Pinned version |
+
+**Architecture validation:** Scene-graph-as-root corroborated by Vega scenegraph + usvg; Skia for raster is natural/only viable choice; golden-image testing is standard; SVG-as-backend decision confirmed.
+
+**Flag for Barbara/Leslie:** Verify that Skia's HarfBuzz text-shaping path for label widths matches the layout pipeline's pre-computed embedded-font-metrics (§5 item 5). No change anticipated.
+
+**New cite keys added to references.bib:** `vega-scenegraph`, `resvg`, `usvg`, `cairo`, `lottie`, `matplotlib`, `pdf-iso32000`, `png-spec`
+
+**File modified:** `design/sections/07-output-targets.tex` — new §7.9 subsection appended.

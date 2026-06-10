@@ -598,3 +598,312 @@ explicitly \emph{not} promised and is not a correctness requirement: it is expec
 correct for the SVG backend and the Raster backend to produce visually different outputs
 from the same Scene when the theme requests effects beyond SVG's deterministic range.
 This is a feature of the architecture, not a defect.
+
+% =============================================================================
+% Build vs. Adopt survey — appended by David (Research Lead) 2026-06-10
+% =============================================================================
+
+\subsection{Build vs.\ Adopt: Scene Representation and Rendering Toolchain}
+\label{sec:build-vs-adopt-render}
+
+\paragraph{Output wire formats are adopted standards.}
+The five output formats produced by this pipeline---SVG (W3C Recommendation,
+Scalable Vector Graphics), PDF (ISO~32000-2:2017~\cite{pdf-iso32000}), PNG
+(ISO/IEC~15948:2003~\cite{png-spec}), PPTX (ECMA-376~\cite{ooxml}), and HTML5
+(WHATWG Living Standard)---are adopted open standards.
+Timeline Compiler defines no new wire format.
+The build-vs-adopt question is therefore correctly scoped to two sub-problems
+below the wire format: \emph{Layer~A}---the \textbf{Scene / Render IR}, the
+backend-agnostic ``what-to-draw'' representation produced by the layout engine
+and consumed by every rendering backend; and \emph{Layer~B}---the
+\textbf{rendering toolchain}, the engines and libraries that execute each
+backend and produce the final output bytes.
+
+\paragraph{Layer A: Scene / Render IR --- survey.}
+The Scene / Render IR is the immutable, byte-deterministic record defined in
+\S\ref{sec:scene-ir}.
+Eight candidate IRs were evaluated as potential adoption, profile, or
+vocabulary-donor sources (Table~\ref{tab:scene-ir-candidates}).
+Evaluation criteria: (i)~geometric determinism; (ii)~a typed effect
+representation with explicit per-effect fallback semantics;
+(iii)~a natural path to PPTX-native shapes; (iv)~separation between
+\emph{what to draw} (scene) and \emph{how to draw} (backend);
+(v)~permissive open-source licence.
+glTF (3D JSON scene format) was excluded immediately: it provides no 2D
+drawing primitives.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l X c c X}
+\toprule
+\textbf{Candidate} & \textbf{What it is} &
+  \textbf{Det.} & \textbf{Effects} & \textbf{Assessment} \\
+\midrule
+Vega scenegraph~\cite{vega-scenegraph} &
+  Typed mark tree (rect, text, line, group, image); compiled from Vega
+  spec; dispatched to SVG or Canvas backends &
+  Yes & None &
+  \textbf{Borrow}: display-list / typed-mark pattern; MIT \\[3pt]
+usvg micro-SVG~\cite{usvg} &
+  Normalised, deterministic SVG-subset tree; strips CSS, scripting,
+  external references; Rust &
+  Yes & None &
+  \textbf{Borrow}: normalised-intermediate-tree pattern;
+  Apache-2/MIT \\[3pt]
+Lottie JSON~\cite{lottie} &
+  After Effects layer/shape/effect JSON; animation-centric; glow and
+  blur effect layers &
+  Partial & Yes &
+  \textbf{Not adoptable}: animation-frame model; no static
+  display list; no PPTX path \\[3pt]
+Skia SkPicture/SKP &
+  Binary display list of Skia draw calls; replay to any Skia surface;
+  C++ private format &
+  Partial & Yes &
+  \textbf{Not adoptable as IR}: binary, version-private format;
+  strong Layer~B candidate \\[3pt]
+SVG as scene IR &
+  W3C SVG~2.0 XML; \texttt{<defs>}/\texttt{<g>}/path primitives;
+  \texttt{feGaussianBlur} and related filter effects &
+  Partial & Partial &
+  \textbf{Not adoptable}: filter non-determinism
+  (\S\ref{sec:output-svg}); no fallback registry; no PPTX path \\[3pt]
+Matplotlib Figure/Artist~\cite{matplotlib} &
+  Python artist tree; swappable Agg/SVG/PDF/PS renderer backends &
+  Yes & None &
+  \textbf{Borrow}: multi-backend dispatch pattern; BSD-3 \\[3pt]
+HTML Canvas API~\cite{webgl} &
+  Imperative Canvas~2D API calls; browser-resident; not portably
+  serialisable as an IR &
+  No & Partial &
+  \textbf{Not adoptable}: imperative; no portable serialised form \\[3pt]
+Pixar USD &
+  Hierarchical 3D scene description; composition, shading, animation;
+  Apache-2 &
+  Yes & Yes~(3D) &
+  \textbf{Not adoptable}: 3D-centric; heavyweight; no 2D primitives \\
+\bottomrule
+\end{tabularx}
+\caption{Layer A: Scene/Render IR candidates. ``Det.''~= geometric determinism
+  across platforms and runs. ``Effects''~= typed effect registry with per-effect
+  fallback policies. SVG filter effects are ``Partial'' due to cross-renderer
+  non-determinism; Lottie is ``Partial'' because animation-frame rendering is
+  renderer-dependent. No candidate provides all of: full determinism, a typed
+  effect registry with fallback policies, and a PPTX-native shape path.}
+\label{tab:scene-ir-candidates}
+\end{table}
+
+\paragraph{Layer A recommendation: Build-but-Borrow.}
+No existing scene IR is adoptable wholesale.
+Three orthogonal gaps eliminate every candidate:
+
+\begin{enumerate}
+  \item \textbf{Effect registry with per-effect fallback policies.}
+        No surveyed format carries typed effect definitions (\texttt{Glow},
+        \texttt{Bloom}, \texttt{CloudLayer}, \texttt{NoiseTexture}) together with
+        explicit per-definition fallback policies
+        (\texttt{approximate}/\texttt{omit}/\texttt{embed-raster}/\texttt{error}).
+        Lottie's effect layer is the closest prior art but its animation-centric
+        frame model is incompatible with a static, byte-deterministic display list.
+
+  \item \textbf{Entity-type awareness for PPTX native-shape binding.}
+        No generic scene IR retains the semantic distinction between a timeline
+        activity bar and a plain rectangle, which the PPTX backend requires to emit
+        \texttt{ROUNDED\_RECTANGLE} vs.\ \texttt{DIAMOND} native shapes and apply
+        DrawingML \texttt{a:glow}/\texttt{a:outerShdw} at the element level
+        (\S\ref{sec:output-pptx}).
+
+  \item \textbf{Fidelity-tier annotation and scene hash.}
+        The layered determinism contract (\S\ref{sec:scene-determinism}) requires a
+        \texttt{fidelity\_tier} annotation and a reproducible \texttt{scene\_hash}
+        (SHA-256) in the Scene root. None of the surveyed formats carries these
+        metadata fields.
+\end{enumerate}
+
+Two patterns from the survey are explicitly \emph{borrowed} into the Scene model:
+
+\begin{itemize}
+  \item \textbf{Typed-mark / display-list pattern}
+        (Vega scenegraph~\cite{vega-scenegraph}, usvg~\cite{usvg}).
+        An ordered list of typed drawing primitives with a canvas descriptor at the
+        root and a group nesting mechanism is exactly the structure of Barbara's Scene
+        model (\S\ref{sec:scene-model}).
+        Vega proves the pattern at scale: it compiles a declarative specification into
+        a typed mark tree and dispatches the same tree to SVG or Canvas renderers with
+        no coupling between scene representation and rendering
+        target~\cite{vegalite2017}.
+        usvg proves the ``normalised micro-format'' variant: a simplified intermediate
+        tree that strips non-deterministic SVG constructs before rendering.
+
+  \item \textbf{Multi-backend dispatch from a single scene}
+        (Matplotlib Figure/Artist model~\cite{matplotlib}).
+        Matplotlib dispatches a single backend-agnostic Artist tree to swappable
+        renderer objects (Agg for PNG, SVG, PDF, PostScript)---a production-proven
+        proof that the same intermediate representation can drive fundamentally
+        different output surfaces without modification.
+        The Scene-as-root architecture (\S\ref{sec:outputs}) adopts this pattern
+        directly.
+\end{itemize}
+
+\paragraph{Layer B: Rendering Toolchain --- survey.}
+The toolchain question is whether to write rasterisers, PDF generators, and PPTX
+serialisers from scratch, or to build on existing libraries.
+The answer is \textbf{Adopt / Build-On} for every backend.
+Writing rendering primitives from scratch would be out of scope; the libraries
+surveyed below collectively cover all backends under open permissive licences
+(Table~\ref{tab:render-toolchain}).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l X c c X}
+\toprule
+\textbf{Library} & \textbf{Role} &
+  \textbf{Det.} & \textbf{Art~fx.} & \textbf{Per-backend verdict} \\
+\midrule
+Skia~\cite{skia} &
+  C++ 2D engine; CPU raster, Ganesh GPU, PDF surface, SVG surface;
+  powers Chrome, Android, Flutter; BSL-1 &
+  Pinned\textsuperscript{a} & Full &
+  \textbf{Adopt} --- raster/art backend; only open library with full
+  Tier-3 effects + GPU + multi-surface; Rust bindings via
+  \texttt{skia-safe} \\[4pt]
+resvg~\cite{resvg} &
+  Rust SVG rasteriser; platform-independent, pixel-exact output;
+  Apache-2/MIT &
+  Full & None &
+  \textbf{Adopt} --- SVG$\to$PNG step; strongest determinism
+  guarantee available \\[4pt]
+Cairo~\cite{cairo} &
+  C library; unified draw API across image, PDF, SVG, PostScript
+  surfaces; MPL-1.1 &
+  Partial\textsuperscript{b} & None &
+  Reference only; cairosvg viable for SVG$\to$PDF; no GPU path;
+  superseded by Skia for the raster role \\[4pt]
+python-pptx~\cite{python-pptx} &
+  Python library for native PPTX shapes, text frames, fill and line
+  styles; MIT &
+  Geom.\ only\textsuperscript{c} & Via embed &
+  \textbf{Adopt} --- PPTX backend; extend with \texttt{pptx.oxml}
+  XML layer for DrawingML
+  \texttt{a:glow}/\texttt{a:outerShdw}~\cite{ooxml} \\[4pt]
+Browser Canvas/WebGL~\cite{webgl} &
+  HTML5 Canvas~2D API; headless via Node.js \texttt{canvas} package;
+  open standard &
+  Pinned\textsuperscript{a} & Partial &
+  \textbf{Adopt} --- HTML canvas-backed path (Tier~2/3); wraps
+  raster-backend PNG output \\[4pt]
+svg2pdf / cairosvg &
+  SVG-to-PDF conversion: svg2pdf (Rust, Apache-2); cairosvg (Python,
+  MIT/LGPL) &
+  Full & None &
+  \textbf{Adopt} --- vector PDF path; deterministic given pinned
+  version; see~\cite{pdf-iso32000} \\
+\bottomrule
+\multicolumn{5}{l}{\textsuperscript{a}~Deterministic given a pinned library version
+  and fixed effect seeds derived from \texttt{scene\_hash}; see
+  \S\ref{sec:scene-determinism}.} \\
+\multicolumn{5}{l}{\textsuperscript{b}~PDF/SVG metadata (timestamps, object IDs)
+  may vary across runs without explicit configuration.} \\
+\multicolumn{5}{l}{\textsuperscript{c}~Geometric coordinates are stable; internal
+  \texttt{r:id} values are derived from entity \texttt{id} fields
+  (\S\ref{sec:output-pptx}).} \\
+\end{tabularx}
+\caption{Layer B: Rendering toolchain candidates. ``Det.''~= determinism: ``Full''
+  means bitwise-identical across platforms; ``Pinned'' means deterministic given a
+  fixed library version and fixed seeds. ``Art~fx.''~= support for Tier-3 effects
+  (glow, bloom, cloud textures, noise). ``Geom.\ only''~= geometric coordinates are
+  stable but binary relationship IDs require explicit stabilisation.}
+\label{tab:render-toolchain}
+\end{table}
+
+\paragraph{Layer B recommendation: Adopt / Build-On per backend.}
+Timeline Compiler does not write rasterisers, PDF generators, or PPTX serialisers
+from scratch.
+The per-backend strategy is:
+
+\begin{itemize}
+  \item \textbf{SVG backend (serialiser):} Build the SVG writer directly---SVG is
+        XML and requires no rendering library for the writer path; Scene primitives
+        map one-to-one to SVG elements (\S\ref{sec:output-svg}).
+        For SVG$\to$PNG rasterisation: \textbf{adopt resvg}~\cite{resvg}
+        (Apache-2/MIT, Rust). Its platform-independent deterministic output is the
+        strongest available guarantee for the vector-path PNG step; the
+        \texttt{--text-as-paths} option (\S\ref{sec:output-svg}) eliminates
+        font-rendering variance across platforms.
+
+  \item \textbf{Raster / art-effects backend:} \textbf{Adopt
+        Skia}~\cite{skia} (BSL-1 permissive). Skia is the only open library
+        combining GPU rasterisation, full Tier-3 art-effect support (glow, bloom,
+        noise turbulence, cloud/atmosphere compositing, gradient meshes, per-pixel
+        alpha compositing), and a multi-surface architecture (CPU/PNG, PDF surface,
+        SVG surface) under a permissive licence. Chrome, Android, and Flutter at
+        production scale validate readiness.
+        Determinism is achieved via pinned library version, seeds derived from
+        \texttt{scene\_hash} concatenated with \texttt{effect\_id}, and golden-image
+        testing~\cite{golden-image-testing}.
+
+  \item \textbf{PDF backend (vector path):} \textbf{Adopt svg2pdf} (Rust, Apache-2)
+        or cairosvg (Python, MIT/LGPL) for deterministic SVG$\to$PDF conversion.
+        Both produce deterministic output given a pinned version. Fonts are embedded
+        as CFF/Type~1; PDF metadata (\texttt{/Title}, \texttt{/Author},
+        \texttt{/CreationDate}) is set from IR document fields, not system state
+        (\S\ref{sec:output-svg}). The PDF wire format is
+        ISO~32000-2:2017~\cite{pdf-iso32000}.
+
+  \item \textbf{PPTX backend:} \textbf{Adopt python-pptx}~\cite{python-pptx} (MIT)
+        extended with the \texttt{pptx.oxml} low-level XML interface for DrawingML
+        effects (\texttt{a:glow}, \texttt{a:outerShdw}) that the high-level API does
+        not expose (\S\ref{sec:output-pptx}). The PPTX wire format is ECMA-376 /
+        ISO/IEC~29500~\cite{ooxml}, an adopted standard.
+
+  \item \textbf{HTML backend:} \textbf{Adopt} the browser's native SVG renderer for
+        the SVG-backed path (Tier~0/1) and a headless Node.js \texttt{canvas} package
+        for the canvas-backed path (Tier~2/3). No additional rendering library is
+        required beyond the SVG and Raster backend outputs (\S\ref{sec:output-html}).
+\end{itemize}
+
+\paragraph{Architecture validation.}
+The survey directly corroborates Barbara's rendering architecture
+(\S\ref{sec:outputs}--\S\ref{sec:output-html}):
+
+\begin{enumerate}
+  \item \textbf{Scene-graph-as-root} is exactly the Vega scenegraph
+        pattern~\cite{vega-scenegraph,vegalite2017}: compile a declarative
+        specification into a typed, ordered primitive tree, then dispatch the same
+        tree to pluggable renderers.
+        usvg~\cite{usvg} provides a second independent precedent: a normalised
+        intermediate tree that eliminates non-deterministic constructs before
+        rendering.
+        Barbara's Scene model is independently corroborated by both.
+
+  \item \textbf{Skia as the raster backend}~\cite{skia} (BSL-1) is the natural and
+        only practical choice for Tier-3 art effects under a permissive open licence.
+        Its use in Chrome, Android, and Flutter validates production readiness.
+
+  \item \textbf{Golden-image testing}~\cite{golden-image-testing} per pinned backend
+        version is standard practice for visual regression; the layered determinism
+        contract (\S\ref{sec:scene-determinism}) is consistent with how Skia and
+        Flutter enforce rendering stability.
+
+  \item \textbf{SVG is a backend, not the root} (\S\ref{sec:output-svg}).
+        Every ``SVG-as-scene-IR'' approach inherits SVG filter non-determinism,
+        confirming that SVG cannot serve as a deterministic scene root.
+        The survey provides independent justification for Barbara's architectural
+        decision.
+
+  \item \textbf{python-pptx extended with \texttt{pptx.oxml}}~\cite{python-pptx} is
+        the correct PPTX strategy. No alternative library provides equivalent PPTX
+        generation under a permissive open-source licence.
+\end{enumerate}
+
+\paragraph{Flag for Barbara and Leslie: text-shaping path confirmation.}
+Skia internally integrates HarfBuzz for OpenType text shaping.
+Before committing to the Skia-based Raster backend implementation, the team should
+confirm that the text-shaping and font-metrics path used by Skia is consistent with
+the embedded-font-metrics contract in \S\ref{sec:rendering-determinism} (item~5),
+specifically that label-width measurements in the raster backend match the values
+pre-computed by the layout pipeline.
+No architecture change is anticipated; this is a pre-implementation verification
+task for Barbara.

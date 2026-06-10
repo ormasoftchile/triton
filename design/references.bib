@@ -641,3 +641,112 @@
                   \texttt{label}). No swimlanes, no status, no PPTX output,
                   no active maintenance. Not adoptable.}
 }
+
+% -----------------------------------------------------------------------------
+% BUILD-VS-ADOPT SURVEY -- OUTPUT/RENDER LAYER (added 2026-06-10 by David)
+% Sources for §7 "Build vs. Adopt: Scene Representation and Rendering Toolchain"
+% -----------------------------------------------------------------------------
+
+@misc{vega-scenegraph,
+  author       = {{Vega Contributors}},
+  title        = {vega-scenegraph: Rendering Primitives for {Vega} Visualizations},
+  year         = {2024},
+  howpublished = {\url{https://github.com/vega/vega-scenegraph}},
+  urldate      = {2026-06-10},
+  note         = {MIT license. Defines the Vega scenegraph IR: a typed mark tree
+                  (rect, text, line, path, group, image) produced by the Vega
+                  compiler and dispatched to SVG or Canvas backends. Direct
+                  architectural precedent for the typed-mark / display-list pattern
+                  and for separating a backend-agnostic scene description from
+                  renderer implementations.}
+}
+
+@misc{resvg,
+  author       = {{RazrFalcon and Linebender contributors}},
+  title        = {resvg: An {SVG} Rendering Library},
+  year         = {2026},
+  howpublished = {\url{https://github.com/linebender/resvg}},
+  urldate      = {2026-06-10},
+  note         = {Dual-licensed Apache-2.0 / MIT. Rust SVG rasteriser delivering
+                  platform-independent, pixel-exact, deterministic output. Candidate
+                  for the SVG-to-PNG rasterisation step in the vector backend.
+                  Version~0.47.0 (February 2026).}
+}
+
+@misc{usvg,
+  author       = {{RazrFalcon and Linebender contributors}},
+  title        = {usvg: A Micro-{SVG} Simplification Library},
+  year         = {2026},
+  howpublished = {\url{https://github.com/linebender/resvg/tree/main/crates/usvg}},
+  urldate      = {2026-06-10},
+  note         = {Dual-licensed Apache-2.0 / MIT (part of the resvg monorepo).
+                  Parses SVG into a normalised, simplified tree (micro-SVG) that
+                  strips non-deterministic constructs (CSS, scripting, external
+                  references). Architectural precedent for a normalised intermediate
+                  render tree that eliminates cross-renderer divergence.}
+}
+
+@misc{cairo,
+  author       = {{Cairo Graphics Contributors}},
+  title        = {Cairo: A 2D Graphics Library},
+  year         = {2024},
+  howpublished = {\url{https://www.cairographics.org}},
+  urldate      = {2026-06-10},
+  note         = {Mozilla Public License~1.1. C library providing a unified drawing
+                  API across image, PDF, SVG, PostScript, X11, and Win32 surfaces.
+                  Multi-backend precedent; evaluated but not recommended as the
+                  primary raster engine due to lack of GPU path and dated API.
+                  cairosvg (Python wrapper) is a viable SVG-to-PDF conversion path.}
+}
+
+@misc{lottie,
+  author       = {{Airbnb and LottieFiles contributors}},
+  title        = {Lottie: A {JSON}-Based Animation Format for {After Effects} Exports},
+  year         = {2024},
+  howpublished = {\url{https://airbnb.io/lottie/}},
+  urldate      = {2026-06-10},
+  note         = {MIT license (lottie-web player). JSON animation format derived from
+                  Adobe After Effects; hierarchical layer/shape/effect model with
+                  glow, blur, and compositing effects. Animation-centric; evaluated
+                  as a Scene IR candidate but not adoptable due to animation-frame
+                  semantics and absence of a static display list or PPTX native path.}
+}
+
+@misc{matplotlib,
+  author       = {{Hunter, John D. and Matplotlib Contributors}},
+  title        = {Matplotlib: A 2D Plotting Library for {Python}},
+  year         = {2024},
+  howpublished = {\url{https://matplotlib.org}},
+  urldate      = {2026-06-10},
+  note         = {BSD-3-Clause-compatible (PSF) license. Figure/Artist model with
+                  pluggable backends (Agg, SVG, PDF, PostScript, interactive GUIs).
+                  Strong multi-backend architectural precedent: a backend-agnostic
+                  Artist tree is rendered to different output surfaces by swappable
+                  renderer objects---a direct analogue for the Scene-as-root design.}
+}
+
+@misc{pdf-iso32000,
+  author       = {{ISO/IEC}},
+  title        = {{ISO~32000-2:2017} --- Document Management --- Portable Document
+                  Format --- Part~2: {PDF}~2.0},
+  year         = {2017},
+  howpublished = {\url{https://www.iso.org/standard/63534.html}},
+  urldate      = {2026-06-10},
+  note         = {Adopted international standard defining the PDF~2.0 wire format.
+                  PDF is an output wire format adopted by Timeline Compiler; it is
+                  not a scene IR candidate. Timeline Compiler targets PDF~1.7/2.0
+                  via the SVG-to-PDF conversion path.}
+}
+
+@misc{png-spec,
+  author       = {{Boutell, Thomas and {W3C PNG Working Group}}},
+  title        = {Portable Network Graphics ({PNG}) Specification (Second Edition)},
+  year         = {2003},
+  howpublished = {\url{https://www.w3.org/TR/PNG/}},
+  urldate      = {2026-06-10},
+  note         = {W3C Recommendation / ISO/IEC~15948:2003. Lossless raster image
+                  format using deflate compression. An output wire format adopted by
+                  Timeline Compiler; not a scene IR candidate. PNG output is
+                  produced from the SVG backend (via resvg) or the Raster backend
+                  (via Skia).}
+}
