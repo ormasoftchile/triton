@@ -660,3 +660,142 @@ describe('validateDocument — roadmap example', () => {
     expect(result.errors).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Soft warning: OUTSIDE_TIME_RANGE — role-aware coarse-date coercion (Bug #4)
+// ---------------------------------------------------------------------------
+
+describe('validateDocument — OUTSIDE_TIME_RANGE coarse-date coercion', () => {
+  // ── True-positive: genuinely out-of-range items still get flagged ──────
+
+  it('flags an activity whose start is after the range end (exact dates)', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-12-31' };
+    doc.activities[0] = { id: 'task-a', label: 'Task A', track: 'main', start: '2030-01-01' };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(true);
+  });
+
+  it('flags an activity whose end is before the range start (exact dates)', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-12-31' };
+    doc.activities[0] = {
+      id: 'task-a', label: 'Task A', track: 'main',
+      start: '2020-01-01', end: '2020-06-30',
+    };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(true);
+  });
+
+  // ── False-positive fixes: coarse END dates at the trailing edge ────────
+
+  it('does NOT flag activity with coarse end 2026-Q4 when range ends 2026-Q4', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-Q4' };
+    doc.activities[0] = {
+      id: 'task-a', label: 'Task A', track: 'main',
+      start: '2026-Q1', end: '2026-Q4',
+    };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  it('does NOT flag activity with coarse end 2026 when range ends 2026', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026' };
+    doc.activities[0] = {
+      id: 'task-a', label: 'Task A', track: 'main',
+      start: '2026-01-01', end: '2026',
+    };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  it('does NOT flag activity starting in Nov (within Q4) when range ends 2026-Q4', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-Q4' };
+    doc.activities[0] = { id: 'task-a', label: 'Task A', track: 'main', start: '2026-11-01' };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  it('does NOT flag activity starting in Dec (within year) when range ends 2026', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026' };
+    doc.activities[0] = { id: 'task-a', label: 'Task A', track: 'main', start: '2026-12-01' };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  // ── Half and month coarse ends at trailing edge ────────────────────────
+
+  it('does NOT flag activity with coarse end 2026-H2 when range ends 2026-H2', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-H2' };
+    doc.activities[0] = {
+      id: 'task-a', label: 'Task A', track: 'main',
+      start: '2026-H1', end: '2026-H2',
+    };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  it('does NOT flag activity with coarse end 2026-12 when range ends 2026-12', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-12' };
+    doc.activities[0] = {
+      id: 'task-a', label: 'Task A', track: 'main',
+      start: '2026-06-01', end: '2026-12',
+    };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  it('does NOT flag activity starting Nov 15 when range ends 2026-11 (month coarse end)', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-11' };
+    doc.activities[0] = { id: 'task-a', label: 'Task A', track: 'main', start: '2026-11-15' };
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  // ── Span uses period-end for its right boundary ────────────────────────
+
+  it('does NOT flag a span of 2026-Q4 when range ends 2026-Q4', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-Q4' };
+    doc.activities[0] = {
+      id: 'task-a', label: 'Task A', track: 'main',
+      span: '2026-Q4',
+    } as Activity;
+    (doc.activities[0] as Record<string, unknown>).start = undefined;
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  // ── Milestone period straddles / touches the range boundary ───────────
+
+  it('does NOT flag a milestone with date 2026-Q4 when range ends 2026-Q4', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-Q4' };
+    doc.milestones = [{ id: 'ms-one', label: 'Launch', date: '2026-Q4', track: 'main' }];
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  it('does NOT flag a milestone with date 2026-12 when range ends 2026-Q4', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-Q4' };
+    doc.milestones = [{ id: 'ms-one', label: 'Launch', date: '2026-12', track: 'main' }];
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(false);
+  });
+
+  it('flags a milestone in 2030 when range ends 2026', () => {
+    const doc = makeMinimal();
+    doc.metadata.time_range = { start: '2026-01-01', end: '2026-12-31' };
+    doc.milestones = [{ id: 'ms-one', label: 'Future', date: '2030-06-01', track: 'main' }];
+    const result = validateDocument(doc);
+    expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(true);
+  });
+});

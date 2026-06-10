@@ -62,7 +62,7 @@ export const consultingTheme: ResolvedTheme = {
   },
 
   track: {
-    headerWidth:      0,      // T2: empty track label → 0-width header column
+    headerWidth:      140,    // gutter for track label text (suppressed when all labels empty)
     rowHeight:        80,
     subLaneHeight:    24,
     maxSubLanes:       8,
@@ -85,6 +85,9 @@ export const consultingTheme: ResolvedTheme = {
     labelColorInside:     WHITE,
     labelColorOutside:    BLACK,
     labelTruncateChars:   32,
+    progressBarHeight:     4,  // §5 progress indicator strip height (px)
+    progressFillColor:   WHITE, // white overlay on dark navy bars
+    progressFillOpacity: 0.45, // semi-transparent for subtlety
   },
 
   milestone: {

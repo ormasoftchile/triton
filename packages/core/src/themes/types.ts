@@ -73,6 +73,12 @@ export interface ActivityTheme {
   labelColorInside: string;
   labelColorOutside: string;
   labelTruncateChars: number;
+  /** Height (px) of the progress-fill strip at the bar bottom (§5 progress indicator). */
+  progressBarHeight: number;
+  /** Fill colour of the progress strip overlay. */
+  progressFillColor: string;
+  /** Opacity of the progress strip overlay in [0, 1]. */
+  progressFillOpacity: number;
 }
 
 /** Shape style for milestone markers. */

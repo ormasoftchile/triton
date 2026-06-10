@@ -388,3 +388,45 @@ import { resolveTheme } from './themes/index.js';
 5. **Year value in YAML**: bare year integers (e.g., `2022`) must be quoted (`"2022"`) in
    the YAML to be parsed as IRDate strings, not numbers.
 
+---
+
+## 2026-06-10 — Phase 1 Render Fixes (Barbara)
+
+Three renderer/theme bugs surfaced via the gallery were fixed. Golden and all 8 gallery renders were regenerated.
+
+### Fix #2 — Track Labels Invisible (highest impact)
+- **Root cause**: `consulting.ts` had `headerWidth: 0`, so the header gutter was zero-wide and the guard `if (Hhdr > 0 && tl.track.label)` never fired.
+- **Fix**: Set `headerWidth: 140` in Consulting theme. In `layout/index.ts`, compute `hasTrackLabels = sortedTracks.some(t => !!t.label && t.label.trim().length > 0)` and set `Hhdr = hasTrackLabels ? tk.headerWidth : 0`. This suppresses the gutter for timelines with empty/whitespace-only labels (T2 fixture unchanged) while enabling the 140 px gutter for multi-track examples. Track labels render left-aligned at `x = mL + 8`, `textAnchor: 'start'`.
+- **Bonus fix**: The `sortedTracks` sort was moved before the canvas geometry block (it was after) to enable the `hasTrackLabels` check before `wDraw`/`offset` are computed.
+
+### Fix #1 — Progress Has No Visual Fill
+- **Root cause**: The layout engine never emitted a progress fill primitive even when `activity.progress` was set.
+- **Fix**: Added `progressBarHeight: 4`, `progressFillColor: '#FFFFFF'`, `progressFillOpacity: 0.45` to `ActivityTheme` (and Consulting theme). After each bar rect, emit a `<rect>` strip at the bar's bottom edge: height = 4 px, width = `⌊barWidth × progress + 0.5⌋` (round-half-up), white at 0.45 opacity. Result: a visible light stripe on dark navy bars indicating completion fraction.
+
+### Fix #3 — Open-Ended / TBD Styling
+- **Root cause 1**: A span-bug: `!a.end` was checked before `a.span`, so all span activities (e.g. `span: 2026-Q1`) were incorrectly treated as ongoing and extended to the right edge. Fixed by reordering: span check first.
+- **Root cause 2**: `end: tbd/unknown` produced a 16 px stub; no open-interval indicator existed for ongoing/omitted.
+- **Fix**: Reordered condition: `a.span → fixed` | `!a.end || ongoing → ongoing (extend to right edge)` | `tbd/unknown → tbd (extend to right edge)` | `else → fixed`. Added `endKind: 'fixed' | 'ongoing' | 'tbd'` to `ActivityLayout`. After the label, emit:
+  - `ongoing`: a filled right-pointing triangle `<path M xRight,y L xRight+10,cy L xRight,y+H Z>` in bar colour — solid arrowhead in the right margin.
+  - `tbd`: a dashed `<line>` at the right edge (`stroke-dasharray="3,3"`, opacity=0.5) signalling uncertainty.
+
+### Artifacts Regenerated
+- `examples/golden/our-timeline.svg` and `.png` (T2 fixture; output unchanged since it has no activities and a whitespace-only track label)
+- All 8 `examples/gallery/*.svg` and `*.png` — now show track labels, progress fills, and open-end indicators where applicable.
+
+### Green Status
+| Check | Result |
+|-------|--------|
+| `pnpm typecheck` | ✓ 0 errors |
+| `pnpm lint` | ✓ 0 warnings |
+| `pnpm test` | ✓ 147/147 (4 new render-fix tests) |
+| `pnpm -r build` | ✓ all packages |
+
+### Files Modified
+- `packages/core/src/themes/types.ts` — added `progressBarHeight`, `progressFillColor`, `progressFillOpacity` to `ActivityTheme`
+- `packages/core/src/themes/consulting.ts` — `headerWidth: 140`; added progress fields; existing comment updated
+- `packages/core/src/layout/index.ts` — moved sortedTracks sort earlier; `hasTrackLabels` / dynamic `Hhdr`; `endKind` in `ActivityLayout`; fixed xRight condition order; progress fill + open-end indicator rendering; track labels left-aligned
+- `packages/core/test/render.test.ts` — 3 new fixture IRs + 4 new tests for the three fixes
+- `examples/golden/our-timeline.svg` + `.png` — regenerated golden artifacts
+- `examples/gallery/*.svg` + `*.png` — all 8 gallery renders regenerated
+

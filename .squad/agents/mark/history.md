@@ -142,3 +142,6 @@ export function validate(ir: IRDocument): ValidationResult {
 - `pnpm lint` ✅ (also fixed pre-existing unused-var in layout/index.ts from concurrent agent)
 - `pnpm test` ✅ (110 tests, 4 test files)
 - `pnpm -r build` ✅
+
+## Learnings
+- **Role-aware coarse-date coercion for range containment (Bug #4, 2026-06-10):** For OUTSIDE_TIME_RANGE checks, START boundaries coerce to period-start (left-edge) and END boundaries coerce to period-end (right-edge), e.g. `2026-Q4` as an end → Dec 31 not Oct 1, preventing false-positive clipping warnings at the trailing edge of the time range.

@@ -99,9 +99,18 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
   // 1b. Infer axis unit
   const axisUnit = ir.metadata.axis_unit ?? inferAxisUnit(teOrd - tsOrd);
 
+  // Sort tracks early — needed to compute effective header width (fix #2).
+  const sortedTracks = [...ir.tracks].sort((a, b) => {
+    const ai = a.index ?? 0;
+    const bi = b.index ?? 0;
+    return ai !== bi ? ai - bi : a.id.localeCompare(b.id);
+  });
+
   // 1c. Canvas geometry
   const W     = cv.width;
-  const Hhdr  = tk.headerWidth;
+  // Suppress the header gutter when no track has a meaningful (non-empty) label.
+  const hasTrackLabels = sortedTracks.some((t) => !!t.label && t.label.trim().length > 0);
+  const Hhdr  = hasTrackLabels ? tk.headerWidth : 0;
   const Haxis = ax.height;
   const mL    = m.left;
   const mR    = m.right;
@@ -117,12 +126,6 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
   // -------------------------------------------------------------------------
   // Phase 2: Track placement
   // -------------------------------------------------------------------------
-
-  const sortedTracks = [...ir.tracks].sort((a, b) => {
-    const ai = a.index ?? 0;
-    const bi = b.index ?? 0;
-    return ai !== bi ? ai - bi : a.id.localeCompare(b.id);
-  });
 
   interface TrackLayout {
     track:  Track;
@@ -153,6 +156,8 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
     y:        number;
     width:    number;
     lane:     number;
+    /** Whether the bar has an open/uncertain right edge. */
+    endKind:  'fixed' | 'ongoing' | 'tbd';
   }
 
   const activityLayouts: ActivityLayout[] = [];
@@ -176,15 +181,23 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
     for (const { a, startOrd } of acts) {
       const xLeft = dateX(startOrd, axisState);
       let xRight: number;
+      let endKind: 'fixed' | 'ongoing' | 'tbd';
 
-      if (!a.end || a.end === 'ongoing') {
-        xRight = offset + wDraw;
+      // NOTE: span check must precede !a.end — span activities have a.end === undefined,
+      // which would otherwise be incorrectly treated as 'ongoing'.
+      if (a.span) {
+        xRight  = dateX(parseAndCoerceRight(a.span), axisState);
+        endKind = 'fixed';
+      } else if (!a.end || a.end === 'ongoing') {
+        xRight  = offset + wDraw;
+        endKind = 'ongoing';
       } else if (a.end === 'tbd' || a.end === 'unknown') {
-        xRight = xLeft + theme.activity.minWidth * 4;
-      } else if (a.span) {
-        xRight = dateX(parseAndCoerceRight(a.span), axisState);
+        // TBD/unknown: extend to right edge with dashed indicator (§5 open-interval ruling)
+        xRight  = offset + wDraw;
+        endKind = 'tbd';
       } else {
-        xRight = dateX(parseAndCoerceRight(a.end), axisState);
+        xRight  = dateX(parseAndCoerceRight(a.end), axisState);
+        endKind = 'fixed';
       }
 
       // Min-width enforcement
@@ -217,6 +230,7 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
         y:        rhu(yPos),
         width:    rhu(finalRight - finalLeft),
         lane,
+        endKind,
       });
     }
 
@@ -507,14 +521,14 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
       const thFontPx = ptToPx(tk.headerFontSize);
       primitives.push({
         kind:            'text',
-        x:               rhu(Hhdr - 8),
+        x:               rhu(mL + 8),
         y:               rhu(tl.yTop + tl.height / 2),
         text:            tl.track.label,
         fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
         fontSize:        thFontPx,
         fontWeight:      tk.headerFontWeight,
         fill:            tk.headerColor,
-        textAnchor:      'end',
+        textAnchor:      'start',
         dominantBaseline:'middle',
       });
     }
@@ -545,6 +559,25 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
       opacity,
     });
 
+    // Progress fill strip (§5/§6: filled strip at bar bottom when progress is set)
+    const prog = al.activity.progress;
+    if (prog !== undefined && prog > 0) {
+      const pw = rhuInt(al.width * prog);
+      if (pw > 0) {
+        const ph = theme.activity.progressBarHeight;
+        primitives.push({
+          kind:    'rect',
+          x:       al.xLeft,
+          y:       rhu(al.y + theme.activity.barHeight - ph),
+          width:   pw,
+          height:  ph,
+          fill:    theme.activity.progressFillColor,
+          rx:      theme.activity.barRadius,
+          opacity: theme.activity.progressFillOpacity,
+        });
+      }
+    }
+
     // Activity label
     const lw = measureText(al.activity.label, actFontPx).width;
     if (al.width >= theme.activity.labelInsideMinWidth) {
@@ -574,6 +607,33 @@ export function layout(ir: IRDocument, theme: ResolvedTheme): Scene {
         fill:            theme.activity.labelColorOutside,
         textAnchor:      fits ? 'start' : 'end',
         dominantBaseline:'middle',
+      });
+    }
+
+    // Open-end indicator (§5: right-edge decoration for ongoing/tbd activities)
+    const bH = theme.activity.barHeight;
+    if (al.endKind === 'ongoing') {
+      // Solid right-pointing arrowhead — protrudes 10 px into the right margin
+      const tipX = rhu(al.xRight + 10);
+      const cy   = rhu(al.y + bH / 2);
+      primitives.push({
+        kind:    'path',
+        d:       `M ${rhu(al.xRight)} ${rhu(al.y)} L ${tipX} ${cy} L ${rhu(al.xRight)} ${rhu(al.y + bH)} Z`,
+        fill,
+        opacity,
+      });
+    } else if (al.endKind === 'tbd') {
+      // Dashed right-border line for TBD/unknown activities
+      primitives.push({
+        kind:        'line',
+        x1:          al.xRight,
+        y1:          al.y,
+        x2:          al.xRight,
+        y2:          rhu(al.y + bH),
+        stroke,
+        strokeWidth: 2,
+        dashArray:   '3,3',
+        opacity:     0.5,
       });
     }
   }

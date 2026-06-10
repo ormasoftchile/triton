@@ -59,10 +59,18 @@ const VALID_AXIS_UNITS: ReadonlySet<string> = new Set<AxisUnit>([
 // Date helpers
 // ---------------------------------------------------------------------------
 
+/** Returns the number of days in a given month; handles leap years. Pure computation. */
+function lastDayOfMonthLocal(year: number, month: number): number {
+  const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  const days = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return days[month - 1] ?? 30;
+}
+
 /**
- * Returns a Date representing the earliest instant of the given IRDate string,
- * or null when the date is non-concrete (tbd, ongoing, unknown, now, relative,
- * approximate, or fiscal-quarter which needs external context).
+ * Returns a Date representing the earliest instant of the given IRDate string
+ * (period-START / left-edge rule), or null when the date is non-concrete
+ * (tbd, ongoing, unknown, now, relative, approximate, or fiscal-quarter which
+ * needs external context).  Used for START-boundary comparisons.
  */
 function toComparableDate(s: string): Date | null {
   if (s === 'tbd' || s === 'ongoing' || s === 'unknown' || s === 'now') return null;
@@ -104,6 +112,61 @@ function toComparableDate(s: string): Date | null {
   const yrm = /^\d{4}$/.exec(s);
   if (yrm !== null) {
     return new Date(`${yrm[0]}-01-01`);
+  }
+
+  return null;
+}
+
+/**
+ * Returns a Date representing the LAST instant of the given IRDate string
+ * (period-END / right-edge rule), or null for non-concrete dates.
+ * Used for END-boundary coercion in range-containment checks so that a coarse
+ * end like "2026-Q4" is treated as Dec 31 (not Oct 1).
+ */
+function toComparableDateEnd(s: string): Date | null {
+  if (s === 'tbd' || s === 'ongoing' || s === 'unknown' || s === 'now') return null;
+  if (s.startsWith('~') || RELATIVE_DATE_RE.test(s)) return null;
+  if (s.startsWith('FY')) return null;
+
+  // ISO datetime or date: already day-precision — last instant = same day
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // Quarter: 2026-Q2 → last day of Q2 = Jun 30; 2026-Q4 → Dec 31
+  const qm = /^(\d{4})-Q([1-4])$/.exec(s);
+  if (qm !== null) {
+    const year = parseInt(qm[1] ?? '0', 10);
+    const qnum = parseInt(qm[2] ?? '1', 10);
+    const lastMonth = qnum * 3; // Q1→3, Q2→6, Q3→9, Q4→12
+    const day = lastDayOfMonthLocal(year, lastMonth);
+    return new Date(`${year}-${String(lastMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+  }
+
+  // Half: 2026-H1 → Jun 30; 2026-H2 → Dec 31
+  const hm = /^(\d{4})-H([12])$/.exec(s);
+  if (hm !== null) {
+    const year = parseInt(hm[1] ?? '0', 10);
+    const hnum = parseInt(hm[2] ?? '1', 10);
+    const lastMonth = hnum === 1 ? 6 : 12;
+    const day = lastDayOfMonthLocal(year, lastMonth);
+    return new Date(`${year}-${String(lastMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+  }
+
+  // Year-month: 2026-06 → Jun 30
+  const ymm = /^(\d{4})-(\d{2})$/.exec(s);
+  if (ymm !== null) {
+    const year = parseInt(ymm[1] ?? '2000', 10);
+    const month = parseInt(ymm[2] ?? '01', 10);
+    const day = lastDayOfMonthLocal(year, month);
+    return new Date(`${ymm[1] ?? '2000'}-${ymm[2] ?? '01'}-${String(day).padStart(2, '0')}`);
+  }
+
+  // Year only: 2026 → Dec 31
+  const yrm = /^\d{4}$/.exec(s);
+  if (yrm !== null) {
+    return new Date(`${yrm[0]}-12-31`);
   }
 
   return null;
@@ -642,19 +705,23 @@ export function validateDocument(ir: IRDocument): ValidationResult {
 
   // ── Soft warning: OUTSIDE_TIME_RANGE ─────────────────────────────────────
   {
+    // trStart: period-START of range.start (first concrete instant of the range)
     const trStart = toComparableDate(ir.metadata.time_range.start);
+    // trEnd: period-END of range.end (last concrete instant of the range).
+    // Using toComparableDateEnd ensures "2026-Q4" means Dec 31, not Oct 1.
     const trEnd =
       ir.metadata.time_range.end !== undefined
-        ? toComparableDate(ir.metadata.time_range.end)
+        ? toComparableDateEnd(ir.metadata.time_range.end)
         : null;
 
     const checkOutside = (
-      startDate: Date | null,
-      endDate: Date | null,
+      itemStartDate: Date | null, // period-START of item's start boundary
+      itemEndDate: Date | null,   // period-END of item's end boundary
       entityPath: string,
       label: string,
     ): void => {
-      if (trEnd !== null && startDate !== null && startDate > trEnd) {
+      // Entirely after the range: item's period-start > range's period-end
+      if (trEnd !== null && itemStartDate !== null && itemStartDate > trEnd) {
         warnings.push({
           path: entityPath,
           code: 'OUTSIDE_TIME_RANGE',
@@ -662,7 +729,8 @@ export function validateDocument(ir: IRDocument): ValidationResult {
           severity: 'warning',
           suggestion: 'Adjust the entity dates or widen metadata.time_range.',
         });
-      } else if (trStart !== null && endDate !== null && endDate < trStart) {
+      // Entirely before the range: item's period-end < range's period-start
+      } else if (trStart !== null && itemEndDate !== null && itemEndDate < trStart) {
         warnings.push({
           path: entityPath,
           code: 'OUTSIDE_TIME_RANGE',
@@ -674,19 +742,24 @@ export function validateDocument(ir: IRDocument): ValidationResult {
     };
 
     ir.activities.forEach((a: Activity, i: number) => {
+      // Period-start for the start boundary (left edge)
       const aStart = toComparableDate(a.span ?? a.start ?? '');
+      // Period-end for the end boundary (right edge) — coarse spans/ends use their last instant
       const aEnd =
         a.span !== undefined
-          ? aStart
+          ? toComparableDateEnd(a.span)
           : a.end !== undefined
-            ? toComparableDate(a.end)
+            ? toComparableDateEnd(a.end)
             : null;
       checkOutside(aStart, aEnd, `/activities/${i}`, `Activity "${a.id}"`);
     });
 
     (ir.milestones ?? []).forEach((m: Milestone, i: number) => {
-      const mDate = toComparableDate(m.date);
-      checkOutside(mDate, mDate, `/milestones/${i}`, `Milestone "${m.id}"`);
+      // For a milestone, the item's period spans from its period-start to its period-end.
+      // Outside only if the whole period is before range-start or after range-end.
+      const mStart = toComparableDate(m.date);
+      const mEnd = toComparableDateEnd(m.date);
+      checkOutside(mStart, mEnd, `/milestones/${i}`, `Milestone "${m.id}"`);
     });
   }
 

@@ -62,6 +62,80 @@ const T2_IR: IRDocument = {
 };
 
 // ---------------------------------------------------------------------------
+// Additional Phase-1 fix fixtures
+// ---------------------------------------------------------------------------
+
+/** Multi-track IR for fix #2 (track label visibility). */
+const MULTI_TRACK_IR: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title:      'Multi-Track Test',
+    today:      '2026-06-10',
+    time_range: { start: '2021-01', end: '2021-12' },
+    axis_unit:  'month',
+    theme:      'consulting',
+    locale:     'en',
+  },
+  tracks: [
+    { id: 'alpha', label: 'Alpha Track', index: 0 },
+    { id: 'beta',  label: 'Beta Track',  index: 1 },
+  ],
+  activities: [],
+  milestones: [],
+};
+
+/** IR with a progress activity for fix #1. */
+const PROGRESS_IR: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title:      'Progress Test',
+    today:      '2026-06-10',
+    time_range: { start: '2021-01', end: '2021-12' },
+    axis_unit:  'month',
+    theme:      'consulting',
+    locale:     'en',
+  },
+  tracks: [{ id: 'main', label: '', index: 0 }],
+  activities: [
+    {
+      id:       'act-progress',
+      label:    'In-Progress Work',
+      track:    'main',
+      start:    '2021-03-01',
+      end:      '2021-09-30',
+      status:   'in-progress',
+      progress: 0.6,
+    },
+  ],
+  milestones: [],
+};
+
+/** IR with an ongoing (open-ended) activity for fix #3. */
+const OPEN_END_IR: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title:      'Open-End Test',
+    today:      '2026-06-10',
+    time_range: { start: '2021-01', end: '2021-12' },
+    axis_unit:  'month',
+    theme:      'consulting',
+    locale:     'en',
+  },
+  tracks: [{ id: 'main', label: '', index: 0 }],
+  activities: [
+    {
+      id:     'ongoing-act',
+      label:  'Ongoing Service',
+      track:  'main',
+      start:  '2021-03-01',
+      // no end = ongoing
+      status: 'in-progress',
+    },
+  ],
+  milestones: [],
+};
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -204,6 +278,31 @@ describe('renderDocument — T2 (horizontal numbered nodes)', () => {
     it('empty milestones list renders without error', () => {
       const irEmpty: IRDocument = { ...T2_IR, milestones: [] };
       expect(() => renderDocument(irEmpty, { format: 'svg' })).not.toThrow();
+    });
+  });
+
+  describe('(d) Phase 1 render fixes', () => {
+    it('fix #2: multi-track SVG contains track labels in the header gutter', () => {
+      const result = renderDocument(MULTI_TRACK_IR, { format: 'svg' });
+      expect(result.svg).toContain('Alpha Track');
+      expect(result.svg).toContain('Beta Track');
+    });
+
+    it('fix #1: activity with progress emits a progress fill rect (opacity 0.45)', () => {
+      const result = renderDocument(PROGRESS_IR, { format: 'svg' });
+      // Progress fill uses progressFillOpacity = 0.45
+      expect(result.svg).toContain('opacity="0.45"');
+    });
+
+    it('fix #3: ongoing activity (omitted end) emits a right-pointing path indicator', () => {
+      const result = renderDocument(OPEN_END_IR, { format: 'svg' });
+      expect(result.svg).toContain('<path');
+    });
+
+    it('fix #3: determinism — two renders of open-ended IR are byte-identical', () => {
+      const r1 = renderDocument(OPEN_END_IR, { format: 'svg' });
+      const r2 = renderDocument(OPEN_END_IR, { format: 'svg' });
+      expect(r1.svg).toBe(r2.svg);
     });
   });
 });
