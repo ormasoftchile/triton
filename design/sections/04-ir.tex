@@ -1415,3 +1415,445 @@ The IR is the stable contract between pipeline stages:
 \textbf{Contract stability:} Downstream components may not require IR fields beyond
 this specification. Extension fields (\texttt{metadata}) are pass-through.
 
+
+%% ============================================================================
+%% BUILD VS ADOPT: SURVEY OF EXISTING REPRESENTATIONS
+%% (Research: David, 2026-06-10)
+%% ============================================================================
+\subsection{Build vs.\ Adopt: A Survey of Existing Representations}
+\label{sec:ir-build-vs-adopt}
+
+Before committing to a fully greenfield IR, this section surveys existing formats,
+grammars, and standards as potential adoption or extension candidates. Every
+candidate is assessed against the five criteria derived from the design principles
+(\S\ref{sec:ir-structure}):
+\begin{enumerate}
+  \item \textbf{Visual-communication focus:} roadmap/milestone/swimlane semantics,
+        \emph{not} task-scheduling (no dependencies, resource levelling, or
+        critical path);
+  \item \textbf{Git-friendly:} line-oriented text, stable field order, minimal diff
+        churn;
+  \item \textbf{LLM-generatable:} clear required/optional schema, simple references,
+        forgiving structure;
+  \item \textbf{Render/theme separation:} clean boundary between \emph{what} is
+        communicated and \emph{how} it looks; and
+  \item \textbf{Open licence with community or specification body.}
+\end{enumerate}
+
+%% ------------------------------------------------------------------
+\subsubsection{Timeline Text Languages}
+%% ------------------------------------------------------------------
+
+\paragraph{Markwhen.}
+Markwhen~\cite{markwhen} (MIT licence) is the closest existing tool to our
+surface-syntax goals. Events are written as \texttt{date: label} or
+\texttt{start/end: label} lines; \texttt{group:} blocks provide swimlane-like
+structure; \texttt{\#tag} tokens allow lightweight categorisation. The format
+is text-native, line-oriented, and git-diffable.
+
+Critical gaps exist, however. There is no first-class status concept
+(no equivalent of \texttt{status: at-risk}); granularity is limited to ISO
+dates and informal text strings (no \texttt{2026-Q3} or fiscal-quarter
+shorthand); render/theme separation is absent---the view container interprets
+colour from tags, not a separate theme layer; static SVG, PDF, and PPTX output
+are unsupported; and Markwhen does not publish a versioned, machine-verifiable
+schema for its internal JSON parse tree, which makes reliable LLM generation
+fragile. The editor (markwhen.com) is proprietary; only the parser and view
+container are open source.
+
+\paragraph{Mermaid timeline and Gantt.}
+The Mermaid \texttt{timeline} type~\cite{mermaiddocs2024} groups events into
+sections on a free-text time axis. It has no swimlane concept, no status enum,
+no PPTX output, and no render/theme separation (styles are hard-coded in the
+renderer). The Mermaid \texttt{gantt} type~\cite{mermaidgantt2024} adds
+dependency keywords (\texttt{crit}, \texttt{done}, \texttt{active})---precisely
+the scheduling semantics this specification rejects. Neither type exposes a
+stable IR that downstream tooling can consume.
+
+\paragraph{PlantUML Gantt.}
+PlantUML's \texttt{@startgantt}~\cite{plantumlgantt} is experimental and
+scheduling-oriented (dependency declarations, work-remaining percentages). Its
+verbose, UML-rooted syntax is not LLM-friendly for presentation timelines.
+
+\paragraph{D2 and Structurizr.}
+D2~\cite{d2lang} is a general-purpose diagram DSL with no native timeline type.
+Structurizr~\cite{structurizr} is domain-specific to software architecture (C4
+model). Neither is a relevant adoption candidate.
+
+%% ------------------------------------------------------------------
+\subsubsection{Visualization Grammars}
+%% ------------------------------------------------------------------
+
+\paragraph{Vega-Lite.}
+Vega-Lite~\cite{vegalite2017} is the most significant analogy in this
+category. It demonstrates that a high-level declarative JSON grammar can
+cleanly separate \emph{what to visualize} (data, encodings, marks) from
+\emph{how to render it} (scales, axes, guides, legends), with actual rendering
+delegated to the Vega runtime. This is precisely the WHAT/HOW philosophy that
+this IR embodies (see \S\ref{sec:ir-relationships}).
+
+Vega-Lite is, however, a statistical-graphics grammar, not a roadmap grammar.
+Encoding a swimlane timeline in Vega-Lite requires manual mark composition:
+a \texttt{rect} mark with \texttt{y: track}, \texttt{x: start},
+\texttt{x2: end}, plus separate layers for milestones and annotations. There is
+no first-class concept of \texttt{tracks}, \texttt{milestones}, \texttt{status},
+\texttt{span}, or \texttt{annotations}. The resulting spec is verbose
+(100{+} JSON lines for a five-activity roadmap), fragile for LLM generation,
+and not human-editable in the YAML sense intended here. Vega-Lite is the
+strongest \emph{architectural analogy}---its declarative WHAT/HOW separation is
+the direct design precedent for this IR---but cannot be adopted wholesale.
+
+\paragraph{The Grammar of Graphics and ggplot2.}
+Wilkinson's grammar~\cite{grammarofgraphics2005} and Wickham's layered
+refinement~\cite{layeredgrammar2010} establish the theoretical foundation for
+declarative visual grammars: decompose a graphic into data, aesthetics,
+geometry, statistics, and scales. The key insight---separating semantic content
+from visual treatment---directly motivates this IR's separation of
+tracks/activities/status from theme/colours/layout. These are
+\emph{conceptual donors}, not adoptable formats.
+
+\paragraph{Observable Plot and Apache ECharts.}
+Observable Plot (ISC licence~\cite{observable-plot}) is a concise JavaScript
+charting API. It has no native swimlane roadmap type and requires imperative
+programming, not declarative text authoring. Apache ECharts has a
+\texttt{timeline} component, but it is an animated-playback control that cycles
+through multiple chart states over time---not a swimlane roadmap grammar.
+Neither is suitable for adoption.
+
+%% ------------------------------------------------------------------
+\subsubsection{Timeline Data Models}
+%% ------------------------------------------------------------------
+
+\paragraph{Knight Lab TimelineJS.}
+TimelineJS~\cite{timelinejs} accepts a flat JSON array of events with
+\texttt{start\_date}, \texttt{end\_date}, \texttt{text.headline}, and
+\texttt{text.text}. It is storytelling-oriented (narrative slides, embedded
+media) with no swimlanes, no status enum, no PPTX output, and no render/theme
+separation.
+
+\paragraph{vis-timeline.}
+vis-timeline~\cite{vistimeline} is a browser-only interactive widget requiring
+JavaScript item objects (\texttt{\{id, content, start, end, group\}}). There is
+no declarative text format, no static SVG/PDF/PPTX export, and no theme-layer
+concept. Not adoptable.
+
+\paragraph{react-chrono and Timeline Storyteller.}
+react-chrono~\cite{react-chrono} (MIT) accepts a JavaScript items array with
+\texttt{title}, \texttt{cardTitle}, \texttt{cardDetailedText}; date fields are
+plain strings with no semantic granularity and no swimlanes. Microsoft
+Research's Timeline Storyteller~\cite{timeline-storyteller} (open-sourced 2019)
+accepts a simple \texttt{[\{start, end, label\}]} JSON array---no swimlanes,
+no status, no maintained community. Neither is adoptable.
+
+%% ------------------------------------------------------------------
+\subsubsection{Temporal and Calendar Standards}
+%% ------------------------------------------------------------------
+
+\paragraph{iCalendar (RFC 5545).}
+RFC~5545~\cite{ical-rfc5545} defines \textsc{vevent} with properties
+\texttt{DTSTART}, \texttt{DTEND}, \texttt{SUMMARY}, \texttt{DESCRIPTION},
+\texttt{CATEGORIES}, \texttt{STATUS} (\texttt{TENTATIVE}, \texttt{CONFIRMED},
+\texttt{CANCELLED}), and \texttt{URL}. This vocabulary is the outstanding
+\emph{donor}: Mark's \texttt{start}/\texttt{end}/\texttt{label}/\texttt{description}/
+\texttt{category}/\texttt{status}/\texttt{url} all map directly to iCalendar
+terms, establishing prior-art legitimacy for these names
+(see Table~\ref{tab:alignment}).
+
+The \textsc{ics} wire format is wholly unsuitable: property-folded lines
+(\texttt{DTSTART:20260609T140000Z}), no YAML/JSON structure, and no swimlane,
+visual-status, or render-pipeline concept. The \texttt{STATUS} enum covers
+scheduling state (\texttt{CONFIRMED}) but not visual-communication urgency
+(\texttt{at-risk}, \texttt{blocked}). \textbf{Not adoptable; strongest single
+vocabulary donor.}
+
+\paragraph{Schema.org/Event.}
+The schema.org \texttt{Event} type~\cite{schemaorg-event} defines
+\texttt{name}, \texttt{startDate}, \texttt{endDate}, \texttt{description},
+\texttt{url}, and \texttt{eventStatus}. These are the canonical web vocabulary
+for events and corroborate Mark's field naming. Schema.org is a
+semantic-markup standard (JSON-LD/Microdata), not a visual representation
+format. \textbf{Not adoptable; useful vocabulary donor.}
+
+\paragraph{W3C OWL-Time.}
+OWL-Time~\cite{owltime} (W3C Recommendation, 2022) formalises temporal
+entities as \texttt{Instant} and \texttt{Interval} with object properties
+\texttt{hasBeginning}, \texttt{hasEnd}, and \texttt{hasTemporalDuration}.
+Crucially, omitting \texttt{hasEnd} explicitly represents an open/ongoing
+interval---the precise semantics of the IR's \texttt{end: ongoing}. OWL-Time
+implements Allen's thirteen interval relations~\cite{allen1983} and is the
+authoritative formal reference for the IR's open-ended activity semantics.
+
+\paragraph{Allen's Interval Algebra.}
+Allen's 1983 paper~\cite{allen1983} establishes 13 binary relations between
+time intervals: \emph{before}, \emph{meets}, \emph{overlaps}, \emph{starts},
+\emph{during}, \emph{finishes}, \emph{equals}, and their converses. The
+algebra provides formal vocabulary for the uncertain/open date model: an
+activity with \texttt{end: ongoing} participates in the \emph{started-by}
+relation with the document's \texttt{time\_range} without requiring a concrete
+end date. Not a format; the formal grounding for temporal semantics.
+
+\paragraph{ISO 8601.}
+ISO~8601~\cite{iso8601} is already the foundation of the date model
+(\S\ref{sec:date-model}). The IR's \texttt{2026-06-09}, \texttt{2026-06}, and
+\texttt{2026} forms are ISO~8601; the \texttt{2026-Q2} and \texttt{2026-H1}
+extensions follow the same \texttt{YYYY-unit} pattern as a natural extension.
+No further alignment is needed.
+
+%% ------------------------------------------------------------------
+\subsubsection{Scheduling and PM Formats}
+%% ------------------------------------------------------------------
+
+TaskJuggler~\cite{taskjuggler} (GPL~v2), MS Project XML~\cite{msprojectxml},
+and Primavera P6 are scheduling grammars built around \emph{computed} dates:
+dependency resolution, resource levelling, and critical-path analysis. All are
+explicitly out of scope per the Timeline Grammar decision. MS Project XML
+additionally fails the git-friendly criterion: the format is non-deterministic
+between saves (GUIDs and timestamps change on every write). No vocabulary from
+these formats merits borrowing beyond what iCalendar and schema.org already
+provide.
+
+%% ------------------------------------------------------------------
+\subsubsection{Analogous Document IRs}
+%% ------------------------------------------------------------------
+
+The Pandoc AST~\cite{pandoc} is the strongest structural analogy: a typed,
+versioned, language-agnostic JSON document IR with a \texttt{pandoc-api-version}
+key, a \texttt{meta} block, and a sequence of typed block elements. This
+pattern---\texttt{version} + \texttt{metadata} + typed entity lists---maps
+directly onto the root structure of \S\ref{sec:ir-structure}. The Dragon
+Book~\cite{dragonbook2006} provides theoretical backing for a typed,
+pipeline-stable IR as the contract between compilation stages. Both are
+\emph{structural analogies}, not adoptable formats.
+
+%% ------------------------------------------------------------------
+\subsubsection{Comparison Table}
+%% ------------------------------------------------------------------
+
+Table~\ref{tab:build-vs-adopt} scores the seven strongest candidates against
+the five criteria. \textbf{Y}~=~good fit; \textbf{P}~=~partial;
+\textbf{N}~=~poor fit or not applicable.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{3.2cm}ccccp{1.6cm}c}
+\toprule
+\textbf{Candidate}
+  & \textbf{Vis.}
+  & \textbf{Git}
+  & \textbf{LLM}
+  & \textbf{Sep.}
+  & \textbf{Licence}
+  & \textbf{Tooling} \\
+\midrule
+Markwhen~\cite{markwhen}
+  & Y & Y & P & N & MIT & P \\
+Mermaid timeline~\cite{mermaiddocs2024}
+  & P & Y & P & N & MIT & Y \\
+iCalendar VEVENT~\cite{ical-rfc5545}
+  & N & N & N & N & IETF & Y \\
+TimelineJS JSON~\cite{timelinejs}
+  & Y & P & Y & N & GPL & P \\
+vis-timeline~\cite{vistimeline}
+  & Y & N & N & N & MIT & Y \\
+Vega-Lite~\cite{vegalite2017}
+  & P & P & P & Y & BSD-3 & Y \\
+TaskJuggler~\cite{taskjuggler}
+  & N & Y & N & N & GPLv2 & P \\
+\bottomrule
+\end{tabular}
+\caption{Build-vs-Adopt scoring. Vis.~=~visual-communication focus (not
+scheduling); Git~=~git-friendly text format; LLM~=~LLM-generatable schema;
+Sep.~=~render/theme separation; Tooling~=~active community. Y~=~good;
+P~=~partial; N~=~poor.}
+\label{tab:build-vs-adopt}
+\end{table}
+
+No candidate scores \textbf{Y} on all five dimensions. Markwhen---the
+closest---fails on render/theme separation, lacks a stable machine-verifiable
+schema, and has no PPTX output path.
+
+%% ------------------------------------------------------------------
+\subsubsection{Recommendation: \textsc{Build} with Borrowed Vocabulary}
+%% ------------------------------------------------------------------
+
+\textbf{Verdict: \textsc{Build} a bespoke IR. No existing format is
+adoptable wholesale and no viable extension profile exists.}
+
+Two orthogonal gaps eliminate every candidate:
+
+\begin{enumerate}
+  \item \textbf{Semantic gap.} All formats with real communities (Mermaid,
+        iCalendar, Vega-Lite) are scheduling-oriented, statistical-graphics-%
+        oriented, or calendar-oriented. None is a visual-communication roadmap
+        grammar. Defining a ``profile'' of iCalendar or a ``mark recipe'' in
+        Vega-Lite would require adding swimlanes, visual status, coarse-grain
+        dates, PPTX output, and a theme engine as first-class concepts---at
+        which point we have built a new layer regardless.
+
+  \item \textbf{Pipeline gap.} The requirement of a static, multi-backend
+        render pipeline (SVG / PDF / PPTX) with a separate theme engine has no
+        counterpart in any existing open-source tool. Mermaid, Markwhen, and
+        vis-timeline all bake rendering into the format. Vega-Lite delegates to
+        a JavaScript runtime, making it unsuitable for PPTX or print-PDF output
+        without adaptation that would negate any adoption benefit.
+\end{enumerate}
+
+A \textsc{build} decision is therefore justified. It must not be a
+wheel-reinvention: the following \textbf{vocabulary and semantic donors} are
+explicitly leveraged so that the IR speaks standard language wherever standards
+exist.
+
+\begin{description}
+  \item[ISO 8601~\cite{iso8601}]
+        Date string syntax (\texttt{2026-06-09}, \texttt{2026-Q2}).
+        Already used in the date model (\S\ref{sec:date-model});
+        no change needed.
+
+  \item[iCalendar RFC~5545~\cite{ical-rfc5545}]
+        Field naming: \texttt{DTSTART}~$\to$~\texttt{start},
+        \texttt{DTEND}~$\to$~\texttt{end},
+        \texttt{SUMMARY}~$\to$~\texttt{label},
+        \texttt{DESCRIPTION}~$\to$~\texttt{description},
+        \texttt{CATEGORIES}~$\to$~\texttt{tags}/\texttt{category},
+        \texttt{URL}~$\to$~\texttt{url}.
+        Status vocabulary: \texttt{TENTATIVE} appears verbatim in the Status
+        enum; \texttt{CANCELLED} maps to \texttt{cancelled}.
+
+  \item[Schema.org/Event~\cite{schemaorg-event}]
+        Confirms \texttt{name}/\texttt{startDate}/\texttt{endDate}/
+        \texttt{description}/\texttt{url} as the canonical web vocabulary for
+        events. Mark's \texttt{label}/\texttt{start}/\texttt{end} are direct
+        equivalents (shorter names preferred for human authoring).
+
+  \item[W3C OWL-Time~\cite{owltime} and Allen's Algebra~\cite{allen1983}]
+        Open-interval semantics: omitting \texttt{hasEnd} denotes an ongoing
+        interval, validating \texttt{end: ongoing}. The Instant/Interval
+        duality formalises the \texttt{Milestone} (instant) vs.\
+        \texttt{Activity} (interval) distinction.
+
+  \item[Vega-Lite~\cite{vegalite2017}]
+        Architectural precedent: strict WHAT/HOW separation between a
+        declarative specification (this IR) and the rendering runtime
+        (Theme Engine + Renderer). The pattern of a versioned, typed YAML/JSON
+        document as the sole contract between source and output is adopted from
+        Vega-Lite's design.
+
+  \item[Markwhen~\cite{markwhen} and Mermaid~\cite{mermaiddocs2024}]
+        Surface-syntax precedents: readable event lines, section/group
+        structure, tag-based categorisation. These inform future higher-level
+        authoring syntaxes that compile down to this IR.
+
+  \item[Pandoc AST~\cite{pandoc}]
+        Structural analogy: versioned, typed, language-agnostic document IR with
+        \texttt{version} + \texttt{meta} + typed entity lists. Validates the
+        root structure (\S\ref{sec:ir-structure}) and the principle of a
+        stable, machine-verifiable schema.
+\end{description}
+
+%% ------------------------------------------------------------------
+\subsubsection{Alignment of Mark's IR with Prior Art}
+%% ------------------------------------------------------------------
+
+Table~\ref{tab:alignment} maps Mark's field names to their closest standard
+equivalents. Fields marked \emph{Original} have no adequate standard analog
+and are justified by the visual-communication use case.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{2.4cm}p{3.0cm}p{2.0cm}p{4.0cm}}
+\toprule
+\textbf{IR field} & \textbf{iCal / schema.org} & \textbf{OWL-Time} & \textbf{Assessment} \\
+\midrule
+\texttt{start}, \texttt{end}
+  & \texttt{DTSTART/DTEND}; \texttt{startDate/endDate}
+  & \texttt{hasBeginning/} \texttt{hasEnd}
+  & \textbf{Aligned.} Standard names; shorter preferred for authoring. \\
+\texttt{label}
+  & \texttt{SUMMARY}; \texttt{name}
+  & ---
+  & \textbf{Aligned.} Shorter form preferred for YAML. \\
+\texttt{description}
+  & \texttt{DESCRIPTION}
+  & ---
+  & \textbf{Aligned.} \\
+\texttt{url}
+  & \texttt{URL}; \texttt{url}
+  & ---
+  & \textbf{Aligned.} \\
+\texttt{tags}
+  & \texttt{CATEGORIES} (multi)
+  & ---
+  & \textbf{Aligned.} Correct plural form. \\
+\texttt{category}
+  & \texttt{CATEGORIES} (single)
+  & ---
+  & \textbf{Aligned.} \\
+\texttt{status: tentative}
+  & \texttt{STATUS:TENTATIVE}
+  & ---
+  & \textbf{Aligned.} Verbatim iCalendar value. \\
+\texttt{status: cancelled}
+  & \texttt{STATUS:CANCELLED}
+  & ---
+  & \textbf{Aligned.} Lower-case per IR convention. \\
+\texttt{status: at-risk}
+  & ---
+  & ---
+  & \textbf{Original.} No standard analog; justified by executive-presentation idiom. \\
+\texttt{status: blocked}
+  & ---
+  & ---
+  & \textbf{Original.} No standard analog; justified by visual-communication need. \\
+\texttt{end: ongoing}
+  & ---
+  & omit \texttt{hasEnd}
+  & \textbf{Semantically aligned.} Explicit encoding is clearer than omission. \\
+\texttt{span}
+  & ---
+  & ---
+  & \textbf{Original.} Convenient shorthand; no standard equivalent. \\
+\texttt{track}
+  & \texttt{CALENDAR} (weak)
+  & ---
+  & \textbf{Original.} Markwhen uses \texttt{group}; \texttt{track} is clearer. \\
+\texttt{progress}
+  & ---
+  & ---
+  & \textbf{Original.} No standard analog; no change needed. \\
+\texttt{Activity} (type)
+  & \textsc{vevent} (duration $>$ 0)
+  & \texttt{Interval}
+  & \textbf{Aligned.} Correct modelling of time-spanning entities. \\
+\texttt{Milestone} (type)
+  & \textsc{vevent} (zero dur.)
+  & \texttt{Instant}
+  & \textbf{Aligned.} Correct modelling of point-in-time markers. \\
+\bottomrule
+\end{tabular}
+\caption{Alignment of Mark's IR field names and types with prior-art standards.}
+\label{tab:alignment}
+\end{table}
+
+\paragraph{Flags for Mark and Leslie (no schema changes required).}
+\begin{itemize}
+  \item \textbf{No schema changes are recommended.} Mark's field choices are
+        well-aligned with iCalendar RFC~5545, schema.org/Event, and OWL-Time.
+        The original contributions (\texttt{at-risk}, \texttt{blocked},
+        \texttt{span}, \texttt{progress}, \texttt{track}) are justified by the
+        visual-communication use case and have no adequate standard equivalent.
+
+  \item \textbf{Document vocabulary donors in the spec preamble.} This section
+        serves that purpose. Future contributors should not propose renames (e.g.,
+        \texttt{name} for \texttt{label}, \texttt{startDate} for \texttt{start})
+        without consulting this survey, since shorter names are deliberate and
+        standards-corroborated.
+
+  \item \textbf{Optional surface alias \texttt{type: event}:} schema.org uses
+        \texttt{Event} and OWL-Time uses \texttt{Instant} for point-in-time
+        items. Exposing \texttt{type: event} as a surface-syntax alias for
+        milestones could ease LLM generation without changing the IR schema.
+        Flagged for future surface-language design.
+\end{itemize}
+

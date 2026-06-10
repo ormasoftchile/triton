@@ -508,3 +508,136 @@
                   embedded in PPTX. Informs Timeline Compiler's PPTX shape
                   generation and styling fidelity.}
 }
+
+% -----------------------------------------------------------------------------
+% BUILD-VS-ADOPT SURVEY (added 2026-06-10 by David, Research Lead)
+% Sources for §4 "Build vs. Adopt" subsection.
+% -----------------------------------------------------------------------------
+
+@misc{markwhen,
+  author       = {{mark-when Contributors}},
+  title        = {Markwhen: An Interactive Text-to-Timeline Tool},
+  year         = {2024},
+  howpublished = {\url{https://github.com/mark-when/markwhen}},
+  urldate      = {2026-06-10},
+  note         = {MIT license (parser, view container, VSCode extension).
+                  Web editor (markwhen.com) is proprietary. Markdown-inspired
+                  text format: \texttt{date: label} events grouped into
+                  \texttt{group:}/\texttt{section:} blocks. Swimlanes
+                  supported; no PPTX/PDF export; no stable machine-verifiable
+                  schema; no theme/render separation.}
+}
+
+@article{allen1983,
+  author       = {Allen, James F.},
+  title        = {Maintaining Knowledge about Temporal Intervals},
+  journal      = {Communications of the {ACM}},
+  volume       = {26},
+  number       = {11},
+  pages        = {832--843},
+  year         = {1983},
+  doi          = {10.1145/182.358434},
+  note         = {Establishes the 13 binary interval relations (before, meets,
+                  overlaps, starts, during, finishes, equals, and converses)
+                  that underpin OWL-Time and qualitative temporal reasoning.
+                  Validates open/ongoing interval semantics: an activity
+                  with no end date ``starts'' the document time range without
+                  requiring a concrete bound.}
+}
+
+@misc{owltime,
+  author       = {{W3C OWL Time Ontology Working Group}},
+  title        = {{OWL-Time}: Time Ontology in {OWL} --- {W3C} Recommendation},
+  year         = {2022},
+  howpublished = {\url{https://www.w3.org/TR/owl-time/}},
+  urldate      = {2026-06-10},
+  note         = {W3C Recommendation (updated 2022). Defines \texttt{TemporalEntity},
+                  \texttt{Instant}, \texttt{Interval}, and properties
+                  \texttt{hasBeginning}, \texttt{hasEnd},
+                  \texttt{hasTemporalDuration}. Omitting \texttt{hasEnd}
+                  denotes an open/ongoing interval, validating the IR's
+                  \texttt{end: ongoing} semantics. Implements Allen's 13
+                  interval relations.}
+}
+
+@misc{ical-rfc5545,
+  author       = {Desruisseaux, B., Ed.},
+  title        = {{RFC} 5545: Internet Calendaring and Scheduling Core Object
+                  Specification ({iCalendar})},
+  year         = {2009},
+  howpublished = {\url{https://datatracker.ietf.org/doc/html/rfc5545}},
+  urldate      = {2026-06-10},
+  note         = {IETF Standards Track. Defines \textsc{vevent} with fields
+                  \texttt{DTSTART}, \texttt{DTEND}, \texttt{SUMMARY},
+                  \texttt{DESCRIPTION}, \texttt{CATEGORIES}, \texttt{STATUS}
+                  (\texttt{TENTATIVE}, \texttt{CONFIRMED}, \texttt{CANCELLED}),
+                  and \texttt{URL}. The field naming is the dominant vocabulary
+                  donor for Timeline IR. The \textsc{ics} wire format is
+                  not git-friendly and has no swimlane or visual-status concept.}
+}
+
+@misc{schemaorg-event,
+  author       = {{Schema.org Community Group}},
+  title        = {Event --- schema.org},
+  year         = {2024},
+  howpublished = {\url{https://schema.org/Event}},
+  urldate      = {2026-06-10},
+  note         = {Schema.org type for events, defining properties
+                  \texttt{name}, \texttt{startDate}, \texttt{endDate},
+                  \texttt{description}, \texttt{url}, \texttt{organizer},
+                  and \texttt{eventStatus}. Open vocabulary maintained by
+                  W3C community. Not a visual-communication format, but
+                  confirms canonical web naming for timeline entity fields.}
+}
+
+@misc{taskjuggler,
+  author       = {{TaskJuggler Contributors}},
+  title        = {{TaskJuggler}: A Free and Open Source Project Management Tool},
+  year         = {2024},
+  howpublished = {\url{https://taskjuggler.org/}},
+  urldate      = {2026-06-10},
+  note         = {GPL v2. Plain-text \texttt{.tjp} DSL with \texttt{project},
+                  \texttt{task}, \texttt{resource}, \texttt{depends} keywords.
+                  Full scheduling grammar: dependency resolution, resource
+                  levelling, critical path. Out of scope for visual-communication
+                  timelines; no vocabulary worth borrowing beyond what
+                  iCalendar and schema.org already provide.}
+}
+
+@misc{observable-plot,
+  author       = {{Observable, Inc.}},
+  title        = {Observable Plot: The JavaScript Library for Exploratory
+                  Data Visualization},
+  year         = {2024},
+  howpublished = {\url{https://github.com/observablehq/plot}},
+  urldate      = {2026-06-10},
+  note         = {ISC license. Concise JavaScript charting API inspired by
+                  Vega-Lite grammar. No native swimlane roadmap type;
+                  requires imperative mark composition. Not suitable for
+                  adoption or declarative text-format authoring.}
+}
+
+@misc{react-chrono,
+  author       = {{Prabhu Murthy and contributors}},
+  title        = {react-chrono: A Modern Timeline Component for {React}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/prabhuignoto/react-chrono}},
+  urldate      = {2026-06-10},
+  note         = {MIT license. JavaScript items array: \texttt{title},
+                  \texttt{cardTitle}, \texttt{cardDetailedText}. Date fields
+                  are plain strings with no semantic granularity. Browser-only;
+                  no swimlanes; no static SVG/PDF/PPTX export. Not adoptable.}
+}
+
+@misc{timeline-storyteller,
+  author       = {{Microsoft Research}},
+  title        = {Timeline Storyteller: An Expressive Visual Storytelling
+                  Tool for Presenting Timelines},
+  year         = {2019},
+  howpublished = {\url{https://github.com/Microsoft/timelinestoryteller}},
+  urldate      = {2026-06-10},
+  note         = {Open-sourced 2019; MIT license. Research prototype accepting
+                  CSV or JSON array (\texttt{start}, \texttt{end},
+                  \texttt{label}). No swimlanes, no status, no PPTX output,
+                  no active maintenance. Not adoptable.}
+}

@@ -13,6 +13,34 @@
 - Added `json-schema2020` BibTeX entry to references.bib for Bjarne's agent-integration section (§9) cite requirement.
 - Added `skia`, `webgl`, `golden-image-testing`, and `ooxml` BibTeX entries to references.bib for Barbara's render-backends rework (§5/§6/§7).
 
+### 2026-06-10 — Build-vs-Adopt IR Survey
+
+**Finding:** No existing format is adoptable wholesale as a Timeline IR. The recommendation is **BUILD** a bespoke IR with vocabulary borrowed from established standards.
+
+**Two decisive gaps:**
+1. Semantic gap: no existing format combines visual-communication roadmap semantics (swimlanes, visual status, milestones) with git-friendly text, LLM-generatable schema, and PPTX output.
+2. Pipeline gap: no open-source tool supports a static, multi-backend render pipeline (SVG/PDF/PPTX) with a separate theme engine—every extant tool bakes rendering into the format.
+
+**Closest candidates surveyed:**
+- Markwhen (MIT): best surface-syntax fit; fails on theme separation, no stable schema, no PPTX. Not adoptable.
+- Mermaid timeline (MIT): no swimlanes, no status, no PPTX. Not adoptable.
+- Vega-Lite (BSD-3): best architectural analogy for WHAT/HOW separation; not a roadmap grammar. Not adoptable.
+- iCalendar RFC 5545 (IETF): best vocabulary donor; wire format hostile to git/YAML/theme separation. Not adoptable.
+- TaskJuggler (GPLv2): scheduling grammar, explicitly out of scope.
+
+**Vocabulary donors identified (all borrowed into existing IR):**
+- ISO 8601 → date strings (already used)
+- iCalendar RFC 5545 → `start`/`end`/`label`/`description`/`category`/`tags`/`url`/`tentative`/`cancelled`
+- schema.org/Event → corroborates above field names as canonical web vocabulary
+- W3C OWL-Time + Allen's Algebra → open/ongoing interval semantics (`end: ongoing`), Instant/Interval duality (Milestone vs Activity)
+- Vega-Lite → WHAT/HOW architectural separation as design precedent
+- Pandoc AST → `version`+`metadata`+typed-entity-lists structural pattern
+- Markwhen/Mermaid → surface-syntax precedents for future authoring language
+
+**New cite keys added to references.bib:** `markwhen`, `allen1983`, `owltime`, `ical-rfc5545`, `schemaorg-event`, `taskjuggler`, `observable-plot`, `react-chrono`, `timeline-storyteller`
+
+**Mark/Leslie flags:** No IR schema changes needed. Field names are standards-corroborated. `at-risk`, `blocked`, `span`, `progress`, `track` are original contributions with no adequate standard equivalent.
+
 ### 2026-06-09 — Research Sprint: Comparison Analysis and OSS Strategy
 
 **Prior-art findings:**
