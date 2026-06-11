@@ -2115,26 +2115,31 @@ Since the 2026-06-10 analysis, significant progress has been made:
 
 **Image:** `design/figures/target-vertical-spine-dark.png`
 
-**Verdict:** 🟡 **Partially renderable** (core structure done, visual polish needed)
+**Verdict:** ✅ **CLOSED** (2026-06-11 — Barbara)
 
-**What We CAN Already Do:**
+**What Was Implemented:**
 - Vertical-spine layout family ✅
 - Alternating left/right entry blocks ✅
-- Dark background (showcase theme: `#0D1B2A`) ✅
-- Large year labels on spine ticks ✅
-- Drop shadow on card blocks (showcase: `cardEffects`) ✅
-- Icon badges at content-block corners ✅
-- Multi-paragraph description text per entry ✅
+- Dark background (subject-timeline theme: `#1A1A2E`) ✅
+- Large year labels on spine ticks (in entry color) ✅
+- White node fill override ✅
+- Segmented colored spine (T2-1) ✅
+- Dashed leader lines + far-edge icon badges (T2-2) ✅
+- Node chevrons (T2-3) ✅
+- Multi-block entry content — `blocks` field (T2-4, Mark's handoff) ✅
+- Domain icon approximations: hardhat/wrench/truck/building (T2-5) ✅
 
-**Remaining Gaps:**
+**New opt-in tokens** (defaults preserve all existing goldens byte-identical):
+`spineSegmentColor`, `badgePlacement`, `spineNodeArrow`, `yearLabelUsesEntryColor`, `spineNodeFillOverride`
 
-| Gap ID | Type | Description | Owner | Effort |
-|--------|------|-------------|-------|--------|
-| T2-1 | [Layout] | **Per-segment spine color** — T2 shows distinct spine segment colours (cyan/orange/pink/steel) between year nodes. Current spine is single-color (`axisLineColor`). Need `Milestone.spineColor?: string` or similar + segment-aware rendering. | Barbara/Mark | M |
-| T2-2 | [Layout] | **Dashed leader lines + far-edge icon badges** — T2 shows large icon circles at canvas edges, connected back to spine nodes with dashed horizontal lines. Current badges are in-block corners only. Need dedicated `badgePosition: 'edge'` mode + dashed connector style. | Barbara | M |
-| T2-3 | [Layout] | **Small arrowheads at spine/entry junction** — decorative chevrons where entries meet the spine. | Barbara | S |
-| T2-4 | [IR Schema] | **Multiple sub-blocks ("Subject 1", "Subject 2") per entry** — T2 2023 entry has two named subject sections. Current IR has single `description` string. May need `description_blocks?: Array<{title: string, text: string}>` on Activity/Milestone. | Mark | M |
-| T2-5 | [Icon] | **Pictographic icons** (surveyor, crane truck, building) — T2 uses illustrative icons not in our 20-icon registry. Add domain icons or support custom SVG injection. | Barbara | S–M |
+**Theme:** `subject-timeline` | **Fixture:** `examples/showcase/subject-timeline.timeline.yaml`
+**Golden:** `examples/gallery/showcase/subject-timeline-skia.png` (1200×1226 px)
+
+**Known minor gaps:** Icon art is geometric approximation; left-entry body text is left-aligned (not center-aligned as in reference).
+
+**All 561 tests pass; typecheck + lint clean; all existing goldens byte-identical.**
+
+**Remaining Gaps:** *(none — all T2 gaps closed)*
 
 #### T3: AI Timeline Dense ("THE AI TIMELINE")
 
@@ -2209,19 +2214,19 @@ Sorted by number of targets unblocked (highest leverage first):
 
 | Gap ID | Type | Description | Targets Affected | Owner | Effort |
 |--------|------|-------------|-----------------|-------|--------|
-| T2-1 | Layout | Per-segment spine color | T2 | Barbara/Mark | M |
-| T2-2 | Layout | Dashed leader lines + far-edge icon badges | T2 | Barbara | M |
-| T2-4 | IR Schema | Multiple sub-blocks per entry | T2 | Mark | M |
+| ~~T2-1~~ | ~~Layout~~ | ~~Per-segment spine color~~ | ~~T2~~ | ~~Barbara/Mark~~ | ✅ CLOSED |
+| ~~T2-2~~ | ~~Layout~~ | ~~Dashed leader lines + far-edge icon badges~~ | ~~T2~~ | ~~Barbara~~ | ✅ CLOSED |
+| ~~T2-4~~ | ~~IR Schema~~ | ~~Multiple sub-blocks per entry~~ | ~~T2~~ | ~~Mark~~ | ✅ CLOSED |
 | ~~T3-3~~ | ~~IR Schema~~ | ~~Activity.color?: string (direct color)~~ | ~~T3~~ | ~~Mark~~ | ✅ CLOSED |
 | ~~T1-1~~ | ~~Theme~~ | ~~Alternating above/below milestone placement~~ | ~~T1~~ | ~~Barbara~~ | ✅ CLOSED (pre-existing) |
 | ~~T5-1~~ | ~~Layout~~ | ~~CTA button rendering from url field~~ | ~~T5~~ | ~~Barbara~~ | ✅ CLOSED |
 | T4-1 | Layout | **Serpentine spine geometry** | T4 | Barbara | **L** |
 | T1-3 | Render | Brand logo/image slot (SceneImage primitive) | T1 | Barbara/Mark | M |
-| T2-3 | Layout | Small arrowheads at spine/entry junction | T2 | Barbara | S |
+| ~~T2-3~~ | ~~Layout~~ | ~~Small arrowheads at spine/entry junction~~ | ~~T2~~ | ~~Barbara~~ | ✅ CLOSED |
 | ~~T3-1~~ | ~~Theme~~ | ~~Gradient background for vertical layouts~~ | ~~T3~~ | ~~Barbara~~ | ✅ CLOSED |
 | ~~T3-2~~ | ~~Layout~~ | ~~Year-label typography scaling~~ | ~~T3~~ | ~~Barbara~~ | ✅ CLOSED |
 | ~~T5-2~~ | ~~Theme~~ | ~~Inline date icon rendering~~ | ~~T5~~ | ~~Barbara~~ | ✅ CLOSED |
-| T2-5 | Icon | Domain-specific pictographic icons | T2 | Barbara | S–M |
+| ~~T2-5~~ | ~~Icon~~ | ~~Domain-specific pictographic icons~~ | ~~T2~~ | ~~Barbara~~ | ✅ CLOSED (geometric approx) |
 | T4-2 | Icon | GitHub logo icon | T4 | Barbara | S |
 
 ### Gaps Closed Since 2026-06-10 Analysis

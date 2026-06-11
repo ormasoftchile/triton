@@ -258,3 +258,38 @@ Added `LogoSpec` interface and `metadata.logo?: LogoSpec` to close the IR/schema
 - All green; typecheck + lint clean
 
 **Handoff to Barbara:** Field live. Exact shape: `metadata.logo?: { src: string; position?: 'top-left'|'top-right'; width?: number; height?: number }`. Barbara owns SceneImage primitive, backend rendering, and header layout. IR does not encode how the asset is loaded or embedded.
+
+## Learnings — ContentBlock / blocks field (2026-06-11)
+
+- **`ContentBlock` interface added (2026-06-11):** New named interface `ContentBlock { heading?: string; text: string }` defined in packages/core/src/types.ts, positioned before `TimeRange` in the structural sub-types section.
+- **`blocks?: ContentBlock[]` added to both `Activity` and `Milestone` (2026-06-11):** Field placed after `description` in both interfaces. Parity decision: Activities can carry multi-section content (sprint phases, project sub-topics) just as milestones can — adding to both is consistent with the icon/color parity pattern applied throughout the IR.
+- **description-vs-blocks rendering precedence (documented, not enforced):** If `blocks` is present and non-empty, renderers SHOULD use `blocks` and ignore `description`. If `blocks` is absent or empty, renderers fall back to `description`. Both fields MAY coexist at the schema level (no hard invariant), but authors SHOULD NOT set both. A soft preference for `blocks` over `description` is documented via JSDoc on `ContentBlock`, `Activity.blocks`, and `Milestone.blocks`. No hard well-formedness invariant was added — the minimal documentation approach was chosen.
+- **Zod schema:** `contentBlockSchema = z.object({ heading: z.string().optional(), text: z.string().min(1) })`. Wired as `blocks: z.array(contentBlockSchema).optional()` in both `activitySchema` and `milestoneSchema` in packages/core/src/schema.ts.
+- **JSON Schema regen:** Run `pnpm -r build` (or `pnpm -C packages/schema build`). The regenerated timeline.json carries `blocks` as `type: array` with `items: { properties: { heading: {type: string}, text: {type: string, minLength: 1} }, required: ['text'] }` on both milestones.items and activities.items.
+- **Files touched:** packages/core/src/types.ts, packages/core/src/schema.ts, packages/schema/v1/timeline.json (auto-generated), packages/core/test/validate.test.ts (+7 blocks tests), packages/schema/test/schema.test.ts (+4 blocks tests).
+- **Test counts after change:** core 540 tests, schema 13 tests — all green. Typecheck clean. (Preimage: 545 total; Postimage: 556 total.)
+
+## 2026-06-11 — ContentBlock (blocks field) Implementation (T2 Step 1)
+
+✓ **blocks?: ContentBlock[] Added to Milestone and Activity**
+
+Added structured multi-block content field to support T2 dark vertical-spine entries with multiple titled sub-sections.
+
+**Changes:**
+- `packages/core/src/types.ts`: Added `ContentBlock` interface with JSDoc; added `blocks?: ContentBlock[]` to both `Activity` and `Milestone` interfaces (after `description`)
+- `packages/core/src/schema.ts`: Added `contentBlockSchema` Zod sub-object; wired as `blocks: z.array(contentBlockSchema).optional()` in both `activitySchema` and `milestoneSchema`
+- `packages/schema/v1/timeline.json`: Regenerated via `pnpm -r build`
+- `packages/core/test/validate.test.ts`: Added 7 validation tests (4 Milestone.blocks, 3 Activity.blocks)
+- `packages/schema/test/schema.test.ts`: Added 4 JSON Schema conformance tests (2 Milestone.blocks, 2 Activity.blocks)
+
+**description-vs-blocks Precedence Decision:**
+- Soft documentation approach (no hard invariant). Renderers SHOULD prefer `blocks` over `description` when `blocks` is non-empty.
+- Both MAY coexist (schema-level); authors SHOULD NOT set both.
+- Decision record: `.squad/decisions/inbox/mark-content-blocks.md`
+
+**Test Status:**
+- Preimage: 545 tests passing
+- Postimage: 556 tests passing (540 core + 13 schema + 3 CLI)
+- All green; typecheck + lint clean
+
+**Handoff to Barbara:** Field live on both entities. Exact shape: `blocks?: { heading?: string; text: string }[]`. Rendering precedence: if `blocks` non-empty → use blocks; else fallback to `description`. JSON Schema regenerated and verified. Barbara owns all layout/render logic for ContentBlock display.
