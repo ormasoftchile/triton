@@ -185,3 +185,10 @@ Horizontal golden guard (our-timeline-skia.png) byte-identical.
 
 **Milestone Achieved:** All design targets fully renderable from IR to byte-deterministic output.
 
+---
+
+## Learnings
+
+- Serpentine layout (T4) now appears in examples/gallery/showcase.html for direct browsing alongside other showcase entries. Fixture placement (examples/showcase/serpentine-journey.timeline.yaml) confirmed consistent with other showcase fixtures.
+
+
