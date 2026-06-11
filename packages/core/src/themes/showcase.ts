@@ -25,8 +25,10 @@ import type { ResolvedTheme } from './types.js';
 const BG          = '#0D1B2A'; // deep navy canvas (solid fallback for SVG)
 const FG          = '#E8EEF5'; // near-white primary text
 const FG_DIM      = '#7AACCC'; // muted cyan secondary text
-const CYAN        = '#00D4FF'; // electric cyan (glow, borders, accent)
-const CYAN_DIM    = '#0099CC'; // deeper cyan for stroke/accent
+const CYAN        = '#00D4FF'; // electric cyan (glow, active, standard-node)
+const CYAN_DIM    = '#0099CC'; // deeper cyan for stroke/accent/category fill
+const BLUE_SCHED  = '#4D9AFF'; // periwinkle blue (planned / scheduled)
+const TEAL_ACTIVE = '#00CC88'; // teal green (in-progress / active work)
 const GOLD        = '#FFB800'; // warm gold (at-risk, section)
 const CRIMSON     = '#FF4D6D'; // vivid crimson (blocked)
 const STEEL       = '#607D9B'; // steel blue (done)
@@ -143,13 +145,13 @@ export const showcaseTheme: ResolvedTheme = {
   },
 
   statusMap: {
-    'planned':     { fill: CYAN,     stroke: CYAN_DIM, opacity: 1.0,  pattern: 'solid'          },
-    'in-progress': { fill: CYAN_DIM, stroke: '#006688', opacity: 1.0, pattern: 'solid'           },
-    'done':        { fill: STEEL,    stroke: '#455A7B', opacity: 0.85, pattern: 'solid'          },
-    'at-risk':     { fill: GOLD,     stroke: '#CC8800', opacity: 1.0,  pattern: 'solid'          },
-    'blocked':     { fill: CRIMSON,  stroke: '#CC2244', opacity: 1.0,  pattern: 'solid'          },
-    'cancelled':   { fill: SLATE,    stroke: '#223344', opacity: 0.6,  pattern: 'diagonal-hatch' },
-    'tentative':   { fill: LAVENDER, stroke: '#6655BB', opacity: 0.7,  pattern: 'dashed-border'  },
+    'planned':     { fill: BLUE_SCHED,  stroke: '#2277CC', opacity: 1.0,  pattern: 'solid'          },
+    'in-progress': { fill: TEAL_ACTIVE, stroke: '#009966', opacity: 1.0,  pattern: 'solid'           },
+    'done':        { fill: STEEL,       stroke: '#455A7B', opacity: 0.85, pattern: 'solid'           },
+    'at-risk':     { fill: GOLD,        stroke: '#CC8800', opacity: 1.0,  pattern: 'solid'           },
+    'blocked':     { fill: CRIMSON,     stroke: '#CC2244', opacity: 1.0,  pattern: 'solid'           },
+    'cancelled':   { fill: SLATE,       stroke: '#223344', opacity: 0.6,  pattern: 'diagonal-hatch'  },
+    'tentative':   { fill: LAVENDER,    stroke: '#6655BB', opacity: 0.7,  pattern: 'dashed-border'   },
   },
 
   categoryMap: {

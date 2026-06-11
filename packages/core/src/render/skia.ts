@@ -206,7 +206,9 @@ function renderWithEffects(CK: any, canvas: any, effects: SceneEffect[] | undefi
       const glowPaint = new CK.Paint();
       glowPaint.setColor(parseColor(CK, fx.color, 0.75));
       glowPaint.setStyle(CK.PaintStyle.Fill);
-      const blurFilter = CK.ImageFilter.MakeBlur(fx.radius / 2, fx.radius / 2, CK.TileMode.Clamp, null);
+      // Decal: pixels outside the blur layer are transparent, preventing the
+      // hard-edge clamping artifact that TileMode.Clamp produces on rect shapes.
+      const blurFilter = CK.ImageFilter.MakeBlur(fx.radius / 2, fx.radius / 2, CK.TileMode.Decal, null);
       glowPaint.setImageFilter(blurFilter);
       drawFn(0, 0, glowPaint);
       blurFilter.delete();
@@ -215,7 +217,9 @@ function renderWithEffects(CK: any, canvas: any, effects: SceneEffect[] | undefi
       const shadowPaint = new CK.Paint();
       shadowPaint.setColor(parseColor(CK, fx.color));
       shadowPaint.setStyle(CK.PaintStyle.Fill);
-      const blurFilter = CK.ImageFilter.MakeBlur(fx.blur / 2, fx.blur / 2, CK.TileMode.Clamp, null);
+      // Decal: prevents the shadow from bleeding full-opacity past the blur
+      // expansion boundary (the TileMode.Clamp artifact on filled rectangles).
+      const blurFilter = CK.ImageFilter.MakeBlur(fx.blur / 2, fx.blur / 2, CK.TileMode.Decal, null);
       shadowPaint.setImageFilter(blurFilter);
       drawFn(fx.dx, fx.dy, shadowPaint);
       blurFilter.delete();

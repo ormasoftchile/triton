@@ -261,11 +261,11 @@ describe('SVG default backend unchanged', () => {
 // ---------------------------------------------------------------------------
 
 describe('Showcase theme — Skia golden', () => {
-  it('renders our-timeline fixture with showcase theme to a valid PNG', async () => {
+  it('renders our-timeline fixture with showcase theme (vertical-spine) to a valid PNG', async () => {
     const fixtureText = readFileSync(FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'showcase', backend: 'skia',
+      format: 'png', theme: 'showcase', backend: 'skia', layout: 'vertical-spine',
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -278,8 +278,10 @@ describe('Showcase theme — Skia golden', () => {
 
     const fixtureText = readFileSync(FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
+    // Golden uses vertical-spine: the showcase theme's card/glow effects are
+    // designed for this layout family (cards with shadow, nodes with glow).
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'showcase', backend: 'skia',
+      format: 'png', theme: 'showcase', backend: 'skia', layout: 'vertical-spine',
     });
     const png = result.png!;
     expect(isPngSignature(png)).toBe(true);
@@ -330,4 +332,64 @@ describe('Showcase theme — Skia golden', () => {
       expect(errors).toHaveLength(0);
     }
   });
+});
+
+// ---------------------------------------------------------------------------
+// (8) Gallery showcase images — regenerate when absent
+// ---------------------------------------------------------------------------
+
+describe('Showcase gallery images', () => {
+  const GALLERY_DIR  = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+  const GALLERY_ROOT = join(REPO_ROOT, 'examples', 'gallery');
+
+  type GallerySpec = {
+    fixture:  string;
+    output:   string;
+    layout:   'horizontal' | 'vertical-spine';
+    caption:  string;
+  };
+
+  const GALLERY_SPECS: GallerySpec[] = [
+    {
+      fixture: join(GALLERY_ROOT, 'milestones-only.timeline.yaml'),
+      output:  'milestones-only-showcase-skia.png',
+      layout:  'vertical-spine',
+      caption: 'milestones-only — vertical-spine, showcase, skia',
+    },
+    {
+      fixture: join(GALLERY_ROOT, 'journey.timeline.yaml'),
+      output:  'journey-showcase-skia.png',
+      layout:  'vertical-spine',
+      caption: 'journey — vertical-spine, showcase, skia',
+    },
+    {
+      fixture: join(GALLERY_ROOT, 'feature-rich.timeline.yaml'),
+      output:  'feature-rich-showcase-skia.png',
+      layout:  'horizontal',
+      caption: 'feature-rich — horizontal, showcase, skia',
+    },
+    {
+      fixture: join(GALLERY_ROOT, 'ai-timeline.timeline.yaml'),
+      output:  'ai-timeline-showcase-skia.png',
+      layout:  'vertical-spine',
+      caption: 'ai-timeline — vertical-spine, showcase, skia',
+    },
+  ];
+
+  for (const spec of GALLERY_SPECS) {
+    it(`regenerates ${spec.output} (showcase theme, ${spec.layout})`, async () => {
+      ensureDir(GALLERY_DIR);
+      const outPath = join(GALLERY_DIR, spec.output);
+      const fixtureText = readFileSync(spec.fixture, 'utf-8');
+      const ir = parseIR(fixtureText);
+      const result = await renderDocumentAsync(ir, {
+        format: 'png', theme: 'showcase', backend: 'skia', layout: spec.layout,
+      });
+      const png = result.png!;
+      expect(isPngSignature(png)).toBe(true);
+      // Always write — ensures the gallery reflects the current fixed rendering.
+      writeFileSync(outPath, png);
+      console.log('[showcase-gallery]', spec.caption, '→', outPath);
+    }, 60_000);
+  }
 });
