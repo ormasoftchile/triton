@@ -179,3 +179,47 @@ Extended the IR with `Activity.icon?: string` field to unblock Barbara's renderi
 - All green, ready for Barbara's rendering step
 
 **Handed off to Barbara** with clear semantics: optional string field, use `getIcon()` to resolve, unknown names fallback silently.
+
+## Learnings — Activity.color field (2026-06-11)
+
+- **`Activity.color?: string` added (2026-06-11):** The `Activity` interface (packages/core/src/types.ts) now carries an optional `color?: string` field with doc comment "Explicit fill/accent color override. Any valid CSS color string (e.g. \"#FF8800\", \"coral\")." This mirrors `Milestone.color?: string` exactly.
+- **Field position in Activity schema:** Inserted after `icon` and before `description` in both types.ts and schema.ts (activitySchema), matching Milestone's field ordering.
+- **No palette validation:** `Milestone.color` is a free CSS string with no palette enforcement. `Activity.color` follows the same parity — unvalidated, passes through as-is. If palette validation is ever added, it must be applied to both simultaneously.
+- **JSON Schema regen:** After schema.ts change, run `pnpm -r build` (or `pnpm -C packages/schema build`) to regenerate packages/schema/v1/timeline.json. The regenerated file carries Activity.color at the same structural level as Milestone.color (type: string, not in required array).
+- **Files touched:** packages/core/src/types.ts, packages/core/src/schema.ts, packages/schema/v1/timeline.json (auto-generated), packages/core/test/validate.test.ts, packages/schema/test/schema.test.ts.
+- **Test counts after change:** core 481 tests (validate.test.ts: +3 Activity.color tests), schema 6 tests (+1 Activity.color JSON Schema test) — all green.
+- **Gap closed:** This is gap T3-3 from Barbara's target gap analysis for target T3 ("THE AI TIMELINE", dense vertical-spine with 12+ accent colors). Barbara's rendering step follows.
+
+## 2026-06-11 — Activity.color Field Implementation (Step 2)
+
+✓ **Activity.color Field Added + Decision Merged**
+
+Completed the Activity.color field addition to unblock Barbara's T3 rendering work (gap T3-3).
+
+**Changes:**
+- `packages/core/src/types.ts`: Added `color?: string` field to Activity interface with doc comment "Explicit fill/accent color override. Any valid CSS color string (hex, named, rgb(), hsl(), etc.)."
+- `packages/core/src/schema.ts`: Added `color: z.string().optional()` to activitySchema (positioned after icon, matching Milestone)
+- `packages/schema/v1/timeline.json`: Regenerated via `pnpm -r build`
+- `packages/core/test/validate.test.ts`: Added 3 validation tests (hex color, named CSS color, omitted color)
+- `packages/schema/test/schema.test.ts`: Added JSON Schema conformance test
+
+**Validation Parity Decision (Reconfirmed):**
+- No palette validation (matches Milestone.color exactly)
+- Free CSS string, unvalidated, renderer interprets with fallback
+- If palette enforcement is ever introduced, must be applied to Activity.color, Milestone.color, Track.color, Group.color simultaneously
+
+**Test Status:**
+- Preimage: 478 tests passing
+- Postimage: 490 tests passing (481 core + 6 schema + 3 CLI)
+- All green; typecheck + lint clean
+- Ready for Barbara's rendering integration
+
+**Decision Record:**
+- File: `.squad/decisions/inbox/mark-activity-color-field.md` → merged to decisions.md
+- Status: Accepted
+- Handoff to Barbara complete; field is live and production-ready
+
+**Learnings:**
+- Parity across all top-level IR color fields (Track, Group, Milestone, Activity) maintains consistency and supports future palette enforcement without schema retrofit
+- Free CSS strings in the IR (with renderer fallback) prove robust for multi-backend support (SVG + Skia)
+- Activity now complete feature parity with Milestone for visual customization (icon, color, category, status override)

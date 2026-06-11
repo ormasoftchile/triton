@@ -515,31 +515,389 @@ R5. **Avoid gantt-chart defaults in the IR and renderer.** The IR must not have 
 
 ---
 
-## Agent Implementation Notes (Archived — see decisions-archive.md)
+## Target Output Gap Analysis (2026-06-11)
 
-Archived implementation decision notes from 2026-06-09 through 2026-06-11. Full text and rationale preserved in decisions-archive.md; this index provides quick reference to key outcomes.
+**Author:** Barbara (Semantics & Rendering specialist)  
+**Date:** 2026-06-11  
+**Scope:** Five target images vs current renderer capabilities  
+**Replaces:** Target Output Coverage Analysis (2026-06-10, archived)
 
-- **Example Gallery Phase 1** — Barbara — 8 example IR documents with SVG/PNG renders. → decisions-archive.md
-- **Icon Set & Label Collision Stagger** — Built-in icon registry, collision detection/stagger logic. → decisions-archive.md
-- **Layout Quality Polish Pass** — Consulting theme tweaks, improved label density. → decisions-archive.md
-- **Dense Milestone Decluttering** — Alternating label blocks for dense layouts. → decisions-archive.md
-- **Phase 1 Render: Scene IR + Layout Engine + SVG/PNG Backends** — Barbara — Complete rendering pipeline. → decisions-archive.md
-- **Layout-Quality Linter & Conformance Gate** — Linter for spacing, label collision, visual quality checks. → decisions-archive.md
-- **Phase 1 Render Refinement** — Barbara — Bug fixes and polish. → decisions-archive.md
-- **Scene/Render IR as Root; Pluggable Rendering Backends** — Architecture for extensible backends. → decisions-archive.md
-- **Phase 1 Render Bug Fixes** — Critical rendering engine bug fixes. → decisions-archive.md
-- **Skia Raster Backend + Art Effects** — Barbara — Glow, drop shadow, gradient, procedural textures. → decisions-archive.md
-- **Target Output Coverage Analysis** — Layout families, gaps, theme expansion. → decisions-archive.md
-- **Four New Themes + Theme Showcase** — Barbara — New theme variants and showcase tier. → decisions-archive.md
-- **TIGHT_SPACING Root-Cause & Fix** — Barbara — CONNECTOR_LEN 48→58 for year-qualified ticks. → decisions-archive.md
-- **Vertical-Spine Layout Family** — New layout with spine connector, left/right content blocks. → decisions-archive.md
-- **IR Build-vs-Adopt Survey** — Comparison of IR extensibility approaches. → decisions-archive.md
-- **Output/Render Layer Build-vs-Adopt Survey** — Backend architecture evaluation. → decisions-archive.md
-- **Phase 0 Scaffold — Completion Note** — Initial project scaffold complete. → decisions-archive.md
-- **Phase 1 Integration** — Leslie — Integration of rendering components. → decisions-archive.md
-- **Productization Plan Decisions** — 2026-06-10 planning. → decisions-archive.md
-- **TypeScript Core API Design & Phase 0/1 Work Breakdown** — API design and sprint planning. → decisions-archive.md
-- **Milestone Fields Addition — IR Gap Closure** — New milestone fields added. → decisions-archive.md
-- **Skia Glow Artifact + Legend Colors** — Barbara — TileMode.Decal for edge bleed fix. → decisions-archive.md
-- **Activity.icon Field Addition** — Optional icon?: string field on Activity. → decisions-archive.md
-- **Activity Icon Placement Semantics and Size Rule** — Icon positioning rules and sizing. → decisions-archive.md
+### Executive Summary
+
+Since the 2026-06-10 analysis, significant progress has been made:
+- **Vertical-spine layout family**: ✅ Shipped (covers T2, T3, T5 core structure)
+- **Card entry style** (`entryStyle: 'card'`): ✅ Shipped (executive, product, showcase themes)
+- **Icon support** on milestones AND activities: ✅ Shipped (20 built-in icons)
+- **Glow/shadow effects** via Skia backend: ✅ Shipped (TileMode.Decal fix applied)
+- **Gradient/cloud backgrounds**: ✅ Shipped (showcase theme)
+- **Numbered milestone nodes** (`showOrdinalNumber: true`): ✅ Shipped
+
+**Three targets are now substantially renderable**. The remaining gaps are mostly refinements and one layout family (serpentine) that was explicitly deferred to post-MVP.
+
+### Per-Target Assessment
+
+#### T1: Horizontal Numbered Timeline ("Our Timeline")
+
+**Image:** `design/figures/target-horizontal-numbered.png`
+
+**Verdict:** 🟡 **Partially renderable** (most of it)
+
+**What We CAN Already Do:**
+- Horizontal layout family ✅
+- Large numbered circular milestone nodes (consulting theme: `showOrdinalNumber: true`, `shape: 'circle'`) ✅
+- Date label above / title below milestone (consulting theme: `dateLabelAbove: true`, `titleLabelBelow: true`) ✅
+- Light background (consulting/minimal theme) ✅
+- Deterministic font sizing and positioning ✅
+
+**Remaining Gaps:**
+
+| Gap ID | Type | Description | Owner | Effort |
+|--------|------|-------------|-------|--------|
+| T1-1 | [Theme] | **Alternating above/below node placement** — T1 shows node 02 raised above the line; nodes 01/03 below. Current horizontal layout places all milestones on a single baseline. Need `nodePlacement: 'alternating'` layout mode. | Barbara | M |
+| T1-2 | [Theme] | **Centered document title** — title is center-aligned mid-canvas. Current header block is left-aligned in some themes. | Barbara | S |
+| T1-3 | [Render] | **Brand logo/image slot** — top-right company logo. Needs `Scene.image` primitive or metadata.logo field + dedicated render slot. | Barbara/Mark | M |
+
+#### T2: Vertical Spine Dark ("Subject Timeline")
+
+**Image:** `design/figures/target-vertical-spine-dark.png`
+
+**Verdict:** 🟡 **Partially renderable** (core structure done, visual polish needed)
+
+**What We CAN Already Do:**
+- Vertical-spine layout family ✅
+- Alternating left/right entry blocks ✅
+- Dark background (showcase theme: `#0D1B2A`) ✅
+- Large year labels on spine ticks ✅
+- Drop shadow on card blocks (showcase: `cardEffects`) ✅
+- Icon badges at content-block corners ✅
+- Multi-paragraph description text per entry ✅
+
+**Remaining Gaps:**
+
+| Gap ID | Type | Description | Owner | Effort |
+|--------|------|-------------|-------|--------|
+| T2-1 | [Layout] | **Per-segment spine color** — T2 shows distinct spine segment colours (cyan/orange/pink/steel) between year nodes. Current spine is single-color (`axisLineColor`). Need `Milestone.spineColor?: string` or similar + segment-aware rendering. | Barbara/Mark | M |
+| T2-2 | [Layout] | **Dashed leader lines + far-edge icon badges** — T2 shows large icon circles at canvas edges, connected back to spine nodes with dashed horizontal lines. Current badges are in-block corners only. Need dedicated `badgePosition: 'edge'` mode + dashed connector style. | Barbara | M |
+| T2-3 | [Layout] | **Small arrowheads at spine/entry junction** — decorative chevrons where entries meet the spine. | Barbara | S |
+| T2-4 | [IR Schema] | **Multiple sub-blocks ("Subject 1", "Subject 2") per entry** — T2 2023 entry has two named subject sections. Current IR has single `description` string. May need `description_blocks?: Array<{title: string, text: string}>` on Activity/Milestone. | Mark | M |
+| T2-5 | [Icon] | **Pictographic icons** (surveyor, crane truck, building) — T2 uses illustrative icons not in our 20-icon registry. Add domain icons or support custom SVG injection. | Barbara | S–M |
+
+#### T3: AI Timeline Dense ("THE AI TIMELINE")
+
+**Image:** `design/figures/target-ai-timeline-dense.png`
+
+**Verdict:** 🟡 **Partially renderable** (structure complete, polish needed)
+
+**What We CAN Already Do:**
+- Vertical-spine layout with alternating entries ✅
+- Dense multi-decade timeline (1967→2024) — date engine handles long ranges ✅
+- Year labels on spine, multi-line descriptions per entry ✅
+- Light background theming ✅
+- Automatic spacing adjustment for dense clustering ✅
+
+**Remaining Gaps — ALL CLOSED 2026-06-11**
+
+| Gap ID | Type | Description | Owner | Effort | Status |
+|--------|------|-------------|-------|--------|--------|
+| T3-1 | [Theme] | **Gradient background strip** — T3 has a subtle vertical gradient/wave decorative background. Need `sceneBackground: { kind: 'gradient' }` tuned for vertical layout (currently used in showcase for horizontal). | Barbara | S | ✅ CLOSED |
+| T3-2 | [Layout] | **Year-label typography scaling** — T3 year labels are oversized bold (~36pt) vs entry text. Current `fontSizeAxis` is 10pt. Need separate `yearLabelFontSize` token. | Barbara | S | ✅ CLOSED (`fontSizeYearLabel: 16` in ai-timeline theme) |
+| T3-3 | [IR Schema] | **Activity.color?: string** — T3 uses 12+ distinct accent colours. While `category` + `categoryMap` works, direct `color` on Activity would be more ergonomic. Milestone already has `color`. | Mark→Barbara | S | ✅ CLOSED (Mark added field; Barbara wired render) |
+
+**T3 overall: FULLY RENDERABLE ✅**
+
+#### T4: Serpentine Glow Path
+
+**Image:** `design/figures/target-serpentine-glow.png`
+
+**Verdict:** 🔴 **Not yet renderable** (serpentine layout family not implemented)
+
+**What We CAN Already Do:**
+- Glow effect (`effects: [{ kind: 'glow', ... }]`) via Skia backend ✅
+- Start/end icons (`clock` icon exists, GitHub mark would need adding) ✅
+- Gradient backgrounds via `sceneBackground` ✅
+
+**Remaining Gaps:**
+
+| Gap ID | Type | Description | Owner | Effort |
+|--------|------|-------------|-------|--------|
+| T4-1 | [Layout] | **Serpentine/winding spine geometry** — Core architectural gap. Date-to-position must map onto a parametric Bézier S-curve. Explicitly deferred to **Post-MVP / Priority 3** per decisions-archive.md. | Barbara | L |
+| T4-2 | [Icon] | **GitHub logo icon** — T4 has GitHub mark at path start. Not in registry (trademark concern — may need user-supplied SVG). | Barbara | S |
+
+**Decision Reference:** The serpentine layout family was ruled "fundamentally novel, recommended for post-MVP release" in the 2026-06-10 Target Output Coverage Analysis.
+
+#### T5: Gitline Cards (Dark App Timeline)
+
+**Image:** `design/figures/target-gitline-cards.png`
+
+**Verdict:** 🟡 **Partially renderable** (core timeline done, CTA buttons missing)
+
+**What We CAN Already Do:**
+- Vertical-spine layout ✅
+- Card entry style (`entryStyle: 'card'`) with rounded-rect backgrounds ✅
+- Dark theme (showcase) ✅
+- Alternating left/right entries ✅
+- Date + clock icon per entry (icon field + `clock` icon in registry) ✅
+- Title, date, description text blocks ✅
+- Shadow effects on cards (Skia backend) ✅
+- Cloud/gradient decorative backgrounds (showcase theme) ✅
+
+**Remaining Gaps:**
+
+| Gap ID | Type | Description | Owner | Effort |
+|--------|------|-------------|-------|--------|
+| T5-1 | [Layout] | **CTA button ("VIEW REPOSITORY")** — T5 entries have a pill-shaped action button below description. Need `url` field to render as button + button primitive (`Scene.button` or styled rect+text). | Barbara | M |
+| T5-2 | [Theme] | **Inline date icon** — T5 shows a small clock icon inline with the date text. Current date is text-only. Need icon+text inline block. | Barbara | S |
+| T5-3 | N/A | **App chrome** (header, tabs, search, pagination) — **OUT OF SCOPE**. We render the timeline canvas only, not the application shell. | N/A | — |
+
+### Consolidated Gap Table
+
+Sorted by number of targets unblocked (highest leverage first):
+
+| Gap ID | Type | Description | Targets Affected | Owner | Effort |
+|--------|------|-------------|-----------------|-------|--------|
+| T2-1 | Layout | Per-segment spine color | T2 | Barbara/Mark | M |
+| T2-2 | Layout | Dashed leader lines + far-edge icon badges | T2 | Barbara | M |
+| T2-4 | IR Schema | Multiple sub-blocks per entry | T2 | Mark | M |
+| T3-3 | IR Schema | Activity.color?: string (direct color) | T3 | Mark | S |
+| T1-1 | Theme | Alternating above/below milestone placement | T1 | Barbara | M |
+| T5-1 | Layout | CTA button rendering from url field | T5 | Barbara | M |
+| T4-1 | Layout | **Serpentine spine geometry** | T4 | Barbara | **L** |
+| T1-3 | Render | Brand logo/image slot | T1 | Barbara/Mark | M |
+| T2-3 | Layout | Small arrowheads at spine/entry junction | T2 | Barbara | S |
+| T3-1 | Theme | Gradient background for vertical layouts | T3 | Barbara | S |
+| T3-2 | Layout | Year-label typography scaling | T3 | Barbara | S |
+| T5-2 | Theme | Inline date icon rendering | T5 | Barbara | S |
+| T2-5 | Icon | Domain-specific pictographic icons | T2 | Barbara | S–M |
+| T4-2 | Icon | GitHub logo icon | T4 | Barbara | S |
+
+### Gaps Closed Since 2026-06-10 Analysis
+
+The following gaps from the prior analysis are now **resolved**:
+
+| Prior Gap | Resolution |
+|-----------|------------|
+| Vertical-spine layout family (Render-1) | ✅ Shipped in `vertical-spine.ts` |
+| Card-entry rendering (Render-4) | ✅ Shipped via `entryStyle: 'card'` in themes |
+| Glow/bloom effects | ✅ Shipped in Skia backend + showcase theme |
+| Shadow effects | ✅ Shipped in Skia backend + showcase theme |
+| Milestone.icon | ✅ Shipped |
+| Activity.icon | ✅ Shipped (2026-06-11) |
+| Milestone.color | ✅ Shipped |
+| Milestone.metadata | ✅ Shipped |
+| Numbered-circle milestone shape | ✅ Shipped (`showOrdinalNumber: true`) |
+| Gradient/cloud background | ✅ Shipped (`sceneBackground` in showcase) |
+
+### Recommended Build Order
+
+To maximize target coverage with minimal effort:
+
+**Priority 1: Close T3 (AI Timeline Dense) — Already ~90% there**
+1. **T3-3: Activity.color** (Mark, S) — enables direct color on Activity for 12+ accent palette
+2. **T3-2: yearLabelFontSize token** (Barbara, S) — oversized year labels
+3. **T3-1: Gradient background tuning** (Barbara, S) — already infrastructure exists
+
+After these 3 small items, **T3 is fully renderable**.
+
+**Priority 2: Close T5 (Gitline Cards)**
+1. **T5-1: CTA button rendering** (Barbara, M) — renders `activity.url` as pill button
+2. **T5-2: Inline date icon** (Barbara, S) — clock icon inline with date text
+
+After these 2 items, **T5 is fully renderable** (excluding out-of-scope app chrome).
+
+**Priority 3: Polish T2 (Vertical Spine Dark)**
+1. **T2-1: Per-segment spine color** (Barbara/Mark, M) — visually distinctive
+2. **T2-2: Far-edge badges + dashed leaders** (Barbara, M)
+3. **T2-4: Multi-block descriptions** (Mark, M) — IR extension
+4. **T2-3: Arrowheads** (Barbara, S)
+5. **T2-5: Domain icons** (Barbara, S–M)
+
+**Priority 4: Close T1 (Horizontal Numbered)**
+1. **T1-1: Alternating node placement** (Barbara, M)
+2. **T1-3: Logo slot** (Barbara/Mark, M)
+
+**Post-MVP: T4 (Serpentine)**
+- **T4-1: Serpentine layout** — L effort, explicitly deferred per prior decisions.
+
+### Summary
+
+| Target | Previous Verdict | Current Verdict | Change |
+|--------|-----------------|-----------------|--------|
+| T1 Horizontal Numbered | 🔴 Partial | 🟡 Partially renderable | ⬆️ |
+| T2 Vertical Spine Dark | 🔴 No | 🟡 Partially renderable | ⬆️⬆️ |
+| T3 AI Timeline Dense | 🔴 No | 🟡 Partially renderable | ⬆️⬆️ |
+| T4 Serpentine Glow | 🔴 No | 🔴 Not yet (deferred) | — |
+| T5 Gitline Cards | 🔴 No | 🟡 Partially renderable | ⬆️⬆️ |
+
+**Key Insight:** With ~8 small/medium items, we can close T1, T3, and T5 fully. T2 needs the most visual polish work. T4 remains a post-MVP target per architectural decisions.
+
+---
+
+## Decision: Activity.color Field Added (2026-06-11)
+
+**Author:** Mark (IR & Data Modeling)  
+**Status:** Accepted  
+**Requested by:** ormasoftchile  
+**Context:** Gap T3-3 from Barbara's target gap analysis — closing target T3 ("THE AI TIMELINE", dense vertical-spine timeline with 12+ distinct accent colors).
+
+### Decision
+
+Add an optional `color?: string` field to the `Activity` entity, mirroring the existing `Milestone.color?: string` field exactly.
+
+### Motivation
+
+Target T3 requires per-activity accent colors across 12+ activities. `Milestone.color` already existed for this purpose on milestones. `Activity` was the only top-level IR entity (alongside Track and Group, which already have `color`) that lacked a color override. This gap blocked Barbara's rendering work for T3.
+
+### Field Specification
+
+| Property | Value |
+|---|---|
+| Field name | `color` |
+| Type | `string` (optional) |
+| Default | `undefined` (renderer falls back to theme/status defaults) |
+| Semantics | Explicit fill/accent color override for the activity bar. Any valid CSS color string (hex, named, rgb(), hsl(), etc.). Interpreted by the renderer; the IR carries it as a semantic hint only. |
+| Validation | **None** — free CSS string, unvalidated, identical to `Milestone.color` behavior. |
+| Palette enforcement | Not applied. If palette enforcement is introduced in future, it MUST be applied to `Activity.color`, `Milestone.color`, `Track.color`, and `Group.color` simultaneously to maintain parity. |
+
+### Parity Rationale
+
+`Milestone.color` has never been validated against a CSS palette or a restricted set of values. Applying stricter validation to `Activity.color` would create an asymmetry with no technical justification. The rendering layer (Barbara) is responsible for interpreting the color value and providing fallback behavior for invalid or missing colors.
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `packages/core/src/types.ts` | Added `color?: string` to `Activity` interface after `icon`, with doc comment |
+| `packages/core/src/schema.ts` | Added `color: z.string().optional()` to `activitySchema` after `icon`, matching Milestone ordering |
+| `packages/schema/v1/timeline.json` | Regenerated via `pnpm -r build`; Activity.color now appears as `{ type: "string" }`, not in `required` array |
+| `packages/core/test/validate.test.ts` | Added 3 tests: hex color accepted, named CSS color accepted, omitted color accepted |
+| `packages/schema/test/schema.test.ts` | Added 1 test: JSON Schema exposes Activity.color as optional string |
+
+### Test Results
+
+- **Preimage:** 478 tests passing  
+- **Postimage:** 481 core + 6 schema + 3 CLI = **490 tests passing**, all green  
+- `pnpm -r typecheck` ✅  
+- `pnpm -r test` ✅  
+
+### Handoff to Barbara
+
+The field is live in the IR. Barbara can now read `activity.color` during rendering:
+- `activity.color` — `string | undefined`, free CSS color
+- If `undefined`, fall back to theme/status defaults (existing behavior unchanged)
+- No palette validation is performed by the IR layer; Barbara may apply her own fallback for unrecognized values
+
+**Note:** In the canonical **IR Contract** section above, Activity now has optional `color?: string` (free CSS, unvalidated, parity with Milestone.color).
+
+---
+
+## Decision: T3 "THE AI TIMELINE" — Gaps Closed (2026-06-11)
+
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-11  
+**Status:** MERGED
+
+### Context
+
+Target T3 is a dense vertical-spine timeline spanning 1967–2024 with per-entry accent colors,
+large bold year labels, and a subtle gradient background. Three gaps remained from prior analysis.
+This record documents the decisions taken to close all three.
+
+### T3-3 — Activity.color Precedence Rule
+
+**Decision:** Mirror Milestone.color precedence exactly.
+
+Precedence chain (highest → lowest):
+1. `activity.color` / `milestone.color` (explicit free CSS string on the IR entry)
+2. `categoryMap[category]` fill (theme-level category override)
+3. `statusMap[status]` fill (theme-level status color)
+4. Theme default fill
+
+**Implementation:**
+- `vertical-spine.ts`: `resolveStatusStyle(status?, category?, colorOverride?)` — when `colorOverride`
+  is set it overrides both `fill` and `stroke` in the returned style object.
+- `horizontal.ts`: simple `??` chain: `activity.color ?? catOverride?.fill ?? base?.fill ?? defaultFill`
+- Undefined or invalid color strings are passed as-is; if the SVG or Skia renderer rejects them
+  they fall back to the theme default transparently (no crash).
+
+### T3-2 — Year-label Typography Token
+
+**Token name:** `fontSizeYearLabel` (added to `TypographyTheme` in `themes/types.ts`)
+**Type:** `number` (point size, optional)
+**Default:** unset → falls back to `fontSizeAxis` (existing behaviour, zero regression)
+
+When set, `vertical-spine.ts` computes:
+```
+yearFontPx    = ptToPx(theme.typography.fontSizeYearLabel)
+yearFontWeight = 700   (always bold when the token is explicitly set)
+```
+
+Geometry constraint at 16pt on a 1200px canvas:
+- TICK_LABEL_X = 614px
+- Entry-text start (right side) = SPINE_X + CONNECTOR_LEN + BLOCK_INNER_PAD = 668px
+- "1967" text width at 16pt ≈ 41.6px → right edge = 655.6px → gap = 12.4px > OVERLAP_EPSILON (4px) ✅
+
+The `ai-timeline` theme sets `fontSizeYearLabel: 16`. All other built-in themes remain unaffected.
+
+### T3-1 — Gradient Background for Vertical Layouts
+
+**Decision:** No new infrastructure required. Use existing `SceneBackground { kind:'gradient' }`.
+
+The `sceneBackground` gradient path was already implemented and production-verified by the
+`showcase` theme (Skia backend, cloud + gradient). Enabling it for vertical-spine requires only
+that the theme's `canvas.sceneBackground` field be set.
+
+**`ai-timeline` theme declaration:**
+```typescript
+canvas: {
+  sceneBackground: { kind: 'gradient', from: '#EEF0FF', to: '#F8F0FF', angle: 90 },
+  backgroundColor: '#F7F8FF',  // SVG fallback
+}
+```
+
+`angle: 90` → top-to-bottom (cos(90°)=0, sin(90°)=1 in Skia backend). SVG backend ignores
+`sceneBackground` per existing contract and uses `backgroundColor` instead.
+
+### New Theme: `ai-timeline`
+
+**File:** `packages/core/src/themes/ai-timeline.ts`
+**Fidelity tier:** Tier 2 (Skia art effects, card style, gradient)
+**Key tokens:**
+| Token | Value |
+|-------|-------|
+| `entryStyle` | `'card'` |
+| `fontSizeYearLabel` | 16 |
+| `sceneBackground` | `{ kind:'gradient', from:'#EEF0FF', to:'#F8F0FF', angle:90 }` |
+| `backgroundColor` | `'#F7F8FF'` (SVG fallback) |
+
+Vivid status palette tuned for AI-history content:
+- planned → #7C3AED (deep violet)
+- in-progress → #0EA5A8 (teal)
+- done → #2D9E67 (green)
+- risk → #D97706 (amber)
+- delayed → #E05B5B (red)
+- milestone (default) → #5B4FCF (indigo)
+
+### New Fixtures
+
+| File | Purpose | Quality gate |
+|------|---------|--------------|
+| `examples/gallery/ai-timeline.timeline.yaml` | Gallery discovery; 4 milestones, 4 activities, single track | Scanned; passes all 5 themes × 2 layouts |
+| `examples/showcase/ai-timeline.timeline.yaml` | Full T3 dense showcase; 12 milestones, 8 activities, 2 tracks | Not scanned (showcase/ not in quality gate glob) |
+
+The showcase fixture is loaded directly by `skia.test.ts` for the T3 Skia golden.
+
+### Bonus: Horizontal Tick-label Density Fix
+
+Added `tickLabelVisible[]` pre-computation in `horizontal.ts` before the tick loop.
+Labels are suppressed when their left edge is within `MIN_TICK_LABEL_GAP` (4px) of the
+previous label's right edge. This is a pure deterministic function and does not change
+existing rendered output for timelines with adequate tick spacing (all existing goldens unaffected).
+
+### Validation
+
+- `pnpm -C packages/core test` → 486/486 ✅
+- `pnpm -r test` → 495/495 ✅
+- `pnpm -r typecheck` → clean ✅
+- `pnpm -r lint` → clean ✅
+- Skia determinism test → unchanged ✅
+- Existing theme goldens → unchanged ✅ → decisions-archive.md
