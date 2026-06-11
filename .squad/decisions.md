@@ -370,7 +370,7 @@ Agents generating IR should prefer concrete ISO dates (`2026-Q2`, `2026-06-09`) 
 ### Renderer Implementation Notes
 
 - **Skia raster backend** — glow/shadow blur uses `TileMode.Decal` (NOT Clamp) so filled-rect effects fade to transparent at layer edges instead of bleeding the fill color into the connector zone. (Fixed 2026-06-11.)
-- **Vertical-spine layout** — `CONNECTOR_LEN = 58` px (raised from 48) so right-side content-block labels clear year-qualified axis tick labels ("Q1 20XX", ~46px wide) with an 8px gap, avoiding TIGHT_SPACING. (Fixed 2026-06-11.) Vertical-spine now supports `spineSpacing: 'time' | 'even'` (default `'time'`; `'even'` places entries at uniform intervals for sparse long-span timelines).
+- **Vertical-spine layout** — `CONNECTOR_LEN = 58` px (raised from 48) so right-side content-block labels clear year-qualified axis tick labels ("Q1 20XX", ~46px wide) with an 8px gap, avoiding TIGHT_SPACING. (Fixed 2026-06-11.) Vertical-spine in `'time'` mode auto-compresses empty gaps when average spacing >4× ENTRY_MIN_SPACING, capping compressed gaps at 2× ENTRY_MIN_SPACING (200px) to keep sparse long-span timelines compact. `spineSpacing: 'time' | 'even'` is available as both a theme token and a render option (`RenderOptions`).
 - **Activity icon placement** — Activity icons render at the left (start) edge of the activity bar, size = barHeight−4, preceding the label; reuses the milestone icon path-primitive pipeline; too-narrow bars skip the icon.
 
 ---
@@ -996,3 +996,98 @@ Only `ai-timeline` sets `spineSpacing: 'even'`.  All other themes omit the token
 | Existing goldens changed | — | 0 (only ai-timeline-ai-theme-skia.png) |
 | typecheck | ✅ | ✅ |
 | lint | ✅ | ✅ |
+# Decision: Vertical-Spine Gap Compression + spineSpacing Render Option
+
+**Date:** 2026-06-11  
+**Author:** Barbara (Semantics & Rendering)  
+**Status:** Shipped
+
+---
+
+## Problem
+
+Sparse long-span timelines (e.g. 1967–2024 with ~8–20 entries) produce absurdly tall canvases
+when rendered with any theme that uses the default 'time' spacing mode.  Root cause: the
+`pixelsPerDay` floor is 0.4, so `hDraw = spanDays × 0.4 = 8328 px` for a 57-year fixture.
+The minimum-spacing pass only grows positions — it cannot compress empty multi-decade gaps.
+
+This affected every gallery render of `ai-timeline.timeline.yaml` that was NOT using the
+`ai-timeline` theme (which already had `spineSpacing: 'even'` from the previous session).
+Confirmed giant files: `ai-timeline-showcase-skia.png` (8762 px), `ai-timeline.png` (8732 px),
+`ai-timeline.svg` (8760 px).
+
+---
+
+## Decision A — Gap Compression in 'time' Mode (Robustness Guard)
+
+**File:** `packages/core/src/layout/vertical-spine.ts`
+
+Add an automatic gap-compression pass to 'time' mode that fires ONLY when the average
+time-proportional spacing per entry exceeds a threshold:
+
+```
+isGapCompressed = !isEvenSpacing && nEntries > 1
+               && hDrawTime / nEntries > GAP_K_TRIGGER × ENTRY_MIN_SPACING
+```
+
+Constants: `GAP_K_TRIGGER = 4` (400 px), `GAP_K_CAP = 2` (200 px).
+
+When triggered, each consecutive raw gap is capped:
+```
+nodeYs[i] = nodeYs[i-1] + min(rawNodeYs[i] - rawNodeYs[i-1], 200)
+```
+
+`hDraw` for gap-compressed mode is set from the final `nodeYs` (not `hDrawTime`), so the
+canvas height is proportionally compact.  `effectiveDateY` delegates to `evenDateY` (piecewise
+linear between entry positions) in both even and gap-compressed modes, keeping all derived
+primitives (ticks, sections, annotations) geometrically consistent.
+
+**Determinism contract:** Normal timelines whose average ≤ 400 px/entry produce zero change.
+Verified by checking all gallery fixtures (avg ≤ 100 px/entry) and the committed SVG golden
+(`examples/golden/our-timeline.svg`) which remains byte-identical.
+
+---
+
+## Decision B — spineSpacing as a Render Option
+
+**File:** `packages/core/src/types.ts`, `packages/core/src/render/index.ts`
+
+Added `spineSpacing?: 'time' | 'even'` to `RenderOptions`.  When set, it overrides the theme's
+own `spineSpacing` declaration:
+
+```typescript
+if (options?.spineSpacing !== undefined) {
+  theme = { ...theme, spineSpacing: options.spineSpacing };
+}
+```
+
+This allows callers to force even spacing for any fixture/theme combination without modifying
+the IR or the theme, satisfying the "render-level option preferred" principle.
+
+**Gallery/showcase wiring:**
+- `skia.test.ts` showcase gallery spec for `ai-timeline.timeline.yaml`: `spineSpacing: 'even'`
+  added so the showcase PNG is always compact regardless of theme.
+- `quality.test.ts`: new "Gallery emit" section writes `examples/gallery/ai-timeline.svg` and
+  `examples/gallery/ai-timeline.png` with `{ theme:'consulting', spineSpacing:'even' }` so
+  these committed gallery files are always regenerated compact.
+
+---
+
+## Before → After Heights
+
+| File | Before | After |
+|------|--------|-------|
+| `examples/gallery/ai-timeline.png` | 8732 px | **990 px** |
+| `examples/gallery/ai-timeline.svg` | 8760 px | **990 px** |
+| `examples/gallery/showcase/ai-timeline-showcase-skia.png` | 8762 px | **1076 px** |
+| `examples/gallery/showcase/ai-timeline-ai-theme-skia.png` | 2370 px | 2370 px (no change) |
+
+---
+
+## Test Results
+
+- `pnpm -C packages/core test`: **488/488 pass**
+- `pnpm -r typecheck`: clean
+- `pnpm -r lint`: clean
+- `examples/golden/our-timeline.svg`: byte-identical (golden.test.ts passes)
+- `examples/golden/showcase-skia.png`: size-identical (skia golden passes)
