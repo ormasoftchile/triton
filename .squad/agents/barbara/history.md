@@ -13,173 +13,47 @@
 - All renderers must agree on the six-phase order and determinism contract (pure functions, stable sorts, round-half-up, integer arithmetic).
 - Scene/Render IR is the backend-agnostic root; SVG is one backend, not the root.
 - Themes are extensible with fidelity tiers (Tier 0 Minimal → Tier 3 Showcase).
-- TIGHT_SPACING linter: 5px gap detection with union-find grouping for same-block labels.
 
-## Major Milestones
+## Session Summary — 2026-06-09 through 2026-06-11
 
-### 2026-06-09 — Sections 5–7 (Design Spec Wave 1)
+### 2026-06-09 — Initial Design (Wave 1)
 - Determinism contract: six-phase pipeline, binding for all renderers
 - Edge-case rulings (zero-duration, TBD, approximate dates, partial overlap, etc.)
 - Theme schema knobs + five built-in themes (Consulting, Executive, Product, Release, Minimal)
 - Output priority: SVG → PNG → PDF → PPTX → HTML
 
-### 2026-06-10 — IR Gaps Resolved (Wave 2)
-- metadata.today (date anchor for determinism)
-- metadata.fiscal_year_start (fiscal calendar normative)
-- Omitted end semantics = ongoing open interval
-- Relative-date anchor (same chain as now: today → created → error)
-- Status: All 17 IR invariants consistent; no redesign needed
+### 2026-06-10 — Phase 1 Implementation Complete
+**Deliverables:**
+- Scene/Render IR architecture (backend-agnostic root)
+- Layout engine: six-phase deterministic pipeline + dense overlap handling
+- SVG/PNG backends (deterministic via resvg-js + embedded DejaVu Sans)
+- Consulting theme (Tier 1, production-ready)
+- 21 decision records merged from inbox (context: tight-spacing fixes, schema validation, label collision)
+- Gallery: 8 example IR documents with SVG/PNG outputs
+- Icon registry: 20 geometric icons + rendering paths (horizontal nodes, spine badges)
+- Test coverage: 110/110 core tests passing → 461/461 tests (+ Skia integration)
 
-### 2026-06-10 — Scene/Render IR Architecture Rework
-- Demoted SVG to one backend; introduced backend-agnostic Scene/Render IR as root
-- Four fidelity tiers with capability profiles and fallback policies
-- Determinism levels: Scene geometry (always), per-backend output (given pinned version), cross-backend (not promised)
-- Themes: Minimal (T0), Consulting/Release (T1), Executive/Product (T2), Showcase/Keynote (T3 new)
+**Key milestones:**
+- Layout quality polish: sub-lane packing, header blocks, title/subtitle rendering
+- Dense milestone decluttering: two-pass label collision resolution + alternating blocks
+- Skia Graphics Library integration: deterministic canvas ops + drop shadows/glow effects
+- Target outputs analysis: 5 reference images map to 3 layout families; vertical-spine prioritized for post-MVP
 
-### 2026-06-10 — Phase 1 Implementation: Layout + SVG/PNG + Consulting Theme
-- Deliverables: Scene IR, layout engine (six-phase), Consulting theme, text metrics, SVG/PNG backends, `renderDocument` wiring
-- Determinism approach: stable sorts, round-half-up, day-ordinal arithmetic, hardcoded font metrics, canonical JSON → SHA-256
-- Embedded font: DejaVu Sans (OFL)
-- Green status: 0 typecheck errors, 0 lint warnings, 110/110 tests, all builds pass
+### 2026-06-11 — Activity Icons + Skia Fixes
+**Activity Icon Feature (Two Steps):**
+1. **Mark (IR Extension):** Added `Activity.icon?: string` field to IR (types.ts, schema.ts, JSON Schema regenerated)
+2. **Barbara (Rendering Implementation):**
+   - Horizontal: Icons at left edge of bar, size = barHeight−4, label shifted right
+   - Vertical-spine: Icons flow through existing SpineEntry paths (badge + node)
+   - All backends (SVG, PNG, Skia): transparently handle PathPrimitive transforms
+   - Feature shipped: 10 new icon tests, 486/486 monorepo tests passing
 
-### 2026-06-10 — Target Outputs Coverage Analysis (§14)
-- Five reference images map to three layout families: horizontal (current), vertical-spine (T1,T3,T5), single-line milestones (T2)
-- IR coverage: All five targets representable; no new IR gaps
-- Layout coverage: 1/5 current pipeline; 3/5 need vertical-spine; 1/5 serpentine (post-MVP)
-- Prioritised additions: vertical-spine, dark-executive/showcase-dark themes, card entry renderer, numbered-circle milestone shape
+**Concurrent Skia Fixes:**
+- **Glow/Shadow Artifact:** Changed TileMode.Clamp → Decal for blur calls (hard shadow band → smooth falloff)
+- **Legend Colors:** Showcase theme palette now uses perceptually distinct colors (planned→BLUE_SCHED, in-progress→TEAL_ACTIVE, standard-node→CYAN)
+- Result: 465/465 tests passing, pixel-verified fixes
 
-### 2026-06-10 — Phase 1 Example Gallery
-- 8 example IR documents + rendered SVG/PNG outputs + index.html contact sheet
-- Gallery location: `examples/gallery/`
-- Renderer limitations surfaced: progress not visualized, track labels invisible (headerWidth=0), TBD stub (low info density), validator edge cases, YAML integer parsing
-- No source changes; all examples within Phase 1 capabilities
-
-### 2026-06-10 — Built-in Icon Set + Label Collision Stagger
-- Icon registry: 20 original geometric icons on 0 0 24 24 viewBox (hand-authored, no licensing issues)
-- Export: getIcon(), hasIcon(), listIcons()
-- Scene/SVG updates: PathPrimitive now accepts optional transform and strokeLinecap
-- Theme tokens: iconColor, iconScale (optional, opt-in)
-- Icon rendering: horizontal layout (nodes) + vertical-spine layout (badges + nodes)
-- Milestone label stagger: deterministic O(n) pass for date labels (adjacent sorted by x, colliding odd-indexed labels shift up)
-- Examples updated: journey, program-timeline, feature-rich + new icon-showcase
-- Tests: 68 icon tests; 292 core tests pass; 299 total
-
-### 2026-06-10 — Layout Quality Polish Pass
-- Activity-bar label placement: inside when fits (contrast-aware color), outside-right when narrow, clamped to canvas bounds
-- Dense overlap / sub-lane packing: deterministic greedy interval-packing (sorted by start_ordinal, id)
-- Title/header block: renders ir.metadata.title at top; plot/spine shifts down by headerH; opt-in (absent title = no change)
-- Trade-offs: track heights grow with overlap depth (legibility over compactness); all heights +headerH when title present; subLaneHeight increase is minor visual change
-- Artifacts regenerated; 304 tests green; determinism verified
-
-### 2026-06-10 — Dense Milestone Decluttering + Alternating Label Blocks
-- Dense milestone fix: limited date-label characters, two-pass collision resolution, smart positioning
-- Alternating label blocks: horizontal layout uses offset alternation; vertical-spine uses card entry renderer
-- Section renderers: horizontal layout places inline; vertical-spine renders as separate entry types
-- Results: deterministic multi-phase pipeline for label collision; all examples render without warnings
-
-### 2026-06-10 — Phase 1 Render Completion (SVG/PNG)
-- Phase 1 scope: horizontal swimlane layout, consulting theme, SVG+PNG backends
-- Verification: 100+ new tests, golden image snapshots (our-timeline.svg, our-timeline.png), cross-render pixel consistency
-- All 110/110 tests pass; determinism verified
-
-### 2026-06-10 — Render Backends & Output Format Selection
-- SVG: deterministic, universal, scalable; foundation for all other formats
-- PNG: universal raster via @resvg/resvg-js (deterministic, embedded DejaVu Sans)
-- PDF: consulting/print use case; cairosvg deterministic
-- PPTX: think-cell editability via python-pptx native shapes (highest complexity)
-- HTML: developer/agent preview; trivially derived from SVG
-- Selection criteria: output use case, determinism requirement, target fidelity tier
-- Theme adoption matrix: which themes for which backends/outputs
-
-### 2026-06-10 — Render Fixes & Edge Cases
-- Milestone stacking: simultaneous milestones stack downward by stack_offset_y (sorted by id)
-- Approximate date rendering: nominal geometry + gradient fade at approximate edges
-- Clipping indicator: angled cut on clipped edges
-- TBD extension: dashed extension + label (vs stub)
-- Sub-lane cap handling: excess activities go to last lane with warning
-- Canvas boundary clamping: labels clamped to canvas bounds, no overflow
-- Determinism verified across all edge cases
-
-### 2026-06-10 — Skia C++ Backend (Showcase Theme Effects)
-- Skia Graphics Library: deterministic per pinned canvaskit-wasm version
-- Setup: canvaskit-wasm initialization (~2–3s), deterministic canvas ops, no system entropy
-- Showcase theme effects: drop shadows (blur + offset + dark copy), glow (blur + colored copy), noise texture
-- renderWithEffects pattern: before drawFn(), render each effect; all deterministic
-- Golden approach: first run writes showcase-skia.png; subsequent runs byte-identical (fallback: ±5% size tolerance)
-- Gallery: showcase.html dark contact sheet with captions (backend=skia, theme=showcase)
-- Final count: 461 tests pass
-
-### 2026-06-10 — IR Schema & Validation
-- Canonical IR fields: version, metadata, tracks, groups, activities, milestones, annotations, sections, legend
-- Metadata fields: title, subtitle, author, created, today, fiscal_year_start, time_range
-- Validation layer: schema checks, date anchor resolution, reference resolution, progress bounds
-- Error message contract: deterministic, agent-friendly error reporting
-- Ingestion contract: IR must be valid; optional provenance metadata; no implicit state
-
-### 2026-06-10 — Team Coordination Notes
-- Design spec sections published (§5–7, then §14)
-- IR gaps resolved surgically (metadata.today, fiscal_year_start, omitted end, relative-date anchor)
-- All 17 IR invariants consistent across Rendering, Agent Integration (Bjarne), and IR spec (Mark)
-- Output coverage analysis: 5 targets map to 3 layout families; prioritised roadmap established
-
----
-
-## 2026-06-11 — Session Recovery (Crash + Decision Inbox Merge)
-
-**Incident:** Prior session hung mid-task investigating TIGHT_SPACING warnings.
-
-**Status:** Tight-spacing fix verified complete (CONNECTOR_LEN: 48→58px, vertical-spine layout, all 5 themes pass, 461/461 core tests green). Result: 8px clear gap between axis tick labels and content block edges.
-
-**Inbox Merge:** All 21 barbara-*.md decision notes merged into `.squad/decisions.md` with timestamp marker "Agent Decisions — Merged from Inbox (2026-06-10 Backlog)". Inbox files deleted. Deduplication complete.
-
-**Pipeline:** Full test suite (484 tests) remains green. No regressions.
-
----
-
-## 2026-06-11 — Skia Glow Artifact + Legend Color Fixes
-
-**Two production defects diagnosed and fixed in Skia/PNG backend + showcase theme combination.**
-
-### Defect 1 — Rectangular glow/shadow artifact on vertical-spine milestone nodes
-
-**Root cause: `TileMode.Clamp` in `renderWithEffects` (`skia.ts`).**
-
-`CK.ImageFilter.MakeBlur` was called with `CK.TileMode.Clamp` for both glow and shadow effects. For a filled rectangle, CanvasKit's Clamp tile mode replicates the rectangle's fill color at every pixel beyond the blur expansion margin (~3×sigma = 15px from rect edge). This produced a hard, full-opacity shadow band in the connector zone between the node circle and the card rect — even though those pixels are 15px outside the card.
-
-Circles were unaffected: their bounding-box corners are transparent, so Clamp ≡ Decal for circles (clamping transparent = transparent).
-
-**Pixel-confirmed:** Before fix, x=644=(4,178,217) → x=645=(2,83,101) — a hard dark step exactly matching the shadow paint blended over the connector: `0.533 * black + (1-0.533) * connector ≈ (2,83,101)`. After fix, x=644=(4,178,217) → x=645=(4,178,217) — smooth connector, no step.
-
-**Fix:** Change both `MakeBlur` calls in `renderWithEffects` from `CK.TileMode.Clamp` to `CK.TileMode.Decal`. Decal treats out-of-bounds pixels as transparent `(0,0,0,0)`, giving natural Gaussian falloff with no hard boundary. `TileMode.Decal` is available in canvaskit-wasm 0.41.x.
-
-### Defect 2 — Indistinguishable legend colors (in-progress / planned / standard-node)
-
-**Root cause: theme palette — `showcase.ts` assigned identical/near-identical colors.**
-- `planned.fill = CYAN (#00D4FF)` and `standard-node.fill = CYAN (#00D4FF)` — identical.
-- `in-progress.fill = CYAN_DIM (#0099CC)` — very similar cyan, visually indistinguishable at 12px swatch size.
-
-The legend code in `vertical-spine.ts` uses raw `theme.statusMap[s].fill` and `theme.categoryMap[c].fill` (not `resolveStatusStyle`), so any category override doesn't rescue the legend — the palette itself was wrong.
-
-**Fix:** Introduced two new palette constants:
-- `BLUE_SCHED = '#4D9AFF'` — periwinkle blue (for planned)
-- `TEAL_ACTIVE = '#00CC88'` — teal green (for in-progress)
-
-Reassigned: `planned → BLUE_SCHED`, `in-progress → TEAL_ACTIVE`, `standard-node → CYAN` (primary accent unchanged), `done → STEEL` (unchanged). Legend now has four visually distinct swatches: grey-blue / teal-green / periwinkle-blue / electric-cyan.
-
-**Pixel-confirmed:** Swatch centers (996, 414/435/455/476) read (96,125,155) / (0,204,136) / (77,154,255) / (0,212,255) — exactly the expected hex values.
-
-### Additional changes
-- Showcase Skia golden test updated to use `layout: 'vertical-spine'` (the showcase theme's intended layout; previous test used horizontal default, producing a mismatch between the committed golden and the described defect).
-- Gallery showcase images regeneration tests added (4 PNGs: milestones-only, journey, feature-rich, ai-timeline).
-- All goldens regenerated fresh.
-- **All 465 tests pass.**
-
-### Skia blur rendering mental model
-- `TileMode.Clamp`: edge pixels of the layer replicate their nearest in-bounds color — creates hard boundary for filled shapes.
-- `TileMode.Decal`: pixels outside the layer bounds are treated as fully transparent — correct for drop shadows and glows where you want smooth natural falloff.
-- Rule: **always use `TileMode.Decal` for glow/shadow ImageFilter blurs on Scene primitives**.
-
----
+**Decision Records:** Three records merged into decisions.md (validation parity, placement semantics, TileMode ruling)
 
 ## Architecture Summary
 
@@ -195,3 +69,27 @@ Reassigned: `planned → BLUE_SCHED`, `in-progress → TEAL_ACTIVE`, `standard-n
 - Determinism at three levels: Scene geometry (always), per-backend (given version), cross-backend (not promised)
 - All sorts are stable and deterministic (index, start_ordinal, date_ordinal)
 - No system entropy (random, Date.now(), locale)
+
+## Known Issues & Deferred Work
+
+- **Advanced icon badge styles** (outline, border): Current implementation uses solid filled circle; can be made configurable via theme tokens
+- **Vertical-spine layout:** Ready for Phase 3; prioritized for agent/ingester integration
+- **Serpentine layout:** Post-MVP; prioritized for later phases
+- **Art effects** (Tier 2/3): Deferred to Phase 4
+- **PPTX backend:** Deferred to Phase 4; will use isolated subprocess pattern with pptxgenjs (not python-pptx)
+
+## Test Status
+
+- **Phase 1 Core (110 tests):** All passing
+- **Skia Integration (351 tests):** All passing
+- **Total Monorepo (486 tests):** All passing
+- **Determinism:** Verified across all edge cases; byte-identical output across runs
+
+## Files Changed (2026-06-11)
+- `packages/core/src/layout/horizontal.ts` — icon+label block, size formulas
+- `packages/core/src/layout/vertical-spine.ts` — iconHint for activities
+- `packages/core/src/render/skia.ts` — TileMode.Decal for blur calls
+- `packages/core/src/themes/showcase.ts` — palette updates (legend colors)
+- `examples/gallery/*.{svg,png}` — regenerated with activity icons
+- `packages/core/test/icons.test.ts` — 10 activity-icon tests
+- `.squad/decisions.md` — 3 decision records merged from inbox

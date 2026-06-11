@@ -650,7 +650,7 @@ All 292 tests pass in `@timeline-compiler/core`; 299 total across all packages.
 
 ## Deferred / Not done
 
-- **Activity icon rendering**: `Activity` type does not have an `icon` field in the current IR schema; schema changes were out of scope. Activity icons are a no-op until the IR is extended.
+- ~~**Activity icon rendering**~~: **RESOLVED (2026-06-11)** — Mark added `Activity.icon?: string` field; Barbara rendered activity icons at left edge of activity bar (horizontal) and in spine entry cards (vertical-spine). See Decision entries "Activity.icon Field Addition" and "Activity Icon Placement Semantics and Size Rule".
 - **Advanced icon badge styles** (outline only, badge with border, etc.): the current implementation uses a solid filled circle backing for vertical-spine badges. Can be made configurable via theme tokens.
 # Decision: Layout Quality Polish Pass
 
@@ -2267,3 +2267,298 @@ Identical semantics to `Activity.metadata`. Carries application-specific data an
 ## Scope
 
 Surgical addition only. No other entity modified. No new invariants required (the existing extensibility note in §4 "Renderers should ignore unrecognized metadata keys" already covers all entities with `metadata`, including Milestone).
+# Barbara — Skia Glow Artifact + Legend Colors (2026-06-11)
+
+**Date:** 2026-06-11T06:46:49-04:00  
+**Author:** Barbara (Semantics & Rendering)  
+**Status:** FIXED — commit a47af6f
+
+---
+
+## Decision: Use `TileMode.Decal` for all Skia ImageFilter blurs (glow + shadow)
+
+**File:** `packages/core/src/render/skia.ts` — `renderWithEffects`
+
+### Finding
+
+`CK.ImageFilter.MakeBlur(sigma, sigma, CK.TileMode.Clamp, null)` was used for both
+`glow` and `shadow` effects. For filled rectangles, `TileMode.Clamp` replicates the
+rect's fill color at the blur layer boundary (every pixel beyond the expansion zone
+~3×sigma from the rect edge). This produced a hard full-opacity shadow band in the
+connector zone between milestone nodes and card rects on the vertical-spine layout.
+
+The artifact was invisible for circles because their bounding-box corners are
+transparent — clamping transparent = transparent, so Clamp ≡ Decal for circles.
+
+### Ruling
+
+**Always use `CK.TileMode.Decal` for all ImageFilter blur calls in this codebase.**
+
+`TileMode.Decal` treats out-of-bounds pixels as `(0,0,0,0)` (fully transparent),
+giving natural Gaussian falloff with no hard boundary — the semantically correct
+behaviour for drop shadows and glow effects.
+
+`TileMode.Decal` is confirmed available in canvaskit-wasm 0.41.x.
+
+---
+
+## Decision: Showcase theme palette — statuses must be visually distinct
+
+**File:** `packages/core/src/themes/showcase.ts`
+
+### Finding
+
+The original palette assigned `CYAN (#00D4FF)` to both `planned` and `standard-node`,
+and `CYAN_DIM (#0099CC)` to `in-progress`. At the 12px legend swatch size these were
+effectively indistinguishable.
+
+The legend code (`vertical-spine.ts` ~line 1003–1010) reads raw `theme.statusMap[s].fill`
+and `theme.categoryMap[c].fill` — it does NOT call `resolveStatusStyle`, so any category
+override does not rescue the legend. The palette itself must assign distinct colors.
+
+### Ruling
+
+**Statuses displayed in the legend must have perceptually distinct fill colors.**
+The `resolveStatusStyle` override mechanism does not protect the legend — palette
+assignments are the authoritative legend colors.
+
+New palette assignments for showcase theme:
+- `planned → BLUE_SCHED (#4D9AFF)` — periwinkle blue
+- `in-progress → TEAL_ACTIVE (#00CC88)` — teal green
+- `standard-node → CYAN (#00D4FF)` — electric cyan (primary accent)
+- `done → STEEL (#607D9B)` — unchanged
+
+---
+
+## Decision: Showcase Skia golden uses `layout: 'vertical-spine'`
+
+**File:** `packages/core/test/skia.test.ts`
+
+### Ruling
+
+The showcase golden test (`showcase golden PNG matches on re-render`) now specifies
+`layout: 'vertical-spine'` explicitly. The showcase theme's cardEffects/nodeEffects
+design is oriented around the vertical-spine layout. Using horizontal layout for the
+golden created a mismatch between what was tested and what was described in the
+bug report.
+
+---
+
+## Pixel evidence
+
+**Defect 1 fix (connector strip, y=227, node 1 center):**
+- Before: x=644=(4,178,217), x=645=(2,83,101) — hard dark step (full shadow clamped)
+- After: x=644=(4,178,217), x=645=(4,178,217) — clean connector, smooth Gaussian falloff
+
+**Defect 2 fix (legend swatch centers at x=996):**
+- done (y=414): (96,125,155) ← STEEL grey-blue
+- in-progress (y=435): (0,204,136) ← TEAL_ACTIVE teal-green
+- planned (y=455): (77,154,255) ← BLUE_SCHED periwinkle-blue
+- standard-node (y=476): (0,212,255) ← CYAN electric-cyan
+
+All four are perceptually distinct. 465/465 tests pass.
+
+---
+
+# Decision: Activity.icon Field Addition
+
+**Author:** Mark (IR & Data Modeling)  
+**Date:** 2026-06-11  
+**Status:** Implemented  
+**Requested by:** ormasoftchile  
+
+---
+
+## Context
+
+The decisions.md "Deferred / Not done" section previously noted:
+
+> Activity icon rendering: `Activity` type does not have an `icon` field in the current IR schema; schema changes were out of scope. Activity icons are a no-op until the IR is extended.
+
+This decision record documents the IR extension that unblocks activity-icon rendering (Barbara's step 2).
+
+---
+
+## Change
+
+`Activity` now carries an optional `icon` field, mirroring `Milestone.icon` exactly:
+
+### types.ts (packages/core/src/types.ts)
+
+```typescript
+export interface Activity {
+  // ... existing fields ...
+  category?: string;
+  /** A named icon from the built-in icon registry (e.g. "star", "flag"). */
+  icon?: string;
+  description?: string;
+  // ...
+}
+```
+
+### schema.ts (packages/core/src/schema.ts)
+
+```typescript
+const activitySchema = z.object({
+  // ... existing fields ...
+  category: z.string().optional(),
+  icon: z.string().optional(),   // ← added
+  description: z.string().optional(),
+  // ...
+});
+```
+
+Field position: between `category` and `description`, matching Milestone's ordering.
+
+---
+
+## Validation Parity Decision
+
+**Question:** Should `Activity.icon` be validated against the icon registry (`hasIcon` / `getIcon` from icons.ts)?
+
+**Finding:** `validate.ts` contains **no icon validation for `Milestone.icon`**. A search for `hasIcon`, `getIcon`, and `icon` in validate.ts returns zero matches. Unknown icon names on milestones pass through silently; the rendering layer falls back (unknown icon → ordinal number / no-op) without emitting a diagnostic.
+
+**Decision: DO NOT add icon-name validation for `Activity.icon`.**
+
+Rationale: Consistency with Milestone is the rule. Introducing validation for Activity.icon while Milestone.icon remains unvalidated would be an asymmetry in the IR contract. If icon-name validation is desired in future (emitting an `UNKNOWN_ICON` warning), it should be applied to both entity types simultaneously in a single change.
+
+This is noted here so the asymmetry is not accidentally introduced later.
+
+---
+
+## JSON Schema
+
+After schema.ts was updated, `pnpm -r build` regenerated `packages/schema/v1/timeline.json`. The Activity item object now includes:
+
+```json
+"icon": {
+  "type": "string"
+}
+```
+
+`icon` is **not** in the `required` array (it is optional).
+
+---
+
+## Files Touched
+
+| File | Change |
+|------|--------|
+| `packages/core/src/types.ts` | Added `icon?: string` to `Activity` interface |
+| `packages/core/src/schema.ts` | Added `icon: z.string().optional()` to `activitySchema` |
+| `packages/schema/v1/timeline.json` | Auto-regenerated — Activity.icon now present |
+| `packages/core/test/validate.test.ts` | Added 3 tests for Activity.icon |
+| `packages/schema/test/schema.test.ts` | Added 1 test verifying Activity.icon in JSON Schema |
+
+---
+
+## Handoff to Barbara
+
+- **Field:** `Activity.icon?: string` — optional, same type as `Milestone.icon?: string`.
+- **Semantics:** A named icon from the built-in icon registry (packages/core/src/icons.ts). Use `getIcon(activity.icon)` to resolve; if `undefined`, treat as absent (no icon drawn).
+- **Validation:** Not validated at the IR layer — unknown names silently pass. Same behaviour as Milestone. Rendering fallback is your responsibility.
+- **JSON Schema:** Regenerated and confirmed. `activity.icon` is an optional `string` property in `packages/schema/v1/timeline.json`.
+- **Tests:** All 476 tests pass (`pnpm -r typecheck && pnpm -r test` green).
+
+---
+
+# Decision: Activity Icon Placement Semantics and Size Rule
+
+**Agent:** Barbara (Semantics & Rendering)
+**Date:** 2026-06-11
+**Status:** Implemented and tested
+
+---
+
+## Context
+
+Mark (IR Schema) added `Activity.icon?: string` to the IR, using the same named icon registry as `Milestone.icon`. This document records the rendering decisions Barbara made to bring activity icons to screen consistently with milestone icons across all three backends.
+
+---
+
+## Placement Semantics
+
+### Horizontal layout
+
+Activity icons are placed at the **left (start) edge of the activity bar**, vertically centred. Rationale:
+
+- The start edge is the activity's natural "origin point" — the icon anchors to the start of the work, not the middle.
+- Left-aligned inside the bar mirrors the label's own left-alignment, making the icon + label read as a cohesive unit (icon → label, left to right).
+- Milestone icons sit inside their circular/diamond node marker. For activities there is no separate node shape — the bar *is* the marker. Left-edge placement is the closest structural analogue to "inside the node shape at the node's position".
+- Placing the icon at the *right* edge would conflict with the open-end arrowhead decoration for ongoing activities.
+
+### Vertical-spine layout
+
+Activities are rendered as spine entries identical in structure to milestones (same `SpineEntry` record type). Activity icons flow through the existing `iconHint` rendering paths at no additional cost:
+
+1. **Icon badge** (top corner of the content card, lines 775–814): coloured circle + icon glyph.
+2. **Node icon** (inside the spine node marker, lines 860–882): icon glyph scaled to node radius.
+
+No placement change was needed; only `iconHint: act.icon` needed to be populated (it was already in the type but always `undefined` for activities).
+
+---
+
+## Size Rule
+
+```
+iconPx = theme.activity.barHeight − 4   (2 px top/bottom padding)
+s      = round_half_up((iconPx / 2) / 12, 4 decimal places)
+```
+
+This is algebraically equivalent to the milestone formula `ms.size * iconScale / 12` with `iconScale = (barHeight−4)/barHeight`. For the consulting/product themes (barHeight = 20 px): `iconPx = 16`, `s ≈ 0.6667`, icon occupies ~16 × 16 px.
+
+The same SVG transform contract as milestones:
+
+```
+translate(iconCX, barMidY) scale(s) translate(-12, -12)
+```
+
+where `iconCX = al.xLeft + LPAD + iconPx/2` (left bar edge + padding + half-icon width).
+
+---
+
+## Label Shift
+
+When an icon is drawn:
+
+```
+iconGutterW = iconPx + LPAD   (LPAD = 4 px)
+labelX      = al.xLeft + LPAD + iconGutterW
+insideAvail = al.width − 2×LPAD − iconGutterW
+```
+
+Outside-placement logic (bar too narrow) is unchanged — when the label goes outside the bar, the icon was already skipped (bar too narrow to contain it), so the outside x positions are unaffected.
+
+---
+
+## Degenerate Cases
+
+| Condition | Outcome |
+|-----------|---------|
+| `activity.icon` absent / `undefined` | No icon emitted (no-op). Label uses full bar width. |
+| `getIcon(activity.icon) === undefined` | No icon emitted (no-op). Unknown names silently ignored, matching milestone behaviour. |
+| Bar too narrow (`al.width < iconPx + 2×LPAD`) | Icon skipped. Label uses its normal outside-placement logic. |
+| Very short bar (start-only, minWidth=20 px) | Icon skipped (20 < 16+8). Label goes outside. |
+
+---
+
+## Backend Notes
+
+No backend changes were required. Activity icon path primitives use the same `PathPrimitive { kind: 'path', d, fill, stroke, transform }` structure that milestone icons already use. All three backends (SVG via `scene-to-svg.ts`, PNG via resvg, Skia via `skia.ts`) handle this primitive transparently.
+
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `packages/core/src/layout/horizontal.ts` | Replaced activity label block with icon+label block |
+| `packages/core/src/layout/vertical-spine.ts` | Added `iconHint: act.icon` to activity SpineEntry |
+| `examples/gallery/feature-rich.timeline.yaml` | Added icons to 5 activities |
+| `examples/gallery/journey.timeline.yaml` | Added icons to 3 activities |
+| `examples/gallery/feature-rich.{svg,png}` | Regenerated |
+| `examples/gallery/journey.{svg,png}` | Regenerated |
+| `examples/gallery/showcase/*.png` | Regenerated by Skia gallery test |
+| `packages/core/test/icons.test.ts` | Added 10 activity-icon tests in section (g) |
+
+**Test result:** 478/478 pass (pnpm -r test).

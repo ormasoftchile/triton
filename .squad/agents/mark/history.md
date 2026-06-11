@@ -55,6 +55,15 @@ All 6 gaps flagged by Barbara & Bjarne have been resolved:
 No IR schema changes required — surgical fixes only.
 - **Milestone parity (2026-06-10):** Milestone gained `color` (string?, opt, default theme) and `metadata` (map<string,any>, opt, default {}) in §4 for parity with Activity, supporting the owner's target outputs: colored markers (T1, T3) and source provenance for re-sync (T5/Gitline).
 
+## Learnings — Activity.icon field (2026-06-11)
+
+- **`Activity.icon?: string` added (2026-06-11):** The `Activity` interface (packages/core/src/types.ts) now carries an optional `icon?: string` field with doc comment "A named icon from the built-in icon registry (e.g. \"star\", \"flag\")." This mirrors `Milestone.icon?: string` exactly.
+- **Field position in Activity schema:** Inserted between `category` and `description`, matching Milestone's field ordering (packages/core/src/schema.ts, activitySchema).
+- **Icon-name validation:** `validate.ts` does NOT validate `Milestone.icon` against the icon registry (no `hasIcon`/`getIcon` calls in validate.ts). Parity decision: `Activity.icon` is also NOT validated — unknown icon names pass through silently. This keeps rendering-side fallback behaviour (unknown icon → silent fallback to ordinal/no-op) consistent across both entity types.
+- **JSON Schema regen:** After schema.ts change, run `pnpm -r build` (or `pnpm -C packages/schema build`) to regenerate packages/schema/v1/timeline.json. The regenerated file carries Activity.icon at the same structural level as Milestone.icon.
+- **Files touched:** packages/core/src/types.ts, packages/core/src/schema.ts, packages/schema/v1/timeline.json (auto-generated), packages/core/test/validate.test.ts, packages/schema/test/schema.test.ts.
+- **Test counts after change:** core 468 tests (validate.test.ts: 71), schema 5 tests — all green.
+
 ## Phase 1 Implementation — 2026-06-10
 
 ### Modules Added
@@ -145,3 +154,28 @@ export function validate(ir: IRDocument): ValidationResult {
 
 ## Learnings
 - **Role-aware coarse-date coercion for range containment (Bug #4, 2026-06-10):** For OUTSIDE_TIME_RANGE checks, START boundaries coerce to period-start (left-edge) and END boundaries coerce to period-end (right-edge), e.g. `2026-Q4` as an end → Dec 31 not Oct 1, preventing false-positive clipping warnings at the trailing edge of the time range.
+
+## 2026-06-11 — Activity Icon Feature Implementation (Step 1)
+
+✓ **Activity.icon Field Added**
+
+Extended the IR with `Activity.icon?: string` field to unblock Barbara's rendering work.
+
+**Changes:**
+- `packages/core/src/types.ts`: Added `icon?: string` field to Activity interface with doc comment
+- `packages/core/src/schema.ts`: Added `icon: z.string().optional()` to activitySchema (positioned between category and description, matching Milestone)
+- `packages/schema/v1/timeline.json`: Regenerated via `pnpm -r build`
+- `packages/core/test/validate.test.ts`: Added 3 activity.icon validation tests
+- `packages/schema/test/schema.test.ts`: Added JSON Schema conformance test
+
+**Validation Parity Decision:**
+- Icon-name validation NOT added for Activity.icon (consistent with Milestone.icon behavior)
+- Unknown icon names silently pass validation; rendering layer fallback is Barbara's responsibility
+- This asymmetry is intentional to maintain consistency — if icon validation is added in future, apply to both Milestone and Activity simultaneously
+
+**Test Status:**
+- Preimage: 476/476 tests passing
+- Postimage: 478/478 tests passing
+- All green, ready for Barbara's rendering step
+
+**Handed off to Barbara** with clear semantics: optional string field, use `getIcon()` to resolve, unknown names fallback silently.
