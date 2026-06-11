@@ -799,3 +799,32 @@ describe('validateDocument — OUTSIDE_TIME_RANGE coarse-date coercion', () => {
     expect(result.warnings.some((w) => w.code === 'OUTSIDE_TIME_RANGE')).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Activity.icon — field parity with Milestone.icon
+// ---------------------------------------------------------------------------
+
+describe('validateDocument — Activity.icon field', () => {
+  it('accepts an activity with a known icon name', () => {
+    const doc = makeMinimal();
+    (doc.activities[0] as Activity & { icon?: string }).icon = 'star';
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts an activity with an unknown icon name (silently passes — parity with Milestone)', () => {
+    const doc = makeMinimal();
+    (doc.activities[0] as Activity & { icon?: string }).icon = 'totally-unknown-icon';
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts an activity without an icon (icon is optional)', () => {
+    const doc = makeMinimal();
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+});

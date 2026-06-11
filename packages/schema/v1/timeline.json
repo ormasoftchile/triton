@@ -215,6 +215,9 @@
               "category": {
                 "type": "string"
               },
+              "icon": {
+                "type": "string"
+              },
               "description": {
                 "type": "string"
               },

@@ -267,3 +267,130 @@ describe('icons — (f) unknown icon fallback', () => {
     expect(r1.svg).toBe(r2.svg);
   });
 });
+
+// ---------------------------------------------------------------------------
+// (g) Activity icon rendering
+// ---------------------------------------------------------------------------
+
+/**
+ * IR with activities that carry icons — exercises the activity-icon pipeline
+ * in both horizontal and vertical-spine layouts.
+ */
+const ACTIVITY_ICON_IR: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title:      'Activity Icon Test',
+    today:      '2026-06-10',
+    time_range: { start: '2026-01', end: '2026-12' },
+    axis_unit:  'quarter',
+    theme:      'consulting',
+  },
+  tracks: [{ id: 'main', label: 'Track', index: 0 }],
+  activities: [
+    {
+      id:     'with-icon',
+      label:  'Starred Phase',
+      track:  'main',
+      start:  '2026-01-01',
+      end:    '2026-03-31',
+      status: 'done',
+      icon:   'star',
+    },
+    {
+      id:     'with-flag',
+      label:  'Flagged Phase',
+      track:  'main',
+      start:  '2026-05-01',
+      end:    '2026-07-31',
+      status: 'in-progress',
+      icon:   'flag',
+    },
+    {
+      id:     'no-icon',
+      label:  'Plain Phase',
+      track:  'main',
+      start:  '2026-09-01',
+      end:    '2026-11-30',
+      status: 'planned',
+      // no icon field
+    },
+    {
+      id:     'unknown-icon-act',
+      label:  'Unknown Icon Phase',
+      track:  'main',
+      start:  '2026-04-01',
+      end:    '2026-04-30',
+      status: 'planned',
+      icon:   'not-a-real-icon',
+    },
+  ],
+  milestones: [],
+};
+
+describe('icons — (g) activity icon rendering', () => {
+  it('activity with known icon does not throw in horizontal layout', () => {
+    expect(() => renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'horizontal' })).not.toThrow();
+  });
+
+  it('activity with known icon does not throw in vertical-spine layout', () => {
+    expect(() => renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'vertical-spine' })).not.toThrow();
+  });
+
+  it('horizontal SVG with activity icon contains <path> with transform', () => {
+    const result = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'horizontal' });
+    // Activity icons emit path primitives with SVG transform attribute
+    expect(result.svg).toContain('transform=');
+    expect(result.svg).toMatch(/translate\([^)]+\) scale\([^)]+\) translate\(-12,-12\)/);
+  });
+
+  it('vertical-spine SVG with activity icon contains transform paths', () => {
+    const result = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'vertical-spine' });
+    expect(result.svg).toContain('transform=');
+  });
+
+  it('two horizontal renders with activity icons are byte-identical', () => {
+    const r1 = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'horizontal' });
+    const r2 = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'horizontal' });
+    expect(r1.svg).toBe(r2.svg);
+  });
+
+  it('two vertical-spine renders with activity icons are byte-identical', () => {
+    const r1 = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'vertical-spine' });
+    const r2 = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'vertical-spine' });
+    expect(r1.svg).toBe(r2.svg);
+  });
+
+  it('activity with unknown icon renders without crash (no-op)', () => {
+    expect(() => renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'horizontal' })).not.toThrow();
+  });
+
+  it('activity without icon field renders without crash', () => {
+    const noIconIR: IRDocument = {
+      ...ACTIVITY_ICON_IR,
+      activities: [
+        {
+          id:     'bare',
+          label:  'No Icon',
+          track:  'main',
+          start:  '2026-06-01',
+          end:    '2026-08-31',
+          status: 'planned',
+        },
+      ],
+    };
+    expect(() => renderDocument(noIconIR, { format: 'svg', layout: 'horizontal' })).not.toThrow();
+  });
+
+  it('sceneHash is identical across two horizontal renders with activity icons', () => {
+    const r1 = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'horizontal' });
+    const r2 = renderDocument(ACTIVITY_ICON_IR, { format: 'svg', layout: 'horizontal' });
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+  });
+
+  it('PNG render with activity icons produces valid PNG bytes', () => {
+    const result = renderDocument(ACTIVITY_ICON_IR, { format: 'png', layout: 'horizontal' });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(result.png![0]).toBe(0x89);
+    expect(result.png![1]).toBe(0x50); // 'P'
+  });
+});

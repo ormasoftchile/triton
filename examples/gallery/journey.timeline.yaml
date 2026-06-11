@@ -21,6 +21,7 @@ activities:
     end: 2022-03-31
     status: done
     description: "Core product development"
+    icon: code
   - id: growth
     label: "Seed-fuelled Growth"
     track: journey
@@ -28,6 +29,7 @@ activities:
     end: 2023-09-30
     status: done
     description: "Team scaling, GTM iteration"
+    icon: people
   - id: scale
     label: "Series A Deployment"
     track: journey
@@ -35,6 +37,7 @@ activities:
     end: 2024-06-01
     status: in-progress
     description: "Enterprise motion, international"
+    icon: rocket
 milestones:
   - id: idea-day
     label: "The Idea"

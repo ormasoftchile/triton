@@ -33,6 +33,7 @@ activities:
     status: done
     progress: 1.0
     category: strategy
+    icon: star
   - id: operating-model
     label: "Operating Model Design"
     track: strategy
@@ -63,6 +64,7 @@ activities:
     status: done
     progress: 1.0
     category: platform
+    icon: cloud
   - id: api-modernization
     label: "API Modernization"
     track: technology
@@ -79,6 +81,7 @@ activities:
     status: at-risk
     progress: 0.3
     category: backend
+    icon: lock
   - id: data-platform
     label: "Data Platform v2"
     track: technology
@@ -93,6 +96,7 @@ activities:
     end: 2026-08-31
     status: in-progress
     progress: 0.5
+    icon: people
   - id: training-rollout
     label: "Training Rollout"
     track: people
@@ -119,6 +123,7 @@ activities:
     end: 2026-07-31
     status: in-progress
     progress: 0.35
+    icon: gear
   - id: automation-wave2
     label: "Automation Wave 2"
     track: operations

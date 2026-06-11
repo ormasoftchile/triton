@@ -276,6 +276,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       statusStroke:  st.stroke,
       statusOpacity: st.opacity,
       type:          'activity',
+      iconHint:      act.icon,
     });
   }
 

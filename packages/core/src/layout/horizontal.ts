@@ -930,24 +930,50 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       }
     }
 
-    // Activity label — contrast-aware, left-aligned inside / clamped outside
+    // Activity icon + label
     {
-      const LPAD = 4; // inside padding px (matches existing width - 8 budget)
+      const LPAD       = 4; // inside padding px (matches existing width - 8 budget)
+      const barMidY    = rhu(al.y + theme.activity.barHeight / 2);
+      const insideColor = contrastColor(fill, theme.activity.labelColorInside, theme.activity.labelColorOutside);
+
+      // Icon: small glyph at the bar's left edge, vertically centred.
+      // Size: barHeight − 4 px (2 px top/bottom padding). Only drawn when the
+      // bar is wide enough to contain it without clipping (≥ iconPx + 2×LPAD).
+      const iconPx   = theme.activity.barHeight - 4;
+      const iconName = al.activity.icon ? al.activity.icon.toLowerCase().trim() : undefined;
+      const iconDef  = iconName ? getIcon(iconName) : undefined;
+      let iconGutterW = 0; // extra left offset reserved for the icon + gap
+
+      if (iconDef && al.width >= iconPx + 2 * LPAD) {
+        const iconCX    = rhu(al.xLeft + LPAD + iconPx / 2);
+        const s         = rhu((iconPx / 2) / 12, 4);
+        const transform = `translate(${iconCX},${barMidY}) scale(${s}) translate(-12,-12)`;
+        for (const pathDef of iconDef.paths) {
+          const iconFill   = pathDef.fill   ? insideColor : 'none';
+          const iconStroke = pathDef.stroke !== false ? insideColor : undefined;
+          primitives.push({
+            kind:          'path',
+            d:             pathDef.d,
+            fill:          iconFill,
+            stroke:        iconStroke,
+            strokeWidth:   iconStroke ? 2 : undefined,
+            strokeLinecap: iconStroke ? 'round' : undefined,
+            transform,
+          });
+        }
+        iconGutterW = iconPx + LPAD;
+      }
+
+      // Label — contrast-aware, left-aligned inside / clamped outside.
+      // When an icon is present, label start shifts right by iconGutterW.
       const labelFullWidth = measureText(al.activity.label, actFontPx).width;
-      const insideAvail    = rhu(al.width - 2 * LPAD);
-      const barMidY        = rhu(al.y + theme.activity.barHeight / 2);
-      // Contrast-aware text colour for inside placement
-      const insideColor = contrastColor(
-        fill,
-        theme.activity.labelColorInside,
-        theme.activity.labelColorOutside,
-      );
+      const insideAvail    = rhu(al.width - 2 * LPAD - iconGutterW);
 
       if (labelFullWidth <= insideAvail && insideAvail > 0) {
         // Full label fits without truncation — left-aligned, contrast-aware
         primitives.push({
           kind:             'text',
-          x:                rhu(al.xLeft + LPAD),
+          x:                rhu(al.xLeft + LPAD + iconGutterW),
           y:                barMidY,
           text:             al.activity.label,
           fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
@@ -962,7 +988,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         const truncated = truncateText(al.activity.label, actFontPx, insideAvail);
         primitives.push({
           kind:             'text',
-          x:                rhu(al.xLeft + LPAD),
+          x:                rhu(al.xLeft + LPAD + iconGutterW),
           y:                barMidY,
           text:             truncated,
           fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
@@ -975,8 +1001,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       } else {
         // Bar too narrow — place outside right, fall back to left
         const OUTSIDE_MIN = 20;
-        const rightAvail = rhu(offset + wDraw - al.xRight - 8);
-        const leftAvail  = rhu(al.xLeft - offset - 4);
+        const rightAvail  = rhu(offset + wDraw - al.xRight - 8);
+        const leftAvail   = rhu(al.xLeft - offset - 4);
 
         if (rightAvail >= OUTSIDE_MIN) {
           primitives.push({

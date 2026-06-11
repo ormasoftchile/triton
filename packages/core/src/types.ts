@@ -101,6 +101,8 @@ export interface Activity {
   /** Completion fraction in [0, 1]. */
   progress?: number;
   category?: string;
+  /** A named icon from the built-in icon registry (e.g. "star", "flag"). */
+  icon?: string;
   description?: string;
   group?: ID;
   url?: string;

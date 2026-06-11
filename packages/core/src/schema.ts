@@ -118,6 +118,7 @@ const activitySchema = z.object({
   status: statusSchema.optional(),
   progress: z.number().min(0).max(1).optional(),
   category: z.string().optional(),
+  icon: z.string().optional(),
   description: z.string().optional(),
   group: idSchema.optional(),
   url: z.string().optional(),
