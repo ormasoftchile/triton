@@ -133,6 +133,27 @@ export interface MilestoneTheme {
    * Defaults to 0.65 when not set.
    */
   iconScale?: number;
+
+  // ── Dense-milestone decluttering tokens (Barbara, phase-2 polish) ────────
+
+  /**
+   * Minimum horizontal gap between adjacent decluttered node centers (px).
+   * Default: 2 × size + 6.
+   */
+  minNodeGap?: number;
+  /**
+   * Stroke colour for declutter leader ticks and block leader lines.
+   * Defaults to `dateLabelColor`.
+   */
+  leaderColor?: string;
+  /**
+   * Stroke width for leader lines (px). Default: 0.75.
+   */
+  leaderWidth?: number;
+  /**
+   * Vertical gap between label tiers (px). Default: 6.
+   */
+  blockTierGap?: number;
 }
 
 export interface StatusStyle {

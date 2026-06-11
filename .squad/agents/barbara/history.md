@@ -687,3 +687,61 @@ Added a deterministic O(n) stagger pass for **date labels** (above nodes), appli
 
 **Test Suite:**
 - 297 tests passing in packages/core (up from 292); 304 total across all packages. Lint clean. Build clean. Typecheck clean.
+
+## Learnings
+
+### Session: Dense Milestone Decluttering + Alternating Label Blocks (2026-06-10)
+
+**Problem Fixed:** Dense milestone timelines (e.g., `ai-timeline` with 12 milestones on one track, 2019–2024) exhibited: (1) node circle superposition — circles at nearby dates rendered exactly on top of each other, (2) label collision — date-above + title-below for every milestone all collided into an unreadable band, (3) labels sat on/over the axis line and year-tick labels.
+
+**Redesign (all in `layout/horizontal.ts`):**
+
+**Phase 1.5 — X-Space Milestone Geometry (before Phase 2):**
+- Runs before track placement so `aboveZoneH` can shift the Y start of track rows.
+- `trueX`: date-accurate x position for each milestone.
+- `placedX`: declustered left-to-right pass enforcing `placedX[i] >= max(trueX[i], placedX[i-1] + minNodeGap)`.
+- Side assignment: odd-index → above, even-index → below (stable sorted order by `(ord, id)`).
+- Tier assignment: greedy left-to-right, find first tier where `tierEndX[t] + 2 <= blockLeft`.
+- `aboveZoneH = (maxAboveTier+1) × (blockH + blockTierGap) + labelGapPx + 6` — space inserted between axis line and track rows.
+
+**Label Block Design:**
+- Single combined block per milestone: title (primary, font-weight 600, larger) + compact date (secondary, font-weight 400, smaller, lighter color).
+- Compact date format: `formatCompactDate` → "February 2019", "November 2022" (no day ordinal).
+- Blocks alternate above/below the node row; above-zone blocks live between the axis line and the track row (never on the tick-label band above the axis).
+- Tier overflow: additional rows further from the node row, leader line extends to reach.
+
+**Leader Lines/Ticks:**
+- Thin tick at `trueX` when a node was displaced (leader tick, opacity=0.45).
+- Leader line from node edge to block (leader color, width, opacity = theme tokens).
+
+**Axis Separation:**
+- Year-tick labels remain at their normal position (above axis line).
+- `aboveZoneH` creates a clear gap between axis and first above-side block.
+- Milestone compact date text lives in the label block, NOT in the axis tick band.
+
+**Tokens Added (additive, optional) to `MilestoneTheme` interface:**
+- `minNodeGap`: minimum node-center gap in px (default 40). Per theme: consulting=50, product=42, executive=46, minimal=42, release=34.
+- `leaderColor`: color for leader lines/ticks. Per theme varies (#888888, #6B7280, #8BAAC8).
+- `leaderWidth`: stroke width for leaders (default 0.75 in all themes).
+- `blockTierGap`: vertical gap between label tiers (5–6px depending on theme).
+
+**Canvas Growth:**
+- `aboveZoneH` grows the canvas downward by expanding the space between axis and track rows.
+- Below-side blocks: canvas height is set to the deepest `blockTop + blockH + margin`.
+
+**Golden + Galleries Regenerated:**
+- `examples/golden/our-timeline.{svg,png}` — deleted and re-snapshotted.
+- All `examples/gallery/*.{svg,png}` — regenerated (12 examples).
+- All `examples/gallery/themes/*/*.{svg,png}` — regenerated (5 themes × 11 examples).
+- All `examples/gallery/vertical/*.{svg,png}` — regenerated (3 themes × 5 examples).
+
+**Test Suite:**
+- 306 tests passing (up from 297 after adding 9 new dense-milestone tests in `render.test.ts`).
+- New tests: dense milestones no-throw, determinism, all labels present, compact date format, canvas growth, above-zone height, leader ticks emitted, all-5-themes determinism, axis tick separation.
+- All deterministic: ai-timeline (product), milestones-only, feature-rich — byte-identical across two consecutive renders.
+
+**Visual Confirmation (ai-timeline, product theme):**
+- 12 nodes at cx positions with gaps ≥ 42px (minNodeGap for product). Consecutive nodes: 585→627 (42), 808→850 (42), 850→892 (42), 892→934 (42), 1023→1065 (42). No overlaps.
+- 17 leader ticks emitted (displaced nodes show their true axis anchor).
+- Axis tick labels: y=142.4 (above axis at y=154). Above-zone title blocks: y=178.26 and 216.73. Gap = 24px between axis line and nearest label block. ✅
+- Compact dates: "February 2019", "June 2020", "August 2021" etc. — font-size=10.67, font-weight=400, lighter fill. No day ordinals.

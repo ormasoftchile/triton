@@ -115,6 +115,10 @@ export const releaseTheme: ResolvedTheme = {
     labelMaxWidth:          120,
     labelStackOffset:       14,
     stackOffsetY:           20,
+    minNodeGap:            34,   // 2 × 14 + 6
+    leaderColor:           '#555555',
+    leaderWidth:           0.75,
+    blockTierGap:          6,
   },
 
   statusMap: {

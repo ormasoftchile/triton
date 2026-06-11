@@ -115,6 +115,10 @@ export const consultingTheme: ResolvedTheme = {
     labelMaxWidth:         120,
     labelStackOffset:      14,
     stackOffsetY:          20,
+    minNodeGap:            50,   // 2 × 22 + 6
+    leaderColor:           '#888888',
+    leaderWidth:           0.75,
+    blockTierGap:          6,
   },
 
   statusMap: {

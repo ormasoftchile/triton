@@ -31,7 +31,6 @@ import {
   inferAxisUnit,
   enumTicks,
   formatTickLabel,
-  formatMilestoneDate,
 } from './dates.js';
 
 // ---------------------------------------------------------------------------
@@ -47,6 +46,23 @@ function rhu(v: number, decimals = 2): number {
 /** Round to nearest integer (round-half-up). */
 function rhuInt(v: number): number {
   return Math.floor(v + 0.5);
+}
+
+// ---------------------------------------------------------------------------
+// Compact date format for milestone label blocks ("Month Year", no day)
+// ---------------------------------------------------------------------------
+
+/**
+ * Format a concrete date as a compact milestone block label: "May 2021",
+ * "February 2023", etc.  Omits the day ordinal to reduce label noise.
+ * Deterministic: no locale queries.
+ */
+function formatCompactDate(year: number, month: number): string {
+  const MONTHS = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  return `${MONTHS[month - 1] ?? ''} ${year}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,6 +188,132 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const ticks = enumTicks(tsOrd, teOrd, axisUnit);
 
   // -------------------------------------------------------------------------
+  // Phase 1.5: Milestone x-space geometry — decluttering + side assignment
+  //            (must precede Phase 2 so aboveZoneH can shift track Y-start)
+  // -------------------------------------------------------------------------
+
+  // Effective milestone layout tokens (apply defaults for optional tokens)
+  const minNodeGap_eff  = ms.minNodeGap  ?? (2 * ms.size + 6);
+  const leaderColor_eff = ms.leaderColor ?? ms.dateLabelColor;
+  const leaderWidth_eff = ms.leaderWidth ?? 0.75;
+  const blockTierGap_eff = ms.blockTierGap ?? 6;
+
+  // Font pixel sizes used for label blocks
+  const titleFontPx = ptToPx(ms.titleLabelFontSize);
+  const dateFontPx  = ptToPx(ms.dateLabelFontSize);
+  const blockTitleH    = rhu(titleFontPx * 1.3);
+  const blockDateLineH = rhu(dateFontPx * 1.3);
+  const blockH         = rhu(blockTitleH + 4 + blockDateLineH);
+
+  // Build sorted milestone list (by date ordinal, then id) — same key as Phase 4
+  const msWithOrd = (ir.milestones ?? [])
+    .map((m) => {
+      const [y, mo, d] = coerceLeft(parseIRDate(m.date));
+      return { m, ord: dateToOrdinal(y, mo, d), y, mo, d };
+    })
+    .filter(({ ord }) => ord >= tsOrd && ord <= teOrd);
+
+  msWithOrd.sort((a, b) =>
+    a.ord !== b.ord ? a.ord - b.ord : a.m.id.localeCompare(b.m.id),
+  );
+
+  // Compute trueX (date-accurate) and placedX (decluttered) for each milestone
+  const trueXArr: number[]   = [];
+  const placedXArr: number[] = [];
+  {
+    let lastPlacedX = -Infinity;
+    for (const { ord } of msWithOrd) {
+      const tx = rhu(dateX(ord, axisState));
+      trueXArr.push(tx);
+      const rawPx =
+        lastPlacedX === -Infinity ? tx : Math.max(tx, lastPlacedX + minNodeGap_eff);
+      // Clamp to canvas right edge so nodes never overflow off-canvas
+      const px = rhu(Math.min(rawPx, offset + wDraw - ms.size));
+      placedXArr.push(px);
+      lastPlacedX = px;
+    }
+  }
+
+  // Block info per milestone (x-space only — yCenter filled in Phase 4)
+  interface BlockInfo {
+    msIdx:       number;
+    xCenter:     number;
+    trueX:       number;
+    side:        'above' | 'below';
+    tier:        number;
+    blockW:      number;
+    titleText:   string;
+    compactDate: string;
+  }
+
+  const blockInfos: BlockInfo[] = [];
+  for (let i = 0; i < msWithOrd.length; i++) {
+    const { m: mil, y, mo } = msWithOrd[i]!;
+    // Alternating sides: odd-index → above axis zone; even-index → below node
+    const side: 'above' | 'below' = (i % 2 === 1) ? 'above' : 'below';
+    const showTitle = ms.titleLabelBelow;
+    const showDate  = ms.dateLabelAbove;
+    const titleText   = showTitle ? truncateText(mil.label, titleFontPx, ms.labelMaxWidth) : '';
+    const compactDate = showDate  ? formatCompactDate(y, mo) : '';
+    const titleW = titleText   ? measureText(titleText,   titleFontPx).width : 0;
+    const dateW  = compactDate ? measureText(compactDate, dateFontPx).width  : 0;
+    const blockW = rhu(Math.max(titleW, dateW) + 4);
+    blockInfos.push({
+      msIdx:       i,
+      xCenter:     placedXArr[i]!,
+      trueX:       trueXArr[i]!,
+      side,
+      tier:        0,
+      blockW,
+      titleText,
+      compactDate,
+    });
+  }
+
+  // Above-side tier assignment (left-to-right greedy, x-space only)
+  {
+    const aboveBlocks = blockInfos
+      .filter((b) => b.side === 'above')
+      .sort((a, b) => a.xCenter !== b.xCenter ? a.xCenter - b.xCenter : a.msIdx - b.msIdx);
+    const tierEndX: number[] = [];
+    for (const b of aboveBlocks) {
+      const bL = rhu(b.xCenter - b.blockW / 2);
+      const bR = rhu(b.xCenter + b.blockW / 2);
+      let t = tierEndX.findIndex((ex) => ex + 2 <= bL);
+      if (t === -1) { tierEndX.push(-Infinity); t = tierEndX.length - 1; }
+      tierEndX[t] = bR;
+      b.tier = t;
+    }
+  }
+
+  // Below-side tier assignment (left-to-right greedy, x-space only)
+  {
+    const belowBlocks = blockInfos
+      .filter((b) => b.side === 'below')
+      .sort((a, b) => a.xCenter !== b.xCenter ? a.xCenter - b.xCenter : a.msIdx - b.msIdx);
+    const tierEndX: number[] = [];
+    for (const b of belowBlocks) {
+      const bL = rhu(b.xCenter - b.blockW / 2);
+      const bR = rhu(b.xCenter + b.blockW / 2);
+      let t = tierEndX.findIndex((ex) => ex + 2 <= bL);
+      if (t === -1) { tierEndX.push(-Infinity); t = tierEndX.length - 1; }
+      tierEndX[t] = bR;
+      b.tier = t;
+    }
+  }
+
+  const maxAboveTier = blockInfos
+    .filter((b) => b.side === 'above')
+    .reduce((mx, b) => Math.max(mx, b.tier), -1);
+
+  // aboveZoneH: extra vertical space inserted between the axis line and the first
+  // track row to accommodate "above" label blocks — keeps them cleanly separated
+  // from the axis tick labels (which live above the axis line in the Haxis zone).
+  const aboveZoneH = maxAboveTier >= 0
+    ? rhu((maxAboveTier + 1) * (blockH + blockTierGap_eff) + ms.labelGapPx + 6)
+    : 0;
+
+  // -------------------------------------------------------------------------
   // Phase 2: Track placement
   // -------------------------------------------------------------------------
 
@@ -181,7 +323,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     height: number; // provisional; may expand in Phase 3
   }
 
-  let yCursor = mT_eff + Haxis;
+  let yCursor = mT_eff + Haxis + aboveZoneH;
   const trackLayouts: TrackLayout[] = sortedTracks.map((t) => {
     const tl: TrackLayout = { track: t, yTop: yCursor, height: tk.rowHeight };
     yCursor += tk.rowHeight + tk.rowGap;
@@ -289,7 +431,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   }
 
   // Recompute y_top after Phase 3 height changes
-  let yCursor3 = mT_eff + Haxis;
+  let yCursor3 = mT_eff + Haxis + aboveZoneH;
   for (const tl of trackLayouts) {
     tl.yTop = yCursor3;
     yCursor3 += tl.height + tk.rowGap;
@@ -305,69 +447,41 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const hDraw = trackLayouts.reduce((sum, tl) => sum + tl.height + tk.rowGap, 0) - tk.rowGap;
 
   // -------------------------------------------------------------------------
-  // Phase 4: Milestone geometry
+  // Phase 4: Milestone y-space geometry
   // -------------------------------------------------------------------------
 
   interface MilestoneLayout {
     milestone:   Milestone;
+    trueX:       number;
     xCenter:     number;
     yCenter:     number;
-    stackIndex:  number;
-    ordinal:     number;    // 1-based sequential number for display
-    dateFmt:     string;    // formatted date label
+    ordinal:     number;
+    side:        'above' | 'below';
+    tier:        number;
+    blockW:      number;
+    titleText:   string;
+    compactDate: string;
   }
 
-  // Determine milestone ordinals (sorted by date_ordinal, id)
-  const msWithOrd = (ir.milestones ?? [])
-    .map((m) => {
-      const [y, mo, d] = coerceLeft(parseIRDate(m.date));
-      return { m, ord: dateToOrdinal(y, mo, d) };
-    })
-    .filter(({ ord }) => ord >= tsOrd && ord <= teOrd);  // outside-range suppression
-
-  msWithOrd.sort((a, b) =>
-    a.ord !== b.ord ? a.ord - b.ord : a.m.id.localeCompare(b.m.id),
-  );
-
-  const milestoneLayouts: MilestoneLayout[] = [];
-
-  // Stacking: group by (effective_track_id, xCenter)
-  const stackGroups = new Map<string, MilestoneLayout[]>();
-
-  msWithOrd.forEach(({ m: mil, ord }, seqIdx) => {
-    const xCenter = rhu(dateX(ord, axisState));
+  const milestoneLayouts: MilestoneLayout[] = msWithOrd.map(({ m: mil }, idx) => {
     const tl = mil.track ? trackIndex.get(mil.track) : undefined;
     const yCenter = tl
       ? rhu(tl.yTop + tl.height / 2)
-      : rhu(mT_eff + Haxis + hDraw / 2);
-
-    const [y, mo, d] = coerceLeft(parseIRDate(mil.date));
-    const dateFmt = formatMilestoneDate(y, mo, d);
-
-    const ml: MilestoneLayout = {
-      milestone: mil,
-      xCenter,
+      : rhu(mT_eff + Haxis + aboveZoneH + hDraw / 2);
+    const bi = blockInfos[idx]!;
+    return {
+      milestone:   mil,
+      trueX:       bi.trueX,
+      xCenter:     bi.xCenter,
       yCenter,
-      stackIndex: 0,
-      ordinal:    seqIdx + 1,
-      dateFmt,
+      ordinal:     idx + 1,
+      side:        bi.side,
+      tier:        bi.tier,
+      blockW:      bi.blockW,
+      titleText:   bi.titleText,
+      compactDate: bi.compactDate,
     };
-    milestoneLayouts.push(ml);
-
-    const groupKey = `${mil.track ?? '__cross__'}:${xCenter}`;
-    const group = stackGroups.get(groupKey) ?? [];
-    stackGroups.set(groupKey, group);
-    group.push(ml);
   });
-
-  // Assign stack indices within each (track, x) group, sorted by id
-  for (const group of stackGroups.values()) {
-    group.sort((a, b) => a.milestone.id.localeCompare(b.milestone.id));
-    group.forEach((ml, i) => {
-      ml.stackIndex = i;
-      ml.yCenter = rhu(ml.yCenter + i * ms.stackOffsetY);
-    });
-  }
 
   // -------------------------------------------------------------------------
   // Phase 5: Sections and annotations
@@ -380,124 +494,26 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const calloutNoteAnnotations = annotations.filter((a) => a.type === 'callout' || a.type === 'note');
 
   // -------------------------------------------------------------------------
-  // Phase 6: Milestone label collision resolution (§5.4.6)
+  // Canvas height — grows to accommodate below-side label blocks
   // -------------------------------------------------------------------------
 
-  interface LabelBox {
-    mlIdx:  number;
-    x:      number;
-    y:      number;
-    width:  number;
-    height: number;
-    isDate: boolean;
-  }
+  // axisY is the y coordinate of the axis line
+  const axisY_early = rhu(mT_eff + Haxis);
+  const aboveZoneBottomY = rhu(axisY_early + aboveZoneH);
+  const contentBottomY   = rhu(aboveZoneBottomY + hDraw);
 
-  const dateLabelSizePx = ptToPx(ms.dateLabelFontSize);
-  const titleLabelSizePx = ptToPx(ms.titleLabelFontSize);
-  const labelGap = ms.labelGapPx;
-
-  // Build label bounding boxes for date (above) and title (below)
-  const labelBoxes: LabelBox[] = [];
-  milestoneLayouts.forEach((ml, idx) => {
-    const dateW = measureText(ml.dateFmt, dateLabelSizePx).width;
-    const titleText = truncateText(ml.milestone.label, titleLabelSizePx, ms.labelMaxWidth);
-    const titleW = measureText(titleText, titleLabelSizePx).width;
-
-    const dateY = ml.yCenter - ms.size - labelGap - dateLabelSizePx;
-    const titleY = ml.yCenter + ms.size + labelGap;
-
-    if (ms.dateLabelAbove) {
-      labelBoxes.push({
-        mlIdx: idx,
-        x:     rhu(ml.xCenter - dateW / 2),
-        y:     rhu(dateY),
-        width: rhu(dateW),
-        height: rhu(dateLabelSizePx * 1.2),
-        isDate: true,
-      });
-    }
-    if (ms.titleLabelBelow) {
-      labelBoxes.push({
-        mlIdx: idx,
-        x:     rhu(ml.xCenter - titleW / 2),
-        y:     rhu(titleY),
-        width: rhu(titleW),
-        height: rhu(titleLabelSizePx * 1.2),
-        isDate: false,
-      });
-    }
-  });
-
-  // ── Date-label vertical stagger (additive to existing push-down) ──────────
-  // When adjacent date labels would overlap horizontally, alternate them between
-  // two vertical positions: even-collision-group stays at base y,
-  // odd-collision-group shifts further up by (dateLabelSizePx + 4).
-  // This is a single deterministic pass — O(n) with no iteration.
-  {
-    const dateBoxes = labelBoxes.filter((b) => b.isDate);
-    // Sort by x so we can check adjacent pairs
-    dateBoxes.sort((a, b) => a.x !== b.x ? a.x - b.x : a.mlIdx - b.mlIdx);
-    let staggerGroup = 0;
-    for (let i = 1; i < dateBoxes.length; i++) {
-      const prev = dateBoxes[i - 1]!;
-      const cur  = dateBoxes[i]!;
-      if (prev.x + prev.width + 2 > cur.x) {
-        // Overlap detected: bump stagger group counter and shift the current box up
-        staggerGroup += 1;
-        if (staggerGroup % 2 === 1) {
-          cur.y = rhu(cur.y - dateLabelSizePx - 4);
-        } else {
-          cur.y = rhu(prev.y); // reset to base level on even groups
-        }
-      } else {
-        staggerGroup = 0; // no overlap → reset stagger cycle
-      }
+  // Find the deepest below-block extent
+  let belowMaxY = contentBottomY;
+  for (const ml of milestoneLayouts) {
+    if (ml.side === 'below' && (ml.titleText || ml.compactDate)) {
+      const blockBottom = rhu(
+        ml.yCenter + ms.size + ms.labelGapPx + (ml.tier + 1) * (blockH + blockTierGap_eff),
+      );
+      if (blockBottom > belowMaxY) belowMaxY = blockBottom;
     }
   }
 
-  // Collision resolution (title labels only — bounded N passes)
-  const titleBoxes = labelBoxes.filter((b) => !b.isDate);
-  titleBoxes.sort((a, b) =>
-    a.x !== b.x ? a.x - b.x : a.y !== b.y ? a.y - b.y : a.mlIdx - b.mlIdx,
-  );
-
-  let changed = true;
-  let passes = 0;
-  while (changed && passes < titleBoxes.length) {
-    changed = false;
-    for (let i = 0; i + 1 < titleBoxes.length; i++) {
-      const lb = titleBoxes[i]!;
-      const rb = titleBoxes[i + 1]!;
-      if (lb.x + lb.width > rb.x && Math.abs(lb.y - rb.y) < lb.height) {
-        rb.y = rhu(rb.y + ms.labelStackOffset);
-        changed = true;
-      }
-    }
-    passes += 1;
-  }
-
-  // Clamp to canvas
-  const canvasBottom = mT_eff + Haxis + hDraw + m.bottom;
-  for (const lb of labelBoxes) {
-    lb.y = rhu(Math.max(mT_eff + Haxis, Math.min(lb.y, canvasBottom - lb.height)));
-  }
-
-  // -------------------------------------------------------------------------
-  // Build label maps
-  // -------------------------------------------------------------------------
-
-  const dateLabelByIdx  = new Map<number, LabelBox>();
-  const titleLabelByIdx = new Map<number, LabelBox>();
-  for (const lb of labelBoxes) {
-    if (lb.isDate) dateLabelByIdx.set(lb.mlIdx, lb);
-    else titleLabelByIdx.set(lb.mlIdx, lb);
-  }
-
-  // -------------------------------------------------------------------------
-  // Canvas height
-  // -------------------------------------------------------------------------
-
-  const H = rhu(mT_eff + Haxis + hDraw + m.bottom);
+  const H = rhu(belowMaxY + m.bottom);
 
   // -------------------------------------------------------------------------
   // Build Scene primitives (painter's algorithm: back → front)
@@ -532,7 +548,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         primitives.push({
           kind:    'rect',
           x:       xBandLeft,
-          y:       rhu(mT_eff + Haxis),
+          y:       rhu(mT_eff + Haxis + aboveZoneH),
           width:   bw,
           height:  rhu(hDraw),
           fill,
@@ -544,7 +560,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       primitives.push({
         kind:             'text',
         x:                rhu(xBandLeft + 4),
-        y:                rhu(mT_eff + Haxis + 4 + secFontPx),
+        y:                rhu(mT_eff + Haxis + aboveZoneH + 4 + secFontPx),
         text:             sec.label,
         fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
         fontSize:         secFontPx,
@@ -664,7 +680,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         x1:          xk,
         y1:          axisY,
         x2:          xk,
-        y2:          rhu(mT_eff + Haxis + hDraw),
+        y2:          rhu(mT_eff + Haxis + aboveZoneH + hDraw),
         stroke:      ax.gridlineColor,
         strokeWidth: ax.gridlineWidth,
         opacity:     ax.gridlineOpacity,
@@ -699,8 +715,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       const todayOrd = parseAndCoerceLeft(todayDate);
       if (todayOrd >= tsOrd && todayOrd <= teOrd) {
         const xToday = rhu(dateX(todayOrd, axisState));
-        const todayY1 = rhu(mT_eff + Haxis);
-        const todayY2 = rhu(mT_eff + Haxis + hDraw);
+        const todayY1 = rhu(mT_eff + Haxis + aboveZoneH);
+        const todayY2 = rhu(mT_eff + Haxis + aboveZoneH + hDraw);
         primitives.push({
           kind:        'line',
           x1:          xToday,
@@ -741,7 +757,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       const xL = rhu(dateX(parseAndCoerceLeft(aStart), axisState));
       const xR = rhu(dateX(parseAndCoerceRight(aEnd), axisState));
       if (xR <= xL) continue;
-      const bracketY = rhu(mT_eff + Haxis + hDraw + 12);
+      const bracketY = rhu(mT_eff + Haxis + aboveZoneH + hDraw + 12);
       const bracketColor = theme.axis.todayMarker.color;
       primitives.push({
         kind: 'line', x1: xL, y1: bracketY, x2: xR, y2: bracketY,
@@ -955,13 +971,14 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     }
   }
 
-  // 7. Milestones (circles + labels)
-  const dateFontPx  = ptToPx(ms.dateLabelFontSize);
-  const titleFontPx = ptToPx(ms.titleLabelFontSize);
-  const ordFontPx   = ptToPx(ms.ordinalFontSize);
+  // 7. Milestones — decluttered nodes + leader ticks + alternating label blocks
+  const ordFontPx = ptToPx(ms.ordinalFontSize);
+  // axisY is defined below at section 3; use the same computed value here
+  const axisY_ms          = axisY_early;  // alias
+  const aboveZoneBottom_ms = rhu(axisY_ms + aboveZoneH);
 
-  milestoneLayouts.forEach((ml, idx) => {
-    const { xCenter, yCenter, ordinal } = ml;
+  milestoneLayouts.forEach((ml) => {
+    const { xCenter, yCenter, trueX, side, tier, titleText, compactDate, ordinal } = ml;
     const mil = ml.milestone;
     const status = mil.status ?? 'planned';
     const base = theme.statusMap[status];
@@ -969,7 +986,64 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     const catOverride = cat ? theme.categoryMap[cat] : undefined;
     const fill = catOverride?.fill ?? base?.fill ?? '#1F497D';
 
-    // Milestone shape primitive
+    // (a) Declutter leader: show true-date anchor when node was displaced
+    if (rhu(Math.abs(trueX - xCenter)) >= 1) {
+      // Short tick at true date position on the axis line
+      primitives.push({
+        kind:        'line',
+        x1:          trueX,
+        y1:          rhu(axisY_ms - ax.tickHeight),
+        x2:          trueX,
+        y2:          rhu(axisY_ms + 4),
+        stroke:      leaderColor_eff,
+        strokeWidth: leaderWidth_eff,
+        opacity:     0.45,
+      });
+      // Dotted horizontal bridge from true position to placed position
+      primitives.push({
+        kind:        'line',
+        x1:          trueX,
+        y1:          axisY_ms,
+        x2:          xCenter,
+        y2:          axisY_ms,
+        stroke:      leaderColor_eff,
+        strokeWidth: leaderWidth_eff,
+        opacity:     0.25,
+        dashArray:   '2,3',
+      });
+    }
+
+    // (b) Leader line from node edge to label block
+    const hasBlock = !!(titleText || compactDate);
+    if (hasBlock) {
+      if (side === 'above') {
+        const blockBottom = rhu(aboveZoneBottom_ms - 6 - tier * (blockH + blockTierGap_eff));
+        primitives.push({
+          kind:        'line',
+          x1:          xCenter,
+          y1:          blockBottom,
+          x2:          xCenter,
+          y2:          rhu(yCenter - ms.size),
+          stroke:      leaderColor_eff,
+          strokeWidth: leaderWidth_eff,
+          opacity:     0.45,
+        });
+      } else {
+        const blockTop = rhu(yCenter + ms.size + ms.labelGapPx + tier * (blockH + blockTierGap_eff));
+        primitives.push({
+          kind:        'line',
+          x1:          xCenter,
+          y1:          rhu(yCenter + ms.size),
+          x2:          xCenter,
+          y2:          blockTop,
+          stroke:      leaderColor_eff,
+          strokeWidth: leaderWidth_eff,
+          opacity:     0.45,
+        });
+      }
+    }
+
+    // (c) Node shape
     if (ms.shape === 'circle') {
       primitives.push({
         kind:        'circle',
@@ -981,7 +1055,6 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         strokeWidth: ms.strokeWidth,
       });
     } else if (ms.shape === 'triangle') {
-      // Downward-pointing triangle centered at (xCenter, yCenter)
       const s = ms.size;
       primitives.push({
         kind:   'path',
@@ -1002,14 +1075,12 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       });
     }
 
-    // Ordinal number OR icon inside the node marker
+    // (d) Ordinal number OR icon inside the node marker
     {
       const iconName = mil.icon ? mil.icon.toLowerCase().trim() : undefined;
-      const iconDef = iconName ? getIcon(iconName) : undefined;
+      const iconDef  = iconName ? getIcon(iconName) : undefined;
 
       if (iconDef) {
-        // Render the icon path scaled and centred on the node.
-        // Scale factor: icon fills (iconScale * 100)% of the node diameter.
         const iconScale = ms.iconScale ?? 0.65;
         const s = rhu(ms.size * iconScale / 12, 4);
         const iconColor = ms.iconColor ?? ms.ordinalColor;
@@ -1019,11 +1090,11 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
           const iconFill   = pathDef.fill   ? iconColor : 'none';
           const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
           primitives.push({
-            kind:         'path',
-            d:            pathDef.d,
-            fill:         iconFill,
-            stroke:       iconStroke,
-            strokeWidth:  iconStroke ? 2 : undefined,
+            kind:          'path',
+            d:             pathDef.d,
+            fill:          iconFill,
+            stroke:        iconStroke,
+            strokeWidth:   iconStroke ? 2 : undefined,
             strokeLinecap: iconStroke ? 'round' : undefined,
             transform,
           });
@@ -1031,53 +1102,59 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       } else if (ms.showOrdinalNumber) {
         const numStr = String(ordinal).padStart(2, '0');
         primitives.push({
-          kind:            'text',
-          x:               xCenter,
-          y:               yCenter,
-          text:            numStr,
-          fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-          fontSize:        ordFontPx,
-          fontWeight:      ms.ordinalFontWeight,
-          fill:            ms.ordinalColor,
-          textAnchor:      'middle',
-          dominantBaseline:'middle',
+          kind:             'text',
+          x:                xCenter,
+          y:                yCenter,
+          text:             numStr,
+          fontFamily:       FONT_FAM,
+          fontSize:         ordFontPx,
+          fontWeight:       ms.ordinalFontWeight,
+          fill:             ms.ordinalColor,
+          textAnchor:       'middle',
+          dominantBaseline: 'middle',
         });
       }
     }
 
-    // Date label above
-    const dBox = dateLabelByIdx.get(idx);
-    if (ms.dateLabelAbove && dBox) {
-      primitives.push({
-        kind:            'text',
-        x:               rhu(dBox.x + dBox.width / 2),
-        y:               rhu(dBox.y + dBox.height * 0.85),
-        text:            ml.dateFmt,
-        fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-        fontSize:        dateFontPx,
-        fontWeight:      ms.dateLabelFontWeight,
-        fill:            ms.dateLabelColor,
-        textAnchor:      'middle',
-        dominantBaseline:'alphabetic',
-      });
-    }
+    // (e) Combined label block: primary title line + secondary compact-date line
+    if (hasBlock) {
+      let blockTopY: number;
+      if (side === 'above') {
+        const blockBottom = rhu(aboveZoneBottom_ms - 6 - tier * (blockH + blockTierGap_eff));
+        blockTopY = rhu(blockBottom - blockH);
+      } else {
+        blockTopY = rhu(yCenter + ms.size + ms.labelGapPx + tier * (blockH + blockTierGap_eff));
+      }
 
-    // Title label below — use truncation/wrap
-    const tBox = titleLabelByIdx.get(idx);
-    if (ms.titleLabelBelow && tBox) {
-      const titleText = truncateText(mil.label, titleFontPx, theme.milestone.labelMaxWidth);
-      primitives.push({
-        kind:            'text',
-        x:               rhu(tBox.x + tBox.width / 2),
-        y:               rhu(tBox.y + titleFontPx),
-        text:            titleText,
-        fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-        fontSize:        titleFontPx,
-        fontWeight:      ms.titleLabelFontWeight,
-        fill:            ms.titleLabelColor,
-        textAnchor:      'middle',
-        dominantBaseline:'alphabetic',
-      });
+      if (titleText) {
+        primitives.push({
+          kind:             'text',
+          x:                xCenter,
+          y:                rhu(blockTopY + blockTitleH * 0.85),
+          text:             titleText,
+          fontFamily:       FONT_FAM,
+          fontSize:         titleFontPx,
+          fontWeight:       ms.titleLabelFontWeight,
+          fill:             ms.titleLabelColor,
+          textAnchor:       'middle',
+          dominantBaseline: 'alphabetic',
+        });
+      }
+
+      if (compactDate) {
+        primitives.push({
+          kind:             'text',
+          x:                xCenter,
+          y:                rhu(blockTopY + blockTitleH + 4 + dateFontPx * 0.85),
+          text:             compactDate,
+          fontFamily:       FONT_FAM,
+          fontSize:         dateFontPx,
+          fontWeight:       ms.dateLabelFontWeight,
+          fill:             ms.dateLabelColor,
+          textAnchor:       'middle',
+          dominantBaseline: 'alphabetic',
+        });
+      }
     }
   });
 
@@ -1095,7 +1172,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         ? rhu(targetActivity.y + theme.activity.barHeight / 2)
         : targetMilestone
           ? targetMilestone.yCenter
-          : rhu(mT_eff + Haxis + hDraw / 2);
+          : rhu(mT_eff + Haxis + aboveZoneH + hDraw / 2);
 
       const calloutW = 120;
       const calloutH = 28;

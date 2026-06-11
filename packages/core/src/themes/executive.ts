@@ -119,6 +119,10 @@ export const executiveTheme: ResolvedTheme = {
     labelMaxWidth:          120,
     labelStackOffset:       14,
     stackOffsetY:           20,
+    minNodeGap:            46,   // 2 × 20 + 6
+    leaderColor:           '#8BAAC8',
+    leaderWidth:           0.75,
+    blockTierGap:          6,
   },
 
   statusMap: {

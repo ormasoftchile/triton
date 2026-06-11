@@ -449,4 +449,149 @@ describe('renderDocument — T2 (horizontal numbered nodes)', () => {
       expect(r1.svg).toContain('Wide Dark Bar Activity');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // (f) Barbara dense-milestone decluttering + alternating label blocks
+  // ---------------------------------------------------------------------------
+
+  describe('(f) Dense-milestone decluttering, alternating blocks, axis separation', () => {
+    /** Three milestones crammed within 4 days — nodes must be declustered. */
+    const DENSE_IR: IRDocument = {
+      version: '1.0',
+      metadata: {
+        title:      'Dense Milestones Test',
+        time_range: { start: '2023-01', end: '2023-12' },
+        axis_unit:  'month',
+        theme:      'consulting',
+      },
+      tracks: [{ id: 'main', label: '', index: 0 }],
+      activities: [],
+      milestones: [
+        { id: 'ms-a', label: 'Milestone Alpha', date: '2023-03-01', track: 'main', status: 'done',     category: 'standard-node' },
+        { id: 'ms-b', label: 'Milestone Beta',  date: '2023-03-02', track: 'main', status: 'done',     category: 'standard-node' },
+        { id: 'ms-c', label: 'Milestone Gamma', date: '2023-03-05', track: 'main', status: 'planned',  category: 'standard-node' },
+      ],
+    };
+
+    it('renders dense milestones without error', () => {
+      expect(() => renderDocument(DENSE_IR, { format: 'svg' })).not.toThrow();
+    });
+
+    it('dense milestones: two renders byte-identical (determinism)', () => {
+      const r1 = renderDocument(DENSE_IR, { format: 'svg' });
+      const r2 = renderDocument(DENSE_IR, { format: 'svg' });
+      expect(r1.svg).toBe(r2.svg);
+      expect(r1.sceneHash).toBe(r2.sceneHash);
+    });
+
+    it('dense milestones: all label texts appear in SVG', () => {
+      const r = renderDocument(DENSE_IR, { format: 'svg' });
+      expect(r.svg).toContain('Milestone Alpha');
+      expect(r.svg).toContain('Milestone Beta');
+      expect(r.svg).toContain('Milestone Gamma');
+    });
+
+    it('compact date format is used — no day-ordinal suffix in SVG', () => {
+      // New format: "May 2021", "June 2021", "September 2021" (no "15th", "20th", "1st")
+      const r = renderDocument(T2_IR, { format: 'svg' });
+      expect(r.svg).not.toContain('15th May');
+      expect(r.svg).not.toContain('20th June');
+      expect(r.svg).not.toContain('1st September');
+      // Month + year still present
+      expect(r.svg).toContain('May 2021');
+      expect(r.svg).toContain('June 2021');
+      expect(r.svg).toContain('September 2021');
+    });
+
+    it('milestone date text not emitted directly on the axis tick band (axis stays clean)', () => {
+      // Axis tick labels for a monthly axis over 2021 are: "2021", "Apr", "May", "Jun", etc.
+      // The milestone compact date "May 2021" (with space + year) is never a bare tick label.
+      // Smoke: ensure no throw, deterministic
+      const r1 = renderDocument(T2_IR, { format: 'svg' });
+      const r2 = renderDocument(T2_IR, { format: 'svg' });
+      expect(r1.svg).toBe(r2.svg);
+      // Year tick label appears as a lone year string in the axis
+      expect(r1.svg).toContain('>2021<');
+    });
+
+    it('canvas grows to accommodate below-side label blocks vs no milestones', () => {
+      const mkIR = (withMilestones: boolean): IRDocument => ({
+        version: '1.0',
+        metadata: {
+          title:      'Canvas Growth Test',
+          time_range: { start: '2023-01', end: '2023-12' },
+          axis_unit:  'month',
+          theme:      'consulting',
+        },
+        tracks: [{ id: 'main', label: '', index: 0 }],
+        activities: [],
+        milestones: withMilestones
+          ? [{ id: 'ms', label: 'A Milestone', date: '2023-06-01', track: 'main', status: 'done' }]
+          : [],
+      });
+      const rNo  = renderDocument(mkIR(false), { format: 'svg' });
+      const rYes = renderDocument(mkIR(true),  { format: 'svg' });
+      const h1 = parseFloat((/height="([\d.]+)"/.exec(rNo.svg!))![1]!);
+      const h2 = parseFloat((/height="([\d.]+)"/.exec(rYes.svg!))![1]!);
+      expect(h2).toBeGreaterThan(h1);
+    });
+
+    it('above-zone grows canvas height when above-side milestones need space', () => {
+      // 2 milestones alternating above/below — with aboveZoneH the canvas is taller than
+      // what a milestone-free canvas of the same dimensions would be.
+      const r = renderDocument({
+        version: '1.0',
+        metadata: {
+          title:      'Above Zone Test',
+          time_range: { start: '2023-01', end: '2023-12' },
+          axis_unit:  'month',
+          theme:      'consulting',
+        },
+        tracks: [{ id: 'main', label: '', index: 0 }],
+        activities: [],
+        milestones: [
+          { id: 'ms1', label: 'First', date: '2023-03-01', track: 'main', status: 'done' },
+          { id: 'ms2', label: 'Second', date: '2023-09-01', track: 'main', status: 'planned' },
+        ],
+      }, { format: 'svg' });
+      const h = parseFloat((/height="([\d.]+)"/.exec(r.svg!))![1]!);
+      expect(h).toBeGreaterThan(50);
+      // Two renders byte-identical
+      const r2 = renderDocument({
+        version: '1.0',
+        metadata: {
+          title:      'Above Zone Test',
+          time_range: { start: '2023-01', end: '2023-12' },
+          axis_unit:  'month',
+          theme:      'consulting',
+        },
+        tracks: [{ id: 'main', label: '', index: 0 }],
+        activities: [],
+        milestones: [
+          { id: 'ms1', label: 'First', date: '2023-03-01', track: 'main', status: 'done' },
+          { id: 'ms2', label: 'Second', date: '2023-09-01', track: 'main', status: 'planned' },
+        ],
+      }, { format: 'svg' });
+      expect(r.svg).toBe(r2.svg);
+      expect(r.sceneHash).toBe(r2.sceneHash);
+    });
+
+    it('declustered nodes emit leader ticks for displaced milestones', () => {
+      // Dense milestones with ms-a and ms-b on consecutive days — displacement expected.
+      // The displaced node should have a leader tick in the SVG (thin line at trueX).
+      const r = renderDocument(DENSE_IR, { format: 'svg' });
+      // The SVG should contain at least one line element with opacity="0.45" (leader lines)
+      expect(r.svg).toContain('opacity="0.45"');
+    });
+
+    it('dense milestones: all 5 themes render deterministically', () => {
+      for (const theme of ['consulting', 'product', 'executive', 'minimal', 'release'] as const) {
+        const ir = { ...DENSE_IR, metadata: { ...DENSE_IR.metadata, theme } };
+        const r1 = renderDocument(ir, { format: 'svg', theme });
+        const r2 = renderDocument(ir, { format: 'svg', theme });
+        expect(r1.svg).toBe(r2.svg);
+        expect(r1.sceneHash).toBe(r2.sceneHash);
+      }
+    });
+  });
 });

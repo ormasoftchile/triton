@@ -121,6 +121,10 @@ export const minimalTheme: ResolvedTheme = {
     labelMaxWidth:          120,
     labelStackOffset:       12,
     stackOffsetY:           18,
+    minNodeGap:            42,   // 2 × 18 + 6
+    leaderColor:           '#888888',
+    leaderWidth:           0.75,
+    blockTierGap:          5,
   },
 
   statusMap: {
