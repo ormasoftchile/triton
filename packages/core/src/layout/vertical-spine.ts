@@ -169,6 +169,21 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
   const isDark    = isHexDark(theme.canvas.backgroundColor);
   const cardFill  = isDark ? '#1A2E44' : '#F4F6F8';
 
+  // ── Header block (title / subtitle / meta-line) geometry ─────────────────
+  const HEADER_V_PAD   = 12;
+  const hdrTitlePx     = ptToPx(theme.typography.fontSizeTitle);
+  const hdrSubtitlePx  = ptToPx(theme.typography.fontSizeSubtitle);
+  const hdrMetaFontPx  = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
+
+  let headerH = 0;
+  if (ir.metadata.title) {
+    headerH += HEADER_V_PAD + rhuInt(hdrTitlePx * 1.4);
+    if (ir.metadata.subtitle) headerH += 4 + rhuInt(hdrSubtitlePx * 1.35);
+    const hasMetaLine = !!(ir.metadata.author || ir.metadata.updated || ir.metadata.created);
+    if (hasMetaLine) headerH += 4 + rhuInt(hdrMetaFontPx * 1.35);
+    headerH += HEADER_V_PAD;
+  }
+
   // ── Time range ────────────────────────────────────────────────────────────
   const trStart = ir.metadata.time_range.start;
   const trEnd   = ir.metadata.time_range.end ?? trStart;
@@ -283,7 +298,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     200,
   ));
 
-  const spineTopY    = rhu(mT + SPINE_TOP_PAD);
+  const spineTopY    = rhu(mT + headerH + SPINE_TOP_PAD);
   const spineBottomY = rhu(spineTopY + hDraw);
 
   /** Map a day ordinal to a canvas y coordinate (deterministic, analogous to dateX). */
@@ -382,20 +397,77 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     });
   }
 
-  // 2. Document title
+  // 2. Header block — title / subtitle / meta-line (themed typography, reserved space)
   if (ir.metadata.title) {
-    const titleSizePx = ptToPx(theme.typography.fontSizeTitle);
+    let hdrCursorY = mT + HEADER_V_PAD;
+
+    // Primary title
     primitives.push({
       kind:             'text',
       x:                rhu(W / 2),
-      y:                rhu(mT / 2 + titleSizePx / 2),
+      y:                rhu(hdrCursorY + hdrTitlePx),
       text:             ir.metadata.title,
       fontFamily:       FONT_FAM,
-      fontSize:         titleSizePx,
+      fontSize:         hdrTitlePx,
       fontWeight:       theme.typography.fontWeightHeader,
       fill:             theme.typography.titleColor,
       textAnchor:       'middle',
-      dominantBaseline: 'middle',
+      dominantBaseline: 'alphabetic',
+    });
+    hdrCursorY += rhuInt(hdrTitlePx * 1.4);
+
+    // Subtitle
+    if (ir.metadata.subtitle) {
+      hdrCursorY += 4;
+      primitives.push({
+        kind:             'text',
+        x:                rhu(W / 2),
+        y:                rhu(hdrCursorY + hdrSubtitlePx),
+        text:             ir.metadata.subtitle,
+        fontFamily:       FONT_FAM,
+        fontSize:         hdrSubtitlePx,
+        fontWeight:       theme.typography.fontWeightAxis,
+        fill:             theme.typography.titleColor,
+        textAnchor:       'middle',
+        dominantBaseline: 'alphabetic',
+        opacity:          0.75,
+      });
+      hdrCursorY += rhuInt(hdrSubtitlePx * 1.35);
+    }
+
+    // Author / date meta-line
+    const metaParts: string[] = [];
+    if (ir.metadata.author) metaParts.push(ir.metadata.author);
+    if (ir.metadata.updated)      metaParts.push(`Updated: ${ir.metadata.updated}`);
+    else if (ir.metadata.created) metaParts.push(`Created: ${ir.metadata.created}`);
+
+    if (metaParts.length > 0) {
+      hdrCursorY += 4;
+      primitives.push({
+        kind:             'text',
+        x:                rhu(W / 2),
+        y:                rhu(hdrCursorY + hdrMetaFontPx),
+        text:             metaParts.join(' · '),
+        fontFamily:       FONT_FAM,
+        fontSize:         hdrMetaFontPx,
+        fontWeight:       theme.typography.fontWeightAxis,
+        fill:             theme.typography.titleColor,
+        textAnchor:       'middle',
+        dominantBaseline: 'alphabetic',
+        opacity:          0.6,
+      });
+    }
+
+    // Subtle separator line
+    primitives.push({
+      kind:        'line',
+      x1:          rhu(m.left),
+      y1:          rhu(mT + headerH - 6),
+      x2:          rhu(W - m.right),
+      y2:          rhu(mT + headerH - 6),
+      stroke:      theme.axis.axisLineColor,
+      strokeWidth: 0.5,
+      opacity:     0.35,
     });
   }
 

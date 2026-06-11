@@ -50,6 +50,30 @@ function rhuInt(v: number): number {
 }
 
 // ---------------------------------------------------------------------------
+// Contrast-aware text colour (WCAG relative-luminance, deterministic)
+// ---------------------------------------------------------------------------
+
+/**
+ * Return `lightText` or `darkText` depending on whether `hexFill` is a
+ * dark or light colour.  Uses the WCAG 2.1 relative-luminance formula so
+ * the choice is byte-deterministic across all platforms.
+ */
+function contrastColor(hexFill: string, lightText: string, darkText: string): string {
+  const clean = hexFill.replace('#', '');
+  if (clean.length !== 6) return darkText;
+  const r8 = parseInt(clean.slice(0, 2), 16);
+  const g8 = parseInt(clean.slice(2, 4), 16);
+  const b8 = parseInt(clean.slice(4, 6), 16);
+  const lin = (c8: number): number => {
+    const c = c8 / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const L = 0.2126 * lin(r8) + 0.7152 * lin(g8) + 0.0722 * lin(b8);
+  // WCAG §1.4.3 threshold — above this luminance dark text is legible
+  return L > 0.179 ? darkText : lightText;
+}
+
+// ---------------------------------------------------------------------------
 // x-coordinate function (§5.3.2)
 // ---------------------------------------------------------------------------
 
@@ -120,6 +144,28 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const wDraw = W - mL - mR - Hhdr;
   const offset = Hhdr + mL;
 
+  // ── Shared font-family string ─────────────────────────────────────────────
+  const FONT_FAM = `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`;
+
+  // ── Header block (title / subtitle / meta-line) geometry ─────────────────
+  // Reserve vertical space above the axis so the header never overlaps content.
+  const HEADER_V_PAD   = 12;
+  const hdrTitlePx     = ptToPx(theme.typography.fontSizeTitle);
+  const hdrSubtitlePx  = ptToPx(theme.typography.fontSizeSubtitle);
+  const hdrMetaFontPx  = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
+
+  let headerH = 0;
+  if (ir.metadata.title) {
+    headerH += HEADER_V_PAD + rhuInt(hdrTitlePx * 1.4);
+    if (ir.metadata.subtitle) headerH += 4 + rhuInt(hdrSubtitlePx * 1.35);
+    const hasMetaLine = !!(ir.metadata.author || ir.metadata.updated || ir.metadata.created);
+    if (hasMetaLine) headerH += 4 + rhuInt(hdrMetaFontPx * 1.35);
+    headerH += HEADER_V_PAD;
+  }
+
+  /** Effective top-of-canvas margin including the header block. */
+  const mT_eff = mT + headerH;
+
   const axisState: AxisState = { tsOrd, teOrd, offset, wDraw };
 
   // 1d. Enumerate ticks
@@ -135,7 +181,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     height: number; // provisional; may expand in Phase 3
   }
 
-  let yCursor = mT + Haxis;
+  let yCursor = mT_eff + Haxis;
   const trackLayouts: TrackLayout[] = sortedTracks.map((t) => {
     const tl: TrackLayout = { track: t, yTop: yCursor, height: tk.rowHeight };
     yCursor += tk.rowHeight + tk.rowGap;
@@ -243,7 +289,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   }
 
   // Recompute y_top after Phase 3 height changes
-  let yCursor3 = mT + Haxis;
+  let yCursor3 = mT_eff + Haxis;
   for (const tl of trackLayouts) {
     tl.yTop = yCursor3;
     yCursor3 += tl.height + tk.rowGap;
@@ -293,7 +339,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     const tl = mil.track ? trackIndex.get(mil.track) : undefined;
     const yCenter = tl
       ? rhu(tl.yTop + tl.height / 2)
-      : rhu(mT + Haxis + hDraw / 2);
+      : rhu(mT_eff + Haxis + hDraw / 2);
 
     const [y, mo, d] = coerceLeft(parseIRDate(mil.date));
     const dateFmt = formatMilestoneDate(y, mo, d);
@@ -431,9 +477,9 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   }
 
   // Clamp to canvas
-  const canvasBottom = mT + Haxis + hDraw + m.bottom;
+  const canvasBottom = mT_eff + Haxis + hDraw + m.bottom;
   for (const lb of labelBoxes) {
-    lb.y = rhu(Math.max(mT, Math.min(lb.y, canvasBottom - lb.height)));
+    lb.y = rhu(Math.max(mT_eff + Haxis, Math.min(lb.y, canvasBottom - lb.height)));
   }
 
   // -------------------------------------------------------------------------
@@ -451,7 +497,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   // Canvas height
   // -------------------------------------------------------------------------
 
-  const H = rhu(mT + Haxis + hDraw + m.bottom);
+  const H = rhu(mT_eff + Haxis + hDraw + m.bottom);
 
   // -------------------------------------------------------------------------
   // Build Scene primitives (painter's algorithm: back → front)
@@ -486,7 +532,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         primitives.push({
           kind:    'rect',
           x:       xBandLeft,
-          y:       rhu(mT + Haxis),
+          y:       rhu(mT_eff + Haxis),
           width:   bw,
           height:  rhu(hDraw),
           fill,
@@ -498,7 +544,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       primitives.push({
         kind:             'text',
         x:                rhu(xBandLeft + 4),
-        y:                rhu(mT + Haxis + 4 + secFontPx),
+        y:                rhu(mT_eff + Haxis + 4 + secFontPx),
         text:             sec.label,
         fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
         fontSize:         secFontPx,
@@ -511,25 +557,82 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     });
   }
 
-  // 2. Document title
+  // 2. Header block — title / subtitle / meta-line (themed typography, reserved space)
   if (ir.metadata.title) {
-    const titleSizePx = ptToPx(theme.typography.fontSizeTitle);
+    let hdrCursorY = mT + HEADER_V_PAD;
+
+    // Primary title
     primitives.push({
-      kind:            'text',
-      x:               rhu(W / 2),
-      y:               rhu(mT / 2 + titleSizePx / 2),
-      text:            ir.metadata.title,
-      fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-      fontSize:        titleSizePx,
-      fontWeight:      theme.typography.fontWeightHeader,
-      fill:            theme.typography.titleColor,
-      textAnchor:      'middle',
-      dominantBaseline:'middle',
+      kind:             'text',
+      x:                rhu(W / 2),
+      y:                rhu(hdrCursorY + hdrTitlePx),
+      text:             ir.metadata.title,
+      fontFamily:       FONT_FAM,
+      fontSize:         hdrTitlePx,
+      fontWeight:       theme.typography.fontWeightHeader,
+      fill:             theme.typography.titleColor,
+      textAnchor:       'middle',
+      dominantBaseline: 'alphabetic',
+    });
+    hdrCursorY += rhuInt(hdrTitlePx * 1.4);
+
+    // Subtitle (if present)
+    if (ir.metadata.subtitle) {
+      hdrCursorY += 4;
+      primitives.push({
+        kind:             'text',
+        x:                rhu(W / 2),
+        y:                rhu(hdrCursorY + hdrSubtitlePx),
+        text:             ir.metadata.subtitle,
+        fontFamily:       FONT_FAM,
+        fontSize:         hdrSubtitlePx,
+        fontWeight:       theme.typography.fontWeightAxis,
+        fill:             theme.typography.titleColor,
+        textAnchor:       'middle',
+        dominantBaseline: 'alphabetic',
+        opacity:          0.75,
+      });
+      hdrCursorY += rhuInt(hdrSubtitlePx * 1.35);
+    }
+
+    // Author / date meta-line (if any metadata present)
+    const metaParts: string[] = [];
+    if (ir.metadata.author) metaParts.push(ir.metadata.author);
+    if (ir.metadata.updated)      metaParts.push(`Updated: ${ir.metadata.updated}`);
+    else if (ir.metadata.created) metaParts.push(`Created: ${ir.metadata.created}`);
+
+    if (metaParts.length > 0) {
+      hdrCursorY += 4;
+      primitives.push({
+        kind:             'text',
+        x:                rhu(W / 2),
+        y:                rhu(hdrCursorY + hdrMetaFontPx),
+        text:             metaParts.join(' · '),
+        fontFamily:       FONT_FAM,
+        fontSize:         hdrMetaFontPx,
+        fontWeight:       theme.typography.fontWeightAxis,
+        fill:             theme.typography.titleColor,
+        textAnchor:       'middle',
+        dominantBaseline: 'alphabetic',
+        opacity:          0.6,
+      });
+    }
+
+    // Subtle separator line between header and axis zone
+    primitives.push({
+      kind:        'line',
+      x1:          rhu(offset),
+      y1:          rhu(mT_eff - 6),
+      x2:          rhu(offset + wDraw),
+      y2:          rhu(mT_eff - 6),
+      stroke:      theme.axis.axisLineColor,
+      strokeWidth: 0.5,
+      opacity:     0.35,
     });
   }
 
   // 3. Axis band (horizontal line at bottom of axis zone)
-  const axisY = rhu(mT + Haxis);
+  const axisY = rhu(mT_eff + Haxis);
   primitives.push({
     kind:        'line',
     x1:          rhu(offset),
@@ -561,7 +664,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         x1:          xk,
         y1:          axisY,
         x2:          xk,
-        y2:          rhu(mT + Haxis + hDraw),
+        y2:          rhu(mT_eff + Haxis + hDraw),
         stroke:      ax.gridlineColor,
         strokeWidth: ax.gridlineWidth,
         opacity:     ax.gridlineOpacity,
@@ -596,8 +699,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       const todayOrd = parseAndCoerceLeft(todayDate);
       if (todayOrd >= tsOrd && todayOrd <= teOrd) {
         const xToday = rhu(dateX(todayOrd, axisState));
-        const todayY1 = rhu(mT + Haxis);
-        const todayY2 = rhu(mT + Haxis + hDraw);
+        const todayY1 = rhu(mT_eff + Haxis);
+        const todayY2 = rhu(mT_eff + Haxis + hDraw);
         primitives.push({
           kind:        'line',
           x1:          xToday,
@@ -638,7 +741,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       const xL = rhu(dateX(parseAndCoerceLeft(aStart), axisState));
       const xR = rhu(dateX(parseAndCoerceRight(aEnd), axisState));
       if (xR <= xL) continue;
-      const bracketY = rhu(mT + Haxis + hDraw + 12);
+      const bracketY = rhu(mT_eff + Haxis + hDraw + 12);
       const bracketColor = theme.axis.todayMarker.color;
       primitives.push({
         kind: 'line', x1: xL, y1: bracketY, x2: xR, y2: bracketY,
@@ -745,40 +848,83 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       }
     }
 
-    // Activity label
-    const truncatedLabel = al.width >= theme.activity.labelInsideMinWidth
-      ? truncateText(al.activity.label, actFontPx, rhu(al.width - 8))
-      : undefined;
-    if (truncatedLabel) {
-      primitives.push({
-        kind:            'text',
-        x:               rhu(al.xLeft + al.width / 2),
-        y:               rhu(al.y + theme.activity.barHeight / 2),
-        text:            truncatedLabel,
-        fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-        fontSize:        actFontPx,
-        fontWeight:      theme.typography.fontWeightLabel,
-        fill:            theme.activity.labelColorInside,
-        textAnchor:      'middle',
-        dominantBaseline:'middle',
-      });
-    } else {
-      const outsideLabel = truncateText(al.activity.label, actFontPx, 120);
-      const outsideLabelWidth = measureText(outsideLabel, actFontPx).width;
-      const rightX = al.xRight + 4;
-      const fits = rightX + outsideLabelWidth < offset + wDraw - 4;
-      primitives.push({
-        kind:            'text',
-        x:               rhu(fits ? rightX : al.xLeft - 4),
-        y:               rhu(al.y + theme.activity.barHeight / 2),
-        text:            outsideLabel,
-        fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-        fontSize:        actFontPx,
-        fontWeight:      theme.typography.fontWeightLabel,
-        fill:            theme.activity.labelColorOutside,
-        textAnchor:      fits ? 'start' : 'end',
-        dominantBaseline:'middle',
-      });
+    // Activity label — contrast-aware, left-aligned inside / clamped outside
+    {
+      const LPAD = 4; // inside padding px (matches existing width - 8 budget)
+      const labelFullWidth = measureText(al.activity.label, actFontPx).width;
+      const insideAvail    = rhu(al.width - 2 * LPAD);
+      const barMidY        = rhu(al.y + theme.activity.barHeight / 2);
+      // Contrast-aware text colour for inside placement
+      const insideColor = contrastColor(
+        fill,
+        theme.activity.labelColorInside,
+        theme.activity.labelColorOutside,
+      );
+
+      if (labelFullWidth <= insideAvail && insideAvail > 0) {
+        // Full label fits without truncation — left-aligned, contrast-aware
+        primitives.push({
+          kind:             'text',
+          x:                rhu(al.xLeft + LPAD),
+          y:                barMidY,
+          text:             al.activity.label,
+          fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize:         actFontPx,
+          fontWeight:       theme.typography.fontWeightLabel,
+          fill:             insideColor,
+          textAnchor:       'start',
+          dominantBaseline: 'middle',
+        });
+      } else if (insideAvail >= theme.activity.labelInsideMinWidth) {
+        // Bar wide enough — truncate to fit and render inside
+        const truncated = truncateText(al.activity.label, actFontPx, insideAvail);
+        primitives.push({
+          kind:             'text',
+          x:                rhu(al.xLeft + LPAD),
+          y:                barMidY,
+          text:             truncated,
+          fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize:         actFontPx,
+          fontWeight:       theme.typography.fontWeightLabel,
+          fill:             insideColor,
+          textAnchor:       'start',
+          dominantBaseline: 'middle',
+        });
+      } else {
+        // Bar too narrow — place outside right, fall back to left
+        const OUTSIDE_MIN = 20;
+        const rightAvail = rhu(offset + wDraw - al.xRight - 8);
+        const leftAvail  = rhu(al.xLeft - offset - 4);
+
+        if (rightAvail >= OUTSIDE_MIN) {
+          primitives.push({
+            kind:             'text',
+            x:                rhu(al.xRight + 4),
+            y:                barMidY,
+            text:             truncateText(al.activity.label, actFontPx, rightAvail),
+            fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+            fontSize:         actFontPx,
+            fontWeight:       theme.typography.fontWeightLabel,
+            fill:             theme.activity.labelColorOutside,
+            textAnchor:       'start',
+            dominantBaseline: 'middle',
+          });
+        } else if (leftAvail >= OUTSIDE_MIN) {
+          primitives.push({
+            kind:             'text',
+            x:                rhu(al.xLeft - 4),
+            y:                barMidY,
+            text:             truncateText(al.activity.label, actFontPx, leftAvail),
+            fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+            fontSize:         actFontPx,
+            fontWeight:       theme.typography.fontWeightLabel,
+            fill:             theme.activity.labelColorOutside,
+            textAnchor:       'end',
+            dominantBaseline: 'middle',
+          });
+        }
+        // Neither side has room (extreme edge case) — skip label silently
+      }
     }
 
     // Open-end indicator (§5: right-edge decoration for ongoing/tbd activities)
@@ -949,7 +1095,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         ? rhu(targetActivity.y + theme.activity.barHeight / 2)
         : targetMilestone
           ? targetMilestone.yCenter
-          : rhu(mT + Haxis + hDraw / 2);
+          : rhu(mT_eff + Haxis + hDraw / 2);
 
       const calloutW = 120;
       const calloutH = 28;
@@ -1064,7 +1210,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       const pos = lg.position;
       const margin = 16;
       const lgX = pos.includes('right') ? W - mR - lgW - margin : mL + margin;
-      const lgY = pos.includes('bottom') ? H - m.bottom - lgH - margin : mT + margin;
+      const lgY = pos.includes('bottom') ? H - m.bottom - lgH - margin : mT_eff + margin;
 
       primitives.push({
         kind: 'rect', x: rhu(lgX), y: rhu(lgY), width: lgW, height: rhu(lgH),

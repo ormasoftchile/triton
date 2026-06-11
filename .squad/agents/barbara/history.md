@@ -650,3 +650,40 @@ Added a deterministic O(n) stagger pass for **date labels** (above nodes), appli
 - All `examples/gallery/themes/*/*.{svg,png}` — regenerated
 - All `examples/gallery/vertical/*.{svg,png}` — regenerated
 - `examples/gallery/index.html` — updated with Example 10 (icon-showcase) card
+
+## Learnings
+
+### Layout Quality Polish Pass (Bar Labels, Sub-Lane Packing, Title Header)
+
+**Activity-Bar Label Placement & Contrast Logic:**
+- Added `contrastColor(hex, lightText, darkText)` pure function using WCAG relative-luminance formula (sRGB linearization, threshold L > 0.179). Returns `lightText` for dark fills, `darkText` for light fills. Fully deterministic — no state or random.
+- Label placement priority: (1) full label fits inside bar → render left-aligned with 4px padding, contrast-aware color; (2) bar meets `labelInsideMinWidth` threshold → truncate with ellipsis to fit inside, same contrast color; (3) bar too narrow → outside right (if ≥ 20px clearance to right edge), else outside left (end-anchor), else silently skip. Labels never escape canvas bounds.
+- Key constant: `LPAD = 4` (inside left padding), `labelInsideMinWidth = theme.track.labelInsideMinWidth` (per-theme threshold).
+
+**Sub-Lane Packing Algorithm:**
+- Stable greedy interval-packing: activities sorted by `(start_ordinal, id)`, each assigned to first sub-lane whose last bar's `end_ordinal ≤ this.start_ordinal`.
+- Sub-lane index stored in `ActivityLayout.subLane`; bar y = `trackY + subLane * theme.track.subLaneHeight`.
+- Track height grows to accommodate max concurrent overlap: `trackH = maxSubLane * subLaneHeight + barHeight`.
+- Root cause of zero-gap bug: `subLaneHeight === barHeight` in all 5 themes. Fix: increased by 6–8px per theme.
+- Theme updates: consulting 24→30, executive 28→34, minimal 22→28, product 20→26, release 24→30.
+
+**Title / Header Block:**
+- Both `horizontal.ts` and `vertical-spine.ts` compute `headerH` from `ir.metadata.title` presence.
+- Formula: `HEADER_V_PAD(12) + titlePx×1.4 + [subtitle: 4 + subPx×1.35] + [meta: 4 + metaPx×1.35] + HEADER_V_PAD(12)`.
+- In horizontal.ts: `mT_eff = mT + headerH` used as drop-in for all y-coordinate calculations.
+- In vertical-spine.ts: `spineTopY += headerH`; all content shifts automatically.
+- Renders: title (fontSizeTitle, fontWeightHeader, 100% opacity), subtitle (fontSizeSubtitle, 0.75 opacity), author/date meta-line (fontSizeAxis, 0.6 opacity), separator line (0.35 opacity, 0.5px stroke). Both layout families use identical rendering logic.
+
+**Theme Tokens Changed:**
+- `subLaneHeight` increased in all 5 theme files (single-line additive change per file).
+- No new token types added — all header dimensions computed inline from existing `fontSizeTitle`, `fontSizeSubtitle`, `fontSizeAxis`, `fontWeightHeader` tokens.
+
+**Golden + Galleries Regenerated:**
+- `examples/golden/our-timeline.{svg,png}` — re-snapshotted (golden test re-verified).
+- All `examples/gallery/*.{svg,png}` — regenerated (12 examples incl. dense-roadmap now legible).
+- All `examples/gallery/themes/*/*.{svg,png}` — regenerated (5 themes × 4 examples = 20 pairs).
+- All `examples/gallery/vertical/*.{svg,png}` — regenerated (5 examples × 3 themes = 15 pairs).
+- All deterministic: dense-roadmap, product-roadmap, feature-rich, vertical/program-timeline — byte-identical across two consecutive renders.
+
+**Test Suite:**
+- 297 tests passing in packages/core (up from 292); 304 total across all packages. Lint clean. Build clean. Typecheck clean.

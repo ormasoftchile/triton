@@ -73,7 +73,7 @@ export const minimalTheme: ResolvedTheme = {
   track: {
     headerWidth:      140,
     rowHeight:         72,
-    subLaneHeight:     22,
+    subLaneHeight:     28,  // barHeight(20) + 8 px gap between sub-lanes
     maxSubLanes:        8,
     rowGap:            12,
     headerFontSize:    10,

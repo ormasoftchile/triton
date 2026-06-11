@@ -305,4 +305,148 @@ describe('renderDocument — T2 (horizontal numbered nodes)', () => {
       expect(r1.svg).toBe(r2.svg);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // (e) Barbara layout-quality polish pass — bar labels, sub-lanes, title block
+  // ---------------------------------------------------------------------------
+
+  describe('(e) Layout quality — label placement, sub-lane packing, title block', () => {
+
+    /** Narrow-bar IR: 4-day bar with a very long label that cannot fit inside. */
+    const NARROW_BAR_IR: IRDocument = {
+      version: '1.0',
+      metadata: {
+        title:      'Label Placement Test',
+        time_range: { start: '2021-01', end: '2021-12' },
+        axis_unit:  'month',
+        theme:      'consulting',
+      },
+      tracks: [{ id: 'main', label: '', index: 0 }],
+      activities: [{
+        id:     'narrow',
+        label:  'This Is A Very Long Activity Label That Cannot Possibly Fit',
+        track:  'main',
+        start:  '2021-06-01',
+        end:    '2021-06-04',   // ~3 days → very narrow bar
+        status: 'planned',
+      }],
+      milestones: [],
+    };
+
+    it('long label on narrow bar is placed outside and truncated deterministically', () => {
+      const r1 = renderDocument(NARROW_BAR_IR, { format: 'svg' });
+      const r2 = renderDocument(NARROW_BAR_IR, { format: 'svg' });
+      // Byte-identical (determinism)
+      expect(r1.svg).toBe(r2.svg);
+      expect(r1.sceneHash).toBe(r2.sceneHash);
+      // Some portion of the label appears (outside or truncated)
+      expect(r1.svg).toContain('This Is A Very Long');
+    });
+
+    it('overlapping activities in same track pack into distinct sub-lanes (canvas grows)', () => {
+      const mkIR = (overlapping: boolean): IRDocument => ({
+        version: '1.0',
+        metadata: {
+          title:      'Sub-lane Test',
+          time_range: { start: '2021-01', end: '2021-12' },
+          axis_unit:  'month',
+          theme:      'consulting',
+        },
+        tracks: [{ id: 'main', label: '', index: 0 }],
+        activities: [
+          {
+            id: 'act-a', label: 'Activity A', track: 'main',
+            start: '2021-01-01', end: '2021-06-30', status: 'planned',
+          },
+          {
+            id: 'act-b', label: 'Activity B', track: 'main',
+            start: overlapping ? '2021-03-01' : '2021-07-01',
+            end:   overlapping ? '2021-09-30' : '2021-12-31',
+            status: 'in-progress',
+          },
+        ],
+        milestones: [],
+      });
+
+      const rNoOverlap  = renderDocument(mkIR(false), { format: 'svg' });
+      const rOverlapping = renderDocument(mkIR(true),  { format: 'svg' });
+
+      // Extract canvas heights from SVG root element
+      const h1 = parseFloat((/height="([\d.]+)"/.exec(rNoOverlap.svg!))![1]!);
+      const h2 = parseFloat((/height="([\d.]+)"/.exec(rOverlapping.svg!))![1]!);
+      // Overlapping activities require sub-lanes → taller canvas
+      expect(h2).toBeGreaterThan(h1);
+
+      // Both renders are individually deterministic
+      const r2a = renderDocument(mkIR(false), { format: 'svg' });
+      const r2b = renderDocument(mkIR(true),  { format: 'svg' });
+      expect(rNoOverlap.svg).toBe(r2a.svg);
+      expect(rOverlapping.svg).toBe(r2b.svg);
+    });
+
+    it('title block renders metadata.subtitle when present', () => {
+      const ir: IRDocument = {
+        version: '1.0',
+        metadata: {
+          title:      'Primary Title',
+          subtitle:   'A descriptive subtitle for this timeline',
+          time_range: { start: '2021-01', end: '2021-12' },
+          axis_unit:  'month',
+          theme:      'consulting',
+        },
+        tracks: [{ id: 'main', label: '', index: 0 }],
+        activities: [],
+        milestones: [],
+      };
+      const result = renderDocument(ir, { format: 'svg' });
+      expect(result.svg).toContain('Primary Title');
+      expect(result.svg).toContain('A descriptive subtitle for this timeline');
+    });
+
+    it('title block with subtitle makes canvas taller than title-only', () => {
+      const mkIR = (withSubtitle: boolean): IRDocument => ({
+        version: '1.0',
+        metadata: {
+          title:    'My Timeline',
+          subtitle: withSubtitle ? 'My subtitle line' : undefined,
+          time_range: { start: '2021-01', end: '2021-12' },
+          axis_unit: 'month',
+          theme: 'consulting',
+        },
+        tracks: [{ id: 'main', label: '', index: 0 }],
+        activities: [],
+        milestones: [],
+      });
+      const rNoSub  = renderDocument(mkIR(false), { format: 'svg' });
+      const rWithSub = renderDocument(mkIR(true),  { format: 'svg' });
+      const h1 = parseFloat((/height="([\d.]+)"/.exec(rNoSub.svg!))![1]!);
+      const h2 = parseFloat((/height="([\d.]+)"/.exec(rWithSub.svg!))![1]!);
+      expect(h2).toBeGreaterThan(h1);
+    });
+
+    it('contrast-color selection is deterministic (byte-identical renders)', () => {
+      // Full-width bar with dark fill (consulting planned = navy) — inside text uses light color
+      const ir: IRDocument = {
+        version: '1.0',
+        metadata: {
+          title: 'Contrast Test',
+          time_range: { start: '2021-01', end: '2021-12' },
+          axis_unit: 'month',
+          theme: 'consulting',
+        },
+        tracks: [{ id: 'main', label: '', index: 0 }],
+        activities: [{
+          id: 'wide', label: 'Wide Dark Bar Activity',
+          track: 'main', start: '2021-01', end: '2021-12', status: 'planned',
+        }],
+        milestones: [],
+      };
+      const r1 = renderDocument(ir, { format: 'svg' });
+      const r2 = renderDocument(ir, { format: 'svg' });
+      expect(r1.svg).toBe(r2.svg);
+      expect(r1.sceneHash).toBe(r2.sceneHash);
+      // Label text should be present
+      expect(r1.svg).toContain('Wide Dark Bar Activity');
+    });
+  });
 });

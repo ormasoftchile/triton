@@ -1,110 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="644" version="1.1" viewBox="0 0 1200 644" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#0D1B2A" height="644" width="1200" x="0" y="0"/>
-  <rect fill="#3A86C8" height="496" opacity="0.06" width="246" x="148" y="92"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="152" y="108">Foundation Phase</text>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="401" y="108">Build Phase</text>
-  <rect fill="#3A86C8" height="496" opacity="0.06" width="507" x="649" y="92"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="653" y="108">Scale Phase</text>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="42.67">Enterprise Transformation Programme</text>
-  <line stroke="#2A4060" stroke-width="1" x1="148" x2="1156" y1="92" y2="92"/>
-  <line stroke="#2A4060" stroke-width="1" x1="148" x2="148" y1="86" y2="92"/>
-  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="148" x2="148" y1="92" y2="588"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="148" y="78">Q1 2026</text>
-  <line stroke="#2A4060" stroke-width="1" x1="397" x2="397" y1="86" y2="92"/>
-  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="397" x2="397" y1="92" y2="588"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="397" y="78">Q2</text>
-  <line stroke="#2A4060" stroke-width="1" x1="649" x2="649" y1="86" y2="92"/>
-  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="649" x2="649" y1="92" y2="588"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="649" y="78">Q3</text>
-  <line stroke="#2A4060" stroke-width="1" x1="904" x2="904" y1="86" y2="92"/>
-  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="904" x2="904" y1="92" y2="588"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="904" y="78">Q4</text>
-  <line opacity="0.85" stroke="#F4A742" stroke-width="1.5" x1="591" x2="591" y1="92" y2="588"/>
-  <text dominant-baseline="alphabetic" fill="#F4A742" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" opacity="0.9" text-anchor="start" x="594" y="108">Today</text>
-  <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="148" x2="646" y1="600" y2="600"/>
-  <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="148" x2="148" y1="596" y2="604"/>
-  <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="646" x2="646" y1="596" y2="604"/>
-  <text dominant-baseline="alphabetic" fill="#F4A742" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.75" text-anchor="middle" x="397" y="616">H1 Focus</text>
-  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="180" y2="180"/>
-  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="136">Strategy</text>
-  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="344" y2="344"/>
-  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="272">Technology</text>
-  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="480" y2="480"/>
-  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="422">People &amp; Change</text>
-  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="588" y2="588"/>
-  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="544">Operations</text>
-  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="136" x="173" y="106"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="136" x="173" y="129"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="241" y="120">Vision &amp; Alignment …</text>
-  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="335" x="311" y="106"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="201" x="311" y="129"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="478.5" y="120">Operating Model Design</text>
-  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="252" x="649" y="106"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="775" y="120">Market Analysis</text>
-  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="252" x="904" y="106"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1030" y="120">Go-to-Market Strategy</text>
-  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="376" x="187" y="214"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="376" x="187" y="237"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="375" y="228">Cloud Migration</text>
-  <rect fill="#F4A742" height="28" opacity="1" rx="8" stroke="#C08020" stroke-width="0.5" width="167" x="311" y="242"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="50" x="311" y="265"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="394.5" y="256">Security Hardening</text>
-  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="335" x="397" y="270"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="151" x="397" y="293"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="564.5" y="284">API Modernization</text>
-  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="421" x="735" y="214"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="945.5" y="228">Data Platform v2</text>
-  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="584" x="234" y="378"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="292" x="234" y="401"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="526" y="392">Change Management Programme</text>
-  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="335" x="566" y="406"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="733.5" y="420">Training Rollout</text>
-  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="335" x="821" y="378"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="988.5" y="392">Leadership Development</text>
-  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="193" x="201" y="514"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="193" x="201" y="537"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="297.5" y="528">Process Mapping</text>
-  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="335" x="397" y="514"/>
-  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="117" x="397" y="537"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="564.5" y="528">Automation Wave 1</text>
-  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="421" x="735" y="514"/>
-  <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="945.5" y="528">Automation Wave 2</text>
-  <circle cx="187" cy="340" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <path d="M 12 3 L 14.4 8.8 L 20.6 9.2 L 15.8 13.2 L 17.3 19.3 L 12 16 L 6.7 19.3 L 8.2 13.2 L 3.4 9.2 L 9.6 8.8 Z" fill="#0D1B2A" transform="translate(187,340) scale(1.0833) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="187" y="312.24">15th January 2026</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="187" y="381.33">Programme Kickoff</text>
-  <circle cx="394" cy="340" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(394,340) scale(1.0833) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="394" y="312.24">31st March 2026</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="394" y="381.33">Q1 Gate Review</text>
-  <circle cx="563" cy="340" fill="#607D8B" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <path d="M 6 19 L 18 19 A 4 4 0 0 0 18 12 A 5 5 0 0 0 11 8 A 4 4 0 0 0 4 12 A 4 4 0 0 0 6 19 Z" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(563,340) scale(1.0833) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="563" y="312.24">31st May 2026</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="563" y="381.33">Cloud Migration C…</text>
-  <circle cx="646" cy="340" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <path d="M 2 5 L 2 22 L 22 22 L 22 5 Z M 2 10 L 22 10 M 8 2 L 8 7 M 16 2 L 16 7 M 6 14 L 9 14 M 13 14 L 16 14 M 6 18 L 9 18 M 13 18 L 16 18" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(646,340) scale(1.0833) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="646" y="296.24">30th June 2026</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="646" y="409.33">Mid-Year Executiv…</text>
-  <circle cx="901" cy="340" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(901,340) scale(1.0833) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="901" y="312.24">30th September 2026</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="901" y="381.33">Q3 Gate Review</text>
-  <circle cx="1112" cy="340" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <path d="M 4 2 L 4 21 L 6 21 L 6 17 L 18 11 L 6 5 Z" fill="#0D1B2A" transform="translate(1112,340) scale(1.0833) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1112.01" y="312.24">15th December 2026</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1112" y="381.33">Year-End Delivery</text>
-  <line opacity="0.5" stroke="#8BAAC8" stroke-dasharray="3,3" stroke-width="1" x1="646" x2="646" y1="330" y2="340"/>
-  <rect fill="#0D1B2A" height="28" opacity="0.92" rx="3" stroke="#F4A742" stroke-width="1" width="120" x="586" y="302"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="646" y="316">Review Gate</text>
-  <rect fill="#1E3350" height="120.27" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="451.73"/>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="475.07">Status Legend</text>
-  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="487.6"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="493.6">Done</text>
-  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="508"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="514">In Progress</text>
-  <rect fill="#F4A742" height="12" rx="2" width="12" x="980" y="528.4"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="534.4">At Risk</text>
-  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="548.8"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="554.8">Planned</text>
+<svg height="756" version="1.1" viewBox="0 0 1200 756" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0D1B2A" height="756" width="1200" x="0" y="0"/>
+  <rect fill="#3A86C8" height="514" opacity="0.06" width="246" x="148" y="186"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="152" y="202">Foundation Phase</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="401" y="202">Build Phase</text>
+  <rect fill="#3A86C8" height="514" opacity="0.06" width="507" x="649" y="186"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="653" y="202">Scale Phase</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="97.33">Enterprise Transformation Programme</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="400" opacity="0.75" text-anchor="middle" x="600" y="131.67">2026 Execution Roadmap</text>
+  <line opacity="0.35" stroke="#2A4060" stroke-width="0.5" x1="148" x2="1156" y1="144" y2="144"/>
+  <line stroke="#2A4060" stroke-width="1" x1="148" x2="1156" y1="186" y2="186"/>
+  <line stroke="#2A4060" stroke-width="1" x1="148" x2="148" y1="180" y2="186"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="148" x2="148" y1="186" y2="700"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="148" y="172">Q1 2026</text>
+  <line stroke="#2A4060" stroke-width="1" x1="397" x2="397" y1="180" y2="186"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="397" x2="397" y1="186" y2="700"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="397" y="172">Q2</text>
+  <line stroke="#2A4060" stroke-width="1" x1="649" x2="649" y1="180" y2="186"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="649" x2="649" y1="186" y2="700"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="649" y="172">Q3</text>
+  <line stroke="#2A4060" stroke-width="1" x1="904" x2="904" y1="180" y2="186"/>
+  <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="904" x2="904" y1="186" y2="700"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="904" y="172">Q4</text>
+  <line opacity="0.85" stroke="#F4A742" stroke-width="1.5" x1="591" x2="591" y1="186" y2="700"/>
+  <text dominant-baseline="alphabetic" fill="#F4A742" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" opacity="0.9" text-anchor="start" x="594" y="202">Today</text>
+  <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="148" x2="646" y1="712" y2="712"/>
+  <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="148" x2="148" y1="708" y2="716"/>
+  <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="646" x2="646" y1="708" y2="716"/>
+  <text dominant-baseline="alphabetic" fill="#F4A742" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.75" text-anchor="middle" x="397" y="728">H1 Focus</text>
+  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="274" y2="274"/>
+  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="230">Strategy</text>
+  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="450" y2="450"/>
+  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="372">Technology</text>
+  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="592" y2="592"/>
+  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="531">People &amp; Change</text>
+  <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="700" y2="700"/>
+  <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="656">Operations</text>
+  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="136" x="173" y="200"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="136" x="173" y="223"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="177" y="214">Vision &amp; Alignment …</text>
+  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="335" x="311" y="200"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="201" x="311" y="223"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="315" y="214">Operating Model Design</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="252" x="649" y="200"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="653" y="214">Market Analysis</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="252" x="904" y="200"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="908" y="214">Go-to-Market Strategy</text>
+  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="376" x="187" y="308"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="376" x="187" y="331"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="191" y="322">Cloud Migration</text>
+  <rect fill="#F4A742" height="28" opacity="1" rx="8" stroke="#C08020" stroke-width="0.5" width="167" x="311" y="342"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="50" x="311" y="365"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="315" y="356">Security Hardening</text>
+  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="335" x="397" y="376"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="151" x="397" y="399"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="401" y="390">API Modernization</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="421" x="735" y="308"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="739" y="322">Data Platform v2</text>
+  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="584" x="234" y="484"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="292" x="234" y="507"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="238" y="498">Change Management Programme</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="335" x="566" y="518"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="570" y="532">Training Rollout</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="335" x="821" y="484"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="825" y="498">Leadership Development</text>
+  <rect fill="#607D8B" height="28" opacity="0.85" rx="8" stroke="#4A6070" stroke-width="0.5" width="193" x="201" y="626"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="193" x="201" y="649"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="205" y="640">Process Mapping</text>
+  <rect fill="#00B4D8" height="28" opacity="1" rx="8" stroke="#0090B0" stroke-width="0.5" width="335" x="397" y="626"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.35" rx="8" width="117" x="397" y="649"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="401" y="640">Automation Wave 1</text>
+  <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="421" x="735" y="626"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="739" y="640">Automation Wave 2</text>
+  <circle cx="187" cy="443" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <path d="M 12 3 L 14.4 8.8 L 20.6 9.2 L 15.8 13.2 L 17.3 19.3 L 12 16 L 6.7 19.3 L 8.2 13.2 L 3.4 9.2 L 9.6 8.8 Z" fill="#0D1B2A" transform="translate(187,443) scale(1.0833) translate(-12,-12)"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="187" y="415.24">15th January 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="187" y="484.33">Programme Kickoff</text>
+  <circle cx="394" cy="443" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(394,443) scale(1.0833) translate(-12,-12)"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="394" y="415.24">31st March 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="394" y="484.33">Q1 Gate Review</text>
+  <circle cx="563" cy="443" fill="#607D8B" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <path d="M 6 19 L 18 19 A 4 4 0 0 0 18 12 A 5 5 0 0 0 11 8 A 4 4 0 0 0 4 12 A 4 4 0 0 0 6 19 Z" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(563,443) scale(1.0833) translate(-12,-12)"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="563" y="415.24">31st May 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="563" y="484.33">Cloud Migration C…</text>
+  <circle cx="646" cy="443" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <path d="M 2 5 L 2 22 L 22 22 L 22 5 Z M 2 10 L 22 10 M 8 2 L 8 7 M 16 2 L 16 7 M 6 14 L 9 14 M 13 14 L 16 14 M 6 18 L 9 18 M 13 18 L 16 18" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(646,443) scale(1.0833) translate(-12,-12)"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="646" y="399.24">30th June 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="646" y="512.33">Mid-Year Executiv…</text>
+  <circle cx="901" cy="443" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(901,443) scale(1.0833) translate(-12,-12)"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="901" y="415.24">30th September 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="901" y="484.33">Q3 Gate Review</text>
+  <circle cx="1112" cy="443" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <path d="M 4 2 L 4 21 L 6 21 L 6 17 L 18 11 L 6 5 Z" fill="#0D1B2A" transform="translate(1112,443) scale(1.0833) translate(-12,-12)"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1112.01" y="415.24">15th December 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1112" y="484.33">Year-End Delivery</text>
+  <line opacity="0.5" stroke="#8BAAC8" stroke-dasharray="3,3" stroke-width="1" x1="646" x2="646" y1="433" y2="443"/>
+  <rect fill="#0D1B2A" height="28" opacity="0.92" rx="3" stroke="#F4A742" stroke-width="1" width="120" x="586" y="405"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="646" y="419">Review Gate</text>
+  <rect fill="#1E3350" height="120.27" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="563.73"/>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="587.07">Status Legend</text>
+  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="599.6"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="605.6">Done</text>
+  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="620"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="626">In Progress</text>
+  <rect fill="#F4A742" height="12" rx="2" width="12" x="980" y="640.4"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="646.4">At Risk</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="660.8"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="666.8">Planned</text>
 </svg>

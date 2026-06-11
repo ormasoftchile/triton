@@ -1,47 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="208" version="1.1" viewBox="0 0 1200 208" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="208" width="1200" x="0" y="0"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="26.67" font-weight="700" text-anchor="middle" x="600" y="37.33">Our Timeline</text>
-  <line stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="80" y2="80"/>
-  <line stroke="#333333" stroke-width="1" x1="0" x2="0" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="0" y="66">2021</text>
-  <line stroke="#333333" stroke-width="1" x1="131" x2="131" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="131" y="66">Apr</text>
-  <line stroke="#333333" stroke-width="1" x1="258" x2="258" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="258" y="66">May</text>
-  <line stroke="#333333" stroke-width="1" x1="389" x2="389" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="389" y="66">Jun</text>
-  <line stroke="#333333" stroke-width="1" x1="516" x2="516" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="516" y="66">Jul</text>
-  <line stroke="#333333" stroke-width="1" x1="648" x2="648" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="648" y="66">Aug</text>
-  <line stroke="#333333" stroke-width="1" x1="779" x2="779" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="779" y="66">Sep</text>
-  <line stroke="#333333" stroke-width="1" x1="906" x2="906" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="906" y="66">Oct</text>
-  <line stroke="#333333" stroke-width="1" x1="1037" x2="1037" y1="74" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="1037" y="66">Nov</text>
-  <line opacity="0.3" stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="160" y2="160"/>
-  <circle cx="318" cy="120" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="318" y="120">01</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="318" y="90.24">15th May 2021</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="318" y="163.33">Application Deadli…</text>
-  <circle cx="470" cy="120" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="470" y="120">02</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="470" y="90.24">20th June 2021</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="470" y="163.33">Qualifying Exam</text>
-  <circle cx="779" cy="120" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="779" y="120">03</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="779.01" y="90.24">1st September 2021</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="779" y="163.33">Training Starts</text>
-  <rect fill="#FFFFFF" height="120.27" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="1" width="160" x="984" y="23.73"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="994" y="47.07">Legend</text>
-  <rect fill="#888888" height="12" rx="0" width="12" x="994" y="59.6"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="65.6">done</text>
-  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="80"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="86">in-progress</text>
-  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="100.4"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="106.4">planned</text>
-  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="120.8"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="126.8">standard-node</text>
+<svg height="269" version="1.1" viewBox="0 0 1200 269" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="269" width="1200" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="26.67" font-weight="700" text-anchor="middle" x="600" y="86.67">Our Timeline</text>
+  <line opacity="0.35" stroke="#333333" stroke-width="0.5" x1="0" x2="1160" y1="103" y2="103"/>
+  <line stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="141" y2="141"/>
+  <line stroke="#333333" stroke-width="1" x1="0" x2="0" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="0" y="127">2021</text>
+  <line stroke="#333333" stroke-width="1" x1="131" x2="131" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="131" y="127">Apr</text>
+  <line stroke="#333333" stroke-width="1" x1="258" x2="258" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="258" y="127">May</text>
+  <line stroke="#333333" stroke-width="1" x1="389" x2="389" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="389" y="127">Jun</text>
+  <line stroke="#333333" stroke-width="1" x1="516" x2="516" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="516" y="127">Jul</text>
+  <line stroke="#333333" stroke-width="1" x1="648" x2="648" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="648" y="127">Aug</text>
+  <line stroke="#333333" stroke-width="1" x1="779" x2="779" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="779" y="127">Sep</text>
+  <line stroke="#333333" stroke-width="1" x1="906" x2="906" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="906" y="127">Oct</text>
+  <line stroke="#333333" stroke-width="1" x1="1037" x2="1037" y1="135" y2="141"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="1037" y="127">Nov</text>
+  <line opacity="0.3" stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="221" y2="221"/>
+  <circle cx="318" cy="181" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="318" y="181">01</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="318" y="153.24">15th May 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="318" y="224.33">Application Deadli…</text>
+  <circle cx="470" cy="181" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="470" y="181">02</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="470" y="153.24">20th June 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="470" y="224.33">Qualifying Exam</text>
+  <circle cx="779" cy="181" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="779" y="181">03</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="779.01" y="153.24">1st September 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="779" y="224.33">Training Starts</text>
+  <rect fill="#FFFFFF" height="120.27" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="1" width="160" x="984" y="84.73"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="994" y="108.07">Legend</text>
+  <rect fill="#888888" height="12" rx="0" width="12" x="994" y="120.6"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="126.6">done</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="141"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="147">in-progress</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="161.4"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="167.4">planned</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="181.8"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="187.8">standard-node</text>
 </svg>

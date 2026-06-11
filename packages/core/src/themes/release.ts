@@ -67,7 +67,7 @@ export const releaseTheme: ResolvedTheme = {
   track: {
     headerWidth:      140,
     rowHeight:         76,
-    subLaneHeight:     24,
+    subLaneHeight:     30,  // barHeight(24) + 6 px gap between sub-lanes
     maxSubLanes:        8,
     rowGap:            14,
     headerFontSize:    11,

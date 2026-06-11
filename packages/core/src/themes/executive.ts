@@ -71,7 +71,7 @@ export const executiveTheme: ResolvedTheme = {
   track: {
     headerWidth:      148,
     rowHeight:         88,
-    subLaneHeight:     28,
+    subLaneHeight:     34,  // barHeight(28) + 6 px gap between sub-lanes
     maxSubLanes:        8,
     rowGap:            20,
     headerFontSize:    11,

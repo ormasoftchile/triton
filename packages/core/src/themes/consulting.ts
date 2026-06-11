@@ -67,7 +67,7 @@ export const consultingTheme: ResolvedTheme = {
   track: {
     headerWidth:      140,    // gutter for track label text (suppressed when all labels empty)
     rowHeight:        80,
-    subLaneHeight:    24,
+    subLaneHeight:    30,  // barHeight(24) + 6 px gap between sub-lanes
     maxSubLanes:       8,
     rowGap:           16,
     headerFontSize:   11,
