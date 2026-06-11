@@ -19,6 +19,10 @@
  *
  * Gallery emit section: generates examples/gallery/ai-timeline.{svg,png} using
  * even spacing so the committed gallery images are always compact.
+ *
+ * Theme-matrix emit section: generates
+ * examples/gallery/themes/{theme}/serpentine-journey.{svg,png} for all 5
+ * themes so the serpentine row in themes.html is reproducibly up-to-date.
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -365,4 +369,59 @@ describe('Gallery emit — ai-timeline SVG + PNG', () => {
     writeFileSync(OUT_PNG, png);
     console.log('[gallery-emit] ai-timeline.png written →', OUT_PNG);
   });
+});
+
+// ---------------------------------------------------------------------------
+// Theme-matrix gallery emit — serpentine-journey
+//
+// Generates examples/gallery/themes/{theme}/serpentine-journey.{svg,png} for
+// all 5 built-in themes (consulting, executive, minimal, product, release).
+// The serpentine fixture lives in examples/showcase/ and uses layout=serpentine
+// with palette-derived colors so each theme column renders a distinctly-colored
+// winding path.  Output lands beside the other theme-matrix PNGs so
+// themes.html can reference them as themes/{theme}/serpentine-journey.png.
+// ---------------------------------------------------------------------------
+
+const THEME_MATRIX_THEMES = ['consulting', 'executive', 'minimal', 'product', 'release'] as const;
+
+describe('Theme-matrix gallery emit — serpentine-journey', () => {
+  const SERP_FIXTURE = join(REPO_ROOT, 'examples', 'showcase', 'serpentine-journey.timeline.yaml');
+  const THEMES_DIR   = join(REPO_ROOT, 'examples', 'gallery', 'themes');
+
+  for (const theme of THEME_MATRIX_THEMES) {
+    const themeDir = join(THEMES_DIR, theme);
+
+    it(`emits serpentine-journey.svg — theme: ${theme}`, () => {
+      if (!existsSync(themeDir)) mkdirSync(themeDir, { recursive: true });
+      const text = readFileSync(SERP_FIXTURE, 'utf-8');
+      const ir   = parseIR(text);
+      const result = renderDocument(ir, {
+        format: 'svg',
+        theme,
+        layout: 'serpentine',
+      });
+      const svg = result.svg!;
+      expect(svg).toContain('<svg');
+      const outPath = join(themeDir, 'serpentine-journey.svg');
+      writeFileSync(outPath, svg, 'utf-8');
+      console.log(`[theme-matrix] serpentine-journey.svg (${theme}) →`, outPath);
+    });
+
+    it(`emits serpentine-journey.png — theme: ${theme}`, () => {
+      if (!existsSync(themeDir)) mkdirSync(themeDir, { recursive: true });
+      const text = readFileSync(SERP_FIXTURE, 'utf-8');
+      const ir   = parseIR(text);
+      const result = renderDocument(ir, {
+        format: 'png',
+        theme,
+        layout: 'serpentine',
+      });
+      const png = result.png!;
+      expect(png).toBeInstanceOf(Uint8Array);
+      expect(png[0]).toBe(0x89); // PNG signature
+      const outPath = join(themeDir, 'serpentine-journey.png');
+      writeFileSync(outPath, png);
+      console.log(`[theme-matrix] serpentine-journey.png (${theme}) →`, outPath);
+    });
+  }
 });

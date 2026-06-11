@@ -264,14 +264,15 @@
 <header>
   <h1>Timeline Compiler — Theme Showcase</h1>
   <p>
-    Five built-in themes rendered against four representative gallery examples.
+    Five built-in themes rendered against five representative gallery examples.
     Each row is the same IR document; each column is a different theme.
     Use this matrix to bulk-check visual variety, legend/section tokens, and confirm theme tokens are
-    wired correctly.
+    wired correctly. The serpentine row (Example E) demonstrates palette-derived gradient colors —
+    each theme's in-progress accent drives a distinct light→dark winding path.
   </p>
   <div class="nav-links">
     <a href="index.html">← Back to Gallery</a>
-    <span class="badge">Phase 1 · 5 themes · 4 examples · 40 renders</span>
+    <span class="badge">Phase 1 · 5 themes · 5 examples · 50 renders</span>
   </div>
 </header>
 
@@ -649,10 +650,96 @@
     </div>
   </div><!-- /example feature-rich -->
 
+  <!-- Example E: serpentine-journey -->
+  <div class="example-section">
+    <div class="example-header">
+      <div class="example-num">Example E · serpentine-journey</div>
+      <div class="example-title">Project Journey — Boustrophedon Path</div>
+      <div class="example-desc">
+        1 track · 0 activities · 9 milestones · no axis · serpentine (winding) layout.
+        Each theme drives a distinct light→dark gradient from its in-progress palette accent.
+        Best example for comparing per-theme palette derivation on a non-traditional layout.
+      </div>
+    </div>
+    <div class="theme-grid">
+
+      <div class="theme-cell consulting">
+        <div class="theme-cell-header">
+          <div class="theme-name">Consulting</div>
+          <div class="theme-tier">Tier 1 · navy gradient</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/consulting/serpentine-journey.png" alt="serpentine-journey / consulting">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/consulting/serpentine-journey.svg">SVG</a>
+          <a href="themes/consulting/serpentine-journey.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell executive">
+        <div class="theme-cell-header">
+          <div class="theme-name">Executive</div>
+          <div class="theme-tier">Tier 2 · teal gradient</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/executive/serpentine-journey.png" alt="serpentine-journey / executive">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/executive/serpentine-journey.svg">SVG</a>
+          <a href="themes/executive/serpentine-journey.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell minimal">
+        <div class="theme-cell-header">
+          <div class="theme-name">Minimal</div>
+          <div class="theme-tier">Tier 1 · grey gradient</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/minimal/serpentine-journey.png" alt="serpentine-journey / minimal">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/minimal/serpentine-journey.svg">SVG</a>
+          <a href="themes/minimal/serpentine-journey.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell product">
+        <div class="theme-cell-header">
+          <div class="theme-name">Product</div>
+          <div class="theme-tier">Tier 2 · blue gradient</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/product/serpentine-journey.png" alt="serpentine-journey / product">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/product/serpentine-journey.svg">SVG</a>
+          <a href="themes/product/serpentine-journey.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell release">
+        <div class="theme-cell-header">
+          <div class="theme-name">Release</div>
+          <div class="theme-tier">Tier 1 · indigo gradient</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/release/serpentine-journey.png" alt="serpentine-journey / release">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/release/serpentine-journey.svg">SVG</a>
+          <a href="themes/release/serpentine-journey.png">PNG</a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /example serpentine-journey -->
+
 </div><!-- /matrix -->
 
 <footer>
-  Timeline Compiler · Theme Showcase · Phase 1 · 5 themes × 4 examples = 40 renders.
+  Timeline Compiler · Theme Showcase · Phase 1 · 5 themes × 5 examples = 50 renders.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml --theme &lt;theme&gt; --format png -o themes/&lt;theme&gt;/&lt;slug&gt;.png</code>
 </footer>
 
