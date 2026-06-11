@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="556" version="1.1" viewBox="0 0 1200 556" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#F7FBF7" height="556" width="1200" x="0" y="0"/>
+  <text dominant-baseline="hanging" fill="#111827" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="35.47">Project Journey</text>
+  <text dominant-baseline="hanging" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="400" text-anchor="middle" x="600" y="80.47">A winding path of milestones — 2020 to 2024</text>
+  <path d="M 90 164 L 1110 164 A 80 80 0 1 1 1110 324 L 90 324 A 80 80 0 1 0 90 484 L 1110 484" fill="none" opacity="0.6" stroke="#86EFAC" stroke-linecap="round" stroke-width="18" transform="translate(0,0)"/>
+  <path d="M 90 164 L 145.67 164" fill="none" stroke="#85eeab" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 145.67 164 L 201.33 164" fill="none" stroke="#83eca9" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 201.33 164 L 257 164" fill="none" stroke="#82eba8" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 257 164 L 312.67 164" fill="none" stroke="#80e9a6" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 312.67 164 L 368.33 164" fill="none" stroke="#7ee7a4" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 368.33 164 L 424 164" fill="none" stroke="#7ce5a2" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 424 164 L 479.67 164" fill="none" stroke="#7be4a1" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 479.67 164 L 535.33 164" fill="none" stroke="#79e29f" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 535.33 164 L 591 164" fill="none" stroke="#77e09d" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 591 164 L 646.67 164" fill="none" stroke="#75df9c" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 646.67 164 L 702.33 164" fill="none" stroke="#73dd9a" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 702.33 164 L 758 164" fill="none" stroke="#72db98" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 758 164 L 813.67 164" fill="none" stroke="#70d996" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 813.67 164 L 869.33 164" fill="none" stroke="#6ed895" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 869.33 164 L 925 164" fill="none" stroke="#6cd693" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 925 164 L 980.67 164" fill="none" stroke="#6bd491" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 980.67 164 L 1036.33 164" fill="none" stroke="#69d28f" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1036.33 164 L 1092 164" fill="none" stroke="#67d18e" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1092 164 L 1146.29 172.7" fill="none" stroke="#65cf8c" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1146.29 172.7 L 1183.55 212.54" fill="none" stroke="#64cd8a" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1183.55 212.54 L 1186.62 267" fill="none" stroke="#62cb88" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1186.62 267 L 1154.06 310.77" fill="none" stroke="#60ca87" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1154.06 310.77 L 1101 324" fill="none" stroke="#5ec885" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1101 324 L 1045.33 324" fill="none" stroke="#5dc683" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1045.33 324 L 989.66 324" fill="none" stroke="#5bc582" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 989.66 324 L 934 324" fill="none" stroke="#59c380" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 934 324 L 878.33 324" fill="none" stroke="#57c17e" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 878.33 324 L 822.66 324" fill="none" stroke="#55bf7c" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 822.66 324 L 767 324" fill="none" stroke="#54be7b" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 767 324 L 711.33 324" fill="none" stroke="#52bc79" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 711.33 324 L 655.66 324" fill="none" stroke="#50ba77" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 655.66 324 L 600 324" fill="none" stroke="#4eb875" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 600 324 L 544.33 324" fill="none" stroke="#4db774" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 544.33 324 L 488.66 324" fill="none" stroke="#4bb572" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 488.66 324 L 433 324" fill="none" stroke="#49b370" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 433 324 L 377.33 324" fill="none" stroke="#47b16e" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 377.33 324 L 321.66 324" fill="none" stroke="#46b06d" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 321.66 324 L 266 324" fill="none" stroke="#44ae6b" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 266 324 L 210.33 324" fill="none" stroke="#42ac69" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 210.33 324 L 154.66 324" fill="none" stroke="#40aa67" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 154.66 324 L 99 324" fill="none" stroke="#3ea966" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 99 324 L 45.93 337.23" fill="none" stroke="#3da764" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 45.93 337.23 L 13.38 381" fill="none" stroke="#3ba562" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 13.38 381 L 16.45 435.46" fill="none" stroke="#39a461" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 16.45 435.46 L 53.72 475.3" fill="none" stroke="#37a25f" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 53.72 475.3 L 108.01 484" fill="none" stroke="#36a05d" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 108.01 484 L 163.67 484" fill="none" stroke="#349e5b" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 163.67 484 L 219.34 484" fill="none" stroke="#329d5a" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 219.34 484 L 275.01 484" fill="none" stroke="#309b58" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 275.01 484 L 330.67 484" fill="none" stroke="#2f9956" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 330.67 484 L 386.34 484" fill="none" stroke="#2d9754" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 386.34 484 L 442.01 484" fill="none" stroke="#2b9653" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 442.01 484 L 497.67 484" fill="none" stroke="#299451" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 497.67 484 L 553.34 484" fill="none" stroke="#28924f" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 553.34 484 L 609.01 484" fill="none" stroke="#26904d" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 609.01 484 L 664.67 484" fill="none" stroke="#248f4c" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 664.67 484 L 720.34 484" fill="none" stroke="#228d4a" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 720.34 484 L 776.01 484" fill="none" stroke="#208b48" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 776.01 484 L 831.67 484" fill="none" stroke="#1f8a47" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 831.67 484 L 887.34 484" fill="none" stroke="#1d8845" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 887.34 484 L 943.01 484" fill="none" stroke="#1b8643" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 943.01 484 L 998.67 484" fill="none" stroke="#198441" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 998.67 484 L 1054.34 484" fill="none" stroke="#188340" stroke-linecap="round" stroke-width="14"/>
+  <path d="M 1054.34 484 L 1110 484" fill="none" stroke="#16813e" stroke-linecap="round" stroke-width="14"/>
+  <circle cx="287.93" cy="164" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="hanging" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="287.93" y="187.6">Kickoff</text>
+  <circle cx="683.78" cy="164" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="hanging" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="683.78" y="187.6">Alpha</text>
+  <circle cx="1079.63" cy="164" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="hanging" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1079.63" y="187.6">Beta Launch</text>
+  <circle cx="995.85" cy="324" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="alphabetic" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="995.85" y="310">V1.0 Release</text>
+  <circle cx="600" cy="324" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="alphabetic" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="600" y="310">Open Source</text>
+  <circle cx="204.15" cy="324" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="alphabetic" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="204.15" y="310">Cloud Platform</text>
+  <circle cx="120.38" cy="484" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="hanging" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="120.38" y="507.6">Enterprise V2</text>
+  <circle cx="516.23" cy="484" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="hanging" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="516.23" y="507.6">API v3</text>
+  <circle cx="912.08" cy="484" fill="#FFFFFF" r="10" stroke="#15803D" stroke-width="3"/>
+  <text dominant-baseline="hanging" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="912.08" y="507.6">V4 Milestone</text>
+  <circle cx="90" cy="164" fill="#15803D" r="22" stroke="#15803D" stroke-width="2"/>
+  <path d="M 5 3 L 21 12 L 5 21 Z" fill="#FFFFFF" stroke-linecap="round" transform="translate(75.72,149.72) scale(1.19)"/>
+  <circle cx="1110" cy="484" fill="#15803D" r="22" stroke="#15803D" stroke-width="2"/>
+  <path d="M 3 12 A 9 9 0 1 0 21 12 A 9 9 0 1 0 3 12 M 7 12 A 5 5 0 1 0 17 12 A 5 5 0 1 0 7 12 M 10 12 A 2 2 0 1 0 14 12 A 2 2 0 1 0 10 12" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="1.26" transform="translate(1095.72,469.72) scale(1.19)"/>
+</svg>

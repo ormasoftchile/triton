@@ -129,9 +129,15 @@ program
   .option('-o, --output <path>', 'output file path (default: input basename with .svg/.png)')
   .option('--theme <theme>', 'theme id', 'consulting')
   .option('--format <format>', 'output format: svg or png', 'svg')
-  .option('--layout <layout>', 'layout family: horizontal or vertical-spine', 'horizontal')
+  .option('--layout <layout>', 'layout family: horizontal, vertical-spine, or serpentine', 'horizontal')
   .option('--backend <backend>', 'rendering backend: svg or skia', 'svg')
-  .action(async (inputPath: string, options: { output?: string; theme: string; format: string; layout: string; backend: string }) => {
+  .action(async (inputPath: string, options: {
+    output?: string;
+    theme: string;
+    format: string;
+    layout: 'horizontal' | 'vertical-spine' | 'serpentine';
+    backend: string;
+  }) => {
     const format = options.format as 'svg' | 'png';
     if (format !== 'svg' && format !== 'png') {
       console.error(`Error: --format must be "svg" or "png", got "${format}"`);
@@ -139,9 +145,9 @@ program
       return;
     }
 
-    const layoutFamily = options.layout as 'horizontal' | 'vertical-spine';
-    if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine') {
-      console.error(`Error: --layout must be "horizontal" or "vertical-spine", got "${options.layout}"`);
+    const layoutFamily = options.layout as 'horizontal' | 'vertical-spine' | 'serpentine';
+    if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine' && layoutFamily !== 'serpentine') {
+      console.error(`Error: --layout must be "horizontal", "vertical-spine", or "serpentine", got "${options.layout}"`);
       process.exit(1);
       return;
     }
@@ -246,12 +252,12 @@ program
 program
   .command('lint <input>')
   .description('Check layout quality (overlaps, out-of-bounds, axis collisions) in a rendered scene')
-  .option('--layout <layout>', 'layout family: horizontal or vertical-spine', 'horizontal')
+  .option('--layout <layout>', 'layout family: horizontal, vertical-spine, or serpentine', 'horizontal')
   .option('--theme <theme>', 'theme id', 'consulting')
-  .action((inputPath: string, options: { layout: string; theme: string }) => {
-    const layoutFamily = options.layout as 'horizontal' | 'vertical-spine';
-    if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine') {
-      console.error(`Error: --layout must be "horizontal" or "vertical-spine", got "${options.layout}"`);
+  .action((inputPath: string, options: { layout: 'horizontal' | 'vertical-spine' | 'serpentine'; theme: string }) => {
+    const layoutFamily = options.layout as 'horizontal' | 'vertical-spine' | 'serpentine';
+    if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine' && layoutFamily !== 'serpentine') {
+      console.error(`Error: --layout must be "horizontal", "vertical-spine", or "serpentine", got "${options.layout}"`);
       process.exit(1);
       return;
     }

@@ -1,0 +1,82 @@
+version: '1.0'
+metadata:
+  title: 'Project Journey'
+  subtitle: 'A winding path of milestones — 2020 to 2024'
+  time_range:
+    start: '2020-01-01'
+    end: '2024-12-31'
+  theme: serpentine
+  axis_unit: year
+
+tracks:
+  - id: journey
+    label: Journey
+
+activities: []
+
+milestones:
+  - id: m01
+    label: Kickoff
+    date: '2020-02-01'
+    track: journey
+    status: done
+    icon: play
+
+  - id: m02
+    label: Alpha
+    date: '2020-08-15'
+    track: journey
+    status: done
+    icon: bolt
+
+  - id: m03
+    label: Beta Launch
+    date: '2021-02-01'
+    track: journey
+    status: done
+    icon: rocket
+
+  - id: m04
+    label: V1.0 Release
+    date: '2021-09-01'
+    track: journey
+    status: done
+    icon: star
+
+  - id: m05
+    label: Open Source
+    date: '2022-03-15'
+    track: journey
+    status: done
+    icon: code
+
+  - id: m06
+    label: Cloud Platform
+    date: '2022-10-01'
+    track: journey
+    status: done
+    icon: cloud
+
+  - id: m07
+    label: Enterprise V2
+    date: '2023-04-15'
+    track: journey
+    status: in-progress
+    icon: people
+
+  - id: m08
+    label: API v3
+    date: '2023-11-01'
+    track: journey
+    status: in-progress
+    icon: gear
+
+  - id: m09
+    label: V4 Milestone
+    date: '2024-07-01'
+    track: journey
+    status: planned
+    icon: target
+
+legend:
+  show: false

@@ -311,8 +311,9 @@ export interface RenderOptions {
    * Layout family.  Defaults to 'horizontal'.
    *   'horizontal'     — time axis left→right, track rows, T2/T4/T6 targets.
    *   'vertical-spine' — central vertical spine, alternating L/R entries, T1/T3/T5 targets.
+   *   'serpentine'     — boustrophedon winding path, T4 journey-path target.
    */
-  layout?: 'horizontal' | 'vertical-spine';
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine';
   /**
    * Rendering backend.  Defaults to 'svg'.
    *   'svg'  — deterministic SVG → resvg PNG (default; SVG golden stays byte-identical).

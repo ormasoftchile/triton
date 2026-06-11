@@ -1095,3 +1095,102 @@ describe('T2 Subject Timeline — subject-timeline theme', () => {
     expect(isPngSignature(png2)).toBe(true);
   }, 90_000);
 });
+
+// ---------------------------------------------------------------------------
+// (13) T4 Serpentine — boustrophedon journey-path layout
+// ---------------------------------------------------------------------------
+
+describe('T4 Serpentine — serpentine layout (boustrophedon journey path)', () => {
+  const SERP_FIXTURE = join(REPO_ROOT, 'examples', 'showcase', 'serpentine-journey.timeline.yaml');
+  const GALLERY_DIR_T4 = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+
+  it('serpentine-journey fixture validates with zero errors', () => {
+    const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = validateDocument(ir);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('serpentine SVG render is deterministic (T4 regression guard)', () => {
+    const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const r1 = renderDocument(ir, { format: 'svg', theme: 'serpentine', layout: 'serpentine' });
+    const r2 = renderDocument(ir, { format: 'svg', theme: 'serpentine', layout: 'serpentine' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+    expect(r1.svg).toContain('<path');
+    expect(r1.svg).toContain('Project Journey');
+  });
+
+  it('serpentine SVG scene passes the linter (zero errors)', () => {
+    const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const scene = buildScene(ir, { theme: 'serpentine', layout: 'serpentine' });
+    const issues = lintScene(scene);
+    const errors = issues.filter((q) => q.severity === 'error');
+    if (errors.length > 0) {
+      throw new Error(
+        `serpentine lint errors:\n${errors.map((e) => `  ${e.code}: ${e.message}`).join('\n')}`,
+      );
+    }
+    expect(errors).toHaveLength(0);
+  });
+
+  it('serpentine Skia render produces valid PNG with glow (T4 boustrophedon path)', async () => {
+    const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png',
+      theme: 'serpentine',
+      backend: 'skia',
+      layout: 'serpentine',
+    });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+    expect(result.png!.length).toBeGreaterThan(1000);
+  }, 60_000);
+
+  it('serpentine Skia golden — generate and save (T4 regression guard)', async () => {
+    ensureDir(GALLERY_DIR_T4);
+    const outPath = join(GALLERY_DIR_T4, 'serpentine-journey-skia.png');
+    const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png',
+      theme: 'serpentine',
+      backend: 'skia',
+      layout: 'serpentine',
+    });
+    const png = result.png!;
+    expect(isPngSignature(png)).toBe(true);
+    writeFileSync(outPath, png);
+    console.log('[t4-golden] serpentine-journey Skia PNG →', outPath);
+
+    const result2 = await renderDocumentAsync(ir, {
+      format: 'png',
+      theme: 'serpentine',
+      backend: 'skia',
+      layout: 'serpentine',
+    });
+    const png2 = result2.png!;
+    expect(png2.length).toBe(png.length);
+    expect(isPngSignature(png2)).toBe(true);
+  }, 90_000);
+
+  it('serpentine SVG golden — generate and save', () => {
+    ensureDir(GALLERY_DIR_T4);
+    const outPath = join(GALLERY_DIR_T4, 'serpentine-journey.svg');
+    const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = renderDocument(ir, {
+      format: 'svg',
+      theme: 'serpentine',
+      layout: 'serpentine',
+    });
+    writeFileSync(outPath, result.svg!);
+    console.log('[t4-golden] serpentine-journey SVG →', outPath);
+    const result2 = renderDocument(ir, { format: 'svg', theme: 'serpentine', layout: 'serpentine' });
+    expect(result2.sceneHash).toBe(result.sceneHash);
+  });
+});

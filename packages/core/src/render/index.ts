@@ -41,7 +41,7 @@ import { sceneHash }       from '../scene.js';
  */
 export interface BuildSceneOptions {
   theme?: string;
-  layout?: 'horizontal' | 'vertical-spine';
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine';
   spineSpacing?: 'time' | 'even';
   /**
    * Base directory for resolving relative asset paths in `metadata.logo.src`
@@ -131,4 +131,3 @@ export async function renderDocumentAsync(ir: IRDocument, options: RenderOptions
 
   return { format: 'svg', svg, sceneHash: hash };
 }
-

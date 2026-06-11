@@ -11,6 +11,7 @@ import { executiveTheme } from './executive.js';
 import { minimalTheme } from './minimal.js';
 import { productTheme } from './product.js';
 import { releaseTheme } from './release.js';
+import { serpentineTheme } from './serpentine.js';
 import { showcaseTheme } from './showcase.js';
 import { aiTimelineTheme } from './ai-timeline.js';
 import { gitlineTheme } from './gitline.js';
@@ -31,6 +32,7 @@ const REGISTRY = new Map<string, ResolvedTheme>([
   ['minimal', minimalTheme],
   ['product', productTheme],
   ['release', releaseTheme],
+  ['serpentine', serpentineTheme],
   ['showcase', showcaseTheme],
   ['ai-timeline', aiTimelineTheme],
   ['gitline', gitlineTheme],
@@ -81,6 +83,7 @@ export function listThemeInfos(): ThemeInfo[] {
     { id: 'ai-timeline', title: 'AI Timeline', tier: 2 },
     { id: 'gitline', title: 'Gitline', tier: 2 },
     { id: 'subject-timeline', title: 'Subject Timeline', tier: 2 },
+    { id: 'serpentine', title: 'Serpentine Journey', tier: 3 },
     { id: 'showcase', title: 'Showcase', tier: 3 },
   ];
 }

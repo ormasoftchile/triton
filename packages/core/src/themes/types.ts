@@ -429,4 +429,52 @@ export interface ResolvedTheme {
    * Opt-in: existing themes are unaffected.
    */
   spineNodeFillOverride?: string;
+
+  // ── Serpentine layout theme tokens (T4) ───────────────────────────────────────
+
+  /**
+   * Styling tokens specific to the serpentine (boustrophedon) layout family.
+   * When absent, the serpentine layout uses hardcoded defaults.
+   * Has NO effect on horizontal or vertical-spine layouts.
+   */
+  serpentine?: {
+    /** Stroke width of the main path in px. Default: 14. */
+    pathStrokeWidth: number;
+    /** Gradient start colour (path beginning). */
+    gradientFrom: string;
+    /** Gradient end colour (path end). */
+    gradientTo: string;
+    /** Glow effect colour (Skia only). */
+    glowColor: string;
+    /** Glow effect radius px (Skia only). */
+    glowRadius: number;
+    /** Radius of dot-node circles at each entry. */
+    nodeRadius: number;
+    /** Fill colour of dot nodes. */
+    nodeFill: string;
+    /** Stroke colour of dot nodes. */
+    nodeStroke: string;
+    /** Stroke width of dot nodes. */
+    nodeStrokeWidth: number;
+    /** Icon name (from built-in registry) for the start-of-path badge. */
+    startIcon?: string;
+    /** Icon name (from built-in registry) for the end-of-path badge. */
+    endIcon?: string;
+    /** Radius of the start/end icon badge circles. */
+    badgeRadius: number;
+    /** Fill colour of the icon badges. */
+    badgeFill: string;
+    /** Colour of the icon rendered inside badges. */
+    badgeIconColor: string;
+    /** Vertical distance between serpentine rows in px. Must equal 2 × turnRadius. */
+    rowSpacing: number;
+    /** Radius of the semicircular U-turns in px. Must equal rowSpacing / 2. */
+    turnRadius: number;
+    /** When true, renders entry labels near each node. Default: true. */
+    showLabels?: boolean;
+    /** Label text colour. */
+    labelColor?: string;
+    /** Label font size in pt. */
+    labelFontSize?: number;
+  };
 }

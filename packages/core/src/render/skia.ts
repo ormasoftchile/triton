@@ -454,6 +454,9 @@ function renderLine(CK: any, canvas: any, p: LinePrimitive): void {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function renderPath(CK: any, canvas: any, p: PathPrimitive): void {
   const opacity = p.opacity ?? 1;
+  // When fill='none' the path is stroke-only: do NOT fill it at all.
+  // SVG natively handles fill="none" as no fill; Skia must be told explicitly.
+  const strokeOnly = p.fill === 'none';
 
   const skPath = CK.Path.MakeFromSVGString(p.d);
   if (!skPath) return; // malformed path data — skip
@@ -470,35 +473,77 @@ function renderPath(CK: any, canvas: any, p: PathPrimitive): void {
     }
   };
 
-  renderWithEffects(CK, canvas, p.effects, (dx, dy, overridePaint) => {
-    const paint = overridePaint ?? new CK.Paint();
-    try {
-      if (!overridePaint) {
-        paint.setColor(parseColor(CK, p.fill, opacity));
-        paint.setStyle(CK.PaintStyle.Fill);
-        if (p.fillRule === 'evenodd') paint.setFillType(CK.FillType.EvenOdd);
+  if (strokeOnly) {
+    // Stroke-only path (fill='none'): never fill. Glow/shadow effects are
+    // applied as stroked blurs so the effect follows the line, not a filled area.
+    if (p.stroke && (p.strokeWidth ?? 0) > 0) {
+      if (p.effects && p.effects.length > 0) {
+        for (const fx of p.effects) {
+          if (fx.kind === 'glow') {
+            const glowPaint = new CK.Paint();
+            glowPaint.setColor(parseColor(CK, fx.color, 0.75));
+            glowPaint.setStyle(CK.PaintStyle.Stroke);
+            glowPaint.setStrokeWidth(p.strokeWidth!);
+            if (p.strokeLinecap === 'round') glowPaint.setStrokeCap(CK.StrokeCap.Round);
+            const blurFilter = CK.ImageFilter.MakeBlur(
+              fx.radius / 2, fx.radius / 2, CK.TileMode.Decal, null,
+            );
+            glowPaint.setImageFilter(blurFilter);
+            canvas.save();
+            applyTransform();
+            canvas.drawPath(skPath, glowPaint);
+            canvas.restore();
+            blurFilter.delete();
+            glowPaint.delete();
+          }
+          // shadow on stroke-only paths: currently unused — skip silently
+        }
       }
+
+      // Main stroke pass
+      const sp = new CK.Paint();
+      sp.setColor(parseColor(CK, p.stroke, opacity));
+      sp.setStyle(CK.PaintStyle.Stroke);
+      sp.setStrokeWidth(p.strokeWidth!);
+      if (p.strokeLinecap === 'round') sp.setStrokeCap(CK.StrokeCap.Round);
       canvas.save();
       applyTransform();
-      if (dx !== 0 || dy !== 0) canvas.translate(dx, dy);
-      canvas.drawPath(skPath, paint);
+      canvas.drawPath(skPath, sp);
       canvas.restore();
-    } finally {
-      if (!overridePaint) paint.delete();
+      sp.delete();
     }
-  });
+  } else {
+    // Filled path: original fill+effects behaviour unchanged.
+    renderWithEffects(CK, canvas, p.effects, (dx, dy, overridePaint) => {
+      const paint = overridePaint ?? new CK.Paint();
+      try {
+        if (!overridePaint) {
+          paint.setColor(parseColor(CK, p.fill, opacity));
+          paint.setStyle(CK.PaintStyle.Fill);
+          if (p.fillRule === 'evenodd') paint.setFillType(CK.FillType.EvenOdd);
+        }
+        canvas.save();
+        applyTransform();
+        if (dx !== 0 || dy !== 0) canvas.translate(dx, dy);
+        canvas.drawPath(skPath, paint);
+        canvas.restore();
+      } finally {
+        if (!overridePaint) paint.delete();
+      }
+    });
 
-  if (p.stroke && (p.strokeWidth ?? 0) > 0) {
-    const sp = new CK.Paint();
-    sp.setColor(parseColor(CK, p.stroke, opacity));
-    sp.setStyle(CK.PaintStyle.Stroke);
-    sp.setStrokeWidth(p.strokeWidth!);
-    if (p.strokeLinecap === 'round') sp.setStrokeCap(CK.StrokeCap.Round);
-    canvas.save();
-    applyTransform();
-    canvas.drawPath(skPath, sp);
-    canvas.restore();
-    sp.delete();
+    if (p.stroke && (p.strokeWidth ?? 0) > 0) {
+      const sp = new CK.Paint();
+      sp.setColor(parseColor(CK, p.stroke, opacity));
+      sp.setStyle(CK.PaintStyle.Stroke);
+      sp.setStrokeWidth(p.strokeWidth!);
+      if (p.strokeLinecap === 'round') sp.setStrokeCap(CK.StrokeCap.Round);
+      canvas.save();
+      applyTransform();
+      canvas.drawPath(skPath, sp);
+      canvas.restore();
+      sp.delete();
+    }
   }
 
   skPath.delete();
