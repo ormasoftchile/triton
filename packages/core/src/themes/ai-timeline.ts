@@ -172,6 +172,11 @@ export const aiTimelineTheme: ResolvedTheme = {
   // Vertical-spine card style — clean white cards with subtle border
   entryStyle: 'card',
 
+  // Even spacing: entries at uniform intervals regardless of the 57-year time span.
+  // Without this, the time-proportional mode hits the pixelsPerDay=0.4 floor and
+  // produces an ~8800px tall canvas due to the sparse 1967–2024 range.
+  spineSpacing: 'even',
+
   // T3-1: subtle vertical gradient for Skia backend.
   // SVG backend ignores this and uses canvas.backgroundColor instead.
   sceneBackground: {

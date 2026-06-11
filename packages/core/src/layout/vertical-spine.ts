@@ -31,6 +31,7 @@ import { wrapText, truncateText } from '../text-wrap.js';
 import { getIcon } from '../icons.js';
 import {
   dateToOrdinal,
+  ordinalToDate,
   coerceLeft,
   coerceRight,
   parseIRDate,
@@ -296,43 +297,104 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
 
   const nEntries = entries.length;
 
-  // ── Spine coordinate system ───────────────────────────────────────────────
+  // ── Spacing mode ─────────────────────────────────────────────────────────
   //
-  // pixelsPerDay is calibrated so that, if entries were evenly distributed
-  // across the time range, they would naturally respect ENTRY_MIN_SPACING.
-  // This makes the min-spacing pass a no-op for uniformly spaced events,
-  // while still correcting clusters.
+  // 'time' (default): y positions are strictly time-proportional.
+  //   pixelsPerDay is calibrated so uniformly-spaced entries naturally
+  //   respect ENTRY_MIN_SPACING; the min-spacing pass corrects clusters.
+  // 'even': entries are placed at uniform intervals regardless of time gaps.
+  //   Suitable for infographic timelines spanning sparse long ranges where
+  //   empty years would otherwise produce enormous dead space on the canvas.
+  const isEvenSpacing = theme.spineSpacing === 'even';
 
   const spanDays     = Math.max(teOrd - tsOrd, 1);
   const pixelsPerDay = Math.max(
     (ENTRY_MIN_SPACING * Math.max(nEntries, 1)) / spanDays,
     0.4,
   );
-  const hDraw = rhuInt(Math.max(
+  // hDrawTime is used in 'time' mode; computed unconditionally for determinism.
+  const hDrawTime = rhuInt(Math.max(
     spanDays * pixelsPerDay,
     nEntries > 0 ? nEntries * ENTRY_MIN_SPACING : 200,
     200,
   ));
 
+  // Even-spacing step: uniform interval between consecutive entry centres.
+  // Sized to the tallest content block + a comfortable gap so cards never overlap.
+  const BLOCK_VERT_GAP_EVEN = 20;
+  let evenStep = ENTRY_MIN_SPACING;
+  if (isEvenSpacing && nEntries > 1) {
+    let maxBH = 0;
+    for (const e of entries) {
+      const titleWrapped = wrapText(e.label, titlePx, BLOCK_W - BLOCK_INNER_PAD * 2, 2);
+      let bh = VERT_PAD;
+      bh += DATE_LINE_H;
+      bh += TEXT_GAP + TITLE_LINE_H * titleWrapped.lines.length;
+      if (e.description) bh += TEXT_GAP + DESC_LINE_H;
+      bh += VERT_PAD;
+      maxBH = Math.max(maxBH, rhuInt(bh));
+    }
+    evenStep = Math.max(ENTRY_MIN_SPACING, maxBH + BLOCK_VERT_GAP_EVEN);
+  }
+
+  const hDraw = isEvenSpacing
+    ? rhuInt(Math.max(nEntries > 1 ? (nEntries - 1) * evenStep : evenStep, 200))
+    : hDrawTime;
+
   const spineTopY    = rhu(mT + headerH + SPINE_TOP_PAD);
   const spineBottomY = rhu(spineTopY + hDraw);
 
-  /** Map a day ordinal to a canvas y coordinate (deterministic, analogous to dateX). */
+  /** Map a day ordinal to a canvas y coordinate (time-proportional, deterministic). */
   function dateY(ord: number): number {
     if (teOrd === tsOrd) return spineTopY;
     const raw = spineTopY + Math.floor(((ord - tsOrd) * hDraw) / (teOrd - tsOrd) + 0.5);
     return Math.max(spineTopY, Math.min(spineBottomY, raw));
   }
 
-  // Compute raw y positions (time-proportional)
+  // Compute raw y positions (time-proportional; used in time mode below)
   const rawNodeYs = entries.map((e) => dateY(e.ord));
 
-  // Minimum-spacing pass (top-to-bottom, deterministic)
-  const nodeYs: number[] = [...rawNodeYs];
-  for (let i = 1; i < nodeYs.length; i++) {
-    const minY = (nodeYs[i - 1] ?? spineTopY) + ENTRY_MIN_SPACING;
-    const cur  = nodeYs[i] ?? spineTopY;
-    if (cur < minY) nodeYs[i] = rhu(minY);
+  // Node y positions: uniform even spacing, or time-proportional + min-spacing pass.
+  const nodeYs: number[] = isEvenSpacing
+    ? entries.map((_, i) => rhu(spineTopY + i * evenStep))
+    : [...rawNodeYs];
+
+  if (!isEvenSpacing) {
+    // Minimum-spacing pass (top-to-bottom, deterministic)
+    for (let i = 1; i < nodeYs.length; i++) {
+      const minY = (nodeYs[i - 1] ?? spineTopY) + ENTRY_MIN_SPACING;
+      const cur  = nodeYs[i] ?? spineTopY;
+      if (cur < minY) nodeYs[i] = rhu(minY);
+    }
+  }
+
+  /**
+   * Interpolate a day ordinal to a y coordinate using the even entry positions
+   * as anchors.  Linearly interpolates between adjacent entry ordinals so that
+   * duration bands and annotations remain visually meaningful in even mode.
+   * Ordinals before the first entry clamp to spineTopY; ordinals after the
+   * last entry clamp to that entry's y position.
+   */
+  function evenDateY(ord: number): number {
+    if (nEntries === 0) return spineTopY;
+    if (nEntries === 1) return nodeYs[0]!;
+    if (ord <= entries[0]!.ord) return spineTopY;
+    if (ord >= entries[nEntries - 1]!.ord) return nodeYs[nEntries - 1]!;
+    for (let i = 0; i < nEntries - 1; i++) {
+      const aOrd = entries[i]!.ord;
+      const bOrd = entries[i + 1]!.ord;
+      if (ord >= aOrd && ord <= bOrd) {
+        const span = bOrd - aOrd;
+        const t = span === 0 ? 0 : (ord - aOrd) / span;
+        return rhu(nodeYs[i]! + t * (nodeYs[i + 1]! - nodeYs[i]!));
+      }
+    }
+    return nodeYs[nEntries - 1]!;
+  }
+
+  /** Effective date→y mapper: even-interpolated in 'even' mode, time-proportional otherwise. */
+  function effectiveDateY(ord: number): number {
+    return isEvenSpacing ? evenDateY(ord) : dateY(ord);
   }
 
   // Extend spine bottom to accommodate stacked entries
@@ -377,8 +439,8 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       let yBandTop: number;
       let yBandBot: number;
       try {
-        yBandTop = rhu(dateY(parseAndCoerceLeft(sStart)));
-        yBandBot = rhu(dateY(parseAndCoerceRight(sEnd)));
+        yBandTop = rhu(effectiveDateY(parseAndCoerceLeft(sStart)));
+        yBandBot = rhu(effectiveDateY(parseAndCoerceRight(sEnd)));
       } catch {
         return;
       }
@@ -494,7 +556,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     if (entry.type !== 'activity' || entry.endKind === 'none') continue;
 
     if (entry.endKind === 'fixed' && entry.endOrd !== undefined) {
-      const yEnd = rhu(Math.max(dateY(entry.endOrd), nodeY + 4));
+      const yEnd = rhu(Math.max(effectiveDateY(entry.endOrd), nodeY + 4));
       if (yEnd > nodeY + 4) {
         primitives.push({
           kind:    'rect',
@@ -547,32 +609,66 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
   // 5. Axis ticks
   const TICK_W = 8;
   const TICK_LABEL_X = rhu(SPINE_X + TICK_W + 6);
+  // In even mode, render one year label per entry on the left of the spine.
+  // In time mode, render the full time-proportional tick grid on the right.
+  const EVEN_YEAR_LABEL_X = rhu(SPINE_X - TICK_W - 6);
 
-  for (let ti = 0; ti < vsTicks.length; ti++) {
-    const tick = vsTicks[ti]!;
-    const ty = rhu(dateY(tick.ordinal));
+  if (isEvenSpacing) {
+    for (let i = 0; i < entries.length; i++) {
+      const entry  = entries[i]!;
+      const nodeY  = nodeYs[i]!;
+      const [entryYear] = ordinalToDate(entry.ord);
+      const yearStr = String(entryYear);
 
-    primitives.push({
-      kind: 'line',
-      x1: rhu(SPINE_X - TICK_W), y1: ty,
-      x2: rhu(SPINE_X + TICK_W), y2: ty,
-      stroke: theme.axis.axisLineColor, strokeWidth: 1, opacity: 0.5,
-    });
+      // Subtle tick mark at the entry position
+      primitives.push({
+        kind: 'line',
+        x1: rhu(SPINE_X - TICK_W), y1: nodeY,
+        x2: rhu(SPINE_X + TICK_W), y2: nodeY,
+        stroke: theme.axis.axisLineColor, strokeWidth: 1, opacity: 0.3,
+      });
 
-    const tickLabel = formatTickLabel(tick, vsAxisUnit, ti);
-    if (tickLabel) {
+      // Year label to the left of the spine
       primitives.push({
         kind: 'text',
-        x: TICK_LABEL_X, y: rhu(ty - 2),
-        text: tickLabel,
+        x: EVEN_YEAR_LABEL_X, y: rhu(nodeY - 2),
+        text: yearStr,
         fontFamily: FONT_FAM,
         fontSize: yearFontPx,
         fontWeight: yearFontWeight,
         fill: theme.axis.tickLabelColor,
-        textAnchor: 'start',
+        textAnchor: 'end',
         dominantBaseline: 'alphabetic',
         opacity: 0.6,
       });
+    }
+  } else {
+    for (let ti = 0; ti < vsTicks.length; ti++) {
+      const tick = vsTicks[ti]!;
+      const ty = rhu(dateY(tick.ordinal));
+
+      primitives.push({
+        kind: 'line',
+        x1: rhu(SPINE_X - TICK_W), y1: ty,
+        x2: rhu(SPINE_X + TICK_W), y2: ty,
+        stroke: theme.axis.axisLineColor, strokeWidth: 1, opacity: 0.5,
+      });
+
+      const tickLabel = formatTickLabel(tick, vsAxisUnit, ti);
+      if (tickLabel) {
+        primitives.push({
+          kind: 'text',
+          x: TICK_LABEL_X, y: rhu(ty - 2),
+          text: tickLabel,
+          fontFamily: FONT_FAM,
+          fontSize: yearFontPx,
+          fontWeight: yearFontWeight,
+          fill: theme.axis.tickLabelColor,
+          textAnchor: 'start',
+          dominantBaseline: 'alphabetic',
+          opacity: 0.6,
+        });
+      }
     }
   }
 
@@ -585,7 +681,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     try {
       const todayOrd = parseAndCoerceLeft(todayDateVS);
       if (todayOrd >= tsOrd && todayOrd <= teOrd) {
-        const yToday = rhu(dateY(todayOrd));
+        const yToday = rhu(effectiveDateY(todayOrd));
         primitives.push({
           kind: 'line',
           x1: rhu(m.left), y1: yToday, x2: rhu(W - m.right), y2: yToday,
@@ -621,8 +717,8 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     const aEnd = ann.end ?? ann.date;
     if (!aStart || !aEnd) continue;
     try {
-      const yT = rhu(dateY(parseAndCoerceLeft(aStart)));
-      const yB = rhu(dateY(parseAndCoerceRight(aEnd)));
+      const yT = rhu(effectiveDateY(parseAndCoerceLeft(aStart)));
+      const yB = rhu(effectiveDateY(parseAndCoerceRight(aEnd)));
       if (yB <= yT) continue;
       const periodX = rhu(W - m.right - 16);
       const periodColor = theme.axis.todayMarker.color;
@@ -902,7 +998,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     try {
       const annOrd = parseAndCoerceLeft(aDate);
       if (annOrd < tsOrd || annOrd > teOrd) continue;
-      const yAnn = rhu(dateY(annOrd));
+      const yAnn = rhu(effectiveDateY(annOrd));
       const calloutW = 110;
       const calloutH = 24;
       const side = ann.position === 'left' ? 'left' : 'right';

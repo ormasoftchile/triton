@@ -272,6 +272,25 @@ export interface ResolvedTheme {
   sceneBackground?: SceneBackground;
 
   /**
+   * Controls y-position placement of entries in the vertical-spine layout.
+   *   'time'  (default) — positions are strictly time-proportional (§5 original behaviour).
+   *             Empty years between sparse entries consume proportional vertical space.
+   *   'even'  — entries are placed at uniform intervals regardless of temporal gaps.
+   *             Suitable for infographic/sequence timelines that span decades but have
+   *             only O(20) entries: avoids the giant dead-space problem that arises when
+   *             pixelsPerDay hits its 0.4 floor on a 57-year sparse range.
+   *
+   *   In 'even' mode, duration bands (fixed start→end spans) are still rendered on the
+   *   spine, but their end y-coordinate is determined by linear interpolation between
+   *   the two adjacent entry positions that bracket the end ordinal.
+   *
+   * Has NO effect on horizontal layout output. Defaults to 'time' when not set.
+   * Existing themes that do not set this token are completely unaffected — their
+   * golden outputs do NOT change.
+   */
+  spineSpacing?: 'time' | 'even';
+
+  /**
    * Optional art-effect tokens (Tier-3 Showcase).  When present, the layout
    * engine attaches the specified SceneEffect[] to the relevant primitives.
    * The SVG backend ignores all effects — output is byte-identical.
