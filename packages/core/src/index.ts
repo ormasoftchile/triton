@@ -50,6 +50,11 @@ export type { IRDocumentInput } from './schema.js';
 // Lower-level exports for CLI / MCP / VS Code consumers that want direct access.
 export { parseIR } from './load.js';
 export { validateDocument } from './validate.js';
-export { renderDocument } from './render/index.js';
+export { renderDocument, buildScene } from './render/index.js';
 export { resolveTheme } from './themes/index.js';
 export { sceneHash } from './scene.js';
+export type { Scene, ScenePrimitive } from './scene.js';
+
+// Layout-quality linter
+export { lintScene } from './lint.js';
+export type { QualityIssue } from './lint.js';

@@ -745,3 +745,51 @@ Added a deterministic O(n) stagger pass for **date labels** (above nodes), appli
 - 17 leader ticks emitted (displaced nodes show their true axis anchor).
 - Axis tick labels: y=142.4 (above axis at y=154). Above-zone title blocks: y=178.26 and 216.73. Gap = 24px between axis line and nearest label block. ✅
 - Compact dates: "February 2019", "June 2020", "August 2021" etc. — font-size=10.67, font-weight=400, lighter fill. No day ordinals.
+
+---
+
+## 2026-06-10 — Layout-Quality Linter + Conformance Gate
+
+### Deliverables Built
+
+**1. `buildScene` exposed (`packages/core/src/render/index.ts`)**
+- `export function buildScene(ir: IRDocument, options?: RenderOptions): Scene` — calls layout dispatch directly, returns the computed Scene without serializing to SVG.
+- `renderDocument` refactored to call `buildScene` internally (single code path, no duplication).
+- Exported from `packages/core/src/index.ts` alongside `lintScene`, `QualityIssue`, `Scene`, `ScenePrimitive`.
+
+**2. Linter checks (`packages/core/src/lint.ts`)**
+- `QualityIssue = { code, severity: 'error'|'warning', message, where? }`.
+- Text bounding box: `measureText(text, fontSize).width` × line count; baseline offsets per `dominantBaseline` (alphabetic / middle / hanging). MultiText: max-width per line.
+- Node marker bbox: `center ± ms.size` (circle r = ms.size in the scene).
+- Axis detection: scan for a full-canvas-spanning horizontal line, build tick-label band. V-spine layout detected by a tall vertical line near x=W/2 → skip horizontal-axis detection to avoid false positives.
+- **NODE_OVERLAP (error)**: node bboxes intersect beyond 2px epsilon.
+- **LABEL_OVERLAP (error)**: label bboxes from *different label blocks* intersect beyond 4px; label blocks grouped by coincident `anchorX` + vertical adjacency ≤16px (union-find).
+- **LABEL_AXIS_OVERLAP (error)**: label bbox intersects axis band; labels at/above axis y excluded (tick labels that sit above axis are legitimate).
+- **OUT_OF_BOUNDS (error)**: bbox center or extent leaves `[0,0,W,H]` beyond 1px.
+- **TIGHT_SPACING (warning)**: bboxes within 5px gap (informational near-miss).
+
+**3. Conformance gate (`packages/core/test/quality.test.ts`)**
+- Enumerates 13 example YAML files × 2 layouts × 5 themes = **130 (file × layout × theme) combinations**.
+- For each: `parseIR → buildScene → lintScene`; asserts zero error-severity issues.
+- 8 deliberate-overlap unit tests: LABEL_OVERLAP (true positive + true negative), NODE_OVERLAP (TP + TN), OUT_OF_BOUNDS (text, rect), LABEL_AXIS_OVERLAP, TIGHT_SPACING.
+
+**4. Layout issues caught and fixed**
+
+| Issue | Root cause | Fix applied |
+|---|---|---|
+| OUT_OF_BOUNDS — tick labels at x=0 | First tick at `dateX=0` with `textAnchor='middle'` → bbox left < 0 | Clamp tick label x to `[labelHalfW, W-labelHalfW]` |
+| OUT_OF_BOUNDS — section labels near right edge | Section labels not capped to available width | `truncateText(label, secFontPx, W-mR-(xBandLeft+4))` |
+| OUT_OF_BOUNDS — milestone labels near right edge | Node right-clamp didn't account for label half-width | `rightLimit = offset + wDraw - max(ms.size, labelHalfW)` |
+| OUT_OF_BOUNDS — v-spine period annotation | Label placed right of `periodX+8` with `textAnchor:'start'` → overflowed | Changed to `x: periodX-8, textAnchor:'end'` |
+| NODE_OVERLAP — right-edge clamping collapsing nodes | Forward pass clamps to same x, `lastPlacedX` propagates the clamp | Backward pass: walk right-to-left enforcing `minNodeGap` |
+| LABEL_OVERLAP — legend inside milestone-label zone | `lgY = H - mB - lgH - 16 = belowMaxY - lgH - 16` (inside content) | Pre-compute `lgPreH`; `H = belowMaxY + mB + lgPreH + margin`; `lgY = belowMaxY + lgMargin` |
+| LABEL_OVERLAP — multi-track untracked milestone below-labels | `side='below'` labels landed in track area, overlapping activity labels | Force `side='above'` when `mil.track == null && ir.tracks.length > 1` |
+| LABEL_AXIS_OVERLAP — V-spine today-line false positive | Full-canvas-wide today horizontal line misidentified as axis | Detect V-spine by tall vertical line at x≈W/2; skip H-axis detection |
+
+**5. CLI lint command (`packages/cli/src/index.ts`)**
+- `timeline lint <input> [--layout <h|v>] [--theme <t>]`: parse → buildScene → lintScene → print issues; exit 1 on any error.
+
+**Golden artifacts regenerated:**
+- `examples/golden/our-timeline.svg` (tick label positions shifted by clamping fix).
+
+**Final test count: 445 passed / 0 failed.** All typecheck, lint, build, test green.

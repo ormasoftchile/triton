@@ -221,16 +221,26 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const trueXArr: number[]   = [];
   const placedXArr: number[] = [];
   {
+    // Right-edge clamp: node must fit within canvas AND its label must not overflow.
+    // Use the larger of the node radius and the label half-width as the right guard.
+    const labelHalfW = rhu((ms.labelMaxWidth + 4) / 2);
+    const rightLimit  = rhu(offset + wDraw - Math.max(ms.size, labelHalfW));
     let lastPlacedX = -Infinity;
     for (const { ord } of msWithOrd) {
       const tx = rhu(dateX(ord, axisState));
       trueXArr.push(tx);
       const rawPx =
         lastPlacedX === -Infinity ? tx : Math.max(tx, lastPlacedX + minNodeGap_eff);
-      // Clamp to canvas right edge so nodes never overflow off-canvas
-      const px = rhu(Math.min(rawPx, offset + wDraw - ms.size));
+      // Clamp so node + label stay within canvas
+      const px = rhu(Math.min(rawPx, rightLimit));
       placedXArr.push(px);
       lastPlacedX = px;
+    }
+    // Backward pass: right-edge clamping can collapse multiple nodes to the same x.
+    // Walk right-to-left ensuring each node is at least minNodeGap_eff from its right neighbour.
+    for (let i = placedXArr.length - 2; i >= 0; i--) {
+      const want = placedXArr[i + 1]! - minNodeGap_eff;
+      if (placedXArr[i]! > want) placedXArr[i] = rhu(want);
     }
   }
 
@@ -249,8 +259,12 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const blockInfos: BlockInfo[] = [];
   for (let i = 0; i < msWithOrd.length; i++) {
     const { m: mil, y, mo } = msWithOrd[i]!;
-    // Alternating sides: odd-index → above axis zone; even-index → below node
-    const side: 'above' | 'below' = (i % 2 === 1) ? 'above' : 'below';
+    // Alternating sides: odd-index → above axis zone; even-index → below node.
+    // Exception: untracked milestones in multi-track layouts are always above so
+    // their labels don't land inside the draw area and overlap activity bars.
+    const hasMultipleTracks = ir.tracks != null && ir.tracks.length > 1;
+    const forceAbove = mil.track == null && hasMultipleTracks;
+    const side: 'above' | 'below' = forceAbove ? 'above' : ((i % 2 === 1) ? 'above' : 'below');
     const showTitle = ms.titleLabelBelow;
     const showDate  = ms.dateLabelAbove;
     const titleText   = showTitle ? truncateText(mil.label, titleFontPx, ms.labelMaxWidth) : '';
@@ -494,7 +508,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const calloutNoteAnnotations = annotations.filter((a) => a.type === 'callout' || a.type === 'note');
 
   // -------------------------------------------------------------------------
-  // Canvas height — grows to accommodate below-side label blocks
+  // Canvas height — grows to accommodate below-side label blocks + legend
   // -------------------------------------------------------------------------
 
   // axisY is the y coordinate of the axis line
@@ -513,7 +527,48 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     }
   }
 
-  const H = rhu(belowMaxY + m.bottom);
+  // Pre-compute legend height so the canvas can accommodate the legend below the
+  // milestone-label zone (the old formula placed the legend INSIDE that zone,
+  // causing legend labels to overlap with milestone/activity labels).
+  const lgMargin = 16;
+  const lgPreH = (() => {
+    const shouldRender = (() => {
+      if (!ir.legend) {
+        const s = new Set<string>();
+        for (const a of ir.activities ?? []) { if (a.status) s.add(a.status); }
+        for (const mil of ir.milestones ?? []) { if (mil.status) s.add(mil.status); }
+        return s.size > 1;
+      }
+      return ir.legend.show !== false;
+    })();
+    if (!shouldRender) return 0;
+    const lg = theme.legend;
+    if (!lg.position.includes('bottom')) return 0;
+    const lgFontPx  = ptToPx(lg.labelFontSize);
+    const lgTitlePx = ptToPx(lg.titleFontSize);
+    const ROW_H = Math.max(lg.swatchSize, lgFontPx * 1.2);
+    const titleH = lgTitlePx * 1.4 + lg.titleBottomGap;
+    let nEntries = 0;
+    if (ir.legend?.entries?.length) {
+      nEntries = ir.legend.entries.length;
+    } else {
+      const seenS = new Set<string>(); const seenC = new Set<string>();
+      for (const a of ir.activities ?? []) {
+        if (a.status) seenS.add(a.status);
+        if (a.category) seenC.add(a.category);
+      }
+      for (const mil of ir.milestones ?? []) {
+        if (mil.status) seenS.add(mil.status);
+        if (mil.category) seenC.add(mil.category);
+      }
+      for (const s of seenS) { if (theme.statusMap[s as keyof typeof theme.statusMap]) nEntries++; }
+      for (const c of seenC) { if (theme.categoryMap[c]) nEntries++; }
+    }
+    if (nEntries === 0) return 0;
+    return lg.padding * 2 + titleH + nEntries * (ROW_H + lg.rowGap) - lg.rowGap;
+  })();
+
+  const H = rhu(belowMaxY + m.bottom + (lgPreH > 0 ? lgPreH + lgMargin : 0));
 
   // -------------------------------------------------------------------------
   // Build Scene primitives (painter's algorithm: back → front)
@@ -557,19 +612,24 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       }
 
       const secFontPx = ptToPx(theme.section.labelFontSize);
-      primitives.push({
-        kind:             'text',
-        x:                rhu(xBandLeft + 4),
-        y:                rhu(mT_eff + Haxis + aboveZoneH + 4 + secFontPx),
-        text:             sec.label,
-        fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-        fontSize:         secFontPx,
-        fontWeight:       theme.section.labelFontWeight,
-        fill:             theme.section.labelColor,
-        textAnchor:       'start',
-        dominantBaseline: 'alphabetic',
-        opacity:          rhu(theme.section.labelOpacity),
-      });
+      // Truncate to canvas right edge so label never overflows the canvas.
+      const secAvailW = Math.max(24, W - mR - (xBandLeft + 4));
+      const secText   = truncateText(sec.label, secFontPx, secAvailW);
+      if (secText) {
+        primitives.push({
+          kind:             'text',
+          x:                rhu(xBandLeft + 4),
+          y:                rhu(mT_eff + Haxis + aboveZoneH + 4 + secFontPx),
+          text:             secText,
+          fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize:         secFontPx,
+          fontWeight:       theme.section.labelFontWeight,
+          fill:             theme.section.labelColor,
+          textAnchor:       'start',
+          dominantBaseline: 'alphabetic',
+          opacity:          rhu(theme.section.labelOpacity),
+        });
+      }
     });
   }
 
@@ -691,9 +751,12 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     const label = formatTickLabel(tick, axisUnit, i);
     if (label) {
       const axisFontPx = ptToPx(theme.typography.fontSizeAxis);
+      // Clamp tick-label x so its bbox stays within the canvas (textAnchor='middle').
+      const labelHalfW = measureText(label, axisFontPx).width / 2;
+      const clampedX   = rhu(Math.max(labelHalfW, Math.min(W - labelHalfW, xk)));
       primitives.push({
         kind:            'text',
-        x:               xk,
+        x:               clampedX,
         y:               rhu(axisY - ax.tickHeight - ax.tickLabelOffset - axisFontPx * 0.3),
         text:            label,
         fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
@@ -1287,7 +1350,9 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       const pos = lg.position;
       const margin = 16;
       const lgX = pos.includes('right') ? W - mR - lgW - margin : mL + margin;
-      const lgY = pos.includes('bottom') ? H - m.bottom - lgH - margin : mT_eff + margin;
+      // Place legend below the milestone-label zone so it never overlaps with
+      // activity or milestone labels.  The canvas height already accounts for lgH.
+      const lgY = pos.includes('bottom') ? rhu(belowMaxY + margin) : rhu(mT_eff + margin);
 
       primitives.push({
         kind: 'rect', x: rhu(lgX), y: rhu(lgY), width: lgW, height: rhu(lgH),

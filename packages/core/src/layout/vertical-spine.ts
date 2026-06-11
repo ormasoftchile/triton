@@ -624,14 +624,14 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         const bFontPx = ptToPx(theme.section.labelFontSize);
         primitives.push({
           kind: 'text',
-          x: rhu(periodX + 8),
+          x: rhu(periodX - 8),
           y: rhu((yT + yB) / 2),
           text: ann.text ?? ann.label ?? '',
           fontFamily: FONT_FAM,
           fontSize: bFontPx,
           fontWeight: 400,
           fill: periodColor,
-          textAnchor: 'start',
+          textAnchor: 'end',
           dominantBaseline: 'middle',
           opacity: 0.75,
         });

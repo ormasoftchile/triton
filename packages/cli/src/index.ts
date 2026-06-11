@@ -5,6 +5,7 @@
  * Commands:
  *   render <input>   — Validate then render a timeline YAML/JSON file to SVG or PNG
  *   validate <input> — Validate a timeline YAML/JSON file (schema + all invariants)
+ *   lint <input>     — Check layout quality (overlaps, out-of-bounds, axis collisions)
  *   schema           — Print the Timeline IR JSON Schema
  */
 
@@ -15,7 +16,9 @@ import { createRequire } from 'node:module';
 import { Command } from 'commander';
 import {
   IRParseError,
+  buildScene,
   getSchema,
+  lintScene,
   loadIR,
   render,
   validate,
@@ -221,6 +224,84 @@ program
 
     console.log(`Written: ${outputPath}`);
     console.log(`sceneHash: ${result.sceneHash}`);
+  });
+
+// ---------------------------------------------------------------------------
+// lint command
+// ---------------------------------------------------------------------------
+
+program
+  .command('lint <input>')
+  .description('Check layout quality (overlaps, out-of-bounds, axis collisions) in a rendered scene')
+  .option('--layout <layout>', 'layout family: horizontal or vertical-spine', 'horizontal')
+  .option('--theme <theme>', 'theme id', 'consulting')
+  .action((inputPath: string, options: { layout: string; theme: string }) => {
+    const layoutFamily = options.layout as 'horizontal' | 'vertical-spine';
+    if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine') {
+      console.error(`Error: --layout must be "horizontal" or "vertical-spine", got "${options.layout}"`);
+      process.exit(1);
+      return;
+    }
+
+    let text: string;
+    try {
+      text = readFileSync(resolve(inputPath), 'utf-8');
+    } catch (e) {
+      console.error(`Error reading file: ${inputPath}`);
+      console.error((e as Error).message);
+      process.exit(1);
+      return;
+    }
+
+    let ir;
+    try {
+      ir = loadIR(text);
+    } catch (e) {
+      if (e instanceof IRParseError) {
+        console.error('❌ Parse failed:');
+        for (const d of e.diagnostics) console.error(formatDiagnostic(d));
+        process.exit(1);
+        return;
+      }
+      console.error(`Unexpected error: ${(e as Error).message}`);
+      process.exit(1);
+      return;
+    }
+
+    let scene;
+    try {
+      scene = buildScene(ir, { layout: layoutFamily, theme: options.theme });
+    } catch (e) {
+      console.error(`Layout error: ${(e as Error).message}`);
+      process.exit(1);
+      return;
+    }
+
+    const issues = lintScene(scene);
+
+    if (issues.length === 0) {
+      console.log('✅ No layout issues found');
+      process.exit(0);
+      return;
+    }
+
+    let hasErrors = false;
+    for (const issue of issues) {
+      const icon = issue.severity === 'error' ? '❌' : '⚠️ ';
+      const where = issue.where
+        ? `  at ${issue.where.map((p) => `(${Math.round(p.x)},${Math.round(p.y)})`).join(' ')}`
+        : '';
+      console.log(`${icon} [${issue.severity.toUpperCase()}] ${issue.code}: ${issue.message}${where}`);
+      if (issue.severity === 'error') hasErrors = true;
+    }
+
+    if (hasErrors) {
+      console.error('\n❌ Layout quality check failed');
+      process.exit(1);
+    } else {
+      console.log('\n⚠️  Layout warnings present (no errors)');
+      process.exit(0);
+    }
   });
 
 // ---------------------------------------------------------------------------
