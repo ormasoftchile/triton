@@ -116,6 +116,33 @@ export interface MultiTextPrimitive {
   effects?: SceneEffect[];
 }
 
+/**
+ * Stroke gradient descriptor for PathPrimitive.
+ *
+ * When present, the path is stroked with a linear gradient flowing from
+ * (x1,y1) to (x2,y2) in scene/user-space coordinates instead of a flat
+ * `stroke` colour.  The `stroke` field is ignored when `strokeGradient` is set.
+ *
+ * Additive & opt-in — existing PathPrimitives without this field are unaffected.
+ * The SVG backend emits a `<linearGradient>` in `<defs>` with a deterministic
+ * content-derived id and `gradientUnits="userSpaceOnUse"`.  The Skia backend
+ * builds a linear gradient shader via `CK.Shader.MakeLinearGradient`.
+ */
+export interface StrokeGradient {
+  /** CSS hex colour at the gradient start point. */
+  from: string;
+  /** CSS hex colour at the gradient end point. */
+  to: string;
+  /** X-coordinate of the gradient start point in scene (user) space. */
+  x1: number;
+  /** Y-coordinate of the gradient start point in scene (user) space. */
+  y1: number;
+  /** X-coordinate of the gradient end point in scene (user) space. */
+  x2: number;
+  /** Y-coordinate of the gradient end point in scene (user) space. */
+  y2: number;
+}
+
 export interface PathPrimitive {
   kind: 'path';
   d: string;
@@ -128,6 +155,12 @@ export interface PathPrimitive {
   /** Optional SVG transform attribute (e.g. for icon scaling/translation). */
   transform?: string;
   effects?: SceneEffect[];
+  /**
+   * Optional stroke gradient. When set, the path is stroked with a linear
+   * gradient flowing from (x1,y1)→(x2,y2) in scene coordinates.
+   * The `stroke` field is ignored when `strokeGradient` is present.
+   */
+  strokeGradient?: StrokeGradient;
 }
 
 export interface GroupPrimitive {

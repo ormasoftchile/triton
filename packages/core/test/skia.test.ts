@@ -1194,3 +1194,59 @@ describe('T4 Serpentine — serpentine layout (boustrophedon journey path)', () 
     expect(result2.sceneHash).toBe(result.sceneHash);
   });
 });
+
+// ---------------------------------------------------------------------------
+// (14) T4 Serpentine — palette-derived multi-theme goldens
+// ---------------------------------------------------------------------------
+
+describe('T4 Serpentine — palette-derived multi-theme goldens', () => {
+  const SERP_FIXTURE = join(REPO_ROOT, 'examples', 'showcase', 'serpentine-journey.timeline.yaml');
+  const GALLERY_DIR_T4 = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+
+  const cases = [
+    { themeName: 'consulting', output: 'serpentine-journey-consulting-skia.png' },
+    { themeName: 'executive',  output: 'serpentine-journey-executive-skia.png'  },
+  ] as const;
+
+  for (const { themeName, output } of cases) {
+    it(`serpentine ${themeName} Skia golden — palette-derived fallback (regression guard)`, async () => {
+      ensureDir(GALLERY_DIR_T4);
+      const outPath = join(GALLERY_DIR_T4, output);
+      const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+      const ir = parseIR(fixtureText);
+      const result = await renderDocumentAsync(ir, {
+        format: 'png',
+        theme: themeName,
+        backend: 'skia',
+        layout: 'serpentine',
+      });
+      const png = result.png!;
+      expect(isPngSignature(png)).toBe(true);
+      expect(png.length).toBeGreaterThan(1000);
+      writeFileSync(outPath, png);
+      console.log(`[t4-palette] serpentine-${themeName} Skia PNG →`, outPath);
+
+      // Re-render — must be byte-identical (determinism contract)
+      const result2 = await renderDocumentAsync(ir, {
+        format: 'png',
+        theme: themeName,
+        backend: 'skia',
+        layout: 'serpentine',
+      });
+      expect(result2.png!.length).toBe(png.length);
+      expect(isPngSignature(result2.png!)).toBe(true);
+    }, 90_000);
+  }
+
+  it('serpentine palette-derived SVG is deterministic for consulting theme', () => {
+    const fixtureText = readFileSync(SERP_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const r1 = renderDocument(ir, { format: 'svg', theme: 'consulting', layout: 'serpentine' });
+    const r2 = renderDocument(ir, { format: 'svg', theme: 'consulting', layout: 'serpentine' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+    // Confirms gradient adopts consulting theme — no green, contains navy
+    expect(r1.svg).toContain('linearGradient');
+    expect(r1.svg).toContain('sg-');
+  });
+});

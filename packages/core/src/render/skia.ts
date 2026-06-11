@@ -476,7 +476,8 @@ function renderPath(CK: any, canvas: any, p: PathPrimitive): void {
   if (strokeOnly) {
     // Stroke-only path (fill='none'): never fill. Glow/shadow effects are
     // applied as stroked blurs so the effect follows the line, not a filled area.
-    if (p.stroke && (p.strokeWidth ?? 0) > 0) {
+    // strokeGradient takes precedence over a solid stroke colour.
+    if ((p.stroke || p.strokeGradient) && (p.strokeWidth ?? 0) > 0) {
       if (p.effects && p.effects.length > 0) {
         for (const fx of p.effects) {
           if (fx.kind === 'glow') {
@@ -500,12 +501,28 @@ function renderPath(CK: any, canvas: any, p: PathPrimitive): void {
         }
       }
 
-      // Main stroke pass
+      // Main stroke pass — solid colour or linear gradient shader
       const sp = new CK.Paint();
-      sp.setColor(parseColor(CK, p.stroke, opacity));
       sp.setStyle(CK.PaintStyle.Stroke);
       sp.setStrokeWidth(p.strokeWidth!);
       if (p.strokeLinecap === 'round') sp.setStrokeCap(CK.StrokeCap.Round);
+
+      if (p.strokeGradient) {
+        // Build a linear gradient shader using the path's endpoint coordinates.
+        const sg = p.strokeGradient;
+        const shader = CK.Shader.MakeLinearGradient(
+          [sg.x1, sg.y1],
+          [sg.x2, sg.y2],
+          [parseColor(CK, sg.from, opacity), parseColor(CK, sg.to, opacity)],
+          null,
+          CK.TileMode.Clamp,
+        );
+        sp.setShader(shader);
+        shader.delete();
+      } else {
+        sp.setColor(parseColor(CK, p.stroke!, opacity));
+      }
+
       canvas.save();
       applyTransform();
       canvas.drawPath(skPath, sp);

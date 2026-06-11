@@ -6,7 +6,8 @@
  *
  * Design:
  *  - Boustrophedon path: runs left→right, U-turns right, runs right→left, U-turns left, etc.
- *  - Path rendered as N gradient sub-segments (light-green → dark-green) for cross-backend gradient.
+ *  - Path rendered as ONE smooth PathPrimitive with a `strokeGradient` (true SVG linearGradient
+ *    in the SVG backend; CK.Shader.MakeLinearGradient shader in the Skia backend). No faceting.
  *  - Entries sorted by (date_ordinal, id), mapped to UNIFORM positions along path arc-length.
  *    Each entry node is at t_i = (i + 0.5) / n (centred intervals).
  *  - Start/end icon badges at exact path endpoints (t=0, t=1).
@@ -14,14 +15,20 @@
  *  - Title/subtitle header reused from the shared header pattern.
  *
  * Geometry:
- *  - PATH_XL=90, PATH_XR=1110, rowWidth=1020, turnRadius from theme (default 80).
- *  - rowSpacing = 2 * turnRadius. nRows = max(2, ceil(n/3)).
+ *  - PATH_XL = r+10, PATH_XR = W-r-10, rowWidth=PATH_XR-PATH_XL, turnRadius from theme (default 80).
+ *  - rowSpacing = 2 × turnRadius. nRows = max(2, ceil(n/3)).
  *  - canvasH = headerH + TOP_PAD + (nRows-1)*rowSpacing + BOTTOM_PAD.
  *
  * Gradient approach:
- *  - GRADIENT_SEGS short path segments, each with a solid interpolated colour.
- *  - Each segment is a M x0 y0 L x1 y1 (straight-line approximation of the arc).
- *  - One additional glow PathPrimitive drawn before the segments (full path, glow effect).
+ *  - ONE PathPrimitive with the full boustrophedon SVG path (arc commands for smooth turns).
+ *  - PathPrimitive.strokeGradient: { from, to, x1, y1, x2, y2 } — endpoints are the path's
+ *    physical start point and end point in scene coordinates.
+ *  - One additional glow PathPrimitive drawn BEFORE the gradient stroke (full path, glow effect).
+ *
+ * Palette derivation (fallback when theme.serpentine is absent):
+ *  - Derives gradient colours, glow, node/badge colours from the theme's status palette
+ *    (in-progress accent, lighten/darken variants) so the serpentine inherits each theme's
+ *    colour identity. Explicit theme.serpentine blocks are unaffected.
  *
  * Determinism contract (§5.1):
  *  - round-half-up for all coordinate values.
@@ -74,6 +81,25 @@ function lerpColor(from: string, to: string, t: number): string {
   const b = rhuInt(b0 + (b1 - b0) * t);
   const hex = (n: number) => n.toString(16).padStart(2, '0');
   return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
+
+/** Blend a '#RRGGBB' colour toward white by `factor` ∈ [0,1]. */
+function lightenHex(hex: string, factor: number): string {
+  return lerpColor(hex, '#FFFFFF', factor);
+}
+
+/** Blend a '#RRGGBB' colour toward black by `factor` ∈ [0,1]. */
+function darkenHex(hex: string, factor: number): string {
+  return lerpColor(hex, '#000000', factor);
+}
+
+/**
+ * Returns '#FFFFFF' for dark fills and '#1F2937' for light fills.
+ * Uses simple average RGB brightness as a luminance approximation.
+ */
+function contrastColor(hex: string): string {
+  const [r, g, b] = parseHex(hex);
+  return (r + g + b) / 3 < 128 ? '#FFFFFF' : '#1F2937';
 }
 
 // ---------------------------------------------------------------------------
@@ -189,27 +215,33 @@ export function layoutSerpentine(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   const primitives: ScenePrimitive[] = [];
   const W = theme.canvas.width;
   const bg = theme.canvas.backgroundColor;
-  const sTheme = theme.serpentine ?? {
-    pathStrokeWidth: 14,
-    gradientFrom: '#86EFAC',
-    gradientTo: '#15803D',
-    glowColor: '#4ADE80',
-    glowRadius: 18,
-    nodeRadius: 10,
-    nodeFill: '#FFFFFF',
-    nodeStroke: '#15803D',
-    nodeStrokeWidth: 3,
-    startIcon: 'play',
-    endIcon: 'target',
-    badgeRadius: 22,
-    badgeFill: '#15803D',
-    badgeIconColor: '#FFFFFF',
-    rowSpacing: 160,
-    turnRadius: 80,
-    showLabels: true,
-    labelColor: '#374151',
-    labelFontSize: 9,
-  };
+  const sTheme = theme.serpentine ?? (() => {
+    // Palette-derived fallback: extracts accent from the theme's in-progress
+    // status fill so the serpentine adapts to each theme's colour identity.
+    const accent = theme.statusMap['in-progress'].fill;
+    const badgeFillDerived = darkenHex(accent, 0.2);
+    return {
+      pathStrokeWidth: 14,
+      gradientFrom: lightenHex(accent, 0.35),
+      gradientTo:   darkenHex(accent, 0.15),
+      glowColor:    accent,
+      glowRadius:   18,
+      nodeRadius:   10,
+      nodeFill:     theme.canvas.backgroundColor,
+      nodeStroke:   accent,
+      nodeStrokeWidth: 3,
+      startIcon:    'play',
+      endIcon:      'target',
+      badgeRadius:  22,
+      badgeFill:    badgeFillDerived,
+      badgeIconColor: contrastColor(badgeFillDerived),
+      rowSpacing:   160,
+      turnRadius:   80,
+      showLabels:   true,
+      labelColor:   theme.milestone.titleLabelColor,
+      labelFontSize: 9,
+    };
+  })();
 
   const FONT_FAM = `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`;
 
@@ -367,9 +399,13 @@ export function layoutSerpentine(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   }
 
   // ── Path rendering ─────────────────────────────────────────────────────────
-  const GRADIENT_SEGS = 64;
   const pathD = buildPathD(geo);
+  // Compute path endpoints once — used for both the strokeGradient and the badges.
+  const pathStart = pathPointAtS(0, geo);
+  const pathEnd   = pathPointAtS(totalLength, geo);
 
+  // Glow path: full arc-command boustrophedon path, rendered UNDER the gradient
+  // stroke. Wider stroke, low opacity, Skia glow effect.
   primitives.push({
     kind: 'path',
     d: pathD,
@@ -382,22 +418,24 @@ export function layoutSerpentine(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     effects: [{ kind: 'glow', color: sTheme.glowColor, radius: sTheme.glowRadius }],
   });
 
-  for (let i = 0; i < GRADIENT_SEGS; i++) {
-    const s0 = (i / GRADIENT_SEGS) * totalLength;
-    const s1 = ((i + 1) / GRADIENT_SEGS) * totalLength;
-    const t_mid = (i + 0.5) / GRADIENT_SEGS;
-    const color = lerpColor(sTheme.gradientFrom, sTheme.gradientTo, t_mid);
-    const p0 = pathPointAtS(s0, geo);
-    const p1 = pathPointAtS(s1, geo);
-    primitives.push({
-      kind: 'path',
-      d: `M ${p0.x} ${p0.y} L ${p1.x} ${p1.y}`,
-      fill: 'none',
-      stroke: color,
-      strokeWidth: sTheme.pathStrokeWidth,
-      strokeLinecap: 'round',
-    });
-  }
+  // Main gradient stroke — one smooth path with a real linear gradient.
+  // SVG backend: emits <linearGradient> in <defs>, references via stroke="url(#...)".
+  // Skia backend: builds CK.Shader.MakeLinearGradient, no faceting.
+  primitives.push({
+    kind: 'path',
+    d: pathD,
+    fill: 'none',
+    strokeWidth: sTheme.pathStrokeWidth,
+    strokeLinecap: 'round',
+    strokeGradient: {
+      from: sTheme.gradientFrom,
+      to:   sTheme.gradientTo,
+      x1:   pathStart.x,
+      y1:   pathStart.y,
+      x2:   pathEnd.x,
+      y2:   pathEnd.y,
+    },
+  });
 
   // ── Entry dot nodes ────────────────────────────────────────────────────────
   const nodeR = sTheme.nodeRadius;
@@ -500,14 +538,12 @@ export function layoutSerpentine(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     }
   }
 
-  const startPt = pathPointAtS(0, geo);
   if (sTheme.startIcon) {
-    renderBadge(startPt.x, startPt.y, sTheme.startIcon);
+    renderBadge(pathStart.x, pathStart.y, sTheme.startIcon);
   }
 
-  const endPt = pathPointAtS(totalLength, geo);
   if (sTheme.endIcon) {
-    renderBadge(endPt.x, endPt.y, sTheme.endIcon);
+    renderBadge(pathEnd.x, pathEnd.y, sTheme.endIcon);
   }
 
   return {

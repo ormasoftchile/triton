@@ -8,7 +8,7 @@
  * CONTRACT: returns a plain `string` — never a Buffer, stream, or promise.
  */
 
-import type { Scene, ScenePrimitive, ImagePrimitive } from '../scene.js';
+import type { Scene, ScenePrimitive, ImagePrimitive, StrokeGradient } from '../scene.js';
 
 // ---------------------------------------------------------------------------
 // Formatting helpers
@@ -48,6 +48,60 @@ function attrs(map: AttrMap): string {
     parts.push(`${k}="${vs}"`);
   }
   return parts.length > 0 ? ' ' + parts.join(' ') : '';
+}
+
+// ---------------------------------------------------------------------------
+// Stroke-gradient helpers (for PathPrimitive.strokeGradient)
+// ---------------------------------------------------------------------------
+
+/**
+ * Derive a deterministic, content-based SVG ID for a stroke gradient.
+ *
+ * The ID encodes the endpoint coordinates and stop colours so it is stable
+ * across re-renders and unique per distinct gradient.  Periods in the
+ * coordinate strings are replaced with 'd' to stay within safe XML name chars.
+ */
+function strokeGradientId(sg: StrokeGradient): string {
+  const c = (v: number) => fmt(v).replace('.', 'd');
+  const col = (s: string) => s.replace('#', '').toLowerCase();
+  return `sg-${c(sg.x1)}-${c(sg.y1)}-${c(sg.x2)}-${c(sg.y2)}-${col(sg.from)}-${col(sg.to)}`;
+}
+
+/**
+ * Recursively collect `<linearGradient>` defs needed for PathPrimitives
+ * that carry a `strokeGradient`.  Deduplicates by ID so that identical
+ * gradients appearing in multiple paths emit only one def element.
+ */
+function collectGradientDefs(primitives: ScenePrimitive[]): string[] {
+  const seen = new Set<string>();
+  const defs: string[] = [];
+
+  function walk(prims: ScenePrimitive[]): void {
+    for (const p of prims) {
+      if (p.kind === 'path' && p.strokeGradient) {
+        const sg = p.strokeGradient;
+        const id = strokeGradientId(sg);
+        if (!seen.has(id)) {
+          seen.add(id);
+          const lgAttrs: AttrMap = {
+            gradientUnits: 'userSpaceOnUse',
+            id,
+            x1: sg.x1,
+            x2: sg.x2,
+            y1: sg.y1,
+            y2: sg.y2,
+          };
+          const stop0 = `    <stop offset="0%" stop-color="${esc(sg.from)}"/>`;
+          const stop1 = `    <stop offset="100%" stop-color="${esc(sg.to)}"/>`;
+          defs.push(`  <linearGradient${attrs(lgAttrs)}>\n${stop0}\n${stop1}\n  </linearGradient>`);
+        }
+      }
+      if (p.kind === 'group') walk(p.primitives);
+    }
+  }
+
+  walk(primitives);
+  return defs;
 }
 
 // ---------------------------------------------------------------------------
@@ -139,12 +193,14 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
     }
 
     case 'path': {
+      // strokeGradient takes precedence over a solid stroke colour.
+      const strokeRef = p.strokeGradient ? `url(#${strokeGradientId(p.strokeGradient)})` : p.stroke;
       const a: AttrMap = {
         d:            p.d,
         fill:         p.fill,
         'fill-rule':  p.fillRule,
         opacity:      p.opacity,
-        stroke:       p.stroke,
+        stroke:       strokeRef,
         'stroke-linecap': p.strokeLinecap,
         'stroke-width': p.strokeWidth,
         transform:    p.transform,
@@ -238,8 +294,11 @@ export function sceneToSvg(scene: Scene): string {
 
   // Collect clip-path defs for ImagePrimitives with borderRadius (if any)
   const clipDefs = collectImageClipDefs(scene.primitives);
-  const defsBlock = clipDefs.length > 0
-    ? `<defs>\n${clipDefs.join('\n')}\n</defs>\n`
+  // Collect linearGradient defs for PathPrimitives with strokeGradient (if any)
+  const gradDefs = collectGradientDefs(scene.primitives);
+  const allDefs = [...clipDefs, ...gradDefs];
+  const defsBlock = allDefs.length > 0
+    ? `<defs>\n${allDefs.join('\n')}\n</defs>\n`
     : '';
 
   const elements = scene.primitives.map((p) => primitiveToSvg(p, 1)).join('\n');

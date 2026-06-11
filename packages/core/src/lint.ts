@@ -155,6 +155,7 @@ function vertexBBox(verts: [number, number][]): BBox | null {
 /** Compute bbox for a PathPrimitive without a transform (milestone shapes only). */
 function pathBBox(p: PathPrimitive): BBox | null {
   if (p.transform) return null; // transformed paths (icons) — skip
+  if (/[AaQqCcSsTt]/.test(p.d)) return null; // curved paths — not a simple polygon
   const verts = parseSimplePathVertices(p.d);
   if (verts.length < 3 || verts.length > 7) return null; // only simple polygons
   return vertexBBox(verts);
