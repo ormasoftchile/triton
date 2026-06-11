@@ -14,6 +14,7 @@ import { releaseTheme }    from './release.js';
 import { showcaseTheme }   from './showcase.js';
 import { aiTimelineTheme } from './ai-timeline.js';
 import { gitlineTheme }    from './gitline.js';
+import { ourTimelineTheme } from './our-timeline.js';
 import type { ResolvedTheme } from './types.js';
 
 export type { ResolvedTheme } from './types.js';
@@ -23,15 +24,16 @@ export type { ResolvedTheme } from './types.js';
 // ---------------------------------------------------------------------------
 
 const REGISTRY = new Map<string, ResolvedTheme>([
-  ['consulting',   consultingTheme],
-  ['default',      consultingTheme],  // Phase 1 alias
-  ['executive',    executiveTheme],
-  ['minimal',      minimalTheme],
-  ['product',      productTheme],
-  ['release',      releaseTheme],
-  ['showcase',     showcaseTheme],
-  ['ai-timeline',  aiTimelineTheme],
-  ['gitline',      gitlineTheme],
+  ['consulting',    consultingTheme],
+  ['default',       consultingTheme],  // Phase 1 alias
+  ['executive',     executiveTheme],
+  ['minimal',       minimalTheme],
+  ['product',       productTheme],
+  ['release',       releaseTheme],
+  ['showcase',      showcaseTheme],
+  ['ai-timeline',   aiTimelineTheme],
+  ['gitline',       gitlineTheme],
+  ['our-timeline',  ourTimelineTheme],
 ]);
 
 /**
@@ -67,14 +69,15 @@ export interface ThemeInfo {
  */
 export function listThemeInfos(): ThemeInfo[] {
   return [
-    { id: 'consulting',  title: 'Consulting',  tier: 1 },
-    { id: 'default',     title: 'Default',     tier: 1 },  // alias for consulting
-    { id: 'minimal',     title: 'Minimal',     tier: 1 },
-    { id: 'release',     title: 'Release',     tier: 1 },
-    { id: 'executive',   title: 'Executive',   tier: 2 },
-    { id: 'product',     title: 'Product',     tier: 2 },
-    { id: 'ai-timeline', title: 'AI Timeline', tier: 2 },
-    { id: 'gitline',     title: 'Gitline',     tier: 2 },
-    { id: 'showcase',    title: 'Showcase',    tier: 3 },
+    { id: 'consulting',   title: 'Consulting',   tier: 1 },
+    { id: 'default',      title: 'Default',      tier: 1 },  // alias for consulting
+    { id: 'minimal',      title: 'Minimal',      tier: 1 },
+    { id: 'release',      title: 'Release',      tier: 1 },
+    { id: 'our-timeline', title: 'Our Timeline', tier: 1 },
+    { id: 'executive',    title: 'Executive',    tier: 2 },
+    { id: 'product',      title: 'Product',      tier: 2 },
+    { id: 'ai-timeline',  title: 'AI Timeline',  tier: 2 },
+    { id: 'gitline',      title: 'Gitline',      tier: 2 },
+    { id: 'showcase',     title: 'Showcase',     tier: 3 },
   ];
 }

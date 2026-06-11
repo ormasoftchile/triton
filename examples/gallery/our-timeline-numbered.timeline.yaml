@@ -1,0 +1,49 @@
+# T1 IR fixture — "Our Timeline" (target-horizontal-numbered.png)
+#
+# Three numbered circular nodes on a horizontal axis.  Alternating above/below
+# label placement is handled automatically by the horizontal layout engine
+# (index 0 → below, index 1 → above, index 2 → below).
+#
+# Key visual intent (matching T1 target):
+#   Node 01 — Application Deadline  — status: done       → hollow circle
+#   Node 02 — Qualifying Exam       — status: in-progress → filled/highlighted circle
+#   Node 03 — Training Starts       — status: planned     → hollow circle
+#
+# The `our-timeline` theme renders hollow (white-fill + navy-stroke) nodes for
+# all statuses except `in-progress` (navy-filled).  ordinalColorContrast:true
+# auto-picks dark ordinal text on hollow nodes and white on the filled node.
+#
+# Legend is suppressed via `legend.show: false` — the T1 target has none.
+version: "1.0"
+metadata:
+  title: "Our Timeline"
+  today: 2026-06-11
+  time_range:
+    start: 2021-02
+    end:   2021-12
+  axis_unit: month
+  theme: our-timeline
+  locale: en
+tracks:
+  - id: main
+    label: " "
+    index: 0
+activities: []
+milestones:
+  - id: app-deadline
+    label: "Application Deadline"
+    date: 2021-04-01
+    track: main
+    status: done
+  - id: qualifying-exam
+    label: "Qualifying Exam"
+    date: 2021-07-01
+    track: main
+    status: in-progress
+  - id: training-starts
+    label: "Training Starts"
+    date: 2021-10-01
+    track: main
+    status: planned
+legend:
+  show: false

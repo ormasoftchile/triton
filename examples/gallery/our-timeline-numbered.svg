@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="368.86" version="1.1" viewBox="0 0 1200 368.86" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="368.86" width="1200" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="89.33">Our Timeline</text>
+  <line opacity="0.35" stroke="#333333" stroke-width="0.5" x1="0" x2="1160" y1="107" y2="107"/>
+  <line stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="145" y2="145"/>
+  <line stroke="#333333" stroke-width="1" x1="0" x2="0" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="14.87" y="131">2021</text>
+  <line stroke="#333333" stroke-width="1" x1="98" x2="98" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="98" y="131">Mar</text>
+  <line stroke="#333333" stroke-width="1" x1="206" x2="206" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="206" y="131">Apr</text>
+  <line stroke="#333333" stroke-width="1" x1="310" x2="310" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="310" y="131">May</text>
+  <line stroke="#333333" stroke-width="1" x1="418" x2="418" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="418" y="131">Jun</text>
+  <line stroke="#333333" stroke-width="1" x1="523" x2="523" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="523" y="131">Jul</text>
+  <line stroke="#333333" stroke-width="1" x1="631" x2="631" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="631" y="131">Aug</text>
+  <line stroke="#333333" stroke-width="1" x1="738" x2="738" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="738" y="131">Sep</text>
+  <line stroke="#333333" stroke-width="1" x1="843" x2="843" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="843" y="131">Oct</text>
+  <line stroke="#333333" stroke-width="1" x1="951" x2="951" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="951" y="131">Nov</text>
+  <line stroke="#333333" stroke-width="1" x1="1055" x2="1055" y1="139" y2="145"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="1055" y="131">Dec</text>
+  <line opacity="0.3" stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="281.93" y2="281.93"/>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="206" x2="206" y1="269.93" y2="277.93"/>
+  <circle cx="206" cy="241.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="206" y="241.93">01</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="206" y="292.66">Application Deadline</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="206" y="309.46">April 2021</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="523" x2="523" y1="195.93" y2="213.93"/>
+  <circle cx="523" cy="241.93" fill="#1F497D" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="523" y="241.93">02</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="523" y="173.73">Qualifying Exam</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="523" y="190.53">July 2021</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="843" x2="843" y1="269.93" y2="277.93"/>
+  <circle cx="843" cy="241.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="843" y="241.93">03</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="843" y="292.66">Training Starts</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="843" y="309.46">October 2021</text>
+</svg>

@@ -564,17 +564,22 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
   if (ir.metadata.title) {
     let hdrCursorY = mT + HEADER_V_PAD;
 
+    // Resolve titleAlign: undefined → 'center' (historical default, byte-identical)
+    const titleAlignEff = theme.typography.titleAlign ?? 'center';
+    const titleX        = titleAlignEff === 'left' ? rhu(m.left + BLOCK_INNER_PAD) : rhu(W / 2);
+    const titleAnchor   = titleAlignEff === 'left' ? 'start' as const : 'middle' as const;
+
     // Primary title
     primitives.push({
       kind:             'text',
-      x:                rhu(W / 2),
+      x:                titleX,
       y:                rhu(hdrCursorY + hdrTitlePx),
       text:             ir.metadata.title,
       fontFamily:       FONT_FAM,
       fontSize:         hdrTitlePx,
       fontWeight:       theme.typography.fontWeightHeader,
       fill:             theme.typography.titleColor,
-      textAnchor:       'middle',
+      textAnchor:       titleAnchor,
       dominantBaseline: 'alphabetic',
     });
     hdrCursorY += rhuInt(hdrTitlePx * 1.4);
@@ -584,14 +589,14 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       hdrCursorY += 4;
       primitives.push({
         kind:             'text',
-        x:                rhu(W / 2),
+        x:                titleX,
         y:                rhu(hdrCursorY + hdrSubtitlePx),
         text:             ir.metadata.subtitle,
         fontFamily:       FONT_FAM,
         fontSize:         hdrSubtitlePx,
         fontWeight:       theme.typography.fontWeightAxis,
         fill:             theme.typography.titleColor,
-        textAnchor:       'middle',
+        textAnchor:       titleAnchor,
         dominantBaseline: 'alphabetic',
         opacity:          0.75,
       });
@@ -608,14 +613,14 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       hdrCursorY += 4;
       primitives.push({
         kind:             'text',
-        x:                rhu(W / 2),
+        x:                titleX,
         y:                rhu(hdrCursorY + hdrMetaFontPx),
         text:             metaParts.join(' · '),
         fontFamily:       FONT_FAM,
         fontSize:         hdrMetaFontPx,
         fontWeight:       theme.typography.fontWeightAxis,
         fill:             theme.typography.titleColor,
-        textAnchor:       'middle',
+        textAnchor:       titleAnchor,
         dominantBaseline: 'alphabetic',
         opacity:          0.6,
       });

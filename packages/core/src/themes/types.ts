@@ -58,6 +58,18 @@ export interface TypographyTheme {
    * their golden outputs do NOT change.
    */
   fontSizeYearLabel?: number;
+  /**
+   * Alignment for the document title in the header block.
+   *
+   * When `undefined` or `'center'` (the historical default), the title is
+   * rendered at the canvas horizontal midpoint — matching all existing
+   * committed goldens.  Set to `'left'` to left-align the title to the
+   * draw-area edge.
+   *
+   * This token is opt-in: every existing theme leaves it unset, so all
+   * existing golden outputs remain byte-identical.
+   */
+  titleAlign?: 'left' | 'center';
 }
 
 export interface AxisTheme {
@@ -179,6 +191,15 @@ export interface MilestoneTheme {
    * Vertical gap between label tiers (px). Default: 6.
    */
   blockTierGap?: number;
+  /**
+   * When `true`, the ordinal number (or icon) inside each milestone node is
+   * rendered with a WCAG-contrast-aware colour derived from the node's fill:
+   * white text on dark fills, dark text on light/white fills.
+   *
+   * Opt-in: when `undefined` / `false`, the renderer uses `ordinalColor`
+   * as always, keeping all existing golden outputs byte-identical.
+   */
+  ordinalColorContrast?: boolean;
 }
 
 export interface StatusStyle {

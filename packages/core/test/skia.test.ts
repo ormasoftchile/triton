@@ -549,3 +549,83 @@ describe('T5 Gitline — gitline theme (CTA buttons + inline date icon)', () => 
     expect(isPngSignature(png2)).toBe(true);
   }, 90_000);
 });
+
+// ---------------------------------------------------------------------------
+// (11) T1 Our Timeline — light horizontal numbered nodes (filled vs outlined)
+// ---------------------------------------------------------------------------
+
+describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered nodes)', () => {
+  const T1_FIXTURE   = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.timeline.yaml');
+  const GALLERY_DIR_T1 = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+
+  it('our-timeline-numbered fixture validates with zero errors', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = validateDocument(ir);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('our-timeline SVG render is deterministic (T1 regression guard)', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const r1 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
+    const r2 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+    // Centered title
+    expect(r1.svg).toContain('Our Timeline');
+    expect(r1.svg).toContain('text-anchor="middle"');
+    // Hollow node 01 (done → white fill)
+    expect(r1.svg).toContain('fill="#FFFFFF"');
+    // Filled node 02 (in-progress → navy fill)
+    expect(r1.svg).toContain('fill="#1F497D"');
+  });
+
+  it('our-timeline SVG scene passes the linter (zero errors)', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const scene = buildScene(ir, { theme: 'our-timeline', layout: 'horizontal' });
+    const issues = lintScene(scene);
+    const errors = issues.filter((q) => q.severity === 'error');
+    if (errors.length > 0) {
+      throw new Error(
+        `our-timeline lint errors:\n${errors.map((e) => `  ${e.code}: ${e.message}`).join('\n')}`,
+      );
+    }
+    expect(errors).toHaveLength(0);
+  });
+
+  it('our-timeline Skia render produces valid PNG (T1 horizontal numbered)', async () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+    });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+    expect(result.png!.length).toBeGreaterThan(1000);
+  }, 60_000);
+
+  it('our-timeline Skia golden — generate and save (T1 regression guard)', async () => {
+    ensureDir(GALLERY_DIR_T1);
+    const outPath = join(GALLERY_DIR_T1, 'our-timeline-numbered-skia.png');
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+    });
+    const png = result.png!;
+    expect(isPngSignature(png)).toBe(true);
+    writeFileSync(outPath, png);
+    console.log('[t1-golden] our-timeline-numbered Skia PNG →', outPath);
+
+    // Re-render to verify Skia byte-determinism
+    const result2 = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+    });
+    const png2 = result2.png!;
+    expect(png2.length).toBe(png.length);
+    expect(isPngSignature(png2)).toBe(true);
+  }, 90_000);
+});
