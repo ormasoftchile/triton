@@ -111,9 +111,13 @@ CLI | npm | MCP | VS Code | Docker
 | `locale` | string? | opt | `"en-US"` |
 | `today` | date? | opt | eval time |
 | `fiscal_year_start` | int [1..12] | opt | `1` (January) |
+| `logo` | LogoSpec? | opt | — |
 
 **Activity & Milestone Field Extensions**
 - Activity and Milestone both support an optional `icon?: string` — a named icon from the built-in icon registry (packages/core/src/icons.ts). Icon names are NOT validated; unknown/absent names render as no-ops. (Shipped 2026-06-11.)
+
+**Logo Specification (LogoSpec)**
+- `metadata.logo` defines brand identity asset placement: `{ src: string; position?: 'top-left'|'top-right'; width?: number; height?: number }`. Field `src` (required when logo present) is a filesystem path or `data:` URI; validation does not check existence or URI well-formedness — rendering-side resolution only. Unresolvable assets silently skip (graceful fallback, matching parity with `Activity.icon`). (Shipped 2026-06-11.)
 
 ### Date Model
 
@@ -332,11 +336,13 @@ Theme-engine contract: MUST accept all valid IR; MUST NOT require additional IR 
 | **Minimal** | Tier 0 Minimal | All bars dark grey; pattern-only status signals; no legend; print-safe | Academic papers, LaTeX reports |
 | **Showcase** | Tier 3 Showcase | Drop shadows; glow; cloud layer; Raster backend required for full fidelity | Keynotes, investor presentations |
 
-### Scene / Render IR Architecture (2026-06-10 rework)
+### Scene / Render IR Architecture (2026-06-10 rework; extended 2026-06-11)
 
 SVG is **no longer the universal root**. The pipeline output is the **Scene/Render IR** — a
 byte-deterministic, backend-agnostic record of all drawing primitives and effect requests.
 Three pluggable backends (SVG, Raster, PPTX native-shape) consume the Scene.
+
+**Scene Primitives** include: geometric shapes (rects, circles, lines), text labels, paths, and images. The `ImagePrimitive` (`kind: 'image'`) embeds raster/vector assets: data URI (required; path→base64 conversion via `asset-loader.ts`), dimensions, optional border radius and opacity. Asset loading (PNG/JPEG/SVG → base64) is deterministic and gracefully degrades on missing/invalid assets (no I/O failure → render errors; critical for agent-generated content).
 
 **Backend capability ceilings:**
 - SVG: Tier 1 (fully deterministic); Tier 2 (safe SVG filters, determinism caveat)
