@@ -209,3 +209,40 @@ All three T3 gaps are now closed.
 - No regressions detected ✅
 
 ---
+
+## Learnings
+
+### Even-Spacing Mode for Vertical Spine (2026-06-11)
+
+**Root cause of 8839px canvas:** The `ai-timeline` fixture spans 57 years (1967–2024 ≈ 20,800
+days) with only ~20 entries. `pixelsPerDay` is floor-clamped at `0.4`, so
+`hDraw = 20800 × 0.4 = 8320 px`. The min-spacing pass only *grows* positions — it can't
+compress the empty 18-year gap between the first two entries.
+
+**Fix — token `spineSpacing: 'time' | 'even'`** on `ResolvedTheme` (themes/types.ts):
+- `'time'` (default): unchanged time-proportional behaviour; all existing themes unaffected.
+- `'even'`: entries placed at `nodeYs[i] = spineTopY + i × evenStep`, where
+  `evenStep = max(ENTRY_MIN_SPACING=100, maxBlockHeight + 20 px gap)`. Computes `maxBlockHeight`
+  by pre-iterating all entries before `hDraw` is set.
+
+**Duration bands in even mode:** Use `evenDateY(endOrd)` — linear interpolation between the
+two adjacent entry ordinals that bracket `endOrd`:
+```
+t = (endOrd − entries[i].ord) / (entries[i+1].ord − entries[i].ord)
+yEnd = nodeYs[i] + t × (nodeYs[i+1] − nodeYs[i])
+```
+Ordinals before first / after last entry clamp to `spineTopY` / last entry's y.
+
+**Tick labels in even mode:** Skip the `vsTicks` loop entirely. Instead render one year label
+per entry on the **left** of the spine (`textAnchor: 'end'` at `SPINE_X − TICK_W − 6`), using
+`ordinalToDate(entry.ord)[0]` for the 4-digit year. Gives the clean "year on left" infographic
+look matching the T3 target.
+
+**`effectiveDateY(ord)`:** Wrapper that delegates to `evenDateY` in even mode, `dateY` otherwise.
+Used everywhere `dateY` was previously called in rendering (sections, today marker, period
+annotations, callout notes). Determinism preserved: same inputs always produce same outputs.
+
+**Theme opting in:** Only `ai-timeline` sets `spineSpacing: 'even'`. All other themes omit it.
+
+**Result:** `ai-timeline-ai-theme-skia.png` 1200×8839 px → **1200×2370 px**. All 486 tests
+pass, all other goldens byte-identical.

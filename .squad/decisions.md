@@ -370,7 +370,7 @@ Agents generating IR should prefer concrete ISO dates (`2026-Q2`, `2026-06-09`) 
 ### Renderer Implementation Notes
 
 - **Skia raster backend** — glow/shadow blur uses `TileMode.Decal` (NOT Clamp) so filled-rect effects fade to transparent at layer edges instead of bleeding the fill color into the connector zone. (Fixed 2026-06-11.)
-- **Vertical-spine layout** — `CONNECTOR_LEN = 58` px (raised from 48) so right-side content-block labels clear year-qualified axis tick labels ("Q1 20XX", ~46px wide) with an 8px gap, avoiding TIGHT_SPACING. (Fixed 2026-06-11.)
+- **Vertical-spine layout** — `CONNECTOR_LEN = 58` px (raised from 48) so right-side content-block labels clear year-qualified axis tick labels ("Q1 20XX", ~46px wide) with an 8px gap, avoiding TIGHT_SPACING. (Fixed 2026-06-11.) Vertical-spine now supports `spineSpacing: 'time' | 'even'` (default `'time'`; `'even'` places entries at uniform intervals for sparse long-span timelines).
 - **Activity icon placement** — Activity icons render at the left (start) edge of the activity bar, size = barHeight−4, preceding the label; reuses the milestone icon path-primitive pipeline; too-narrow bars skip the icon.
 
 ---
@@ -900,4 +900,99 @@ existing rendered output for timelines with adequate tick spacing (all existing 
 - `pnpm -r typecheck` → clean ✅
 - `pnpm -r lint` → clean ✅
 - Skia determinism test → unchanged ✅
-- Existing theme goldens → unchanged ✅ → decisions-archive.md
+- Existing theme goldens → unchanged ✅
+
+---
+
+## Decision: Vertical-Spine Even-Spacing Mode (2026-06-11)
+
+**Author:** Barbara (Semantics & Rendering)
+**Status:** Shipped
+
+### Problem
+
+The `ai-timeline` fixture spans ~57 years (1967–2024 ≈ 20,800 days) with only ~20 entries.
+In the time-proportional spine layout, `pixelsPerDay` hits its hard floor of `0.4`, producing
+`hDraw = spanDays × 0.4 ≈ 8,300 px` → canvas 1200×8839 px.  The vast empty space between
+sparse entries (e.g. the 18-year gap 1967→1985 with no entries) makes the output unusable.
+
+The target design (T3 AI Timeline) is an **infographic sequence** — years are labels, not
+proportional axis positions.  Entries should be equidistant.
+
+### Decision
+
+Add a `spineSpacing?: 'time' | 'even'` token to `ResolvedTheme` controlling how the
+vertical-spine layout engine assigns y-coordinates to entries.
+
+#### `'time'` (default, existing behaviour — unchanged)
+- Time-proportional: `dateY(ord)` maps ordinals to y via `pixelsPerDay`.
+- Min-spacing pass enforces `ENTRY_MIN_SPACING = 100 px` minimum between adjacent nodes.
+- All existing themes unaffected; golden outputs byte-identical.
+
+#### `'even'` (new mode, opt-in)
+- Entries are placed at **uniform intervals** regardless of temporal gaps:
+  ```
+  nodeYs[i] = spineTopY + i × evenStep
+  ```
+- `evenStep = max(ENTRY_MIN_SPACING, maxBlockHeight + BLOCK_VERT_GAP_EVEN)` where
+  `BLOCK_VERT_GAP_EVEN = 20 px`.  This guarantees no card overlap.
+- The min-spacing pass is **skipped** (entries are already uniformly spaced).
+- Canvas height shrinks to `O(nEntries × evenStep)` regardless of time span.
+
+#### Duration bands in `'even'` mode
+Activity duration bands (`endKind = 'fixed'`) still render on the spine, but the
+end-y coordinate is determined by **`evenDateY`** — linear interpolation between the
+even-spaced positions of the two adjacent entries that bracket `endOrd`:
+
+```
+t = (endOrd − entries[i].ord) / (entries[i+1].ord − entries[i].ord)
+yEnd = nodeYs[i] + t × (nodeYs[i+1] − nodeYs[i])
+```
+
+This keeps bands visually meaningful (they still span proportionally between the entries
+that bookend the activity's duration) without being time-scaled to the full axis.
+
+Ongoing/TBD activities extend to `finalSpineBottomY - 8` unchanged.
+
+#### Tick labels in `'even'` mode
+The standard time-based `vsTicks` loop is **skipped**.  Instead, one year label is
+rendered per entry at its sequence y-position, on the **left** side of the spine
+(`textAnchor: 'end'` at `SPINE_X − TICK_W − 6`).  Year is derived from
+`ordinalToDate(entry.ord)[0]`.  This gives the characteristic "large year on the left"
+infographic look matching the T3 target.
+
+#### Other date-mapped elements (today marker, period/bracket annotations, callout notes)
+All use `effectiveDateY(ord)` which delegates to `evenDateY` in even mode and `dateY`
+in time mode.  This ensures annotations remain positioned at semantically correct
+(interpolated) y-coordinates.
+
+### Degenerate cases
+
+| Case | Behaviour |
+|------|-----------|
+| 0 entries | `hDraw = 200 px`, "No entries in time range" message, spine renders normally |
+| 1 entry | `evenStep = ENTRY_MIN_SPACING`, single entry at `spineTopY` |
+| Entries at same ordinal | Sorted by id (stable), placed at consecutive even positions (no collision) |
+| Activity without duration (`endKind = 'none'`) | No band drawn (unchanged) |
+| Activity with `endOrd < firstEntry.ord` | `evenDateY` clamps to `spineTopY` |
+| Activity with `endOrd > lastEntry.ord` | `evenDateY` clamps to last entry's y |
+
+### Token placement
+
+`spineSpacing` is declared in `ResolvedTheme` (themes/types.ts) alongside `entryStyle`
+and `sceneBackground` — the other vertical-spine-specific tokens.
+
+### Themes opting in
+
+Only `ai-timeline` sets `spineSpacing: 'even'`.  All other themes omit the token
+(→ default `'time'`, byte-identical output).
+
+### Result
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Canvas height (ai-timeline showcase) | 8839 px | 2370 px |
+| Tests | 486 / 486 | 486 / 486 |
+| Existing goldens changed | — | 0 (only ai-timeline-ai-theme-skia.png) |
+| typecheck | ✅ | ✅ |
+| lint | ✅ | ✅ |
