@@ -112,6 +112,9 @@ CLI | npm | MCP | VS Code | Docker
 | `today` | date? | opt | eval time |
 | `fiscal_year_start` | int [1..12] | opt | `1` (January) |
 
+**Activity & Milestone Field Extensions**
+- Activity and Milestone both support an optional `icon?: string` — a named icon from the built-in icon registry (packages/core/src/icons.ts). Icon names are NOT validated; unknown/absent names render as no-ops. (Shipped 2026-06-11.)
+
 ### Date Model
 
 **Supported Date Formats**
@@ -363,6 +366,12 @@ An IR document must satisfy the following to be renderable unambiguously:
 8. An IR with valid structure but no activities and no milestones is renderable (produces empty track rows); this is a renderer warning, not an error.
 
 Agents generating IR should prefer concrete ISO dates (`2026-Q2`, `2026-06-09`) over `now` or relative dates to maximise rendering determinism without relying on date anchor resolution.
+
+### Renderer Implementation Notes
+
+- **Skia raster backend** — glow/shadow blur uses `TileMode.Decal` (NOT Clamp) so filled-rect effects fade to transparent at layer edges instead of bleeding the fill color into the connector zone. (Fixed 2026-06-11.)
+- **Vertical-spine layout** — `CONNECTOR_LEN = 58` px (raised from 48) so right-side content-block labels clear year-qualified axis tick labels ("Q1 20XX", ~46px wide) with an 8px gap, avoiding TIGHT_SPACING. (Fixed 2026-06-11.)
+- **Activity icon placement** — Activity icons render at the left (start) edge of the activity bar, size = barHeight−4, preceding the label; reuses the milestone icon path-primitive pipeline; too-narrow bars skip the icon.
 
 ---
 
