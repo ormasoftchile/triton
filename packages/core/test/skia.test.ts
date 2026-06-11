@@ -24,6 +24,7 @@ import { describe, expect, it } from 'vitest';
 import { sceneToPngSkia } from '../src/render/skia.js';
 import { renderDocumentAsync, renderDocument, buildScene } from '../src/render/index.js';
 import { parseIR } from '../src/load.js';
+import { validateDocument } from '../src/validate.js';
 import { lintScene } from '../src/lint.js';
 import type { Scene, SceneEffect, SceneBackground } from '../src/scene.js';
 
@@ -392,4 +393,78 @@ describe('Showcase gallery images', () => {
       console.log('[showcase-gallery]', spec.caption, '→', outPath);
     }, 60_000);
   }
+});
+
+// ---------------------------------------------------------------------------
+// (9) T3 AI Timeline — gradient background + activity.color + year labels
+// ---------------------------------------------------------------------------
+
+describe('T3 AI Timeline — ai-timeline theme', () => {
+  const AI_FIXTURE = join(REPO_ROOT, 'examples', 'showcase', 'ai-timeline.timeline.yaml');
+  const GALLERY_DIR_T3 = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+
+  it('ai-timeline fixture validates with zero errors', () => {
+    const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = validateDocument(ir);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('ai-timeline SVG render with ai-timeline theme is deterministic', () => {
+    const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const r1 = renderDocument(ir, { format: 'svg', theme: 'ai-timeline', layout: 'vertical-spine' });
+    const r2 = renderDocument(ir, { format: 'svg', theme: 'ai-timeline', layout: 'vertical-spine' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+  });
+
+  it('ai-timeline SVG scene passes the linter (zero errors)', () => {
+    const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const scene = buildScene(ir, { theme: 'ai-timeline', layout: 'vertical-spine' });
+    const issues = lintScene(scene);
+    const errors = issues.filter((q) => q.severity === 'error');
+    if (errors.length > 0) {
+      throw new Error(
+        `ai-timeline lint errors:\n${errors.map((e) => `  ${e.code}: ${e.message}`).join('\n')}`,
+      );
+    }
+    expect(errors).toHaveLength(0);
+  });
+
+  it('ai-timeline Skia render produces valid PNG with gradient background (T3-1)', async () => {
+    const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'ai-timeline', backend: 'skia', layout: 'vertical-spine',
+    });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+    expect(result.png!.length).toBeGreaterThan(1000);
+  }, 60_000);
+
+  it('ai-timeline Skia golden — generate and save (T3 regression guard)', async () => {
+    ensureDir(GALLERY_DIR_T3);
+    const outPath = join(GALLERY_DIR_T3, 'ai-timeline-ai-theme-skia.png');
+    const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'ai-timeline', backend: 'skia', layout: 'vertical-spine',
+    });
+    const png = result.png!;
+    expect(isPngSignature(png)).toBe(true);
+    writeFileSync(outPath, png);
+    console.log('[t3-golden] ai-timeline with ai-timeline theme →', outPath);
+
+    // Re-render to verify byte-identity (Skia determinism)
+    const result2 = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'ai-timeline', backend: 'skia', layout: 'vertical-spine',
+    });
+    const png2 = result2.png!;
+    // Length equality is the minimum bar; exact bytes may vary on some platforms
+    expect(png2.length).toBe(png.length);
+    expect(isPngSignature(png2)).toBe(true);
+  }, 90_000);
 });

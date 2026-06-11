@@ -1,92 +1,176 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="471.72" version="1.1" viewBox="0 0 1200 471.72" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="471.72" width="1200" x="0" y="0"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="26.67" font-weight="700" text-anchor="middle" x="600" y="86.67">AI &amp; Foundation Models — Key Milestones 2019–2024</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="400" opacity="0.75" text-anchor="middle" x="600" y="118.33">Dense alternating timeline: breakthroughs, launches, and capability jumps</text>
-  <line opacity="0.35" stroke="#333333" stroke-width="0.5" x1="140" x2="1160" y1="130" y2="130"/>
-  <line stroke="#333333" stroke-width="1" x1="140" x2="1160" y1="168" y2="168"/>
-  <line stroke="#333333" stroke-width="1" x1="140" x2="140" y1="162" y2="168"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="140" y="154">2019</text>
-  <line stroke="#333333" stroke-width="1" x1="310" x2="310" y1="162" y2="168"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="310" y="154">2020</text>
-  <line stroke="#333333" stroke-width="1" x1="480" x2="480" y1="162" y2="168"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="480" y="154">2021</text>
-  <line stroke="#333333" stroke-width="1" x1="650" x2="650" y1="162" y2="168"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="650" y="154">2022</text>
-  <line stroke="#333333" stroke-width="1" x1="820" x2="820" y1="162" y2="168"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="820" y="154">2023</text>
-  <line stroke="#333333" stroke-width="1" x1="990" x2="990" y1="162" y2="168"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="990" y="154">2024</text>
-  <line opacity="0.3" stroke="#333333" stroke-width="1" x1="140" x2="1160" y1="347.86" y2="347.86"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="600" text-anchor="start" x="8" y="307.86">AI Research</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="160" x2="160" y1="329.86" y2="337.86"/>
-  <circle cx="160" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="160" y="307.86">01</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="160" y="352.59">GPT-2 Released</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="160" y="369.39">February 2019</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="267" x2="267" y1="261.86" y2="285.86"/>
-  <circle cx="267" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="267" y="307.86">02</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="267" y="239.66">Transformers Eco…</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="267" y="256.46">October 2019</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="385" x2="385" y1="329.86" y2="337.86"/>
-  <circle cx="385" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="385" y="307.86">03</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="385" y="352.59">GPT-3 Released</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="385" y="369.39">June 2020</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="482" x2="482" y1="261.86" y2="285.86"/>
-  <circle cx="482" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="482" y="307.86">04</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="482" y="239.66">CLIP &amp; DALL-E</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="482" y="256.46">January 2021</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="583" x2="583" y1="329.86" y2="337.86"/>
-  <circle cx="583" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="583" y="307.86">05</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="583" y="352.59">Codex &amp; GitHub C…</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="583" y="369.39">August 2021</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="622" x2="622" y1="162" y2="172"/>
-  <line opacity="0.25" stroke="#888888" stroke-dasharray="2,3" stroke-width="0.75" x1="622" x2="633" y1="168" y2="168"/>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="633" x2="633" y1="261.86" y2="285.86"/>
-  <circle cx="633" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="633" y="307.86">06</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="633" y="239.66">AlphaFold 2 DB</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="633" y="256.46">November 2021</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="805" x2="805" y1="329.86" y2="337.86"/>
-  <circle cx="805" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="805" y="307.86">07</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="805" y="352.59">ChatGPT Launch</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="805" y="369.39">November 2022</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="845" x2="845" y1="162" y2="172"/>
-  <line opacity="0.25" stroke="#888888" stroke-dasharray="2,3" stroke-width="0.75" x1="845" x2="855" y1="168" y2="168"/>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="855" x2="855" y1="261.86" y2="285.86"/>
-  <circle cx="855" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="855" y="307.86">08</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="855" y="239.66">LLaMA Open Rele…</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="855" y="256.46">February 2023</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="854" x2="854" y1="162" y2="172"/>
-  <line opacity="0.25" stroke="#888888" stroke-dasharray="2,3" stroke-width="0.75" x1="854" x2="905" y1="168" y2="168"/>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="905" x2="905" y1="329.86" y2="380.79"/>
-  <circle cx="905" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="905" y="307.86">09</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="905" y="395.52">GPT-4 Released</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="905" y="412.32">March 2023</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="912" x2="912" y1="162" y2="172"/>
-  <line opacity="0.25" stroke="#888888" stroke-dasharray="2,3" stroke-width="0.75" x1="912" x2="955" y1="168" y2="168"/>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="955" x2="955" y1="218.93" y2="285.86"/>
-  <circle cx="955" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="955" y="307.86">10</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="955" y="196.73">Llama 2 (Meta)</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="955" y="213.53">July 2023</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="1019" x2="1019" y1="329.86" y2="337.86"/>
-  <circle cx="1019" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="1019" y="307.86">11</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1019" y="352.59">Claude 3 Opus</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1019" y="369.39">March 2024</text>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="1052" x2="1052" y1="162" y2="172"/>
-  <line opacity="0.25" stroke="#888888" stroke-dasharray="2,3" stroke-width="0.75" x1="1052" x2="1069" y1="168" y2="168"/>
-  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="1069" x2="1069" y1="261.86" y2="285.86"/>
-  <circle cx="1069" cy="307.86" fill="#1F497D" r="22" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="1069" y="307.86">12</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1069" y="239.66">GPT-4o Launch</text>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1069" y="256.46">May 2024</text>
+<svg height="8760" version="1.1" viewBox="0 0 1200 8760" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#F8F9FF" height="8760" width="1200" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="97.33">THE AI TIMELINE</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="400" opacity="0.75" text-anchor="middle" x="600" y="130.33">From symbolic AI to foundation models — a 60-year arc of progress</text>
+  <line opacity="0.35" stroke="#C0C4DF" stroke-width="0.5" x1="0" x2="1156" y1="142" y2="142"/>
+  <rect fill="#7C3AED" height="2676" opacity="0.7" width="6" x="597" y="272"/>
+  <rect fill="#0EA5A8" height="3798" opacity="0.7" width="6" x="597" y="2948"/>
+  <rect fill="#D97706" height="1168" opacity="0.7" width="6" x="597" y="6747"/>
+  <rect fill="#5B4FCF" height="730" opacity="0.7" width="6" x="597" y="7916"/>
+  <line stroke="#C0C4DF" stroke-width="2" x1="600" x2="600" y1="172" y2="8646"/>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="172" y2="172"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="170">1967</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="318" y2="318"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="316">1968</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="464" y2="464"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="462">1969</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="610" y2="610"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="608">1970</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="756" y2="756"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="754">1971</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="902" y2="902"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="900">1972</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="1049" y2="1049"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="1047">1973</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="1195" y2="1195"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="1193">1974</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="1341" y2="1341"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="1339">1975</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="1487" y2="1487"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="1485">1976</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="1633" y2="1633"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="1631">1977</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="1779" y2="1779"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="1777">1978</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="1925" y2="1925"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="1923">1979</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="2071" y2="2071"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="2069">1980</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="2218" y2="2218"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="2216">1981</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="2364" y2="2364"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="2362">1982</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="2510" y2="2510"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="2508">1983</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="2656" y2="2656"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="2654">1984</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="2802" y2="2802"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="2800">1985</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="2948" y2="2948"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="2946">1986</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="3094" y2="3094"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="3092">1987</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="3240" y2="3240"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="3238">1988</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="3387" y2="3387"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="3385">1989</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="3533" y2="3533"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="3531">1990</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="3679" y2="3679"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="3677">1991</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="3825" y2="3825"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="3823">1992</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="3971" y2="3971"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="3969">1993</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="4117" y2="4117"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="4115">1994</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="4263" y2="4263"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="4261">1995</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="4409" y2="4409"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="4407">1996</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="4555" y2="4555"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="4553">1997</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="4701" y2="4701"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="4699">1998</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="4847" y2="4847"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="4845">1999</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="4993" y2="4993"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="4991">2000</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="5140" y2="5140"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="5138">2001</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="5286" y2="5286"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="5284">2002</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="5432" y2="5432"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="5430">2003</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="5578" y2="5578"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="5576">2004</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="5724" y2="5724"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="5722">2005</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="5870" y2="5870"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="5868">2006</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="6016" y2="6016"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="6014">2007</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="6162" y2="6162"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="6160">2008</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="6309" y2="6309"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="6307">2009</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="6455" y2="6455"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="6453">2010</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="6601" y2="6601"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="6599">2011</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="6747" y2="6747"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="6745">2012</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="6893" y2="6893"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="6891">2013</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="7039" y2="7039"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="7037">2014</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="7185" y2="7185"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="7183">2015</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="7331" y2="7331"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="7329">2016</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="7478" y2="7478"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="7476">2017</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="7624" y2="7624"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="7622">2018</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="7770" y2="7770"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="7768">2019</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="7916" y2="7916"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="7914">2020</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="8062" y2="8062"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="8060">2021</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="8208" y2="8208"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="8206">2022</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="8354" y2="8354"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="8352">2023</text>
+  <line opacity="0.5" stroke="#C0C4DF" stroke-width="1" x1="592" x2="608" y1="8500" y2="8500"/>
+  <text dominant-baseline="alphabetic" fill="#5B4FCF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="21.33" font-weight="700" opacity="0.6" text-anchor="start" x="614" y="8498">2024</text>
+  <line opacity="0.8" stroke="#7C3AED" stroke-width="1.5" x1="607.7" x2="658" y1="172" y2="172"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#7C3AED" stroke-width="1" width="330" x="658" y="128"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="668" y="154.15">1st January 1967</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="668" y="182.15">ELIZA Chatbot</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="start" x="668" y="203.15">First conversational program by Weizenbaum at MIT</text>
+  <line opacity="0.8" stroke="#7C3AED" stroke-width="1.5" x1="592.3" x2="542" y1="272" y2="272"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#7C3AED" stroke-width="1" width="330" x="212" y="228"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="532" y="254.15">1967</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="532" y="282.15">Symbolic AI Era</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="end" x="532" y="303.15">Logic-based reasoning, rule engines, LISP. MYCIN, Prol…</text>
+  <line opacity="0.8" stroke="#0EA5A8" stroke-width="1.5" x1="607.7" x2="658" y1="2948" y2="2948"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#0EA5A8" stroke-width="1" width="330" x="658" y="2904"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="668" y="2930.15">1986</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="668" y="2958.15">Connectionism &amp; Neural Nets</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="start" x="668" y="2979.15">Backprop enables multi-layer networks. SVMs, gradient …</text>
+  <line opacity="0.8" stroke="#0EA5A8" stroke-width="1.5" x1="592.3" x2="542" y1="3057" y2="3057"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#0EA5A8" stroke-width="1" width="330" x="212" y="3013"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="532" y="3039.15">1st October 1986</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="532" y="3067.15">Backpropagation Paper</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="end" x="532" y="3088.15">Rumelhart, Hinton, Williams — learning internal represen…</text>
+  <line opacity="0.8" stroke="#D97706" stroke-width="1.5" x1="607.7" x2="658" y1="6747" y2="6747"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#D97706" stroke-width="1" width="330" x="658" y="6703"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="668" y="6729.15">2012</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="668" y="6757.15">Deep Learning Explosion</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="start" x="668" y="6778.15">GPU compute + big data + deep nets. ImageNet momen…</text>
+  <line opacity="0.8" stroke="#D97706" stroke-width="1.5" x1="592.3" x2="542" y1="6856" y2="6856"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#D97706" stroke-width="1" width="330" x="212" y="6812"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="532" y="6838.15">30th September 2012</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="532" y="6866.15">AlexNet — ImageNet</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="end" x="532" y="6887.15">GPU deep learning era begins</text>
+  <line opacity="0.8" stroke="#5B4FCF" stroke-width="1.5" x1="607.7" x2="658" y1="7916" y2="7916"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#5B4FCF" stroke-width="1" width="330" x="658" y="7872"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="668" y="7898.15">2020</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="668" y="7926.15">Foundation Model Era</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="start" x="668" y="7947.15">Scale laws, few-shot learning, RLHF alignment. GPT-3→…</text>
+  <line opacity="0.8" stroke="#E05B5B" stroke-width="1.5" x1="592.3" x2="542" y1="8341" y2="8341"/>
+  <rect fill="#F4F6F8" height="88" opacity="0.95" rx="6" stroke="#E05B5B" stroke-width="1" width="330" x="212" y="8297"/>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="532" y="8323.15">30th November 2022</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A2E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="532" y="8351.15">ChatGPT Launch</text>
+  <text dominant-baseline="alphabetic" fill="#4A4A6A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.85" text-anchor="end" x="532" y="8372.15">100M users in 60 days — AI reaches mainstream</text>
+  <circle cx="600" cy="172" fill="#7C3AED" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
+  <circle cx="600" cy="272" fill="#7C3AED" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
+  <circle cx="600" cy="2948" fill="#0EA5A8" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
+  <circle cx="600" cy="3057" fill="#0EA5A8" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
+  <circle cx="600" cy="6747" fill="#D97706" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
+  <circle cx="600" cy="6856" fill="#D97706" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
+  <circle cx="600" cy="7916" fill="#5B4FCF" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
+  <circle cx="600" cy="8341" fill="#E05B5B" r="7.7" stroke="#F8F9FF" stroke-width="1.5"/>
 </svg>

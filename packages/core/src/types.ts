@@ -103,6 +103,8 @@ export interface Activity {
   category?: string;
   /** A named icon from the built-in icon registry (e.g. "star", "flag"). */
   icon?: string;
+  /** Explicit fill/accent color override.  Any valid CSS color string (e.g. "#FF8800", "coral"). */
+  color?: string;
   description?: string;
   group?: ID;
   url?: string;

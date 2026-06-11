@@ -50,6 +50,14 @@ export interface TypographyTheme {
   fontWeightHeader: number;
   /** Fill colour for the document title text element. */
   titleColor: string;
+  /**
+   * Optional override for year / axis-tick labels in the vertical-spine layout.
+   * When set, spine tick labels use this size (pt) and `fontWeightHeader` (bold).
+   * When unset the layout falls back to `fontSizeAxis` with `fontWeightAxis`.
+   * Existing themes that do not set this token are completely unaffected —
+   * their golden outputs do NOT change.
+   */
+  fontSizeYearLabel?: number;
 }
 
 export interface AxisTheme {

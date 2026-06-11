@@ -161,7 +161,15 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
   const titlePx   = ptToPx(theme.typography.fontSizeBase + 1);
   const datePx    = ptToPx(theme.typography.fontSizeAxis);
   const descPx    = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
-  const yearFontPx = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
+  // T3-2: use explicit year-label token when set; otherwise fall back to axis font size.
+  // Themes that don't set fontSizeYearLabel are completely unaffected.
+  const hasYearLabelToken = theme.typography.fontSizeYearLabel !== undefined;
+  const yearFontPx = hasYearLabelToken
+    ? ptToPx(theme.typography.fontSizeYearLabel!)
+    : ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
+  const yearFontWeight = hasYearLabelToken
+    ? theme.typography.fontWeightHeader
+    : theme.typography.fontWeightAxis;
 
   const VERT_PAD     = entryStyle === 'card' ? BLOCK_INNER_PAD : 4;
   const DATE_LINE_H  = rhuInt(datePx * 1.4);
@@ -203,13 +211,16 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
 
   // ── Collect entries ───────────────────────────────────────────────────────
 
-  function resolveStatusStyle(status?: string, category?: string) {
+  function resolveStatusStyle(status?: string, category?: string, colorOverride?: string) {
     const s = (status ?? 'planned') as keyof typeof theme.statusMap;
     const base = theme.statusMap[s] ?? theme.statusMap['planned']!;
     const cat  = category ? theme.categoryMap[category] : undefined;
+    // T3-3 precedence: explicit color > categoryMap > statusMap > theme default
+    const fill   = colorOverride ?? cat?.fill   ?? base.fill;
+    const stroke = colorOverride ?? cat?.stroke ?? base.stroke;
     return {
-      fill:    cat?.fill   ?? base.fill,
-      stroke:  cat?.stroke ?? base.stroke,
+      fill,
+      stroke,
       opacity: base.opacity,
     };
   }
@@ -221,7 +232,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     const [y, mo, d] = coerceLeft(parseIRDate(mil.date));
     const ord = dateToOrdinal(y, mo, d);
     if (ord < tsOrd || ord > teOrd) continue;
-    const st = resolveStatusStyle(mil.status, mil.category);
+    const st = resolveStatusStyle(mil.status, mil.category, mil.color);
     entries.push({
       id:            mil.id,
       label:         mil.label,
@@ -262,7 +273,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       endKind = 'fixed';
     }
 
-    const st = resolveStatusStyle(act.status, act.category);
+    const st = resolveStatusStyle(act.status, act.category, act.color);
     const dateIRStr = act.span ?? act.start ?? trStart;
     entries.push({
       id:            act.id,
@@ -556,7 +567,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         text: tickLabel,
         fontFamily: FONT_FAM,
         fontSize: yearFontPx,
-        fontWeight: theme.typography.fontWeightAxis,
+        fontWeight: yearFontWeight,
         fill: theme.axis.tickLabelColor,
         textAnchor: 'start',
         dominantBaseline: 'alphabetic',

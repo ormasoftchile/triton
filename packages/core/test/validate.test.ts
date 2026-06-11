@@ -828,3 +828,32 @@ describe('validateDocument — Activity.icon field', () => {
     expect(result.errors).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Activity.color — field parity with Milestone.color
+// ---------------------------------------------------------------------------
+
+describe('validateDocument — Activity.color field', () => {
+  it('accepts an activity with a hex color (parity with Milestone.color)', () => {
+    const doc = makeMinimal();
+    (doc.activities[0] as Activity & { color?: string }).color = '#FF8800';
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts an activity with a named CSS color (free CSS string — unvalidated)', () => {
+    const doc = makeMinimal();
+    (doc.activities[0] as Activity & { color?: string }).color = 'coral';
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts an activity without a color (color is optional)', () => {
+    const doc = makeMinimal();
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+});

@@ -1,101 +1,77 @@
 version: "1.0"
 metadata:
-  title: "AI & Foundation Models — Key Milestones 2019–2024"
-  subtitle: "Dense alternating timeline: breakthroughs, launches, and capability jumps"
+  title: "THE AI TIMELINE"
+  subtitle: "From symbolic AI to foundation models — a 60-year arc of progress"
   time_range:
-    start: 2019-01
-    end: 2024-12
+    start: "1967"
+    end: "2024"
   axis_unit: year
-  theme: consulting
-  today: 2026-06-10
-  description: "Major AI milestones in the foundation-model era"
+  theme: ai-timeline
+  today: 2026-06-11
+  description: "Key breakthroughs and capability jumps in AI research 1967–2024"
 tracks:
   - id: ai
-    label: "AI Research"
+    label: "AI / ML Research"
     index: 0
-activities: []
+activities:
+  - id: symbolic-era
+    label: "Symbolic AI Era"
+    track: ai
+    start: "1967"
+    end: "1985"
+    status: done
+    color: "#7C3AED"
+    description: "Logic-based reasoning, rule engines, LISP. MYCIN, Prolog, knowledge graphs."
+  - id: connectionism
+    label: "Connectionism & Neural Nets"
+    track: ai
+    start: "1986"
+    end: "2011"
+    status: done
+    color: "#0EA5A8"
+    description: "Backprop enables multi-layer networks. SVMs, gradient boosting, early CNNs."
+  - id: deep-learning-era
+    label: "Deep Learning Explosion"
+    track: ai
+    start: "2012"
+    end: "2019"
+    status: done
+    color: "#D97706"
+    description: "GPU compute + big data + deep nets. ImageNet moments, word2vec, ResNets, GANs."
+  - id: foundation-era
+    label: "Foundation Model Era"
+    track: ai
+    start: "2020"
+    end: "2024"
+    status: done
+    color: "#5B4FCF"
+    description: "Scale laws, few-shot learning, RLHF alignment. GPT-3→ChatGPT→GPT-4."
 milestones:
-  - id: gpt2
-    label: "GPT-2 Released"
-    date: 2019-02-14
+  - id: eliza
+    label: "ELIZA Chatbot"
+    date: 1967-01-01
     track: ai
     status: done
-    category: standard-node
-    description: "1.5B parameter language model"
-  - id: bert-wide
-    label: "Transformers Ecosystem Matures"
-    date: 2019-10-01
+    color: "#7C3AED"
+    description: "First conversational program by Weizenbaum at MIT"
+  - id: backprop
+    label: "Backpropagation Paper"
+    date: 1986-10-01
     track: ai
     status: done
-    category: standard-node
-    description: "HuggingFace Transformers v2 ships"
-  - id: gpt3
-    label: "GPT-3 Released"
-    date: 2020-06-11
+    color: "#0EA5A8"
+    description: "Rumelhart, Hinton, Williams — learning internal representations"
+  - id: alexnet
+    label: "AlexNet — ImageNet"
+    date: 2012-09-30
     track: ai
     status: done
-    category: standard-node
-    description: "175B params, few-shot learning"
-  - id: clip
-    label: "CLIP & DALL-E"
-    date: 2021-01-05
-    track: ai
-    status: done
-    category: standard-node
-    description: "Multi-modal vision-language models"
-  - id: codex
-    label: "Codex & GitHub Copilot"
-    date: 2021-08-10
-    track: ai
-    status: done
-    category: standard-node
-    description: "Code generation enters mainstream"
-  - id: alphafold2
-    label: "AlphaFold 2 DB"
-    date: 2021-11-01
-    track: ai
-    status: done
-    category: standard-node
-    description: "Protein structure prediction"
+    color: "#D97706"
+    description: "GPU deep learning era begins"
   - id: chatgpt
     label: "ChatGPT Launch"
     date: 2022-11-30
     track: ai
     status: done
-    category: standard-node
-    description: "100M users in 2 months"
-  - id: llama
-    label: "LLaMA Open Release"
-    date: 2023-02-24
-    track: ai
-    status: done
-    category: standard-node
-    description: "Open-weights model democratises AI"
-  - id: gpt4
-    label: "GPT-4 Released"
-    date: 2023-03-14
-    track: ai
-    status: done
-    category: standard-node
-    description: "Multi-modal, bar-passing capability"
-  - id: llama2
-    label: "Llama 2 (Meta)"
-    date: 2023-07-18
-    track: ai
-    status: done
-    category: standard-node
-    description: "Commercial-use open weights"
-  - id: claude3
-    label: "Claude 3 Opus"
-    date: 2024-03-04
-    track: ai
-    status: done
-    category: standard-node
-    description: "Frontier reasoning capabilities"
-  - id: gpt4o
-    label: "GPT-4o Launch"
-    date: 2024-05-13
-    track: ai
-    status: done
-    category: standard-node
-    description: "Omni-modal, real-time interaction"
+    color: "#E05B5B"
+    description: "100M users in 60 days — AI reaches mainstream"

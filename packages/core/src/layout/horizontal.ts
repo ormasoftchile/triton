@@ -187,6 +187,30 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   // 1d. Enumerate ticks
   const ticks = enumTicks(tsOrd, teOrd, axisUnit);
 
+  // 1e. Pre-compute which tick labels are visible (skip labels that would
+  //     crowd their left neighbour — e.g. yearly ticks on a 50-year canvas).
+  //     Only affects label emission; all tick marks are still drawn.
+  const axisFontPxForTicks = ptToPx(theme.typography.fontSizeAxis);
+  const MIN_TICK_LABEL_GAP = 4; // minimum px gap between adjacent tick labels
+  const tickLabelVisible: boolean[] = [];
+  {
+    let lastLabelRight = -Infinity;
+    for (let i = 0; i < ticks.length; i++) {
+      const tick = ticks[i]!;
+      const lbl = formatTickLabel(tick, axisUnit, i);
+      if (!lbl) { tickLabelVisible.push(false); continue; }
+      const x    = rhu(dateX(tick.ordinal, axisState));
+      const w    = measureText(lbl, axisFontPxForTicks).width;
+      const left = x - w / 2; // textAnchor:'middle'
+      if (left >= lastLabelRight + MIN_TICK_LABEL_GAP) {
+        tickLabelVisible.push(true);
+        lastLabelRight = x + w / 2;
+      } else {
+        tickLabelVisible.push(false);
+      }
+    }
+  }
+
   // -------------------------------------------------------------------------
   // Phase 1.5: Milestone x-space geometry — decluttering + side assignment
   //            (must precede Phase 2 so aboveZoneH can shift track Y-start)
@@ -749,7 +773,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     }
     // Tick label
     const label = formatTickLabel(tick, axisUnit, i);
-    if (label) {
+    if (label && tickLabelVisible[i]) {
       const axisFontPx = ptToPx(theme.typography.fontSizeAxis);
       // Clamp tick-label x so its bbox stays within the canvas (textAnchor='middle').
       const labelHalfW = measureText(label, axisFontPx).width / 2;
@@ -891,8 +915,9 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     const base   = theme.statusMap[status];
     const catOverride = cat ? theme.categoryMap[cat] : undefined;
 
-    const fill   = catOverride?.fill   ?? base?.fill   ?? '#1F497D';
-    const stroke = catOverride?.stroke ?? base?.stroke ?? '#163760';
+    // T3-3 precedence: explicit activity.color > categoryMap > statusMap > theme default
+    const fill   = al.activity.color ?? catOverride?.fill   ?? base?.fill   ?? '#1F497D';
+    const stroke = al.activity.color ?? catOverride?.stroke ?? base?.stroke ?? '#163760';
     const opacity = base?.opacity ?? 1;
 
     // Attach activityEffects if theme declares them (Skia-only; SVG ignores)
@@ -1076,7 +1101,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     const base = theme.statusMap[status];
     const cat  = mil.category;
     const catOverride = cat ? theme.categoryMap[cat] : undefined;
-    const fill = catOverride?.fill ?? base?.fill ?? '#1F497D';
+    // T3-3 precedence: explicit milestone.color > categoryMap > statusMap > theme default
+    const fill = mil.color ?? catOverride?.fill ?? base?.fill ?? '#1F497D';
 
     // (a) Declutter leader: show true-date anchor when node was displaced
     if (rhu(Math.abs(trueX - xCenter)) >= 1) {

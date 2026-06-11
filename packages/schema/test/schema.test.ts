@@ -51,3 +51,25 @@ describe('@timeline-compiler/schema — Activity.icon property', () => {
     expect(required ?? []).not.toContain('icon');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Activity.color — JSON Schema coverage
+// ---------------------------------------------------------------------------
+
+describe('@timeline-compiler/schema — Activity.color property', () => {
+  it('exposes Activity.color as an optional string property in the generated JSON Schema', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const activities = props['activities'] as Record<string, unknown>;
+    const items = activities['items'] as Record<string, unknown>;
+    const itemProps = items['properties'] as Record<string, unknown>;
+    expect(itemProps).toHaveProperty('color');
+    const colorDef = itemProps['color'] as Record<string, unknown>;
+    expect(colorDef['type']).toBe('string');
+    // color must NOT be in the required array (it is optional)
+    const required = items['required'] as string[] | undefined;
+    expect(required ?? []).not.toContain('color');
+  });
+});
