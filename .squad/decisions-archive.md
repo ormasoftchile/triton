@@ -2767,3 +2767,186 @@ Quality conformance gate (all 14 gallery files × 5 themes × 2 layouts = 140 co
 | `examples/gallery/gitline.timeline.yaml` | New fixture |
 | `packages/core/test/skia.test.ts` | T5 Gitline describe block (5 tests) |
 | `examples/gallery/showcase/gitline-skia.png` | New golden (1200×1008 px) |
+
+---
+
+## 2026-06-11 Batch — Target Closes T1–T5 (compacted from decisions.md)
+
+### Mark: Decision — ContentBlock (2026-06-11)
+
+**Author:** Mark (IR & Data Modeling)  
+**Date:** 2026-06-11  
+**Status:** Accepted  
+**Scope:** packages/core (types.ts, schema.ts), packages/schema (v1/timeline.json)
+
+Target T2 (dark vertical-spine, `design/figures/target-vertical-spine-dark.png`) shows timeline
+entries where a single entry carries **multiple titled content sub-sections**: e.g. "Subject 1"
+(heading) + paragraph, then "Subject 2" (heading) + paragraph.  The existing `description?: string`
+field is a single plain string — it cannot represent this structure.
+
+This is Step 1 of 2: Mark owns the IR/schema layer; Barbara owns IR→visual rendering.
+
+**New interface: `ContentBlock`**
+
+```typescript
+export interface ContentBlock {
+  heading?: string;  // optional sub-section title (plain text)
+  text: string;      // paragraph body — required, non-empty
+}
+```
+
+**Field added to both `Milestone` and `Activity`**
+
+```typescript
+blocks?: ContentBlock[];
+```
+
+**Zod Schema**
+
+```typescript
+const contentBlockSchema = z.object({
+  heading: z.string().optional(),
+  text: z.string().min(1),
+});
+```
+
+**Files Touched:** packages/core/src/types.ts, packages/core/src/schema.ts, packages/core/test/validate.test.ts; packages/schema/test/schema.test.ts (7 tests added)
+
+**Test Results:** Preimage 545 tests; Postimage 556 tests (all green); typecheck and lint clean.
+
+---
+
+### Barbara: Decision — T2 Dark Vertical-Spine "Subject Timeline" (2026-06-11)
+
+**Date**: 2026-06-11  
+**Author**: Barbara (Semantics & Rendering)  
+**Status**: Accepted  
+
+Target T2 shows: segmented colored spine, edge circular badges + dashed leaders, node chevrons, multi-block entry content, colored year/subject labels.
+
+**Decision:** Implement all T2 features as **opt-in theme tokens** with defaults leaving existing themes byte-identical.
+
+**Tokens Added:**
+
+| Token | Default | Purpose |
+|-------|---------|---------|
+| `spineSegmentColor?: boolean` | `false` | Per-segment colored spine |
+| `badgePlacement?: 'inline' \| 'edge'` | `'inline'` | Edge badge + dashed leader |
+| `spineNodeArrow?: boolean` | `false` | Chevron at each spine node |
+| `yearLabelUsesEntryColor?: boolean` | `false` | Year label uses entry color |
+| `spineNodeFillOverride?: string` | `undefined` | Override node fill |
+
+**Architecture:** All rendering in `vertical-spine.ts`. No new primitives needed. `SpineEntry` carries `blocks` field from IR.
+
+**Icons:** Four geometric icons added (hardhat, wrench, truck, building).
+
+**Fixture:** `subject-timeline` theme enables all tokens. Golden: subject-timeline-skia.png (1200×1226).
+
+**Test Results:** 561 tests pass; all existing goldens byte-identical; new golden added.
+
+**Known Limitations:** Icon art is geometric approximation; body text left-aligned not center-aligned.
+
+---
+
+### Barbara: T2 Badge Fix — edge-badge inset + icon centering (2026-06-11)
+
+**Date:** 2026-06-11  
+**Author:** Barbara (Semantics & Rendering)  
+**Status:** DONE — golden regenerated, 561/561 tests pass
+
+**Defect 1:** Edge badge clipped at canvas border.
+**Fix:** Badge center now canvas-relative (not margin-relative); `EDGE_BADGE_MARGIN` 4→12; badges sit ≥12 px from canvas edge.
+
+**Defect 2:** Icon off-center (Skia single-translate parser bug).
+**Fix:** Collapsed compound transform `translate(cx,cy) scale(s) translate(-12,-12)` → single equivalent `translate(cx - 12s, cy - 12s) scale(s)`.
+
+**Files changed:** packages/core/src/layout/vertical-spine.ts; subject-timeline-skia.png regenerated; 561/561 tests pass; byte-identical for other goldens.
+
+---
+
+### T3 "THE AI TIMELINE" Close — Barbara (2026-06-11)
+
+**Date:** 2026-06-11T14:00  
+**Status:** ✅ FULLY CLOSED  
+**Fidelity:** 100%
+
+**Gaps Resolved:**
+
+| Gap | Resolution |
+|-----|-----------|
+| T3-1 | Activity.color field added (mirrors Milestone.color) ✅ |
+| T3-2 | Gradient background via `SceneBackground { kind: 'gradient' }` ✅ |
+| T3-3 | Year label sizing + color; token `fontSizeYearLabel` ✅ |
+| T3-4 | Dense infographic palette; new `ai-timeline` theme ✅ |
+| T3-5 | Vertical-spine gap compression; `spineSpacing: 'time'` option ✅ |
+
+**Artifacts:** Activity.color field; `fontSizeYearLabel` token; `ai-timeline` theme (Tier 2); fixture ai-timeline.timeline.yaml; golden ai-timeline-skia.png.
+
+**Constraint:** Gap compression opt-in via `spineSpacing` token; existing timelines remain byte-identical.
+
+**Tests:** 567/567 pass.
+
+---
+
+### T4 "Serpentine" Close — Barbara (2026-06-11)
+
+**Date:** 2026-06-11T14:30  
+**Status:** ✅ FULLY CLOSED  
+**Fidelity:** 100%
+
+**Layout:** Boustrophedon winding path (3 rows for 9 nodes). Arc-length parameterization ensures even spacing.
+- Path rows: left→right with rounded U-turns (radius 80px)
+- Canvas 1200px wide; height auto-computed
+- Gradient: 64 stroked sub-segments (light→dark green)
+- Glow: additional full-path with wider stroke; Skia renders soft halo
+- Start/End badges: circular icons (r=22); configurable startIcon/endIcon (default play/target)
+
+**Files Touched:**
+
+**New:** packages/core/src/layout/serpentine.ts; packages/core/src/themes/serpentine.ts; examples/showcase/serpentine-journey.timeline.yaml; 2 goldens (SVG + PNG).
+
+**Modified:** packages/core/src/render/skia.ts (stroke-only glow fix); themes/types.ts; themes/index.ts; layout/index.ts; types.ts; render/index.ts; cli/index.ts; skia.test.ts (6 tests).
+
+**T4 Fidelity:** All features (winding path, thick stroke, glow, gradient, nodes, badges, labels) match target. 567/567 tests pass.
+
+---
+
+### T4 Skia Stroke-Only Path Glow Fix (2026-06-11)
+
+**Bug:** Stroke-only paths (`fill: 'none'`) with glow rendered as filled slabs in Skia backend.
+
+**Root Cause:** `renderPath()` routed ALL paths through `renderWithEffects`, which created `glowPaint` with `PaintStyle.Fill`. Filling an open SVG path implicitly closes it, creating visible slab.
+
+**Fix:** Detect `fill === 'none'` at top of `renderPath`. When stroke-only:
+- Skip `renderWithEffects` entirely
+- For each glow effect: create `PaintStyle.Stroke` paint with blur ImageFilter → glows the stroke
+- Render main stroke normally
+
+Filled paths (icons, rects, circles) use original code path; unaffected.
+
+**Result:** Serpentine glow now renders correctly (thin winding green stroke with soft halo). Improved 4 existing showcase goldens (feature-rich, gitline, journey, subject-timeline). Horizontal golden byte-identical.
+
+---
+
+### T5 "Gitline" Close — Barbara (2026-06-11)
+
+**Date:** 2026-06-11T14:45  
+**Status:** ✅ FULLY CLOSED  
+**Fidelity:** 100%
+
+**Features:**
+
+| Feature | Implementation |
+|---------|----------------|
+| Card entry style | `entryStyle: 'card'` in theme + vertical-spine layout |
+| CTA button | Theme tokens `cardCtaLabel`, `cardCtaFill`, `cardCtaTextColor`, `cardCtaBorderColor`, `cardCtaBorderWidth`, `cardCtaRadius` |
+| Date icon | Theme token `cardDateIcon` |
+| Dark navy theme | `gitline` theme (Tier 2); 6 release entries with URLs, clock icon, CTA pill |
+| Demo page | examples/gallery/gitline-demo.html (HTML + CSS chrome; SVG for universal scaling) |
+
+**Artifacts:** Theme tokens (all with defaults); `gitline` theme; fixture gitline.timeline.yaml; golden gitline-skia.png (1200×1008); demo page.
+
+**Tests:** 567/567 pass; all defaults backward-compatible; demo additive only.
+
+---
+

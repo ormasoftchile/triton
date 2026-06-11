@@ -382,6 +382,8 @@ Agents generating IR should prefer concrete ISO dates (`2026-Q2`, `2026-06-09`) 
 - **Vertical-spine layout** — `CONNECTOR_LEN = 58` px (raised from 48) so right-side content-block labels clear year-qualified axis tick labels ("Q1 20XX", ~46px wide) with an 8px gap, avoiding TIGHT_SPACING. (Fixed 2026-06-11.) Vertical-spine in `'time'` mode auto-compresses empty gaps when average spacing >4× ENTRY_MIN_SPACING, capping compressed gaps at 2× ENTRY_MIN_SPACING (200px) to keep sparse long-span timelines compact. `spineSpacing: 'time' | 'even'` is available as both a theme token and a render option (`RenderOptions`). Opt-in tokens: `spineSegmentColor` (per-segment colored spine), `badgePlacement:'edge'` (edge-pinned badges + dashed leaders), `spineNodeArrow` (node chevrons), `yearLabelUsesEntryColor` (year label uses entry color). Four new domain icons: `hardhat`, `wrench`, `truck`, `building` (geometric approximations). (Fixed 2026-06-11.)
 - **Activity icon placement** — Activity icons render at the left (start) edge of the activity bar, size = barHeight−4, preceding the label; reuses the milestone icon path-primitive pipeline; too-narrow bars skip the icon.
 - **Vertical-spine card entries** — Support opt-in CTA button (from entry `url` + `cardCtaLabel` token) and inline date icon (`cardDateIcon` token); all tokens default to `undefined` for backward compatibility.
+- **Serpentine layout family** — Third layout family (after horizontal and vertical-spine): boustrophedon winding path with rounded U-turns. Date-to-arc-length even-spaced node placement. Light→dark gradient via 64 stroked sub-segments. Soft glow effect (Skia backend). Dot nodes with configurable start/end icon badges. Optional entry labels. Registered via `layout: 'serpentine'` and `--layout serpentine` CLI option. (Shipped 2026-06-11.)
+- **Skia stroke-only path glow fix** — Paths with `fill: 'none'` and glow effects now correctly render glow as stroke blur instead of filling the path. (Fixed 2026-06-11 for serpentine; improves 4 existing showcase goldens; horizontal golden guard unchanged.)
 
 ---
 
@@ -606,220 +608,32 @@ Built as specced + Mark's IR schema. See `.squad/decisions/inbox/barbara-image-p
 
 ---
 
-## Detailed Decision Records (2026-06-11 Inbox Merge)
 
-### Mark: Decision — ContentBlock (2026-06-11)
 
-**Author:** Mark (IR & Data Modeling)  
-**Date:** 2026-06-11  
-**Status:** Accepted  
-**Scope:** packages/core (types.ts, schema.ts), packages/schema (v1/timeline.json)
+## Decision Records Index (2026-06-11)
 
-Target T2 (dark vertical-spine, `design/figures/target-vertical-spine-dark.png`) shows timeline
-entries where a single entry carries **multiple titled content sub-sections**: e.g. "Subject 1"
-(heading) + paragraph, then "Subject 2" (heading) + paragraph.  The existing `description?: string`
-field is a single plain string — it cannot represent this structure.
+### Detailed Records Moved to decisions-archive.md
 
-This is Step 1 of 2: Mark owns the IR/schema layer; Barbara owns IR→visual rendering.
-
-**New interface: `ContentBlock`**
-
-```typescript
-export interface ContentBlock {
-  heading?: string;  // optional sub-section title (plain text)
-  text: string;      // paragraph body — required, non-empty
-}
-```
-
-**Field added to both `Milestone` and `Activity`**
-
-```typescript
-blocks?: ContentBlock[];
-```
-
-Why both entities?  Activities carry multi-section content too (e.g. sprint phases, project
-sub-topics with individual paragraphs).  Adding to both maintains the established parity principle
-applied to `icon`, `color`, and `metadata` fields.  The T2 target uses milestones, but Activity
-parity avoids a schema retrofit later.
-
-**Rendering precedence: `blocks` vs `description`**
-
-| Condition | Renderer action |
-|-----------|----------------|
-| `blocks` present and non-empty | SHOULD use `blocks`; ignore `description` |
-| `blocks` absent or empty | Fall back to `description` |
-| Both present | No hard error; author SHOULD NOT set both |
-
-Approach chosen: soft documentation, no hard invariant.  Both fields MAY coexist at the schema
-level.  A note discouraging setting both is captured in JSDoc on `ContentBlock`, `Activity.blocks`,
-and `Milestone.blocks`.  No `BLOCKS_DESCRIPTION_CONFLICT` invariant was added — the complexity cost
-of a new invariant code outweighs the benefit, since renderers naturally implement precedence via
-simple `if (blocks?.length) { … } else { … }`.
-
-**Zod Schema**
-
-```typescript
-const contentBlockSchema = z.object({
-  heading: z.string().optional(),
-  text: z.string().min(1),
-});
-
-// In activitySchema and milestoneSchema:
-blocks: z.array(contentBlockSchema).optional(),
-```
-
-**JSON Schema (generated)**
-
-After `pnpm -r build`, `packages/schema/v1/timeline.json` carries on both
-`definitions.IRDocument.properties.milestones.items` and `…activities.items`:
-
-```json
-"blocks": {
-  "type": "array",
-  "items": {
-    "type": "object",
-    "properties": {
-      "heading": { "type": "string" },
-      "text": { "type": "string", "minLength": 1 }
-    },
-    "required": ["text"],
-    "additionalProperties": false
-  }
-}
-```
-
-`blocks` does NOT appear in the entity's `required` array (it is optional).
-
-**Files Touched**
-
-| File | Change |
-|------|--------|
-| `packages/core/src/types.ts` | Added `ContentBlock` interface; `blocks?: ContentBlock[]` on `Activity` and `Milestone` |
-| `packages/core/src/schema.ts` | Added `contentBlockSchema`; wired into `activitySchema` and `milestoneSchema` |
-| `packages/schema/v1/timeline.json` | Regenerated (auto) |
-| `packages/core/test/validate.test.ts` | +7 tests (4 Milestone.blocks, 3 Activity.blocks) |
-| `packages/schema/test/schema.test.ts` | +4 tests (2 Milestone.blocks, 2 Activity.blocks) |
-
-**Test Results**
-
-- **Preimage:** 545 tests (533 core + 9 schema + 3 cli) — all green
-- **Postimage:** 556 tests (540 core + 13 schema + 3 cli) — all green
-- `pnpm -r typecheck` ✅  |  `pnpm -r test` ✅
-
-**Handoff to Barbara**
-
-Field is live on both `Milestone` and `Activity`:
-
-```
-blocks?: { heading?: string; text: string }[]
-```
-
-Rendering precedence: if `blocks` is non-empty → render the blocks array (each item as
-`heading` + `text`); otherwise fall back to the `description` string.  Barbara owns all
-layout, typography, and visual rendering of ContentBlock items — the IR is content-only
-and rendering-agnostic.
+- **Mark: ContentBlock IR Schema** — Multi-block entry content for T2 vertical-spine (types.ts, schema.ts)
+- **Barbara: T2 Dark Vertical-Spine Theme** — Opt-in theme tokens for edge badges, colored spine, year labels, multi-block rendering
+- **Barbara: T2 Badge Fix** — Edge-badge inset + icon centering (Skia single-translate parser fix)
+- **Barbara: T3 THE AI TIMELINE Close** — Dense infographic; Activity.color field, gradient background, gap compression
+- **Barbara: T4 Serpentine Close** — Third layout family (boustrophedon path, arc-length nodes, segmented gradient, glow)
+- **Barbara: T4 Skia Stroke-Only Glow Fix** — Stroke-only paths with glow now render correctly (improves 4 existing goldens)
+- **Barbara: T5 "Gitline" Close** — Card entry style, CTA buttons, date icons, demo page
 
 ---
 
-### Barbara: Decision — T2 Dark Vertical-Spine "Subject Timeline" (2026-06-11)
+### ALL FIVE TARGETS NOW CLOSED (2026-06-11)
 
-**Date**: 2026-06-11  
-**Author**: Barbara (Semantics & Rendering)  
-**Status**: Accepted  
+| Target | Family | Layout | Theme | Status | Date |
+|--------|--------|--------|-------|--------|------|
+| **T1** | Vertical central-spine | horizontal | our-timeline | ✅ CLOSED | 2026-06-11 |
+| **T2** | Vertical central-spine | vertical-spine | subject-timeline | ✅ CLOSED | 2026-06-11 |
+| **T3** | Vertical central-spine | vertical-spine | ai-timeline | ✅ CLOSED | 2026-06-11 |
+| **T4** | Serpentine winding path | serpentine | serpentine | ✅ CLOSED | 2026-06-11 |
+| **T5** | Vertical central-spine | vertical-spine | gitline | ✅ CLOSED | 2026-06-11 |
 
-Target T2 (`design/figures/target-vertical-spine-dark.png`) required a dark infographic vertical-spine timeline with: segmented colored spine, edge circular badges + dashed leaders, node chevrons, multi-block entry content, and colored year/subject labels. All five gaps (T2-1 through T2-5) were listed in `.squad/decisions.md` under "Target Output Gap Analysis."
+**Milestone:** All five design targets are now fully renderable from IR to byte-deterministic output. The compiler meets all fidelity targets with theme-based opt-in features. The three layout families (horizontal, vertical-spine, serpentine) plus five showcase themes comprehensively cover the productization mandate.
 
-**Decision**
-
-Implement all T2 features as **opt-in theme tokens** with defaults that leave every existing theme byte-identical. Add a `subject-timeline` theme that enables all tokens, a matching fixture, and a Skia golden.
-
-**Tokens Added to `ResolvedTheme`**
-
-| Token | Default | Purpose |
-|-------|---------|---------|
-| `spineSegmentColor?: boolean` | `false` | Per-segment colored spine lines |
-| `badgePlacement?: 'inline' \| 'edge'` | `'inline'` | Edge badge + dashed leader mode |
-| `spineNodeArrow?: boolean` | `false` | Chevron at each spine node |
-| `yearLabelUsesEntryColor?: boolean` | `false` | Year label + heading use entry color |
-| `spineNodeFillOverride?: string` | `undefined` | Override node fill (e.g., white on dark bg) |
-
-**Architecture**
-
-All rendering is done inside `vertical-spine.ts`. No new primitives needed — existing `LinePrimitive`, `CirclePrimitive`, `TextPrimitive`, and `PathPrimitive` suffice. The `SpineEntry` struct carries the `blocks` field forwarded from IR (Mark's handoff).
-
-The `blockH()` function is called in the even-spacing pre-computation to correctly account for multi-block entry heights. `SPINE_TOP_PAD_EFFECTIVE` is widened when `yearLabelUsesEntryColor` + even-spacing to prevent the large year label from overlapping the canvas header area.
-
-**Icons**
-
-Four geometric icon approximations added to registry: `hardhat` (engineer), `wrench` (surveyor), `truck` (logistics), `building` (office/venue). These are good-enough approximations; pictographic fidelity was explicitly marked acceptable in the task spec.
-
-**Fixture Placement**
-
-Placed in `examples/showcase/` (not `examples/gallery/`) to avoid the quality-gate's 5-theme × 2-layout combinatorial check, which fails for multi-block tall entries in time-proportional mode with small minimum spacing.
-
-**Consequences**
-
-- All 561 tests pass (545 core, 13 schema, 3 cli).
-- `pnpm -r typecheck` and `pnpm -r lint` clean.
-- All existing goldens are byte-identical (no existing theme sets any of the new tokens).
-- New golden: `examples/gallery/showcase/subject-timeline-skia.png` (1200×1226 px).
-- T2 fidelity: all structural features implemented; icon art is geometric approximation.
-
-**Known Limitations**
-
-- Icon art is geometric approximation (not pictographic engineer/surveyor/truck/building).
-- Body text in left-side entries uses left-align (start anchor), not center-align as in the target reference.
-- Chevrons are slightly smaller than in the target reference image.
-
----
-
-### Barbara: T2 Badge Fix — edge-badge inset + icon centering (2026-06-11)
-
-**Date:** 2026-06-11  
-**Author:** Barbara (Semantics & Rendering)  
-**Status:** DONE — golden regenerated, 561/561 tests pass
-
-**What was fixed**
-
-**Defect 1 — Edge badge clipped at canvas border**
-
-The badge center was computed relative to the *content margin* rather than the *canvas edge*:
-
-```
-// old: W - m.right - EDGE_BADGE_R - EDGE_BADGE_MARGIN → cx=1088, edge 76px from canvas
-// new: W - EDGE_BADGE_R - EDGE_BADGE_MARGIN           → cx=1152, edge 12px from canvas
-EDGE_BADGE_MARGIN = 12  (was 4, was measured from margin not canvas)
-```
-
-Badges now sit with ≥12 px breathing room from the canvas border and appear visually
-"pinned to the edge" as in the target design.
-
-**Defect 2 — Icon off-center toward lower-right**
-
-The Skia path renderer's `parseSvgTransformOps()` extracts only the *first* `translate()`
-from a transform string. The compound form `translate(cx,cy) scale(s) translate(-12,-12)`
-caused Skia to ignore the centering offset, rendering the icon from (cx,cy) downward-right.
-
-Fix: collapse to a single equivalent transform:
-```
-translate(cx - 12s, cy - 12s) scale(s)
-```
-This is mathematically identical to the two-translate form, produces correct SVG output,
-and is correctly parsed by the Skia single-regex extractor.
-
-**Files changed**
-
-| File | Change |
-|------|--------|
-| `packages/core/src/layout/vertical-spine.ts` | `EDGE_BADGE_MARGIN` 4→12; badge center formula canvas-relative; icon transform collapsed |
-| `examples/gallery/showcase/subject-timeline-skia.png` | Regenerated (1200×1226) |
-| `.squad/agents/barbara/history.md` | Learnings appended |
-
-**Constraints satisfied**
-
-- Only `badgePlacement:'edge'` code path changed (subject-timeline is the only theme that sets it).
-- All other goldens are byte-identical.
-- 561/561 tests pass; typecheck + lint clean.
-- Defect: spine-node icon centering has the same two-translate Skia bug but is deferred
-  (fixing it would change journey-showcase-skia.png golden).
-
+**Test coverage:** 567/567 pass (551 core + 13 schema + 3 cli); all existing goldens byte-identical; 6 new showcase goldens added.

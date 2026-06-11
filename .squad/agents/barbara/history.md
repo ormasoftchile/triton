@@ -4,356 +4,184 @@
 **Project:** timeline — IR-based rendering system for timelines/roadmaps  
 **Stack:** TypeScript/Node, SVG/PNG/Skia backends, deterministic layout engine
 
-## Recent Sessions (2026-06-11) — Image Primitive + Logo Close
+---
 
-### Session Summary
+## 2026-06-11 Session — T4 Serpentine Layout & Skia Stroke Fix (FINAL SESSION)
 
-**Date:** 2026-06-11  
-**Tasks:** 
-- T1-3 Step 2: ImagePrimitive primitive + asset-loader + all 3 backends + header integration
-- T1 "Our Timeline" fidelity completion + fixture
-- T5 Gitline cards: CTA button + date icon rendering
-- Vertical-spine gap compression for sparse timelines
-- Gitline demo page
+**Status:** ✅ ALL FIVE TARGETS NOW CLOSED
 
-**Results:**
-- ✅ T1 fully renderable (100% fidelity): logo, centered title, numbered filled/hollow nodes, alternating labels
-- ✅ T5 fully renderable: card style, CTA pills, date icons, spy spine
-- ✅ All 545 tests pass (545 core + 9 schema + 3 cli)
-- ✅ Existing goldens byte-identical; T1 + T5 goldens regenerated with new features
-- ✅ BuildSceneOptions.baseDir threaded through render pipeline for portable asset loading
+### Session Overview
 
-### Image Primitive (T1-3)
-
-**ImagePrimitive shape:** `{ kind: 'image', x, y, width, height, data: "data:<mime>;base64,...", mimeType, borderRadius?, opacity? }`
-
-**Asset loading:** Path/data-URI → base64 embedding via `asset-loader.ts`; graceful skip on error (no crash).
-
-**Backends:**
-- SVG: `<image href="data:..."/>` + optional `<clipPath>` for borderRadius
-- Skia: `MakeImageFromEncoded()` + `drawImageRect()`; SVG logos silently skipped (raster-only)
-- PNG/resvg: pass-through `<image>` support; PNG/JPEG recommended (SVG-in-SVG not reliably supported)
-
-**Header integration:** T1 fixture uses `metadata.logo: { src: 'examples/gallery/assets/brand-logo.png', position: 'top-left', width: 100, height: 32 }`. Logo positioned top-left, vertically centred in header, header height auto-expanded if needed.
-
-**Sample asset:** `brand-logo.{png,svg}` (100×32 px, original navy timeline motif)
+Implemented the final target: **serpentine** (boustrophedon) layout family as the third layout family, achieving full closure of all five design targets (T1–T5). Additionally, fixed a critical Skia backend bug where stroke-only paths with glow effects rendered as filled slabs.
 
 ---
 
-## Recent Session (2026-06-11) — T1 "Our Timeline" Close
+## T4 Serpentine Layout Family
 
-### T1 Target: Horizontal Numbered Timeline
+### Path Geometry: Boustrophedon
 
-**Target:** `design/figures/target-horizontal-numbered.png`  
-**Goal:** Three numbered circular nodes (01 outlined, 02 filled/highlighted, 03 outlined) on a horizontal axis, centered title, alternating above/below labels.
-
-#### T1-1: Alternating above/below labels — Pre-existing ✅
+**Canvas:** 1200px wide. Path rows run left↔right with rounded U-turns (radius 80px default).
 
-Already implemented in `horizontal.ts`: even index → 'below', odd index → 'above'. For 3 milestones: 01 below, 02 above, 03 below — exactly matching the target. **No code change.**
+- Row 0 (even): Left→Right from (90, pathStartY) with right turn
+- Row 1 (odd): Right→Left from (1110, y_1) with left turn
+- Row 2 (even): Left→Right again
+- etc.
 
-#### T1-2: Centered document title — Formalized ✅
+**Arc-length parameterization:**
+- L_row = 1020px (rowWidth), L_turn = π*r = 251.3px
+- Nodes placed at centred intervals t_i = (i+0.5)/n
+- Prevents NODE_OVERLAP at path endpoints (t=0, t=1 reserved for start/end badges)
 
-The title was already rendered at `x = W/2, text-anchor="middle"` in both `horizontal.ts` and `vertical-spine.ts`. The gap analysis was written before this was implemented.
+**Canvas height auto-computed:** `headerH + TOP_PAD + (nRows−1)*rowSpacing + BOTTOM_PAD`
+Formula: `nRows = max(2, ceil(n / NODES_PER_ROW))` where NODES_PER_ROW=3. For 9 entries: 3 rows.
 
-**Formalized with new token `titleAlign?: 'left' | 'center'` on `TypographyTheme`:**
-- `undefined` → 'center' (historical default, byte-identical)
-- `'left'` → left-aligned title at draw-area edge
-- Applied to both layout engines for consistency
-- `our-timeline` theme explicitly sets `titleAlign: 'center'`
+### Gradient Approach: Segmented Path
 
-#### T1 new: Filled vs outlined node differentiation ✅
+Used 64 short straight-line `PathPrimitive` sub-segments, each with solid colour interpolated between `gradientFrom` (#86EFAC light green) and `gradientTo` (#15803D dark green) via linear RGB interpolation.
 
-**Theme-level solution:** New `our-timeline` theme maps:
-- `statusMap.done.fill = '#FFFFFF'` (white → hollow ring, dark ordinal text)
-- `statusMap.planned.fill = '#FFFFFF'` (white → hollow ring, dark ordinal text)
-- `statusMap['in-progress'].fill = '#1F497D'` (navy → filled, white ordinal text)
+**Why:** Works in all backends (SVG, Skia, PNG/resvg) without path-gradient shaders. Slight polygonal approximation invisible at 14px strokeWidth.
 
-**New token `ordinalColorContrast?: boolean` on `MilestoneTheme`:**
-- When `true`: ordinal text color = `contrastColor(nodeFill, '#FFFFFF', '#111111')` — WCAG-derived
-- When `false`/undefined: uses fixed `ms.ordinalColor` (byte-identical for all existing themes)
-- Set in `our-timeline` theme: dark text on hollow white nodes, white text on filled navy node ✓
+**Glow layer:** One additional `PathPrimitive` with full boustrophedon SVG path (with arc commands), rendered BEFORE gradient segments. Wider stroke (+4px), opacity 0.6, SceneEffect `{ kind:'glow', color, radius }`.
+- SVG backend: silently omits effects
+- Skia backend: renders soft green glow halo
 
-**Fixture:** `examples/gallery/our-timeline-numbered.timeline.yaml`
-- App Deadline → `status: done` → hollow node 01
-- Qualifying Exam → `status: in-progress` → filled navy node 02
-- Training Starts → `status: planned` → hollow node 03
-- `legend: { show: false }` — suppresses the auto-legend (no code change, IR field already existed)
+### Start/End Icon Badges
 
-#### T1-3: Logo — SCOPED ONLY (not built)
+Rendered at `pathPointAtS(0, geo)` (start) and `pathPointAtS(totalLength, geo)` (end).
+- CirclePrimitive: r=22, dark green fill
+- Icon PathPrimitive: single-translate form `translate(cx − 12*s, cy − 12*s) scale(s)`
+- Default icons: startIcon='play', endIcon='target' (configurable via theme.serpentine.startIcon/endIcon)
 
-Decision note written: `.squad/decisions/inbox/barbara-t1-close.md`
+### Labels
 
-Requires a new `SceneImage { kind: 'image', x, y, width, height, data, mimeType }` primitive + support in SVG (data URI `<image>`), resvg (pass-through), and Skia (`MakeImageFromEncoded`). Also needs Mark to add `metadata.logo` to IR schema. Estimated 7h, 2 owners.
+TextPrimitive offset 14+nodeRadius px from node center.
+- Even rows → label BELOW (dominantBaseline:'hanging')
+- Odd rows → label ABOVE (dominantBaseline:'alphabetic')
+- Truncated at 16 chars with '…'
 
-#### New `our-timeline` Theme
+### Linter Compatibility
 
-**File:** `packages/core/src/themes/our-timeline.ts`
-- Tier 1, light (#FFFFFF canvas), `titleAlign: 'center'`, `ordinalColorContrast: true`
-- Node size: 28px radius (vs consulting's 22px)
-- Bold title labels (`titleLabelFontWeight: 700`)
-- `categoryMap: {}` (no category overrides)
-- Registered in `themes/index.ts` as `'our-timeline'`
+Linter's `pathBBox` returns null for paths with curves (arc commands) → gradient segments and glow path are not bounds-checked. No false OUT_OF_BOUNDS errors. Node circles (r=10) are checked; all within [0,W]×[0,H] with ≥10px margin. NODE_OVERLAP prevented by centred-interval placement (~333px arc-length gap vs. 20px combined diameter).
 
-#### T1 Fidelity Assessment
+### Theme: `serpentine`
 
-| Feature | Match? |
-|---------|--------|
-| Light background | ✅ |
-| Centered "Our Timeline" title | ✅ |
-| 3 numbered circles (01, 02, 03) | ✅ |
-| Node 02 filled navy | ✅ |
-| Nodes 01/03 outlined hollow | ✅ |
-| Alternating labels (01 below, 02 above, 03 below) | ✅ |
-| Short connector stems | ✅ |
-| Bold milestone titles | ✅ |
-| No legend panel | ✅ |
-| Brand logo | ❌ T1-3 (spec only) |
-| No axis tick labels | ⚠️ Minor (we show month ticks) |
+**File:** packages/core/src/themes/serpentine.ts
+- Tier 3, light canvas (#F7FBF7), Skia glow enabled
+- Gradient: #86EFAC (light green) → #15803D (dark green)
+- Glow: #4ADE80, radius 18
+- Path stroke: 14px
+- Turn radius: 80px, rowSpacing: 160px
+- Nodes: r=10, white fill, dark green stroke
+- Badges: r=22, dark green fill
+- Labels: 9pt, gray (#374151)
 
-**Overall: ~95% fidelity. T1 is fully renderable structurally except logo.**
+### Fixture: `serpentine-journey`
 
-#### T1 Fidelity Assessment
+9 milestones (Kickoff → V4 Milestone) spread 2020–2024, all with icons.
+3 rows of 3 nodes each. No legend.
 
-| Feature | Match? |
-|---------|--------|
-| Light background | ✅ |
-| Centered "Our Timeline" title | ✅ |
-| 3 numbered circles (01, 02, 03) | ✅ |
-| Node 02 filled navy | ✅ |
-| Nodes 01/03 outlined hollow | ✅ |
-| Alternating labels (01 below, 02 above, 03 below) | ✅ |
-| Short connector stems | ✅ |
-| Bold milestone titles | ✅ |
-| No legend panel | ✅ |
-| Brand logo top-left | ✅ **NOW CLOSED** |
-| No axis tick labels | ⚠️ Minor (month ticks shown) |
+### Goldens Generated
 
-**Overall: 100% fidelity. T1 fully renderable after logo implementation.**
+- `examples/gallery/showcase/serpentine-journey-skia.png` (1200×556 px)
+- `examples/gallery/showcase/serpentine-journey.svg` (11KB)
 
-#### Tests + Goldens
+### Files Touched (T4)
 
-- **T1 tests:** +11 image primitive tests (logo shape, asset loading, backend support, determinism, graceful failure)
-- **T1 golden:** `examples/gallery/showcase/our-timeline-numbered-skia.png` regenerated (1200×368 px with logo)
-- **Existing goldens:** byte-identical (all new logo features gated on `metadata.logo` presence)
-- **Total tests:** 545/545 pass (533 core + 9 schema + 3 cli)
+**New:**
+- `packages/core/src/layout/serpentine.ts`
+- `packages/core/src/themes/serpentine.ts`
+- `examples/showcase/serpentine-journey.timeline.yaml`
+- Goldens: serpentine-journey-skia.png, serpentine-journey.svg
 
-#### T1 Files Touched
+**Modified:**
+- `packages/core/src/themes/types.ts` — SerpentineLayoutTheme added
+- `packages/core/src/themes/index.ts` — serpentine theme registered
+- `packages/core/src/layout/index.ts` — 'serpentine' dispatcher
+- `packages/core/src/types.ts` — 'serpentine' in RenderOptions.layout union
+- `packages/core/src/render/index.ts` — layout dispatcher
+- `packages/cli/src/index.ts` — --layout serpentine option
+- `packages/core/test/skia.test.ts` — 6 T4 tests
 
-- `packages/core/src/scene.ts` — +ImagePrimitive interface
-- `packages/core/src/asset-loader.ts` — NEW asset loading utility
-- `packages/core/src/layout/horizontal.ts`, `vertical-spine.ts` — logo loading + header integration
-- `packages/core/src/render/svg.ts`, `skia.ts` — image primitive rendering
-- `examples/gallery/our-timeline-numbered.timeline.yaml` — +metadata.logo
-- `examples/gallery/assets/brand-logo.{png,svg}` — NEW sample assets
-- `packages/core/test/skia.test.ts` — +11 tests
-
-### T5 Gitline + Theme Improvements (2026-06-11)
-
-### T5 Gitline + Theme Improvements (2026-06-11)
-
-**T5-1: CTA Button Rendering** — Theme tokens `cardCtaLabel`, `cardCtaFill`, `cardCtaTextColor`, `cardCtaBorderColor`, `cardCtaBorderWidth`, `cardCtaRadius`. Renders pill button on cards when `entry.url` + `theme.cardCtaLabel` both present. T5 fixture "VIEW REPOSITORY" pills ✅
-
-**T5-2: Inline Date Icon** — Theme token `cardDateIcon` (icon name from registry). Renders icon at leading edge of date line in card entries. T5 fixture clock icon ✅
-
-**Gitline Theme + Fixture:** Dark navy canvas, card entryStyle, 6 release entries (v0.1.0–v1.0.0) with URLs + clock date icons + CTA pills. Registered as Tier 2 theme. New golden `gitline-skia.png` (1200×1008 px) ✅
-
-**Results:** All 545 tests pass; existing goldens byte-identical; T5 fully renderable ✅
-
----
-
-## Session Notes & Architecture
-
-### Vertical-Spine Gap Compression (2026-06-11)
-
-**Problem:** Sparse long-span timelines (1967–2024) produced 8700+ px canvases.  
-**Solution:** Auto-compress gaps in 'time' mode when avg spacing > 400 px/entry. Cap consecutive gaps at 200 px. Added `spineSpacing?: 'time'|'even'` render option.  
-**Result:** `ai-timeline.png` reduced 8732 px → 990 px; byte-identical for normal timelines.
-
-### T3 Gaps Closed (2026-06-11)
-
-- **Activity.color:** CSS override (mirrors Milestone.color)
-- **fontSizeYearLabel:** Typography token for year labels in vertical-spine
-- **Gradient background:** Via `SceneBackground { kind: 'gradient' }`
-- **ai-timeline theme:** Tier 2, card style, gradient, vivid palette
-- Result: T3 fully renderable ✅
-
-### Gitline Demo Page (2026-06-11)
-
-Self-contained HTML demo (`examples/gallery/gitline-demo.html`) embedding gitline.svg. SVG chosen for universal browser scaling. No renderer/theme/IR changes — additive only.
-
----
-
-## Key Architecture Contracts
-
-**Six-phase deterministic layout pipeline:**
-1. Axis computation (domain, ticks)
-2. Track placement (y-coordinates)
-3. Activity geometry (sub-lanes, collisions, labels)
-4. Milestone geometry (badges, y-positions)
-5. Sections/annotations (boundaries, callouts)
-6. Label collision resolution (two-pass alternation)
-
-**Determinism levels:**
-- Layer 1 (Scene geometry): always byte-deterministic (pure function of IR + theme)
-- Layer 2 (per-backend): deterministic given pinned backend version
-- Layer 3 (cross-backend): not promised (SVG vs Raster expected to differ)
-
-**Themes:** Eight built-in (Consulting, Executive, Product, Release, Minimal, Showcase, gitline, ai-timeline, our-timeline) + `subject-timeline` (T2 dark infographic) + extensible via FidelityTier and theme tokens.
-
-**Known deferred:** Serpentine layout, advanced icon styles (post-MVP)
-
----
-
-*Detailed learning notes archived to barbara/history-archive.md (maintained 15KB threshold).*
-
----
-
-## Learnings — T2 Subject Timeline (2026-06-11)
-
-### New Opt-In Theme Tokens (all default to existing behavior)
-
-| Token | Type | Default | Behavior |
-|-------|------|---------|----------|
-| `spineSegmentColor` | `boolean` | `false` | Draw spine as per-segment colored lines; each segment between node[i-1]→node[i] uses entry[i]'s resolved color. Off → single-color spine (unchanged). |
-| `badgePlacement` | `'inline' \| 'edge'` | `'inline'` | `'edge'`: pin a large colored circular badge (r=36) to the canvas edge on the entry's text side, with a dashed horizontal leader line to the spine node. `'inline'`: no change. |
-| `spineNodeArrow` | `boolean` | `false` | Draw a small chevron/triangle at each node pointing toward the entry's text side. |
-| `yearLabelUsesEntryColor` | `boolean` | `false` | Render the large year label and the "Subject" block heading in the entry's resolved color rather than the theme accent color. Requires `fontSizeYearLabel` to be set. |
-| `spineNodeFillOverride` | `string \| undefined` | `undefined` | Override the node fill color (e.g., `'#FFFFFF'` for white nodes in dark themes). |
-
-### How Each T2 Feature Renders
-
-**T2-1 Segmented spine** (`spineSegmentColor: true`): Step 4 of the layout pipeline draws `n+1` colored `LinePrimitive` segments instead of one. Segment above node[0] and between nodes uses `entries[i].statusFill`. Last segment uses entries[last].statusFill. Default: single LinePrimitive (byte-identical).
-
-**T2-2 Edge badges + dashed leaders** (`badgePlacement: 'edge'`): In Step 6 (entry content), instead of an inline icon, the code draws:
-1. A `CirclePrimitive` (r=36, fill=entryColor) pinned at `canvas.margin` distance from canvas edge.
-2. A dashed `LinePrimitive` (`strokeDasharray: '6 4'`) from spine node X to badge edge.
-3. The entry icon rendered via `getIcon()` centered in the badge using `PathPrimitive`.
-Layout margins are widened by `EDGE_BADGE_R * 2 + EDGE_BADGE_MARGIN` on both sides automatically.
-
-**T2-3 Node chevron** (`spineNodeArrow: true`): Step 7 draws a `PathPrimitive` triangle after each node circle. Pointing right for right-side entries, left for left-side entries. Fixed size (8px half-height, 10px depth).
-
-**T2-4 Multi-block rendering**: `SpineEntry` now carries `blocks?: Array<{heading?:string; text:string}>`. In Step 6, if `e.blocks` is present: render each block as bold/colored heading (optional) + paragraph, stacked with `BLOCK_GAP` spacing. Else fall back to `e.description`. Both `card` and `plain` entry styles handled. `blockH()` function accounts for block heights in even-spacing pre-computation.
-
-**T2-5 Colored year/subject** (`yearLabelUsesEntryColor: true`): The large year label (Step 5) uses `e.statusFill` as its color instead of the theme accent. Inline heading text in entry blocks also uses `e.statusFill`. Year label font is `fontSizeYearLabel` (pt) when `hasYearLabelToken`.
-
-### Icon Approach (T2-5)
-
-Added 4 new geometric icons to `icons.ts` registry (24×24 viewBox):
-- `hardhat`: dome arc + brim + centre stripe → engineer/worker
-- `wrench`: classic wrench shape → surveyor/maintenance  
-- `truck`: cabin + trailer + wheels → cement truck/logistics
-- `building`: facade + windows + door → office/venue
-
-Aliases added: engineer→hardhat, worker→hardhat, construction→hardhat, vehicle→truck, logistics→truck, maintenance→wrench, tool→wrench, office→building, venue→building, surveyor→wrench
-
-### Theme + Fixture
-
-- **Theme**: `packages/core/src/themes/subject-timeline.ts` — dark infographic theme. BG `#1A1A2E`, margin {top:80, right:72, bottom:80, left:72}, fontSizeYearLabel:28, spineNodeFillOverride:'#FFFFFF', milestone.size:12. Enables all 5 T2 tokens.
-- **Fixture**: `examples/showcase/subject-timeline.timeline.yaml` — 4 year milestones (2021 cyan/hardhat, 2022 amber/wrench, 2023 pink/truck with 2 blocks, 2024 steel-blue/building). Placed in `showcase/` (not `gallery/`) to avoid quality-gate combinatorial failures with multi-block tall content.
-- **Golden**: `examples/gallery/showcase/subject-timeline-skia.png` (1200×1226 px, ~69KB)
-
-### Key Bug Fixed During Implementation
-
-`DATE_LINE_H` constant was accidentally removed from the typography section during refactoring. This caused `ReferenceError: DATE_LINE_H is not defined` at runtime for all 135 `vertical-spine.test.ts` tests. Fix: restored `const DATE_LINE_H = rhuInt(datePx * 1.4)` at the correct position (before `TITLE_LINE_H`).
-
-Also: `ENTRY_DATE_LINE_H` uses `DATE_LINE_H` when `yearLabelUsesEntryColor=false` — guaranteeing byte-identical even-spacing output for all existing themes.
-
-### SPINE_TOP_PAD_EFFECTIVE
-
-When `yearLabelUsesEntryColor && isEvenSpacing`, the first entry's large year label (28pt ≈ 47px) extends above `spineTopY`, overlapping the header. Fix: `SPINE_TOP_PAD_EFFECTIVE = max(SPINE_TOP_PAD, ENTRY_DATE_LINE_H + 8)` ≈ 64px in that mode. Default `SPINE_TOP_PAD` unchanged for all existing themes.
-
-### Files Touched
-
-- `packages/core/src/themes/types.ts` — 5 new tokens
-- `packages/core/src/themes/subject-timeline.ts` — NEW
-- `packages/core/src/themes/index.ts` — registered subject-timeline
-- `packages/core/src/layout/vertical-spine.ts` — all T2 rendering logic
-- `packages/core/src/icons.ts` — 4 new icons + 10 aliases
-- `packages/core/test/skia.test.ts` — T2 test suite (5 tests)
-- `examples/showcase/subject-timeline.timeline.yaml` — NEW fixture
-- `examples/gallery/showcase/subject-timeline-skia.png` — NEW golden
-
-### T2 Fidelity vs Target
+### T4 Fidelity Assessment
 
 | Feature | Target | Achieved |
 |---------|--------|----------|
-| Dark background | ✅ | ✅ |
-| Segmented colored spine | ✅ | ✅ |
-| White dot nodes | ✅ | ✅ |
-| Alternating L/R entries | ✅ | ✅ |
-| Colored year labels | ✅ | ✅ |
-| Subject heading in entry color | ✅ | ✅ |
-| Multi-block (2023: 2 sub-blocks) | ✅ | ✅ |
-| Edge circular badges | ✅ | ✅ |
-| Dashed leader lines | ✅ | ✅ |
-| Node chevrons | ✅ | ✅ |
-| Pictographic icons | ~partial (geometric approx) | acceptable |
+| Light background | ✅ | ✅ |
+| Winding 3-row path | ✅ | ✅ |
+| Thick rounded stroke | ✅ | ✅ |
+| Soft green glow (Skia) | ✅ | ✅ |
+| Light→dark gradient | ✅ | ✅ (segmented) |
+| Evenly-spaced nodes | ✅ | ✅ |
+| Start/end badges | ✅ | ✅ (play/target) |
+| Optional labels | ✅ | ✅ |
+| No axis | ✅ | ✅ |
 
-T2 status: **CLOSED** (all structural features implemented; icon art is geometric approximation per spec).
+**Status: ✅ CLOSED.** 567/567 tests pass.
 
 ---
 
-## Learnings — T2 Badge Fix (2026-06-11)
+## Skia Stroke-Only Path Glow Fix
 
-### Defect 1 — Edge badge inset rule
+### Root Cause
 
-**Root cause:** Badge center was computed relative to the *content margin* (`W - m.right - r`),
-placing it ~76px from the canvas edge instead of at the canvas edge.
+The serpentine path renders with `fill: 'none'` and `effects: [{ kind: 'glow', ... }]`.
 
-**Fix (vertical-spine.ts):**
-```
-// BEFORE (margin-relative):
-const EDGE_BADGE_MARGIN = 4;
-const badgeCX = side==='right'
-  ? rhu(W - m.right - EDGE_BADGE_R - EDGE_BADGE_MARGIN)   // 1088
-  : rhu(m.left + EDGE_BADGE_R + EDGE_BADGE_MARGIN);         // 112
+Original `renderPath` in `skia.ts` routed ALL paths through `renderWithEffects`, which:
+1. Creates `glowPaint` with `PaintStyle.Fill`
+2. Calls `drawFn` with glowPaint as `overridePaint`
+3. Since `overridePaint !== null`, the Fill paint was used
 
-// AFTER (canvas-edge-relative, ≥12 px breathing room):
-const EDGE_BADGE_MARGIN = 12;
-const badgeCX = side==='right'
-  ? rhu(W - EDGE_BADGE_R - EDGE_BADGE_MARGIN)  // 1152
-  : rhu(EDGE_BADGE_R + EDGE_BADGE_MARGIN);      // 48
-```
+When drawing a filled closed SVG path from open geometry (implicit closure), this produced:
+- A filled green slab across the row area (the glowPaint's Fill)
+- A diagonal "closing" band from path end back to start
 
-**Rule:** `EDGE_BADGE_MARGIN` = minimum px gap between badge outer edge and *canvas border*
-(not content margin). For r=36, this gives badge center at 48px from canvas edge —
-visually "pinned to the edge" with 12px of breathing room. ≥12px from canvas edge guaranteed.
+Main draw pass rendered transparent (invisible), so the glow fill was visible but masked the stroke.
 
-### Defect 2 — Icon centering transform (Skia single-translate parser)
+### Fix: Detect `fill === 'none'` in renderPath (skia.ts)
 
-**Root cause:** The Skia renderer's `parseSvgTransformOps()` uses a single regex to extract
-`translate(tx,ty)`, so compound transforms of the form
-`translate(cx,cy) scale(s) translate(-12,-12)` lose the second translate.
-Skia only applies `translate(cx,cy) + scale(s)`, rendering the icon from (cx,cy) downward-right
-instead of centered on (cx,cy). SVG renders correctly (no issue).
+Added stroke-only detection at top of `renderPath`:
 
-**Fix:** Collapse the two-translate form into a single equivalent transform:
-```
-// BEFORE (broken in Skia — second translate silently dropped):
-const transform = `translate(${badgeCX},${nodeY}) scale(${s}) translate(-12,-12)`;
+```typescript
+const strokeOnly = p.fill === 'none'
 
-// AFTER (single translate, correct in both SVG and Skia):
-const iconTx = rhu(badgeCX - 12 * s);   // equivalent: cx + (0-12)*s
-const iconTy = rhu(nodeY - 12 * s);
-const transform = `translate(${iconTx},${iconTy}) scale(${s})`;
+if (strokeOnly) {
+  // Skip renderWithEffects entirely
+  // For each glow effect: create PaintStyle.Stroke paint with blur ImageFilter
+  // Main stroke pass: normal PaintStyle.Stroke paint
+} else {
+  // Original code path for filled paths (unchanged)
+}
 ```
 
-**Maths:** `translate(cx - 12s, cy - 12s) scale(s)` maps icon centre (12,12) to
-`(12s + cx - 12s, 12s + cy - 12s) = (cx, cy)` ✓.
-Icon box (diameter = 24s) centred on badge, with margin `(r - 12s) = r*(1-iconScale)` on all sides.
-At iconScale=0.6, r=36: icon diameter = 43.2px, badge diameter = 72px → 60% fill ratio ✓.
+When `!strokeOnly`: existing code path unchanged — `renderWithEffects` fills, then separate stroke pass.
 
-**Scope:** This fix applies only to the `badgeEdgeMode = true` code path (`badgePlacement:'edge'`).
-The identical bug exists in the inline badge path (`!badgeEdgeMode`) and in spine node icons
-(step 7), but fixing those would change goldens for other fixtures (e.g. journey-showcase-skia.png).
-Those are deferred as separate fixes.
+### Corrected Result
 
-### Verification
+**Before:** Filled green slab + diagonal closing bands (Skia only; SVG was correct)
+**After:** Thin winding green stroke with soft glow halo (Skia ≡ design target)
 
-- New golden `examples/gallery/showcase/subject-timeline-skia.png` (1200×1226):
-  - Right badges at cx=1152, left badges at cx=48
-  - Outermost badge pixel: 14px from canvas edge (>12px ✓)
-  - Canvas rightmost/leftmost column: all background (no overflow ✓)
-  - Icons visually centered within badge circles ✓
-- All 561 tests pass; typecheck + lint clean.
-- Only subject-timeline golden changed; all other goldens byte-identical.
+- Glow path: 18px wide stroke with 0.6 opacity + green blur → soft halo
+- Gradient segments: 14px stroke, round caps, light→dark green → seamless
+- Matches design target: slim glowing line, no slab
+
+### Cascade Impact
+
+Fixed serpentine AND improved 4 existing showcase goldens:
+- feature-rich-skia.png (glow now correct)
+- gitline-skia.png (glow now correct)
+- journey-skia.png (glow now correct)
+- subject-timeline-skia.png (glow now correct)
+
+Horizontal golden guard (our-timeline-skia.png) byte-identical.
+
+---
+
+## Session Results
+
+- **T4 Implementation:** Complete serpentine layout family with boustrophedon path, arc-length nodes, segmented gradient, glow, badges, labels
+- **Skia Fix:** Stroke-only path glow now renders correctly; improves 4 existing goldens
+- **Test Coverage:** 567/567 tests pass (551 core + 13 schema + 3 cli)
+- **All Five Targets:** CLOSED (T1 horizontal, T2 vertical-spine dark, T3 vertical-spine dense, T4 serpentine, T5 vertical-spine cards)
+
+**Milestone Achieved:** All design targets fully renderable from IR to byte-deterministic output.
+
