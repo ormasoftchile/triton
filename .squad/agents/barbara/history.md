@@ -136,6 +136,51 @@
 
 ---
 
+## 2026-06-11 — Skia Glow Artifact + Legend Color Fixes
+
+**Two production defects diagnosed and fixed in Skia/PNG backend + showcase theme combination.**
+
+### Defect 1 — Rectangular glow/shadow artifact on vertical-spine milestone nodes
+
+**Root cause: `TileMode.Clamp` in `renderWithEffects` (`skia.ts`).**
+
+`CK.ImageFilter.MakeBlur` was called with `CK.TileMode.Clamp` for both glow and shadow effects. For a filled rectangle, CanvasKit's Clamp tile mode replicates the rectangle's fill color at every pixel beyond the blur expansion margin (~3×sigma = 15px from rect edge). This produced a hard, full-opacity shadow band in the connector zone between the node circle and the card rect — even though those pixels are 15px outside the card.
+
+Circles were unaffected: their bounding-box corners are transparent, so Clamp ≡ Decal for circles (clamping transparent = transparent).
+
+**Pixel-confirmed:** Before fix, x=644=(4,178,217) → x=645=(2,83,101) — a hard dark step exactly matching the shadow paint blended over the connector: `0.533 * black + (1-0.533) * connector ≈ (2,83,101)`. After fix, x=644=(4,178,217) → x=645=(4,178,217) — smooth connector, no step.
+
+**Fix:** Change both `MakeBlur` calls in `renderWithEffects` from `CK.TileMode.Clamp` to `CK.TileMode.Decal`. Decal treats out-of-bounds pixels as transparent `(0,0,0,0)`, giving natural Gaussian falloff with no hard boundary. `TileMode.Decal` is available in canvaskit-wasm 0.41.x.
+
+### Defect 2 — Indistinguishable legend colors (in-progress / planned / standard-node)
+
+**Root cause: theme palette — `showcase.ts` assigned identical/near-identical colors.**
+- `planned.fill = CYAN (#00D4FF)` and `standard-node.fill = CYAN (#00D4FF)` — identical.
+- `in-progress.fill = CYAN_DIM (#0099CC)` — very similar cyan, visually indistinguishable at 12px swatch size.
+
+The legend code in `vertical-spine.ts` uses raw `theme.statusMap[s].fill` and `theme.categoryMap[c].fill` (not `resolveStatusStyle`), so any category override doesn't rescue the legend — the palette itself was wrong.
+
+**Fix:** Introduced two new palette constants:
+- `BLUE_SCHED = '#4D9AFF'` — periwinkle blue (for planned)
+- `TEAL_ACTIVE = '#00CC88'` — teal green (for in-progress)
+
+Reassigned: `planned → BLUE_SCHED`, `in-progress → TEAL_ACTIVE`, `standard-node → CYAN` (primary accent unchanged), `done → STEEL` (unchanged). Legend now has four visually distinct swatches: grey-blue / teal-green / periwinkle-blue / electric-cyan.
+
+**Pixel-confirmed:** Swatch centers (996, 414/435/455/476) read (96,125,155) / (0,204,136) / (77,154,255) / (0,212,255) — exactly the expected hex values.
+
+### Additional changes
+- Showcase Skia golden test updated to use `layout: 'vertical-spine'` (the showcase theme's intended layout; previous test used horizontal default, producing a mismatch between the committed golden and the described defect).
+- Gallery showcase images regeneration tests added (4 PNGs: milestones-only, journey, feature-rich, ai-timeline).
+- All goldens regenerated fresh.
+- **All 465 tests pass.**
+
+### Skia blur rendering mental model
+- `TileMode.Clamp`: edge pixels of the layer replicate their nearest in-bounds color — creates hard boundary for filled shapes.
+- `TileMode.Decal`: pixels outside the layer bounds are treated as fully transparent — correct for drop shadows and glows where you want smooth natural falloff.
+- Rule: **always use `TileMode.Decal` for glow/shadow ImageFilter blurs on Scene primitives**.
+
+---
+
 ## Architecture Summary
 
 **Rendering Pipeline:**
