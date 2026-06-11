@@ -73,6 +73,17 @@ const timeRangeSchema = z.object({
   end: irDateSchema.optional(),
 });
 
+const logoSchema = z.object({
+  /**
+   * Filesystem path (PNG/JPEG/SVG) or inline `data:` URI.
+   * Existence and URI well-formedness are NOT validated here — rendering concern.
+   */
+  src: z.string().min(1),
+  position: z.enum(['top-left', 'top-right']).optional(),
+  width: z.number().positive().optional(),
+  height: z.number().positive().optional(),
+});
+
 const metadataSchema = z.object({
   title: z.string().min(1),
   subtitle: z.string().optional(),
@@ -86,6 +97,7 @@ const metadataSchema = z.object({
   today: irDateSchema.optional(),
   fiscal_year_start: z.number().int().min(1).max(12).optional(),
   description: z.string().optional(),
+  logo: logoSchema.optional(),
 });
 
 const trackSchema = z.object({

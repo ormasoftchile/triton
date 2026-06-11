@@ -39,6 +39,7 @@ import type {
   TextPrimitive,
   MultiTextPrimitive,
   GroupPrimitive,
+  ImagePrimitive,
 } from '../scene.js';
 
 // ---------------------------------------------------------------------------
@@ -573,6 +574,62 @@ function renderGroup(CK: any, canvas: any, p: GroupPrimitive, typeface: any): vo
   }
 }
 
+/**
+ * Render an ImagePrimitive via CanvasKit.
+ *
+ * The `data` field must be a `data:<mime>;base64,<bytes>` URI.  The MIME type
+ * determines decode support: PNG, JPEG, GIF, and WebP are supported by
+ * `MakeImageFromEncoded`.  SVG data URIs are skipped (Skia cannot decode SVG).
+ *
+ * On any decode failure the image is silently skipped (graceful fallback).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderImage(CK: any, canvas: any, p: ImagePrimitive): void {
+  // Parse the data URI: data:<mime>;base64,<b64>
+  const match = p.data.match(/^data:([^;]+);base64,(.+)$/s);
+  if (!match) return;
+
+  const [, mimeType, b64] = match;
+
+  // SVG images cannot be decoded by MakeImageFromEncoded — skip gracefully.
+  if (mimeType?.includes('svg')) return;
+
+  let bytes: Uint8Array;
+  try {
+    bytes = new Uint8Array(Buffer.from(b64 ?? '', 'base64'));
+  } catch {
+    return;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const skImage: any = CK.MakeImageFromEncoded(bytes);
+  if (!skImage) return; // Decode failure — skip gracefully
+
+  try {
+    const opacity = p.opacity ?? 1;
+    const paint   = new CK.Paint();
+    if (opacity < 1) paint.setAlphaf(opacity);
+    paint.setAntiAlias(true);
+
+    const srcRect = CK.XYWHRect(0, 0, skImage.width(), skImage.height());
+    const dstRect = CK.XYWHRect(p.x, p.y, p.width, p.height);
+
+    if (p.borderRadius) {
+      const rrect = CK.RRectXY(dstRect, p.borderRadius, p.borderRadius);
+      canvas.save();
+      canvas.clipRRect(rrect, CK.ClipOp.Intersect, /* doAntiAlias */ true);
+      canvas.drawImageRect(skImage, srcRect, dstRect, paint);
+      canvas.restore();
+    } else {
+      canvas.drawImageRect(skImage, srcRect, dstRect, paint);
+    }
+
+    paint.delete();
+  } finally {
+    skImage.delete();
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function renderPrimitive(CK: any, canvas: any, p: ScenePrimitive, typeface: any): void {
   switch (p.kind) {
@@ -583,6 +640,7 @@ function renderPrimitive(CK: any, canvas: any, p: ScenePrimitive, typeface: any)
     case 'text':      renderText(CK, canvas, p, typeface);         break;
     case 'multitext': renderMultiText(CK, canvas, p, typeface);    break;
     case 'group':     renderGroup(CK, canvas, p, typeface);        break;
+    case 'image':     renderImage(CK, canvas, p);                  break;
   }
 }
 

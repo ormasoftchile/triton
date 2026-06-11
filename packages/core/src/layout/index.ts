@@ -26,14 +26,17 @@ export { layoutVerticalSpine } from './vertical-spine.js';
  * @param ir       Validated IRDocument.
  * @param theme    Resolved theme.
  * @param family   Layout family identifier.  Defaults to 'horizontal'.
+ * @param baseDir  Base directory for resolving relative asset paths in the IR
+ *                 (e.g. `metadata.logo.src`).  Passed through to layout engines.
  */
 export function layout(
   ir:      IRDocument,
   theme:   ResolvedTheme,
   family?: 'horizontal' | 'vertical-spine',
+  baseDir?: string,
 ): Scene {
   if (family === 'vertical-spine') {
-    return layoutVerticalSpine(ir, theme);
+    return layoutVerticalSpine(ir, theme, baseDir);
   }
-  return layoutHorizontal(ir, theme);
+  return layoutHorizontal(ir, theme, baseDir);
 }

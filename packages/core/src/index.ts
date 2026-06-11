@@ -51,9 +51,11 @@ export type { IRDocumentInput } from './schema.js';
 export { parseIR } from './load.js';
 export { validateDocument } from './validate.js';
 export { renderDocument, renderDocumentAsync, buildScene } from './render/index.js';
+export type { BuildSceneOptions } from './render/index.js';
 export { resolveTheme } from './themes/index.js';
 export { sceneHash } from './scene.js';
-export type { Scene, ScenePrimitive } from './scene.js';
+export type { Scene, ScenePrimitive, ImagePrimitive } from './scene.js';
+export { sceneToSvg } from './render/svg.js';
 
 // Layout-quality linter
 export { lintScene } from './lint.js';

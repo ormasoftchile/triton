@@ -223,3 +223,38 @@ Completed the Activity.color field addition to unblock Barbara's T3 rendering wo
 - Parity across all top-level IR color fields (Track, Group, Milestone, Activity) maintains consistency and supports future palette enforcement without schema retrofit
 - Free CSS strings in the IR (with renderer fallback) prove robust for multi-backend support (SVG + Skia)
 - Activity now complete feature parity with Milestone for visual customization (icon, color, category, status override)
+
+## Learnings — metadata.logo field (2026-06-11)
+
+- **`metadata.logo?: LogoSpec` added (2026-06-11):** The `Metadata` interface (packages/core/src/types.ts) now carries an optional `logo?: LogoSpec` field. `LogoSpec` is a named interface with four fields: `src: string` (required, non-empty), `position?: 'top-left' | 'top-right'`, `width?: number` (positive, points), `height?: number` (positive, points).
+- **`src` validation scope (parity decision):** `src` is enforced non-empty by `z.string().min(1)` in the Zod schema. It is NOT validated for existence (filesystem path) or URI well-formedness (data: URI). This matches the precedent set by `Activity.icon`/`Activity.color` (rendering-side fallback, not IR responsibility). If file-existence or URI validation is ever added, it belongs in the rendering/runtime layer, not in validate.ts.
+- **Field position in metadataSchema:** Appended after `description` in metadataSchema (schema.ts). Mirrors convention of adding new optional metadata fields at the end.
+- **Zod sub-schema:** `logoSchema = z.object({ src: z.string().min(1), position: z.enum(['top-left','top-right']).optional(), width: z.number().positive().optional(), height: z.number().positive().optional() })`, wired as `logo: logoSchema.optional()` in metadataSchema.
+- **JSON Schema regen:** After schema.ts change, run `pnpm -r build` (or `pnpm -C packages/schema build`) to regenerate packages/schema/v1/timeline.json. The regenerated file carries metadata.logo with `src` in required[], position as enum, width/height as `exclusiveMinimum: 0` numbers.
+- **Files touched:** packages/core/src/types.ts, packages/core/src/schema.ts, packages/schema/v1/timeline.json (auto-generated), packages/core/test/validate.test.ts (+4 logo tests), packages/schema/test/schema.test.ts (+3 logo JSON Schema tests).
+- **Test counts after change:** core 522 tests (validate.test.ts: 78), schema 9 tests — all green. Typecheck clean.
+
+## 2026-06-11 — metadata.logo Field Implementation (Step 1 of T1-3)
+
+✓ **metadata.logo IR Field Added**
+
+Added `LogoSpec` interface and `metadata.logo?: LogoSpec` to close the IR/schema half of target T1-3.
+
+**Changes:**
+- `packages/core/src/types.ts`: Added `LogoSpec` interface (with JSDoc per field) and `logo?: LogoSpec` on `Metadata`
+- `packages/core/src/schema.ts`: Added `logoSchema` Zod sub-object; wired as `logo: logoSchema.optional()` in `metadataSchema`
+- `packages/schema/v1/timeline.json`: Regenerated via `pnpm -r build`
+- `packages/core/test/validate.test.ts`: Added 4 validation tests (full spec, src-only, data URI, absent logo)
+- `packages/schema/test/schema.test.ts`: Added 3 JSON Schema conformance tests (logo object optional, src required, position enum)
+
+**Validation Parity Decision:**
+- `src` non-empty enforced at schema level (min(1)); path existence and URI syntax NOT validated
+- Matches Activity.icon / Activity.color precedent; rendering layer handles missing/invalid asset
+- Documented in decision record: `.squad/decisions/inbox/mark-metadata-logo.md`
+
+**Test Status:**
+- Preimage: 490 tests passing
+- Postimage: 534 tests passing (522 core + 9 schema + 3 CLI)
+- All green; typecheck + lint clean
+
+**Handoff to Barbara:** Field live. Exact shape: `metadata.logo?: { src: string; position?: 'top-left'|'top-right'; width?: number; height?: number }`. Barbara owns SceneImage primitive, backend rendering, and header layout. IR does not encode how the asset is loaded or embedded.

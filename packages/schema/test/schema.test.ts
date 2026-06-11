@@ -73,3 +73,57 @@ describe('@timeline-compiler/schema — Activity.color property', () => {
     expect(required ?? []).not.toContain('color');
   });
 });
+
+// ---------------------------------------------------------------------------
+// metadata.logo — JSON Schema coverage
+// ---------------------------------------------------------------------------
+
+describe('@timeline-compiler/schema — metadata.logo property', () => {
+  it('exposes metadata.logo as an optional object in the generated JSON Schema', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const metadata = props['metadata'] as Record<string, unknown>;
+    const metaProps = metadata['properties'] as Record<string, unknown>;
+    expect(metaProps).toHaveProperty('logo');
+    // logo must NOT be in metadata's required array
+    const required = metadata['required'] as string[] | undefined;
+    expect(required ?? []).not.toContain('logo');
+  });
+
+  it('metadata.logo.src is a required non-empty string', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const metadata = props['metadata'] as Record<string, unknown>;
+    const metaProps = metadata['properties'] as Record<string, unknown>;
+    const logo = metaProps['logo'] as Record<string, unknown>;
+    const logoProps = logo['properties'] as Record<string, unknown>;
+    expect(logoProps).toHaveProperty('src');
+    const srcDef = logoProps['src'] as Record<string, unknown>;
+    expect(srcDef['type']).toBe('string');
+    // src must appear in logo's required array
+    const required = logo['required'] as string[] | undefined;
+    expect(required ?? []).toContain('src');
+  });
+
+  it('metadata.logo.position is an optional enum of top-left | top-right', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const metadata = props['metadata'] as Record<string, unknown>;
+    const metaProps = metadata['properties'] as Record<string, unknown>;
+    const logo = metaProps['logo'] as Record<string, unknown>;
+    const logoProps = logo['properties'] as Record<string, unknown>;
+    expect(logoProps).toHaveProperty('position');
+    const posDef = logoProps['position'] as Record<string, unknown>;
+    const enumVals = posDef['enum'] as string[] | undefined;
+    expect(enumVals).toContain('top-left');
+    expect(enumVals).toContain('top-right');
+    const required = logo['required'] as string[] | undefined;
+    expect(required ?? []).not.toContain('position');
+  });
+});

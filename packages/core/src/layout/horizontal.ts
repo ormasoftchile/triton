@@ -21,6 +21,7 @@ import type { ResolvedTheme } from '../themes/types.js';
 import { measureText, ptToPx } from '../fonts/metrics.js';
 import { truncateText } from '../text-wrap.js';
 import { getIcon } from '../icons.js';
+import { loadImageAsset } from '../asset-loader.js';
 import {
   dateToOrdinal,
   coerceLeft,
@@ -112,7 +113,7 @@ function dateX(ord: number, ax: AxisState): number {
 // Layout entry point
 // ---------------------------------------------------------------------------
 
-export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
+export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?: string): Scene {
   const { canvas: cv, axis: ax, track: tk, milestone: ms } = {
     canvas:   theme.canvas,
     axis:     theme.axis,
@@ -177,6 +178,18 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     const hasMetaLine = !!(ir.metadata.author || ir.metadata.updated || ir.metadata.created);
     if (hasMetaLine) headerH += 4 + rhuInt(hdrMetaFontPx * 1.35);
     headerH += HEADER_V_PAD;
+  }
+
+  // Logo: ensure the header is tall enough to contain the logo image.
+  // The logo is always placed within the existing header area — no extra
+  // vertical space is added unless the logo is taller than the title block.
+  const LOGO_DEFAULT_W = 100;
+  const LOGO_DEFAULT_H = 32;
+  const LOGO_V_PAD     = 8;   // minimum top/bottom padding around logo
+  if (ir.metadata.logo) {
+    const logoH  = ir.metadata.logo.height ?? LOGO_DEFAULT_H;
+    const minHdr = logoH + LOGO_V_PAD * 2;
+    if (minHdr > headerH) headerH = rhuInt(minHdr);
   }
 
   /** Effective top-of-canvas margin including the header block. */
@@ -734,6 +747,43 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       strokeWidth: 0.5,
       opacity:     0.35,
     });
+  }
+
+  // 2b. Logo — placed in header corner (top-left or top-right per spec)
+  //
+  // The logo asset is resolved and embedded as a base64 data URI at layout
+  // time.  If the src is missing, unreadable, or unsupported the logo is
+  // silently skipped.  The title remains centred and unaffected.
+  //
+  // Position defaults:
+  //   'top-left'  → logo at left margin (matches T1 target)
+  //   'top-right' → logo at right margin
+  //
+  // Size defaults: LOGO_DEFAULT_W × LOGO_DEFAULT_H (100×32 px).
+  // If only one dimension is specified, the other uses the default.
+  if (ir.metadata.logo) {
+    const logoSpec = ir.metadata.logo;
+    const asset    = loadImageAsset(logoSpec.src, baseDir);
+    if (asset) {
+      const logoW  = logoSpec.width  ?? LOGO_DEFAULT_W;
+      const logoH  = logoSpec.height ?? LOGO_DEFAULT_H;
+      const pos    = logoSpec.position ?? 'top-left';
+      // Horizontal placement: within the draw area
+      const logoX = pos === 'top-right'
+        ? rhu(W - mR - logoW - 4)
+        : rhu(mL + 4);
+      // Vertical: centred in the header area
+      const logoY = rhu(mT + (headerH - logoH) / 2);
+      primitives.push({
+        kind:     'image',
+        x:        logoX,
+        y:        logoY,
+        width:    logoW,
+        height:   logoH,
+        data:     asset.dataUri,
+        mimeType: asset.mimeType,
+      });
+    }
   }
 
   // 3. Axis band (horizontal line at bottom of axis zone)

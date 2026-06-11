@@ -527,8 +527,8 @@ R5. **Avoid gantt-chart defaults in the IR and renderer.** The IR must not have 
 ### T1 "Our Timeline" Close — Barbara (2026-06-11)
 
 **Date:** 2026-06-11T12:30:33-04:00  
-**Status:** CLOSED (structural; logo gap T1-3 specced for backlog)  
-**Fidelity:** ~95% — all nodes, labels, alternation, and filled-vs-outlined differentiation match target.
+**Status:** ✅ FULLY CLOSED — T1-3 Logo implemented 2026-06-11  
+**Fidelity:** 100% — all nodes, labels, alternation, filled-vs-outlined, AND brand logo match target.
 
 #### T1 Gaps Resolved
 
@@ -537,33 +537,25 @@ R5. **Avoid gantt-chart defaults in the IR and renderer.** The IR must not have 
 | T1-1 | ~~Alternating above/below label placement~~ | Pre-existing (horizontal layout: index 0→below, 1→above, 2→below). No code change. ✅ |
 | T1-2 | ~~Centered document title~~ | Pre-existing (`x = W/2`, `text-anchor="middle"`). Formalized with new `titleAlign?: 'left'\|'center'` token on TypographyTheme (opt-in, default=center → byte-identical output). ✅ |
 | T1-new | ~~Filled vs outlined node differentiation~~ | Closed via pure theme change: `statusMap` (planned/done→white fill, in-progress→navy fill) + new `ordinalColorContrast?: boolean` token on MilestoneTheme (WCAG contrast-aware ordinal text). ✅ |
+| T1-3 | ~~Brand logo top-left corner~~ | `ImagePrimitive` + `asset-loader` + all 3 backends + header layout; `brand-logo.png` created; T1 fixture updated. ✅ |
 
-#### Artifacts Shipped
+#### Artifacts Shipped (all sessions combined)
 
-- `titleAlign?: 'left'\|'center'` token (TypographyTheme) — applied to both `horizontal.ts` and `vertical-spine.ts`
-- `ordinalColorContrast?: boolean` token (MilestoneTheme) — auto contrast logic in milestone rendering
-- `our-timeline` theme (Tier-1 light infographic) — sets `statusMap` for filled/outlined nodes + centered title
-- Fixture: `examples/gallery/our-timeline-numbered.timeline.yaml` (3 milestones: done, in-progress, planned)
-- Golden: `examples/gallery/showcase/our-timeline-numbered-skia.png`
-- Test coverage: 5 tests in `packages/core/test/skia.test.ts`
+- `titleAlign?: 'left'\|'center'` token (TypographyTheme) — both layout engines
+- `ordinalColorContrast?: boolean` token (MilestoneTheme) — WCAG contrast-aware ordinal text
+- `our-timeline` theme (Tier-1 light infographic)
+- `ImagePrimitive` in scene.ts, `asset-loader.ts`, all 3 backends updated
+- `BuildSceneOptions.baseDir` for portable asset path resolution
+- Fixture: `examples/gallery/our-timeline-numbered.timeline.yaml` (with logo)
+- Assets: `examples/gallery/assets/brand-logo.{png,svg}`
+- Goldens: `examples/gallery/our-timeline-numbered.svg` + `showcase/our-timeline-numbered-skia.png` (both with logo)
+- Tests: 15 image primitive / T1 tests added
 
-**Test results:** 527/527 pass (518 core + 6 schema + 3 cli). Typecheck and lint clean. All existing goldens byte-identical.
+**Test results:** 545/545 pass (533 core + 9 schema + 3 cli). Typecheck and lint clean. All existing goldens byte-identical (logo only appears where `metadata.logo` is set).
 
-#### Backlog: T1-3 Logo / Image Primitive (Specced)
+#### ~~Backlog: T1-3 Logo / Image Primitive~~ — IMPLEMENTED ✅
 
-**Required (not built):** New `SceneImage` primitive + `metadata.logo` IR field + backend support (SVG, Skia, resvg).
-
-**Approach:**
-- `SceneImage` interface: `{ kind: 'image'; x, y, width, height; data: 'data:image/png;base64,...'; mimeType; borderRadius?; opacity? }`
-- SVG backend: emit `<image href="data:..." />` with optional `<clipPath>` for border-radius
-- Skia backend: `CanvasKit.MakeImageFromEncoded(base64Bytes)` → `drawImageRect()` + `clipRRect()`
-- IR schema (Mark): `metadata.logo?: { src: string; position?: 'top-left'\|'top-right'; width?; height? }`
-- Base64-embed approach (not URL) preserves byte determinism
-
-**Effort:** ~7h (2 owners: Mark on IR schema, Barbara on image primitive + layout + backends).  
-**Sequencing:** Suggested post-T2/T3/T4 (cosmetic, doesn't block other features).
-
-**Recommendation:** This is **medium effort, high polish**. Spec preserved for future implementation.
+Built as specced + Mark's IR schema. See `.squad/decisions/inbox/barbara-image-primitive-logo.md` for full decision record.
 
 ---
 

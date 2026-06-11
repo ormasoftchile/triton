@@ -857,3 +857,52 @@ describe('validateDocument — Activity.color field', () => {
     expect(result.errors).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// metadata.logo — optional brand logo field
+// ---------------------------------------------------------------------------
+
+describe('validateDocument — metadata.logo field', () => {
+  it('accepts metadata.logo with src, position, and width (full spec)', () => {
+    const doc = makeMinimal();
+    (doc.metadata as typeof doc.metadata & { logo?: unknown }).logo = {
+      src: 'logo.png',
+      position: 'top-left',
+      width: 120,
+    };
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts metadata.logo with only src (all other fields optional)', () => {
+    const doc = makeMinimal();
+    (doc.metadata as typeof doc.metadata & { logo?: unknown }).logo = {
+      src: 'assets/brand.svg',
+    };
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts metadata.logo with a data: URI as src', () => {
+    const doc = makeMinimal();
+    (doc.metadata as typeof doc.metadata & { logo?: unknown }).logo = {
+      src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      position: 'top-right',
+      width: 80,
+      height: 40,
+    };
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts a document without metadata.logo (logo is optional)', () => {
+    const doc = makeMinimal();
+    // logo field is absent from makeMinimal() — should remain valid
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+});

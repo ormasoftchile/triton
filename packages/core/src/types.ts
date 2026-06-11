@@ -48,6 +48,40 @@ export interface TimeRange {
   end?: IRDate;
 }
 
+/**
+ * Optional brand/document logo to be placed in the rendered output header.
+ *
+ * The IR is rendering-agnostic: it names the asset and hints at placement/size.
+ * HOW the asset is loaded, encoded, or embedded is entirely the renderer's concern.
+ */
+export interface LogoSpec {
+  /**
+   * Asset reference.  Either a filesystem path (relative or absolute) to a
+   * PNG, JPEG, or SVG file, OR a `data:` URI containing the image inline.
+   *
+   * The IR does NOT validate that the path exists or that the data URI is
+   * well-formed — that is a rendering/runtime responsibility.  An empty string
+   * is structurally invalid (schema enforces min-length 1).
+   */
+  src: string;
+  /**
+   * Desired placement in the document header.
+   * Omitting leaves the exact default position to the renderer.
+   */
+  position?: 'top-left' | 'top-right';
+  /**
+   * Intrinsic-width hint, in points (pt).  Must be positive.
+   * If both `width` and `height` are omitted the renderer uses its own defaults
+   * (e.g. intrinsic image dimensions or theme-defined logo size).
+   */
+  width?: number;
+  /**
+   * Intrinsic-height hint, in points (pt).  Must be positive.
+   * If both `width` and `height` are omitted the renderer uses its own defaults.
+   */
+  height?: number;
+}
+
 export interface Metadata {
   title: string;
   subtitle?: string;
@@ -65,6 +99,12 @@ export interface Metadata {
   /** Calendar month (1–12) on which the fiscal year begins. */
   fiscal_year_start?: number;
   description?: string;
+  /**
+   * Optional brand or document logo.  When present, the renderer places the
+   * image in the document header according to `position` (defaulting to its
+   * own placement heuristic when omitted).
+   */
+  logo?: LogoSpec;
 }
 
 export interface Track {

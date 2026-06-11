@@ -14,6 +14,9 @@
 # auto-picks dark ordinal text on hollow nodes and white on the filled node.
 #
 # Legend is suppressed via `legend.show: false` — the T1 target has none.
+#
+# Brand logo: placed top-left per T1 target.  Path is relative to CWD when
+# the CLI is invoked (e.g. repo root → examples/gallery/assets/brand-logo.png).
 version: "1.0"
 metadata:
   title: "Our Timeline"
@@ -24,6 +27,11 @@ metadata:
   axis_unit: month
   theme: our-timeline
   locale: en
+  logo:
+    src: "examples/gallery/assets/brand-logo.png"
+    position: top-left
+    width: 100
+    height: 32
 tracks:
   - id: main
     label: " "

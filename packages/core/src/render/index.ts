@@ -30,6 +30,30 @@ import { svgToPng }        from './png.js';
 import { sceneToPngSkia }  from './skia.js';
 import { sceneHash }       from '../scene.js';
 
+// ---------------------------------------------------------------------------
+// Extended options for buildScene (rendering concern — not part of IR schema)
+// ---------------------------------------------------------------------------
+
+/**
+ * Options for `buildScene`.  Extends the public `RenderOptions` subset with
+ * rendering-only concerns (e.g. asset path resolution) that do not belong in
+ * the IR schema (`types.ts`).
+ */
+export interface BuildSceneOptions {
+  theme?: string;
+  layout?: 'horizontal' | 'vertical-spine';
+  spineSpacing?: 'time' | 'even';
+  /**
+   * Base directory for resolving relative asset paths in `metadata.logo.src`
+   * (and future asset references).  Defaults to `process.cwd()`.
+   *
+   * Callers that know the on-disk location of the input document SHOULD pass
+   * its directory here so that relative logo paths resolve correctly regardless
+   * of the process working directory.
+   */
+  baseDir?: string;
+}
+
 /**
  * Compute the Scene (layout IR) for an IRDocument without rendering to any
  * output format.  Consumers (linter, tests, tooling) can inspect geometry
@@ -37,15 +61,16 @@ import { sceneHash }       from '../scene.js';
  */
 export function buildScene(
   ir: IRDocument,
-  options?: Pick<RenderOptions, 'theme' | 'layout' | 'spineSpacing'>,
+  options?: BuildSceneOptions | Pick<RenderOptions, 'theme' | 'layout' | 'spineSpacing'>,
 ): Scene {
-  const themeId = options?.theme ?? ir.metadata.theme ?? 'default';
+  const opts = options as BuildSceneOptions | undefined;
+  const themeId = opts?.theme ?? ir.metadata.theme ?? 'default';
   let theme = resolveTheme(themeId);
   // Apply render-level overrides that supersede the theme declaration.
-  if (options?.spineSpacing !== undefined) {
-    theme = { ...theme, spineSpacing: options.spineSpacing };
+  if (opts?.spineSpacing !== undefined) {
+    theme = { ...theme, spineSpacing: opts.spineSpacing };
   }
-  return layout(ir, theme, options?.layout);
+  return layout(ir, theme, opts?.layout, opts?.baseDir);
 }
 
 /**
@@ -55,9 +80,12 @@ export function buildScene(
  * function returns the Scene hash and SVG but does NOT produce Skia PNG bytes
  * (use `renderDocumentAsync` for that).  All other combinations are handled
  * synchronously and are byte-identical to previous behaviour.
+ *
+ * Pass `baseDir` (via a `BuildSceneOptions`-extended options object) to
+ * control asset path resolution for `metadata.logo.src`.
  */
-export function renderDocument(ir: IRDocument, options: RenderOptions): RenderResult {
-  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing });
+export function renderDocument(ir: IRDocument, options: RenderOptions & { baseDir?: string }): RenderResult {
+  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing, baseDir: options.baseDir });
   const svg   = sceneToSvg(scene);
   const hash  = sceneHash(scene);
 
@@ -84,9 +112,10 @@ export function renderDocument(ir: IRDocument, options: RenderOptions): RenderRe
  * and return a resolved Promise.
  *
  * Use this function in the CLI and in Skia tests.
+ * Pass `baseDir` to control asset path resolution for `metadata.logo.src`.
  */
-export async function renderDocumentAsync(ir: IRDocument, options: RenderOptions): Promise<RenderResult> {
-  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing });
+export async function renderDocumentAsync(ir: IRDocument, options: RenderOptions & { baseDir?: string }): Promise<RenderResult> {
+  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing, baseDir: options.baseDir });
   const svg   = sceneToSvg(scene);
   const hash  = sceneHash(scene);
 

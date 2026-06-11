@@ -8,7 +8,7 @@
  * CONTRACT: returns a plain `string` — never a Buffer, stream, or promise.
  */
 
-import type { Scene, ScenePrimitive } from '../scene.js';
+import type { Scene, ScenePrimitive, ImagePrimitive } from '../scene.js';
 
 // ---------------------------------------------------------------------------
 // Formatting helpers
@@ -160,7 +160,55 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
       const children = p.primitives.map((c) => primitiveToSvg(c, depth + 1)).join('\n');
       return `${indent}<g${attrs(a)}>\n${children}\n${indent}</g>`;
     }
+
+    case 'image': {
+      const a: AttrMap = {
+        height:  p.height,
+        href:    p.data,
+        opacity: p.opacity,
+        width:   p.width,
+        x:       p.x,
+        y:       p.y,
+      };
+      if (p.borderRadius) {
+        // Reference the clip path defined in the <defs> block (see collectImageClipDefs)
+        const clipId = imageClipId(p);
+        (a as Record<string, string | number | undefined>)['clip-path'] = `url(#${clipId})`;
+      }
+      return `${indent}<image${attrs(a)}/>`;
+    }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Image clip-path helpers (for borderRadius on ImagePrimitive)
+// ---------------------------------------------------------------------------
+
+/** Deterministic clip-path ID derived from image geometry. */
+function imageClipId(p: ImagePrimitive): string {
+  return `img-clip-${fmt(p.x)}-${fmt(p.y)}-${fmt(p.width)}-${fmt(p.height)}`;
+}
+
+/** Recursively collect <clipPath> defs needed for ImagePrimitive.borderRadius. */
+function collectImageClipDefs(primitives: ScenePrimitive[]): string[] {
+  const defs: string[] = [];
+  for (const p of primitives) {
+    if (p.kind === 'image' && p.borderRadius) {
+      const id = imageClipId(p);
+      const rectAttrs: AttrMap = {
+        height: p.height,
+        rx:     p.borderRadius,
+        width:  p.width,
+        x:      p.x,
+        y:      p.y,
+      };
+      defs.push(`  <clipPath id="${id}"><rect${attrs(rectAttrs)}/></clipPath>`);
+    }
+    if (p.kind === 'group') {
+      defs.push(...collectImageClipDefs(p.primitives));
+    }
+  }
+  return defs;
 }
 
 // ---------------------------------------------------------------------------
@@ -188,11 +236,18 @@ export function sceneToSvg(scene: Scene): string {
     xmlns:   'http://www.w3.org/2000/svg',
   };
 
+  // Collect clip-path defs for ImagePrimitives with borderRadius (if any)
+  const clipDefs = collectImageClipDefs(scene.primitives);
+  const defsBlock = clipDefs.length > 0
+    ? `<defs>\n${clipDefs.join('\n')}\n</defs>\n`
+    : '';
+
   const elements = scene.primitives.map((p) => primitiveToSvg(p, 1)).join('\n');
 
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<svg${attrs(rootAttrs)}>`,
+    ...(defsBlock ? [defsBlock] : []),
     elements,
     `</svg>`,
   ].join('\n');

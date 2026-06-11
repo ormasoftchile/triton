@@ -29,6 +29,7 @@ import type { ResolvedTheme } from '../themes/types.js';
 import { ptToPx } from '../fonts/metrics.js';
 import { wrapText, truncateText } from '../text-wrap.js';
 import { getIcon } from '../icons.js';
+import { loadImageAsset } from '../asset-loader.js';
 import {
   dateToOrdinal,
   ordinalToDate,
@@ -134,7 +135,7 @@ function isHexDark(hex: string): boolean {
 // Layout entry point
 // ---------------------------------------------------------------------------
 
-export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene {
+export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDir?: string): Scene {
   const W  = theme.canvas.width;
   const m  = theme.canvas.margin;
   const mT = m.top;
@@ -213,6 +214,16 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     const hasMetaLine = !!(ir.metadata.author || ir.metadata.updated || ir.metadata.created);
     if (hasMetaLine) headerH += 4 + rhuInt(hdrMetaFontPx * 1.35);
     headerH += HEADER_V_PAD;
+  }
+
+  // Logo: ensure the header is tall enough to contain the logo image.
+  const LOGO_DEFAULT_W = 100;
+  const LOGO_DEFAULT_H = 32;
+  const LOGO_V_PAD     = 8;
+  if (ir.metadata.logo) {
+    const logoH  = ir.metadata.logo.height ?? LOGO_DEFAULT_H;
+    const minHdr = logoH + LOGO_V_PAD * 2;
+    if (minHdr > headerH) headerH = rhuInt(minHdr);
   }
 
   // ── Time range ────────────────────────────────────────────────────────────
@@ -637,6 +648,30 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       strokeWidth: 0.5,
       opacity:     0.35,
     });
+  }
+
+  // 2b. Logo — placed in header corner (top-left or top-right)
+  if (ir.metadata.logo) {
+    const logoSpec = ir.metadata.logo;
+    const asset    = loadImageAsset(logoSpec.src, baseDir);
+    if (asset) {
+      const logoW  = logoSpec.width  ?? LOGO_DEFAULT_W;
+      const logoH  = logoSpec.height ?? LOGO_DEFAULT_H;
+      const pos    = logoSpec.position ?? 'top-left';
+      const logoX  = pos === 'top-right'
+        ? rhu(W - m.right - logoW - 4)
+        : rhu(m.left + 4);
+      const logoY  = rhu(mT + (headerH - logoH) / 2);
+      primitives.push({
+        kind:     'image',
+        x:        logoX,
+        y:        logoY,
+        width:    logoW,
+        height:   logoH,
+        data:     asset.dataUri,
+        mimeType: asset.mimeType,
+      });
+    }
   }
 
   // 3. Activity duration segments on the spine (drawn BEHIND spine line)

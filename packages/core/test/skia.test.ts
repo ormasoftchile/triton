@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { sceneToPngSkia } from '../src/render/skia.js';
 import { renderDocumentAsync, renderDocument, buildScene } from '../src/render/index.js';
+import { sceneToSvg } from '../src/render/svg.js';
 import { parseIR } from '../src/load.js';
 import { validateDocument } from '../src/validate.js';
 import { lintScene } from '../src/lint.js';
@@ -569,8 +570,9 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
   it('our-timeline SVG render is deterministic (T1 regression guard)', () => {
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
-    const r1 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
-    const r2 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
+    // Pass baseDir so the logo resolves relative to repo root
+    const r1 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT });
+    const r2 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT });
     expect(r1.svg).toBe(r2.svg);
     expect(r1.sceneHash).toBe(r2.sceneHash);
     // Centered title
@@ -580,12 +582,15 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
     expect(r1.svg).toContain('fill="#FFFFFF"');
     // Filled node 02 (in-progress → navy fill)
     expect(r1.svg).toContain('fill="#1F497D"');
+    // Logo embedded in SVG output
+    expect(r1.svg).toContain('<image');
+    expect(r1.svg).toContain('data:image/png;base64,');
   });
 
   it('our-timeline SVG scene passes the linter (zero errors)', () => {
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
-    const scene = buildScene(ir, { theme: 'our-timeline', layout: 'horizontal' });
+    const scene = buildScene(ir, { theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT });
     const issues = lintScene(scene);
     const errors = issues.filter((q) => q.severity === 'error');
     if (errors.length > 0) {
@@ -596,11 +601,11 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
     expect(errors).toHaveLength(0);
   });
 
-  it('our-timeline Skia render produces valid PNG (T1 horizontal numbered)', async () => {
+  it('our-timeline Skia render produces valid PNG with logo (T1 horizontal numbered)', async () => {
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal', baseDir: REPO_ROOT,
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -613,19 +618,223 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal', baseDir: REPO_ROOT,
     });
     const png = result.png!;
     expect(isPngSignature(png)).toBe(true);
     writeFileSync(outPath, png);
     console.log('[t1-golden] our-timeline-numbered Skia PNG →', outPath);
 
-    // Re-render to verify Skia byte-determinism
+    // Re-render to verify Skia byte-determinism (logo embedded → same bytes)
     const result2 = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal', baseDir: REPO_ROOT,
     });
     const png2 = result2.png!;
     expect(png2.length).toBe(png.length);
     expect(isPngSignature(png2)).toBe(true);
+    // Byte-identical determinism
+    expect(Buffer.from(png2).equals(Buffer.from(png))).toBe(true);
   }, 90_000);
+});
+
+// ---------------------------------------------------------------------------
+// (12) Image Primitive — end-to-end tests (all 3 backends + graceful skip)
+// ---------------------------------------------------------------------------
+
+describe('Image Primitive — all backends + asset loading', () => {
+  const LOGO_PATH    = join(REPO_ROOT, 'examples', 'gallery', 'assets', 'brand-logo.png');
+  const T1_FIXTURE   = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.timeline.yaml');
+  const T1_SVG_OUT   = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.svg');
+
+  // Minimal 1×1 red PNG as a data URI for fast unit tests (no disk I/O)
+  // Generated from a known 1×1 red PNG (PNG spec header + IHDR + IDAT + IEND).
+  const TINY_PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwADhQGAWjR9awAAAABJRU5ErkJggg==';
+  const TINY_DATA_URI = `data:image/png;base64,${TINY_PNG_B64}`;
+
+  it('SVG backend emits <image> element for data URI logo', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = renderDocument(ir, {
+      format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT,
+    });
+    expect(result.svg).toContain('<image');
+    expect(result.svg).toContain('data:image/png;base64,');
+  });
+
+  it('SVG backend embeds PNG file as base64 data URI (path → data URI)', () => {
+    // Verify the brand-logo.png file exists on disk
+    expect(existsSync(LOGO_PATH)).toBe(true);
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = renderDocument(ir, {
+      format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT,
+    });
+    // No external file reference in SVG output — all bytes embedded
+    expect(result.svg).not.toContain('brand-logo.png');
+    expect(result.svg).toContain('data:image/png;base64,');
+  });
+
+  it('graceful skip on missing logo file — no crash', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    // Override logo src to a non-existent path
+    const irWithBadLogo = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: 'no-such-file-x9z.png', position: 'top-left' as const },
+      },
+    };
+    // Should not throw
+    const result = renderDocument(irWithBadLogo, {
+      format: 'svg', theme: 'our-timeline', layout: 'horizontal',
+    });
+    expect(result.svg).not.toContain('<image');
+    expect(result.sceneHash).toBeTruthy();
+  });
+
+  it('graceful skip on unsupported logo extension', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const irWithBadExt = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: 'data:image/bmp;base64,abc', position: 'top-left' as const },
+      },
+    };
+    // data: URIs are passed through regardless of MIME — no crash
+    const result = renderDocument(irWithBadExt, {
+      format: 'svg', theme: 'our-timeline', layout: 'horizontal',
+    });
+    expect(result.sceneHash).toBeTruthy();
+  });
+
+  it('data URI passthrough — src is already a data URI', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const irWithDataUri = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: TINY_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
+      },
+    };
+    const result = renderDocument(irWithDataUri, {
+      format: 'svg', theme: 'our-timeline', layout: 'horizontal',
+    });
+    expect(result.svg).toContain('<image');
+    expect(result.svg).toContain(TINY_PNG_B64);
+  });
+
+  it('SVG ImagePrimitive is deterministic (same data URI → identical hash)', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const irWithLogo = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: TINY_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
+      },
+    };
+    const r1 = renderDocument(irWithLogo, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
+    const r2 = renderDocument(irWithLogo, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+  });
+
+  it('PNG (resvg) backend renders with embedded PNG logo', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const irWithLogo = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: TINY_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
+      },
+    };
+    const result = renderDocument(irWithLogo, { format: 'png', theme: 'our-timeline', layout: 'horizontal' });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+  });
+
+  it('Skia backend renders ImagePrimitive without crashing', async () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const irWithLogo = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: TINY_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
+      },
+    };
+    const result = await renderDocumentAsync(irWithLogo, {
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+    });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+  }, 60_000);
+
+  it('Skia backend skips SVG-format logo gracefully (raster-only Skia decode)', async () => {
+    // SVG data URIs are skipped in the Skia backend (MakeImageFromEncoded is
+    // raster-only). The render should still succeed (no crash).
+    const SVG_DATA_URI = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="4" fill="red"/></svg>').toString('base64')}`;
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const irWithSvgLogo = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: SVG_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
+      },
+    };
+    const result = await renderDocumentAsync(irWithSvgLogo, {
+      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+    });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+  }, 60_000);
+
+  it('borderRadius produces <clipPath> in SVG output', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const irWithLogo = {
+      ...ir,
+      metadata: {
+        ...ir.metadata,
+        logo: { src: TINY_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
+      },
+    };
+    const scene = buildScene(irWithLogo, { theme: 'our-timeline', layout: 'horizontal' });
+    // Append an ImagePrimitive with borderRadius to test the <defs>/<clipPath> path
+    const sceneWithRadius = {
+      ...scene,
+      primitives: [
+        ...scene.primitives,
+        {
+          kind: 'image' as const,
+          x: 10, y: 10, width: 50, height: 30,
+          data: TINY_DATA_URI,
+          mimeType: 'image/png',
+          borderRadius: 8,
+        },
+      ],
+    };
+    const svg = sceneToSvg(sceneWithRadius);
+    expect(svg).toContain('<defs>');
+    expect(svg).toContain('<clipPath');
+    expect(svg).toContain('clip-path="url(#');
+    expect(svg).toContain('rx="8"');
+  });
+
+  it('regenerates T1 SVG golden with logo (write to disk)', () => {
+    const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = renderDocument(ir, {
+      format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT,
+    });
+    writeFileSync(T1_SVG_OUT, result.svg);
+    console.log('[t1-golden] our-timeline-numbered SVG →', T1_SVG_OUT);
+    expect(result.svg).toContain('<image');
+  });
 });

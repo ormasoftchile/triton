@@ -139,6 +139,37 @@ export interface GroupPrimitive {
 }
 
 /**
+ * An image primitive — an embedded raster or vector image positioned at (x, y).
+ *
+ * The image data MUST be a `data:` URI with base64-encoded bytes:
+ *   `data:image/png;base64,...`
+ *
+ * This guarantees output byte-determinism (no external file references in
+ * the emitted document).  Callers are responsible for embedding the bytes
+ * before constructing this primitive (see `loadImageAsset`).
+ *
+ * Backend support:
+ *   SVG  — `<image href="data:..."/>` + optional `<clipPath>` for borderRadius.
+ *   Skia — `CK.MakeImageFromEncoded` → `drawImageRect`; raster formats only
+ *           (PNG, JPEG, GIF, WEBP); SVG data URIs are silently skipped.
+ *   PNG/resvg — pass-through via the SVG intermediate; PNG/JPEG data URIs
+ *               work; SVG data URIs may not (resvg limitation).
+ */
+export interface ImagePrimitive {
+  kind: 'image';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Embedded data URI: `data:<mimeType>;base64,<bytes>`. */
+  data: string;
+  mimeType: string;
+  /** Optional corner rounding radius (CSS border-radius style). */
+  borderRadius?: number;
+  opacity?: number;
+}
+
+/**
  * Stub descriptor for art effects (Tier 2/3) — superseded by SceneEffect
  * above for Phase 4 but retained for backward compatibility.
  */
@@ -155,7 +186,8 @@ export type ScenePrimitive =
   | TextPrimitive
   | MultiTextPrimitive
   | PathPrimitive
-  | GroupPrimitive;
+  | GroupPrimitive
+  | ImagePrimitive;
 
 // ---------------------------------------------------------------------------
 // Scene root
