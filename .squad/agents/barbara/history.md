@@ -187,8 +187,97 @@ Horizontal golden guard (our-timeline-skia.png) byte-identical.
 
 ---
 
+## 2026-06-11 Session — Smooth Gradient & Palette-Derived Serpentine
+
+### Improvement 1 — True Smooth Stroke Gradient
+
+**StrokeGradient Scene Primitive Extension:**
+- Added `StrokeGradient` interface and optional `strokeGradient?` field to `PathPrimitive` in `packages/core/src/scene.ts`.
+- Shape: `{ from: string; to: string; x1: number; y1: number; x2: number; y2: number }` — endpoint colors + scene-space coordinates.
+- When present, the path is stroked with a linear gradient instead of a flat solid `stroke`.
+- Purely additive/opt-in: all existing PathPrimitives without the field are unaffected (canonicalJSON omits undefined values → sceneHash stable for existing scenes).
+
+**SVG Backend (`render/svg.ts`):**
+- Added `strokeGradientId(sg)` — content-based deterministic ID: `sg-{x1}-{y1}-{x2}-{y2}-{fromHex}-{toHex}` (period replaced with 'd' for XML safety).
+- Added `collectGradientDefs(primitives)` — walks scene tree, deduplicates by ID, emits `<linearGradient gradientUnits="userSpaceOnUse" id="sg-..." x1="..." ...><stop offset="0%".../><stop offset="100%".../>` in `<defs>`.
+- Path rendering: `stroke="url(#sg-...)"` when `strokeGradient` present.
+- Defs block: merges clip-path defs (images) + gradient defs into one `<defs>` block.
+
+**Skia Backend (`render/skia.ts`):**
+- In `renderPath` strokeOnly branch: condition extended to `(p.stroke || p.strokeGradient) && strokeWidth > 0`.
+- When `strokeGradient` present: builds `CK.Shader.MakeLinearGradient([x1,y1],[x2,y2], [parseColor(from,opacity), parseColor(to,opacity)], null, CK.TileMode.Clamp)`, applies shader to stroke Paint — true smooth gradient, no faceting.
+- When absent: existing solid `parseColor(p.stroke)` path unchanged.
+
+**Linter fix (`lint.ts`):**
+- `pathBBox` now skips paths containing arc/curve SVG commands (`A, Q, C, S, T, a, q, c, s, t`).
+- Previously, the single boustrophedon path (with A commands) had 4 M/L vertices that passed the 3–7 polygon check, producing a huge scene-spanning bbox that flagged all circles as NODE_OVERLAP. The curve-exclusion filter correctly identifies milestone diamond/triangle shapes (M/L/Z only).
+
+**Serpentine Layout (`layout/serpentine.ts`):**
+- Replaced 64-chord polyline (`GRADIENT_SEGS` loop) with ONE `PathPrimitive` carrying `strokeGradient`.
+- `pathStart = pathPointAtS(0, geo)` and `pathEnd = pathPointAtS(totalLength, geo)` computed once, used for both the gradient endpoints and the badge positions.
+- The full arc-command boustrophedon `buildPathD(geo)` path is reused for both the glow layer and the gradient stroke.
+- SVG path count: 66 → 4 (glow + gradient + 2 icon paths). Gradient ID: `sg-90-164-1110-484-86efac-15803d` for the standard serpentine fixture.
+
+### Improvement 2 — Palette-Derived Serpentine Fallback
+
+**Fallback in `layout/serpentine.ts`:**
+- When `theme.serpentine` is absent, the fallback is now palette-derived using `theme.statusMap['in-progress'].fill` as the accent base.
+- `gradientFrom = lightenHex(accent, 0.35)` — blend toward white by 35%.
+- `gradientTo = darkenHex(accent, 0.15)` — blend toward black by 15%.
+- `glowColor = accent` (the raw in-progress color).
+- `nodeFill = theme.canvas.backgroundColor` — nodes "hollow" against the path.
+- `nodeStroke = accent`.
+- `badgeFill = darkenHex(accent, 0.2)`.
+- `badgeIconColor = contrastColor(badgeFill)` — white for dark fills, `#1F2937` for light fills (average RGB < 128 threshold).
+- `labelColor = theme.milestone.titleLabelColor`.
+- Added helpers: `lightenHex(hex, factor)`, `darkenHex(hex, factor)`, `contrastColor(hex)`.
+- Explicit `theme.serpentine` block (e.g. the serpentine theme itself) still takes full precedence.
+
+**Theme palette derivations verified:**
+- Consulting (NAVY `#1F497D` in-progress): gradient `#6D89AB` → `#1A3E6A` (lighter/darker navy).
+- Executive (CYAN `#00B4D8` in-progress): gradient `#59CEE6` → `#0099B8` (lighter/darker teal).
+- Both distinctly non-green, matching each theme's identity.
+
+### New Multi-Theme Goldens
+
+| Golden | Theme | Dims | Notes |
+|--------|-------|------|-------|
+| `serpentine-journey-skia.png` | serpentine | 1200×556 | Regenerated with smooth gradient |
+| `serpentine-journey.svg` | serpentine | 1200×556 | 4 paths + `<linearGradient>` in `<defs>` |
+| `serpentine-journey-consulting-skia.png` | consulting | 1200×556 | Navy palette-derived NEW |
+| `serpentine-journey-executive-skia.png` | executive | 1200×556 | Teal palette-derived NEW |
+
+### Existing Goldens Unchanged
+
+All non-serpentine goldens byte-identical (`our-timeline-skia.png` guard confirmed). The `strokeGradient` field is opt-in and no existing layout uses it.
+
+### Files Touched
+
+**Modified:**
+- `packages/core/src/scene.ts` — `StrokeGradient` interface + `strokeGradient?` on `PathPrimitive`
+- `packages/core/src/render/svg.ts` — `strokeGradientId`, `collectGradientDefs`, gradient defs in `<defs>`, path stroke ref
+- `packages/core/src/render/skia.ts` — gradient shader in `renderPath` strokeOnly branch
+- `packages/core/src/layout/serpentine.ts` — single gradient path, palette-derived fallback, `lightenHex`/`darkenHex`/`contrastColor` helpers, updated file comment
+- `packages/core/src/lint.ts` — `pathBBox` skips curved paths (A/Q/C commands)
+- `packages/core/test/skia.test.ts` — 3 new tests (consulting golden, executive golden, SVG determinism)
+
+**Goldens Updated:**
+- `serpentine-journey-skia.png` (53740→56376 bytes), `serpentine-journey.svg` (SVG reduced from ~66 paths to 4)
+
+**Goldens Added:**
+- `serpentine-journey-consulting-skia.png` (58125 bytes)
+- `serpentine-journey-executive-skia.png` (55855 bytes)
+
+### Test Results
+
+**570/570 tests pass** (554 core + 13 schema + 3 cli). 3 new tests added. `pnpm -r typecheck` and `pnpm -r lint` clean.
+
+---
+
 ## Learnings
 
 - Serpentine layout (T4) now appears in examples/gallery/showcase.html for direct browsing alongside other showcase entries. Fixture placement (examples/showcase/serpentine-journey.timeline.yaml) confirmed consistent with other showcase fixtures.
-
+- `PathPrimitive.strokeGradient` enables true smooth gradient strokes on curved paths; the SVG backend uses `<linearGradient gradientUnits="userSpaceOnUse">` with a content-based deterministic ID; the Skia backend uses `CK.Shader.MakeLinearGradient`.
+- The linter's `pathBBox` must exclude curved SVG paths (A/Q/C commands) to avoid false NODE_OVERLAP from the serpentine's wide-spanning boustrophedon geometry.
+- Palette derivation for serpentine fallback: `lightenHex(accent, 0.35)` → `darkenHex(accent, 0.15)` creates a coherent light-to-dark gradient from any theme's in-progress status color.
 
