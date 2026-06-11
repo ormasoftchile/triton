@@ -4,7 +4,109 @@
 **Project:** timeline — IR-based rendering system for timelines/roadmaps  
 **Stack:** TypeScript/Node, SVG/PNG/Skia backends, deterministic layout engine
 
-## Recent Session (2026-06-11)
+## Recent Session (2026-06-11) — T1 "Our Timeline" Close
+
+### T1 Target: Horizontal Numbered Timeline
+
+**Target:** `design/figures/target-horizontal-numbered.png`  
+**Goal:** Three numbered circular nodes (01 outlined, 02 filled/highlighted, 03 outlined) on a horizontal axis, centered title, alternating above/below labels.
+
+#### T1-1: Alternating above/below labels — Pre-existing ✅
+
+Already implemented in `horizontal.ts`: even index → 'below', odd index → 'above'. For 3 milestones: 01 below, 02 above, 03 below — exactly matching the target. **No code change.**
+
+#### T1-2: Centered document title — Formalized ✅
+
+The title was already rendered at `x = W/2, text-anchor="middle"` in both `horizontal.ts` and `vertical-spine.ts`. The gap analysis was written before this was implemented.
+
+**Formalized with new token `titleAlign?: 'left' | 'center'` on `TypographyTheme`:**
+- `undefined` → 'center' (historical default, byte-identical)
+- `'left'` → left-aligned title at draw-area edge
+- Applied to both layout engines for consistency
+- `our-timeline` theme explicitly sets `titleAlign: 'center'`
+
+#### T1 new: Filled vs outlined node differentiation ✅
+
+**Theme-level solution:** New `our-timeline` theme maps:
+- `statusMap.done.fill = '#FFFFFF'` (white → hollow ring, dark ordinal text)
+- `statusMap.planned.fill = '#FFFFFF'` (white → hollow ring, dark ordinal text)
+- `statusMap['in-progress'].fill = '#1F497D'` (navy → filled, white ordinal text)
+
+**New token `ordinalColorContrast?: boolean` on `MilestoneTheme`:**
+- When `true`: ordinal text color = `contrastColor(nodeFill, '#FFFFFF', '#111111')` — WCAG-derived
+- When `false`/undefined: uses fixed `ms.ordinalColor` (byte-identical for all existing themes)
+- Set in `our-timeline` theme: dark text on hollow white nodes, white text on filled navy node ✓
+
+**Fixture:** `examples/gallery/our-timeline-numbered.timeline.yaml`
+- App Deadline → `status: done` → hollow node 01
+- Qualifying Exam → `status: in-progress` → filled navy node 02
+- Training Starts → `status: planned` → hollow node 03
+- `legend: { show: false }` — suppresses the auto-legend (no code change, IR field already existed)
+
+#### T1-3: Logo — SCOPED ONLY (not built)
+
+Decision note written: `.squad/decisions/inbox/barbara-t1-close.md`
+
+Requires a new `SceneImage { kind: 'image', x, y, width, height, data, mimeType }` primitive + support in SVG (data URI `<image>`), resvg (pass-through), and Skia (`MakeImageFromEncoded`). Also needs Mark to add `metadata.logo` to IR schema. Estimated 7h, 2 owners.
+
+#### New `our-timeline` Theme
+
+**File:** `packages/core/src/themes/our-timeline.ts`
+- Tier 1, light (#FFFFFF canvas), `titleAlign: 'center'`, `ordinalColorContrast: true`
+- Node size: 28px radius (vs consulting's 22px)
+- Bold title labels (`titleLabelFontWeight: 700`)
+- `categoryMap: {}` (no category overrides)
+- Registered in `themes/index.ts` as `'our-timeline'`
+
+#### T1 Fidelity Assessment
+
+| Feature | Match? |
+|---------|--------|
+| Light background | ✅ |
+| Centered "Our Timeline" title | ✅ |
+| 3 numbered circles (01, 02, 03) | ✅ |
+| Node 02 filled navy | ✅ |
+| Nodes 01/03 outlined hollow | ✅ |
+| Alternating labels (01 below, 02 above, 03 below) | ✅ |
+| Short connector stems | ✅ |
+| Bold milestone titles | ✅ |
+| No legend panel | ✅ |
+| Brand logo | ❌ T1-3 (spec only) |
+| No axis tick labels | ⚠️ Minor (we show month ticks) |
+
+**Overall: ~95% fidelity. T1 is fully renderable structurally except logo.**
+
+#### Tests + Goldens
+
+- **New tests:** 5 tests in `skia.test.ts` describe block "T1 Our Timeline"
+- **New golden:** `examples/gallery/showcase/our-timeline-numbered-skia.png` (1200×369 px)
+- **Existing goldens:** byte-identical (all new tokens opt-in with non-breaking defaults)
+- **Total tests:** 527/527 pass (518 core + 6 schema + 3 cli)
+- **typecheck + lint:** clean
+
+#### Files touched (T1)
+
+- `packages/core/src/themes/types.ts` — +`titleAlign` (TypographyTheme), +`ordinalColorContrast` (MilestoneTheme)
+- `packages/core/src/layout/horizontal.ts` — titleAlign in header; ordinalColorContrast in ordinal render
+- `packages/core/src/layout/vertical-spine.ts` — titleAlign in header (consistency)
+- `packages/core/src/themes/our-timeline.ts` — new file
+- `packages/core/src/themes/index.ts` — registered 'our-timeline'
+- `examples/gallery/our-timeline-numbered.timeline.yaml` — new T1 fixture
+- `examples/gallery/our-timeline-numbered.svg` — SVG render artifact
+- `examples/gallery/showcase/our-timeline-numbered-skia.png` — new golden
+- `packages/core/test/skia.test.ts` — T1 describe block
+- `.squad/decisions/inbox/barbara-t1-close.md` — logo spec + T1 fidelity report
+
+#### Key Learnings (T1)
+
+- T1-1 and T1-2 were already implemented before this session — gap analysis written before those features shipped
+- Filled vs hollow nodes can be achieved **purely via theme `statusMap`** without per-milestone IR changes: setting `fill: '#FFFFFF'` in the status map produces an outlined ring appearance
+- `ordinalColorContrast: true` + `contrastColor()` is the correct way to auto-adapt ordinal text color to fill — avoids hardcoding per-status ordinal colors in the theme
+- `legend.show: false` in the YAML fixture suppresses the auto-legend — no theme token needed, the IR already supports this
+- The `contrastColor()` function uses the WCAG 2.1 relative-luminance threshold (0.179) which correctly handles both navy (#1F497D, L≈0.044) and white (#FFFFFF, L=1.0)
+- `titleAlign` token default must be `'center'` (matching existing behavior), NOT `'left'` — the existing rendering was already center-aligned
+
+
 
 ### T5 Gitline Cards — Gaps T5-1 and T5-2 CLOSED
 

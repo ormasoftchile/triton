@@ -2090,22 +2090,26 @@ Since the 2026-06-10 analysis, significant progress has been made:
 
 **Image:** `design/figures/target-horizontal-numbered.png`
 
-**Verdict:** 🟡 **Partially renderable** (most of it)
+**Verdict:** 🟢 **Fully renderable** (~95% fidelity, logo gap remains) — T1-1, T1-2, T1-new CLOSED 2026-06-11
 
 **What We CAN Already Do:**
 - Horizontal layout family ✅
 - Large numbered circular milestone nodes (consulting theme: `showOrdinalNumber: true`, `shape: 'circle'`) ✅
 - Date label above / title below milestone (consulting theme: `dateLabelAbove: true`, `titleLabelBelow: true`) ✅
-- Light background (consulting/minimal theme) ✅
-- Deterministic font sizing and positioning ✅
+- Light background ✅
+- Centered title `titleAlign: 'center'` (new token, opt-in, default = center = existing behavior) ✅
+- Alternating above/below labels (pre-existing, index 0 → below, 1 → above, 2 → below) ✅
+- Filled vs outlined nodes via themed `statusMap` + `ordinalColorContrast: true` (new token) ✅
+- Legend suppressed via `legend.show: false` in fixture ✅
 
 **Remaining Gaps:**
 
 | Gap ID | Type | Description | Owner | Effort |
 |--------|------|-------------|-------|--------|
-| T1-1 | [Theme] | **Alternating above/below node placement** — T1 shows node 02 raised above the line; nodes 01/03 below. Current horizontal layout places all milestones on a single baseline. Need `nodePlacement: 'alternating'` layout mode. | Barbara | M |
-| T1-2 | [Theme] | **Centered document title** — title is center-aligned mid-canvas. Current header block is left-aligned in some themes. | Barbara | S |
-| T1-3 | [Render] | **Brand logo/image slot** — top-right company logo. Needs `Scene.image` primitive or metadata.logo field + dedicated render slot. | Barbara/Mark | M |
+| ✅ T1-1 | [Theme] | ~~Alternating above/below node placement~~ — CLOSED (pre-existing in horizontal.ts) | Barbara | — |
+| ✅ T1-2 | [Theme] | ~~Centered document title~~ — CLOSED (pre-existing + `titleAlign` token added 2026-06-11) | Barbara | — |
+| ✅ T1-new | [Theme] | Filled (active) vs outlined (inactive) node — CLOSED via `statusMap` + `ordinalColorContrast` (2026-06-11) | Barbara | — |
+| T1-3 | [Render] | **Brand logo/image slot** — top-right company logo. Needs `Scene.image` primitive + `metadata.logo` IR field. Spec in `.squad/decisions/inbox/barbara-t1-close.md`. | Barbara/Mark | M |
 
 #### T2: Vertical Spine Dark ("Subject Timeline")
 
@@ -2208,14 +2212,14 @@ Sorted by number of targets unblocked (highest leverage first):
 | T2-1 | Layout | Per-segment spine color | T2 | Barbara/Mark | M |
 | T2-2 | Layout | Dashed leader lines + far-edge icon badges | T2 | Barbara | M |
 | T2-4 | IR Schema | Multiple sub-blocks per entry | T2 | Mark | M |
-| T3-3 | IR Schema | Activity.color?: string (direct color) | T3 | Mark | S |
-| T1-1 | Theme | Alternating above/below milestone placement | T1 | Barbara | M |
+| ~~T3-3~~ | ~~IR Schema~~ | ~~Activity.color?: string (direct color)~~ | ~~T3~~ | ~~Mark~~ | ✅ CLOSED |
+| ~~T1-1~~ | ~~Theme~~ | ~~Alternating above/below milestone placement~~ | ~~T1~~ | ~~Barbara~~ | ✅ CLOSED (pre-existing) |
 | ~~T5-1~~ | ~~Layout~~ | ~~CTA button rendering from url field~~ | ~~T5~~ | ~~Barbara~~ | ✅ CLOSED |
 | T4-1 | Layout | **Serpentine spine geometry** | T4 | Barbara | **L** |
-| T1-3 | Render | Brand logo/image slot | T1 | Barbara/Mark | M |
+| T1-3 | Render | Brand logo/image slot (SceneImage primitive) | T1 | Barbara/Mark | M |
 | T2-3 | Layout | Small arrowheads at spine/entry junction | T2 | Barbara | S |
-| T3-1 | Theme | Gradient background for vertical layouts | T3 | Barbara | S |
-| T3-2 | Layout | Year-label typography scaling | T3 | Barbara | S |
+| ~~T3-1~~ | ~~Theme~~ | ~~Gradient background for vertical layouts~~ | ~~T3~~ | ~~Barbara~~ | ✅ CLOSED |
+| ~~T3-2~~ | ~~Layout~~ | ~~Year-label typography scaling~~ | ~~T3~~ | ~~Barbara~~ | ✅ CLOSED |
 | ~~T5-2~~ | ~~Theme~~ | ~~Inline date icon rendering~~ | ~~T5~~ | ~~Barbara~~ | ✅ CLOSED |
 | T2-5 | Icon | Domain-specific pictographic icons | T2 | Barbara | S–M |
 | T4-2 | Icon | GitHub logo icon | T4 | Barbara | S |
