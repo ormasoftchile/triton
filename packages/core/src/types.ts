@@ -234,6 +234,17 @@ export interface RenderOptions {
    *   'vertical-spine' — central vertical spine, alternating L/R entries, T1/T3/T5 targets.
    */
   layout?: 'horizontal' | 'vertical-spine';
+  /**
+   * Rendering backend.  Defaults to 'svg'.
+   *   'svg'  — deterministic SVG → resvg PNG (default; SVG golden stays byte-identical).
+   *   'skia' — canvaskit-wasm Skia raster backend; enables art effects (glow, shadow,
+   *             gradient/cloud background).  Async: renderDocument returns Promise when
+   *             backend='skia' and format='png'.
+   *
+   * Cross-backend pixel identity is NOT promised.  Skia determinism is per
+   * pinned canvaskit-wasm version.
+   */
+  backend?: 'svg' | 'skia';
 }
 
 export interface RenderResult {

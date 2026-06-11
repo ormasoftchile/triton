@@ -8,10 +8,27 @@
  */
 
 import type { Status } from '../types.js';
+import type { SceneBackground, SceneEffect } from '../scene.js';
 
 // ---------------------------------------------------------------------------
 // Sub-blocks
 // ---------------------------------------------------------------------------
+
+/**
+ * Optional art-effect tokens for Tier-3 themes.
+ *
+ * When present, the layout engine GATES effect attachment to these primitives.
+ * All effects use fallback-policy 'omit': the SVG backend ignores them silently,
+ * preserving byte-identical output.  The Skia backend renders them in full.
+ */
+export interface EffectTokens {
+  /** Effects applied to milestone node markers (circle / diamond / triangle). */
+  nodeEffects?: SceneEffect[];
+  /** Effects applied to card background rects (vertical-spine entryStyle:'card'). */
+  cardEffects?: SceneEffect[];
+  /** Effects applied to activity bar rects. */
+  activityEffects?: SceneEffect[];
+}
 
 export interface CanvasTheme {
   width: number;
@@ -239,4 +256,17 @@ export interface ResolvedTheme {
    * Defaults to 'plain' when not set.  Has NO effect on horizontal layout output.
    */
   entryStyle?: 'card' | 'plain';
+
+  /**
+   * Optional declarative background for Skia rendering (Tier-3 Showcase).
+   * When set, passed through to Scene.sceneBackground.  SVG backend ignores it.
+   */
+  sceneBackground?: SceneBackground;
+
+  /**
+   * Optional art-effect tokens (Tier-3 Showcase).  When present, the layout
+   * engine attaches the specified SceneEffect[] to the relevant primitives.
+   * The SVG backend ignores all effects — output is byte-identical.
+   */
+  effects?: EffectTokens;
 }

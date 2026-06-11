@@ -12,6 +12,36 @@
 import { createHash } from 'node:crypto';
 
 // ---------------------------------------------------------------------------
+// Effect model (additive, backend-agnostic, Phase 4)
+// ---------------------------------------------------------------------------
+
+/**
+ * A declarative art effect attached to a scene primitive.
+ *
+ * Backends that cannot render a given effect MUST silently omit it (fallback
+ * policy: omit).  The SVG backend ignores all effects — output is byte-
+ * identical to a primitive with no effects.  The Skia backend renders them.
+ *
+ * Determinism: effects are serialised by canonicalJSON (key-sorted) so they
+ * contribute to the sceneHash.  Two identical effect lists produce the same hash.
+ */
+export type SceneEffect =
+  | { kind: 'glow';   color: string; radius: number }
+  | { kind: 'shadow'; dx: number; dy: number; blur: number; color: string };
+
+/**
+ * Declarative background specification for the Scene canvas.
+ *
+ * Replaces / augments `Scene.background` for backends that can honour it.
+ * The SVG backend continues to use `Scene.background` (the plain hex string)
+ * and ignores `Scene.sceneBackground`.
+ */
+export type SceneBackground =
+  | { kind: 'solid';    color: string }
+  | { kind: 'gradient'; from: string; to: string; angle: number }
+  | { kind: 'cloud';    baseColor: string; accentColor: string; intensity: number };
+
+// ---------------------------------------------------------------------------
 // Primitive types
 // ---------------------------------------------------------------------------
 
@@ -25,6 +55,7 @@ export interface LinePrimitive {
   strokeWidth: number;
   opacity?: number;
   dashArray?: string;
+  effects?: SceneEffect[];
 }
 
 export interface RectPrimitive {
@@ -38,6 +69,7 @@ export interface RectPrimitive {
   strokeWidth?: number;
   rx?: number;
   opacity?: number;
+  effects?: SceneEffect[];
 }
 
 export interface CirclePrimitive {
@@ -49,6 +81,7 @@ export interface CirclePrimitive {
   stroke?: string;
   strokeWidth?: number;
   opacity?: number;
+  effects?: SceneEffect[];
 }
 
 export interface TextPrimitive {
@@ -63,6 +96,7 @@ export interface TextPrimitive {
   textAnchor?: 'start' | 'middle' | 'end';
   dominantBaseline?: 'auto' | 'middle' | 'hanging' | 'alphabetic' | 'central';
   opacity?: number;
+  effects?: SceneEffect[];
 }
 
 export interface MultiTextPrimitive {
@@ -79,6 +113,7 @@ export interface MultiTextPrimitive {
   textAnchor?: 'start' | 'middle' | 'end';
   dominantBaseline?: 'auto' | 'middle' | 'hanging' | 'alphabetic' | 'central';
   opacity?: number;
+  effects?: SceneEffect[];
 }
 
 export interface PathPrimitive {
@@ -92,6 +127,7 @@ export interface PathPrimitive {
   fillRule?: 'nonzero' | 'evenodd';
   /** Optional SVG transform attribute (e.g. for icon scaling/translation). */
   transform?: string;
+  effects?: SceneEffect[];
 }
 
 export interface GroupPrimitive {
@@ -99,11 +135,12 @@ export interface GroupPrimitive {
   id?: string;
   opacity?: number;
   primitives: ScenePrimitive[];
+  effects?: SceneEffect[];
 }
 
 /**
- * Stub descriptor for art effects (Tier 2/3) — not used in Phase 1 Tier-1
- * rendering but included so the shape is complete.
+ * Stub descriptor for art effects (Tier 2/3) — superseded by SceneEffect
+ * above for Phase 4 but retained for backward compatibility.
  */
 export interface EffectDescriptor {
   type: 'drop-shadow' | 'glow' | 'none';
@@ -129,10 +166,19 @@ export interface Scene {
   width: number;
   /** Total canvas height in logical pixels (computed, never truncated). */
   height: number;
-  /** CSS colour string for the canvas background. */
+  /** CSS colour string for the canvas background (SVG backend primary). */
   background: string;
   /** Drawing primitives in painter's-algorithm order (back to front). */
   primitives: ScenePrimitive[];
+  /**
+   * Optional declarative background for backends that support rich fills
+   * (Skia backend: gradient / cloud / solid).  SVG backend ignores this field
+   * and uses `background` directly — keeping SVG output byte-identical.
+   *
+   * When set, the Skia backend renders this INSTEAD OF the first full-canvas
+   * background rect primitive (detected by x=0, y=0, w=width, h=height).
+   */
+  sceneBackground?: SceneBackground;
 }
 
 // ---------------------------------------------------------------------------

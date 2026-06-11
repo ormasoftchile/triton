@@ -895,6 +895,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     const stroke = catOverride?.stroke ?? base?.stroke ?? '#163760';
     const opacity = base?.opacity ?? 1;
 
+    // Attach activityEffects if theme declares them (Skia-only; SVG ignores)
+    const activityEffects = theme.effects?.activityEffects;
     primitives.push({
       kind:        'rect',
       x:           al.xLeft,
@@ -906,6 +908,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       strokeWidth: 0.5,
       rx:          theme.activity.barRadius,
       opacity,
+      ...(activityEffects ? { effects: activityEffects } : {}),
     });
 
     // Progress fill strip (§5/§6: filled strip at bar bottom when progress is set)
@@ -1106,7 +1109,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       }
     }
 
-    // (c) Node shape
+    // (c) Node shape — attach nodeEffects if theme declares them (Skia-only, SVG ignores)
+    const nodeEffects = theme.effects?.nodeEffects;
     if (ms.shape === 'circle') {
       primitives.push({
         kind:        'circle',
@@ -1116,6 +1120,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         fill,
         stroke:      ms.strokeColor,
         strokeWidth: ms.strokeWidth,
+        ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     } else if (ms.shape === 'triangle') {
       const s = ms.size;
@@ -1125,6 +1130,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         fill,
         stroke:      ms.strokeColor,
         strokeWidth: ms.strokeWidth,
+        ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     } else {
       // diamond
@@ -1135,6 +1141,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         fill,
         stroke:      ms.strokeColor,
         strokeWidth: ms.strokeWidth,
+        ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     }
 
@@ -1405,5 +1412,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     height:     H,
     background: cv.backgroundColor,
     primitives,
+    // Attach theme's declarative background (Skia backend uses it; SVG ignores it)
+    ...(theme.sceneBackground ? { sceneBackground: theme.sceneBackground } : {}),
   };
 }

@@ -141,7 +141,11 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
 
   // ── Spine geometry constants ──────────────────────────────────────────────
   const SPINE_X        = rhu(W / 2);
-  const CONNECTOR_LEN  = 48;
+  // CONNECTOR_LEN was 48; raised to 58 to clear year-qualified tick labels ("Q1 20XX")
+  // which span ~46 px from TICK_LABEL_X (SPINE_X+14), reaching x≈660 — only 2 px shy of
+  // the old content-block start (x=658).  The 10 px increase gives an 8 px gap (> TIGHT_GAP)
+  // and keeps BLOCK_W unchanged (min(330, W/2−58−40) = 330 for W=1200).
+  const CONNECTOR_LEN  = 58;
   /** Spine node radius for this layout (smaller than horizontal milestone.size). */
   const NODE_R         = rhu(Math.min(rhu(theme.milestone.size * 0.55), 11));
   /** Content block width. */
@@ -676,6 +680,8 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
 
     // Card background (only for card-style themes)
     if (entryStyle === 'card') {
+      // Attach cardEffects if theme declares them (Skia-only; SVG ignores)
+      const cardEffects = theme.effects?.cardEffects;
       primitives.push({
         kind:        'rect',
         x:           blockLeft,
@@ -687,6 +693,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         strokeWidth: 1,
         rx:          6,
         opacity:     0.95,
+        ...(cardEffects ? { effects: cardEffects } : {}),
       });
     }
 
@@ -814,6 +821,9 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     const shape = theme.milestone.shape;
     const nr    = NODE_R;
 
+    // Attach nodeEffects if theme declares them (Skia-only; SVG ignores)
+    const nodeEffects = theme.effects?.nodeEffects;
+
     if (shape === 'circle') {
       primitives.push({
         kind:        'circle',
@@ -823,6 +833,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         fill:        entry.statusFill,
         stroke:      theme.canvas.backgroundColor,
         strokeWidth: 1.5,
+        ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     } else if (shape === 'diamond') {
       primitives.push({
@@ -831,6 +842,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         fill:        entry.statusFill,
         stroke:      theme.canvas.backgroundColor,
         strokeWidth: 1.5,
+        ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     } else {
       // triangle
@@ -840,6 +852,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         fill:        entry.statusFill,
         stroke:      theme.canvas.backgroundColor,
         strokeWidth: 1.5,
+        ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     }
 
@@ -1058,5 +1071,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     height:     H,
     background: theme.canvas.backgroundColor,
     primitives,
+    // Attach theme's declarative background (Skia backend uses it; SVG ignores it)
+    ...(theme.sceneBackground ? { sceneBackground: theme.sceneBackground } : {}),
   };
 }

@@ -23,6 +23,7 @@ import {
   render,
   validate,
 } from '@timeline-compiler/core';
+import { renderDocumentAsync } from '@timeline-compiler/core';
 import type { Diagnostic } from '@timeline-compiler/core';
 
 // ---------------------------------------------------------------------------
@@ -129,7 +130,8 @@ program
   .option('--theme <theme>', 'theme id', 'consulting')
   .option('--format <format>', 'output format: svg or png', 'svg')
   .option('--layout <layout>', 'layout family: horizontal or vertical-spine', 'horizontal')
-  .action((inputPath: string, options: { output?: string; theme: string; format: string; layout: string }) => {
+  .option('--backend <backend>', 'rendering backend: svg or skia', 'svg')
+  .action(async (inputPath: string, options: { output?: string; theme: string; format: string; layout: string; backend: string }) => {
     const format = options.format as 'svg' | 'png';
     if (format !== 'svg' && format !== 'png') {
       console.error(`Error: --format must be "svg" or "png", got "${format}"`);
@@ -140,6 +142,13 @@ program
     const layoutFamily = options.layout as 'horizontal' | 'vertical-spine';
     if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine') {
       console.error(`Error: --layout must be "horizontal" or "vertical-spine", got "${options.layout}"`);
+      process.exit(1);
+      return;
+    }
+
+    const backend = options.backend as 'svg' | 'skia';
+    if (backend !== 'svg' && backend !== 'skia') {
+      console.error(`Error: --backend must be "svg" or "skia", got "${options.backend}"`);
       process.exit(1);
       return;
     }
@@ -192,7 +201,11 @@ program
     // ── Render ────────────────────────────────────────────────────────────
     let result;
     try {
-      result = render(ir, { format, theme: options.theme, layout: layoutFamily });
+      if (backend === 'skia' && format === 'png') {
+        result = await renderDocumentAsync(ir, { format, theme: options.theme, layout: layoutFamily, backend: 'skia' });
+      } else {
+        result = render(ir, { format, theme: options.theme, layout: layoutFamily, backend });
+      }
     } catch (e) {
       console.error(`Render error: ${(e as Error).message}`);
       process.exit(1);
