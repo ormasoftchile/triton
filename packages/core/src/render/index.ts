@@ -35,9 +35,16 @@ import { sceneHash }       from '../scene.js';
  * output format.  Consumers (linter, tests, tooling) can inspect geometry
  * without parsing SVG.
  */
-export function buildScene(ir: IRDocument, options?: Pick<RenderOptions, 'theme' | 'layout'>): Scene {
+export function buildScene(
+  ir: IRDocument,
+  options?: Pick<RenderOptions, 'theme' | 'layout' | 'spineSpacing'>,
+): Scene {
   const themeId = options?.theme ?? ir.metadata.theme ?? 'default';
-  const theme   = resolveTheme(themeId);
+  let theme = resolveTheme(themeId);
+  // Apply render-level overrides that supersede the theme declaration.
+  if (options?.spineSpacing !== undefined) {
+    theme = { ...theme, spineSpacing: options.spineSpacing };
+  }
   return layout(ir, theme, options?.layout);
 }
 
@@ -50,7 +57,7 @@ export function buildScene(ir: IRDocument, options?: Pick<RenderOptions, 'theme'
  * synchronously and are byte-identical to previous behaviour.
  */
 export function renderDocument(ir: IRDocument, options: RenderOptions): RenderResult {
-  const scene = buildScene(ir, { theme: options.theme, layout: options.layout });
+  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing });
   const svg   = sceneToSvg(scene);
   const hash  = sceneHash(scene);
 
@@ -79,7 +86,7 @@ export function renderDocument(ir: IRDocument, options: RenderOptions): RenderRe
  * Use this function in the CLI and in Skia tests.
  */
 export async function renderDocumentAsync(ir: IRDocument, options: RenderOptions): Promise<RenderResult> {
-  const scene = buildScene(ir, { theme: options.theme, layout: options.layout });
+  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing });
   const svg   = sceneToSvg(scene);
   const hash  = sceneHash(scene);
 

@@ -249,6 +249,14 @@ export interface RenderOptions {
    * pinned canvaskit-wasm version.
    */
   backend?: 'svg' | 'skia';
+  /**
+   * Override the theme's `spineSpacing` token for vertical-spine renders.
+   *   'time' — time-proportional placement with automatic gap-compression guard.
+   *   'even' — uniform placement regardless of time gaps (infographic style).
+   * Has no effect on horizontal layout.  When set, takes precedence over the
+   * theme's own `spineSpacing` declaration.
+   */
+  spineSpacing?: 'time' | 'even';
 }
 
 export interface RenderResult {

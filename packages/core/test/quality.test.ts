@@ -16,15 +16,18 @@
  *
  * It also includes hand-crafted unit tests that feed deliberately broken Scenes
  * to `lintScene` and confirm the expected issue codes are reported.
+ *
+ * Gallery emit section: generates examples/gallery/ai-timeline.{svg,png} using
+ * even spacing so the committed gallery images are always compact.
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { parseIR } from '../src/load.js';
-import { buildScene } from '../src/render/index.js';
+import { buildScene, renderDocument } from '../src/render/index.js';
 import { lintScene } from '../src/lint.js';
 import type { QualityIssue } from '../src/lint.js';
 import type { Scene } from '../src/scene.js';
@@ -313,5 +316,53 @@ describe('lintScene — deliberate overlap unit tests', () => {
     const issues = lintScene(scene);
     const tight = issues.filter((q) => q.code === 'TIGHT_SPACING' && q.severity === 'warning');
     expect(tight.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Gallery emit — ai-timeline.svg / ai-timeline.png
+//
+// Regenerates the two canonical gallery images for the ai-timeline fixture
+// using even spacing (spineSpacing: 'even') so the committed gallery files
+// are always compact regardless of theme choice.
+// ---------------------------------------------------------------------------
+
+describe('Gallery emit — ai-timeline SVG + PNG', () => {
+  const GALLERY_DIR    = join(REPO_ROOT, 'examples', 'gallery');
+  const AI_FIXTURE     = join(GALLERY_DIR, 'ai-timeline.timeline.yaml');
+  const OUT_SVG        = join(GALLERY_DIR, 'ai-timeline.svg');
+  const OUT_PNG        = join(GALLERY_DIR, 'ai-timeline.png');
+
+  it('emits a compact ai-timeline.svg (consulting theme, even spacing)', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const text = readFileSync(AI_FIXTURE, 'utf-8');
+    const ir   = parseIR(text);
+    const result = renderDocument(ir, {
+      format: 'svg',
+      theme: 'consulting',
+      layout: 'vertical-spine',
+      spineSpacing: 'even',
+    });
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    writeFileSync(OUT_SVG, svg, 'utf-8');
+    console.log('[gallery-emit] ai-timeline.svg written →', OUT_SVG);
+  });
+
+  it('emits a compact ai-timeline.png (consulting theme, even spacing)', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const text = readFileSync(AI_FIXTURE, 'utf-8');
+    const ir   = parseIR(text);
+    const result = renderDocument(ir, {
+      format: 'png',
+      theme: 'consulting',
+      layout: 'vertical-spine',
+      spineSpacing: 'even',
+    });
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89); // PNG signature
+    writeFileSync(OUT_PNG, png);
+    console.log('[gallery-emit] ai-timeline.png written →', OUT_PNG);
   });
 });

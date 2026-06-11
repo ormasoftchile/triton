@@ -344,10 +344,12 @@ describe('Showcase gallery images', () => {
   const GALLERY_ROOT = join(REPO_ROOT, 'examples', 'gallery');
 
   type GallerySpec = {
-    fixture:  string;
-    output:   string;
-    layout:   'horizontal' | 'vertical-spine';
-    caption:  string;
+    fixture:      string;
+    output:       string;
+    layout:       'horizontal' | 'vertical-spine';
+    caption:      string;
+    /** Optional render-level spineSpacing override (supersedes theme token). */
+    spineSpacing?: 'time' | 'even';
   };
 
   const GALLERY_SPECS: GallerySpec[] = [
@@ -370,10 +372,13 @@ describe('Showcase gallery images', () => {
       caption: 'feature-rich — horizontal, showcase, skia',
     },
     {
-      fixture: join(GALLERY_ROOT, 'ai-timeline.timeline.yaml'),
-      output:  'ai-timeline-showcase-skia.png',
-      layout:  'vertical-spine',
-      caption: 'ai-timeline — vertical-spine, showcase, skia',
+      // The ai-timeline fixture spans 1967–2024 with sparse entries; use even
+      // spacing to guarantee a compact, infographic-style render regardless of theme.
+      fixture:      join(GALLERY_ROOT, 'ai-timeline.timeline.yaml'),
+      output:       'ai-timeline-showcase-skia.png',
+      layout:       'vertical-spine',
+      caption:      'ai-timeline — vertical-spine, showcase, skia, even-spacing',
+      spineSpacing: 'even',
     },
   ];
 
@@ -385,6 +390,7 @@ describe('Showcase gallery images', () => {
       const ir = parseIR(fixtureText);
       const result = await renderDocumentAsync(ir, {
         format: 'png', theme: 'showcase', backend: 'skia', layout: spec.layout,
+        spineSpacing: spec.spineSpacing,
       });
       const png = result.png!;
       expect(isPngSignature(png)).toBe(true);

@@ -299,12 +299,21 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
 
   // ── Spacing mode ─────────────────────────────────────────────────────────
   //
-  // 'time' (default): y positions are strictly time-proportional.
-  //   pixelsPerDay is calibrated so uniformly-spaced entries naturally
-  //   respect ENTRY_MIN_SPACING; the min-spacing pass corrects clusters.
-  // 'even': entries are placed at uniform intervals regardless of time gaps.
-  //   Suitable for infographic timelines spanning sparse long ranges where
-  //   empty years would otherwise produce enormous dead space on the canvas.
+  // 'time' (default): y positions are time-proportional.
+  //   pixelsPerDay is calibrated so uniformly-spaced entries naturally respect
+  //   ENTRY_MIN_SPACING; the min-spacing pass corrects clusters.
+  //
+  //   GAP COMPRESSION (automatic robustness guard): when hDrawTime / nEntries
+  //   exceeds GAP_K_TRIGGER × ENTRY_MIN_SPACING (avg > 400 px/entry), each
+  //   consecutive time-proportional gap is capped at GAP_K_CAP × ENTRY_MIN_SPACING
+  //   (200 px).  This eliminates pathological 8000 px+ canvases caused by multi-
+  //   decade empty spans (e.g. 1967–1985 in a sparse AI-history fixture) while
+  //   preserving time-ordering and relative proportionality within populated
+  //   regions.  Normal timelines whose average spacing ≤ 400 px are completely
+  //   unaffected — their output is byte-identical to before this change.
+  //
+  // 'even': entries at uniform intervals; year labels on left side of spine.
+  //   Suitable for dense infographic timelines; opted in per theme token.
   const isEvenSpacing = theme.spineSpacing === 'even';
 
   const spanDays     = Math.max(teOrd - tsOrd, 1);
@@ -312,7 +321,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     (ENTRY_MIN_SPACING * Math.max(nEntries, 1)) / spanDays,
     0.4,
   );
-  // hDrawTime is used in 'time' mode; computed unconditionally for determinism.
+  // hDrawTime: raw time-proportional canvas height; always computed for determinism.
   const hDrawTime = rhuInt(Math.max(
     spanDays * pixelsPerDay,
     nEntries > 0 ? nEntries * ENTRY_MIN_SPACING : 200,
@@ -337,30 +346,55 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     evenStep = Math.max(ENTRY_MIN_SPACING, maxBH + BLOCK_VERT_GAP_EVEN);
   }
 
-  const hDraw = isEvenSpacing
-    ? rhuInt(Math.max(nEntries > 1 ? (nEntries - 1) * evenStep : evenStep, 200))
-    : hDrawTime;
+  // Gap-compression constants (Part A robustness guard).
+  // Trigger threshold: average time-proportional px per entry > 4 × ENTRY_MIN_SPACING.
+  // This fires only for sparse multi-decade fixtures; all existing gallery
+  // fixtures (journey, milestones-only, architecture-evolution, etc.) have
+  // sufficient density that their average is ≤ ENTRY_MIN_SPACING and are
+  // completely unaffected.
+  const GAP_K_TRIGGER = 4;
+  const GAP_K_CAP     = 2;
+  const isGapCompressed =
+    !isEvenSpacing &&
+    nEntries > 1 &&
+    hDrawTime / Math.max(nEntries, 1) > GAP_K_TRIGGER * ENTRY_MIN_SPACING;
 
-  const spineTopY    = rhu(mT + headerH + SPINE_TOP_PAD);
-  const spineBottomY = rhu(spineTopY + hDraw);
+  // spineTopY does not depend on hDraw; compute early so dateYRaw can reference it.
+  const spineTopY = rhu(mT + headerH + SPINE_TOP_PAD);
 
-  /** Map a day ordinal to a canvas y coordinate (time-proportional, deterministic). */
-  function dateY(ord: number): number {
+  // dateYRaw: time-proportional mapping using hDrawTime (sole purpose: rawNodeYs).
+  function dateYRaw(ord: number): number {
     if (teOrd === tsOrd) return spineTopY;
-    const raw = spineTopY + Math.floor(((ord - tsOrd) * hDraw) / (teOrd - tsOrd) + 0.5);
-    return Math.max(spineTopY, Math.min(spineBottomY, raw));
+    const raw = spineTopY + Math.floor(((ord - tsOrd) * hDrawTime) / (teOrd - tsOrd) + 0.5);
+    return Math.max(spineTopY, Math.min(spineTopY + hDrawTime, raw));
   }
 
-  // Compute raw y positions (time-proportional; used in time mode below)
-  const rawNodeYs = entries.map((e) => dateY(e.ord));
+  // Raw time-proportional positions for each entry (used for gap check and compression).
+  const rawNodeYs = entries.map((e) => dateYRaw(e.ord));
 
-  // Node y positions: uniform even spacing, or time-proportional + min-spacing pass.
-  const nodeYs: number[] = isEvenSpacing
-    ? entries.map((_, i) => rhu(spineTopY + i * evenStep))
-    : [...rawNodeYs];
+  // Build nodeYs based on mode.
+  const nodeYs: number[] = [];
+  if (isEvenSpacing) {
+    // Even mode: uniform steps from spineTopY.
+    for (let i = 0; i < nEntries; i++) {
+      nodeYs.push(rhu(spineTopY + i * evenStep));
+    }
+  } else if (isGapCompressed) {
+    // Time mode with gap compression: cap each consecutive raw gap.
+    const maxGap = GAP_K_CAP * ENTRY_MIN_SPACING;
+    nodeYs.push(rawNodeYs[0]!);
+    for (let i = 1; i < nEntries; i++) {
+      const rawGap    = rawNodeYs[i]! - rawNodeYs[i - 1]!;
+      const cappedGap = Math.min(rawGap, maxGap);
+      nodeYs.push(rhu(nodeYs[i - 1]! + cappedGap));
+    }
+  } else {
+    // Normal time mode: copy raw positions.
+    nodeYs.push(...rawNodeYs);
+  }
 
+  // Minimum-spacing pass (top-to-bottom, deterministic) for all non-even modes.
   if (!isEvenSpacing) {
-    // Minimum-spacing pass (top-to-bottom, deterministic)
     for (let i = 1; i < nodeYs.length; i++) {
       const minY = (nodeYs[i - 1] ?? spineTopY) + ENTRY_MIN_SPACING;
       const cur  = nodeYs[i] ?? spineTopY;
@@ -368,12 +402,36 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     }
   }
 
+  // Actual hDraw based on mode + final nodeYs.
+  //   even mode:          formula based on evenStep (unchanged).
+  //   gap-compressed mode: derived from the last compressed+min-spaced node position.
+  //   normal time mode:   hDrawTime (unchanged).
+  const hDraw: number = isEvenSpacing
+    ? rhuInt(Math.max(nEntries > 1 ? (nEntries - 1) * evenStep : evenStep, 200))
+    : isGapCompressed
+    ? rhuInt(Math.max(
+        nEntries > 0 ? nodeYs[nEntries - 1]! - spineTopY : 200,
+        nEntries > 0 ? nEntries * ENTRY_MIN_SPACING : 200,
+        200,
+      ))
+    : hDrawTime;
+
+  const spineBottomY = rhu(spineTopY + hDraw);
+
+  /** Map a day ordinal to a canvas y coordinate (time-proportional, uses hDraw). */
+  function dateY(ord: number): number {
+    if (teOrd === tsOrd) return spineTopY;
+    const raw = spineTopY + Math.floor(((ord - tsOrd) * hDraw) / (teOrd - tsOrd) + 0.5);
+    return Math.max(spineTopY, Math.min(spineBottomY, raw));
+  }
+
   /**
-   * Interpolate a day ordinal to a y coordinate using the even entry positions
-   * as anchors.  Linearly interpolates between adjacent entry ordinals so that
-   * duration bands and annotations remain visually meaningful in even mode.
-   * Ordinals before the first entry clamp to spineTopY; ordinals after the
-   * last entry clamp to that entry's y position.
+   * Interpolate a day ordinal to a y coordinate using entry positions as anchors.
+   * Used in both 'even' mode and gap-compressed 'time' mode.
+   * Linearly interpolates between adjacent entry ordinals so that duration bands
+   * and annotations remain visually meaningful.
+   * Ordinals before the first entry clamp to spineTopY; ordinals after the last
+   * entry clamp to that entry's y position.
    */
   function evenDateY(ord: number): number {
     if (nEntries === 0) return spineTopY;
@@ -392,9 +450,13 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     return nodeYs[nEntries - 1]!;
   }
 
-  /** Effective date→y mapper: even-interpolated in 'even' mode, time-proportional otherwise. */
+  /**
+   * Effective date→y mapper.
+   *   'even' mode OR gap-compressed 'time' mode: node-interpolated via evenDateY.
+   *   Normal 'time' mode: time-proportional via dateY.
+   */
   function effectiveDateY(ord: number): number {
-    return isEvenSpacing ? evenDateY(ord) : dateY(ord);
+    return (isEvenSpacing || isGapCompressed) ? evenDateY(ord) : dateY(ord);
   }
 
   // Extend spine bottom to accommodate stacked entries
@@ -645,7 +707,9 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
   } else {
     for (let ti = 0; ti < vsTicks.length; ti++) {
       const tick = vsTicks[ti]!;
-      const ty = rhu(dateY(tick.ordinal));
+      // In gap-compressed mode, use effectiveDateY (piecewise-linear) so tick
+      // positions are consistent with the compressed entry positions.
+      const ty = rhu(effectiveDateY(tick.ordinal));
 
       primitives.push({
         kind: 'line',
