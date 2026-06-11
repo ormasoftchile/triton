@@ -1,0 +1,157 @@
+version: "1.0"
+metadata:
+  title: "Icon Set Showcase"
+  subtitle: "All 20 built-in icons rendered in milestone nodes"
+  time_range:
+    start: 2026-01
+    end: 2027-06
+  axis_unit: quarter
+  theme: consulting
+  today: 2026-06-10
+  description: "Demonstrates the complete built-in icon set — one milestone per icon, deterministic SVG rendering."
+tracks:
+  - id: icons
+    label: "Icons"
+    index: 0
+activities: []
+milestones:
+  - id: ms-flag
+    label: "flag"
+    date: 2026-01-15
+    track: icons
+    status: done
+    category: standard-node
+    icon: flag
+  - id: ms-star
+    label: "star"
+    date: 2026-02-15
+    track: icons
+    status: done
+    category: standard-node
+    icon: star
+  - id: ms-check
+    label: "check"
+    date: 2026-03-15
+    track: icons
+    status: done
+    category: standard-node
+    icon: check
+  - id: ms-x
+    label: "x"
+    date: 2026-04-15
+    track: icons
+    status: cancelled
+    category: standard-node
+    icon: x
+  - id: ms-warning
+    label: "warning"
+    date: 2026-05-15
+    track: icons
+    status: at-risk
+    category: standard-node
+    icon: warning
+  - id: ms-rocket
+    label: "rocket"
+    date: 2026-06-15
+    track: icons
+    status: in-progress
+    category: standard-node
+    icon: rocket
+  - id: ms-target
+    label: "target"
+    date: 2026-07-15
+    track: icons
+    status: in-progress
+    category: standard-node
+    icon: target
+  - id: ms-calendar
+    label: "calendar"
+    date: 2026-08-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: calendar
+  - id: ms-clock
+    label: "clock"
+    date: 2026-09-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: clock
+  - id: ms-gear
+    label: "gear"
+    date: 2026-10-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: gear
+  - id: ms-lock
+    label: "lock"
+    date: 2026-11-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: lock
+  - id: ms-cloud
+    label: "cloud"
+    date: 2026-12-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: cloud
+  - id: ms-database
+    label: "database"
+    date: 2027-01-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: database
+  - id: ms-code
+    label: "code"
+    date: 2027-02-01
+    track: icons
+    status: planned
+    category: standard-node
+    icon: code
+  - id: ms-milestone
+    label: "milestone"
+    date: 2027-02-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: milestone
+  - id: ms-play
+    label: "play"
+    date: 2027-03-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: play
+  - id: ms-bolt
+    label: "bolt"
+    date: 2027-04-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: bolt
+  - id: ms-people
+    label: "people"
+    date: 2027-05-01
+    track: icons
+    status: planned
+    category: standard-node
+    icon: people
+  - id: ms-doc
+    label: "doc"
+    date: 2027-05-15
+    track: icons
+    status: planned
+    category: standard-node
+    icon: doc
+  - id: ms-pin
+    label: "pin"
+    date: 2027-06-01
+    track: icons
+    status: planned
+    category: standard-node
+    icon: pin

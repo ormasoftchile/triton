@@ -87,8 +87,11 @@ export interface PathPrimitive {
   fill: string;
   stroke?: string;
   strokeWidth?: number;
+  strokeLinecap?: 'butt' | 'round' | 'square';
   opacity?: number;
   fillRule?: 'nonzero' | 'evenodd';
+  /** Optional SVG transform attribute (e.g. for icon scaling/translation). */
+  transform?: string;
 }
 
 export interface GroupPrimitive {

@@ -132,32 +132,38 @@ milestones:
     status: done
     category: standard-node
     description: "All workstreams initiated"
+    icon: star
   - id: q1-gate
     label: "Q1 Gate Review"
     date: 2026-03-31
     status: done
     category: standard-node
+    icon: check
   - id: cloud-complete
     label: "Cloud Migration Complete"
     date: 2026-05-31
     status: done
     category: strategy
+    icon: cloud
   - id: mid-year-review
     label: "Mid-Year Executive Review"
     date: 2026-06-30
     status: at-risk
     category: standard-node
     description: "Dependent on API delivery"
+    icon: calendar
   - id: q3-gate
     label: "Q3 Gate Review"
     date: 2026-09-30
     status: planned
     category: standard-node
+    icon: check
   - id: year-end
     label: "Year-End Delivery"
     date: 2026-12-15
     status: planned
     category: standard-node
+    icon: flag
 sections:
   - id: foundation
     label: "Foundation Phase"

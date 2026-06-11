@@ -145,7 +145,9 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
         'fill-rule':  p.fillRule,
         opacity:      p.opacity,
         stroke:       p.stroke,
+        'stroke-linecap': p.strokeLinecap,
         'stroke-width': p.strokeWidth,
+        transform:    p.transform,
       };
       return `${indent}<path${attrs(a)}/>`;
     }

@@ -20,6 +20,7 @@ import type { Scene, ScenePrimitive } from '../scene.js';
 import type { ResolvedTheme } from '../themes/types.js';
 import { measureText, ptToPx } from '../fonts/metrics.js';
 import { truncateText } from '../text-wrap.js';
+import { getIcon } from '../icons.js';
 import {
   dateToOrdinal,
   coerceLeft,
@@ -380,6 +381,33 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       });
     }
   });
+
+  // ── Date-label vertical stagger (additive to existing push-down) ──────────
+  // When adjacent date labels would overlap horizontally, alternate them between
+  // two vertical positions: even-collision-group stays at base y,
+  // odd-collision-group shifts further up by (dateLabelSizePx + 4).
+  // This is a single deterministic pass — O(n) with no iteration.
+  {
+    const dateBoxes = labelBoxes.filter((b) => b.isDate);
+    // Sort by x so we can check adjacent pairs
+    dateBoxes.sort((a, b) => a.x !== b.x ? a.x - b.x : a.mlIdx - b.mlIdx);
+    let staggerGroup = 0;
+    for (let i = 1; i < dateBoxes.length; i++) {
+      const prev = dateBoxes[i - 1]!;
+      const cur  = dateBoxes[i]!;
+      if (prev.x + prev.width + 2 > cur.x) {
+        // Overlap detected: bump stagger group counter and shift the current box up
+        staggerGroup += 1;
+        if (staggerGroup % 2 === 1) {
+          cur.y = rhu(cur.y - dateLabelSizePx - 4);
+        } else {
+          cur.y = rhu(prev.y); // reset to base level on even groups
+        }
+      } else {
+        staggerGroup = 0; // no overlap → reset stagger cycle
+      }
+    }
+  }
 
   // Collision resolution (title labels only — bounded N passes)
   const titleBoxes = labelBoxes.filter((b) => !b.isDate);
@@ -828,21 +856,47 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       });
     }
 
-    // Ordinal number inside circle
-    if (ms.showOrdinalNumber) {
-      const numStr = String(ordinal).padStart(2, '0');
-      primitives.push({
-        kind:            'text',
-        x:               xCenter,
-        y:               yCenter,
-        text:            numStr,
-        fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
-        fontSize:        ordFontPx,
-        fontWeight:      ms.ordinalFontWeight,
-        fill:            ms.ordinalColor,
-        textAnchor:      'middle',
-        dominantBaseline:'middle',
-      });
+    // Ordinal number OR icon inside the node marker
+    {
+      const iconName = mil.icon ? mil.icon.toLowerCase().trim() : undefined;
+      const iconDef = iconName ? getIcon(iconName) : undefined;
+
+      if (iconDef) {
+        // Render the icon path scaled and centred on the node.
+        // Scale factor: icon fills (iconScale * 100)% of the node diameter.
+        const iconScale = ms.iconScale ?? 0.65;
+        const s = rhu(ms.size * iconScale / 12, 4);
+        const iconColor = ms.iconColor ?? ms.ordinalColor;
+        const transform = `translate(${rhu(xCenter)},${rhu(yCenter)}) scale(${s}) translate(-12,-12)`;
+
+        for (const pathDef of iconDef.paths) {
+          const iconFill   = pathDef.fill   ? iconColor : 'none';
+          const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
+          primitives.push({
+            kind:         'path',
+            d:            pathDef.d,
+            fill:         iconFill,
+            stroke:       iconStroke,
+            strokeWidth:  iconStroke ? 2 : undefined,
+            strokeLinecap: iconStroke ? 'round' : undefined,
+            transform,
+          });
+        }
+      } else if (ms.showOrdinalNumber) {
+        const numStr = String(ordinal).padStart(2, '0');
+        primitives.push({
+          kind:            'text',
+          x:               xCenter,
+          y:               yCenter,
+          text:            numStr,
+          fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize:        ordFontPx,
+          fontWeight:      ms.ordinalFontWeight,
+          fill:            ms.ordinalColor,
+          textAnchor:      'middle',
+          dominantBaseline:'middle',
+        });
+      }
     }
 
     // Date label above

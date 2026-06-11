@@ -28,6 +28,7 @@ import type { Scene, ScenePrimitive } from '../scene.js';
 import type { ResolvedTheme } from '../themes/types.js';
 import { ptToPx } from '../fonts/metrics.js';
 import { wrapText, truncateText } from '../text-wrap.js';
+import { getIcon } from '../icons.js';
 import {
   dateToOrdinal,
   coerceLeft,
@@ -690,25 +691,47 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       });
     }
 
-    // Icon hint placeholder (2-char text glyph; full pictographic badges deferred)
+    // Icon: render resolved icon glyph in top-right (right side) or top-left (left side) of block.
+    // If the icon name doesn't resolve, fall back silently (no placeholder text).
     if (entry.iconHint) {
-      const iconX = side === 'right'
-        ? rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD)
-        : rhu(blockLeft + BLOCK_INNER_PAD);
-      const iconAnchor = (side === 'right' ? 'end' : 'start') as 'start' | 'end';
-      primitives.push({
-        kind:             'text',
-        x:                iconX,
-        y:                rhu(blockTop + VERT_PAD + DATE_LINE_H * 0.85),
-        text:             entry.iconHint.slice(0, 2),
-        fontFamily:       FONT_FAM,
-        fontSize:         datePx,
-        fontWeight:       400,
-        fill:             entry.statusFill,
-        textAnchor:       iconAnchor,
-        dominantBaseline: 'alphabetic',
-        opacity:          0.7,
-      });
+      const iconDef = getIcon(entry.iconHint);
+      if (iconDef) {
+        // Small icon badge at the top corner of the content block.
+        const BADGE_R  = rhu(datePx * 0.75);
+        const badgeCX  = side === 'right'
+          ? rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD - BADGE_R)
+          : rhu(blockLeft + BLOCK_INNER_PAD + BADGE_R);
+        const badgeCY  = rhu(blockTop + VERT_PAD + DATE_LINE_H * 0.5);
+        const iconScale = theme.milestone.iconScale ?? 0.65;
+        const s         = rhu(BADGE_R * iconScale / 12, 4);
+        const iconColor = theme.milestone.iconColor ?? theme.canvas.backgroundColor;
+        const transform = `translate(${badgeCX},${badgeCY}) scale(${s}) translate(-12,-12)`;
+
+        // Backing circle for the badge
+        primitives.push({
+          kind:        'circle',
+          cx:          badgeCX,
+          cy:          badgeCY,
+          r:           BADGE_R,
+          fill:        entry.statusFill,
+          opacity:     0.85,
+        });
+
+        for (const pathDef of iconDef.paths) {
+          const iconFill   = pathDef.fill   ? iconColor : 'none';
+          const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
+          primitives.push({
+            kind:         'path',
+            d:            pathDef.d,
+            fill:         iconFill,
+            stroke:       iconStroke,
+            strokeWidth:  iconStroke ? 2 : undefined,
+            strokeLinecap: iconStroke ? 'round' : undefined,
+            transform,
+          });
+        }
+      }
+      // Unknown icon hint → silent fallback (no text placeholder)
     }
   }
 
@@ -746,6 +769,31 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         stroke:      theme.canvas.backgroundColor,
         strokeWidth: 1.5,
       });
+    }
+
+    // Icon inside the spine node marker (replaces the plain coloured circle/diamond)
+    if (entry.iconHint) {
+      const iconDef = getIcon(entry.iconHint);
+      if (iconDef) {
+        const iconScale = theme.milestone.iconScale ?? 0.65;
+        const s         = rhu(nr * iconScale / 12, 4);
+        const iconColor = theme.milestone.iconColor ?? theme.canvas.backgroundColor;
+        const transform = `translate(${SPINE_X},${nodeY}) scale(${s}) translate(-12,-12)`;
+
+        for (const pathDef of iconDef.paths) {
+          const iconFill   = pathDef.fill   ? iconColor : 'none';
+          const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
+          primitives.push({
+            kind:         'path',
+            d:            pathDef.d,
+            fill:         iconFill,
+            stroke:       iconStroke,
+            strokeWidth:  iconStroke ? 2 : undefined,
+            strokeLinecap: iconStroke ? 'round' : undefined,
+            transform,
+          });
+        }
+      }
     }
   }
 

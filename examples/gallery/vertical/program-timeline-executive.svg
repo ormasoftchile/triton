@@ -41,6 +41,8 @@
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="648" y="62.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="88.65">5th January 2026</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="658" y="116.65">Project Kick-off</text>
+  <circle cx="958" cy="82" fill="#3A86C8" opacity="0.85" r="10"/>
+  <path d="M 12 3 L 14.4 8.8 L 20.6 9.2 L 15.8 13.2 L 17.3 19.3 L 12 16 L 6.7 19.3 L 8.2 13.2 L 3.4 9.2 L 9.6 8.8 Z" fill="#0D1B2A" transform="translate(958,82) scale(0.5417) translate(-12,-12)"/>
   <line opacity="0.8" stroke="#607D8B" stroke-width="1.5" x1="589" x2="552" y1="196" y2="196"/>
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#607D8B" stroke-width="1" width="330" x="222" y="162.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="542" y="188.65">5th January 2026</text>
@@ -61,6 +63,8 @@
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="222" y="562.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="542" y="588.65">15th April 2026</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="542" y="616.65">Architecture Approval</text>
+  <circle cx="242" cy="582" fill="#3A86C8" opacity="0.85" r="10"/>
+  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(242,582) scale(0.5417) translate(-12,-12)"/>
   <line opacity="0.8" stroke="#00B4D8" stroke-width="1.5" x1="611" x2="648" y1="696" y2="696"/>
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#00B4D8" stroke-width="1" width="330" x="648" y="662.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="688.65">16th April 2026</text>
@@ -81,6 +85,8 @@
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="648" y="1062.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="1088.65">31st August 2026</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="658" y="1116.65">Feature Freeze</text>
+  <circle cx="958" cy="1082" fill="#3A86C8" opacity="0.85" r="10"/>
+  <path d="M 12 2 L 22 12 L 12 22 L 2 12 Z" fill="#0D1B2A" transform="translate(958,1082) scale(0.5417) translate(-12,-12)"/>
   <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="589" x2="552" y1="1196" y2="1196"/>
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="222" y="1162.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="542" y="1188.65">1st September 2026</text>
@@ -93,25 +99,34 @@
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="222" y="1362.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="542" y="1388.65">15th November 2026</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="end" x="542" y="1416.65">Product Launch</text>
+  <circle cx="242" cy="1382" fill="#3A86C8" opacity="0.85" r="10"/>
+  <path d="M 12 2 L 16 11 L 15 11 L 15 18 L 9 18 L 9 11 L 8 11 Z M 9 18 L 6 22 L 9 16 Z M 15 18 L 18 22 L 15 16 Z" fill="#0D1B2A" transform="translate(242,1382) scale(0.5417) translate(-12,-12)"/>
   <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="611" x2="648" y1="1496" y2="1496"/>
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="648" y="1462.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="1488.65">1st December 2026</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="658" y="1516.65">General Availability</text>
+  <circle cx="958" cy="1482" fill="#3A86C8" opacity="0.85" r="10"/>
+  <path d="M 4 2 L 4 21 L 6 21 L 6 17 L 18 11 L 6 5 Z" fill="#0D1B2A" transform="translate(958,1482) scale(0.5417) translate(-12,-12)"/>
   <circle cx="600" cy="96" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <path d="M 12 3 L 14.4 8.8 L 20.6 9.2 L 15.8 13.2 L 17.3 19.3 L 12 16 L 6.7 19.3 L 8.2 13.2 L 3.4 9.2 L 9.6 8.8 Z" fill="#0D1B2A" transform="translate(600,96) scale(0.5958) translate(-12,-12)"/>
   <circle cx="600" cy="196" fill="#607D8B" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="296" fill="#607D8B" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="396" fill="#607D8B" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="496" fill="#607D8B" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="596" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#0D1B2A" stroke-linecap="round" stroke-width="2" transform="translate(600,596) scale(0.5958) translate(-12,-12)"/>
   <circle cx="600" cy="696" fill="#00B4D8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="796" fill="#00B4D8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="896" fill="#E05252" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="996" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="1096" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <path d="M 12 2 L 22 12 L 12 22 L 2 12 Z" fill="#0D1B2A" transform="translate(600,1096) scale(0.5958) translate(-12,-12)"/>
   <circle cx="600" cy="1196" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="1296" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="1396" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <path d="M 12 2 L 16 11 L 15 11 L 15 18 L 9 18 L 9 11 L 8 11 Z M 9 18 L 6 22 L 9 16 Z M 15 18 L 18 22 L 15 16 Z" fill="#0D1B2A" transform="translate(600,1396) scale(0.5958) translate(-12,-12)"/>
   <circle cx="600" cy="1496" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <path d="M 4 2 L 4 21 L 6 21 L 6 17 L 18 11 L 6 5 Z" fill="#0D1B2A" transform="translate(600,1496) scale(0.5958) translate(-12,-12)"/>
   <rect fill="#1E3350" height="140.67" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="1473.33"/>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="1496.67">Legend</text>
   <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="1509.2"/>

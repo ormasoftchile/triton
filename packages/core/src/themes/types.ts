@@ -122,6 +122,17 @@ export interface MilestoneTheme {
   labelMaxWidth: number;
   labelStackOffset: number;
   stackOffsetY: number;
+  /**
+   * Colour used to draw icon glyphs inside node markers.
+   * Defaults to `ordinalColor` when not set.
+   */
+  iconColor?: string;
+  /**
+   * Scale factor applied to the 24×24 icon viewBox relative to the node size.
+   * A value of 1.0 means the icon fills the full node diameter; 0.65 is a comfortable fit.
+   * Defaults to 0.65 when not set.
+   */
+  iconScale?: number;
 }
 
 export interface StatusStyle {

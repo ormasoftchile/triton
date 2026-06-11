@@ -92,27 +92,32 @@ milestones:
     track: discovery
     status: done
     category: standard-node
+    icon: star
   - id: arch-approval
     label: "Architecture Approval"
     date: 2026-04-15
     track: development
     status: done
     category: standard-node
+    icon: check
   - id: feature-freeze
     label: "Feature Freeze"
     date: 2026-08-31
     track: development
     status: planned
     category: standard-node
+    icon: milestone
   - id: product-launch
     label: "Product Launch"
     date: 2026-11-15
     track: quality
     status: planned
     category: standard-node
+    icon: rocket
   - id: ga-release
     label: "General Availability"
     date: 2026-12-01
     track: quality
     status: planned
     category: standard-node
+    icon: flag

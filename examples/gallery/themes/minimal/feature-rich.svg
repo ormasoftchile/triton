@@ -71,21 +71,27 @@
   <rect fill="#BBBBBB" height="20" opacity="1" rx="2" stroke="#AAAAAA" stroke-width="0.5" width="423" x="729" y="410"/>
   <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="940.5" y="420">Automation Wave 2</text>
   <circle cx="179" cy="275" fill="#666666" r="18" stroke="#AAAAAA" stroke-width="1.5"/>
+  <path d="M 12 3 L 14.4 8.8 L 20.6 9.2 L 15.8 13.2 L 17.3 19.3 L 12 16 L 6.7 19.3 L 8.2 13.2 L 3.4 9.2 L 9.6 8.8 Z" fill="#FFFFFF" transform="translate(179,275) scale(0.975) translate(-12,-12)"/>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="179" y="251.21">15th January 2026</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="179.01" y="311">Programme Kickoff</text>
   <circle cx="387" cy="275" fill="#666666" r="18" stroke="#AAAAAA" stroke-width="1.5"/>
+  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(387,275) scale(0.975) translate(-12,-12)"/>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="387.01" y="251.21">31st March 2026</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="387" y="311">Q1 Gate Review</text>
   <circle cx="557" cy="275" fill="#9A9A9A" r="18" stroke="#AAAAAA" stroke-width="1.5"/>
+  <path d="M 6 19 L 18 19 A 4 4 0 0 0 18 12 A 5 5 0 0 0 11 8 A 4 4 0 0 0 4 12 A 4 4 0 0 0 6 19 Z" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(557,275) scale(0.975) translate(-12,-12)"/>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="557" y="251.21">31st May 2026</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="557" y="311">Cloud Migration Co…</text>
   <circle cx="640" cy="275" fill="#666666" r="18" stroke="#AAAAAA" stroke-width="1.5"/>
+  <path d="M 2 5 L 2 22 L 22 22 L 22 5 Z M 2 10 L 22 10 M 8 2 L 8 7 M 16 2 L 16 7 M 6 14 L 9 14 M 13 14 L 16 14 M 6 18 L 9 18 M 13 18 L 16 18" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(640,275) scale(0.975) translate(-12,-12)"/>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="640" y="251.21">30th June 2026</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="640" y="335">Mid-Year Executive …</text>
   <circle cx="896" cy="275" fill="#666666" r="18" stroke="#AAAAAA" stroke-width="1.5"/>
+  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(896,275) scale(0.975) translate(-12,-12)"/>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="896" y="251.21">30th September 2026</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="896" y="311">Q3 Gate Review</text>
   <circle cx="1108" cy="275" fill="#666666" r="18" stroke="#AAAAAA" stroke-width="1.5"/>
+  <path d="M 4 2 L 4 21 L 6 21 L 6 17 L 18 11 L 6 5 Z" fill="#FFFFFF" transform="translate(1108,275) scale(0.975) translate(-12,-12)"/>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1108" y="251.21">15th December 2026</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1108" y="311">Year-End Delivery</text>
   <line opacity="0.5" stroke="#888888" stroke-dasharray="3,3" stroke-width="1" x1="640" x2="640" y1="265" y2="275"/>

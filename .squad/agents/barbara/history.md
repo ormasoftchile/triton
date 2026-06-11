@@ -574,3 +574,79 @@ Replaced year-only tick loop with `enumTicks()`/`formatTickLabel()` aligned with
 - New `examples/gallery/feature-rich.timeline.yaml` authored and rendered in horizontal + vertical-spine × 2 themes
 - Gallery index.html, themes.html, vertical.html updated with feature-rich entries
 
+
+## 2026-06-10 — Icon Set + Label Collision Stagger (Refinement Pass)
+
+### Icon Registry (`packages/core/src/icons.ts`)
+Created the built-in icon set with 20 original geometric icons on a 24×24 viewBox:
+
+| Canonical name | Description | Style |
+|---|---|---|
+| flag | Pole + right-pointing triangular pennant | filled |
+| star | 5-point star (outer r=9, inner r=4) | filled |
+| check | Clean checkmark (no circle; node is the border) | stroked |
+| x | Two crossing diagonal lines | stroked |
+| warning | Triangle outline + exclamation body | stroked |
+| rocket | Tapered hull body + two swept fins | filled |
+| target | Three concentric rings (bull's-eye) | stroked |
+| calendar | Rectangle + header bar + binding pins + day cells | stroked |
+| clock | Circle outline + hour/minute hands | stroked |
+| gear | Inner circle + 8 radial cog tick marks | stroked |
+| lock | Padlock shackle arc + body rect + keyhole circle | stroked |
+| cloud | Three-arc bump outline converging to flat base | stroked |
+| database | Elliptical cylinder: top/bottom rims + mid divider | stroked |
+| code | Classic `< / >` bracket symbol | stroked |
+| milestone | Axis-aligned diamond | filled |
+| play | Right-pointing triangle | filled |
+| bolt | Lightning-bolt polygon | filled |
+| people | Two overlapping figure outlines (head circles + shoulder arcs) | stroked |
+| doc | Document with folded corner + rule lines | stroked |
+| pin | Teardrop map-pin with inner hole | stroked |
+
+**`IconDef` shape:**
+```typescript
+interface IconPathDef { d: string; fill?: boolean; stroke?: boolean; }
+interface IconDef { paths: IconPathDef[]; viewBox: '0 0 24 24'; }
+```
+`fill: true` → icon color as fill; `stroke: true` (default) → icon color as stroke; `fill: 'none'` otherwise.
+
+**Alias table** (30+ aliases): zap→bolt, launch→rocket, cancel→x, alert→warning, goal→target, settings→gear, security→lock, data→database, team→people, file→doc, location→pin, diamond→milestone, etc. All lookups are case-insensitive.
+
+### Icon Rendering — Horizontal Layout
+When a milestone's `icon` field resolves via `getIcon()`:
+- The node shape (circle/diamond/triangle) is drawn as before
+- An SVG `<path transform="translate(cx,cy) scale(s) translate(-12,-12)">` is rendered ON TOP of the node in the icon color (`theme.milestone.ordinalColor` by default, or `theme.milestone.iconColor` if set)
+- Scale factor: `s = ms.size * (iconScale ?? 0.65) / 12`; fits the icon comfortably inside the node
+- Stroked icons use `stroke-linecap="round"`, `strokeWidth=2`
+- Filled icons use the icon color as `fill`
+- **When icon resolves → ordinal number is suppressed.** When icon doesn't resolve → ordinal number renders as before (no crash)
+- New optional theme tokens on `MilestoneTheme`: `iconColor?: string`, `iconScale?: number` (both additive, non-breaking)
+
+### Icon Rendering — Vertical-Spine Layout
+When a spine entry (milestone) has `iconHint` that resolves:
+- A small circular badge (radius ≈ `datePx * 0.75`) with `entry.statusFill` background is placed at the top-corner of the content block
+- The icon path is scaled and centred on the badge (same transform formula, using badge radius)
+- Icon color: `theme.milestone.iconColor ?? theme.canvas.backgroundColor` (white on dark node)
+- Additionally, the icon is rendered INSIDE the spine node marker (on top of the circle/diamond) for the main spine node
+- Unknown icon hint → silent fallback, no text placeholder, no crash
+
+### Milestone Label Collision — Stagger Improvement (Horizontal)
+Added a deterministic O(n) stagger pass for **date labels** (above nodes), applied before the existing iterative push-down for title labels (below nodes):
+- Adjacent date-label boxes are checked for horizontal x-overlap after sorting by x
+- On collision: odd-indexed labels in a consecutive overlap group are shifted **up** by `dateLabelSizePx + 4px`
+- On gap (no overlap): stagger counter resets, keeping labels at their base y
+- This prevents date labels from overlapping when milestones cluster near the same date
+- The existing title-label push-down pass is unchanged and still runs independently
+
+### Examples Updated with Icons
+- **`journey.timeline.yaml`**: emoji icons replaced with named icons (bolt, people, star, rocket, target)
+- **`program-timeline.timeline.yaml`**: milestones annotated with icons (star, check, milestone, rocket, flag)
+- **`feature-rich.timeline.yaml`**: milestones annotated with icons (star, check, cloud, calendar, flag)
+- **`icon-showcase.timeline.yaml`** (new): 20 milestones, one per icon, demonstrating the full set
+
+### Golden + Galleries Regenerated
+- `examples/golden/our-timeline.{svg,png}` — re-snapshotted
+- All `examples/gallery/*.{svg,png}` — regenerated (11 examples incl. new icon-showcase)
+- All `examples/gallery/themes/*/*.{svg,png}` — regenerated
+- All `examples/gallery/vertical/*.{svg,png}` — regenerated
+- `examples/gallery/index.html` — updated with Example 10 (icon-showcase) card

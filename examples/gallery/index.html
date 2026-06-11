@@ -376,7 +376,8 @@
       <div class="card-desc">
         Full refinement-pass showcase: sections, today marker, period annotation, callout,
         explicit legend, mixed milestone/activity statuses, and progress. Exercises the
-        new rendering pipeline end-to-end in one document.
+        new rendering pipeline end-to-end in one document. Milestones carry icon hints
+        (star, check, cloud, calendar, flag).
       </div>
     </div>
     <div class="card-img">
@@ -388,10 +389,34 @@
     </div>
   </div>
 
+  <!-- 10. icon-showcase -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 10 · icon-showcase</div>
+      <div class="card-title">Icon Set Showcase
+        <span class="tag tag-quarter">quarter axis</span>
+        <span class="tag tag-milestones">20 icons</span>
+      </div>
+      <div class="card-desc">
+        Demonstrates the complete built-in icon set — 20 original geometric glyphs rendered
+        inside milestone node circles. Covers flag, star, check, x, warning, rocket, target,
+        calendar, clock, gear, lock, cloud, database, code, milestone, play, bolt, people,
+        doc, and pin. All icons are deterministic SVG paths.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="icon-showcase.png" alt="icon-showcase render">
+    </div>
+    <div class="card-footer">
+      <a href="icon-showcase.svg">SVG</a>
+      <a href="icon-showcase.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
 </div>
 
 <footer>
-  Timeline Compiler · Phase 1 Gallery · Horizontal layout family with consulting baselines plus a feature-rich product showcase.
+  Timeline Compiler · Phase 1 Gallery · Horizontal layout family — consulting baselines, feature-rich product showcase, and icon set showcase.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>
   · See <a href="README.md" style="color:#999">README.md</a> for full commands.
 </footer>
