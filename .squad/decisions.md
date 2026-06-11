@@ -387,6 +387,10 @@ Agents generating IR should prefer concrete ISO dates (`2026-Q2`, `2026-06-09`) 
 - **Serpentine layout family** — Third layout family (after horizontal and vertical-spine): boustrophedon winding path with rounded U-turns. Date-to-arc-length even-spaced node placement. Smooth gradient arc (single PathPrimitive with strokeGradient, replacing 64 chord segments; 66→4 paths). Soft glow effect (Skia backend). Dot nodes with configurable start/end icon badges. Optional entry labels. Palette-derived fallback: when `theme.serpentine` is absent, colors derive from `theme.statusMap['in-progress'].fill` (gradient = lighten/darken; nodes/badges from theme tokens), so serpentine adopts each theme instead of hardcoded green. Registered via `layout: 'serpentine'` and `--layout serpentine` CLI option. (Shipped 2026-06-11.)
 - **Skia stroke-only path glow fix** — Paths with `fill: 'none'` and glow effects now correctly render glow as stroke blur instead of filling the path. (Fixed 2026-06-11 for serpentine; improves 4 existing showcase goldens; horizontal golden guard unchanged.)
 
+
+### Theme Matrix Gallery — Serpentine Showcase (2026-06-11, Barbara)
+
+Serpentine layout now appears in the theme showcase matrix (`examples/gallery/themes.html` Example E), rendering `serpentine-journey.timeline.yaml` under all 5 built-in themes. Each theme's palette-derived serpentine colors are visually distinct (consulting navy → executive teal → minimal grey → product blue → release indigo), proving palette-derivation is working correctly. Gallery-emit test (`quality.test.ts` describe block: "Theme-matrix gallery emit — serpentine-journey") generates 10 renders (5 themes × SVG + PNG); 580/580 tests pass; all existing renders byte-identical. Updated themes.html header badge: "5 themes · 5 examples · 50 renders".
 ---
 
 ## Ingestion & Agent Integration
