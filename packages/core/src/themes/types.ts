@@ -296,4 +296,54 @@ export interface ResolvedTheme {
    * The SVG backend ignores all effects — output is byte-identical.
    */
   effects?: EffectTokens;
+
+  // ── Card CTA button tokens (T5-1) ─────────────────────────────────────────
+
+  /**
+   * Label text for the CTA button rendered at the bottom of card entries that
+   * have a `url` field.  When undefined, no button is rendered.
+   * Existing themes that omit this token are completely unaffected.
+   * Example: 'VIEW REPOSITORY' (gitline theme).
+   */
+  cardCtaLabel?: string;
+
+  /**
+   * Fill colour for the CTA button background rect.
+   * Defaults to 'transparent' when not set.
+   */
+  cardCtaFill?: string;
+
+  /**
+   * Text colour for the CTA button label.
+   * Defaults to the canvas backgroundColor's contrasting colour (white on dark, dark on light).
+   */
+  cardCtaTextColor?: string;
+
+  /**
+   * Corner radius of the CTA button pill rect (px).
+   * Defaults to half the button height (true pill) when not set.
+   */
+  cardCtaRadius?: number;
+
+  /**
+   * Stroke/border colour for the CTA button outline.
+   * Defaults to the CTA text colour when not set.
+   */
+  cardCtaBorderColor?: string;
+
+  /**
+   * Stroke/border width for the CTA button outline (px).
+   * Defaults to 1.0 when not set.
+   */
+  cardCtaBorderWidth?: number;
+
+  // ── Inline date icon token (T5-2) ─────────────────────────────────────────
+
+  /**
+   * Name of an icon from the built-in registry to render inline immediately
+   * before the date text in card entries.  When undefined, no icon is shown
+   * and existing card themes are completely unaffected.
+   * Example: 'clock' (gitline theme).
+   */
+  cardDateIcon?: string;
 }

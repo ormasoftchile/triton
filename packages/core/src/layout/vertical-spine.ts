@@ -87,6 +87,8 @@ interface SpineEntry {
   type:          'milestone' | 'activity';
   /** Optional icon hint text (placeholder for future pictographic badges). */
   iconHint?:     string;
+  /** Optional URL — renders a CTA button when theme.cardCtaLabel is set (T5-1). */
+  url?:          string;
 }
 
 // ---------------------------------------------------------------------------
@@ -178,6 +180,22 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
   const DESC_LINE_H  = rhuInt(descPx * 1.4);
   const TEXT_GAP     = 4;
 
+  // ── CTA button tokens (T5-1) — gated behind theme.cardCtaLabel ───────────
+  // Only active when both the entry has a url AND theme.cardCtaLabel is set.
+  // Existing themes that don't set cardCtaLabel are byte-identical.
+  const ctaLabel   = theme.cardCtaLabel;
+  const hasCta     = (e: SpineEntry) => entryStyle === 'card' && !!ctaLabel && !!e.url;
+  const CTA_BTN_H  = rhuInt(datePx * 2.0);   // pill height ≈ 22–26 px depending on font
+  const CTA_VERT_GAP = 8;                       // gap above button
+  const ctaBtnFontPx = datePx * 0.85;
+
+  // ── Date icon constants (T5-2) — gated behind theme.cardDateIcon ──────────
+  // Only active when theme.cardDateIcon is set to a known icon name.
+  // Existing themes that don't set cardDateIcon are byte-identical.
+  const dateIconName  = theme.cardDateIcon;
+  const DATE_ICON_SZ  = rhu(datePx * 0.9);   // icon diameter, matches date text cap-height
+  const DATE_ICON_GAP = 4;                      // gap between icon and date text
+
   // ── Card colours (additive, only used when entryStyle === 'card') ─────────
   const isDark    = isHexDark(theme.canvas.backgroundColor);
   const cardFill  = isDark ? '#1A2E44' : '#F4F6F8';
@@ -246,6 +264,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       statusOpacity: st.opacity,
       type:          'milestone',
       iconHint:      mil.icon,
+      url:           mil.url,
     });
   }
 
@@ -289,6 +308,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       statusOpacity: st.opacity,
       type:          'activity',
       iconHint:      act.icon,
+      url:           act.url,
     });
   }
 
@@ -340,6 +360,8 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       bh += DATE_LINE_H;
       bh += TEXT_GAP + TITLE_LINE_H * titleWrapped.lines.length;
       if (e.description) bh += TEXT_GAP + DESC_LINE_H;
+      // T5-1: account for CTA button height so entries with buttons don't overlap
+      if (entryStyle === 'card' && !!ctaLabel && !!e.url) bh += CTA_VERT_GAP + CTA_BTN_H;
       bh += VERT_PAD;
       maxBH = Math.max(maxBH, rhuInt(bh));
     }
@@ -474,6 +496,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     h += DATE_LINE_H;
     h += TEXT_GAP + TITLE_LINE_H * titleWrapped.lines.length;
     if (e.description) h += TEXT_GAP + DESC_LINE_H;
+    if (hasCta(e)) h += CTA_VERT_GAP + CTA_BTN_H;
     h += VERT_PAD;
     return rhuInt(h);
   }
@@ -875,20 +898,74 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       : rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD);
     const textAnchor = (side === 'right' ? 'start' : 'end') as 'start' | 'end';
 
-    // Date label (top line in block)
+    // Date label (top line in block) — with optional inline date icon (T5-2)
     let textY = rhu(blockTop + VERT_PAD + DATE_LINE_H * 0.85);
-    primitives.push({
-      kind:             'text',
-      x:                textX,
-      y:                textY,
-      text:             entry.dateStr,
-      fontFamily:       FONT_FAM,
-      fontSize:         datePx,
-      fontWeight:       theme.milestone.dateLabelFontWeight,
-      fill:             theme.milestone.dateLabelColor,
-      textAnchor,
-      dominantBaseline: 'alphabetic',
-    });
+
+    // T5-2: inline date icon (gated behind theme.cardDateIcon token)
+    if (dateIconName && entryStyle === 'card') {
+      const dateIconDef = getIcon(dateIconName);
+      if (dateIconDef) {
+        const iconR  = rhu(DATE_ICON_SZ / 2);
+        // Icon center Y: align to text cap-height midpoint (roughly 0.7× datePx above baseline)
+        const iconCY = rhu(textY - datePx * 0.38);
+        // X position: always on the leading side of the text (before it in visual reading direction)
+        const iconCX = side === 'right'
+          ? rhu(textX + iconR)
+          : rhu(textX - iconR);
+        const s = rhu(iconR / 12, 4);  // scale: maps 24-unit viewBox to icon diameter
+        const transform = `translate(${iconCX},${iconCY}) scale(${s}) translate(-12,-12)`;
+        const iconColor = theme.milestone.dateLabelColor;
+        for (const pathDef of dateIconDef.paths) {
+          const iconFill   = pathDef.fill   ? iconColor : 'none';
+          const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
+          primitives.push({
+            kind:          'path',
+            d:             pathDef.d,
+            fill:          iconFill,
+            stroke:        iconStroke,
+            strokeWidth:   iconStroke ? 1.5 : undefined,
+            strokeLinecap: iconStroke ? 'round' : undefined,
+            transform,
+          });
+        }
+        // Shift date text away from the icon
+        const dateShift = rhu(DATE_ICON_SZ + DATE_ICON_GAP);
+        primitives.push({
+          kind:             'text',
+          x:                side === 'right' ? rhu(textX + dateShift) : rhu(textX - dateShift),
+          y:                textY,
+          text:             entry.dateStr,
+          fontFamily:       FONT_FAM,
+          fontSize:         datePx,
+          fontWeight:       theme.milestone.dateLabelFontWeight,
+          fill:             theme.milestone.dateLabelColor,
+          textAnchor,
+          dominantBaseline: 'alphabetic',
+        });
+      } else {
+        // Icon not found — fall back to plain date text
+        primitives.push({
+          kind: 'text', x: textX, y: textY, text: entry.dateStr,
+          fontFamily: FONT_FAM, fontSize: datePx,
+          fontWeight: theme.milestone.dateLabelFontWeight,
+          fill: theme.milestone.dateLabelColor, textAnchor,
+          dominantBaseline: 'alphabetic',
+        });
+      }
+    } else {
+      primitives.push({
+        kind:             'text',
+        x:                textX,
+        y:                textY,
+        text:             entry.dateStr,
+        fontFamily:       FONT_FAM,
+        fontSize:         datePx,
+        fontWeight:       theme.milestone.dateLabelFontWeight,
+        fill:             theme.milestone.dateLabelColor,
+        textAnchor,
+        dominantBaseline: 'alphabetic',
+      });
+    }
 
     // Title label (second line) — with wrapping
     textY = rhu(textY + TEXT_GAP + TITLE_LINE_H);
@@ -939,6 +1016,58 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
         textAnchor,
         dominantBaseline: 'alphabetic',
         opacity:          0.85,
+      });
+    }
+
+    // T5-1: CTA button — pill-shaped rounded rect + centred label text.
+    // Only rendered when: entryStyle='card' AND theme.cardCtaLabel is set AND entry.url is set.
+    // Existing card themes (no cardCtaLabel token) are completely unaffected.
+    if (hasCta(entry)) {
+      const btnLabel = ctaLabel!;
+      const btnMaxW  = BLOCK_W - BLOCK_INNER_PAD * 2;
+      // Estimate button width from label length (conservative: 0.58 em per char at ctaBtnFontPx)
+      const btnLabelW = Math.min(btnMaxW, Math.ceil(btnLabel.length * ctaBtnFontPx * 0.58) + 20);
+      const btnW  = rhuInt(Math.max(btnLabelW, 80));
+      const btnH  = CTA_BTN_H;
+      const btnRx = theme.cardCtaRadius ?? Math.floor(btnH / 2);
+
+      // Button top Y — gap below description (or title if no description)
+      const btnTop  = rhu(textY + CTA_VERT_GAP);
+      // Button x: anchor to the leading side of the content block
+      const btnLeft = side === 'right'
+        ? rhu(blockLeft + BLOCK_INNER_PAD)
+        : rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD - btnW);
+
+      const ctaFill        = theme.cardCtaFill        ?? 'transparent';
+      const ctaTextColor   = theme.cardCtaTextColor   ?? theme.milestone.titleLabelColor;
+      const ctaBorderColor = theme.cardCtaBorderColor ?? ctaTextColor;
+      const ctaBorderWidth = theme.cardCtaBorderWidth ?? 1;
+
+      // Button background (pill shape)
+      primitives.push({
+        kind:        'rect',
+        x:           btnLeft,
+        y:           btnTop,
+        width:       btnW,
+        height:      btnH,
+        fill:        ctaFill,
+        stroke:      ctaBorderColor,
+        strokeWidth: ctaBorderWidth,
+        rx:          btnRx,
+      });
+
+      // Button label text — centred inside the pill
+      primitives.push({
+        kind:             'text',
+        x:                rhu(btnLeft + btnW / 2),
+        y:                rhu(btnTop + btnH * 0.65),
+        text:             btnLabel,
+        fontFamily:       FONT_FAM,
+        fontSize:         ctaBtnFontPx,
+        fontWeight:       theme.milestone.dateLabelFontWeight,
+        fill:             ctaTextColor,
+        textAnchor:       'middle',
+        dominantBaseline: 'alphabetic',
       });
     }
 

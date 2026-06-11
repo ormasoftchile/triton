@@ -474,3 +474,78 @@ describe('T3 AI Timeline — ai-timeline theme', () => {
     expect(isPngSignature(png2)).toBe(true);
   }, 90_000);
 });
+
+// ---------------------------------------------------------------------------
+// (10) T5 Gitline — dark card timeline with CTA buttons and clock date icon
+// ---------------------------------------------------------------------------
+
+describe('T5 Gitline — gitline theme (CTA buttons + inline date icon)', () => {
+  const GITLINE_FIXTURE  = join(REPO_ROOT, 'examples', 'gallery', 'gitline.timeline.yaml');
+  const GALLERY_DIR_T5   = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+
+  it('gitline fixture validates with zero errors', () => {
+    const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = validateDocument(ir);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('gitline SVG render with gitline theme is deterministic (T5-1 + T5-2 regression guard)', () => {
+    const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const r1 = renderDocument(ir, { format: 'svg', theme: 'gitline', layout: 'vertical-spine' });
+    const r2 = renderDocument(ir, { format: 'svg', theme: 'gitline', layout: 'vertical-spine' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+    // Confirm CTA button label is present in the SVG output (T5-1)
+    expect(r1.svg).toContain('VIEW REPOSITORY');
+  });
+
+  it('gitline SVG scene passes the linter (zero errors)', () => {
+    const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const scene = buildScene(ir, { theme: 'gitline', layout: 'vertical-spine' });
+    const issues = lintScene(scene);
+    const errors = issues.filter((q) => q.severity === 'error');
+    if (errors.length > 0) {
+      throw new Error(
+        `gitline lint errors:\n${errors.map((e) => `  ${e.code}: ${e.message}`).join('\n')}`,
+      );
+    }
+    expect(errors).toHaveLength(0);
+  });
+
+  it('gitline Skia render produces valid PNG (T5 dark card timeline)', async () => {
+    const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'gitline', backend: 'skia', layout: 'vertical-spine',
+    });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+    expect(result.png!.length).toBeGreaterThan(1000);
+  }, 60_000);
+
+  it('gitline Skia golden — generate and save (T5 regression guard)', async () => {
+    ensureDir(GALLERY_DIR_T5);
+    const outPath = join(GALLERY_DIR_T5, 'gitline-skia.png');
+    const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'gitline', backend: 'skia', layout: 'vertical-spine',
+    });
+    const png = result.png!;
+    expect(isPngSignature(png)).toBe(true);
+    writeFileSync(outPath, png);
+    console.log('[t5-golden] gitline Skia PNG →', outPath);
+
+    // Re-render to verify Skia byte-determinism
+    const result2 = await renderDocumentAsync(ir, {
+      format: 'png', theme: 'gitline', backend: 'skia', layout: 'vertical-spine',
+    });
+    const png2 = result2.png!;
+    expect(png2.length).toBe(png.length);
+    expect(isPngSignature(png2)).toBe(true);
+  }, 90_000);
+});

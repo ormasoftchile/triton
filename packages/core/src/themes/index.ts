@@ -13,6 +13,7 @@ import { productTheme }    from './product.js';
 import { releaseTheme }    from './release.js';
 import { showcaseTheme }   from './showcase.js';
 import { aiTimelineTheme } from './ai-timeline.js';
+import { gitlineTheme }    from './gitline.js';
 import type { ResolvedTheme } from './types.js';
 
 export type { ResolvedTheme } from './types.js';
@@ -30,6 +31,7 @@ const REGISTRY = new Map<string, ResolvedTheme>([
   ['release',      releaseTheme],
   ['showcase',     showcaseTheme],
   ['ai-timeline',  aiTimelineTheme],
+  ['gitline',      gitlineTheme],
 ]);
 
 /**
@@ -72,6 +74,7 @@ export function listThemeInfos(): ThemeInfo[] {
     { id: 'executive',   title: 'Executive',   tier: 2 },
     { id: 'product',     title: 'Product',     tier: 2 },
     { id: 'ai-timeline', title: 'AI Timeline', tier: 2 },
+    { id: 'gitline',     title: 'Gitline',     tier: 2 },
     { id: 'showcase',    title: 'Showcase',    tier: 3 },
   ];
 }
