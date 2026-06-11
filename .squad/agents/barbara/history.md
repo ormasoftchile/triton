@@ -69,6 +69,17 @@
 
 ### Learnings
 
+**Gitline Demo Page (2026-06-11):**
+- `examples/gallery/gitline-demo.html` — self-contained dark Gitline app shell demo page
+- Embeds `examples/gallery/gitline.svg` (1200×1008 px, rendered via SVG backend from the gitline fixture)
+- SVG chosen over PNG: scales perfectly at any browser width; all cards, clock icons, CTA pills, and spine circles render correctly in the SVG backend (no Skia-only gradients needed for the demo)
+- To view: `open examples/gallery/gitline-demo.html` from the repo root, or serve the directory (`npx serve examples/gallery`) and visit `http://localhost:3000/gitline-demo.html`
+- The page is additive only — no renderer, theme, or IR changes were made
+
+**Files touched (Demo):**
+- `examples/gallery/gitline.svg` — new SVG render artifact (gitline theme, vertical-spine, 1200×1008 px)
+- `examples/gallery/gitline-demo.html` — new standalone demo page (self-contained HTML+CSS, references sibling gitline.svg)
+
 **Files touched (T5):**
 - `packages/core/src/themes/types.ts` — 7 new ResolvedTheme tokens
 - `packages/core/src/layout/vertical-spine.ts` — SpineEntry.url, blockH, evenStep, date icon render, CTA render

@@ -515,6 +515,13 @@ R5. **Avoid gantt-chart defaults in the IR and renderer.** The IR must not have 
 - Keep history focused on work, decisions focused on direction
 
 ---
+
+### Gitline Demo Page (2026-06-11, Barbara)
+
+**What:** Self-contained demo page for T5 renderer at `examples/gallery/gitline-demo.html` wrapping rendered SVG. App chrome (header, tabs, pagination) added as pure HTML/CSS, renderer unchanged. SVG chosen for crisp browser scaling.
+
+**Tests:** 512/512 pass; typecheck and lint clean.
+
 ---
 
 ### Archived Batch 2026-06-11
