@@ -47,7 +47,6 @@ export interface IconDef {
 // ---------------------------------------------------------------------------
 
 const REGISTRY: Record<string, IconDef> = {
-
   // ── flag ──────────────────────────────────────────────────────────────────
   // Vertical pole on the left; filled triangular pennant extending right.
   flag: {
@@ -55,7 +54,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 4 2 L 4 21 L 6 21 L 6 17 L 18 11 L 6 5 Z',
-        fill: true, stroke: false,
+        fill: true,
+        stroke: false,
       },
     ],
   },
@@ -67,7 +67,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 12 3 L 14.4 8.8 L 20.6 9.2 L 15.8 13.2 L 17.3 19.3 L 12 16 L 6.7 19.3 L 8.2 13.2 L 3.4 9.2 L 9.6 8.8 Z',
-        fill: true, stroke: false,
+        fill: true,
+        stroke: false,
       },
     ],
   },
@@ -79,7 +80,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 4 12 L 9.5 17.5 L 20 7',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -90,7 +92,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 5 5 L 19 19 M 5 19 L 19 5',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -102,7 +105,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 12 3 L 22 21 L 2 21 Z M 12 9 L 12 15',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -114,7 +118,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 12 2 L 16 11 L 15 11 L 15 18 L 9 18 L 9 11 L 8 11 Z M 9 18 L 6 22 L 9 16 Z M 15 18 L 18 22 L 15 16 Z',
-        fill: true, stroke: false,
+        fill: true,
+        stroke: false,
       },
     ],
   },
@@ -126,7 +131,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 3 12 A 9 9 0 1 0 21 12 A 9 9 0 1 0 3 12 M 7 12 A 5 5 0 1 0 17 12 A 5 5 0 1 0 7 12 M 10 12 A 2 2 0 1 0 14 12 A 2 2 0 1 0 10 12',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -138,7 +144,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 2 5 L 2 22 L 22 22 L 22 5 Z M 2 10 L 22 10 M 8 2 L 8 7 M 16 2 L 16 7 M 6 14 L 9 14 M 13 14 L 16 14 M 6 18 L 9 18 M 13 18 L 16 18',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -150,7 +157,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 2 12 A 10 10 0 1 0 22 12 A 10 10 0 1 0 2 12 M 12 7 L 12 12 L 17 14',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -162,7 +170,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 8 12 A 4 4 0 1 0 16 12 A 4 4 0 1 0 8 12 M 22 12 L 20 12 M 19.1 4.9 L 17.7 6.3 M 12 2 L 12 4 M 4.9 4.9 L 6.3 6.3 M 2 12 L 4 12 M 4.9 19.1 L 6.3 17.7 M 12 22 L 12 20 M 19.1 19.1 L 17.7 17.7',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -174,7 +183,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 8 11 L 8 8 A 4 4 0 0 1 16 8 L 16 11 M 4 11 L 4 22 L 20 22 L 20 11 Z M 10 15 A 2 2 0 1 0 14 15 A 2 2 0 1 0 10 15',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -186,7 +196,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 6 19 L 18 19 A 4 4 0 0 0 18 12 A 5 5 0 0 0 11 8 A 4 4 0 0 0 4 12 A 4 4 0 0 0 6 19 Z',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -198,7 +209,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 4 7 A 8 2.5 0 0 1 20 7 A 8 2.5 0 0 1 4 7 L 4 17 A 8 2.5 0 0 0 20 17 L 20 7 M 4 12 A 8 2.5 0 0 1 20 12',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -210,7 +222,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 9 7 L 3 12 L 9 17 M 15 7 L 21 12 L 15 17 M 13 5 L 11 19',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -222,7 +235,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 12 2 L 22 12 L 12 22 L 2 12 Z',
-        fill: true, stroke: false,
+        fill: true,
+        stroke: false,
       },
     ],
   },
@@ -234,7 +248,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 5 3 L 21 12 L 5 21 Z',
-        fill: true, stroke: false,
+        fill: true,
+        stroke: false,
       },
     ],
   },
@@ -246,7 +261,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 14 2 L 6 13 L 12 13 L 10 22 L 18 11 L 12 11 Z',
-        fill: true, stroke: false,
+        fill: true,
+        stroke: false,
       },
     ],
   },
@@ -258,7 +274,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 4 7 A 3 3 0 1 0 10 7 A 3 3 0 1 0 4 7 M 1 22 A 6 6 0 0 1 13 22 M 14.5 8 A 2.5 2.5 0 1 0 19.5 8 A 2.5 2.5 0 1 0 14.5 8 M 14 22 A 5 5 0 0 1 22 22',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -270,7 +287,8 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 4 2 L 15 2 L 20 7 L 20 22 L 4 22 Z M 15 2 L 15 7 L 20 7 M 7 11 L 17 11 M 7 15 L 17 15 M 7 19 L 13 19',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -282,7 +300,60 @@ const REGISTRY: Record<string, IconDef> = {
     paths: [
       {
         d: 'M 6 9 A 6 6 0 0 1 18 9 C 18 15 12 22 12 22 C 12 22 6 15 6 9 Z M 10 9 A 2 2 0 1 0 14 9 A 2 2 0 1 0 10 9',
-        fill: false, stroke: true,
+        fill: false,
+        stroke: true,
+      },
+    ],
+  },
+
+  // ── building (office / venue) ─────────────────────────────────────────────
+  // Simple building facade: rectangle body + door + two windows.
+  building: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M 3 22 L 3 4 L 21 4 L 21 22 Z M 3 4 L 12 2 L 21 4 M 7 10 L 10 10 L 10 14 L 7 14 Z M 14 10 L 17 10 L 17 14 L 14 14 Z M 9 22 L 9 17 L 15 17 L 15 22',
+        fill: false,
+        stroke: true,
+      },
+    ],
+  },
+
+  // ── hardhat (engineer / worker) ───────────────────────────────────────────
+  // Construction hard hat: dome arc + brim line + centre stripe.
+  hardhat: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M 4 14 L 20 14 L 20 16 L 4 16 Z M 6 14 A 6 7 0 0 1 18 14 M 10 14 L 10 8 L 14 8 L 14 14',
+        fill: false,
+        stroke: true,
+      },
+    ],
+  },
+
+  // ── truck (vehicle / logistics) ───────────────────────────────────────────
+  // Simple truck side view: cabin + trailer + two wheels.
+  truck: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M 1 16 L 1 8 L 11 8 L 11 16 M 11 10 L 17 6 L 23 10 L 23 16 L 11 16 M 4 16 A 2 2 0 1 0 8 16 A 2 2 0 1 0 4 16 M 15 16 A 2 2 0 1 0 19 16 A 2 2 0 1 0 15 16',
+        fill: false,
+        stroke: true,
+      },
+    ],
+  },
+
+  // ── wrench (tool / maintenance) ───────────────────────────────────────────
+  // Classic wrench shape: handle + jaw opening.
+  wrench: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M 14.7 6.3 A 5 5 0 0 0 5.6 13.4 L 2 17 A 1.5 1.5 0 0 0 4 19 L 7.6 15.4 A 5 5 0 0 0 14.7 6.3 Z M 14.7 6.3 L 10 11',
+        fill: false,
+        stroke: true,
       },
     ],
   },
@@ -294,32 +365,42 @@ const REGISTRY: Record<string, IconDef> = {
 
 const ALIASES: Record<string, string> = {
   'check-circle': 'check',
-  'tick':         'check',
-  'cancel':       'x',
-  'close':        'x',
-  'cross':        'x',
-  'alert':        'warning',
-  'triangle':     'warning',
-  'launch':       'rocket',
-  'goal':         'target',
-  'bullseye':     'target',
-  'settings':     'gear',
-  'cog':          'gear',
-  'security':     'lock',
-  'padlock':      'lock',
-  'data':         'database',
-  'storage':      'database',
-  'zap':          'bolt',
-  'lightning':    'bolt',
-  'team':         'people',
-  'users':        'people',
-  'person':       'people',
-  'file':         'doc',
-  'document':     'doc',
-  'location':     'pin',
-  'marker':       'pin',
-  'diamond':      'milestone',
-  'start':        'play',
+  tick: 'check',
+  cancel: 'x',
+  close: 'x',
+  cross: 'x',
+  alert: 'warning',
+  triangle: 'warning',
+  launch: 'rocket',
+  goal: 'target',
+  bullseye: 'target',
+  settings: 'gear',
+  cog: 'gear',
+  security: 'lock',
+  padlock: 'lock',
+  data: 'database',
+  storage: 'database',
+  zap: 'bolt',
+  lightning: 'bolt',
+  team: 'people',
+  users: 'people',
+  person: 'people',
+  file: 'doc',
+  document: 'doc',
+  location: 'pin',
+  marker: 'pin',
+  diamond: 'milestone',
+  start: 'play',
+  engineer: 'hardhat',
+  worker: 'hardhat',
+  construction: 'hardhat',
+  vehicle: 'truck',
+  logistics: 'truck',
+  maintenance: 'wrench',
+  tool: 'wrench',
+  office: 'building',
+  venue: 'building',
+  surveyor: 'wrench',
 };
 
 // ---------------------------------------------------------------------------

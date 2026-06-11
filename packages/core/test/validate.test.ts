@@ -906,3 +906,97 @@ describe('validateDocument — metadata.logo field', () => {
     expect(result.errors).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// blocks — structured multi-block content on Milestone and Activity
+// ---------------------------------------------------------------------------
+
+describe('validateDocument — Milestone.blocks field', () => {
+  it('accepts a milestone with multiple headed blocks (T2 multi-section pattern)', () => {
+    const doc = makeMinimal();
+    doc.milestones = [
+      {
+        id: 'ms-2023',
+        label: '2023',
+        date: '2023-01-01',
+        blocks: [
+          { heading: 'Subject 1', text: 'First paragraph of the 2023 entry.' },
+          { heading: 'Subject 2', text: 'Second paragraph of the 2023 entry.' },
+        ],
+      },
+    ];
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts a milestone with a single block and no heading', () => {
+    const doc = makeMinimal();
+    doc.milestones = [
+      {
+        id: 'ms-single',
+        label: 'Single',
+        date: '2024-01-01',
+        blocks: [{ text: 'A block with no heading is valid.' }],
+      },
+    ];
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts a milestone with both description and blocks present (no hard invariant)', () => {
+    const doc = makeMinimal();
+    doc.milestones = [
+      {
+        id: 'ms-both',
+        label: 'Both',
+        date: '2024-06-01',
+        description: 'Fallback description.',
+        blocks: [{ heading: 'Subject', text: 'Preferred content block.' }],
+      },
+    ];
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts a milestone without blocks (blocks is optional)', () => {
+    const doc = makeMinimal();
+    doc.milestones = [{ id: 'ms-noblock', label: 'No Block', date: '2025-01-01' }];
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+});
+
+describe('validateDocument — Activity.blocks field', () => {
+  it('accepts an activity with multiple headed blocks', () => {
+    const doc = makeMinimal();
+    (doc.activities[0] as Activity & { blocks?: unknown }).blocks = [
+      { heading: 'Phase 1', text: 'Discovery and planning work.' },
+      { heading: 'Phase 2', text: 'Implementation and delivery.' },
+    ];
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts an activity with a heading-less block', () => {
+    const doc = makeMinimal();
+    (doc.activities[0] as Activity & { blocks?: unknown }).blocks = [
+      { text: 'A block with no heading.' },
+    ];
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts an activity without blocks (blocks is optional)', () => {
+    const doc = makeMinimal();
+    // no blocks field on default makeMinimal activity
+    const result = validateDocument(doc);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+});

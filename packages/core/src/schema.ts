@@ -84,6 +84,16 @@ const logoSchema = z.object({
   height: z.number().positive().optional(),
 });
 
+/**
+ * A single titled content block within an entry.
+ * `heading` is optional; `text` is required and must be non-empty.
+ * See ContentBlock in types.ts for the description-vs-blocks rendering precedence.
+ */
+const contentBlockSchema = z.object({
+  heading: z.string().optional(),
+  text: z.string().min(1),
+});
+
 const metadataSchema = z.object({
   title: z.string().min(1),
   subtitle: z.string().optional(),
@@ -133,6 +143,7 @@ const activitySchema = z.object({
   icon: z.string().optional(),
   color: z.string().optional(),
   description: z.string().optional(),
+  blocks: z.array(contentBlockSchema).optional(),
   group: idSchema.optional(),
   url: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -149,6 +160,7 @@ const milestoneSchema = z.object({
   icon: z.string().optional(),
   color: z.string().optional(),
   description: z.string().optional(),
+  blocks: z.array(contentBlockSchema).optional(),
   group: idSchema.optional(),
   url: z.string().optional(),
   tags: z.array(z.string()).optional(),

@@ -43,6 +43,29 @@ export type AxisUnit = 'day' | 'week' | 'month' | 'quarter' | 'half' | 'year';
 // Structural sub-types
 // ---------------------------------------------------------------------------
 
+/**
+ * A single titled content block within an entry.
+ *
+ * Used to express multiple named sub-sections inside one entry (e.g.
+ * "Subject 1" + body paragraph, then "Subject 2" + body paragraph).
+ *
+ * - `heading` is optional: a short sub-section title (plain text, no markup).
+ * - `text` is required: the paragraph body for this block (non-empty).
+ *
+ * Rendering precedence vs `description`:
+ *   If `blocks` is present and non-empty, renderers SHOULD use `blocks` and
+ *   ignore `description`.  If `blocks` is absent or empty, renderers fall back
+ *   to `description`.  Both fields MAY coexist in a document (no hard schema
+ *   invariant), but authors SHOULD NOT set both — prefer `blocks` for
+ *   structured content and `description` for simple single-paragraph entries.
+ */
+export interface ContentBlock {
+  /** Optional sub-section title (e.g. "Subject 1", "Background"). */
+  heading?: string;
+  /** Paragraph body for this block.  Must be non-empty. */
+  text: string;
+}
+
 export interface TimeRange {
   start: IRDate;
   end?: IRDate;
@@ -146,6 +169,12 @@ export interface Activity {
   /** Explicit fill/accent color override.  Any valid CSS color string (e.g. "#FF8800", "coral"). */
   color?: string;
   description?: string;
+  /**
+   * Structured multi-block content.  When present and non-empty, renderers
+   * SHOULD use `blocks` in preference to `description`.
+   * @see ContentBlock for the description-vs-blocks rendering precedence.
+   */
+  blocks?: ContentBlock[];
   group?: ID;
   url?: string;
   tags?: string[];
@@ -163,6 +192,12 @@ export interface Milestone {
   icon?: string;
   color?: string;
   description?: string;
+  /**
+   * Structured multi-block content.  When present and non-empty, renderers
+   * SHOULD use `blocks` in preference to `description`.
+   * @see ContentBlock for the description-vs-blocks rendering precedence.
+   */
+  blocks?: ContentBlock[];
   group?: ID;
   url?: string;
   tags?: string[];

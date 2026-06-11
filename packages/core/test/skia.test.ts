@@ -33,10 +33,10 @@ import type { Scene, SceneEffect, SceneBackground } from '../src/scene.js';
 // Paths
 // ---------------------------------------------------------------------------
 
-const __dirname  = dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT  = resolve(__dirname, '..', '..', '..');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(__dirname, '..', '..', '..');
 const GOLDEN_DIR = join(REPO_ROOT, 'examples', 'golden');
-const FIXTURE    = join(REPO_ROOT, 'examples', 'our-timeline.timeline.yaml');
+const FIXTURE = join(REPO_ROOT, 'examples', 'our-timeline.timeline.yaml');
 
 function ensureDir(dir: string): void {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
@@ -48,16 +48,31 @@ function ensureDir(dir: string): void {
 
 function makeMinimalScene(overrides: Partial<Scene> = {}): Scene {
   return {
-    width:      400,
-    height:     200,
+    width: 400,
+    height: 200,
     background: '#0D1B2A',
     primitives: [
       { kind: 'rect', x: 0, y: 0, width: 400, height: 200, fill: '#0D1B2A' },
-      { kind: 'circle', cx: 200, cy: 100, r: 30, fill: '#00D4FF', stroke: '#FFFFFF', strokeWidth: 2 },
       {
-        kind: 'text', x: 200, y: 100, text: 'Hello Skia',
-        fontFamily: 'DejaVu Sans', fontSize: 14, fontWeight: 400, fill: '#FFFFFF',
-        textAnchor: 'middle', dominantBaseline: 'middle',
+        kind: 'circle',
+        cx: 200,
+        cy: 100,
+        r: 30,
+        fill: '#00D4FF',
+        stroke: '#FFFFFF',
+        strokeWidth: 2,
+      },
+      {
+        kind: 'text',
+        x: 200,
+        y: 100,
+        text: 'Hello Skia',
+        fontFamily: 'DejaVu Sans',
+        fontSize: 14,
+        fontWeight: 400,
+        fill: '#FFFFFF',
+        textAnchor: 'middle',
+        dominantBaseline: 'middle',
       },
     ],
     ...overrides,
@@ -67,9 +82,9 @@ function makeMinimalScene(overrides: Partial<Scene> = {}): Scene {
 function isPngSignature(bytes: Uint8Array): boolean {
   return (
     bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&  // 'P'
-    bytes[2] === 0x4e &&  // 'N'
-    bytes[3] === 0x47     // 'G'
+    bytes[1] === 0x50 && // 'P'
+    bytes[2] === 0x4e && // 'N'
+    bytes[3] === 0x47 // 'G'
   );
 }
 
@@ -107,7 +122,11 @@ describe('Skia backend — determinism', () => {
       if (a[i] !== b[i]) {
         // If exact byte identity fails (platform variation), document it and
         // fall back to structural check only.
-        console.warn('[skia-test] Byte identity check failed at index', i, '— platform nondeterminism?');
+        console.warn(
+          '[skia-test] Byte identity check failed at index',
+          i,
+          '— platform nondeterminism?',
+        );
         // At minimum, same length + valid PNG
         expect(isPngSignature(b)).toBe(true);
         return;
@@ -140,7 +159,16 @@ describe('Skia backend — effects', () => {
     const scene = makeMinimalScene({
       primitives: [
         { kind: 'rect', x: 0, y: 0, width: 400, height: 200, fill: '#0D1B2A' },
-        { kind: 'circle', cx: 200, cy: 100, r: 30, fill: '#00D4FF', stroke: '#fff', strokeWidth: 2, effects: glowEffects },
+        {
+          kind: 'circle',
+          cx: 200,
+          cy: 100,
+          r: 30,
+          fill: '#00D4FF',
+          stroke: '#fff',
+          strokeWidth: 2,
+          effects: glowEffects,
+        },
       ],
     });
     const bytes = await sceneToPngSkia(scene);
@@ -148,11 +176,22 @@ describe('Skia backend — effects', () => {
   }, 30_000);
 
   it('shadow effect does not crash', async () => {
-    const shadowEffects: SceneEffect[] = [{ kind: 'shadow', dx: 4, dy: 6, blur: 10, color: '#00000080' }];
+    const shadowEffects: SceneEffect[] = [
+      { kind: 'shadow', dx: 4, dy: 6, blur: 10, color: '#00000080' },
+    ];
     const scene = makeMinimalScene({
       primitives: [
         { kind: 'rect', x: 0, y: 0, width: 400, height: 200, fill: '#0D1B2A' },
-        { kind: 'rect', x: 50, y: 50, width: 300, height: 100, fill: '#132035', rx: 6, effects: shadowEffects },
+        {
+          kind: 'rect',
+          x: 50,
+          y: 50,
+          width: 300,
+          height: 100,
+          fill: '#132035',
+          rx: 6,
+          effects: shadowEffects,
+        },
       ],
     });
     const bytes = await sceneToPngSkia(scene);
@@ -161,23 +200,28 @@ describe('Skia backend — effects', () => {
 
   it('scene with effects produces different bytes than scene without', async () => {
     const sceneNoFx = makeMinimalScene();
-    const sceneFx   = makeMinimalScene({
+    const sceneFx = makeMinimalScene({
       primitives: [
         { kind: 'rect', x: 0, y: 0, width: 400, height: 200, fill: '#0D1B2A' },
         {
-          kind: 'circle', cx: 200, cy: 100, r: 30, fill: '#00D4FF', stroke: '#FFFFFF', strokeWidth: 2,
+          kind: 'circle',
+          cx: 200,
+          cy: 100,
+          r: 30,
+          fill: '#00D4FF',
+          stroke: '#FFFFFF',
+          strokeWidth: 2,
           effects: [{ kind: 'glow', color: '#00D4FF', radius: 18 }],
         },
       ],
     });
     const bytesNoFx = await sceneToPngSkia(sceneNoFx);
-    const bytesFx   = await sceneToPngSkia(sceneFx);
+    const bytesFx = await sceneToPngSkia(sceneFx);
     // Both valid PNGs but different content
     expect(isPngSignature(bytesNoFx)).toBe(true);
     expect(isPngSignature(bytesFx)).toBe(true);
     // Different output (at least different length or content)
-    const same = bytesNoFx.length === bytesFx.length &&
-      bytesNoFx.every((b, i) => b === bytesFx[i]);
+    const same = bytesNoFx.length === bytesFx.length && bytesNoFx.every((b, i) => b === bytesFx[i]);
     expect(same).toBe(false);
   }, 30_000);
 });
@@ -189,7 +233,10 @@ describe('Skia backend — effects', () => {
 describe('Skia backend — cloud background', () => {
   it('cloud sceneBackground does not crash', async () => {
     const bg: SceneBackground = {
-      kind: 'cloud', baseColor: '#0D1B2A', accentColor: '#1A3A5C', intensity: 1.4,
+      kind: 'cloud',
+      baseColor: '#0D1B2A',
+      accentColor: '#1A3A5C',
+      intensity: 1.4,
     };
     const scene = makeMinimalScene({ sceneBackground: bg });
     const bytes = await sceneToPngSkia(scene);
@@ -199,7 +246,10 @@ describe('Skia backend — cloud background', () => {
 
   it('gradient sceneBackground does not crash', async () => {
     const bg: SceneBackground = {
-      kind: 'gradient', from: '#0D1B2A', to: '#1A3A5C', angle: 135,
+      kind: 'gradient',
+      from: '#0D1B2A',
+      to: '#1A3A5C',
+      angle: 135,
     };
     const scene = makeMinimalScene({ sceneBackground: bg });
     const bytes = await sceneToPngSkia(scene);
@@ -215,7 +265,11 @@ describe('backend selection', () => {
   it('renderDocumentAsync with format:png + backend:skia returns PNG bytes', async () => {
     const fixtureText = readFileSync(FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
-    const result = await renderDocumentAsync(ir, { format: 'png', backend: 'skia', theme: 'consulting' });
+    const result = await renderDocumentAsync(ir, {
+      format: 'png',
+      backend: 'skia',
+      theme: 'consulting',
+    });
     expect(result.format).toBe('png');
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(result.png!.length).toBeGreaterThan(0);
@@ -228,7 +282,7 @@ describe('backend selection', () => {
   it('renderDocumentAsync with format:svg is byte-identical to renderDocument', async () => {
     const fixtureText = readFileSync(FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
-    const sync  = renderDocument(ir, { format: 'svg', theme: 'consulting' });
+    const sync = renderDocument(ir, { format: 'svg', theme: 'consulting' });
     const async_ = await renderDocumentAsync(ir, { format: 'svg', theme: 'consulting' });
     expect(async_.svg).toBe(sync.svg);
     expect(async_.sceneHash).toBe(sync.sceneHash);
@@ -267,7 +321,10 @@ describe('Showcase theme — Skia golden', () => {
     const fixtureText = readFileSync(FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'showcase', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'showcase',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -283,7 +340,10 @@ describe('Showcase theme — Skia golden', () => {
     // Golden uses vertical-spine: the showcase theme's card/glow effects are
     // designed for this layout family (cards with shadow, nodes with glow).
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'showcase', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'showcase',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     const png = result.png!;
     expect(isPngSignature(png)).toBe(true);
@@ -303,7 +363,10 @@ describe('Showcase theme — Skia golden', () => {
     if (png.length === committed.length) {
       let allMatch = true;
       for (let i = 0; i < png.length; i++) {
-        if (png[i] !== committed[i]) { allMatch = false; break; }
+        if (png[i] !== committed[i]) {
+          allMatch = false;
+          break;
+        }
       }
       if (!allMatch) {
         console.warn('[skia-golden] Bytes differ — checking size proximity instead');
@@ -313,7 +376,14 @@ describe('Showcase theme — Skia golden', () => {
     } else {
       // Lengths differ — allow small size variation (platform nondeterminism)
       const ratio = Math.abs(png.length - committed.length) / committed.length;
-      console.warn('[skia-golden] Length mismatch:', png.length, 'vs', committed.length, 'ratio:', ratio);
+      console.warn(
+        '[skia-golden] Length mismatch:',
+        png.length,
+        'vs',
+        committed.length,
+        'ratio:',
+        ratio,
+      );
       expect(ratio).toBeLessThan(0.05);
     }
   }, 60_000);
@@ -341,14 +411,14 @@ describe('Showcase theme — Skia golden', () => {
 // ---------------------------------------------------------------------------
 
 describe('Showcase gallery images', () => {
-  const GALLERY_DIR  = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+  const GALLERY_DIR = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
   const GALLERY_ROOT = join(REPO_ROOT, 'examples', 'gallery');
 
   type GallerySpec = {
-    fixture:      string;
-    output:       string;
-    layout:       'horizontal' | 'vertical-spine';
-    caption:      string;
+    fixture: string;
+    output: string;
+    layout: 'horizontal' | 'vertical-spine';
+    caption: string;
     /** Optional render-level spineSpacing override (supersedes theme token). */
     spineSpacing?: 'time' | 'even';
   };
@@ -356,29 +426,29 @@ describe('Showcase gallery images', () => {
   const GALLERY_SPECS: GallerySpec[] = [
     {
       fixture: join(GALLERY_ROOT, 'milestones-only.timeline.yaml'),
-      output:  'milestones-only-showcase-skia.png',
-      layout:  'vertical-spine',
+      output: 'milestones-only-showcase-skia.png',
+      layout: 'vertical-spine',
       caption: 'milestones-only — vertical-spine, showcase, skia',
     },
     {
       fixture: join(GALLERY_ROOT, 'journey.timeline.yaml'),
-      output:  'journey-showcase-skia.png',
-      layout:  'vertical-spine',
+      output: 'journey-showcase-skia.png',
+      layout: 'vertical-spine',
       caption: 'journey — vertical-spine, showcase, skia',
     },
     {
       fixture: join(GALLERY_ROOT, 'feature-rich.timeline.yaml'),
-      output:  'feature-rich-showcase-skia.png',
-      layout:  'horizontal',
+      output: 'feature-rich-showcase-skia.png',
+      layout: 'horizontal',
       caption: 'feature-rich — horizontal, showcase, skia',
     },
     {
       // The ai-timeline fixture spans 1967–2024 with sparse entries; use even
       // spacing to guarantee a compact, infographic-style render regardless of theme.
-      fixture:      join(GALLERY_ROOT, 'ai-timeline.timeline.yaml'),
-      output:       'ai-timeline-showcase-skia.png',
-      layout:       'vertical-spine',
-      caption:      'ai-timeline — vertical-spine, showcase, skia, even-spacing',
+      fixture: join(GALLERY_ROOT, 'ai-timeline.timeline.yaml'),
+      output: 'ai-timeline-showcase-skia.png',
+      layout: 'vertical-spine',
+      caption: 'ai-timeline — vertical-spine, showcase, skia, even-spacing',
       spineSpacing: 'even',
     },
   ];
@@ -390,7 +460,10 @@ describe('Showcase gallery images', () => {
       const fixtureText = readFileSync(spec.fixture, 'utf-8');
       const ir = parseIR(fixtureText);
       const result = await renderDocumentAsync(ir, {
-        format: 'png', theme: 'showcase', backend: 'skia', layout: spec.layout,
+        format: 'png',
+        theme: 'showcase',
+        backend: 'skia',
+        layout: spec.layout,
         spineSpacing: spec.spineSpacing,
       });
       const png = result.png!;
@@ -421,8 +494,16 @@ describe('T3 AI Timeline — ai-timeline theme', () => {
   it('ai-timeline SVG render with ai-timeline theme is deterministic', () => {
     const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
-    const r1 = renderDocument(ir, { format: 'svg', theme: 'ai-timeline', layout: 'vertical-spine' });
-    const r2 = renderDocument(ir, { format: 'svg', theme: 'ai-timeline', layout: 'vertical-spine' });
+    const r1 = renderDocument(ir, {
+      format: 'svg',
+      theme: 'ai-timeline',
+      layout: 'vertical-spine',
+    });
+    const r2 = renderDocument(ir, {
+      format: 'svg',
+      theme: 'ai-timeline',
+      layout: 'vertical-spine',
+    });
     expect(r1.svg).toBe(r2.svg);
     expect(r1.sceneHash).toBe(r2.sceneHash);
   });
@@ -445,7 +526,10 @@ describe('T3 AI Timeline — ai-timeline theme', () => {
     const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'ai-timeline', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'ai-timeline',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -458,7 +542,10 @@ describe('T3 AI Timeline — ai-timeline theme', () => {
     const fixtureText = readFileSync(AI_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'ai-timeline', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'ai-timeline',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     const png = result.png!;
     expect(isPngSignature(png)).toBe(true);
@@ -467,7 +554,10 @@ describe('T3 AI Timeline — ai-timeline theme', () => {
 
     // Re-render to verify byte-identity (Skia determinism)
     const result2 = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'ai-timeline', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'ai-timeline',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     const png2 = result2.png!;
     // Length equality is the minimum bar; exact bytes may vary on some platforms
@@ -481,8 +571,8 @@ describe('T3 AI Timeline — ai-timeline theme', () => {
 // ---------------------------------------------------------------------------
 
 describe('T5 Gitline — gitline theme (CTA buttons + inline date icon)', () => {
-  const GITLINE_FIXTURE  = join(REPO_ROOT, 'examples', 'gallery', 'gitline.timeline.yaml');
-  const GALLERY_DIR_T5   = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+  const GITLINE_FIXTURE = join(REPO_ROOT, 'examples', 'gallery', 'gitline.timeline.yaml');
+  const GALLERY_DIR_T5 = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
 
   it('gitline fixture validates with zero errors', () => {
     const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
@@ -521,7 +611,10 @@ describe('T5 Gitline — gitline theme (CTA buttons + inline date icon)', () => 
     const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'gitline', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'gitline',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -534,7 +627,10 @@ describe('T5 Gitline — gitline theme (CTA buttons + inline date icon)', () => 
     const fixtureText = readFileSync(GITLINE_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'gitline', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'gitline',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     const png = result.png!;
     expect(isPngSignature(png)).toBe(true);
@@ -543,7 +639,10 @@ describe('T5 Gitline — gitline theme (CTA buttons + inline date icon)', () => 
 
     // Re-render to verify Skia byte-determinism
     const result2 = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'gitline', backend: 'skia', layout: 'vertical-spine',
+      format: 'png',
+      theme: 'gitline',
+      backend: 'skia',
+      layout: 'vertical-spine',
     });
     const png2 = result2.png!;
     expect(png2.length).toBe(png.length);
@@ -556,7 +655,7 @@ describe('T5 Gitline — gitline theme (CTA buttons + inline date icon)', () => 
 // ---------------------------------------------------------------------------
 
 describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered nodes)', () => {
-  const T1_FIXTURE   = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.timeline.yaml');
+  const T1_FIXTURE = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.timeline.yaml');
   const GALLERY_DIR_T1 = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
 
   it('our-timeline-numbered fixture validates with zero errors', () => {
@@ -571,8 +670,18 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     // Pass baseDir so the logo resolves relative to repo root
-    const r1 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT });
-    const r2 = renderDocument(ir, { format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT });
+    const r1 = renderDocument(ir, {
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
+    });
+    const r2 = renderDocument(ir, {
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
+    });
     expect(r1.svg).toBe(r2.svg);
     expect(r1.sceneHash).toBe(r2.sceneHash);
     // Centered title
@@ -590,7 +699,11 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
   it('our-timeline SVG scene passes the linter (zero errors)', () => {
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
-    const scene = buildScene(ir, { theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT });
+    const scene = buildScene(ir, {
+      theme: 'our-timeline',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
+    });
     const issues = lintScene(scene);
     const errors = issues.filter((q) => q.severity === 'error');
     if (errors.length > 0) {
@@ -605,7 +718,11 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal', baseDir: REPO_ROOT,
+      format: 'png',
+      theme: 'our-timeline',
+      backend: 'skia',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -618,7 +735,11 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal', baseDir: REPO_ROOT,
+      format: 'png',
+      theme: 'our-timeline',
+      backend: 'skia',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
     });
     const png = result.png!;
     expect(isPngSignature(png)).toBe(true);
@@ -627,7 +748,11 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
 
     // Re-render to verify Skia byte-determinism (logo embedded → same bytes)
     const result2 = await renderDocumentAsync(ir, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal', baseDir: REPO_ROOT,
+      format: 'png',
+      theme: 'our-timeline',
+      backend: 'skia',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
     });
     const png2 = result2.png!;
     expect(png2.length).toBe(png.length);
@@ -642,20 +767,24 @@ describe('T1 Our Timeline — our-timeline theme (filled vs outlined numbered no
 // ---------------------------------------------------------------------------
 
 describe('Image Primitive — all backends + asset loading', () => {
-  const LOGO_PATH    = join(REPO_ROOT, 'examples', 'gallery', 'assets', 'brand-logo.png');
-  const T1_FIXTURE   = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.timeline.yaml');
-  const T1_SVG_OUT   = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.svg');
+  const LOGO_PATH = join(REPO_ROOT, 'examples', 'gallery', 'assets', 'brand-logo.png');
+  const T1_FIXTURE = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.timeline.yaml');
+  const T1_SVG_OUT = join(REPO_ROOT, 'examples', 'gallery', 'our-timeline-numbered.svg');
 
   // Minimal 1×1 red PNG as a data URI for fast unit tests (no disk I/O)
   // Generated from a known 1×1 red PNG (PNG spec header + IHDR + IDAT + IEND).
-  const TINY_PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwADhQGAWjR9awAAAABJRU5ErkJggg==';
+  const TINY_PNG_B64 =
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwADhQGAWjR9awAAAABJRU5ErkJggg==';
   const TINY_DATA_URI = `data:image/png;base64,${TINY_PNG_B64}`;
 
   it('SVG backend emits <image> element for data URI logo', () => {
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = renderDocument(ir, {
-      format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT,
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
     });
     expect(result.svg).toContain('<image');
     expect(result.svg).toContain('data:image/png;base64,');
@@ -667,7 +796,10 @@ describe('Image Primitive — all backends + asset loading', () => {
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = renderDocument(ir, {
-      format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT,
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
     });
     // No external file reference in SVG output — all bytes embedded
     expect(result.svg).not.toContain('brand-logo.png');
@@ -687,7 +819,9 @@ describe('Image Primitive — all backends + asset loading', () => {
     };
     // Should not throw
     const result = renderDocument(irWithBadLogo, {
-      format: 'svg', theme: 'our-timeline', layout: 'horizontal',
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
     });
     expect(result.svg).not.toContain('<image');
     expect(result.sceneHash).toBeTruthy();
@@ -705,7 +839,9 @@ describe('Image Primitive — all backends + asset loading', () => {
     };
     // data: URIs are passed through regardless of MIME — no crash
     const result = renderDocument(irWithBadExt, {
-      format: 'svg', theme: 'our-timeline', layout: 'horizontal',
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
     });
     expect(result.sceneHash).toBeTruthy();
   });
@@ -721,7 +857,9 @@ describe('Image Primitive — all backends + asset loading', () => {
       },
     };
     const result = renderDocument(irWithDataUri, {
-      format: 'svg', theme: 'our-timeline', layout: 'horizontal',
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
     });
     expect(result.svg).toContain('<image');
     expect(result.svg).toContain(TINY_PNG_B64);
@@ -737,8 +875,16 @@ describe('Image Primitive — all backends + asset loading', () => {
         logo: { src: TINY_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
       },
     };
-    const r1 = renderDocument(irWithLogo, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
-    const r2 = renderDocument(irWithLogo, { format: 'svg', theme: 'our-timeline', layout: 'horizontal' });
+    const r1 = renderDocument(irWithLogo, {
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+    });
+    const r2 = renderDocument(irWithLogo, {
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+    });
     expect(r1.svg).toBe(r2.svg);
     expect(r1.sceneHash).toBe(r2.sceneHash);
   });
@@ -753,7 +899,11 @@ describe('Image Primitive — all backends + asset loading', () => {
         logo: { src: TINY_DATA_URI, position: 'top-left' as const, width: 20, height: 20 },
       },
     };
-    const result = renderDocument(irWithLogo, { format: 'png', theme: 'our-timeline', layout: 'horizontal' });
+    const result = renderDocument(irWithLogo, {
+      format: 'png',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+    });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
   });
@@ -769,7 +919,10 @@ describe('Image Primitive — all backends + asset loading', () => {
       },
     };
     const result = await renderDocumentAsync(irWithLogo, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+      format: 'png',
+      theme: 'our-timeline',
+      backend: 'skia',
+      layout: 'horizontal',
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -789,7 +942,10 @@ describe('Image Primitive — all backends + asset loading', () => {
       },
     };
     const result = await renderDocumentAsync(irWithSvgLogo, {
-      format: 'png', theme: 'our-timeline', backend: 'skia', layout: 'horizontal',
+      format: 'png',
+      theme: 'our-timeline',
+      backend: 'skia',
+      layout: 'horizontal',
     });
     expect(result.png).toBeInstanceOf(Uint8Array);
     expect(isPngSignature(result.png!)).toBe(true);
@@ -813,7 +969,10 @@ describe('Image Primitive — all backends + asset loading', () => {
         ...scene.primitives,
         {
           kind: 'image' as const,
-          x: 10, y: 10, width: 50, height: 30,
+          x: 10,
+          y: 10,
+          width: 50,
+          height: 30,
           data: TINY_DATA_URI,
           mimeType: 'image/png',
           borderRadius: 8,
@@ -831,10 +990,108 @@ describe('Image Primitive — all backends + asset loading', () => {
     const fixtureText = readFileSync(T1_FIXTURE, 'utf-8');
     const ir = parseIR(fixtureText);
     const result = renderDocument(ir, {
-      format: 'svg', theme: 'our-timeline', layout: 'horizontal', baseDir: REPO_ROOT,
+      format: 'svg',
+      theme: 'our-timeline',
+      layout: 'horizontal',
+      baseDir: REPO_ROOT,
     });
     writeFileSync(T1_SVG_OUT, result.svg);
     console.log('[t1-golden] our-timeline-numbered SVG →', T1_SVG_OUT);
     expect(result.svg).toContain('<image');
   });
+});
+
+// ---------------------------------------------------------------------------
+// (13) T2 Subject Timeline — dark segmented-spine with edge badges + chevrons
+// ---------------------------------------------------------------------------
+
+describe('T2 Subject Timeline — subject-timeline theme', () => {
+  const T2_FIXTURE = join(REPO_ROOT, 'examples', 'showcase', 'subject-timeline.timeline.yaml');
+  const GALLERY_DIR_T2 = join(REPO_ROOT, 'examples', 'gallery', 'showcase');
+
+  it('subject-timeline fixture validates with zero errors', () => {
+    const fixtureText = readFileSync(T2_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = validateDocument(ir);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('subject-timeline SVG render is deterministic (T2 regression guard)', () => {
+    const fixtureText = readFileSync(T2_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const r1 = renderDocument(ir, {
+      format: 'svg',
+      theme: 'subject-timeline',
+      layout: 'vertical-spine',
+    });
+    const r2 = renderDocument(ir, {
+      format: 'svg',
+      theme: 'subject-timeline',
+      layout: 'vertical-spine',
+    });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+    // Year in content block uses entry colour (T2-5)
+    expect(r1.svg).toContain('2021');
+    // Multi-block heading visible (T2-4)
+    expect(r1.svg).toContain('Subject 1');
+    expect(r1.svg).toContain('Subject 2');
+  });
+
+  it('subject-timeline SVG scene passes the linter (zero errors)', () => {
+    const fixtureText = readFileSync(T2_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const scene = buildScene(ir, { theme: 'subject-timeline', layout: 'vertical-spine' });
+    const issues = lintScene(scene);
+    const errors = issues.filter((q) => q.severity === 'error');
+    if (errors.length > 0) {
+      throw new Error(
+        `subject-timeline lint errors:\n${errors.map((e) => `  ${e.code}: ${e.message}`).join('\n')}`,
+      );
+    }
+    expect(errors).toHaveLength(0);
+  });
+
+  it('subject-timeline Skia render produces valid PNG (T2 dark segmented spine)', async () => {
+    const fixtureText = readFileSync(T2_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png',
+      theme: 'subject-timeline',
+      backend: 'skia',
+      layout: 'vertical-spine',
+    });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(isPngSignature(result.png!)).toBe(true);
+    expect(result.png!.length).toBeGreaterThan(1000);
+  }, 60_000);
+
+  it('subject-timeline Skia golden — generate and save (T2 regression guard)', async () => {
+    ensureDir(GALLERY_DIR_T2);
+    const outPath = join(GALLERY_DIR_T2, 'subject-timeline-skia.png');
+    const fixtureText = readFileSync(T2_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png',
+      theme: 'subject-timeline',
+      backend: 'skia',
+      layout: 'vertical-spine',
+    });
+    const png = result.png!;
+    expect(isPngSignature(png)).toBe(true);
+    writeFileSync(outPath, png);
+    console.log('[t2-golden] subject-timeline Skia PNG →', outPath);
+
+    // Re-render to verify Skia byte-determinism
+    const result2 = await renderDocumentAsync(ir, {
+      format: 'png',
+      theme: 'subject-timeline',
+      backend: 'skia',
+      layout: 'vertical-spine',
+    });
+    const png2 = result2.png!;
+    expect(png2.length).toBe(png.length);
+    expect(isPngSignature(png2)).toBe(true);
+  }, 90_000);
 });

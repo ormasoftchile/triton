@@ -103,9 +103,7 @@ function multiTextBBox(t: MultiTextPrimitive): BBox {
   const maxWidth = lineWidths.length > 0 ? Math.max(...lineWidths) : 0;
   const singleLineH = t.fontSize * LINE_HEIGHT_FACTOR;
   const totalH =
-    t.lines.length <= 1
-      ? singleLineH
-      : (t.lines.length - 1) * t.lineHeight + singleLineH;
+    t.lines.length <= 1 ? singleLineH : (t.lines.length - 1) * t.lineHeight + singleLineH;
 
   let left: number;
   const anchor = t.textAnchor ?? 'start';
@@ -193,9 +191,9 @@ interface AxisInfo {
   hAxisBand?: BBox;
 }
 
-const AXIS_SPAN_FRACTION = 0.3;   // axis line must span ≥30 % of relevant dimension
-const AXIS_BAND_ABOVE   = 22;     // px above axis line where tick labels live
-const AXIS_BAND_BELOW   =  4;     // px below the axis line to include
+const AXIS_SPAN_FRACTION = 0.3; // axis line must span ≥30 % of relevant dimension
+const AXIS_BAND_ABOVE = 22; // px above axis line where tick labels live
+const AXIS_BAND_BELOW = 4; // px below the axis line to include
 
 /**
  * Detect the primary horizontal axis from Scene lines.
@@ -208,12 +206,35 @@ function detectAxes(scene: Scene, flat: ScenePrimitive[]): AxisInfo {
   // If there's a prominent vertical spine line (vertical-spine layout), the
   // full-width today-marker line would be misidentified as the horizontal axis.
   // Detect this layout and skip horizontal-axis detection in that case.
-  const hasVerticalSpine = lines.some(
-    (l) =>
-      Math.abs(l.x1 - l.x2) < 2 &&
-      Math.abs(l.y2 - l.y1) > H * 0.3 &&
-      Math.abs(l.x1 - W / 2) < W * 0.1,
-  );
+  const centreVerticalLines = lines
+    .filter(
+      (l) =>
+        Math.abs(l.x1 - l.x2) < 2 && Math.abs(l.x1 - W / 2) < W * 0.1 && Math.abs(l.y2 - l.y1) > 8,
+    )
+    .map((l) => ({
+      y1: Math.min(l.y1, l.y2),
+      y2: Math.max(l.y1, l.y2),
+    }))
+    .sort((a, b) => a.y1 - b.y1);
+
+  let centreVerticalSpan = 0;
+  if (centreVerticalLines.length > 0) {
+    let curY1 = centreVerticalLines[0]!.y1;
+    let curY2 = centreVerticalLines[0]!.y2;
+    for (let i = 1; i < centreVerticalLines.length; i++) {
+      const seg = centreVerticalLines[i]!;
+      if (seg.y1 <= curY2 + 6) {
+        curY2 = Math.max(curY2, seg.y2);
+      } else {
+        centreVerticalSpan += curY2 - curY1;
+        curY1 = seg.y1;
+        curY2 = seg.y2;
+      }
+    }
+    centreVerticalSpan += curY2 - curY1;
+  }
+
+  const hasVerticalSpine = centreVerticalSpan > H * 0.3;
   if (hasVerticalSpine) return {};
 
   // Horizontal axis: nearly-horizontal line spanning ≥30 % of canvas width,
@@ -269,8 +290,8 @@ interface LabelEntry {
  * (gap ≤ VERTICAL_ADJACENCY_GAP).  Primitives in the same block are not
  * checked against each other for LABEL_OVERLAP.
  */
-const SAME_X_EPSILON         = 1;    // px
-const VERTICAL_ADJACENCY_GAP = 16;   // px — covers typical line-spacing within a block
+const SAME_X_EPSILON = 1; // px
+const VERTICAL_ADJACENCY_GAP = 16; // px — covers typical line-spacing within a block
 
 function buildLabelGroups(entries: LabelEntry[]): number[] {
   const n = entries.length;
@@ -315,11 +336,11 @@ function buildLabelGroups(entries: LabelEntry[]): number[] {
 // ---------------------------------------------------------------------------
 
 /** Bboxes must overlap by MORE THAN this many pixels to count as an overlap. */
-const OVERLAP_EPSILON  = 4;   // px — accounts for font-metrics approximation
-const NODE_OVERLAP_EPS = 2;   // px — tighter tolerance for node markers
-const BOUNDS_EPSILON   = 1;   // px — out-of-bounds tolerance
+const OVERLAP_EPSILON = 4; // px — accounts for font-metrics approximation
+const NODE_OVERLAP_EPS = 2; // px — tighter tolerance for node markers
+const BOUNDS_EPSILON = 1; // px — out-of-bounds tolerance
 /** Bboxes within this gap trigger TIGHT_SPACING (warning only). */
-const TIGHT_GAP        = 5;   // px
+const TIGHT_GAP = 5; // px
 
 // ---------------------------------------------------------------------------
 // Main entry point
@@ -344,17 +365,17 @@ export function lintScene(scene: Scene): QualityIssue[] {
   const axisInfo = detectAxes(scene, flat);
 
   // ── Collect text labels ───────────────────────────────────────────────────
-  const textPrims    = flat.filter((p): p is TextPrimitive      => p.kind === 'text');
-  const multiPrims   = flat.filter((p): p is MultiTextPrimitive => p.kind === 'multitext');
+  const textPrims = flat.filter((p): p is TextPrimitive => p.kind === 'text');
+  const multiPrims = flat.filter((p): p is MultiTextPrimitive => p.kind === 'multitext');
 
   const labelEntries: LabelEntry[] = [
     ...textPrims.map((t) => ({
-      bbox:    textBBox(t),
+      bbox: textBBox(t),
       anchorX: t.x,
       anchorY: t.y,
     })),
     ...multiPrims.map((t) => ({
-      bbox:    multiTextBBox(t),
+      bbox: multiTextBBox(t),
       anchorX: t.x,
       anchorY: t.y,
     })),
@@ -384,9 +405,9 @@ export function lintScene(scene: Scene): QualityIssue[] {
       const b = nodeBBoxes[j]!;
       if (bboxesOverlap(a, b, NODE_OVERLAP_EPS)) {
         issues.push({
-          code:     'NODE_OVERLAP',
+          code: 'NODE_OVERLAP',
           severity: 'error',
-          message:  'Two milestone node markers overlap.',
+          message: 'Two milestone node markers overlap.',
           where: [
             { x: a.x + a.w / 2, y: a.y + a.h / 2 },
             { x: b.x + b.w / 2, y: b.y + b.h / 2 },
@@ -407,9 +428,9 @@ export function lintScene(scene: Scene): QualityIssue[] {
 
       if (bboxesOverlap(la.bbox, lb.bbox, OVERLAP_EPSILON)) {
         issues.push({
-          code:     'LABEL_OVERLAP',
+          code: 'LABEL_OVERLAP',
           severity: 'error',
-          message:  'Two label bboxes from different entries overlap.',
+          message: 'Two label bboxes from different entries overlap.',
           where: [
             { x: la.bbox.x + la.bbox.w / 2, y: la.bbox.y + la.bbox.h / 2 },
             { x: lb.bbox.x + lb.bbox.w / 2, y: lb.bbox.y + lb.bbox.h / 2 },
@@ -421,7 +442,7 @@ export function lintScene(scene: Scene): QualityIssue[] {
 
   // ── Check: LABEL_AXIS_OVERLAP ─────────────────────────────────────────────
   if (axisInfo.hAxisBand && axisInfo.hAxisY !== undefined) {
-    const axY      = axisInfo.hAxisY;
+    const axY = axisInfo.hAxisY;
     const axisBand = axisInfo.hAxisBand;
 
     for (const la of labelEntries) {
@@ -432,9 +453,9 @@ export function lintScene(scene: Scene): QualityIssue[] {
 
       if (bboxesOverlap(la.bbox, axisBand)) {
         issues.push({
-          code:     'LABEL_AXIS_OVERLAP',
+          code: 'LABEL_AXIS_OVERLAP',
           severity: 'error',
-          message:  'A label bbox overlaps the axis / tick-label band.',
+          message: 'A label bbox overlaps the axis / tick-label band.',
           where: [{ x: la.bbox.x + la.bbox.w / 2, y: la.bbox.y + la.bbox.h / 2 }],
         });
       }
@@ -446,10 +467,23 @@ export function lintScene(scene: Scene): QualityIssue[] {
     let bb: BBox | null = null;
 
     switch (p.kind) {
-      case 'text':      bb = textBBox(p); break;
-      case 'multitext': bb = multiTextBBox(p); break;
-      case 'circle':    bb = circleBBox(p); break;
-      case 'rect':      bb = { x: (p as RectPrimitive).x, y: (p as RectPrimitive).y, w: (p as RectPrimitive).width, h: (p as RectPrimitive).height }; break;
+      case 'text':
+        bb = textBBox(p);
+        break;
+      case 'multitext':
+        bb = multiTextBBox(p);
+        break;
+      case 'circle':
+        bb = circleBBox(p);
+        break;
+      case 'rect':
+        bb = {
+          x: (p as RectPrimitive).x,
+          y: (p as RectPrimitive).y,
+          w: (p as RectPrimitive).width,
+          h: (p as RectPrimitive).height,
+        };
+        break;
       case 'line': {
         const l = p as LinePrimitive;
         bb = {
@@ -472,15 +506,15 @@ export function lintScene(scene: Scene): QualityIssue[] {
     if (!bb) continue;
 
     if (
-      bb.x              < -BOUNDS_EPSILON ||
-      bb.y              < -BOUNDS_EPSILON ||
-      bb.x + bb.w       > W + BOUNDS_EPSILON ||
-      bb.y + bb.h       > H + BOUNDS_EPSILON
+      bb.x < -BOUNDS_EPSILON ||
+      bb.y < -BOUNDS_EPSILON ||
+      bb.x + bb.w > W + BOUNDS_EPSILON ||
+      bb.y + bb.h > H + BOUNDS_EPSILON
     ) {
       issues.push({
-        code:     'OUT_OF_BOUNDS',
+        code: 'OUT_OF_BOUNDS',
         severity: 'error',
-        message:  `Primitive (${p.kind}) extends outside the canvas bounds [0,0,${W},${H}].`,
+        message: `Primitive (${p.kind}) extends outside the canvas bounds [0,0,${W},${H}].`,
         where: [{ x: bb.x + bb.w / 2, y: bb.y + bb.h / 2 }],
       });
     }
@@ -507,9 +541,9 @@ export function lintScene(scene: Scene): QualityIssue[] {
 
       if (bboxesOverlap(expanded, lb.bbox)) {
         issues.push({
-          code:     'TIGHT_SPACING',
+          code: 'TIGHT_SPACING',
           severity: 'warning',
-          message:  `Two label bboxes are very close (< ${TIGHT_GAP} px gap).`,
+          message: `Two label bboxes are very close (< ${TIGHT_GAP} px gap).`,
           where: [
             { x: la.bbox.x + la.bbox.w / 2, y: la.bbox.y + la.bbox.h / 2 },
             { x: lb.bbox.x + lb.bbox.w / 2, y: lb.bbox.y + lb.bbox.h / 2 },

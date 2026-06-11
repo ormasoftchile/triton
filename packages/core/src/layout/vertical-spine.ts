@@ -62,8 +62,18 @@ function rhuInt(v: number): number {
 // ---------------------------------------------------------------------------
 
 const MONTH_ABBR = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 // ---------------------------------------------------------------------------
@@ -71,25 +81,28 @@ const MONTH_ABBR = [
 // ---------------------------------------------------------------------------
 
 interface SpineEntry {
-  id:            string;
-  label:         string;
+  id: string;
+  label: string;
   /** Formatted date string shown in the content block. */
-  dateStr:       string;
-  description?:  string;
+  dateStr: string;
+  description?: string;
   /** Start ordinal (day since 2000-01-01 epoch). */
-  ord:           number;
+  ord: number;
   /** End ordinal, if duration is known. */
-  endOrd?:       number;
+  endOrd?: number;
   /** End kind for duration rendering on spine. */
-  endKind:       'fixed' | 'ongoing' | 'tbd' | 'none';
-  statusFill:    string;
-  statusStroke:  string;
+  endKind: 'fixed' | 'ongoing' | 'tbd' | 'none';
+  statusFill: string;
+  statusStroke: string;
   statusOpacity: number;
-  type:          'milestone' | 'activity';
+  type: 'milestone' | 'activity';
   /** Optional icon hint text (placeholder for future pictographic badges). */
-  iconHint?:     string;
+  iconHint?: string;
   /** Optional URL — renders a CTA button when theme.cardCtaLabel is set (T5-1). */
-  url?:          string;
+  url?: string;
+  /** Structured content blocks (T2-4). When present and non-empty, rendered
+   * in preference to `description`. */
+  blocks?: Array<{ heading?: string; text: string }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -136,35 +149,35 @@ function isHexDark(hex: string): boolean {
 // ---------------------------------------------------------------------------
 
 export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDir?: string): Scene {
-  const W  = theme.canvas.width;
-  const m  = theme.canvas.margin;
+  const W = theme.canvas.width;
+  const m = theme.canvas.margin;
   const mT = m.top;
   const mB = m.bottom;
 
   const entryStyle = theme.entryStyle ?? 'plain';
 
   // ── Spine geometry constants ──────────────────────────────────────────────
-  const SPINE_X        = rhu(W / 2);
+  const SPINE_X = rhu(W / 2);
   // CONNECTOR_LEN was 48; raised to 58 to clear year-qualified tick labels ("Q1 20XX")
   // which span ~46 px from TICK_LABEL_X (SPINE_X+14), reaching x≈660 — only 2 px shy of
   // the old content-block start (x=658).  The 10 px increase gives an 8 px gap (> TIGHT_GAP)
   // and keeps BLOCK_W unchanged (min(330, W/2−58−40) = 330 for W=1200).
-  const CONNECTOR_LEN  = 58;
+  const CONNECTOR_LEN = 58;
   /** Spine node radius for this layout (smaller than horizontal milestone.size). */
-  const NODE_R         = rhu(Math.min(rhu(theme.milestone.size * 0.55), 11));
+  const NODE_R = rhu(Math.min(rhu(theme.milestone.size * 0.55), 11));
   /** Content block width. */
-  const BLOCK_W        = rhuInt(Math.min(330, (W / 2) - CONNECTOR_LEN - 40));
+  const BLOCK_W = rhuInt(Math.min(330, W / 2 - CONNECTOR_LEN - 40));
   const BLOCK_INNER_PAD = 10;
   /** Minimum vertical distance (px) between consecutive entry node centres. */
   const ENTRY_MIN_SPACING = 100;
-  const SPINE_TOP_PAD    = 24;
+  const SPINE_TOP_PAD = 24;
   const SPINE_BOTTOM_PAD = 32;
 
   // ── Typography ────────────────────────────────────────────────────────────
-  const FONT_FAM  = `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`;
-  const titlePx   = ptToPx(theme.typography.fontSizeBase + 1);
-  const datePx    = ptToPx(theme.typography.fontSizeAxis);
-  const descPx    = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
+  const FONT_FAM = `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`;
+  const titlePx = ptToPx(theme.typography.fontSizeBase + 1);
+  const datePx = ptToPx(theme.typography.fontSizeAxis);
+  const descPx = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
   // T3-2: use explicit year-label token when set; otherwise fall back to axis font size.
   // Themes that don't set fontSizeYearLabel are completely unaffected.
   const hasYearLabelToken = theme.typography.fontSizeYearLabel !== undefined;
@@ -184,28 +197,56 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   // ── CTA button tokens (T5-1) — gated behind theme.cardCtaLabel ───────────
   // Only active when both the entry has a url AND theme.cardCtaLabel is set.
   // Existing themes that don't set cardCtaLabel are byte-identical.
-  const ctaLabel   = theme.cardCtaLabel;
-  const hasCta     = (e: SpineEntry) => entryStyle === 'card' && !!ctaLabel && !!e.url;
-  const CTA_BTN_H  = rhuInt(datePx * 2.0);   // pill height ≈ 22–26 px depending on font
-  const CTA_VERT_GAP = 8;                       // gap above button
+  const ctaLabel = theme.cardCtaLabel;
+  const hasCta = (e: SpineEntry) => entryStyle === 'card' && !!ctaLabel && !!e.url;
+  const CTA_BTN_H = rhuInt(datePx * 2.0); // pill height ≈ 22–26 px depending on font
+  const CTA_VERT_GAP = 8; // gap above button
   const ctaBtnFontPx = datePx * 0.85;
 
   // ── Date icon constants (T5-2) — gated behind theme.cardDateIcon ──────────
   // Only active when theme.cardDateIcon is set to a known icon name.
   // Existing themes that don't set cardDateIcon are byte-identical.
-  const dateIconName  = theme.cardDateIcon;
-  const DATE_ICON_SZ  = rhu(datePx * 0.9);   // icon diameter, matches date text cap-height
-  const DATE_ICON_GAP = 4;                      // gap between icon and date text
+  const dateIconName = theme.cardDateIcon;
+  const DATE_ICON_SZ = rhu(datePx * 0.9); // icon diameter, matches date text cap-height
+  const DATE_ICON_GAP = 4; // gap between icon and date text
+
+  // ── T2 feature constants ──────────────────────────────────────────────────
+  // Gated behind theme tokens; defaults leave all existing themes byte-identical.
+
+  const spineSegmentColor = theme.spineSegmentColor ?? false;
+  const badgeEdgeMode = (theme.badgePlacement ?? 'inline') === 'edge';
+  const spineNodeArrow = theme.spineNodeArrow ?? false;
+  const yearLabelUsesEntryColor = theme.yearLabelUsesEntryColor ?? false;
+
+  // Edge badge geometry (T2-2) — only used when badgeEdgeMode is true.
+  const EDGE_BADGE_R = 36;
+  // Minimum gap (px) between the badge circle outer edge and the canvas border.
+  // Measured from the canvas edge (not the content margin) so the badge is
+  // visually "pinned to the canvas edge" with a small breathing-room gap.
+  const EDGE_BADGE_MARGIN = 12;
+
+  // Block heading line height (T2-4) — for multi-block entries.
+  const HEADING_LINE_H = rhuInt(descPx * 1.5);
+  // Gap between successive blocks.
+  const BLOCK_GAP = rhuInt(descPx * 0.8);
+
+  // Effective date font size for content block when yearLabelUsesEntryColor is active.
+  // When yearLabelUsesEntryColor is false (all existing themes), we reuse DATE_LINE_H
+  // exactly — guaranteeing byte-identical output for every existing theme.
+  const entryDatePx = (yearLabelUsesEntryColor && hasYearLabelToken) ? yearFontPx : datePx;
+  const ENTRY_DATE_LINE_H = (yearLabelUsesEntryColor && hasYearLabelToken)
+    ? rhuInt(entryDatePx * 1.5)
+    : DATE_LINE_H; // exact same constant — byte-identical for all existing themes
 
   // ── Card colours (additive, only used when entryStyle === 'card') ─────────
-  const isDark    = isHexDark(theme.canvas.backgroundColor);
-  const cardFill  = isDark ? '#1A2E44' : '#F4F6F8';
+  const isDark = isHexDark(theme.canvas.backgroundColor);
+  const cardFill = isDark ? '#1A2E44' : '#F4F6F8';
 
   // ── Header block (title / subtitle / meta-line) geometry ─────────────────
-  const HEADER_V_PAD   = 12;
-  const hdrTitlePx     = ptToPx(theme.typography.fontSizeTitle);
-  const hdrSubtitlePx  = ptToPx(theme.typography.fontSizeSubtitle);
-  const hdrMetaFontPx  = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
+  const HEADER_V_PAD = 12;
+  const hdrTitlePx = ptToPx(theme.typography.fontSizeTitle);
+  const hdrSubtitlePx = ptToPx(theme.typography.fontSizeSubtitle);
+  const hdrMetaFontPx = ptToPx(Math.max(theme.typography.fontSizeAxis - 1, 7));
 
   let headerH = 0;
   if (ir.metadata.title) {
@@ -219,16 +260,16 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   // Logo: ensure the header is tall enough to contain the logo image.
   const LOGO_DEFAULT_W = 100;
   const LOGO_DEFAULT_H = 32;
-  const LOGO_V_PAD     = 8;
+  const LOGO_V_PAD = 8;
   if (ir.metadata.logo) {
-    const logoH  = ir.metadata.logo.height ?? LOGO_DEFAULT_H;
+    const logoH = ir.metadata.logo.height ?? LOGO_DEFAULT_H;
     const minHdr = logoH + LOGO_V_PAD * 2;
     if (minHdr > headerH) headerH = rhuInt(minHdr);
   }
 
   // ── Time range ────────────────────────────────────────────────────────────
   const trStart = ir.metadata.time_range.start;
-  const trEnd   = ir.metadata.time_range.end ?? trStart;
+  const trEnd = ir.metadata.time_range.end ?? trStart;
 
   const [tsY, tsM, tsD] = coerceLeft(parseIRDate(trStart));
   const [teY, teM, teD] = coerceRight(parseIRDate(trEnd));
@@ -244,9 +285,9 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   function resolveStatusStyle(status?: string, category?: string, colorOverride?: string) {
     const s = (status ?? 'planned') as keyof typeof theme.statusMap;
     const base = theme.statusMap[s] ?? theme.statusMap['planned']!;
-    const cat  = category ? theme.categoryMap[category] : undefined;
+    const cat = category ? theme.categoryMap[category] : undefined;
     // T3-3 precedence: explicit color > categoryMap > statusMap > theme default
-    const fill   = colorOverride ?? cat?.fill   ?? base.fill;
+    const fill = colorOverride ?? cat?.fill ?? base.fill;
     const stroke = colorOverride ?? cat?.stroke ?? base.stroke;
     return {
       fill,
@@ -264,18 +305,19 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
     if (ord < tsOrd || ord > teOrd) continue;
     const st = resolveStatusStyle(mil.status, mil.category, mil.color);
     entries.push({
-      id:            mil.id,
-      label:         mil.label,
-      dateStr:       formatEntryDate(mil.date),
-      description:   mil.description,
+      id: mil.id,
+      label: mil.label,
+      dateStr: formatEntryDate(mil.date),
+      description: mil.description,
       ord,
-      endKind:       'none',
-      statusFill:    st.fill,
-      statusStroke:  st.stroke,
+      endKind: 'none',
+      statusFill: st.fill,
+      statusStroke: st.stroke,
       statusOpacity: st.opacity,
-      type:          'milestone',
-      iconHint:      mil.icon,
-      url:           mil.url,
+      type: 'milestone',
+      iconHint: mil.icon,
+      url: mil.url,
+      blocks: mil.blocks,
     });
   }
 
@@ -291,42 +333,70 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
     let endKind: 'fixed' | 'ongoing' | 'tbd';
 
     if (act.span) {
-      endOrd  = parseAndCoerceRight(act.span);
+      endOrd = parseAndCoerceRight(act.span);
       endKind = 'fixed';
     } else if (!act.end || act.end === 'ongoing') {
-      endOrd  = teOrd;
+      endOrd = teOrd;
       endKind = 'ongoing';
     } else if (act.end === 'tbd' || act.end === 'unknown') {
-      endOrd  = teOrd;
+      endOrd = teOrd;
       endKind = 'tbd';
     } else {
-      endOrd  = parseAndCoerceRight(act.end);
+      endOrd = parseAndCoerceRight(act.end);
       endKind = 'fixed';
     }
 
     const st = resolveStatusStyle(act.status, act.category, act.color);
     const dateIRStr = act.span ?? act.start ?? trStart;
     entries.push({
-      id:            act.id,
-      label:         act.label,
-      dateStr:       formatEntryDate(dateIRStr),
-      description:   act.description,
-      ord:           startOrd,
+      id: act.id,
+      label: act.label,
+      dateStr: formatEntryDate(dateIRStr),
+      description: act.description,
+      ord: startOrd,
       endOrd,
       endKind,
-      statusFill:    st.fill,
-      statusStroke:  st.stroke,
+      statusFill: st.fill,
+      statusStroke: st.stroke,
       statusOpacity: st.opacity,
-      type:          'activity',
-      iconHint:      act.icon,
-      url:           act.url,
+      type: 'activity',
+      iconHint: act.icon,
+      url: act.url,
+      blocks: act.blocks,
     });
   }
 
   // Deterministic sort: (date_ordinal, id)
-  entries.sort((a, b) => a.ord !== b.ord ? a.ord - b.ord : a.id.localeCompare(b.id));
+  entries.sort((a, b) => (a.ord !== b.ord ? a.ord - b.ord : a.id.localeCompare(b.id)));
 
   const nEntries = entries.length;
+
+  // ── Entry block height helper ─────────────────────────────────────────────
+
+  function blockH(e: SpineEntry): number {
+    let h = VERT_PAD;
+    // Date / year line (may be large when yearLabelUsesEntryColor)
+    h += ENTRY_DATE_LINE_H;
+    // Title / subject heading
+    const titleWrapped = wrapText(e.label, titlePx, BLOCK_W - BLOCK_INNER_PAD * 2, 2);
+    h += TEXT_GAP + TITLE_LINE_H * titleWrapped.lines.length;
+    // Content: blocks (T2-4) OR description fallback
+    if (e.blocks && e.blocks.length > 0) {
+      for (let bi = 0; bi < e.blocks.length; bi++) {
+        const block = e.blocks[bi]!;
+        if (bi > 0) h += BLOCK_GAP;
+        if (block.heading) h += TEXT_GAP + HEADING_LINE_H;
+        const bodyLines = wrapText(block.text, descPx, BLOCK_W - BLOCK_INNER_PAD * 2, 4).lines
+          .length;
+        h += TEXT_GAP + DESC_LINE_H * bodyLines;
+      }
+    } else if (e.description) {
+      h += TEXT_GAP + DESC_LINE_H;
+    }
+    if (hasCta(e)) h += CTA_VERT_GAP + CTA_BTN_H;
+    h += VERT_PAD;
+    return rhuInt(h);
+  }
 
   // ── Spacing mode ─────────────────────────────────────────────────────────
   //
@@ -347,17 +417,12 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   //   Suitable for dense infographic timelines; opted in per theme token.
   const isEvenSpacing = theme.spineSpacing === 'even';
 
-  const spanDays     = Math.max(teOrd - tsOrd, 1);
-  const pixelsPerDay = Math.max(
-    (ENTRY_MIN_SPACING * Math.max(nEntries, 1)) / spanDays,
-    0.4,
-  );
+  const spanDays = Math.max(teOrd - tsOrd, 1);
+  const pixelsPerDay = Math.max((ENTRY_MIN_SPACING * Math.max(nEntries, 1)) / spanDays, 0.4);
   // hDrawTime: raw time-proportional canvas height; always computed for determinism.
-  const hDrawTime = rhuInt(Math.max(
-    spanDays * pixelsPerDay,
-    nEntries > 0 ? nEntries * ENTRY_MIN_SPACING : 200,
-    200,
-  ));
+  const hDrawTime = rhuInt(
+    Math.max(spanDays * pixelsPerDay, nEntries > 0 ? nEntries * ENTRY_MIN_SPACING : 200, 200),
+  );
 
   // Even-spacing step: uniform interval between consecutive entry centres.
   // Sized to the tallest content block + a comfortable gap so cards never overlap.
@@ -366,15 +431,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   if (isEvenSpacing && nEntries > 1) {
     let maxBH = 0;
     for (const e of entries) {
-      const titleWrapped = wrapText(e.label, titlePx, BLOCK_W - BLOCK_INNER_PAD * 2, 2);
-      let bh = VERT_PAD;
-      bh += DATE_LINE_H;
-      bh += TEXT_GAP + TITLE_LINE_H * titleWrapped.lines.length;
-      if (e.description) bh += TEXT_GAP + DESC_LINE_H;
-      // T5-1: account for CTA button height so entries with buttons don't overlap
-      if (entryStyle === 'card' && !!ctaLabel && !!e.url) bh += CTA_VERT_GAP + CTA_BTN_H;
-      bh += VERT_PAD;
-      maxBH = Math.max(maxBH, rhuInt(bh));
+      maxBH = Math.max(maxBH, blockH(e));
     }
     evenStep = Math.max(ENTRY_MIN_SPACING, maxBH + BLOCK_VERT_GAP_EVEN);
   }
@@ -386,14 +443,22 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   // sufficient density that their average is ≤ ENTRY_MIN_SPACING and are
   // completely unaffected.
   const GAP_K_TRIGGER = 4;
-  const GAP_K_CAP     = 2;
+  const GAP_K_CAP = 2;
   const isGapCompressed =
     !isEvenSpacing &&
     nEntries > 1 &&
     hDrawTime / Math.max(nEntries, 1) > GAP_K_TRIGGER * ENTRY_MIN_SPACING;
 
   // spineTopY does not depend on hDraw; compute early so dateYRaw can reference it.
-  const spineTopY = rhu(mT + headerH + SPINE_TOP_PAD);
+  // When yearLabelUsesEntryColor + even spacing + large year font: the first entry's
+  // content block is centred on nodeYs[0]=spineTopY, so its year text top extends
+  // above spineTopY into the header. Add extra padding to ensure clearance.
+  // This is gated on all three conditions — existing themes are byte-identical.
+  const SPINE_TOP_PAD_EFFECTIVE =
+    yearLabelUsesEntryColor && isEvenSpacing && hasYearLabelToken
+      ? rhuInt(Math.max(SPINE_TOP_PAD, ENTRY_DATE_LINE_H + 8))
+      : SPINE_TOP_PAD;
+  const spineTopY = rhu(mT + headerH + SPINE_TOP_PAD_EFFECTIVE);
 
   // dateYRaw: time-proportional mapping using hDrawTime (sole purpose: rawNodeYs).
   function dateYRaw(ord: number): number {
@@ -417,7 +482,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
     const maxGap = GAP_K_CAP * ENTRY_MIN_SPACING;
     nodeYs.push(rawNodeYs[0]!);
     for (let i = 1; i < nEntries; i++) {
-      const rawGap    = rawNodeYs[i]! - rawNodeYs[i - 1]!;
+      const rawGap = rawNodeYs[i]! - rawNodeYs[i - 1]!;
       const cappedGap = Math.min(rawGap, maxGap);
       nodeYs.push(rhu(nodeYs[i - 1]! + cappedGap));
     }
@@ -430,7 +495,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   if (!isEvenSpacing) {
     for (let i = 1; i < nodeYs.length; i++) {
       const minY = (nodeYs[i - 1] ?? spineTopY) + ENTRY_MIN_SPACING;
-      const cur  = nodeYs[i] ?? spineTopY;
+      const cur = nodeYs[i] ?? spineTopY;
       if (cur < minY) nodeYs[i] = rhu(minY);
     }
   }
@@ -442,12 +507,14 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   const hDraw: number = isEvenSpacing
     ? rhuInt(Math.max(nEntries > 1 ? (nEntries - 1) * evenStep : evenStep, 200))
     : isGapCompressed
-    ? rhuInt(Math.max(
-        nEntries > 0 ? nodeYs[nEntries - 1]! - spineTopY : 200,
-        nEntries > 0 ? nEntries * ENTRY_MIN_SPACING : 200,
-        200,
-      ))
-    : hDrawTime;
+      ? rhuInt(
+          Math.max(
+            nEntries > 0 ? nodeYs[nEntries - 1]! - spineTopY : 200,
+            nEntries > 0 ? nEntries * ENTRY_MIN_SPACING : 200,
+            200,
+          ),
+        )
+      : hDrawTime;
 
   const spineBottomY = rhu(spineTopY + hDraw);
 
@@ -489,28 +556,15 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
    *   Normal 'time' mode: time-proportional via dateY.
    */
   function effectiveDateY(ord: number): number {
-    return (isEvenSpacing || isGapCompressed) ? evenDateY(ord) : dateY(ord);
+    return isEvenSpacing || isGapCompressed ? evenDateY(ord) : dateY(ord);
   }
 
   // Extend spine bottom to accommodate stacked entries
-  const lastNodeY          = nEntries > 0 ? (nodeYs[nEntries - 1] ?? spineBottomY) : spineBottomY;
-  const finalSpineBottomY  = rhu(Math.max(spineBottomY, lastNodeY + SPINE_BOTTOM_PAD));
+  const lastNodeY = nEntries > 0 ? (nodeYs[nEntries - 1] ?? spineBottomY) : spineBottomY;
+  const finalSpineBottomY = rhu(Math.max(spineBottomY, lastNodeY + SPINE_BOTTOM_PAD));
 
   // Canvas height
   const H = rhu(finalSpineBottomY + 50 + mB);
-
-  // ── Entry block height helper ─────────────────────────────────────────────
-
-  function blockH(e: SpineEntry): number {
-    const titleWrapped = wrapText(e.label, titlePx, BLOCK_W - BLOCK_INNER_PAD * 2, 2);
-    let h = VERT_PAD;
-    h += DATE_LINE_H;
-    h += TEXT_GAP + TITLE_LINE_H * titleWrapped.lines.length;
-    if (e.description) h += TEXT_GAP + DESC_LINE_H;
-    if (hasCta(e)) h += CTA_VERT_GAP + CTA_BTN_H;
-    h += VERT_PAD;
-    return rhuInt(h);
-  }
 
   // ── Axis ticks ─────────────────────────────────────────────────────────────
 
@@ -523,7 +577,11 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
 
   // 1. Background
   primitives.push({
-    kind: 'rect', x: 0, y: 0, width: W, height: H,
+    kind: 'rect',
+    x: 0,
+    y: 0,
+    width: W,
+    height: H,
     fill: theme.canvas.backgroundColor,
   });
 
@@ -531,7 +589,7 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   if (ir.sections && ir.sections.length > 0) {
     ir.sections.forEach((sec, si) => {
       const sStart = sec.time_range?.start ?? trStart;
-      const sEnd   = sec.time_range?.end ?? trEnd;
+      const sEnd = sec.time_range?.end ?? trEnd;
       let yBandTop: number;
       let yBandBot: number;
       try {
@@ -549,8 +607,13 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
 
       if (opacity > 0) {
         primitives.push({
-          kind: 'rect', x: 0, y: yBandTop, width: W, height: bh,
-          fill, opacity: rhu(opacity),
+          kind: 'rect',
+          x: 0,
+          y: yBandTop,
+          width: W,
+          height: bh,
+          fill,
+          opacity: rhu(opacity),
         });
       }
 
@@ -577,20 +640,20 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
 
     // Resolve titleAlign: undefined → 'center' (historical default, byte-identical)
     const titleAlignEff = theme.typography.titleAlign ?? 'center';
-    const titleX        = titleAlignEff === 'left' ? rhu(m.left + BLOCK_INNER_PAD) : rhu(W / 2);
-    const titleAnchor   = titleAlignEff === 'left' ? 'start' as const : 'middle' as const;
+    const titleX = titleAlignEff === 'left' ? rhu(m.left + BLOCK_INNER_PAD) : rhu(W / 2);
+    const titleAnchor = titleAlignEff === 'left' ? ('start' as const) : ('middle' as const);
 
     // Primary title
     primitives.push({
-      kind:             'text',
-      x:                titleX,
-      y:                rhu(hdrCursorY + hdrTitlePx),
-      text:             ir.metadata.title,
-      fontFamily:       FONT_FAM,
-      fontSize:         hdrTitlePx,
-      fontWeight:       theme.typography.fontWeightHeader,
-      fill:             theme.typography.titleColor,
-      textAnchor:       titleAnchor,
+      kind: 'text',
+      x: titleX,
+      y: rhu(hdrCursorY + hdrTitlePx),
+      text: ir.metadata.title,
+      fontFamily: FONT_FAM,
+      fontSize: hdrTitlePx,
+      fontWeight: theme.typography.fontWeightHeader,
+      fill: theme.typography.titleColor,
+      textAnchor: titleAnchor,
       dominantBaseline: 'alphabetic',
     });
     hdrCursorY += rhuInt(hdrTitlePx * 1.4);
@@ -599,17 +662,17 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
     if (ir.metadata.subtitle) {
       hdrCursorY += 4;
       primitives.push({
-        kind:             'text',
-        x:                titleX,
-        y:                rhu(hdrCursorY + hdrSubtitlePx),
-        text:             ir.metadata.subtitle,
-        fontFamily:       FONT_FAM,
-        fontSize:         hdrSubtitlePx,
-        fontWeight:       theme.typography.fontWeightAxis,
-        fill:             theme.typography.titleColor,
-        textAnchor:       titleAnchor,
+        kind: 'text',
+        x: titleX,
+        y: rhu(hdrCursorY + hdrSubtitlePx),
+        text: ir.metadata.subtitle,
+        fontFamily: FONT_FAM,
+        fontSize: hdrSubtitlePx,
+        fontWeight: theme.typography.fontWeightAxis,
+        fill: theme.typography.titleColor,
+        textAnchor: titleAnchor,
         dominantBaseline: 'alphabetic',
-        opacity:          0.75,
+        opacity: 0.75,
       });
       hdrCursorY += rhuInt(hdrSubtitlePx * 1.35);
     }
@@ -617,58 +680,56 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
     // Author / date meta-line
     const metaParts: string[] = [];
     if (ir.metadata.author) metaParts.push(ir.metadata.author);
-    if (ir.metadata.updated)      metaParts.push(`Updated: ${ir.metadata.updated}`);
+    if (ir.metadata.updated) metaParts.push(`Updated: ${ir.metadata.updated}`);
     else if (ir.metadata.created) metaParts.push(`Created: ${ir.metadata.created}`);
 
     if (metaParts.length > 0) {
       hdrCursorY += 4;
       primitives.push({
-        kind:             'text',
-        x:                titleX,
-        y:                rhu(hdrCursorY + hdrMetaFontPx),
-        text:             metaParts.join(' · '),
-        fontFamily:       FONT_FAM,
-        fontSize:         hdrMetaFontPx,
-        fontWeight:       theme.typography.fontWeightAxis,
-        fill:             theme.typography.titleColor,
-        textAnchor:       titleAnchor,
+        kind: 'text',
+        x: titleX,
+        y: rhu(hdrCursorY + hdrMetaFontPx),
+        text: metaParts.join(' · '),
+        fontFamily: FONT_FAM,
+        fontSize: hdrMetaFontPx,
+        fontWeight: theme.typography.fontWeightAxis,
+        fill: theme.typography.titleColor,
+        textAnchor: titleAnchor,
         dominantBaseline: 'alphabetic',
-        opacity:          0.6,
+        opacity: 0.6,
       });
     }
 
     // Subtle separator line
     primitives.push({
-      kind:        'line',
-      x1:          rhu(m.left),
-      y1:          rhu(mT + headerH - 6),
-      x2:          rhu(W - m.right),
-      y2:          rhu(mT + headerH - 6),
-      stroke:      theme.axis.axisLineColor,
+      kind: 'line',
+      x1: rhu(m.left),
+      y1: rhu(mT + headerH - 6),
+      x2: rhu(W - m.right),
+      y2: rhu(mT + headerH - 6),
+      stroke: theme.axis.axisLineColor,
       strokeWidth: 0.5,
-      opacity:     0.35,
+      opacity: 0.35,
     });
   }
 
   // 2b. Logo — placed in header corner (top-left or top-right)
   if (ir.metadata.logo) {
     const logoSpec = ir.metadata.logo;
-    const asset    = loadImageAsset(logoSpec.src, baseDir);
+    const asset = loadImageAsset(logoSpec.src, baseDir);
     if (asset) {
-      const logoW  = logoSpec.width  ?? LOGO_DEFAULT_W;
-      const logoH  = logoSpec.height ?? LOGO_DEFAULT_H;
-      const pos    = logoSpec.position ?? 'top-left';
-      const logoX  = pos === 'top-right'
-        ? rhu(W - m.right - logoW - 4)
-        : rhu(m.left + 4);
-      const logoY  = rhu(mT + (headerH - logoH) / 2);
+      const logoW = logoSpec.width ?? LOGO_DEFAULT_W;
+      const logoH = logoSpec.height ?? LOGO_DEFAULT_H;
+      const pos = logoSpec.position ?? 'top-left';
+      const logoX = pos === 'top-right' ? rhu(W - m.right - logoW - 4) : rhu(m.left + 4);
+      const logoY = rhu(mT + (headerH - logoH) / 2);
       primitives.push({
-        kind:     'image',
-        x:        logoX,
-        y:        logoY,
-        width:    logoW,
-        height:   logoH,
-        data:     asset.dataUri,
+        kind: 'image',
+        x: logoX,
+        y: logoY,
+        width: logoW,
+        height: logoH,
+        data: asset.dataUri,
         mimeType: asset.mimeType,
       });
     }
@@ -676,60 +737,82 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
 
   // 3. Activity duration segments on the spine (drawn BEHIND spine line)
   for (let i = 0; i < entries.length; i++) {
-    const entry  = entries[i]!;
-    const nodeY  = nodeYs[i]!;
+    const entry = entries[i]!;
+    const nodeY = nodeYs[i]!;
     if (entry.type !== 'activity' || entry.endKind === 'none') continue;
 
     if (entry.endKind === 'fixed' && entry.endOrd !== undefined) {
       const yEnd = rhu(Math.max(effectiveDateY(entry.endOrd), nodeY + 4));
       if (yEnd > nodeY + 4) {
         primitives.push({
-          kind:    'rect',
-          x:       rhu(SPINE_X - 3),
-          y:       nodeY,
-          width:   6,
-          height:  rhu(yEnd - nodeY),
-          fill:    entry.statusFill,
+          kind: 'rect',
+          x: rhu(SPINE_X - 3),
+          y: nodeY,
+          width: 6,
+          height: rhu(yEnd - nodeY),
+          fill: entry.statusFill,
           opacity: rhu(entry.statusOpacity * 0.7),
         });
       }
     } else if (entry.endKind === 'ongoing') {
       primitives.push({
-        kind:        'line',
-        x1:          SPINE_X,
-        y1:          nodeY,
-        x2:          SPINE_X,
-        y2:          rhu(finalSpineBottomY - 8),
-        stroke:      entry.statusFill,
+        kind: 'line',
+        x1: SPINE_X,
+        y1: nodeY,
+        x2: SPINE_X,
+        y2: rhu(finalSpineBottomY - 8),
+        stroke: entry.statusFill,
         strokeWidth: 5,
-        opacity:     rhu(entry.statusOpacity * 0.5),
-        dashArray:   '6,4',
+        opacity: rhu(entry.statusOpacity * 0.5),
+        dashArray: '6,4',
       });
     } else if (entry.endKind === 'tbd') {
       primitives.push({
-        kind:        'line',
-        x1:          SPINE_X,
-        y1:          nodeY,
-        x2:          SPINE_X,
-        y2:          rhu(finalSpineBottomY - 8),
-        stroke:      entry.statusFill,
+        kind: 'line',
+        x1: SPINE_X,
+        y1: nodeY,
+        x2: SPINE_X,
+        y2: rhu(finalSpineBottomY - 8),
+        stroke: entry.statusFill,
         strokeWidth: 4,
-        opacity:     rhu(entry.statusOpacity * 0.4),
-        dashArray:   '3,5',
+        opacity: rhu(entry.statusOpacity * 0.4),
+        dashArray: '3,5',
       });
     }
   }
 
-  // 4. Central spine line
-  primitives.push({
-    kind:        'line',
-    x1:          SPINE_X,
-    y1:          spineTopY,
-    x2:          SPINE_X,
-    y2:          finalSpineBottomY,
-    stroke:      theme.axis.axisLineColor,
-    strokeWidth: 2,
-  });
+  // 4. Central spine line — single colour OR per-segment coloured (T2-1)
+  if (spineSegmentColor && nEntries > 0) {
+    // Draw one coloured segment per entry:
+    //  • from spineTopY to first node: first entry's colour
+    //  • from node[i] to node[i+1] (or finalSpineBottomY): entry[i]'s colour
+    const segYs = [spineTopY, ...nodeYs, finalSpineBottomY];
+    for (let i = 0; i < nEntries; i++) {
+      const y1 = i === 0 ? spineTopY : nodeYs[i - 1]!;
+      const y2 = i === nEntries - 1 ? finalSpineBottomY : nodeYs[i]!;
+      if (y2 <= y1) continue;
+      primitives.push({
+        kind: 'line',
+        x1: SPINE_X,
+        y1: rhu(y1),
+        x2: SPINE_X,
+        y2: rhu(y2),
+        stroke: entries[i]!.statusFill,
+        strokeWidth: 3,
+      });
+    }
+    void segYs; // suppress unused-variable lint warning
+  } else {
+    primitives.push({
+      kind: 'line',
+      x1: SPINE_X,
+      y1: spineTopY,
+      x2: SPINE_X,
+      y2: finalSpineBottomY,
+      stroke: theme.axis.axisLineColor,
+      strokeWidth: 2,
+    });
+  }
 
   // 5. Axis ticks
   const TICK_W = 8;
@@ -740,32 +823,40 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
 
   if (isEvenSpacing) {
     for (let i = 0; i < entries.length; i++) {
-      const entry  = entries[i]!;
-      const nodeY  = nodeYs[i]!;
+      const entry = entries[i]!;
+      const nodeY = nodeYs[i]!;
       const [entryYear] = ordinalToDate(entry.ord);
       const yearStr = String(entryYear);
 
       // Subtle tick mark at the entry position
       primitives.push({
         kind: 'line',
-        x1: rhu(SPINE_X - TICK_W), y1: nodeY,
-        x2: rhu(SPINE_X + TICK_W), y2: nodeY,
-        stroke: theme.axis.axisLineColor, strokeWidth: 1, opacity: 0.3,
+        x1: rhu(SPINE_X - TICK_W),
+        y1: nodeY,
+        x2: rhu(SPINE_X + TICK_W),
+        y2: nodeY,
+        stroke: theme.axis.axisLineColor,
+        strokeWidth: 1,
+        opacity: 0.3,
       });
 
-      // Year label to the left of the spine
-      primitives.push({
-        kind: 'text',
-        x: EVEN_YEAR_LABEL_X, y: rhu(nodeY - 2),
-        text: yearStr,
-        fontFamily: FONT_FAM,
-        fontSize: yearFontPx,
-        fontWeight: yearFontWeight,
-        fill: theme.axis.tickLabelColor,
-        textAnchor: 'end',
-        dominantBaseline: 'alphabetic',
-        opacity: 0.6,
-      });
+      // Year label to the left of the spine — suppressed when yearLabelUsesEntryColor
+      // (year is shown inside the content block instead, coloured by entry)
+      if (!yearLabelUsesEntryColor) {
+        primitives.push({
+          kind: 'text',
+          x: EVEN_YEAR_LABEL_X,
+          y: rhu(nodeY - 2),
+          text: yearStr,
+          fontFamily: FONT_FAM,
+          fontSize: yearFontPx,
+          fontWeight: yearFontWeight,
+          fill: theme.axis.tickLabelColor,
+          textAnchor: 'end',
+          dominantBaseline: 'alphabetic',
+          opacity: 0.6,
+        });
+      }
     }
   } else {
     for (let ti = 0; ti < vsTicks.length; ti++) {
@@ -776,16 +867,21 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
 
       primitives.push({
         kind: 'line',
-        x1: rhu(SPINE_X - TICK_W), y1: ty,
-        x2: rhu(SPINE_X + TICK_W), y2: ty,
-        stroke: theme.axis.axisLineColor, strokeWidth: 1, opacity: 0.5,
+        x1: rhu(SPINE_X - TICK_W),
+        y1: ty,
+        x2: rhu(SPINE_X + TICK_W),
+        y2: ty,
+        stroke: theme.axis.axisLineColor,
+        strokeWidth: 1,
+        opacity: 0.5,
       });
 
       const tickLabel = formatTickLabel(tick, vsAxisUnit, ti);
       if (tickLabel) {
         primitives.push({
           kind: 'text',
-          x: TICK_LABEL_X, y: rhu(ty - 2),
+          x: TICK_LABEL_X,
+          y: rhu(ty - 2),
           text: tickLabel,
           fontFamily: FONT_FAM,
           fontSize: yearFontPx,
@@ -802,7 +898,8 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   // TODAY MARKER annotation
   const todayMarkerAnnotationVS = (ir.annotations ?? []).find((a) => a.type === 'today-marker');
   const todayDateVS = todayMarkerAnnotationVS?.date ?? ir.metadata.today;
-  const todayMarkerEnabledVS = !!todayDateVS && (theme.axis.todayMarker.enabled || !!todayMarkerAnnotationVS);
+  const todayMarkerEnabledVS =
+    !!todayDateVS && (theme.axis.todayMarker.enabled || !!todayMarkerAnnotationVS);
 
   if (todayMarkerEnabledVS && todayDateVS) {
     try {
@@ -811,7 +908,10 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
         const yToday = rhu(effectiveDateY(todayOrd));
         primitives.push({
           kind: 'line',
-          x1: rhu(m.left), y1: yToday, x2: rhu(W - m.right), y2: yToday,
+          x1: rhu(m.left),
+          y1: yToday,
+          x2: rhu(W - m.right),
+          y2: yToday,
           stroke: theme.axis.todayMarker.color,
           strokeWidth: theme.axis.todayMarker.width,
           dashArray: theme.axis.todayMarker.style === 'dashed' ? '6,4' : undefined,
@@ -850,13 +950,25 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
       const periodX = rhu(W - m.right - 16);
       const periodColor = theme.axis.todayMarker.color;
       primitives.push({
-        kind: 'line', x1: periodX, y1: yT, x2: periodX, y2: yB,
-        stroke: periodColor, strokeWidth: 1.5, opacity: 0.7,
+        kind: 'line',
+        x1: periodX,
+        y1: yT,
+        x2: periodX,
+        y2: yB,
+        stroke: periodColor,
+        strokeWidth: 1.5,
+        opacity: 0.7,
       });
       for (const ty of [yT, yB]) {
         primitives.push({
-          kind: 'line', x1: rhu(periodX - 4), y1: ty, x2: rhu(periodX + 4), y2: ty,
-          stroke: periodColor, strokeWidth: 1.5, opacity: 0.7,
+          kind: 'line',
+          x1: rhu(periodX - 4),
+          y1: ty,
+          x2: rhu(periodX + 4),
+          y2: ty,
+          stroke: periodColor,
+          strokeWidth: 1.5,
+          opacity: 0.7,
         });
       }
       if (ann.text ?? ann.label) {
@@ -882,88 +994,82 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
 
   // 6. Entry connectors and content blocks (behind node markers)
   for (let i = 0; i < entries.length; i++) {
-    const entry  = entries[i]!;
-    const nodeY  = nodeYs[i]!;
+    const entry = entries[i]!;
+    const nodeY = nodeYs[i]!;
     /** Even index → right side; odd index → left side (deterministic). */
-    const side   = i % 2 === 0 ? 'right' : 'left';
+    const side = i % 2 === 0 ? 'right' : 'left';
 
     // Connector line: from spine node edge to block edge
-    const connXStart = side === 'right'
-      ? rhu(SPINE_X + NODE_R)
-      : rhu(SPINE_X - NODE_R);
-    const connXEnd = side === 'right'
-      ? rhu(SPINE_X + CONNECTOR_LEN)
-      : rhu(SPINE_X - CONNECTOR_LEN);
+    const connXStart = side === 'right' ? rhu(SPINE_X + NODE_R) : rhu(SPINE_X - NODE_R);
+    const connXEnd = side === 'right' ? rhu(SPINE_X + CONNECTOR_LEN) : rhu(SPINE_X - CONNECTOR_LEN);
 
     primitives.push({
-      kind:        'line',
-      x1:          connXStart,
-      y1:          nodeY,
-      x2:          connXEnd,
-      y2:          nodeY,
-      stroke:      entry.statusFill,
+      kind: 'line',
+      x1: connXStart,
+      y1: nodeY,
+      x2: connXEnd,
+      y2: nodeY,
+      stroke: entry.statusFill,
       strokeWidth: 1.5,
-      opacity:     0.8,
+      opacity: 0.8,
     });
 
     // Content block geometry
-    const bh        = blockH(entry);
-    const blockTop  = rhu(nodeY - bh / 2);
-    const blockLeft = side === 'right'
-      ? rhu(SPINE_X + CONNECTOR_LEN)
-      : rhu(SPINE_X - CONNECTOR_LEN - BLOCK_W);
+    const bh = blockH(entry);
+    const blockTop = rhu(nodeY - bh / 2);
+    const blockLeft =
+      side === 'right' ? rhu(SPINE_X + CONNECTOR_LEN) : rhu(SPINE_X - CONNECTOR_LEN - BLOCK_W);
 
     // Card background (only for card-style themes)
     if (entryStyle === 'card') {
       // Attach cardEffects if theme declares them (Skia-only; SVG ignores)
       const cardEffects = theme.effects?.cardEffects;
       primitives.push({
-        kind:        'rect',
-        x:           blockLeft,
-        y:           blockTop,
-        width:       BLOCK_W,
-        height:      bh,
-        fill:        cardFill,
-        stroke:      entry.statusFill,
+        kind: 'rect',
+        x: blockLeft,
+        y: blockTop,
+        width: BLOCK_W,
+        height: bh,
+        fill: cardFill,
+        stroke: entry.statusFill,
         strokeWidth: 1,
-        rx:          6,
-        opacity:     0.95,
+        rx: 6,
+        opacity: 0.95,
         ...(cardEffects ? { effects: cardEffects } : {}),
       });
     }
 
     // Text anchor based on side
-    const textX      = side === 'right'
-      ? rhu(blockLeft + BLOCK_INNER_PAD)
-      : rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD);
+    const textX =
+      side === 'right'
+        ? rhu(blockLeft + BLOCK_INNER_PAD)
+        : rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD);
     const textAnchor = (side === 'right' ? 'start' : 'end') as 'start' | 'end';
 
     // Date label (top line in block) — with optional inline date icon (T5-2)
-    let textY = rhu(blockTop + VERT_PAD + DATE_LINE_H * 0.85);
+    let textY = rhu(blockTop + VERT_PAD + ENTRY_DATE_LINE_H * 0.85);
 
     // T5-2: inline date icon (gated behind theme.cardDateIcon token)
     if (dateIconName && entryStyle === 'card') {
       const dateIconDef = getIcon(dateIconName);
       if (dateIconDef) {
-        const iconR  = rhu(DATE_ICON_SZ / 2);
+        const iconR = rhu(DATE_ICON_SZ / 2);
         // Icon center Y: align to text cap-height midpoint (roughly 0.7× datePx above baseline)
         const iconCY = rhu(textY - datePx * 0.38);
         // X position: always on the leading side of the text (before it in visual reading direction)
-        const iconCX = side === 'right'
-          ? rhu(textX + iconR)
-          : rhu(textX - iconR);
-        const s = rhu(iconR / 12, 4);  // scale: maps 24-unit viewBox to icon diameter
+        const iconCX = side === 'right' ? rhu(textX + iconR) : rhu(textX - iconR);
+        const s = rhu(iconR / 12, 4); // scale: maps 24-unit viewBox to icon diameter
         const transform = `translate(${iconCX},${iconCY}) scale(${s}) translate(-12,-12)`;
         const iconColor = theme.milestone.dateLabelColor;
         for (const pathDef of dateIconDef.paths) {
-          const iconFill   = pathDef.fill   ? iconColor : 'none';
+          const iconFill = pathDef.fill ? iconColor : 'none';
           const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
           primitives.push({
-            kind:          'path',
-            d:             pathDef.d,
-            fill:          iconFill,
-            stroke:        iconStroke,
-            strokeWidth:   iconStroke ? 1.5 : undefined,
+            kind: 'path',
+            d: pathDef.d,
+            fill: iconFill,
+            stroke: iconStroke,
+            strokeWidth: iconStroke ? 1.5 : undefined,
             strokeLinecap: iconStroke ? 'round' : undefined,
             transform,
           });
@@ -971,37 +1077,48 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
         // Shift date text away from the icon
         const dateShift = rhu(DATE_ICON_SZ + DATE_ICON_GAP);
         primitives.push({
-          kind:             'text',
-          x:                side === 'right' ? rhu(textX + dateShift) : rhu(textX - dateShift),
-          y:                textY,
-          text:             entry.dateStr,
-          fontFamily:       FONT_FAM,
-          fontSize:         datePx,
-          fontWeight:       theme.milestone.dateLabelFontWeight,
-          fill:             theme.milestone.dateLabelColor,
+          kind: 'text',
+          x: side === 'right' ? rhu(textX + dateShift) : rhu(textX - dateShift),
+          y: textY,
+          text: entry.dateStr,
+          fontFamily: FONT_FAM,
+          fontSize: entryDatePx,
+          fontWeight: yearLabelUsesEntryColor
+            ? theme.typography.fontWeightHeader
+            : theme.milestone.dateLabelFontWeight,
+          fill: yearLabelUsesEntryColor ? entry.statusFill : theme.milestone.dateLabelColor,
           textAnchor,
           dominantBaseline: 'alphabetic',
         });
       } else {
         // Icon not found — fall back to plain date text
         primitives.push({
-          kind: 'text', x: textX, y: textY, text: entry.dateStr,
-          fontFamily: FONT_FAM, fontSize: datePx,
-          fontWeight: theme.milestone.dateLabelFontWeight,
-          fill: theme.milestone.dateLabelColor, textAnchor,
+          kind: 'text',
+          x: textX,
+          y: textY,
+          text: entry.dateStr,
+          fontFamily: FONT_FAM,
+          fontSize: entryDatePx,
+          fontWeight: yearLabelUsesEntryColor
+            ? theme.typography.fontWeightHeader
+            : theme.milestone.dateLabelFontWeight,
+          fill: yearLabelUsesEntryColor ? entry.statusFill : theme.milestone.dateLabelColor,
+          textAnchor,
           dominantBaseline: 'alphabetic',
         });
       }
     } else {
       primitives.push({
-        kind:             'text',
-        x:                textX,
-        y:                textY,
-        text:             entry.dateStr,
-        fontFamily:       FONT_FAM,
-        fontSize:         datePx,
-        fontWeight:       theme.milestone.dateLabelFontWeight,
-        fill:             theme.milestone.dateLabelColor,
+        kind: 'text',
+        x: textX,
+        y: textY,
+        text: entry.dateStr,
+        fontFamily: FONT_FAM,
+        fontSize: entryDatePx,
+        fontWeight: yearLabelUsesEntryColor
+          ? theme.typography.fontWeightHeader
+          : theme.milestone.dateLabelFontWeight,
+        fill: yearLabelUsesEntryColor ? entry.statusFill : theme.milestone.dateLabelColor,
         textAnchor,
         dominantBaseline: 'alphabetic',
       });
@@ -1012,50 +1129,106 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
     const titleWrapped = wrapText(entry.label, titlePx, BLOCK_W - BLOCK_INNER_PAD * 2, 2);
     if (titleWrapped.lines.length > 1) {
       primitives.push({
-        kind:             'multitext',
-        x:                textX,
-        y:                textY,
-        lines:            titleWrapped.lines,
-        lineHeight:       TITLE_LINE_H,
-        fontFamily:       FONT_FAM,
-        fontSize:         titlePx,
-        fontWeight:       theme.milestone.titleLabelFontWeight,
-        fill:             theme.milestone.titleLabelColor,
+        kind: 'multitext',
+        x: textX,
+        y: textY,
+        lines: titleWrapped.lines,
+        lineHeight: TITLE_LINE_H,
+        fontFamily: FONT_FAM,
+        fontSize: titlePx,
+        fontWeight: theme.milestone.titleLabelFontWeight,
+        fill: yearLabelUsesEntryColor ? entry.statusFill : theme.milestone.titleLabelColor,
         textAnchor,
         dominantBaseline: 'alphabetic',
       });
       textY = rhu(textY + (titleWrapped.lines.length - 1) * TITLE_LINE_H);
     } else {
       primitives.push({
-        kind:             'text',
-        x:                textX,
-        y:                textY,
-        text:             titleWrapped.lines[0] ?? entry.label,
-        fontFamily:       FONT_FAM,
-        fontSize:         titlePx,
-        fontWeight:       theme.milestone.titleLabelFontWeight,
-        fill:             theme.milestone.titleLabelColor,
+        kind: 'text',
+        x: textX,
+        y: textY,
+        text: titleWrapped.lines[0] ?? entry.label,
+        fontFamily: FONT_FAM,
+        fontSize: titlePx,
+        fontWeight: theme.milestone.titleLabelFontWeight,
+        fill: yearLabelUsesEntryColor ? entry.statusFill : theme.milestone.titleLabelColor,
         textAnchor,
         dominantBaseline: 'alphabetic',
       });
     }
 
-    // Description — with truncation
-    if (entry.description) {
+    // T2-4: Multi-block content (when blocks present) or description fallback
+    if (entry.blocks && entry.blocks.length > 0) {
+      for (let bi = 0; bi < entry.blocks.length; bi++) {
+        const block = entry.blocks[bi]!;
+        if (bi > 0) textY = rhu(textY + BLOCK_GAP);
+        // Optional block heading — styled bold + entry colour (when yearLabelUsesEntryColor)
+        if (block.heading) {
+          textY = rhu(textY + TEXT_GAP + HEADING_LINE_H);
+          primitives.push({
+            kind: 'text',
+            x: textX,
+            y: textY,
+            text: block.heading,
+            fontFamily: FONT_FAM,
+            fontSize: rhu(descPx * 1.15),
+            fontWeight: 700,
+            fill: yearLabelUsesEntryColor ? entry.statusFill : theme.milestone.titleLabelColor,
+            textAnchor,
+            dominantBaseline: 'alphabetic',
+          });
+        }
+        // Block body paragraph — wrapped text
+        const bodyWrapped = wrapText(block.text, descPx, BLOCK_W - BLOCK_INNER_PAD * 2, 4);
+        if (bodyWrapped.lines.length > 1) {
+          textY = rhu(textY + TEXT_GAP + DESC_LINE_H);
+          primitives.push({
+            kind: 'multitext',
+            x: textX,
+            y: textY,
+            lines: bodyWrapped.lines,
+            lineHeight: DESC_LINE_H,
+            fontFamily: FONT_FAM,
+            fontSize: descPx,
+            fontWeight: theme.typography.fontWeightAxis,
+            fill: theme.milestone.dateLabelColor,
+            textAnchor,
+            dominantBaseline: 'alphabetic',
+            opacity: 0.85,
+          });
+          textY = rhu(textY + (bodyWrapped.lines.length - 1) * DESC_LINE_H);
+        } else if (bodyWrapped.lines.length === 1) {
+          textY = rhu(textY + TEXT_GAP + DESC_LINE_H);
+          primitives.push({
+            kind: 'text',
+            x: textX,
+            y: textY,
+            text: bodyWrapped.lines[0]!,
+            fontFamily: FONT_FAM,
+            fontSize: descPx,
+            fontWeight: theme.typography.fontWeightAxis,
+            fill: theme.milestone.dateLabelColor,
+            textAnchor,
+            dominantBaseline: 'alphabetic',
+            opacity: 0.85,
+          });
+        }
+      }
+    } else if (entry.description) {
       textY = rhu(textY + TEXT_GAP + DESC_LINE_H);
       const descTruncated = truncateText(entry.description, descPx, BLOCK_W - BLOCK_INNER_PAD * 2);
       primitives.push({
-        kind:             'text',
-        x:                textX,
-        y:                textY,
-        text:             descTruncated,
-        fontFamily:       FONT_FAM,
-        fontSize:         descPx,
-        fontWeight:       theme.typography.fontWeightAxis,
-        fill:             theme.milestone.dateLabelColor,
+        kind: 'text',
+        x: textX,
+        y: textY,
+        text: descTruncated,
+        fontFamily: FONT_FAM,
+        fontSize: descPx,
+        fontWeight: theme.typography.fontWeightAxis,
+        fill: theme.milestone.dateLabelColor,
         textAnchor,
         dominantBaseline: 'alphabetic',
-        opacity:          0.85,
+        opacity: 0.85,
       });
     }
 
@@ -1064,88 +1237,90 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
     // Existing card themes (no cardCtaLabel token) are completely unaffected.
     if (hasCta(entry)) {
       const btnLabel = ctaLabel!;
-      const btnMaxW  = BLOCK_W - BLOCK_INNER_PAD * 2;
+      const btnMaxW = BLOCK_W - BLOCK_INNER_PAD * 2;
       // Estimate button width from label length (conservative: 0.58 em per char at ctaBtnFontPx)
       const btnLabelW = Math.min(btnMaxW, Math.ceil(btnLabel.length * ctaBtnFontPx * 0.58) + 20);
-      const btnW  = rhuInt(Math.max(btnLabelW, 80));
-      const btnH  = CTA_BTN_H;
+      const btnW = rhuInt(Math.max(btnLabelW, 80));
+      const btnH = CTA_BTN_H;
       const btnRx = theme.cardCtaRadius ?? Math.floor(btnH / 2);
 
       // Button top Y — gap below description (or title if no description)
-      const btnTop  = rhu(textY + CTA_VERT_GAP);
+      const btnTop = rhu(textY + CTA_VERT_GAP);
       // Button x: anchor to the leading side of the content block
-      const btnLeft = side === 'right'
-        ? rhu(blockLeft + BLOCK_INNER_PAD)
-        : rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD - btnW);
+      const btnLeft =
+        side === 'right'
+          ? rhu(blockLeft + BLOCK_INNER_PAD)
+          : rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD - btnW);
 
-      const ctaFill        = theme.cardCtaFill        ?? 'transparent';
-      const ctaTextColor   = theme.cardCtaTextColor   ?? theme.milestone.titleLabelColor;
+      const ctaFill = theme.cardCtaFill ?? 'transparent';
+      const ctaTextColor = theme.cardCtaTextColor ?? theme.milestone.titleLabelColor;
       const ctaBorderColor = theme.cardCtaBorderColor ?? ctaTextColor;
       const ctaBorderWidth = theme.cardCtaBorderWidth ?? 1;
 
       // Button background (pill shape)
       primitives.push({
-        kind:        'rect',
-        x:           btnLeft,
-        y:           btnTop,
-        width:       btnW,
-        height:      btnH,
-        fill:        ctaFill,
-        stroke:      ctaBorderColor,
+        kind: 'rect',
+        x: btnLeft,
+        y: btnTop,
+        width: btnW,
+        height: btnH,
+        fill: ctaFill,
+        stroke: ctaBorderColor,
         strokeWidth: ctaBorderWidth,
-        rx:          btnRx,
+        rx: btnRx,
       });
 
       // Button label text — centred inside the pill
       primitives.push({
-        kind:             'text',
-        x:                rhu(btnLeft + btnW / 2),
-        y:                rhu(btnTop + btnH * 0.65),
-        text:             btnLabel,
-        fontFamily:       FONT_FAM,
-        fontSize:         ctaBtnFontPx,
-        fontWeight:       theme.milestone.dateLabelFontWeight,
-        fill:             ctaTextColor,
-        textAnchor:       'middle',
+        kind: 'text',
+        x: rhu(btnLeft + btnW / 2),
+        y: rhu(btnTop + btnH * 0.65),
+        text: btnLabel,
+        fontFamily: FONT_FAM,
+        fontSize: ctaBtnFontPx,
+        fontWeight: theme.milestone.dateLabelFontWeight,
+        fill: ctaTextColor,
+        textAnchor: 'middle',
         dominantBaseline: 'alphabetic',
       });
     }
 
     // Icon: render resolved icon glyph in top-right (right side) or top-left (left side) of block.
     // If the icon name doesn't resolve, fall back silently (no placeholder text).
-    if (entry.iconHint) {
+    if (!badgeEdgeMode && entry.iconHint) {
       const iconDef = getIcon(entry.iconHint);
       if (iconDef) {
         // Small icon badge at the top corner of the content block.
-        const BADGE_R  = rhu(datePx * 0.75);
-        const badgeCX  = side === 'right'
-          ? rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD - BADGE_R)
-          : rhu(blockLeft + BLOCK_INNER_PAD + BADGE_R);
-        const badgeCY  = rhu(blockTop + VERT_PAD + DATE_LINE_H * 0.5);
+        const BADGE_R = rhu(datePx * 0.75);
+        const badgeCX =
+          side === 'right'
+            ? rhu(blockLeft + BLOCK_W - BLOCK_INNER_PAD - BADGE_R)
+            : rhu(blockLeft + BLOCK_INNER_PAD + BADGE_R);
+        const badgeCY = rhu(blockTop + VERT_PAD + ENTRY_DATE_LINE_H * 0.5);
         const iconScale = theme.milestone.iconScale ?? 0.65;
-        const s         = rhu(BADGE_R * iconScale / 12, 4);
+        const s = rhu((BADGE_R * iconScale) / 12, 4);
         const iconColor = theme.milestone.iconColor ?? theme.canvas.backgroundColor;
         const transform = `translate(${badgeCX},${badgeCY}) scale(${s}) translate(-12,-12)`;
 
         // Backing circle for the badge
         primitives.push({
-          kind:        'circle',
-          cx:          badgeCX,
-          cy:          badgeCY,
-          r:           BADGE_R,
-          fill:        entry.statusFill,
-          opacity:     0.85,
+          kind: 'circle',
+          cx: badgeCX,
+          cy: badgeCY,
+          r: BADGE_R,
+          fill: entry.statusFill,
+          opacity: 0.85,
         });
 
         for (const pathDef of iconDef.paths) {
-          const iconFill   = pathDef.fill   ? iconColor : 'none';
+          const iconFill = pathDef.fill ? iconColor : 'none';
           const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
           primitives.push({
-            kind:         'path',
-            d:            pathDef.d,
-            fill:         iconFill,
-            stroke:       iconStroke,
-            strokeWidth:  iconStroke ? 2 : undefined,
+            kind: 'path',
+            d: pathDef.d,
+            fill: iconFill,
+            stroke: iconStroke,
+            strokeWidth: iconStroke ? 2 : undefined,
             strokeLinecap: iconStroke ? 'round' : undefined,
             transform,
           });
@@ -1153,45 +1328,113 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
       }
       // Unknown icon hint → silent fallback (no text placeholder)
     }
+
+    // T2-2: Edge badge + dashed leader line (replaces/supplements inline badge in 'edge' mode)
+    if (badgeEdgeMode && entry.iconHint) {
+      const iconDef = getIcon(entry.iconHint);
+      // Position badge relative to the CANVAS EDGE (not the content margin) so the
+      // badge is "pinned to the edge" with EDGE_BADGE_MARGIN px of breathing room.
+      const badgeCX =
+        side === 'right'
+          ? rhu(W - EDGE_BADGE_R - EDGE_BADGE_MARGIN)
+          : rhu(EDGE_BADGE_R + EDGE_BADGE_MARGIN);
+
+      // Dashed leader from spine node to badge edge
+      const leaderEndX =
+        side === 'right' ? rhu(badgeCX - EDGE_BADGE_R) : rhu(badgeCX + EDGE_BADGE_R);
+      primitives.push({
+        kind: 'line',
+        x1: SPINE_X,
+        y1: nodeY,
+        x2: leaderEndX,
+        y2: nodeY,
+        stroke: entry.statusFill,
+        strokeWidth: 1.5,
+        dashArray: '6,4',
+        opacity: 0.6,
+      });
+
+      // Badge circle
+      primitives.push({
+        kind: 'circle',
+        cx: badgeCX,
+        cy: nodeY,
+        r: EDGE_BADGE_R,
+        fill: entry.statusFill,
+        stroke: theme.canvas.backgroundColor,
+        strokeWidth: 3,
+        opacity: 0.95,
+      });
+
+      // Icon inside badge
+      if (iconDef) {
+        const iconScale = theme.milestone.iconScale ?? 0.6;
+        const s = rhu((EDGE_BADGE_R * iconScale) / 12, 4);
+        const iconColor = theme.milestone.iconColor ?? theme.canvas.backgroundColor;
+        // Single translate(tx,ty) + scale(s) — equivalent to the two-translate form
+        // translate(cx,cy) scale(s) translate(-12,-12) but compatible with the
+        // Skia parser which only captures one translate() per transform string.
+        // tx = badgeCX - 12*s  (shifts icon centre to badge centre)
+        const iconTx = rhu(badgeCX - 12 * s);
+        const iconTy = rhu(nodeY - 12 * s);
+        const transform = `translate(${iconTx},${iconTy}) scale(${s})`;
+
+        for (const pathDef of iconDef.paths) {
+          const iconFill = pathDef.fill ? iconColor : 'none';
+          const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
+          primitives.push({
+            kind: 'path',
+            d: pathDef.d,
+            fill: iconFill,
+            stroke: iconStroke,
+            strokeWidth: iconStroke ? 2 : undefined,
+            strokeLinecap: iconStroke ? 'round' : undefined,
+            transform,
+          });
+        }
+      }
+    }
   }
 
   // 7. Spine node markers (drawn last — on top of connectors and card edges)
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i]!;
     const nodeY = nodeYs[i]!;
+    const side = i % 2 === 0 ? 'right' : 'left';
     const shape = theme.milestone.shape;
-    const nr    = NODE_R;
+    const nr = NODE_R;
+    const nodeFill = theme.spineNodeFillOverride ?? entry.statusFill;
 
     // Attach nodeEffects if theme declares them (Skia-only; SVG ignores)
     const nodeEffects = theme.effects?.nodeEffects;
 
     if (shape === 'circle') {
       primitives.push({
-        kind:        'circle',
-        cx:          SPINE_X,
-        cy:          nodeY,
-        r:           nr,
-        fill:        entry.statusFill,
-        stroke:      theme.canvas.backgroundColor,
+        kind: 'circle',
+        cx: SPINE_X,
+        cy: nodeY,
+        r: nr,
+        fill: nodeFill,
+        stroke: theme.canvas.backgroundColor,
         strokeWidth: 1.5,
         ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     } else if (shape === 'diamond') {
       primitives.push({
-        kind:   'path',
-        d:      `M ${SPINE_X} ${rhu(nodeY - nr)} L ${rhu(SPINE_X + nr)} ${nodeY} L ${SPINE_X} ${rhu(nodeY + nr)} L ${rhu(SPINE_X - nr)} ${nodeY} Z`,
-        fill:        entry.statusFill,
-        stroke:      theme.canvas.backgroundColor,
+        kind: 'path',
+        d: `M ${SPINE_X} ${rhu(nodeY - nr)} L ${rhu(SPINE_X + nr)} ${nodeY} L ${SPINE_X} ${rhu(nodeY + nr)} L ${rhu(SPINE_X - nr)} ${nodeY} Z`,
+        fill: nodeFill,
+        stroke: theme.canvas.backgroundColor,
         strokeWidth: 1.5,
         ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
     } else {
       // triangle
       primitives.push({
-        kind:   'path',
-        d:      `M ${rhu(SPINE_X - nr)} ${rhu(nodeY - nr)} L ${rhu(SPINE_X + nr)} ${rhu(nodeY - nr)} L ${SPINE_X} ${rhu(nodeY + nr)} Z`,
-        fill:        entry.statusFill,
-        stroke:      theme.canvas.backgroundColor,
+        kind: 'path',
+        d: `M ${rhu(SPINE_X - nr)} ${rhu(nodeY - nr)} L ${rhu(SPINE_X + nr)} ${rhu(nodeY - nr)} L ${SPINE_X} ${rhu(nodeY + nr)} Z`,
+        fill: nodeFill,
+        stroke: theme.canvas.backgroundColor,
         strokeWidth: 1.5,
         ...(nodeEffects ? { effects: nodeEffects } : {}),
       });
@@ -1202,23 +1445,54 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
       const iconDef = getIcon(entry.iconHint);
       if (iconDef) {
         const iconScale = theme.milestone.iconScale ?? 0.65;
-        const s         = rhu(nr * iconScale / 12, 4);
+        const s = rhu((nr * iconScale) / 12, 4);
         const iconColor = theme.milestone.iconColor ?? theme.canvas.backgroundColor;
         const transform = `translate(${SPINE_X},${nodeY}) scale(${s}) translate(-12,-12)`;
 
         for (const pathDef of iconDef.paths) {
-          const iconFill   = pathDef.fill   ? iconColor : 'none';
+          const iconFill = pathDef.fill ? iconColor : 'none';
           const iconStroke = pathDef.stroke !== false ? iconColor : undefined;
           primitives.push({
-            kind:         'path',
-            d:            pathDef.d,
-            fill:         iconFill,
-            stroke:       iconStroke,
-            strokeWidth:  iconStroke ? 2 : undefined,
+            kind: 'path',
+            d: pathDef.d,
+            fill: iconFill,
+            stroke: iconStroke,
+            strokeWidth: iconStroke ? 2 : undefined,
             strokeLinecap: iconStroke ? 'round' : undefined,
             transform,
           });
         }
+      }
+    }
+
+    // T2-3: Chevron/arrow at node pointing toward entry's text side.
+    // Only rendered when theme.spineNodeArrow is true.
+    if (spineNodeArrow) {
+      // Use a fixed size (8px half-height) so the chevron is clearly visible
+      // regardless of node size.
+      const arrowHalfH = 8;
+      const arrowDepth = 10;
+      const arrowColor = entry.statusFill;
+      // Place chevron immediately adjacent to the node (gap of 2px from node edge)
+      const arrowGap = rhu(nr + 2);
+      if (side === 'right') {
+        const ax = rhu(SPINE_X + arrowGap);
+        const tipX = rhu(ax + arrowDepth);
+        primitives.push({
+          kind: 'path',
+          d: `M ${ax} ${rhu(nodeY - arrowHalfH)} L ${tipX} ${nodeY} L ${ax} ${rhu(nodeY + arrowHalfH)} Z`,
+          fill: arrowColor,
+          opacity: 0.9,
+        });
+      } else {
+        const ax = rhu(SPINE_X - arrowGap);
+        const tipX = rhu(ax - arrowDepth);
+        primitives.push({
+          kind: 'path',
+          d: `M ${ax} ${rhu(nodeY - arrowHalfH)} L ${tipX} ${nodeY} L ${ax} ${rhu(nodeY + arrowHalfH)} Z`,
+          fill: arrowColor,
+          opacity: 0.9,
+        });
       }
     }
   }
@@ -1235,9 +1509,10 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
       const calloutW = 110;
       const calloutH = 24;
       const side = ann.position === 'left' ? 'left' : 'right';
-      const boxX = side === 'right'
-        ? rhu(SPINE_X + CONNECTOR_LEN + 10)
-        : rhu(SPINE_X - CONNECTOR_LEN - calloutW - 10);
+      const boxX =
+        side === 'right'
+          ? rhu(SPINE_X + CONNECTOR_LEN + 10)
+          : rhu(SPINE_X - CONNECTOR_LEN - calloutW - 10);
       const boxY = rhu(yAnn - calloutH / 2);
       primitives.push({
         kind: 'line',
@@ -1245,24 +1520,36 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
         y1: yAnn,
         x2: side === 'right' ? boxX : SPINE_X,
         y2: yAnn,
-        stroke: theme.axis.tickLabelColor, strokeWidth: 1, opacity: 0.5, dashArray: '3,3',
+        stroke: theme.axis.tickLabelColor,
+        strokeWidth: 1,
+        opacity: 0.5,
+        dashArray: '3,3',
       });
       primitives.push({
         kind: 'rect',
-        x: boxX, y: boxY, width: calloutW, height: calloutH,
-        fill: theme.canvas.backgroundColor, stroke: theme.axis.todayMarker.color, strokeWidth: 1,
-        rx: 3, opacity: 0.92,
+        x: boxX,
+        y: boxY,
+        width: calloutW,
+        height: calloutH,
+        fill: theme.canvas.backgroundColor,
+        stroke: theme.axis.todayMarker.color,
+        strokeWidth: 1,
+        rx: 3,
+        opacity: 0.92,
       });
       if (ann.text ?? ann.label) {
         const cFontPx = ptToPx(theme.typography.fontSizeAxis - 1);
         primitives.push({
           kind: 'text',
-          x: rhu(boxX + calloutW / 2), y: rhu(boxY + calloutH / 2),
+          x: rhu(boxX + calloutW / 2),
+          y: rhu(boxY + calloutH / 2),
           text: ann.text ?? ann.label ?? '',
           fontFamily: FONT_FAM,
-          fontSize: cFontPx, fontWeight: 400,
+          fontSize: cFontPx,
+          fontWeight: 400,
           fill: theme.axis.tickLabelColor,
-          textAnchor: 'middle', dominantBaseline: 'middle',
+          textAnchor: 'middle',
+          dominantBaseline: 'middle',
         });
       }
     } catch {
@@ -1273,17 +1560,17 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   // 8. Empty-timeline message
   if (nEntries === 0) {
     primitives.push({
-      kind:             'text',
-      x:                SPINE_X,
-      y:                rhu(spineTopY + (finalSpineBottomY - spineTopY) / 2),
-      text:             'No entries in time range',
-      fontFamily:       FONT_FAM,
-      fontSize:         datePx,
-      fontWeight:       theme.typography.fontWeightAxis,
-      fill:             theme.axis.tickLabelColor,
-      textAnchor:       'middle',
+      kind: 'text',
+      x: SPINE_X,
+      y: rhu(spineTopY + (finalSpineBottomY - spineTopY) / 2),
+      text: 'No entries in time range',
+      fontFamily: FONT_FAM,
+      fontSize: datePx,
+      fontWeight: theme.typography.fontWeightAxis,
+      fill: theme.axis.tickLabelColor,
+      textAnchor: 'middle',
       dominantBaseline: 'middle',
-      opacity:          0.5,
+      opacity: 0.5,
     });
   }
 
@@ -1362,9 +1649,16 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
       const lgY = pos.includes('bottom') ? H - m.bottom - lgH - margin : m.top + margin;
 
       primitives.push({
-        kind: 'rect', x: rhu(lgX), y: rhu(lgY), width: lgW, height: rhu(lgH),
-        fill: lg.backgroundColor, stroke: lg.borderColor, strokeWidth: lg.borderWidth,
-        rx: 4, opacity: 0.95,
+        kind: 'rect',
+        x: rhu(lgX),
+        y: rhu(lgY),
+        width: lgW,
+        height: rhu(lgH),
+        fill: lg.backgroundColor,
+        stroke: lg.borderColor,
+        strokeWidth: lg.borderWidth,
+        rx: 4,
+        opacity: 0.95,
       });
 
       primitives.push({
@@ -1387,14 +1681,20 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
           kind: 'rect',
           x: rhu(lgX + lg.padding),
           y: rhu(rowY + (ROW_H - lg.swatchSize) / 2),
-          width: lg.swatchSize, height: lg.swatchSize,
-          fill: e.fill, rx: lg.swatchRadius,
+          width: lg.swatchSize,
+          height: lg.swatchSize,
+          fill: e.fill,
+          rx: lg.swatchRadius,
         });
         primitives.push({
           kind: 'text',
           x: rhu(lgX + lg.padding + lg.swatchSize + lg.swatchLabelGap),
           y: rhu(swatchCY),
-          text: truncateText(e.label, lgFontPx, lgW - lg.padding * 2 - lg.swatchSize - lg.swatchLabelGap - 4),
+          text: truncateText(
+            e.label,
+            lgFontPx,
+            lgW - lg.padding * 2 - lg.swatchSize - lg.swatchLabelGap - 4,
+          ),
           fontFamily: FONT_FAM,
           fontSize: lgFontPx,
           fontWeight: lg.labelFontWeight,
@@ -1408,8 +1708,8 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   }
 
   return {
-    width:      W,
-    height:     H,
+    width: W,
+    height: H,
     background: theme.canvas.backgroundColor,
     primitives,
     // Attach theme's declarative background (Skia backend uses it; SVG ignores it)

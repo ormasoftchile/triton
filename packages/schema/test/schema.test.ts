@@ -127,3 +127,83 @@ describe('@timeline-compiler/schema — metadata.logo property', () => {
     expect(required ?? []).not.toContain('position');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Milestone.blocks — JSON Schema coverage
+// ---------------------------------------------------------------------------
+
+describe('@timeline-compiler/schema — Milestone.blocks property', () => {
+  it('exposes Milestone.blocks as an optional array in the generated JSON Schema', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const milestones = props['milestones'] as Record<string, unknown>;
+    const items = milestones['items'] as Record<string, unknown>;
+    const itemProps = items['properties'] as Record<string, unknown>;
+    expect(itemProps).toHaveProperty('blocks');
+    const blocksDef = itemProps['blocks'] as Record<string, unknown>;
+    expect(blocksDef['type']).toBe('array');
+    // blocks must NOT be in the required array
+    const required = items['required'] as string[] | undefined;
+    expect(required ?? []).not.toContain('blocks');
+  });
+
+  it('Milestone.blocks items have text (required) and heading (optional)', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const milestones = props['milestones'] as Record<string, unknown>;
+    const items = milestones['items'] as Record<string, unknown>;
+    const itemProps = items['properties'] as Record<string, unknown>;
+    const blocksDef = itemProps['blocks'] as Record<string, unknown>;
+    const blockItems = blocksDef['items'] as Record<string, unknown>;
+    const blockItemProps = blockItems['properties'] as Record<string, unknown>;
+    expect(blockItemProps).toHaveProperty('text');
+    expect(blockItemProps).toHaveProperty('heading');
+    const required = blockItems['required'] as string[] | undefined;
+    expect(required ?? []).toContain('text');
+    expect(required ?? []).not.toContain('heading');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Activity.blocks — JSON Schema coverage
+// ---------------------------------------------------------------------------
+
+describe('@timeline-compiler/schema — Activity.blocks property', () => {
+  it('exposes Activity.blocks as an optional array in the generated JSON Schema', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const activities = props['activities'] as Record<string, unknown>;
+    const items = activities['items'] as Record<string, unknown>;
+    const itemProps = items['properties'] as Record<string, unknown>;
+    expect(itemProps).toHaveProperty('blocks');
+    const blocksDef = itemProps['blocks'] as Record<string, unknown>;
+    expect(blocksDef['type']).toBe('array');
+    // blocks must NOT be in the required array
+    const required = items['required'] as string[] | undefined;
+    expect(required ?? []).not.toContain('blocks');
+  });
+
+  it('Activity.blocks items have text (required) and heading (optional)', () => {
+    const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
+    const defs = schema['definitions'] as Record<string, unknown>;
+    const irDoc = defs['IRDocument'] as Record<string, unknown>;
+    const props = irDoc['properties'] as Record<string, unknown>;
+    const activities = props['activities'] as Record<string, unknown>;
+    const items = activities['items'] as Record<string, unknown>;
+    const itemProps = items['properties'] as Record<string, unknown>;
+    const blocksDef = itemProps['blocks'] as Record<string, unknown>;
+    const blockItems = blocksDef['items'] as Record<string, unknown>;
+    const blockItemProps = blockItems['properties'] as Record<string, unknown>;
+    expect(blockItemProps).toHaveProperty('text');
+    expect(blockItemProps).toHaveProperty('heading');
+    const required = blockItems['required'] as string[] | undefined;
+    expect(required ?? []).toContain('text');
+    expect(required ?? []).not.toContain('heading');
+  });
+});

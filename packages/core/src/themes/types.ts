@@ -40,11 +40,11 @@ export interface TypographyTheme {
   fontFamily: string;
   /** Comma-separated CSS fallback stack (appended after fontFamily). */
   fontFamilyFallback: string;
-  fontSizeBase: number;   // pt
-  fontSizeAxis: number;   // pt
-  fontSizeTitle: number;  // pt
+  fontSizeBase: number; // pt
+  fontSizeAxis: number; // pt
+  fontSizeTitle: number; // pt
   fontSizeSubtitle: number; // pt
-  fontSizeTrack: number;  // pt
+  fontSizeTrack: number; // pt
   fontWeightLabel: number;
   fontWeightAxis: number;
   fontWeightHeader: number;
@@ -139,7 +139,7 @@ export interface MilestoneTheme {
   strokeColor: string;
   /** Show a sequential ordinal number (01, 02, …) inside each marker. */
   showOrdinalNumber: boolean;
-  ordinalFontSize: number;  // pt
+  ordinalFontSize: number; // pt
   ordinalFontWeight: number;
   ordinalColor: string;
   /** Place the date label ABOVE the marker centre (T2 style). */
@@ -367,4 +367,66 @@ export interface ResolvedTheme {
    * Example: 'clock' (gitline theme).
    */
   cardDateIcon?: string;
+
+  // ── T2 vertical-spine features ─────────────────────────────────────────────
+
+  /**
+   * T2-1: When true, the central spine is drawn as per-segment coloured lines
+   * where each segment between consecutive entry nodes uses that entry's resolved
+   * colour (milestone.color / activity.color → statusFill).  The segment from
+   * spineTopY to the first node uses the first entry's colour; the last segment
+   * from the last node to spineBottomY uses the last entry's colour.
+   *
+   * Opt-in.  Default: false → single-colour spine (axisLineColor, unchanged).
+   * Existing themes that do not set this token are completely unaffected.
+   */
+  spineSegmentColor?: boolean;
+
+  /**
+   * T2-2: Controls icon badge placement in the vertical-spine layout.
+   *
+   * 'inline' (default): small badge at the top corner of the content block —
+   *   the current behaviour; all existing themes are byte-identical.
+   * 'edge': large circular badge pinned to the canvas edge on the entry's text
+   *   side, containing the entry's icon via getIcon(), plus a DASHED horizontal
+   *   leader line from the spine node to the badge.  The badge is sized to
+   *   EDGE_BADGE_R (28 px) and centred vertically at the node Y.
+   *
+   * Has no effect when the entry has no icon hint.
+   */
+  badgePlacement?: 'inline' | 'edge';
+
+  /**
+   * T2-3: When true, renders a small filled chevron/arrow at each spine node
+   * pointing toward the entry's text side (right-pointing ">" for right entries,
+   * left-pointing "<" for left entries).  Drawn after the node circle.
+   *
+   * Opt-in.  Default: false (no chevron, byte-identical for existing themes).
+   */
+  spineNodeArrow?: boolean;
+
+  /**
+   * T2-5: When true, the date/year text in the content block and the entry label
+   * (acting as a subject heading) are rendered in the entry's resolved colour
+   * (entry.statusFill) rather than the theme's default label colours.  Also,
+   * when fontSizeYearLabel is set, the date/year line in the content block uses
+   * that size (making it a large coloured year label matching the T2 target).
+   *
+   * When this token is active AND spineSpacing='even', the even-mode year tick
+   * labels on the spine are suppressed (the year is shown inside the content
+   * block instead).
+   *
+   * Opt-in.  Default: false (uses theme.milestone.dateLabelColor, byte-identical).
+   */
+  yearLabelUsesEntryColor?: boolean;
+
+  /**
+   * T2: Override fill colour for spine node markers.  When set, ALL spine node
+   * markers use this fill instead of entry.statusFill.  The statusFill continues
+   * to be used for spine segments, connectors, edge badges, and text colours.
+   *
+   * Typical use: white dots on a dark background while entry colours drive the spine.
+   * Opt-in: existing themes are unaffected.
+   */
+  spineNodeFillOverride?: string;
 }
