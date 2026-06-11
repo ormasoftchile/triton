@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="704.93" version="1.1" viewBox="0 0 1200 704.93" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#0D1B2A" height="704.93" width="1200" x="0" y="0"/>
+<svg height="861.6" version="1.1" viewBox="0 0 1200 861.6" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0D1B2A" height="861.6" width="1200" x="0" y="0"/>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="97.33">H1 2026 — Dense Engineering Roadmap</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="400" opacity="0.75" text-anchor="middle" x="600" y="131.67">All engineering tracks, January–June 2026</text>
   <line opacity="0.35" stroke="#2A4060" stroke-width="0.5" x1="148" x2="1156" y1="144" y2="144"/>
@@ -71,38 +71,38 @@
   <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="656" y="588.93">Accessibility</text>
   <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="258" x="898" y="540.93"/>
   <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="902" y="554.93">Perf Audit</text>
-  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="646" x2="646" y1="465.93" y2="473.93"/>
+  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="646" x2="646" y1="236.93" y2="425.93"/>
   <circle cx="646" cy="445.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
   <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="646" y="445.93">01</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="646" y="488.66">Infra Stable</text>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="646" y="505.46">March 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="646" y="214.73">Infra Stable</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="646" y="231.53">March 2026</text>
   <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="814" x2="814" y1="236.93" y2="425.93"/>
   <circle cx="814" cy="445.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
   <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="814" y="445.93">02</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="814" y="214.73">APIs Complete</text>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="814" y="231.53">April 2026</text>
-  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="988" x2="988" y1="465.93" y2="473.93"/>
+  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="988" x2="988" y1="236.93" y2="425.93"/>
   <circle cx="988" cy="445.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
   <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="988" y="445.93">03</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="988" y="488.66">UI Beta</text>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="988" y="505.46">May 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="988" y="214.73">UI Beta</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="988" y="231.53">May 2026</text>
   <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="1156" x2="1156" y1="180" y2="190"/>
-  <line opacity="0.25" stroke="#8BAAC8" stroke-dasharray="2,3" stroke-width="0.75" x1="1156" x2="1136" y1="186" y2="186"/>
-  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="1136" x2="1136" y1="236.93" y2="425.93"/>
-  <circle cx="1136" cy="445.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="1136" y="445.93">04</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1136" y="214.73">H1 Release</text>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1136" y="231.53">June 2026</text>
-  <rect fill="#1E3350" height="140.67" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="492.26"/>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="515.6">Legend</text>
-  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="528.13"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="534.13">done</text>
-  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="548.53"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="554.53">in-progress</text>
-  <rect fill="#F4A742" height="12" rx="2" width="12" x="980" y="568.93"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="574.93">at-risk</text>
-  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="589.33"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="595.33">planned</text>
-  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="609.73"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="615.73">standard-node</text>
+  <line opacity="0.25" stroke="#8BAAC8" stroke-dasharray="2,3" stroke-width="0.75" x1="1156" x2="1094" y1="186" y2="186"/>
+  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="1094" x2="1094" y1="236.93" y2="425.93"/>
+  <circle cx="1094" cy="445.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="1094" y="445.93">04</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1094" y="214.73">H1 Release</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1094" y="231.53">June 2026</text>
+  <rect fill="#1E3350" height="140.67" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="664.93"/>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="688.26">Legend</text>
+  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="700.8"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="706.8">done</text>
+  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="721.2"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="727.2">in-progress</text>
+  <rect fill="#F4A742" height="12" rx="2" width="12" x="980" y="741.6"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="747.6">at-risk</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="762"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="768">planned</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="782.4"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="788.4">standard-node</text>
 </svg>

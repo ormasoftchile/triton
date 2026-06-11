@@ -37,7 +37,7 @@
   <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="1140" x2="1140" y1="174" y2="1163"/>
   <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="1136" x2="1144" y1="174" y2="174"/>
   <line opacity="0.7" stroke="#F4A742" stroke-width="1.5" x1="1136" x2="1144" y1="1163" y2="1163"/>
-  <text dominant-baseline="middle" fill="#F4A742" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.75" text-anchor="start" x="1148" y="668.5">H1 Focus</text>
+  <text dominant-baseline="middle" fill="#F4A742" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.75" text-anchor="end" x="1132" y="668.5">H1 Focus</text>
   <line opacity="0.8" stroke="#607D8B" stroke-width="1.5" x1="611" x2="648" y1="223" y2="223"/>
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#607D8B" stroke-width="1" width="330" x="648" y="189.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="215.65">10th January 2026</text>

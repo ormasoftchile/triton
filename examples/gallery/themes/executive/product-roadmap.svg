@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="744.93" version="1.1" viewBox="0 0 1200 744.93" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#0D1B2A" height="744.93" width="1200" x="0" y="0"/>
+<svg height="901.6" version="1.1" viewBox="0 0 1200 901.6" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0D1B2A" height="901.6" width="1200" x="0" y="0"/>
   <rect fill="#3A86C8" height="446" opacity="0.06" width="498" x="148" y="242.93"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="152" y="258.93">H1 2026</text>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="653" y="258.93">H2 2026</text>
@@ -72,36 +72,38 @@
   <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="653" y="628.93">Dashboard v2</text>
   <rect fill="#3A86C8" height="28" opacity="1" rx="8" stroke="#2A6A9E" stroke-width="0.5" width="252" x="904" y="614.93"/>
   <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="908" y="628.93">Real-Time Analytics</text>
-  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="394" x2="394" y1="485.93" y2="493.93"/>
+  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="394" x2="394" y1="236.93" y2="445.93"/>
   <circle cx="394" cy="465.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
   <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="394" y="465.93">01</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="394" y="508.66">Q1 Review</text>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="394" y="525.46">March 2026</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="394" y="214.73">Q1 Review</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="394" y="231.53">March 2026</text>
   <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="646" x2="646" y1="236.93" y2="445.93"/>
   <circle cx="646" cy="465.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
   <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="646" y="465.93">02</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="646" y="214.73">Platform Launch</text>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="646" y="231.53">June 2026</text>
-  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="901" x2="901" y1="485.93" y2="493.93"/>
+  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="901" x2="901" y1="236.93" y2="445.93"/>
   <circle cx="901" cy="465.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
   <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="901" y="465.93">03</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="901" y="508.66">Mobile GA</text>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="901" y="525.46">September 2026</text>
-  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="1112" x2="1112" y1="236.93" y2="445.93"/>
-  <circle cx="1112" cy="465.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
-  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="1112" y="465.93">04</text>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1112" y="214.73">Year-End Release</text>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1112" y="231.53">December 2026</text>
-  <rect fill="#1E3350" height="140.67" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="532.26"/>
-  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="555.6">Status</text>
-  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="568.13"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="574.13">done</text>
-  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="588.53"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="594.53">in-progress</text>
-  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="608.93"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="614.93">planned</text>
-  <rect fill="#F4A742" height="12" rx="2" width="12" x="980" y="629.33"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="635.33">at-risk</text>
-  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="649.73"/>
-  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="655.73">standard-node</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="901" y="214.73">Mobile GA</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="901" y="231.53">September 2026</text>
+  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="1112" x2="1112" y1="180" y2="190"/>
+  <line opacity="0.25" stroke="#8BAAC8" stroke-dasharray="2,3" stroke-width="0.75" x1="1112" x2="1094" y1="186" y2="186"/>
+  <line opacity="0.45" stroke="#8BAAC8" stroke-width="0.75" x1="1094" x2="1094" y1="236.93" y2="445.93"/>
+  <circle cx="1094" cy="465.93" fill="#3A86C8" r="20" stroke="#0D1B2A" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="1094" y="465.93">04</text>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1094" y="214.73">Year-End Release</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1094" y="231.53">December 2026</text>
+  <rect fill="#1E3350" height="140.67" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="704.93"/>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="728.26">Status</text>
+  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="740.8"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="746.8">done</text>
+  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="761.2"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="767.2">in-progress</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="781.6"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="787.6">planned</text>
+  <rect fill="#F4A742" height="12" rx="2" width="12" x="980" y="802"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="808">at-risk</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="822.4"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="828.4">standard-node</text>
 </svg>

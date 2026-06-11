@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="364.94" version="1.1" viewBox="0 0 1200 364.94" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="364.94" width="1200" x="0" y="0"/>
+<svg height="484.94" version="1.1" viewBox="0 0 1200 484.94" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="484.94" width="1200" x="0" y="0"/>
   <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="600" text-anchor="middle" x="600" y="88">Founder Journey — From Idea to Series B</text>
   <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="400" opacity="0.75" text-anchor="middle" x="600" y="118">T1-style vertical spine: five milestones with subjects and descriptions</text>
   <line opacity="0.35" stroke="#AAAAAA" stroke-width="0.5" x1="140" x2="1152" y1="130" y2="130"/>
@@ -47,14 +47,14 @@
   <path d="M 3 12 A 9 9 0 1 0 21 12 A 9 9 0 1 0 3 12 M 7 12 A 5 5 0 1 0 17 12 A 5 5 0 1 0 7 12 M 10 12 A 2 2 0 1 0 14 12 A 2 2 0 1 0 10 12" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(1071,250.47) scale(0.975) translate(-12,-12)"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1071" y="287.73">Series B — $42M</text>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1071" y="303.14">April 2024</text>
-  <rect fill="#FFFFFF" height="104" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="0.5" width="150" x="986" y="192.94"/>
-  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="start" x="994" y="212.94">Legend</text>
-  <rect fill="#9A9A9A" height="10" rx="0" width="10" x="994" y="224.14"/>
-  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="229.14">done</text>
-  <rect fill="#666666" height="10" rx="0" width="10" x="994" y="241.94"/>
-  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="246.94">in-progress</text>
-  <rect fill="#BBBBBB" height="10" rx="0" width="10" x="994" y="259.74"/>
-  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="264.74">planned</text>
-  <rect fill="#666666" height="10" rx="0" width="10" x="994" y="277.54"/>
-  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="282.54">standard-node</text>
+  <rect fill="#FFFFFF" height="104" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="0.5" width="150" x="986" y="328.94"/>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="start" x="994" y="348.94">Legend</text>
+  <rect fill="#9A9A9A" height="10" rx="0" width="10" x="994" y="360.14"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="365.14">done</text>
+  <rect fill="#666666" height="10" rx="0" width="10" x="994" y="377.94"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="382.94">in-progress</text>
+  <rect fill="#BBBBBB" height="10" rx="0" width="10" x="994" y="395.74"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="400.74">planned</text>
+  <rect fill="#666666" height="10" rx="0" width="10" x="994" y="413.54"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="418.54">standard-node</text>
 </svg>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="385.86" version="1.1" viewBox="0 0 1200 385.86" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="385.86" width="1200" x="0" y="0"/>
+<svg height="522.13" version="1.1" viewBox="0 0 1200 522.13" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="522.13" width="1200" x="0" y="0"/>
   <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="26.67" font-weight="700" text-anchor="middle" x="600" y="86.67">Corporate Milestone Calendar 2026</text>
   <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="400" opacity="0.75" text-anchor="middle" x="600" y="118.33">Board-level delivery commitments — six numbered milestones</text>
   <line opacity="0.35" stroke="#333333" stroke-width="0.5" x1="0" x2="1160" y1="130" y2="130"/>
   <line stroke="#333333" stroke-width="1" x1="0" x2="1160" y1="168" y2="168"/>
   <line stroke="#333333" stroke-width="1" x1="0" x2="0" y1="162" y2="168"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="0" y="154">Q1 2026</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="25.64" y="154">Q1 2026</text>
   <line stroke="#333333" stroke-width="1" x1="287" x2="287" y1="162" y2="168"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="287" y="154">Q2</text>
   <line stroke="#333333" stroke-width="1" x1="577" x2="577" y1="162" y2="168"/>
@@ -44,14 +44,14 @@
   <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="17.33" font-weight="700" text-anchor="middle" x="1064" y="264.93">06</text>
   <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1064" y="196.73">IPO Preparation</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1064" y="213.53">December 2026</text>
-  <rect fill="#FFFFFF" height="120.27" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="1" width="160" x="984" y="201.59"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="994" y="224.93">Legend</text>
-  <rect fill="#888888" height="12" rx="0" width="12" x="994" y="237.46"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="243.46">done</text>
-  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="257.86"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="263.86">in-progress</text>
-  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="278.26"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="284.26">planned</text>
-  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="298.66"/>
-  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="304.66">standard-node</text>
+  <rect fill="#FFFFFF" height="120.27" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="1" width="160" x="984" y="353.86"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="994" y="377.19">Legend</text>
+  <rect fill="#888888" height="12" rx="0" width="12" x="994" y="389.73"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="395.73">done</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="410.13"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="416.13">in-progress</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="430.53"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="436.53">planned</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="450.93"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="456.93">standard-node</text>
 </svg>
