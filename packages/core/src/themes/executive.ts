@@ -135,5 +135,36 @@ export const executiveTheme: ResolvedTheme = {
     'standard-node': { fill: BLUE, stroke: '#2A6A9E' },
   },
 
+
+  legend: {
+    position:        'bottom-right',
+    backgroundColor: '#1E3350',
+    borderColor:     '#2A4060',
+    borderWidth:     1,
+    padding:         10,
+    swatchSize:      12,
+    swatchRadius:    2,
+    rowGap:          6,
+    swatchLabelGap:  8,
+    labelFontSize:   9,
+    labelFontWeight: 400,
+    labelColor:      '#8BAAC8',
+    titleFontSize:   10,
+    titleFontWeight: 700,
+    titleColor:      '#E8EEF5',
+    titleBottomGap:  6,
+    maxWidth:        170,
+  },
+
+  section: {
+    bandOpacityEven: 0.06,
+    bandOpacityOdd:  0.00,
+    bandFillEven:    '#3A86C8',
+    bandFillOdd:     '#0D1B2A',
+    labelFontSize:   9,
+    labelFontWeight: 700,
+    labelColor:      '#8BAAC8',
+    labelOpacity:    0.8,
+  },
   entryStyle: 'card',
 };

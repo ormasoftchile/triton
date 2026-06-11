@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="180" version="1.1" viewBox="0 0 1200 180" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="180" width="1200" x="0" y="0"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="34">AI &amp; Foundation Models — Key Milestones 2019–2024</text>
+  <line stroke="#374151" stroke-width="1" x1="140" x2="1164" y1="72" y2="72"/>
+  <line stroke="#374151" stroke-width="1" x1="140" x2="140" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="140" x2="140" y1="72" y2="136"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="140" y="60.4">2019</text>
+  <line stroke="#374151" stroke-width="1" x1="311" x2="311" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="311" x2="311" y1="72" y2="136"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="311" y="60.4">2020</text>
+  <line stroke="#374151" stroke-width="1" x1="482" x2="482" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="482" x2="482" y1="72" y2="136"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="482" y="60.4">2021</text>
+  <line stroke="#374151" stroke-width="1" x1="652" x2="652" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="652" x2="652" y1="72" y2="136"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="652" y="60.4">2022</text>
+  <line stroke="#374151" stroke-width="1" x1="823" x2="823" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="823" x2="823" y1="72" y2="136"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="823" y="60.4">2023</text>
+  <line stroke="#374151" stroke-width="1" x1="993" x2="993" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="993" x2="993" y1="72" y2="136"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="993" y="60.4">2024</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="136" y2="136"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="104">AI Research</text>
+  <circle cx="161" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="161" y="104">01</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="161.01" y="80.21">14th February 2019</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="161" y="140">GPT-2 Released</text>
+  <circle cx="268" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="268" y="104">02</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="268.01" y="80.21">1st October 2019</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="268" y="140">Transformers Ecos…</text>
+  <circle cx="386" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="386" y="104">03</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="386" y="80.21">11th June 2020</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="386" y="140">GPT-3 Released</text>
+  <circle cx="484" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="484" y="104">04</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="484.01" y="80.21">5th January 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="484.01" y="140">CLIP &amp; DALL-E</text>
+  <circle cx="585" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="585" y="104">05</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="585" y="80.21">10th August 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="585" y="140">Codex &amp; GitHub C…</text>
+  <circle cx="624" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="624" y="104">06</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="624.01" y="80.21">1st November 2021</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="624" y="164">AlphaFold 2 DB</text>
+  <circle cx="808" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="808" y="104">07</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="808.01" y="80.21">30th November 2022</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="808" y="140">ChatGPT Launch</text>
+  <circle cx="848" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="848" y="104">08</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="848.01" y="80.21">24th February 2023</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="848" y="164">LLaMA Open Rele…</text>
+  <circle cx="856" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="856" y="104">09</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="856" y="80.21">14th March 2023</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="856" y="177.6">GPT-4 Released</text>
+  <circle cx="915" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="915" y="104">10</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="914.99" y="80.21">18th July 2023</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="915" y="177.6">Llama 2 (Meta)</text>
+  <circle cx="1023" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1023" y="104">11</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1023" y="80.21">4th March 2024</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1023.01" y="140">Claude 3 Opus</text>
+  <circle cx="1056" cy="104" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1056" y="104">12</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1056" y="80.21">13th May 2024</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1056.01" y="164">GPT-4o Launch</text>
+</svg>

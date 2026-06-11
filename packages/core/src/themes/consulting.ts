@@ -131,5 +131,36 @@ export const consultingTheme: ResolvedTheme = {
     'standard-node': { fill: NAVY, stroke: '#163760' },
   },
 
+
+  legend: {
+    position:        'bottom-right',
+    backgroundColor: '#FFFFFF',
+    borderColor:     '#CCCCCC',
+    borderWidth:     1,
+    padding:         10,
+    swatchSize:      12,
+    swatchRadius:    0,
+    rowGap:          6,
+    swatchLabelGap:  8,
+    labelFontSize:   9,
+    labelFontWeight: 400,
+    labelColor:      '#333333',
+    titleFontSize:   10,
+    titleFontWeight: 700,
+    titleColor:      '#111111',
+    titleBottomGap:  6,
+    maxWidth:        160,
+  },
+
+  section: {
+    bandOpacityEven: 0.04,
+    bandOpacityOdd:  0.00,
+    bandFillEven:    '#1F497D',
+    bandFillOdd:     '#FFFFFF',
+    labelFontSize:   9,
+    labelFontWeight: 700,
+    labelColor:      '#1F497D',
+    labelOpacity:    0.7,
+  },
   entryStyle: 'plain',
 };

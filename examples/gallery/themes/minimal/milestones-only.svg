@@ -34,4 +34,14 @@
   <circle cx="1057" cy="116" fill="#666666" r="18" stroke="#AAAAAA" stroke-width="1.5"/>
   <text dominant-baseline="alphabetic" fill="#888888" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1057" y="92.21">1st December 2026</text>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1057" y="152">IPO Preparation</text>
+  <rect fill="#FFFFFF" height="104" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="0.5" width="150" x="986" y="32"/>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="start" x="994" y="52">Legend</text>
+  <rect fill="#9A9A9A" height="10" rx="0" width="10" x="994" y="63.2"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="68.2">done</text>
+  <rect fill="#666666" height="10" rx="0" width="10" x="994" y="81"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="86">in-progress</text>
+  <rect fill="#BBBBBB" height="10" rx="0" width="10" x="994" y="98.8"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="103.8">planned</text>
+  <rect fill="#666666" height="10" rx="0" width="10" x="994" y="116.6"/>
+  <text dominant-baseline="middle" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1011" y="121.6">standard-node</text>
 </svg>

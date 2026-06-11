@@ -160,12 +160,12 @@
 <header>
   <h1>Timeline Compiler — Example Gallery</h1>
   <p>
-    Eight representative IR documents rendered with the <strong>Horizontal layout</strong>
-    and <strong>Consulting (Tier-1)</strong> theme. Each example exercises a distinct
+    Nine representative IR documents rendered with the <strong>Horizontal layout</strong>
+    family. Most renders use the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong> showcase. Each example exercises a distinct
     combination of axis unit, track density, activity statuses, milestones, and edge-case
     behaviours. Use this contact sheet to bulk-check Phase 1 visual output.
   </p>
-  <span class="badge">Phase 1 MVP · Horizontal / Consulting theme</span>
+  <span class="badge">Phase 1 MVP · Horizontal gallery + feature-rich showcase</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -364,10 +364,34 @@
     </div>
   </div>
 
+
+  <!-- 9. feature-rich -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 9 · feature-rich</div>
+      <div class="card-title">Enterprise Transformation Programme
+        <span class="tag tag-quarter">quarter axis</span>
+        <span class="tag tag-sublanes">legend + annotations</span>
+      </div>
+      <div class="card-desc">
+        Full refinement-pass showcase: sections, today marker, period annotation, callout,
+        explicit legend, mixed milestone/activity statuses, and progress. Exercises the
+        new rendering pipeline end-to-end in one document.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="feature-rich.png" alt="feature-rich render">
+    </div>
+    <div class="card-footer">
+      <a href="feature-rich.svg">SVG</a>
+      <a href="feature-rich.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
 </div>
 
 <footer>
-  Timeline Compiler · Phase 1 Gallery · Rendered with the Horizontal layout engine + Consulting (Tier-1) theme.
+  Timeline Compiler · Phase 1 Gallery · Horizontal layout family with consulting baselines plus a feature-rich product showcase.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>
   · See <a href="README.md" style="color:#999">README.md</a> for full commands.
 </footer>

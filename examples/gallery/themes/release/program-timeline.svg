@@ -47,16 +47,16 @@
   <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="298">Quality &amp; Release</text>
   <rect fill="#16A34A" height="24" opacity="1" rx="3" stroke="#15803D" stroke-width="0.5" width="73" x="151" y="92"/>
   <rect fill="#FFFFFF" height="4" opacity="0.4" rx="3" width="73" x="151" y="112"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="187.5" y="104">Stakeholder Interviews</text>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="187.5" y="104">Stakehol…</text>
   <rect fill="#16A34A" height="24" opacity="1" rx="3" stroke="#15803D" stroke-width="0.5" width="76" x="227" y="92"/>
   <rect fill="#FFFFFF" height="4" opacity="0.4" rx="3" width="76" x="227" y="112"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="265" y="104">Requirements</text>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="265" y="104">Requirem…</text>
   <rect fill="#16A34A" height="24" opacity="1" rx="3" stroke="#15803D" stroke-width="0.5" width="126" x="305" y="92"/>
   <rect fill="#FFFFFF" height="4" opacity="0.4" rx="3" width="126" x="305" y="112"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="368" y="104">Architecture Design</text>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="368" y="104">Architecture Desi…</text>
   <rect fill="#16A34A" height="24" opacity="1" rx="3" stroke="#15803D" stroke-width="0.5" width="126" x="305" y="182"/>
   <rect fill="#FFFFFF" height="4" opacity="0.4" rx="3" width="126" x="305" y="202"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="368" y="194">Sprint 1 — Foundation</text>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="368" y="194">Sprint 1 — Founda…</text>
   <rect fill="#2563EB" height="24" opacity="1" rx="3" stroke="#1D4ED8" stroke-width="0.5" width="168" x="434" y="182"/>
   <rect fill="#FFFFFF" height="4" opacity="0.4" rx="3" width="109" x="434" y="202"/>
   <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="518" y="194">Sprint 2 — Core Features</text>
@@ -76,7 +76,7 @@
   <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="151" y="153.33">Project Kick-off</text>
   <path d="M 417 194 L 445 194 L 431 222 Z" fill="#6B7280" stroke="#FFFFFF" stroke-width="1.5"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="middle" x="431.01" y="186.24">15th April 2026</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="431" y="243.33">Architecture Approval</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="431" y="243.33">Architecture Appro…</text>
   <path d="M 804 194 L 832 194 L 818 222 Z" fill="#6B7280" stroke="#FFFFFF" stroke-width="1.5"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="middle" x="818" y="186.24">31st August 2026</text>
   <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="818.01" y="243.33">Feature Freeze</text>
@@ -86,4 +86,16 @@
   <path d="M 1062 284 L 1090 284 L 1076 312 Z" fill="#6B7280" stroke="#FFFFFF" stroke-width="1.5"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="middle" x="1076" y="276.24">1st December 2026</text>
   <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="600" text-anchor="middle" x="1076.01" y="361.33">General Availability</text>
+  <rect fill="#FFFFFF" height="140.67" opacity="0.95" rx="4" stroke="#D1D5DB" stroke-width="1" width="160" x="984" y="179.33"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="13.33" font-weight="700" text-anchor="start" x="994" y="202.67">Legend</text>
+  <rect fill="#16A34A" height="12" rx="2" width="12" x="994" y="215.2"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="start" x="1014" y="221.2">done</text>
+  <rect fill="#2563EB" height="12" rx="2" width="12" x="994" y="235.6"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="start" x="1014" y="241.6">in-progress</text>
+  <rect fill="#DC2626" height="12" rx="2" width="12" x="994" y="256"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="start" x="1014" y="262">blocked</text>
+  <rect fill="#6B7280" height="12" rx="2" width="12" x="994" y="276.4"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="start" x="1014" y="282.4">planned</text>
+  <rect fill="#6B7280" height="12" rx="2" width="12" x="994" y="296.8"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Courier New, Courier, monospace" font-size="12" font-weight="400" text-anchor="start" x="1014" y="302.8">standard-node</text>
 </svg>

@@ -115,6 +115,29 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
       return `${indent}<text${attrs(a)}>${esc(p.text)}</text>`;
     }
 
+    case 'multitext': {
+      const a: AttrMap = {
+        'dominant-baseline': p.dominantBaseline,
+        fill:                p.fill,
+        'font-family':       p.fontFamily,
+        'font-size':         p.fontSize,
+        'font-weight':       p.fontWeight,
+        opacity:             p.opacity,
+        'text-anchor':       p.textAnchor,
+        x:                   p.x,
+        y:                   p.y,
+      };
+      const tspans = p.lines.map((line, i) => {
+        const dy = i === 0 ? 0 : p.lineHeight;
+        return `${indent}  <tspan dy="${fmt(dy)}" x="${fmt(p.x)}">${esc(line)}</tspan>`;
+      }).join('\n');
+      if (p.lines.length === 0) return '';
+      if (p.lines.length === 1) {
+        return `${indent}<text${attrs(a)}>${esc(p.lines[0] ?? '')}</text>`;
+      }
+      return `${indent}<text${attrs(a)}>\n${tspans}\n${indent}</text>`;
+    }
+
     case 'path': {
       const a: AttrMap = {
         d:            p.d,

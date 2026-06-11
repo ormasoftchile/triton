@@ -264,14 +264,14 @@
 <header>
   <h1>Timeline Compiler — Theme Showcase</h1>
   <p>
-    Five built-in themes rendered against three representative gallery examples.
+    Five built-in themes rendered against four representative gallery examples.
     Each row is the same IR document; each column is a different theme.
-    Use this matrix to bulk-check visual variety and confirm theme tokens are
+    Use this matrix to bulk-check visual variety, legend/section tokens, and confirm theme tokens are
     wired correctly.
   </p>
   <div class="nav-links">
     <a href="index.html">← Back to Gallery</a>
-    <span class="badge">Phase 1 · 5 themes · 3 examples · 30 renders</span>
+    <span class="badge">Phase 1 · 5 themes · 4 examples · 40 renders</span>
   </div>
 </header>
 
@@ -563,10 +563,96 @@
     </div>
   </div><!-- /example milestones-only -->
 
+
+  <!-- Example 4: feature-rich -->
+  <div class="example-section">
+    <div class="example-header">
+      <div class="example-num">Example D · feature-rich</div>
+      <div class="example-title">Enterprise Transformation Programme</div>
+      <div class="example-desc">
+        4 tracks · 14 activities · 6 milestones · 3 sections · explicit legend · annotations.
+        Best example for comparing legend panels, section bands, today markers, and callouts.
+      </div>
+    </div>
+    <div class="theme-grid">
+
+      <div class="theme-cell consulting">
+        <div class="theme-cell-header">
+          <div class="theme-name">Consulting</div>
+          <div class="theme-tier">Tier 1 · navy/white</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/consulting/feature-rich.png" alt="feature-rich / consulting">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/consulting/feature-rich.svg">SVG</a>
+          <a href="themes/consulting/feature-rich.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell executive">
+        <div class="theme-cell-header">
+          <div class="theme-name">Executive</div>
+          <div class="theme-tier">Tier 2 · dark bg</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/executive/feature-rich.png" alt="feature-rich / executive">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/executive/feature-rich.svg">SVG</a>
+          <a href="themes/executive/feature-rich.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell minimal">
+        <div class="theme-cell-header">
+          <div class="theme-name">Minimal</div>
+          <div class="theme-tier">Tier 1 · greyscale</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/minimal/feature-rich.png" alt="feature-rich / minimal">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/minimal/feature-rich.svg">SVG</a>
+          <a href="themes/minimal/feature-rich.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell product">
+        <div class="theme-cell-header">
+          <div class="theme-name">Product</div>
+          <div class="theme-tier">Tier 2 · category colours</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/product/feature-rich.png" alt="feature-rich / product">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/product/feature-rich.svg">SVG</a>
+          <a href="themes/product/feature-rich.png">PNG</a>
+        </div>
+      </div>
+
+      <div class="theme-cell release">
+        <div class="theme-cell-header">
+          <div class="theme-name">Release</div>
+          <div class="theme-tier">Tier 1 · traffic-light</div>
+        </div>
+        <div class="theme-img-wrap">
+          <img src="themes/release/feature-rich.png" alt="feature-rich / release">
+        </div>
+        <div class="theme-cell-footer">
+          <a href="themes/release/feature-rich.svg">SVG</a>
+          <a href="themes/release/feature-rich.png">PNG</a>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /example feature-rich -->
+
 </div><!-- /matrix -->
 
 <footer>
-  Timeline Compiler · Theme Showcase · Phase 1 · 5 themes × 3 examples = 30 renders.
+  Timeline Compiler · Theme Showcase · Phase 1 · 5 themes × 4 examples = 40 renders.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml --theme &lt;theme&gt; --format png -o themes/&lt;theme&gt;/&lt;slug&gt;.png</code>
 </footer>
 

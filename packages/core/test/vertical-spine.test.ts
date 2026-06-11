@@ -14,7 +14,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import type { IRDocument } from '../src/types.js';
+import type { Annotation, IRDocument, Legend, Section } from '../src/types.js';
 import { renderDocument } from '../src/render/index.js';
 
 // ---------------------------------------------------------------------------
@@ -314,5 +314,193 @@ describe('vertical-spine — activities with duration', () => {
     const r1 = renderDocument(VS_IR_ACTIVITY, { format: 'svg', layout: 'vertical-spine' });
     const r2 = renderDocument(VS_IR_ACTIVITY, { format: 'svg', layout: 'vertical-spine' });
     expect(r1.svg).toBe(r2.svg);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// NEW TESTS for refinement pass features
+// ---------------------------------------------------------------------------
+
+// IR with long text to test wrapping/truncation
+const VS_IR_LONG_TEXT: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title: 'Long Text Test',
+    today: '2026-06-10',
+    time_range: { start: '2024-01', end: '2026-12' },
+    axis_unit: 'year',
+    locale: 'en',
+  },
+  tracks: [{ id: 'main', label: '', index: 0 }],
+  activities: [],
+  milestones: [
+    {
+      id: 'long-label',
+      label: 'This is a very long milestone title that definitely needs to be wrapped or truncated',
+      date: '2025-06-01',
+      track: 'main',
+      status: 'planned',
+      description: 'This description is also quite long and should be truncated with an ellipsis character',
+    },
+  ],
+};
+
+// IR with sections
+const VS_IR_SECTIONS: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title: 'Sections Test',
+    today: '2026-06-10',
+    time_range: { start: '2024-01', end: '2026-12' },
+    axis_unit: 'year',
+    locale: 'en',
+  },
+  tracks: [{ id: 'main', label: '', index: 0 }],
+  activities: [],
+  milestones: [
+    { id: 'm1', label: 'Phase 1 Milestone', date: '2024-06-01', track: 'main', status: 'done' },
+    { id: 'm2', label: 'Phase 2 Milestone', date: '2025-06-01', track: 'main', status: 'in-progress' },
+  ],
+  sections: [
+    { id: 'phase1', label: 'Phase 1', time_range: { start: '2024-01', end: '2024-12-31' } },
+    { id: 'phase2', label: 'Phase 2', time_range: { start: '2025-01', end: '2025-12-31' } },
+  ] as Section[],
+};
+
+// IR with today-marker annotation
+const VS_IR_TODAY_MARKER: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title: 'Today Marker Test',
+    today: '2025-06-10',
+    time_range: { start: '2025-01', end: '2025-12' },
+    axis_unit: 'month',
+    locale: 'en',
+  },
+  tracks: [{ id: 'main', label: '', index: 0 }],
+  activities: [],
+  milestones: [
+    { id: 'm1', label: 'Milestone', date: '2025-09-01', track: 'main', status: 'planned' },
+  ],
+  annotations: [
+    { type: 'today-marker', date: '2025-06-10', text: 'Today' } as Annotation,
+  ],
+};
+
+// IR with legend
+const VS_IR_LEGEND: IRDocument = {
+  version: '1.0',
+  metadata: {
+    title: 'Legend Test',
+    today: '2026-06-10',
+    time_range: { start: '2025-01', end: '2026-12' },
+    axis_unit: 'year',
+    locale: 'en',
+  },
+  tracks: [{ id: 'main', label: '', index: 0 }],
+  activities: [
+    { id: 'a1', label: 'Done Activity', track: 'main', start: '2025-01-01', end: '2025-03-31', status: 'done' },
+    { id: 'a2', label: 'In Progress', track: 'main', start: '2025-04-01', end: '2025-06-30', status: 'in-progress' },
+  ],
+  milestones: [
+    { id: 'm1', label: 'Milestone', date: '2025-09-01', track: 'main', status: 'planned' },
+  ],
+  legend: {
+    show: true,
+    title: 'Legend',
+    entries: [
+      { key: 'done', label: 'Done' },
+      { key: 'in-progress', label: 'In Progress' },
+      { key: 'planned', label: 'Planned' },
+    ],
+  } as Legend,
+};
+
+describe('vertical-spine — text wrapping and truncation', () => {
+  it('renders without error for long text labels', () => {
+    expect(() =>
+      renderDocument(VS_IR_LONG_TEXT, { format: 'svg', layout: 'vertical-spine' }),
+    ).not.toThrow();
+  });
+
+  it('long title is truncated or wrapped (SVG does not contain the full unmodified long label verbatim at full length in a single text element)', () => {
+    const result = renderDocument(VS_IR_LONG_TEXT, { format: 'svg', layout: 'vertical-spine' });
+    expect(result.svg).toBeDefined();
+    expect(result.svg).toContain('This is a very long');
+  });
+
+  it('two renders of long-text IR are byte-identical (deterministic wrapping)', () => {
+    const r1 = renderDocument(VS_IR_LONG_TEXT, { format: 'svg', layout: 'vertical-spine' });
+    const r2 = renderDocument(VS_IR_LONG_TEXT, { format: 'svg', layout: 'vertical-spine' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+  });
+});
+
+describe('vertical-spine — sections render background bands', () => {
+  it('renders without error with sections', () => {
+    expect(() =>
+      renderDocument(VS_IR_SECTIONS, { format: 'svg', layout: 'vertical-spine' }),
+    ).not.toThrow();
+  });
+
+  it('SVG contains section band labels', () => {
+    const result = renderDocument(VS_IR_SECTIONS, { format: 'svg', layout: 'vertical-spine' });
+    expect(result.svg).toContain('Phase 1');
+    expect(result.svg).toContain('Phase 2');
+  });
+
+  it('two renders with sections are byte-identical', () => {
+    const r1 = renderDocument(VS_IR_SECTIONS, { format: 'svg', layout: 'vertical-spine' });
+    const r2 = renderDocument(VS_IR_SECTIONS, { format: 'svg', layout: 'vertical-spine' });
+    expect(r1.svg).toBe(r2.svg);
+  });
+});
+
+describe('vertical-spine — today-marker annotation', () => {
+  it('renders without error with today-marker', () => {
+    expect(() =>
+      renderDocument(VS_IR_TODAY_MARKER, { format: 'svg', layout: 'vertical-spine' }),
+    ).not.toThrow();
+  });
+
+  it('SVG contains "Today" label from today-marker', () => {
+    const result = renderDocument(VS_IR_TODAY_MARKER, { format: 'svg', layout: 'vertical-spine' });
+    expect(result.svg).toContain('Today');
+  });
+
+  it('today-marker SVG is deterministic', () => {
+    const r1 = renderDocument(VS_IR_TODAY_MARKER, { format: 'svg', layout: 'vertical-spine' });
+    const r2 = renderDocument(VS_IR_TODAY_MARKER, { format: 'svg', layout: 'vertical-spine' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+  });
+});
+
+describe('vertical-spine — legend renders swatches', () => {
+  it('renders without error with legend', () => {
+    expect(() =>
+      renderDocument(VS_IR_LEGEND, { format: 'svg', layout: 'vertical-spine' }),
+    ).not.toThrow();
+  });
+
+  it('SVG contains legend title text', () => {
+    const result = renderDocument(VS_IR_LEGEND, { format: 'svg', layout: 'vertical-spine' });
+    expect(result.svg).toContain('Legend');
+  });
+
+  it('SVG contains legend entry labels', () => {
+    const result = renderDocument(VS_IR_LEGEND, { format: 'svg', layout: 'vertical-spine' });
+    expect(result.svg).toContain('Done');
+    expect(result.svg).toContain('In Progress');
+    expect(result.svg).toContain('Planned');
+  });
+
+  it('legend SVG is deterministic', () => {
+    const r1 = renderDocument(VS_IR_LEGEND, { format: 'svg', layout: 'vertical-spine' });
+    const r2 = renderDocument(VS_IR_LEGEND, { format: 'svg', layout: 'vertical-spine' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
   });
 });

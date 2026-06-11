@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="388" version="1.1" viewBox="0 0 1200 388" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="388" width="1200" x="0" y="0"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="34">H1 2026 — Dense Engineering Roadmap</text>
+  <line stroke="#374151" stroke-width="1" x1="140" x2="1164" y1="72" y2="72"/>
+  <line stroke="#374151" stroke-width="1" x1="140" x2="140" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="140" x2="140" y1="72" y2="344"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="140" y="60.4">2026</text>
+  <line stroke="#374151" stroke-width="1" x1="316" x2="316" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="316" x2="316" y1="72" y2="344"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="316" y="60.4">Feb</text>
+  <line stroke="#374151" stroke-width="1" x1="476" x2="476" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="476" x2="476" y1="72" y2="344"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="476" y="60.4">Mar</text>
+  <line stroke="#374151" stroke-width="1" x1="652" x2="652" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="652" x2="652" y1="72" y2="344"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="652" y="60.4">Apr</text>
+  <line stroke="#374151" stroke-width="1" x1="823" x2="823" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="823" x2="823" y1="72" y2="344"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="823" y="60.4">May</text>
+  <line stroke="#374151" stroke-width="1" x1="999" x2="999" y1="67" y2="72"/>
+  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="999" x2="999" y1="72" y2="344"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="999" y="60.4">Jun</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="156" y2="156"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="114">Infrastructure</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="250" y2="250"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="208">Backend</text>
+  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="140" x2="1164" y1="344" y2="344"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="8" y="302">Frontend</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="160" x="151" y="82"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="160" x="151" y="97"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="231" y="92">K8s Upgrade</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="239" x="316" y="82"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="239" x="316" y="97"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="435.5" y="92">Monitoring Stack</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="421" x="396" y="102"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="316" x="396" y="117"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="606.5" y="112">CI/CD Overhaul</text>
+  <rect fill="#FCD34D" height="20" opacity="1" rx="4" stroke="#F59E0B" stroke-width="0.5" width="250" x="652" y="82"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="50" x="652" y="97"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="777" y="92">DB Migration</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="341" x="823" y="102"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="993.5" y="112">DR Runbooks</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="307" x="163" y="176"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="307" x="163" y="191"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="316.5" y="186">User Service</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="330" x="316" y="196"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="330" x="316" y="211"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="481" y="206">Billing Service</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="341" x="476" y="176"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="205" x="476" y="191"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="646.5" y="186">Inventory API</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="341" x="652" y="196"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="102" x="652" y="211"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="822.5" y="206">Notifications</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="341" x="823" y="176"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="993.5" y="186">Reporting API</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="279" x="191" y="270"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="279" x="191" y="285"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="330.5" y="280">Component Library</text>
+  <rect fill="#4ADE80" height="20" opacity="0.85" rx="4" stroke="#22C55E" stroke-width="0.5" width="239" x="316" y="290"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="239" x="316" y="305"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="435.5" y="300">Routing v2</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="341" x="476" y="270"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="171" x="476" y="285"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="646.5" y="280">Dashboard UI</text>
+  <rect fill="#3B82F6" height="20" opacity="1" rx="4" stroke="#2563EB" stroke-width="0.5" width="341" x="652" y="290"/>
+  <rect fill="#FFFFFF" height="5" opacity="0.5" rx="4" width="85" x="652" y="305"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="822.5" y="300">Accessibility</text>
+  <rect fill="#93C5FD" height="20" opacity="0.9" rx="4" stroke="#60A5FA" stroke-width="0.5" width="262" x="902" y="270"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1033" y="280">Perf Audit</text>
+  <circle cx="646" cy="208" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="646" y="208">01</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="646.01" y="184.21">31st March 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="646" y="244">Infra Stable</text>
+  <circle cx="817" cy="208" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="817" y="208">02</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="817" y="184.21">30th April 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="817.01" y="244">APIs Complete</text>
+  <circle cx="993" cy="208" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="993" y="208">03</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="993" y="184.21">31st May 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="993" y="244">UI Beta</text>
+  <circle cx="1164" cy="208" fill="#3B82F6" r="18" stroke="#FFFFFF" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1164" y="208">04</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1163.99" y="184.21">30th June 2026</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1163.99" y="244">H1 Release</text>
+  <rect fill="#FFFFFF" height="129.8" opacity="0.95" rx="4" stroke="#E5E7EB" stroke-width="1" width="160" x="988" y="198.2"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" text-anchor="start" x="998" y="220.2">Legend</text>
+  <rect fill="#4ADE80" height="12" rx="3" width="12" x="998" y="230.4"/>
+  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1018" y="236.4">done</text>
+  <rect fill="#3B82F6" height="12" rx="3" width="12" x="998" y="249.2"/>
+  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1018" y="255.2">in-progress</text>
+  <rect fill="#FCD34D" height="12" rx="3" width="12" x="998" y="268"/>
+  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1018" y="274">at-risk</text>
+  <rect fill="#93C5FD" height="12" rx="3" width="12" x="998" y="286.8"/>
+  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1018" y="292.8">planned</text>
+  <rect fill="#3B82F6" height="12" rx="3" width="12" x="998" y="305.6"/>
+  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1018" y="311.6">standard-node</text>
+</svg>

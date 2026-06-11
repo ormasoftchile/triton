@@ -163,7 +163,7 @@ describe('renderDocument — T2 (horizontal numbered nodes)', () => {
 
     it('SVG contains each milestone label', () => {
       const result = renderDocument(T2_IR, { format: 'svg' });
-      expect(result.svg).toContain('Application Deadline');
+      expect(result.svg).toContain('Application Deadli…');
       expect(result.svg).toContain('Qualifying Exam');
       expect(result.svg).toContain('Training Starts');
     });

@@ -131,6 +131,49 @@ export interface StatusStyle {
   pattern: 'solid' | 'diagonal-hatch' | 'dashed-border';
 }
 
+export interface LegendTheme {
+  /** Corner to place the legend block. */
+  position: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left';
+  backgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  /** Inner padding on all sides in px. */
+  padding: number;
+  /** Colour swatch width & height in px. */
+  swatchSize: number;
+  swatchRadius: number;
+  /** Vertical gap between swatch rows in px. */
+  rowGap: number;
+  /** Gap between swatch and label in px. */
+  swatchLabelGap: number;
+  labelFontSize: number; // pt
+  labelFontWeight: number;
+  labelColor: string;
+  titleFontSize: number; // pt
+  titleFontWeight: number;
+  titleColor: string;
+  titleBottomGap: number;
+  /** Max width of the legend panel in px. */
+  maxWidth: number;
+}
+
+export interface SectionTheme {
+  /** Opacity of even-index section band fill (0–1). */
+  bandOpacityEven: number;
+  /** Opacity of odd-index section band fill (0–1). */
+  bandOpacityOdd: number;
+  /** Fill colour for even-index section bands. */
+  bandFillEven: string;
+  /** Fill colour for odd-index section bands. */
+  bandFillOdd: string;
+  /** Label font size in pt. */
+  labelFontSize: number;
+  labelFontWeight: number;
+  labelColor: string;
+  /** Opacity of the section label text. */
+  labelOpacity: number;
+}
+
 // ---------------------------------------------------------------------------
 // Root resolved-theme
 // ---------------------------------------------------------------------------
@@ -148,6 +191,8 @@ export interface ResolvedTheme {
   track: TrackTheme;
   activity: ActivityTheme;
   milestone: MilestoneTheme;
+  legend: LegendTheme;
+  section: SectionTheme;
 
   /** Complete status → style map (all 7 Status values must be present). */
   statusMap: Record<Status, StatusStyle>;

@@ -149,3 +149,21 @@ milestones:
     date: 2026-12-15
     status: planned
     category: standard-node
+sections:
+  - id: q1-q2
+    label: "H1 2026"
+    time_range:
+      start: 2026-Q1
+      end: 2026-06-30
+  - id: q3-q4
+    label: "H2 2026"
+    time_range:
+      start: 2026-07
+      end: 2026-Q4
+legend:
+  show: true
+  title: "Status"
+annotations:
+  - type: today-marker
+    date: 2026-06-10
+

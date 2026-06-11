@@ -4,7 +4,13 @@
   <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="42.67">Corporate Milestone Calendar 2026</text>
   <line stroke="#2A4060" stroke-width="2" x1="600" x2="600" y1="80" y2="686"/>
   <line opacity="0.5" stroke="#2A4060" stroke-width="1" x1="592" x2="608" y1="80" y2="80"/>
-  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="78">2026</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="78">Q1 2026</text>
+  <line opacity="0.5" stroke="#2A4060" stroke-width="1" x1="592" x2="608" y1="228" y2="228"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="226">Q2</text>
+  <line opacity="0.5" stroke="#2A4060" stroke-width="1" x1="592" x2="608" y1="378" y2="378"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="376">Q3</text>
+  <line opacity="0.5" stroke="#2A4060" stroke-width="1" x1="592" x2="608" y1="530" y2="530"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="528">Q4</text>
   <line opacity="0.8" stroke="#3A86C8" stroke-width="1.5" x1="611" x2="648" y1="154" y2="154"/>
   <rect fill="#1A2E44" height="67" opacity="0.95" rx="6" stroke="#3A86C8" stroke-width="1" width="330" x="648" y="120.5"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="146.65">15th February 2026</text>
@@ -35,4 +41,14 @@
   <circle cx="600" cy="454" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="554" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
   <circle cx="600" cy="654" fill="#3A86C8" r="11" stroke="#0D1B2A" stroke-width="1.5"/>
+  <rect fill="#1E3350" height="120.27" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="599.73"/>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="623.07">Legend</text>
+  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="635.6"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="641.6">done</text>
+  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="656"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="662">in-progress</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="676.4"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="682.4">planned</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="696.8"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="702.8">standard-node</text>
 </svg>

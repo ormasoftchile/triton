@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg height="588" version="1.1" viewBox="0 0 1200 588" width="1200" xmlns="http://www.w3.org/2000/svg">
   <rect fill="#0D1B2A" height="588" width="1200" x="0" y="0"/>
+  <rect fill="#3A86C8" height="440" opacity="0.06" width="498" x="148" y="92"/>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="152" y="108">H1 2026</text>
+  <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.8" text-anchor="start" x="653" y="108">H2 2026</text>
   <text dominant-baseline="middle" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="600" y="42.67">2026 Product Roadmap</text>
   <line stroke="#2A4060" stroke-width="1" x1="148" x2="1156" y1="92" y2="92"/>
   <line stroke="#2A4060" stroke-width="1" x1="148" x2="148" y1="86" y2="92"/>
@@ -15,6 +18,8 @@
   <line stroke="#2A4060" stroke-width="1" x1="904" x2="904" y1="86" y2="92"/>
   <line opacity="0.6" stroke="#1E3350" stroke-width="0.5" x1="904" x2="904" y1="92" y2="532"/>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="middle" x="904" y="78">Q4</text>
+  <line opacity="0.85" stroke="#F4A742" stroke-width="1.5" x1="591" x2="591" y1="92" y2="532"/>
+  <text dominant-baseline="alphabetic" fill="#F4A742" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="600" opacity="0.9" text-anchor="start" x="594" y="108">Today</text>
   <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="180" y2="180"/>
   <text dominant-baseline="middle" fill="#B8CCE0" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="start" x="8" y="136">Strategy &amp; Design</text>
   <line opacity="0.3" stroke="#1E3350" stroke-width="1" x1="148" x2="1156" y1="288" y2="288"/>
@@ -81,4 +86,16 @@
   <text dominant-baseline="middle" fill="#0D1B2A" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="700" text-anchor="middle" x="1112" y="312">04</text>
   <text dominant-baseline="alphabetic" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1112.01" y="284.24">15th December 2026</text>
   <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="middle" x="1112" y="353.33">Year-End Release</text>
+  <rect fill="#1E3350" height="140.67" opacity="0.95" rx="4" stroke="#2A4060" stroke-width="1" width="170" x="970" y="375.33"/>
+  <text dominant-baseline="alphabetic" fill="#E8EEF5" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="980" y="398.67">Status</text>
+  <rect fill="#607D8B" height="12" rx="2" width="12" x="980" y="411.2"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="417.2">done</text>
+  <rect fill="#00B4D8" height="12" rx="2" width="12" x="980" y="431.6"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="437.6">in-progress</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="452"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="458">planned</text>
+  <rect fill="#F4A742" height="12" rx="2" width="12" x="980" y="472.4"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="478.4">at-risk</text>
+  <rect fill="#3A86C8" height="12" rx="2" width="12" x="980" y="492.8"/>
+  <text dominant-baseline="middle" fill="#8BAAC8" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1000" y="498.8">standard-node</text>
 </svg>

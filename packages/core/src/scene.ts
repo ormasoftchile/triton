@@ -65,6 +65,22 @@ export interface TextPrimitive {
   opacity?: number;
 }
 
+export interface MultiTextPrimitive {
+  kind: 'multitext';
+  x: number;
+  y: number;
+  lines: string[];
+  /** Vertical distance between consecutive baselines in px. */
+  lineHeight: number;
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: number | string;
+  fill: string;
+  textAnchor?: 'start' | 'middle' | 'end';
+  dominantBaseline?: 'auto' | 'middle' | 'hanging' | 'alphabetic' | 'central';
+  opacity?: number;
+}
+
 export interface PathPrimitive {
   kind: 'path';
   d: string;
@@ -97,6 +113,7 @@ export type ScenePrimitive =
   | RectPrimitive
   | CirclePrimitive
   | TextPrimitive
+  | MultiTextPrimitive
   | PathPrimitive
   | GroupPrimitive;
 

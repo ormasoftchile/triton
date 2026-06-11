@@ -19,6 +19,7 @@ import type { Activity, IRDocument, Milestone, Track } from '../types.js';
 import type { Scene, ScenePrimitive } from '../scene.js';
 import type { ResolvedTheme } from '../themes/types.js';
 import { measureText, ptToPx } from '../fonts/metrics.js';
+import { truncateText } from '../text-wrap.js';
 import {
   dateToOrdinal,
   coerceLeft,
@@ -322,10 +323,14 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   }
 
   // -------------------------------------------------------------------------
-  // Phase 5: Sections and Annotations (simplified)
+  // Phase 5: Sections and annotations
   // -------------------------------------------------------------------------
-  // Sections and annotations are deferred to a later phase for T2 (no
-  // sections or annotations in the T2 worked IR).
+
+  const sections = ir.sections ?? [];
+  const annotations = ir.annotations ?? [];
+  const todayMarkerAnnotation = annotations.find((a) => a.type === 'today-marker');
+  const periodBracketAnnotations = annotations.filter((a) => a.type === 'period' || a.type === 'bracket');
+  const calloutNoteAnnotations = annotations.filter((a) => a.type === 'callout' || a.type === 'note');
 
   // -------------------------------------------------------------------------
   // Phase 6: Milestone label collision resolution (§5.4.6)
@@ -348,7 +353,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   const labelBoxes: LabelBox[] = [];
   milestoneLayouts.forEach((ml, idx) => {
     const dateW = measureText(ml.dateFmt, dateLabelSizePx).width;
-    const titleW = measureText(ml.milestone.label, titleLabelSizePx).width;
+    const titleText = truncateText(ml.milestone.label, titleLabelSizePx, ms.labelMaxWidth);
+    const titleW = measureText(titleText, titleLabelSizePx).width;
 
     const dateY = ml.yCenter - ms.size - labelGap - dateLabelSizePx;
     const titleY = ml.yCenter + ms.size + labelGap;
@@ -428,6 +434,55 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
   // 1. Background
   primitives.push({ kind: 'rect', x: 0, y: 0, width: W, height: H, fill: cv.backgroundColor });
 
+  // SECTIONS: background bands (back → front, before all content)
+  if (sections.length > 0) {
+    sections.forEach((sec, si) => {
+      const sStart = sec.time_range?.start ?? trStart;
+      const sEnd   = sec.time_range?.end ?? trEnd;
+      let xBandLeft: number;
+      let xBandRight: number;
+      try {
+        xBandLeft  = rhu(dateX(parseAndCoerceLeft(sStart), axisState));
+        xBandRight = rhu(dateX(parseAndCoerceRight(sEnd), axisState));
+      } catch {
+        return;
+      }
+      const bw = Math.max(0, xBandRight - xBandLeft);
+      if (bw <= 0) return;
+
+      const isEven = si % 2 === 0;
+      const fill = isEven ? theme.section.bandFillEven : theme.section.bandFillOdd;
+      const opacity = isEven ? theme.section.bandOpacityEven : theme.section.bandOpacityOdd;
+
+      if (opacity > 0) {
+        primitives.push({
+          kind:    'rect',
+          x:       xBandLeft,
+          y:       rhu(mT + Haxis),
+          width:   bw,
+          height:  rhu(hDraw),
+          fill,
+          opacity: rhu(opacity),
+        });
+      }
+
+      const secFontPx = ptToPx(theme.section.labelFontSize);
+      primitives.push({
+        kind:             'text',
+        x:                rhu(xBandLeft + 4),
+        y:                rhu(mT + Haxis + 4 + secFontPx),
+        text:             sec.label,
+        fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+        fontSize:         secFontPx,
+        fontWeight:       theme.section.labelFontWeight,
+        fill:             theme.section.labelColor,
+        textAnchor:       'start',
+        dominantBaseline: 'alphabetic',
+        opacity:          rhu(theme.section.labelOpacity),
+      });
+    });
+  }
+
   // 2. Document title
   if (ir.metadata.title) {
     const titleSizePx = ptToPx(theme.typography.fontSizeTitle);
@@ -501,6 +556,90 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         textAnchor:      'middle',
         dominantBaseline:'alphabetic',
       });
+    }
+  }
+
+  // TODAY MARKER annotation (if present, or if metadata.today is set + axis.todayMarker.enabled)
+  const todayDate = todayMarkerAnnotation?.date ?? ir.metadata.today;
+  const todayMarkerEnabled = !!todayDate && (theme.axis.todayMarker.enabled || !!todayMarkerAnnotation);
+
+  if (todayMarkerEnabled && todayDate) {
+    try {
+      const todayOrd = parseAndCoerceLeft(todayDate);
+      if (todayOrd >= tsOrd && todayOrd <= teOrd) {
+        const xToday = rhu(dateX(todayOrd, axisState));
+        const todayY1 = rhu(mT + Haxis);
+        const todayY2 = rhu(mT + Haxis + hDraw);
+        primitives.push({
+          kind:        'line',
+          x1:          xToday,
+          y1:          todayY1,
+          x2:          xToday,
+          y2:          todayY2,
+          stroke:      theme.axis.todayMarker.color,
+          strokeWidth: theme.axis.todayMarker.width,
+          dashArray:   theme.axis.todayMarker.style === 'dashed' ? '6,4' : undefined,
+          opacity:     0.85,
+        });
+        const todayFontPx = ptToPx(theme.typography.fontSizeAxis - 1);
+        primitives.push({
+          kind:             'text',
+          x:                rhu(xToday + 3),
+          y:                rhu(todayY1 + 4 + todayFontPx),
+          text:             todayMarkerAnnotation?.text ?? 'Today',
+          fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize:         todayFontPx,
+          fontWeight:       600,
+          fill:             theme.axis.todayMarker.color,
+          textAnchor:       'start',
+          dominantBaseline: 'alphabetic',
+          opacity:          0.9,
+        });
+      }
+    } catch {
+      // skip if date parse fails
+    }
+  }
+
+  // PERIOD/BRACKET annotations
+  for (const ann of periodBracketAnnotations) {
+    const aStart = ann.start ?? ann.date;
+    const aEnd   = ann.end ?? ann.date;
+    if (!aStart || !aEnd) continue;
+    try {
+      const xL = rhu(dateX(parseAndCoerceLeft(aStart), axisState));
+      const xR = rhu(dateX(parseAndCoerceRight(aEnd), axisState));
+      if (xR <= xL) continue;
+      const bracketY = rhu(mT + Haxis + hDraw + 12);
+      const bracketColor = theme.axis.todayMarker.color;
+      primitives.push({
+        kind: 'line', x1: xL, y1: bracketY, x2: xR, y2: bracketY,
+        stroke: bracketColor, strokeWidth: 1.5, opacity: 0.7,
+      });
+      for (const tx of [xL, xR]) {
+        primitives.push({
+          kind: 'line', x1: tx, y1: rhu(bracketY - 4), x2: tx, y2: rhu(bracketY + 4),
+          stroke: bracketColor, strokeWidth: 1.5, opacity: 0.7,
+        });
+      }
+      if (ann.text ?? ann.label) {
+        const bFontPx = ptToPx(theme.typography.fontSizeAxis - 1);
+        primitives.push({
+          kind: 'text',
+          x: rhu((xL + xR) / 2),
+          y: rhu(bracketY + 4 + bFontPx),
+          text: ann.text ?? ann.label ?? '',
+          fontFamily: `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize: bFontPx,
+          fontWeight: 400,
+          fill: bracketColor,
+          textAnchor: 'middle',
+          dominantBaseline: 'alphabetic',
+          opacity: 0.75,
+        });
+      }
+    } catch {
+      // skip
     }
   }
 
@@ -579,13 +718,15 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
     }
 
     // Activity label
-    const lw = measureText(al.activity.label, actFontPx).width;
-    if (al.width >= theme.activity.labelInsideMinWidth) {
+    const truncatedLabel = al.width >= theme.activity.labelInsideMinWidth
+      ? truncateText(al.activity.label, actFontPx, rhu(al.width - 8))
+      : undefined;
+    if (truncatedLabel) {
       primitives.push({
         kind:            'text',
         x:               rhu(al.xLeft + al.width / 2),
         y:               rhu(al.y + theme.activity.barHeight / 2),
-        text:            al.activity.label,
+        text:            truncatedLabel,
         fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
         fontSize:        actFontPx,
         fontWeight:      theme.typography.fontWeightLabel,
@@ -594,13 +735,15 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
         dominantBaseline:'middle',
       });
     } else {
+      const outsideLabel = truncateText(al.activity.label, actFontPx, 120);
+      const outsideLabelWidth = measureText(outsideLabel, actFontPx).width;
       const rightX = al.xRight + 4;
-      const fits   = rightX + lw < offset + wDraw - 4;
+      const fits = rightX + outsideLabelWidth < offset + wDraw - 4;
       primitives.push({
         kind:            'text',
         x:               rhu(fits ? rightX : al.xLeft - 4),
         y:               rhu(al.y + theme.activity.barHeight / 2),
-        text:            al.activity.label,
+        text:            outsideLabel,
         fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
         fontSize:        actFontPx,
         fontWeight:      theme.typography.fontWeightLabel,
@@ -719,14 +862,15 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       });
     }
 
-    // Title label below
+    // Title label below — use truncation/wrap
     const tBox = titleLabelByIdx.get(idx);
     if (ms.titleLabelBelow && tBox) {
+      const titleText = truncateText(mil.label, titleFontPx, theme.milestone.labelMaxWidth);
       primitives.push({
         kind:            'text',
         x:               rhu(tBox.x + tBox.width / 2),
         y:               rhu(tBox.y + titleFontPx),
-        text:            mil.label,
+        text:            titleText,
         fontFamily:      `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
         fontSize:        titleFontPx,
         fontWeight:      ms.titleLabelFontWeight,
@@ -736,6 +880,183 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme): Scene {
       });
     }
   });
+
+  // CALLOUT / NOTE annotations
+  for (const ann of calloutNoteAnnotations) {
+    const aDate = ann.date;
+    if (!aDate) continue;
+    try {
+      const annOrd = parseAndCoerceLeft(aDate);
+      if (annOrd < tsOrd || annOrd > teOrd) continue;
+      const xAnn = rhu(dateX(annOrd, axisState));
+      const targetActivity = ann.target ? activityLayouts.find((al) => al.activity.id === ann.target) : undefined;
+      const targetMilestone = ann.target ? milestoneLayouts.find((ml) => ml.milestone.id === ann.target) : undefined;
+      const anchorY = targetActivity
+        ? rhu(targetActivity.y + theme.activity.barHeight / 2)
+        : targetMilestone
+          ? targetMilestone.yCenter
+          : rhu(mT + Haxis + hDraw / 2);
+
+      const calloutW = 120;
+      const calloutH = 28;
+      const pos = ann.position ?? 'above';
+      const boxY = pos === 'above'
+        ? rhu(anchorY - calloutH - 10)
+        : rhu(anchorY + 10);
+      const boxX = rhu(xAnn - calloutW / 2);
+
+      primitives.push({
+        kind: 'line',
+        x1: xAnn, y1: pos === 'above' ? rhu(boxY + calloutH) : anchorY,
+        x2: xAnn, y2: pos === 'above' ? anchorY : boxY,
+        stroke: theme.axis.tickLabelColor, strokeWidth: 1, opacity: 0.5, dashArray: '3,3',
+      });
+      primitives.push({
+        kind: 'rect',
+        x: boxX, y: boxY, width: calloutW, height: calloutH,
+        fill: theme.canvas.backgroundColor,
+        stroke: theme.axis.todayMarker.color, strokeWidth: 1,
+        rx: 3, opacity: 0.92,
+      });
+      if (ann.text ?? ann.label) {
+        const cFontPx = ptToPx(theme.typography.fontSizeAxis - 1);
+        primitives.push({
+          kind: 'text',
+          x: rhu(boxX + calloutW / 2),
+          y: rhu(boxY + calloutH / 2),
+          text: ann.text ?? ann.label ?? '',
+          fontFamily: `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize: cFontPx,
+          fontWeight: 400,
+          fill: theme.axis.tickLabelColor,
+          textAnchor: 'middle',
+          dominantBaseline: 'middle',
+        });
+      }
+    } catch {
+      // skip
+    }
+  }
+
+  // LEGEND BLOCK
+  const shouldRenderLegend = (() => {
+    if (!ir.legend) {
+      const usedStatuses = new Set<string>();
+      for (const a of ir.activities ?? []) {
+        if (a.status) usedStatuses.add(a.status);
+      }
+      for (const mil of ir.milestones ?? []) {
+        if (mil.status) usedStatuses.add(mil.status);
+      }
+      return usedStatuses.size > 1;
+    }
+    return ir.legend.show !== false;
+  })();
+
+  if (shouldRenderLegend) {
+    const lg = theme.legend;
+    const lgFontPx = ptToPx(lg.labelFontSize);
+    const lgTitlePx = ptToPx(lg.titleFontSize);
+    const ROW_H = Math.max(lg.swatchSize, lgFontPx * 1.2);
+
+    const entries: Array<{ label: string; fill: string }> = [];
+    if (ir.legend?.entries && ir.legend.entries.length > 0) {
+      for (const e of ir.legend.entries) {
+        const cat = theme.categoryMap[e.key];
+        const st = theme.statusMap[e.key as keyof typeof theme.statusMap];
+        const fill = cat?.fill ?? st?.fill ?? '#888888';
+        entries.push({ label: e.label, fill });
+      }
+    } else {
+      const usedStatuses: string[] = [];
+      const usedCategories: string[] = [];
+      const seenS = new Set<string>();
+      const seenC = new Set<string>();
+      for (const a of ir.activities ?? []) {
+        if (a.status && !seenS.has(a.status)) {
+          seenS.add(a.status);
+          usedStatuses.push(a.status);
+        }
+        if (a.category && !seenC.has(a.category)) {
+          seenC.add(a.category);
+          usedCategories.push(a.category);
+        }
+      }
+      for (const mil of ir.milestones ?? []) {
+        if (mil.status && !seenS.has(mil.status)) {
+          seenS.add(mil.status);
+          usedStatuses.push(mil.status);
+        }
+        if (mil.category && !seenC.has(mil.category)) {
+          seenC.add(mil.category);
+          usedCategories.push(mil.category);
+        }
+      }
+      for (const s of usedStatuses) {
+        const st = theme.statusMap[s as keyof typeof theme.statusMap];
+        if (st) entries.push({ label: s, fill: st.fill });
+      }
+      for (const c of usedCategories) {
+        const cat = theme.categoryMap[c];
+        if (cat) entries.push({ label: c, fill: cat.fill });
+      }
+    }
+
+    if (entries.length > 0) {
+      const titleText = ir.legend?.title ?? 'Legend';
+      const titleH = lgTitlePx * 1.4 + lg.titleBottomGap;
+      const lgH = lg.padding * 2 + titleH + entries.length * (ROW_H + lg.rowGap) - lg.rowGap;
+      const lgW = lg.maxWidth;
+      const pos = lg.position;
+      const margin = 16;
+      const lgX = pos.includes('right') ? W - mR - lgW - margin : mL + margin;
+      const lgY = pos.includes('bottom') ? H - m.bottom - lgH - margin : mT + margin;
+
+      primitives.push({
+        kind: 'rect', x: rhu(lgX), y: rhu(lgY), width: lgW, height: rhu(lgH),
+        fill: lg.backgroundColor, stroke: lg.borderColor, strokeWidth: lg.borderWidth,
+        rx: 4, opacity: 0.95,
+      });
+
+      primitives.push({
+        kind: 'text',
+        x: rhu(lgX + lg.padding),
+        y: rhu(lgY + lg.padding + lgTitlePx),
+        text: titleText,
+        fontFamily: `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+        fontSize: lgTitlePx,
+        fontWeight: lg.titleFontWeight,
+        fill: lg.titleColor,
+        textAnchor: 'start',
+        dominantBaseline: 'alphabetic',
+      });
+
+      let rowY = rhu(lgY + lg.padding + titleH);
+      for (const e of entries) {
+        const swatchCY = rhu(rowY + ROW_H / 2);
+        primitives.push({
+          kind: 'rect',
+          x: rhu(lgX + lg.padding),
+          y: rhu(rowY + (ROW_H - lg.swatchSize) / 2),
+          width: lg.swatchSize, height: lg.swatchSize,
+          fill: e.fill, rx: lg.swatchRadius,
+        });
+        primitives.push({
+          kind: 'text',
+          x: rhu(lgX + lg.padding + lg.swatchSize + lg.swatchLabelGap),
+          y: rhu(swatchCY),
+          text: truncateText(e.label, lgFontPx, lgW - lg.padding * 2 - lg.swatchSize - lg.swatchLabelGap - 4),
+          fontFamily: `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+          fontSize: lgFontPx,
+          fontWeight: lg.labelFontWeight,
+          fill: lg.labelColor,
+          textAnchor: 'start',
+          dominantBaseline: 'middle',
+        });
+        rowY = rhu(rowY + ROW_H + lg.rowGap);
+      }
+    }
+  }
 
   return {
     width:      W,

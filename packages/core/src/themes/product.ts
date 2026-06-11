@@ -132,5 +132,36 @@ export const productTheme: ResolvedTheme = {
     'development':   { fill: '#34D399', stroke: '#10B981' },
   },
 
+
+  legend: {
+    position:        'bottom-right',
+    backgroundColor: '#FFFFFF',
+    borderColor:     '#E5E7EB',
+    borderWidth:     1,
+    padding:         10,
+    swatchSize:      12,
+    swatchRadius:    3,
+    rowGap:          6,
+    swatchLabelGap:  8,
+    labelFontSize:   8,
+    labelFontWeight: 400,
+    labelColor:      '#6B7280',
+    titleFontSize:   9,
+    titleFontWeight: 700,
+    titleColor:      '#111111',
+    titleBottomGap:  5,
+    maxWidth:        160,
+  },
+
+  section: {
+    bandOpacityEven: 0.04,
+    bandOpacityOdd:  0.02,
+    bandFillEven:    '#3B82F6',
+    bandFillOdd:     '#8B5CF6',
+    labelFontSize:   8,
+    labelFontWeight: 700,
+    labelColor:      '#374151',
+    labelOpacity:    0.7,
+  },
   entryStyle: 'card',
 };

@@ -15,6 +15,28 @@
   <line stroke="#333333" stroke-width="2" x1="600" x2="600" y1="72" y2="1572"/>
   <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="72" y2="72"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="70">2026</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="200" y2="200"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="198">Feb</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="315" y2="315"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="313">Mar</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="443" y2="443"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="441">Apr</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="567" y2="567"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="565">May</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="694" y2="694"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="692">Jun</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="818" y2="818"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="816">Jul</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="946" y2="946"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="944">Aug</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="1073" y2="1073"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="1071">Sep</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="1197" y2="1197"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="1195">Oct</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="1325" y2="1325"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="1323">Nov</text>
+  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="1448" y2="1448"/>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="1446">Dec</text>
   <line opacity="0.8" stroke="#1F497D" stroke-width="1.5" x1="611" x2="648" y1="88" y2="88"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="start" x="658" y="80.65">5th January 2026</text>
   <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="600" text-anchor="start" x="658" y="108.65">Project Kick-off</text>
@@ -75,4 +97,16 @@
   <circle cx="600" cy="1288" fill="#1F497D" r="11" stroke="#FFFFFF" stroke-width="1.5"/>
   <circle cx="600" cy="1388" fill="#1F497D" r="11" stroke="#FFFFFF" stroke-width="1.5"/>
   <circle cx="600" cy="1488" fill="#1F497D" r="11" stroke="#FFFFFF" stroke-width="1.5"/>
+  <rect fill="#FFFFFF" height="140.67" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="1" width="160" x="984" y="1465.33"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="994" y="1488.67">Legend</text>
+  <rect fill="#888888" height="12" rx="0" width="12" x="994" y="1501.2"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="1507.2">done</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="1521.6"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="1527.6">in-progress</text>
+  <rect fill="#DC2626" height="12" rx="0" width="12" x="994" y="1542"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="1548">blocked</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="1562.4"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="1568.4">planned</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="1582.8"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="1588.8">standard-node</text>
 </svg>

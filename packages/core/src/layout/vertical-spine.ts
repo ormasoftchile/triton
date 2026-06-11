@@ -27,6 +27,7 @@ import type { IRDocument } from '../types.js';
 import type { Scene, ScenePrimitive } from '../scene.js';
 import type { ResolvedTheme } from '../themes/types.js';
 import { ptToPx } from '../fonts/metrics.js';
+import { wrapText, truncateText } from '../text-wrap.js';
 import {
   dateToOrdinal,
   coerceLeft,
@@ -35,6 +36,9 @@ import {
   parseAndCoerceLeft,
   parseAndCoerceRight,
   formatMilestoneDate,
+  inferAxisUnit,
+  enumTicks,
+  formatTickLabel,
 } from './dates.js';
 
 // ---------------------------------------------------------------------------
@@ -309,22 +313,19 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
   // ── Entry block height helper ─────────────────────────────────────────────
 
   function blockH(e: SpineEntry): number {
+    const titleWrapped = wrapText(e.label, titlePx, BLOCK_W - BLOCK_INNER_PAD * 2, 2);
     let h = VERT_PAD;
     h += DATE_LINE_H;
-    h += TEXT_GAP + TITLE_LINE_H;
+    h += TEXT_GAP + TITLE_LINE_H * titleWrapped.lines.length;
     if (e.description) h += TEXT_GAP + DESC_LINE_H;
     h += VERT_PAD;
     return rhuInt(h);
   }
 
-  // ── Year tick positions (spine axis reference) ────────────────────────────
+  // ── Axis ticks ─────────────────────────────────────────────────────────────
 
-  const yearTicks: { year: number; y: number }[] = [];
-  for (let y = tsY; y <= teY; y++) {
-    const janOrd     = dateToOrdinal(y, 1, 1);
-    const clampedOrd = Math.max(tsOrd, Math.min(teOrd, janOrd));
-    yearTicks.push({ year: y, y: rhu(dateY(clampedOrd)) });
-  }
+  const vsAxisUnit = ir.metadata.axis_unit ?? inferAxisUnit(teOrd - tsOrd);
+  const vsTicks = enumTicks(tsOrd, teOrd, vsAxisUnit);
 
   // ── Build Scene primitives (painter's algorithm: back → front) ────────────
 
@@ -335,6 +336,50 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     kind: 'rect', x: 0, y: 0, width: W, height: H,
     fill: theme.canvas.backgroundColor,
   });
+
+  // SECTION BANDS (horizontal bands spanning full width)
+  if (ir.sections && ir.sections.length > 0) {
+    ir.sections.forEach((sec, si) => {
+      const sStart = sec.time_range?.start ?? trStart;
+      const sEnd   = sec.time_range?.end ?? trEnd;
+      let yBandTop: number;
+      let yBandBot: number;
+      try {
+        yBandTop = rhu(dateY(parseAndCoerceLeft(sStart)));
+        yBandBot = rhu(dateY(parseAndCoerceRight(sEnd)));
+      } catch {
+        return;
+      }
+      const bh = Math.max(0, yBandBot - yBandTop);
+      if (bh <= 0) return;
+
+      const isEven = si % 2 === 0;
+      const fill = isEven ? theme.section.bandFillEven : theme.section.bandFillOdd;
+      const opacity = isEven ? theme.section.bandOpacityEven : theme.section.bandOpacityOdd;
+
+      if (opacity > 0) {
+        primitives.push({
+          kind: 'rect', x: 0, y: yBandTop, width: W, height: bh,
+          fill, opacity: rhu(opacity),
+        });
+      }
+
+      const secFontPx = ptToPx(theme.section.labelFontSize);
+      primitives.push({
+        kind: 'text',
+        x: rhu(m.left + 4),
+        y: rhu(yBandTop + 4 + secFontPx),
+        text: sec.label,
+        fontFamily: FONT_FAM,
+        fontSize: secFontPx,
+        fontWeight: theme.section.labelFontWeight,
+        fill: theme.section.labelColor,
+        textAnchor: 'start',
+        dominantBaseline: 'alphabetic',
+        opacity: rhu(theme.section.labelOpacity),
+      });
+    });
+  }
 
   // 2. Document title
   if (ir.metadata.title) {
@@ -410,34 +455,117 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     strokeWidth: 2,
   });
 
-  // 5. Year tick marks and labels
-  const TICK_W        = 8;
-  const YEAR_LABEL_X  = rhu(SPINE_X + TICK_W + 6);
+  // 5. Axis ticks
+  const TICK_W = 8;
+  const TICK_LABEL_X = rhu(SPINE_X + TICK_W + 6);
 
-  for (const yt of yearTicks) {
+  for (let ti = 0; ti < vsTicks.length; ti++) {
+    const tick = vsTicks[ti]!;
+    const ty = rhu(dateY(tick.ordinal));
+
     primitives.push({
-      kind:        'line',
-      x1:          rhu(SPINE_X - TICK_W),
-      y1:          yt.y,
-      x2:          rhu(SPINE_X + TICK_W),
-      y2:          yt.y,
-      stroke:      theme.axis.axisLineColor,
-      strokeWidth: 1,
-      opacity:     0.5,
+      kind: 'line',
+      x1: rhu(SPINE_X - TICK_W), y1: ty,
+      x2: rhu(SPINE_X + TICK_W), y2: ty,
+      stroke: theme.axis.axisLineColor, strokeWidth: 1, opacity: 0.5,
     });
-    primitives.push({
-      kind:             'text',
-      x:                YEAR_LABEL_X,
-      y:                rhu(yt.y - 2),
-      text:             String(yt.year),
-      fontFamily:       FONT_FAM,
-      fontSize:         yearFontPx,
-      fontWeight:       theme.typography.fontWeightAxis,
-      fill:             theme.axis.tickLabelColor,
-      textAnchor:       'start',
-      dominantBaseline: 'alphabetic',
-      opacity:          0.6,
-    });
+
+    const tickLabel = formatTickLabel(tick, vsAxisUnit, ti);
+    if (tickLabel) {
+      primitives.push({
+        kind: 'text',
+        x: TICK_LABEL_X, y: rhu(ty - 2),
+        text: tickLabel,
+        fontFamily: FONT_FAM,
+        fontSize: yearFontPx,
+        fontWeight: theme.typography.fontWeightAxis,
+        fill: theme.axis.tickLabelColor,
+        textAnchor: 'start',
+        dominantBaseline: 'alphabetic',
+        opacity: 0.6,
+      });
+    }
+  }
+
+  // TODAY MARKER annotation
+  const todayMarkerAnnotationVS = (ir.annotations ?? []).find((a) => a.type === 'today-marker');
+  const todayDateVS = todayMarkerAnnotationVS?.date ?? ir.metadata.today;
+  const todayMarkerEnabledVS = !!todayDateVS && (theme.axis.todayMarker.enabled || !!todayMarkerAnnotationVS);
+
+  if (todayMarkerEnabledVS && todayDateVS) {
+    try {
+      const todayOrd = parseAndCoerceLeft(todayDateVS);
+      if (todayOrd >= tsOrd && todayOrd <= teOrd) {
+        const yToday = rhu(dateY(todayOrd));
+        primitives.push({
+          kind: 'line',
+          x1: rhu(m.left), y1: yToday, x2: rhu(W - m.right), y2: yToday,
+          stroke: theme.axis.todayMarker.color,
+          strokeWidth: theme.axis.todayMarker.width,
+          dashArray: theme.axis.todayMarker.style === 'dashed' ? '6,4' : undefined,
+          opacity: 0.85,
+        });
+        const tFontPx = ptToPx(theme.typography.fontSizeAxis - 1);
+        primitives.push({
+          kind: 'text',
+          x: rhu(m.left + 4),
+          y: rhu(yToday - 3),
+          text: todayMarkerAnnotationVS?.text ?? 'Today',
+          fontFamily: FONT_FAM,
+          fontSize: tFontPx,
+          fontWeight: 600,
+          fill: theme.axis.todayMarker.color,
+          textAnchor: 'start',
+          dominantBaseline: 'alphabetic',
+          opacity: 0.9,
+        });
+      }
+    } catch {
+      // skip
+    }
+  }
+
+  // PERIOD/BRACKET annotations (horizontal spans on vertical spine)
+  for (const ann of ir.annotations ?? []) {
+    if (ann.type !== 'period' && ann.type !== 'bracket') continue;
+    const aStart = ann.start ?? ann.date;
+    const aEnd = ann.end ?? ann.date;
+    if (!aStart || !aEnd) continue;
+    try {
+      const yT = rhu(dateY(parseAndCoerceLeft(aStart)));
+      const yB = rhu(dateY(parseAndCoerceRight(aEnd)));
+      if (yB <= yT) continue;
+      const periodX = rhu(W - m.right - 16);
+      const periodColor = theme.axis.todayMarker.color;
+      primitives.push({
+        kind: 'line', x1: periodX, y1: yT, x2: periodX, y2: yB,
+        stroke: periodColor, strokeWidth: 1.5, opacity: 0.7,
+      });
+      for (const ty of [yT, yB]) {
+        primitives.push({
+          kind: 'line', x1: rhu(periodX - 4), y1: ty, x2: rhu(periodX + 4), y2: ty,
+          stroke: periodColor, strokeWidth: 1.5, opacity: 0.7,
+        });
+      }
+      if (ann.text ?? ann.label) {
+        const bFontPx = ptToPx(theme.section.labelFontSize);
+        primitives.push({
+          kind: 'text',
+          x: rhu(periodX + 8),
+          y: rhu((yT + yB) / 2),
+          text: ann.text ?? ann.label ?? '',
+          fontFamily: FONT_FAM,
+          fontSize: bFontPx,
+          fontWeight: 400,
+          fill: periodColor,
+          textAnchor: 'start',
+          dominantBaseline: 'middle',
+          opacity: 0.75,
+        });
+      }
+    } catch {
+      // skip
+    }
   }
 
   // 6. Entry connectors and content blocks (behind node markers)
@@ -510,29 +638,48 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       dominantBaseline: 'alphabetic',
     });
 
-    // Title label (second line)
+    // Title label (second line) — with wrapping
     textY = rhu(textY + TEXT_GAP + TITLE_LINE_H);
-    primitives.push({
-      kind:             'text',
-      x:                textX,
-      y:                textY,
-      text:             entry.label,
-      fontFamily:       FONT_FAM,
-      fontSize:         titlePx,
-      fontWeight:       theme.milestone.titleLabelFontWeight,
-      fill:             theme.milestone.titleLabelColor,
-      textAnchor,
-      dominantBaseline: 'alphabetic',
-    });
-
-    // Description (optional third line)
-    if (entry.description) {
-      textY = rhu(textY + TEXT_GAP + DESC_LINE_H);
+    const titleWrapped = wrapText(entry.label, titlePx, BLOCK_W - BLOCK_INNER_PAD * 2, 2);
+    if (titleWrapped.lines.length > 1) {
+      primitives.push({
+        kind:             'multitext',
+        x:                textX,
+        y:                textY,
+        lines:            titleWrapped.lines,
+        lineHeight:       TITLE_LINE_H,
+        fontFamily:       FONT_FAM,
+        fontSize:         titlePx,
+        fontWeight:       theme.milestone.titleLabelFontWeight,
+        fill:             theme.milestone.titleLabelColor,
+        textAnchor,
+        dominantBaseline: 'alphabetic',
+      });
+      textY = rhu(textY + (titleWrapped.lines.length - 1) * TITLE_LINE_H);
+    } else {
       primitives.push({
         kind:             'text',
         x:                textX,
         y:                textY,
-        text:             entry.description,
+        text:             titleWrapped.lines[0] ?? entry.label,
+        fontFamily:       FONT_FAM,
+        fontSize:         titlePx,
+        fontWeight:       theme.milestone.titleLabelFontWeight,
+        fill:             theme.milestone.titleLabelColor,
+        textAnchor,
+        dominantBaseline: 'alphabetic',
+      });
+    }
+
+    // Description — with truncation
+    if (entry.description) {
+      textY = rhu(textY + TEXT_GAP + DESC_LINE_H);
+      const descTruncated = truncateText(entry.description, descPx, BLOCK_W - BLOCK_INNER_PAD * 2);
+      primitives.push({
+        kind:             'text',
+        x:                textX,
+        y:                textY,
+        text:             descTruncated,
         fontFamily:       FONT_FAM,
         fontSize:         descPx,
         fontWeight:       theme.typography.fontWeightAxis,
@@ -602,6 +749,53 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
     }
   }
 
+  // CALLOUT / NOTE annotations
+  for (const ann of ir.annotations ?? []) {
+    if (ann.type !== 'callout' && ann.type !== 'note') continue;
+    const aDate = ann.date;
+    if (!aDate) continue;
+    try {
+      const annOrd = parseAndCoerceLeft(aDate);
+      if (annOrd < tsOrd || annOrd > teOrd) continue;
+      const yAnn = rhu(dateY(annOrd));
+      const calloutW = 110;
+      const calloutH = 24;
+      const side = ann.position === 'left' ? 'left' : 'right';
+      const boxX = side === 'right'
+        ? rhu(SPINE_X + CONNECTOR_LEN + 10)
+        : rhu(SPINE_X - CONNECTOR_LEN - calloutW - 10);
+      const boxY = rhu(yAnn - calloutH / 2);
+      primitives.push({
+        kind: 'line',
+        x1: side === 'right' ? SPINE_X : rhu(boxX + calloutW),
+        y1: yAnn,
+        x2: side === 'right' ? boxX : SPINE_X,
+        y2: yAnn,
+        stroke: theme.axis.tickLabelColor, strokeWidth: 1, opacity: 0.5, dashArray: '3,3',
+      });
+      primitives.push({
+        kind: 'rect',
+        x: boxX, y: boxY, width: calloutW, height: calloutH,
+        fill: theme.canvas.backgroundColor, stroke: theme.axis.todayMarker.color, strokeWidth: 1,
+        rx: 3, opacity: 0.92,
+      });
+      if (ann.text ?? ann.label) {
+        const cFontPx = ptToPx(theme.typography.fontSizeAxis - 1);
+        primitives.push({
+          kind: 'text',
+          x: rhu(boxX + calloutW / 2), y: rhu(boxY + calloutH / 2),
+          text: ann.text ?? ann.label ?? '',
+          fontFamily: FONT_FAM,
+          fontSize: cFontPx, fontWeight: 400,
+          fill: theme.axis.tickLabelColor,
+          textAnchor: 'middle', dominantBaseline: 'middle',
+        });
+      }
+    } catch {
+      // skip
+    }
+  }
+
   // 8. Empty-timeline message
   if (nEntries === 0) {
     primitives.push({
@@ -617,6 +811,126 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme): Scene
       dominantBaseline: 'middle',
       opacity:          0.5,
     });
+  }
+
+  // LEGEND BLOCK
+  const shouldRenderLegend = (() => {
+    if (!ir.legend) {
+      const usedStatuses = new Set<string>();
+      for (const a of ir.activities ?? []) {
+        if (a.status) usedStatuses.add(a.status);
+      }
+      for (const mil of ir.milestones ?? []) {
+        if (mil.status) usedStatuses.add(mil.status);
+      }
+      return usedStatuses.size > 1;
+    }
+    return ir.legend.show !== false;
+  })();
+
+  if (shouldRenderLegend) {
+    const lg = theme.legend;
+    const lgFontPx = ptToPx(lg.labelFontSize);
+    const lgTitlePx = ptToPx(lg.titleFontSize);
+    const ROW_H = Math.max(lg.swatchSize, lgFontPx * 1.2);
+
+    const entries: Array<{ label: string; fill: string }> = [];
+    if (ir.legend?.entries && ir.legend.entries.length > 0) {
+      for (const e of ir.legend.entries) {
+        const cat = theme.categoryMap[e.key];
+        const st = theme.statusMap[e.key as keyof typeof theme.statusMap];
+        const fill = cat?.fill ?? st?.fill ?? '#888888';
+        entries.push({ label: e.label, fill });
+      }
+    } else {
+      const usedStatuses: string[] = [];
+      const usedCategories: string[] = [];
+      const seenS = new Set<string>();
+      const seenC = new Set<string>();
+      for (const a of ir.activities ?? []) {
+        if (a.status && !seenS.has(a.status)) {
+          seenS.add(a.status);
+          usedStatuses.push(a.status);
+        }
+        if (a.category && !seenC.has(a.category)) {
+          seenC.add(a.category);
+          usedCategories.push(a.category);
+        }
+      }
+      for (const mil of ir.milestones ?? []) {
+        if (mil.status && !seenS.has(mil.status)) {
+          seenS.add(mil.status);
+          usedStatuses.push(mil.status);
+        }
+        if (mil.category && !seenC.has(mil.category)) {
+          seenC.add(mil.category);
+          usedCategories.push(mil.category);
+        }
+      }
+      for (const s of usedStatuses) {
+        const st = theme.statusMap[s as keyof typeof theme.statusMap];
+        if (st) entries.push({ label: s, fill: st.fill });
+      }
+      for (const c of usedCategories) {
+        const cat = theme.categoryMap[c];
+        if (cat) entries.push({ label: c, fill: cat.fill });
+      }
+    }
+
+    if (entries.length > 0) {
+      const titleText = ir.legend?.title ?? 'Legend';
+      const titleH = lgTitlePx * 1.4 + lg.titleBottomGap;
+      const lgH = lg.padding * 2 + titleH + entries.length * (ROW_H + lg.rowGap) - lg.rowGap;
+      const lgW = lg.maxWidth;
+      const pos = lg.position;
+      const margin = 16;
+      const lgX = pos.includes('right') ? W - m.right - lgW - margin : m.left + margin;
+      const lgY = pos.includes('bottom') ? H - m.bottom - lgH - margin : m.top + margin;
+
+      primitives.push({
+        kind: 'rect', x: rhu(lgX), y: rhu(lgY), width: lgW, height: rhu(lgH),
+        fill: lg.backgroundColor, stroke: lg.borderColor, strokeWidth: lg.borderWidth,
+        rx: 4, opacity: 0.95,
+      });
+
+      primitives.push({
+        kind: 'text',
+        x: rhu(lgX + lg.padding),
+        y: rhu(lgY + lg.padding + lgTitlePx),
+        text: titleText,
+        fontFamily: FONT_FAM,
+        fontSize: lgTitlePx,
+        fontWeight: lg.titleFontWeight,
+        fill: lg.titleColor,
+        textAnchor: 'start',
+        dominantBaseline: 'alphabetic',
+      });
+
+      let rowY = rhu(lgY + lg.padding + titleH);
+      for (const e of entries) {
+        const swatchCY = rhu(rowY + ROW_H / 2);
+        primitives.push({
+          kind: 'rect',
+          x: rhu(lgX + lg.padding),
+          y: rhu(rowY + (ROW_H - lg.swatchSize) / 2),
+          width: lg.swatchSize, height: lg.swatchSize,
+          fill: e.fill, rx: lg.swatchRadius,
+        });
+        primitives.push({
+          kind: 'text',
+          x: rhu(lgX + lg.padding + lg.swatchSize + lg.swatchLabelGap),
+          y: rhu(swatchCY),
+          text: truncateText(e.label, lgFontPx, lgW - lg.padding * 2 - lg.swatchSize - lg.swatchLabelGap - 4),
+          fontFamily: FONT_FAM,
+          fontSize: lgFontPx,
+          fontWeight: lg.labelFontWeight,
+          fill: lg.labelColor,
+          textAnchor: 'start',
+          dominantBaseline: 'middle',
+        });
+        rowY = rhu(rowY + ROW_H + lg.rowGap);
+      }
+    }
   }
 
   return {

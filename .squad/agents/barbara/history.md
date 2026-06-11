@@ -539,3 +539,38 @@ Generated `examples/gallery/vertical/` with 8 SVG+PNG renders: `ai-timeline` (12
 - **Serpentine / S-curve spine variant** — T5 alternating-card layout with arcing spine is deferred.
 - **Year tick placement after min-spacing** — year ticks use the initial `hDraw` scale, not adjusted entry positions; acceptable for Phase 1 visual fidelity.
 - **Theme-preferred default layout token** — a `preferredLayout` theme token (optional) was not added; the `--layout` flag and `RenderOptions.layout` cover this use case.
+
+---
+
+## 2026-06-10 — Refinement Pass: Text-Wrap, Legend, Sections, Annotations, Vertical-Spine Tick Fix
+
+### Text-Wrap Helper (`src/text-wrap.ts`)
+Created a deterministic `wrapText(text, fontSizePx, maxWidth, maxLines)` function using the embedded DejaVu Sans advance-width metrics. Also `truncateText(text, fontSizePx, maxWidth)` for single-line truncation with ellipsis (U+2026). Applied to vertical-spine entry titles (multi-line `<tspan>` via `MultiTextPrimitive`) and descriptions, and horizontal activity/milestone labels. The `MultiTextPrimitive` scene node was added to `scene.ts` + `render/svg.ts`.
+
+### Legend Block (both families)
+When `ir.legend.show !== false` (or auto when 2+ statuses used), a legend panel renders at the theme-configured corner. Entries are derived from `ir.legend.entries` if present, or from used statuses/categories in stable insertion order. New `LegendTheme` token block added to `themes/types.ts` and implemented in all 5 themes. Deterministic: same IR → same legend → same scene hash.
+
+### Section Bands (both families)
+`ir.sections[]` with `time_range` renders as background bands: vertical bands in horizontal family (spanning the plot height), horizontal bands in vertical-spine (spanning full width). Even/odd sections get alternating tints from `SectionTheme.bandFillEven/Odd`. Section labels placed at band top-left. New `SectionTheme` token block added.
+
+### Annotations (both families)
+Implemented four annotation types deterministically:
+- `today-marker`: vertical line (horizontal) / horizontal line (vertical-spine) at `annotation.date` or `metadata.today`, with "Today" label
+- `callout`/`note`: small text box at `annotation.date` position with a dashed connector line; position=above|below
+- `period`/`bracket`: span indicator across `start..end` with end ticks and optional label
+- Unresolved targets and out-of-range dates are silently skipped
+
+### Vertical-Spine Tick Fix
+Replaced year-only tick loop with `enumTicks()`/`formatTickLabel()` aligned with `ir.metadata.axis_unit`. Tick positions use true `dateY()` (time-proportional) independent of the min-spacing-displaced entry `nodeYs`. The tick labels now match the axis unit (month, quarter, half, year) exactly as in the horizontal family.
+
+### Theme Tokens Added
+`LegendTheme` and `SectionTheme` added to `themes/types.ts`. All 5 themes updated with values appropriate to their aesthetic.
+
+### Golden + Galleries Regenerated
+- `examples/golden/our-timeline.{svg,png}` — regenerated (golden test updated)
+- All `examples/gallery/*.{svg,png}` — regenerated
+- All `examples/gallery/themes/*/*.{svg,png}` — regenerated
+- All `examples/gallery/vertical/*.{svg,png}` — regenerated
+- New `examples/gallery/feature-rich.timeline.yaml` authored and rendered in horizontal + vertical-spine × 2 themes
+- Gallery index.html, themes.html, vertical.html updated with feature-rich entries
+

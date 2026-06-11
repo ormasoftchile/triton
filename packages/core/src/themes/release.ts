@@ -131,5 +131,36 @@ export const releaseTheme: ResolvedTheme = {
     'standard-node': { fill: GREY, stroke: '#4B5563' },
   },
 
+
+  legend: {
+    position:        'bottom-right',
+    backgroundColor: '#FFFFFF',
+    borderColor:     '#D1D5DB',
+    borderWidth:     1,
+    padding:         10,
+    swatchSize:      12,
+    swatchRadius:    2,
+    rowGap:          6,
+    swatchLabelGap:  8,
+    labelFontSize:   9,
+    labelFontWeight: 400,
+    labelColor:      '#374151',
+    titleFontSize:   10,
+    titleFontWeight: 700,
+    titleColor:      '#111111',
+    titleBottomGap:  6,
+    maxWidth:        160,
+  },
+
+  section: {
+    bandOpacityEven: 0.04,
+    bandOpacityOdd:  0.00,
+    bandFillEven:    '#2563EB',
+    bandFillOdd:     '#FFFFFF',
+    labelFontSize:   9,
+    labelFontWeight: 700,
+    labelColor:      '#374151',
+    labelOpacity:    0.65,
+  },
   entryStyle: 'plain',
 };

@@ -6,8 +6,6 @@
   <rect fill="#888888" height="305" opacity="0.6" width="6" x="597" y="372"/>
   <rect fill="#1F497D" height="173" opacity="0.7" width="6" x="597" y="678"/>
   <line stroke="#333333" stroke-width="2" x1="600" x2="600" y1="72" y2="910"/>
-  <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="72" y2="72"/>
-  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="70">2021</text>
   <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="224" y2="224"/>
   <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" opacity="0.6" text-anchor="start" x="614" y="222">2022</text>
   <line opacity="0.5" stroke="#333333" stroke-width="1" x1="592" x2="608" y1="484" y2="484"/>
@@ -59,4 +57,14 @@
   <circle cx="600" cy="678" fill="#1F497D" r="11" stroke="#FFFFFF" stroke-width="1.5"/>
   <circle cx="600" cy="778" fill="#1F497D" r="11" stroke="#FFFFFF" stroke-width="1.5"/>
   <circle cx="600" cy="878" fill="#1F497D" r="11" stroke="#FFFFFF" stroke-width="1.5"/>
+  <rect fill="#FFFFFF" height="120.27" opacity="0.95" rx="4" stroke="#CCCCCC" stroke-width="1" width="160" x="984" y="823.73"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="start" x="994" y="847.07">Legend</text>
+  <rect fill="#888888" height="12" rx="0" width="12" x="994" y="859.6"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="865.6">done</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="880"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="886">in-progress</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="900.4"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="906.4">planned</text>
+  <rect fill="#1F497D" height="12" rx="0" width="12" x="994" y="920.8"/>
+  <text dominant-baseline="middle" fill="#333333" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="1014" y="926.8">standard-node</text>
 </svg>
