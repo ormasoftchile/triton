@@ -782,3 +782,77 @@ Corpus expanded from 9 to 16 images. **Critical distinction confirmed:** The Com
 `brandesKopf2001`, `walker1990`, `buchheim2002`, `kamadaKawai1989`, `gansnerStressMaj2004`, `tamassia1987`, `webCola`, `gansner1993dot` — graph layout algorithms
 
 Total new bib entries: **20** (72 → 92)
+# Decision: `axis.nodeWrap` opt-in token — arc-around-node spine for horizontal layout
+
+**Date:** 2026-06-12  
+**Author:** Barbara (Semantics & Rendering)  
+**Status:** ADOPTED
+
+---
+
+## Problem
+
+The "Our Timeline" reference infographic (target-horizontal-numbered.png) shows a horizontal spine that **weaves around each circular milestone node** — bowing UP-and-OVER node 1, DOWN-and-UNDER node 2, UP-and-OVER node 3 — rather than passing straight behind them. The previous implementation emitted a single straight `line` primitive at `axisY`, which is visually inconsistent with the reference.
+
+## Decision
+
+Add an **opt-in token** `axis.nodeWrap: 'none' | 'over-under'` to `AxisTheme` (in `packages/core/src/themes/types.ts`):
+
+- **Default `'none'`** (field is optional, default applied via `ax.nodeWrap ?? 'none'` at the call site): behaviour is byte-identical to the pre-feature straight-line spine. No existing golden may change.
+- **`'over-under'`**: replaces the single straight spine line with a single `kind:'path'` Scene primitive that routes around each circular milestone node as an alternating semicircular arc.
+
+Only the `our-timeline` theme sets `'over-under'`. All other themes are untouched.
+
+## Arc-Path Geometry Contract
+
+When `nodeWrap === 'over-under'`, the horizontal layout engine (`layout/horizontal.ts`, section 3 "Axis band"):
+
+1. **Pre-collects on-axis nodes** from `milestoneLayouts` where `ms.shape === 'circle'`, sorted left-to-right.
+2. **Spine Y = first node's `yCenter`** — the path runs at the node y-level, not at `axisY`. This ensures tight arcs that visually hug each circle (matching the reference). If the axis tick-mark line (`axisY`) is at a different y, the ticks remain at their y-position unchanged.
+3. **Arc radius** = `rhu(ms.size + ARC_CLEARANCE)` where `ARC_CLEARANCE = 9` — 9 px clearance gap outside the circle edge (gives 8 px visible clearance outside the stroke when stroke-width=2). The initial value of 3 was too small: the arc was nearly invisible behind the white-filled node. `ARC_CLEARANCE` is a named constant at the top of the branch so it's easy to tune.
+4. **Path construction** (deterministic, all coordinates through `rhu()`):
+   ```
+   M offset spineY
+   [for each node at index ni:]
+     L (xCenter - arcR) nodeY
+     A arcR arcR 0 0 sweepFlag (xCenter + arcR) nodeY
+   L (offset+wDraw) spineY
+   ```
+   where `sweepFlag = ni % 2 === 0 ? 0 : 1` (0 = CCW = bows above; 1 = CW = bows below).
+5. **Primitive**: `kind:'path'`, `fill:'none'`, `stroke: axisLineColor`, `strokeWidth: 1`.
+6. **Z-order**: emitted at the same position as the old spine line (before node circles), so circles render on top.
+
+## Determinism Guarantee
+
+- The `'none'` default is a strict no-op: all other themes produce byte-identical output before and after this change.
+- The `'over-under'` path uses only `rhu()` rounding and stable sort keys (`xCenter`, then `milestone.id`) — no floating non-determinism.
+- Two re-renders of `our-timeline` with `'over-under'` are byte-identical (covered by the existing SVG determinism test in `skia.test.ts`).
+
+## Backend Coverage
+
+The `kind:'path'` / `fill:'none'` primitive is already handled as stroke-only in all three backends:
+- **SVG**: native `fill="none"` attribute — no fill rendered.
+- **PNG (resvg)**: resvg respects SVG `fill="none"`.
+- **Skia** (`render/skia.ts`): existing `strokeOnly = p.fill === 'none'` branch handles this correctly (added during serpentine gradient work). No additional fix needed.
+
+## Track Separator Suppression
+
+When `nodeWrap === 'over-under'`, the bottom-of-track separator line (section 5 "Track separators", emitted as a full-width `line` at `y = tl.yTop + tl.height`, `opacity: 0.3`) is suppressed. In the `our-timeline` single-track layout this line appeared ~40 px below the node centers as a confusing second parallel spine. The arc path IS the single visual spine.
+
+The `nodeWrap` constant was hoisted from the section-3 block to the function outer scope (just below `const axisY`). The section-5 push is gated on `if (nodeWrap !== 'over-under')`. All other themes (`nodeWrap === 'none'` default) are unaffected — separator emits exactly as before.
+
+## Affected Files
+
+| File | Change |
+|------|--------|
+| `packages/core/src/themes/types.ts` | Added `nodeWrap?: 'none' \| 'over-under'` to `AxisTheme` |
+| `packages/core/src/themes/our-timeline.ts` | Set `axis.nodeWrap: 'over-under'` |
+| `packages/core/src/layout/horizontal.ts` | Replaced straight spine; hoisted `nodeWrap` to function scope; gated track separator |
+| `examples/gallery/our-timeline-numbered.svg` | Regenerated (arc path, arcR=37, no track separator line) |
+| `examples/gallery/showcase/our-timeline-numbered-skia.png` | Regenerated (Skia golden) |
+
+## Alternatives Considered
+
+- **Route arcs at `axisY` (tick-mark level)**: rejected — the arc radius would need to be ~128 px (axis is ~97 px above the node centers) producing a large U-shaped detour, not the tight hugging arc shown in the reference.
+- **Move nodes onto `axisY`**: rejected — would require fixture changes and break the existing track-based layout positioning.
+- **Always-on (no opt-in)**: rejected — determinism contract forbids moving any existing golden without explicit opt-in. Default must be `'none'`.

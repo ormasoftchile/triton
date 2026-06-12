@@ -103,3 +103,20 @@ Graph layout: Sugiyama 1981, Reingold-Tilford 1981, Fruchterman-Reingold 1991, E
 ### Build Status
 
 PDF builds successfully with `make pdf`. Minor cosmetic warnings only.
+
+---
+
+## 2026-06-12 — First Opt-In Axis-Routing Token: Pattern for Future Grammars (Barbara)
+
+📐 **Axis Theme Tokenization Establishes Rendering Pattern for Grammar Extensions**
+
+Barbara implemented **`axis.nodeWrap?: 'none' | 'over-under'`** on AxisTheme to enable arc-around-node spine routing in horizontal layout (enabled in our-timeline theme).
+
+### What This Establishes
+
+- **Theme tokens as grammar extensions:** Layout algorithms, routing styles, and visual variations are now *theme-level opt-in knobs* (not IR changes or new language features).
+- **Determinism path:** Default `'none'` produces byte-identical output for all existing themes; `'over-under'` is gated to our-timeline only.
+- **Pattern for future grammars:** Flow, Graph, Comparison grammars can define their own axis-routing, node-positioning, or edge-routing tokens on their respective theme types without polluting domain IRs.
+- **Implication:** Rendering concern cleanly separated from IR concern. Domain IRs remain small and semantic; layout algorithms live in theme + layout engine.
+
+This is the **first precedent** for how future grammars extend the rendering system: via principled, opt-in theme tokens with clear determinism contracts — NOT unplanned proliferation of theme fields or IR polymorphism.
