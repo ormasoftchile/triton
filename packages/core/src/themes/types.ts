@@ -89,6 +89,13 @@ export interface AxisTheme {
     color: string;
     width: number;
     style: 'solid' | 'dashed';
+    /**
+     * When true, draws a small filled background chip (rounded rect) behind the
+     * "Today" label so it remains legible over any activity pill underneath.
+     * Default: false (absent) — byte-identical to pre-feature behaviour for all
+     * existing themes. Only enabled in the `roadmap` theme.
+     */
+    labelChip?: boolean;
   };
   /**
    * Controls how the horizontal spine line behaves at each circular milestone node.
@@ -204,6 +211,13 @@ export interface MilestoneTheme {
    * Vertical gap between label tiers (px). Default: 6.
    */
   blockTierGap?: number;
+  /**
+   * When `true`, milestone title labels wrap to at most 2 lines at word
+   * boundaries instead of being truncated to a single line.
+   * Default: `false` — single-line truncate, byte-identical with existing renders.
+   * Opt-in per theme; currently enabled only by the `roadmap` theme.
+   */
+  labelWrap?: boolean;
   /**
    * When `true`, the ordinal number (or icon) inside each milestone node is
    * rendered with a WCAG-contrast-aware colour derived from the node's fill:

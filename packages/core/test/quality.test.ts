@@ -372,6 +372,44 @@ describe('Gallery emit — ai-timeline SVG + PNG', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Gallery emit — timeline-goals.svg / timeline-goals.png
+//
+// Regenerates the horizontal roadmap gallery images for the timeline-goals
+// fixture.  Uses layout: horizontal and the fixture's own roadmap theme
+// (specified in the YAML via metadata.theme: roadmap).
+// ---------------------------------------------------------------------------
+
+describe('Gallery emit — timeline-goals SVG + PNG', () => {
+  const GALLERY_DIR   = join(REPO_ROOT, 'examples', 'gallery');
+  const TG_FIXTURE    = join(GALLERY_DIR, 'timeline-goals.timeline.yaml');
+  const OUT_SVG       = join(GALLERY_DIR, 'timeline-goals.svg');
+  const OUT_PNG       = join(GALLERY_DIR, 'timeline-goals.png');
+
+  it('emits timeline-goals.svg (roadmap theme, horizontal)', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const text = readFileSync(TG_FIXTURE, 'utf-8');
+    const ir   = parseIR(text);
+    const result = renderDocument(ir, { format: 'svg', layout: 'horizontal' });
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    writeFileSync(OUT_SVG, svg, 'utf-8');
+    console.log('[gallery-emit] timeline-goals.svg written →', OUT_SVG);
+  });
+
+  it('emits timeline-goals.png (roadmap theme, horizontal)', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const text = readFileSync(TG_FIXTURE, 'utf-8');
+    const ir   = parseIR(text);
+    const result = renderDocument(ir, { format: 'png', layout: 'horizontal' });
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89); // PNG signature
+    writeFileSync(OUT_PNG, png);
+    console.log('[gallery-emit] timeline-goals.png written →', OUT_PNG);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Theme-matrix gallery emit — serpentine-journey
 //
 // Generates examples/gallery/themes/{theme}/serpentine-journey.{svg,png} for

@@ -476,6 +476,32 @@ describe('Showcase gallery images', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Timeline-goals — roadmap theme + axis-break Skia golden
+// ---------------------------------------------------------------------------
+
+describe('Timeline-goals — roadmap theme + axis-break', () => {
+  const GALLERY_ROOT = join(REPO_ROOT, 'examples', 'gallery');
+  const SHOWCASE_DIR = join(GALLERY_ROOT, 'showcase');
+  const TG_FIXTURE   = join(GALLERY_ROOT, 'timeline-goals.timeline.yaml');
+  const OUT_PNG      = join(SHOWCASE_DIR, 'timeline-goals-skia.png');
+
+  it('timeline-goals Skia golden — generate and save', async () => {
+    ensureDir(SHOWCASE_DIR);
+    const fixtureText = readFileSync(TG_FIXTURE, 'utf-8');
+    const ir = parseIR(fixtureText);
+    const result = await renderDocumentAsync(ir, {
+      format: 'png',
+      backend: 'skia',
+      layout: 'horizontal',
+    });
+    const png = result.png!;
+    expect(isPngSignature(png)).toBe(true);
+    writeFileSync(OUT_PNG, png);
+    console.log('[tg-golden] timeline-goals Skia PNG →', OUT_PNG);
+  }, 60_000);
+});
+
+// ---------------------------------------------------------------------------
 // (9) T3 AI Timeline — gradient background + activity.color + year labels
 // ---------------------------------------------------------------------------
 
