@@ -1,5 +1,83 @@
 # Squad Decisions — Timeline Compiler Design Spec (2026-06-09/10)
 
+## Strategic Direction — Diagram Compiler Reframe (2026-06-11)
+
+**Status:** ADOPTED — Design document restructured; implementation to follow in Phase 0/1.
+
+### Executive Summary
+
+The timeline compiler is reframed from a single-purpose timeline tool to a **deterministic, themeable, agent-authorable DIAGRAM COMPILER** with Timeline as the first grammar proof-of-concept. The real asset is the shared kernel engine, not any one grammar.
+
+### Core Thesis: Engine-as-Asset
+
+**Product:** A pipeline from small declarative domain-specific IRs → computed layout → universal Scene IR (assembly language of primitives) → multiple rendering backends.
+
+**Strategic Position:** Defend the niche of deterministic, agent-authorable technical-explainer diagrams — NOT freeform canvas (Canva/Figma unwinnable; LLM-unfriendly). The narrowness bounds the grammar and enables automatic layout.
+
+### Two-IR-Layer Architecture (ADOPTED) / God-IR Rejected (REJECTED)
+
+**Adopted:** Layered IR model:
+- **Domain IRs** — small, grammar-specific (timeline entities ≠ graph nodes/edges; semantically tight for LLM generation)
+- **Scene IR** — universal shared "assembly language" (Rect, Line, Circle, Text, Path, Group, effects, animation hints)
+- All domain IRs compile down to single shared Scene IR
+
+**Rejected:** "God-IR" (mega-schema for timelines AND graphs AND posters). Rationale: semantically muddy, brittle, hostile to LLM generation.
+
+### Kernel / Grammars / Composition Layering
+
+**Kernel (shared universal infrastructure):**
+- Scene IR contract, rendering backends (SVG/PNG/Skia), themes, determinism, icon registry, layout helpers, lint framework, animation hints
+
+**Grammars (peer families on kernel):**
+- Timeline (Grammar #1) — domain IR + layout engine
+- Future: Flow, Graph, Comparison, Stat, Step-Cards (each with own domain IR + layout engine)
+
+**Composition (thin layer atop):**
+- Multi-panel posters; each panel is one grammar's domain IR
+
+### SVG as Source of Truth (ADOPTED) / HTML-CSS-First Rejected (REJECTED)
+
+**Adopted:** SVG canonical output. PNG (resvg), Skia (art effects), PDF are EXPORTS/specializations of SVG truth.
+
+**Rationale:** Determinism (text-based golden testing), resolution independence, animation support, single-file portability.
+
+**Rejected:** HTML/CSS-first. Rationale: browser/font variance breaks determinism; heavy headless-browser rasterization; sacrifices portability.
+
+### Animation as Additive / Backend-Conditional
+
+Animation is optional, declarative:
+- SVG/HTML backends honor animation hints (stroke-dashoffset, animateMotion, CSS keyframes)
+- Raster/print backends ignore hints, render resting frame
+- Determinism preserved: animated SVG is byte-identical markup
+
+**Out-of-scope v1:** GIF/Lottie/video frame rendering (heavy, lossy, breaks small-declarative elegance).
+
+### Incremental Packaging Strategy
+
+Product lives BESIDE timeline in monorepo on shared kernel — not inside timeline (would bloat) nor separate repo (would drift).
+
+**Incremental path:**
+- **Phase 0:** Draw kernel/timeline seam in packages/core (rule: kernel must not import timeline-specific code)
+- **Phase 1:** Build Flow grammar as kernel-only consumer (prove grammar-agnosticism)
+- **Phase 2:** Extract packages when publishing/team boundaries justify it
+- **Phase 3+:** Additional grammars, composition layer
+
+### Grammar Sequencing (MVP Roadmap)
+
+1. **Flows** (first) — max node/connector reuse, natural animation home, cheapest demo impact
+2. **Graph + auto-layout** (hardest, highest leverage) — adopt ELK/dagre for DAG cases
+3. **Stat + Comparison** (cheap parallel wins)
+4. **Composition layer** — multi-panel posters
+
+### Consequences
+
+- Design document restructured 13 → 24 sections across 6 parts (Thesis, Kernel, Grammars, Composition, Architecture, Ecosystem)
+- ~15 citations added (Sugiyama 1981, ELK, dagre, Mermaid, PlantUML, D2, SMIL, Lottie)
+- Corpus analysis: 9 technical infographic patterns analyzed; taxonomy extracted
+- Implementation unchanged (design/spec only); code work Phase 0 follows
+
+---
+
 ## Scope & Thesis
 
 ### Timeline Grammar vs Task Scheduling Grammar

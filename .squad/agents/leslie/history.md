@@ -1,227 +1,105 @@
 # Project Context
 
 - **Owner:** ormasoftchile
-- **Project:** timeline — a spec/design effort for a timeline creation tool. From data plus a natural-language prompt, produce an IR (intermediate representation) of a timeline for later rendering. This work is about the *process, the IR, and the design* — not implementation, not yet. Research is a primary focus.
-- **Stack:** LaTeX for the design document (main.tex + sections/, Makefile, .latexmkrc, references.bib for the bibliography). No code implementation at this stage.
+- **Project:** timeline — spec/design of a deterministic diagram compiler. Timeline is Grammar #1.
+- **Stack:** LaTeX for design document; TypeScript/Node for implementation (Phase 0–1+ under way).
 - **Created:** 2026-06-10
 
-## Learnings
+## Current Learnings
 
-<!-- Append new learnings below. Each entry is something lasting about the project. -->
-- Design is authored in LaTeX with a bibliography (references.bib) where research papers and references are collected.
-- The architecture separates three layers: ingestion (data + prompt -> IR), the IR itself, and rendering semantics (IR -> render).
-- 2026-06-09: Built LaTeX scaffold under design/: main.tex inputs 13 sections, MastersThesis.cls provides professional styling, Makefile supports pdf/clean/watch targets, .latexmkrc configures biber.
-- 2026-06-09: Authored sections 01-problem, 02-principles, 03-scope, 08-distribution, 11-mvp, 13-grammar-abstraction.
-- 2026-06-09: Central thesis established: Timeline Grammar (visual communication) over Task Scheduling Grammar (project management). This frames the entire specification.
-- 2026-06-09: Distribution architecture: core library → multiple distribution targets (CLI, npm, MCP server, VS Code extension, Docker).
-- 2026-06-09: Scope boundaries explicitly exclude dependency scheduling, resource management, critical path, sprint tracking, cost management — all are project-management concerns, not rendering concerns.
-- 2026-06-09: IR elements defined in scope: tracks, groups, activities, milestones, sections, date ranges, progress, status, labels, annotations, legends.
-- 2026-06-09: Citation \cite{mermaid2023} used — already in references.bib.
+- The product is a **deterministic, themeable, agent-authorable DIAGRAM COMPILER** — not a timeline-only tool.
+- Two-IR-layer model: domain IRs (grammar-specific) compile to Scene IR (universal primitives). God-IR rejected.
+- Kernel/Grammar/Composition layering: shared infrastructure, peer grammars, composition atop.
+- SVG as source of truth; PNG/PDF/Skia are exports. HTML/CSS-first rejected (determinism, font variance).
+- Animation is declarative, backend-conditional, additive.
+- Phase 0→2 incremental packaging: draw kernel/timeline seam, prove grammar-agnosticism with Flow, extract on demand.
+- Grammar sequencing: Flows first (demo impact), Graph+auto-layout (hardest), Stat+Comparison (cheap wins), Composition.
 
-## 2026-06-10 — Team Update: Design Spec Complete
+## 2026-06-11 — Strategic Reframe: Diagram Compiler Architecture (Leslie)
 
-🎯 **Design Specification Published**
+📐 **Design Document Reframed & Archived to Decisions**
 
-The 13-section Timeline Compiler design spec is now complete and organized:
+### The Strategic Insight
 
-- **Location:** `design/` directory (LaTeX source)
-- **Sections:** Problem (§1), Principles (§2), Scope (§3), IR (§4), Rendering (§5–7), Distribution (§8), Agent Integration (§9), Research (§10, §12), MVP (§11), Grammar (§13)
-- **Build:** `cd design && make pdf` or `make watch`
-- **Archive:** Decisions merged into `.squad/decisions.md` (24,782 bytes; see `.squad/log/2026-06-10T02-27-43Z-timeline-compiler-design.md`)
+The real asset is NOT "a timeline tool" — it is a **deterministic, themeable, agent-authorable DIAGRAM COMPILER** with Timeline as the first grammar proof-of-concept. This reframe elevates the product from single-purpose to a platform for multiple visual grammar families sharing a common kernel.
 
-Two-wave execution proved efficient: parallel Wave 1 produced 6 independent sections; Wave 2 reconciliation by Mark resolved 6 gaps without redesign. All 17 IR invariants now consistent across Rendering, Agent Integration, and IR spec.
 
-**Next:** Coordinator will compile PDF and commit.
+## 2026-06-11 — Design Doc Strategic Reframe Complete (Leslie)
 
-## 2026-06-10 — Productization Plan Delivered
+📐 **Diagram Compiler Architecture Specification Delivered**
 
-📋 **Comprehensive Productization Roadmap**
+### The Strategic Reframe
 
-Created a full productization plan translating the design spec into an actionable implementation roadmap:
+The design document has been restructured to articulate a major insight: the real asset is NOT "a timeline tool" — it is a **deterministic, themeable, agent-authorable DIAGRAM COMPILER**. Timeline is Grammar #1, the first proof of the engine, not the whole product.
 
-- **Key Decision:** Recommended TypeScript/Node as core language (best MCP/agent/npm ecosystem fit; owner is fluent). Go remains viable alternative if owner prefers simpler art-effects scope.
-- **MVP Definition:** Horizontal swimlane layout, Consulting theme (Tier 1), SVG+PNG output, CLI with render/validate. Target T2 as acceptance fixture.
-- **5-Phase Roadmap:** Phase 0 (foundations) → Phase 1 (MVP) → Phase 2 (themes+polish) → Phase 3 (agents+ingesters) → Phase 4 (art effects+PPTX)
-- **Python Isolation:** python-pptx deferred and isolated as optional subprocess; evaluate pptxgenjs as non-Python alternative
-- **Target Mapping:** T2 at Phase 1; T1/T3 at Phase 3; T4/T5 at Phase 4 (require serpentine layout + Tier 3 effects)
-- **Conformance Strategy:** Golden-image suite using §14 worked IR fixtures as acceptance tests
+**Document Retitled:** "A Deterministic Diagram Compiler — Architecture & Specification (with Timeline as the First Grammar)"
 
-## Learnings
-
-- The five target images (§14) map to three distinct layout families: horizontal-swimlane (T2/default), vertical-spine (T1/T3/T5), serpentine (T4). Only horizontal-swimlane is covered by the current §5 pipeline.
-- Rendering library ecosystem is fragmented: resvg/usvg (Rust), Skia (C++), python-pptx (Python), Canvas (JS). TypeScript + WASM bindings is the pragmatic integration point.
-- The Scene/Render IR (§7) is the key architectural abstraction — it decouples layout from backends and enables per-backend golden-image testing.
-- Owner's Go fluency + Python aversion are hard constraints that shaped the language recommendation.
-
-## 2026-06-10 — TypeScript Core API & Phase 0/1 Design
-
-📐 **Core API Design & Implementation Plan Delivered**
-
-**Ratified Decision: TypeScript/Node Core**
-- Owner excluded Python from core (PPTX via pptxgenjs, not python-pptx)
-- VS Code extension must call core IN-PROCESS (no subprocess/IPC/WASM bridge) — "transparency contract"
-- MCP/agent + npm ecosystem fit
-
-**Package Architecture:**
-- `@timeline-compiler/core` — pure library, webview/worker-safe (no Node-only deps in hot path)
-- `@timeline-compiler/cli`, `@timeline-compiler/mcp`, `@timeline-compiler/schema`
-- Future VS Code extension imports core directly
-
-**API Design Highlights:**
-- SVG output as string (extension drops into webview with zero serialization)
-- Synchronous `compile(ir, options)` for live preview on keystroke
-- Diagnostics shape matches `vscode.Diagnostic` directly
-- Same API backs CLI + MCP + extension
-
-**Phase 0 (Foundations):**
-- pnpm monorepo with packages/core, cli, schema
-- TypeScript/ESLint/Prettier/Vitest config
-- JSON Schema (zod + zod-to-json-schema recommended)
-- CI on macOS+Linux
-- Empty public-API stubs as contract
-
-**Phase 1 (MVP Core):**
-- IR loader, 5-layer validator (17 invariants)
-- 6-phase layout engine for horizontal swimlane
-- SVG backend (deterministic), PNG backend (resvg-js WASM)
-- Consulting theme (Tier 1), CLI commands
-- Golden-image harness with T2 as acceptance fixture
-
-**v0.1.0 Definition of Done:**
-- T2 reproducible (byte-identical SVG+PNG)
-- Schema published, CLI validate/render, 1 theme
-
-## Learnings
-
-- TypeScript/Node ratified as core language: Python-avoidance + transparent in-process VS Code extension + MCP/npm fit.
-- Core API designed with SVG-as-string + synchronous compile path for webview live preview.
-- Package boundary: `@timeline-compiler/core` must be pure (no Node-only deps) to enable future webview/worker execution.
-- zod recommended for schema: single source of truth for TS types + JSON Schema generation + runtime validation.
-- Extension transparency contract: never spawn process; diagnostics map 1:1 to vscode.Diagnostic.
-
-## 2026-06-10 — Phase 0 Scaffold Complete (Leslie)
-
-🏗️ **Monorepo Scaffolded and Verified Green**
-
-### Monorepo Layout
+### New Document Structure (6 Parts, 24 Sections)
 
 ```
-packages/
-  core/     — @timeline-compiler/core  (pure library, public API contract)
-  cli/      — @timeline-compiler/cli   (commander-based CLI)
-  schema/   — @timeline-compiler/schema (JSON Schema artefacts)
-pnpm-workspace.yaml
-pnpm-settings.json    — onlyBuiltDependencies: [esbuild]
-tsconfig.base.json    — ES2022, NodeNext, strict
-eslint.config.js      — ESLint 9 flat config + typescript-eslint v8
-.prettierrc
-.nvmrc                — Node 22
-README.md
-.github/workflows/ci.yml  — ubuntu+macos × Node 20+22 matrix
+Part I — Thesis & Strategy
+  §01 Problem Statement (preserved)
+  §02 Central Thesis (NEW) — engine-as-asset, pipeline model, grammar family
+  §03 Guiding Principles (renumbered from §02)
+  §04 Scope (renumbered from §03)
+
+Part II — The Kernel (Universal Infrastructure)
+  §10 Scene IR (NEW) — universal render contract, primitives, effects
+  §11 Rendering Backends (NEW) — SVG-as-truth, PNG/Skia exports, HTML/CSS rejection
+  §12 Theming (renumbered from §06)
+  §13 Determinism (NEW) — consolidated determinism contract across all layers
+  §14 Animation (NEW) — additive, declarative, backend-conditional animation
+
+Part III — Grammars
+  §20 Grammar Concept (NEW) — two-IR-layer model, grammar interface, god-IR rejection
+  §21 Timeline Grammar (reframed from §04) — "Grammar #1"
+  §22 Timeline Layout Engine (reframed from §05)
+  §23 Inspiration Corpus (NEW) — taxonomy from 9 analyzed images
+  §24 Diagram Grammar Family (NEW) — flow, comparison, stat, graph, step-cards
+
+Part IV — Composition
+  §30 Composition IR (NEW) — multi-panel poster composition
+
+Part V — Architecture & Packaging
+  §40 Architecture Overview (NEW) — kernel/grammars/composition layering
+  §41 Packaging Strategy (NEW) — monorepo, incremental extraction path
+  §42 Layout Engines (NEW) — graph auto-layout algorithms, risk analysis
+
+Part VI — Ecosystem
+  §50–§55 (preserved and renumbered) — agent integration, distribution, comparison, OSS, MVP, targets
 ```
 
-### Public API Surface — packages/core/src/
+### Key Architectural Decisions Captured
 
-- `src/types.ts` — IRDocument, Activity, Milestone, Track, Group, Section, Legend, Annotation,
-  Diagnostic, ValidationResult, RenderOptions, RenderResult, IncrementalResult, Session, ThemeInfo
-- `src/api.ts` — loadIR, validate, render, compile, listThemes, getSchema, createSession,
-  NotImplementedError
-- `src/schema.ts` — Zod irDocumentSchema, buildJsonSchema()
-- `src/index.ts` — barrel re-export of entire public surface
+1. **Two-IR-Layer Model:** Domain IRs (grammar-specific, small) compile to Scene IR (universal primitives). Explicitly rejects "god-IR" approach — a mega-schema is semantically muddy, brittle, and hostile to LLM generation.
 
-### Tool Versions Pinned
+2. **SVG as Source of Truth:** PNG/PDF are exports from SVG, not parallel targets. HTML/CSS-first architecture explicitly rejected (browser/font variance, heavy headless-browser dependency, sacrifices determinism).
 
-| Tool | Version |
-|------|---------|
-| pnpm | 11.5.3 |
-| TypeScript | 5.9.3 |
-| eslint | 9.39.4 |
-| typescript-eslint | 8.61.0 |
-| prettier | 3.8.4 |
-| vitest | 3.2.6 |
-| zod | 3.25.76 |
-| zod-to-json-schema | 3.25.2 |
-| commander | 13.1.0 |
-| @types/node | 22.19.20 |
+3. **Animation is Additive:** Declarative hints on Scene primitives (SceneAnimationHints). Backends that don't support animation render the resting frame. Determinism preserved — animated SVG is still byte-identical markup.
 
-### Verify Commands (all PASS)
+4. **Kernel/Grammar/Composition Layering:**
+   - Kernel = Scene IR + backends + themes + determinism + animation
+   - Grammars = Timeline, Flow, Graph, Comparison, Stat (each with own Domain IR + Layout Engine)
+   - Composition = multi-panel poster layout
 
-```bash
-pnpm install --frozen-lockfile  # ✅ PASS
-pnpm -r build                   # ✅ PASS
-pnpm -r typecheck               # ✅ PASS
-pnpm -r lint                    # ✅ PASS
-pnpm -r test                    # ✅ PASS (22 tests: 15 core + 3 cli + 4 schema)
-node packages/cli/dist/index.js --version  # ✅ prints 0.1.0
-packages/schema/v1/timeline.json           # ✅ valid JSON, 487 lines
-```
+5. **Incremental Packaging Strategy:**
+   - Phase 0: Draw kernel/timeline seam inside packages/core
+   - Phase 1: Build Flow grammar as kernel-only consumer
+   - Phase 2: Extract packages when publishing/team boundaries justify it
+   - Phase 3: Additional grammars, composition layer
 
-### Key Implementation Notes
+6. **Grammar Sequencing:** Flows first (max reuse, best animation demo), then Graph + auto-layout (hardest), with Stat + Comparison as cheap parallel wins.
 
-- pnpm 11 requires explicit script approval for esbuild; solved via `pnpm-settings.json`
-  with `{ "onlyBuiltDependencies": ["esbuild"] }` — tested on fresh `rm -rf node_modules`
-- `zod-to-json-schema` default import fails with NodeNext; use named import
-  `import { zodToJsonSchema } from 'zod-to-json-schema'`
-- CLI package needs `@types/node` + explicit `"types": ["node"]` in tsconfig to resolve
-  Node builtins under strict ModuleResolution: NodeNext
-- pnpm -r respects topological order — schema package builds after core automatically
+### Corpus Analysis
 
-## 2026-06-10 — Phase 1 Integration Complete (Leslie, Wave 2)
+Analyzed 9 technical infographic images. Extracted visual vocabulary: Node-Link Graph, Flow/Pipeline, Numbered Step-Cards, Comparison Matrix, Stat Callout, Swimlane/Gantt, Nested Containers, Section-Stacked Poster.
 
-🔗 **Wiring Complete — All Phase 1 Exit Criteria MET**
+Key insight: Many corpus patterns are ALREADY expressible with what the timeline engine built. The genuinely new work is (a) node-link graph layout and (b) multi-panel composition.
 
-### Modules Wired
+### References Added
 
-| File | Change |
-|------|--------|
-| `packages/core/src/api.ts` | Replaced all 4 Phase-0 stubs with real delegations to `parseIR` / `validateDocument` / `renderDocument`; wired stateful `createSession`; kept `NotImplementedError` exported for backward compat; re-exported `IRParseError` |
-| `packages/core/src/index.ts` | Added lower-level exports: `parseIR`, `validateDocument`, `renderDocument`, `resolveTheme`, `sceneHash`, `IRParseError` |
-| `packages/cli/src/index.ts` | Full Phase 1 CLI: `validate` prints `severity code path: message`+suggestion, exits 0/1; `render` does validate-before-render, default output path = input basename, prints sceneHash; `schema` supports `-o`; global uncaught-exception handler; removed `NotImplementedError` handling |
-| `packages/core/test/smoke.test.ts` | Updated from Phase-0 (tests that functions throw) to Phase-1 (tests that functions work) |
+Graph layout: Sugiyama 1981, Reingold-Tilford 1981, Fruchterman-Reingold 1991, Eades 1984. Layout engines: ELK, dagre. DSL prior art: Graphviz, Mermaid, PlantUML, D2, Excalidraw, C4. Animation: SMIL, CSS Animations, Lottie.
 
-### T2 Fixture + Golden Harness
+### Build Status
 
-- **Fixture:** `examples/our-timeline.timeline.yaml` — T2 design spec §14.2, "Our Timeline", 3 milestones, consulting theme
-- **Golden SVG:** `examples/golden/our-timeline.svg` — generated on first test run, committed as reference
-- **Golden PNG:** `examples/golden/our-timeline.png` — visual artifact committed alongside SVG
-- **Harness:** `packages/core/test/golden.test.ts` — 10 tests covering (a) validation, (b) determinism, (c) SVG golden comparison, (d) PNG signature
-- **Note:** Fixture uses `label: " "` (space) instead of `label: ""` because schema requires min-1-char; track header is invisible anyway (`headerWidth: 0` in consulting theme). This is a minor schema/design-spec mismatch — minimal adaptation in fixture, no schema changes.
-
-### CLI Command Behavior
-
-```bash
-# validate — exit 0 if valid, exit 1 if errors
-node packages/cli/dist/index.js validate examples/our-timeline.timeline.yaml
-# → prints: info  UNUSED_TRACK  /tracks/0: ...
-# → prints: ✅ Valid  (exit 0)
-
-# render — validate-before-render, writes default output basename.svg
-node packages/cli/dist/index.js render examples/our-timeline.timeline.yaml -o out.svg
-# → prints: Written: out.svg  +  sceneHash: <64-hex>
-
-# render PNG
-node packages/cli/dist/index.js render examples/our-timeline.timeline.yaml -o out.png --format png
-# → PNG with 0x89 50 4E 47 signature
-
-# broken input → diagnostics + exit 1
-node packages/cli/dist/index.js validate broken.yaml  # exit 1 + error diagnostics
-```
-
-### Verify Status (all GREEN)
-
-| Command | Result |
-|---------|--------|
-| `pnpm install` | ✅ PASS |
-| `pnpm -r typecheck` | ✅ PASS |
-| `pnpm -r lint` | ✅ PASS |
-| `pnpm -r test` | ✅ PASS — 137 tests (130 core + 3 cli + 4 schema) |
-| `pnpm -r build` | ✅ PASS |
-| CLI validate T2 | ✅ PASS (exit 0) |
-| CLI render T2 → SVG×2 byte-identical | ✅ PASS (sceneHash matches) |
-| CLI render T2 → PNG signature | ✅ PASS (0x89 50 4E 47) |
-| CLI validate broken IR | ✅ PASS (exit 1, diagnostics printed) |
-
-**MVP Acceptance Bar:** T2 renders from IR to byte-deterministic SVG+PNG via CLI, with validate-before-render. **MET. ✅**
-
-## Learnings
-
+PDF builds successfully with `make pdf`. Minor cosmetic warnings only.
