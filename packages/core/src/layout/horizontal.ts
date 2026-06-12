@@ -786,17 +786,87 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     }
   }
 
-  // 3. Axis band (horizontal line at bottom of axis zone)
-  const axisY = rhu(mT_eff + Haxis);
-  primitives.push({
-    kind:        'line',
-    x1:          rhu(offset),
-    y1:          axisY,
-    x2:          rhu(offset + wDraw),
-    y2:          axisY,
-    stroke:      theme.axis.axisLineColor,
-    strokeWidth: 1,
-  });
+  // 3. Axis band — straight line (default) or node-wrapping arc path (nodeWrap:'over-under')
+  const axisY    = rhu(mT_eff + Haxis);
+  const nodeWrap = ax.nodeWrap ?? 'none';
+  {
+
+    if (nodeWrap === 'over-under') {
+      // Collect on-axis circle nodes left-to-right.
+      // "On-axis" = all milestones rendered as circles in the horizontal layout.
+      // In the our-timeline use case they all share the same yCenter (single track).
+      const onAxisNodes = [...milestoneLayouts]
+        .filter(() => ms.shape === 'circle')  // theme-level shape
+        .sort((a, b) => a.xCenter !== b.xCenter ? a.xCenter - b.xCenter : a.milestone.id.localeCompare(b.milestone.id));
+
+      if (onAxisNodes.length === 0) {
+        // Fallback: no circular nodes → straight spine at axisY
+        primitives.push({
+          kind:        'line',
+          x1:          rhu(offset),
+          y1:          axisY,
+          x2:          rhu(offset + wDraw),
+          y2:          axisY,
+          stroke:      theme.axis.axisLineColor,
+          strokeWidth: 1,
+        });
+      } else {
+        // The spine runs at the node y-level so the arcs hug tightly around each
+        // circle.  Assumption: all on-axis milestones share the same yCenter
+        // (single-track layout).  We use the first node's yCenter as spineY.
+        const spineY = rhu(onAxisNodes[0]!.yCenter);
+
+        // Arc radius: node radius + clearance so the line visibly clears the circle edge.
+        const ARC_CLEARANCE = 9;
+        const arcR           = rhu(ms.size + ARC_CLEARANCE);
+
+        // Build the SVG path data string deterministically.
+        // Each segment: straight → arc → straight (repeat).
+        // Arc sweep: index 0 → above (sweep=0, CCW = visually upward in SVG y-down);
+        //            index 1 → below (sweep=1, CW = visually downward);
+        //            alternates for remaining nodes.
+        let d = `M ${rhu(offset)} ${spineY}`;
+
+        for (let ni = 0; ni < onAxisNodes.length; ni++) {
+          const node   = onAxisNodes[ni]!;
+          const entryX = rhu(node.xCenter - arcR);
+          const exitX  = rhu(node.xCenter + arcR);
+          const nodeY  = rhu(node.yCenter);
+
+          // Straight segment to arc entry point
+          d += ` L ${entryX} ${nodeY}`;
+
+          // Semicircular arc around the node.
+          // sweep=0 → counterclockwise in SVG screen coords → bows ABOVE (−y)
+          // sweep=1 → clockwise                            → bows BELOW (+y)
+          const sweep = ni % 2 === 0 ? 0 : 1;
+          d += ` A ${arcR} ${arcR} 0 0 ${sweep} ${exitX} ${nodeY}`;
+        }
+
+        // Final straight segment from last arc exit to right canvas edge
+        d += ` L ${rhu(offset + wDraw)} ${spineY}`;
+
+        primitives.push({
+          kind:        'path',
+          d,
+          fill:        'none',
+          stroke:      theme.axis.axisLineColor,
+          strokeWidth: 1,
+        });
+      }
+    } else {
+      // Default: single straight spine line (byte-identical to pre-feature behaviour)
+      primitives.push({
+        kind:        'line',
+        x1:          rhu(offset),
+        y1:          axisY,
+        x2:          rhu(offset + wDraw),
+        y2:          axisY,
+        stroke:      theme.axis.axisLineColor,
+        strokeWidth: 1,
+      });
+    }
+  }
 
   // 4. Tick marks
   for (let i = 0; i < ticks.length; i++) {
@@ -934,16 +1004,21 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
 
   // 5. Track separators
   for (const tl of trackLayouts) {
-    primitives.push({
-      kind:        'line',
-      x1:          rhu(offset),
-      y1:          rhu(tl.yTop + tl.height),
-      x2:          rhu(offset + wDraw),
-      y2:          rhu(tl.yTop + tl.height),
-      stroke:      tk.separatorColor,
-      strokeWidth: tk.separatorWidth,
-      opacity:     0.3,
-    });
+    // Suppress the bottom-of-track line when nodeWrap:'over-under' — that mode
+    // uses the arc spine as the single visual baseline; the separator would
+    // appear as a confusing second parallel spine.
+    if (nodeWrap !== 'over-under') {
+      primitives.push({
+        kind:        'line',
+        x1:          rhu(offset),
+        y1:          rhu(tl.yTop + tl.height),
+        x2:          rhu(offset + wDraw),
+        y2:          rhu(tl.yTop + tl.height),
+        stroke:      tk.separatorColor,
+        strokeWidth: tk.separatorWidth,
+        opacity:     0.3,
+      });
+    }
     // Track header label (only if headerWidth > 0)
     if (Hhdr > 0 && tl.track.label) {
       const thFontPx = ptToPx(tk.headerFontSize);

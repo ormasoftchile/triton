@@ -66,6 +66,7 @@ export const ourTimelineTheme: ResolvedTheme = {
       width:   1.5,
       style:   'solid',
     },
+    nodeWrap:       'over-under',
   },
 
   track: {

@@ -90,6 +90,19 @@ export interface AxisTheme {
     width: number;
     style: 'solid' | 'dashed';
   };
+  /**
+   * Controls how the horizontal spine line behaves at each circular milestone node.
+   *
+   *   'none'       (default) — spine is a single straight line at axisY.
+   *                Byte-identical to pre-feature behaviour; no golden may move.
+   *
+   *   'over-under' — spine routes around each on-axis node's circumference as a
+   *                semicircular arc, alternating above (odd nodes) and below (even
+   *                nodes).  The arc radius is `ms.size + 3` px so the line hugs
+   *                just outside the circle.  Straight segments run between nodes.
+   *                Only active in the horizontal layout family.
+   */
+  nodeWrap?: 'none' | 'over-under';
 }
 
 export interface TrackTheme {
