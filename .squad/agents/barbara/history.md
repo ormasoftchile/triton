@@ -69,6 +69,24 @@ Deferred rules for `axis_breaks` IR field:
 
 ---
 
+## Learnings
+
+### 2026-06-12 — Label Collision De-collision (`labelWrap`-gated tier gap)
+
+**Defect:** Two milestone callouts ("MSI Installer / Install Path" at x≈632 and "80% adoption + queue signoff" at x≈741) were both assigned to tier 0 (y≈227.4) because the greedy tier packer used a `+2` horizontal gap which was too small to catch the visual overlap, compounded by `measureText` underestimating rendered text widths.
+
+**Fix (determinism-safe, gated behind `ms.labelWrap`):**
+- `LABEL_TIER_HGAP = ms.labelWrap ? 16 : 2` — replaces the hardcoded `+2` in both the above-side and below-side greedy tier loops.
+- `LABEL_COLLISION_PAD = ms.labelWrap ? 12 : 0` — inflates the collision footprint (`bL/bR`) for tier-packing purposes only; the actual rendered label x/width is unchanged.
+- When `labelWrap` is false (all existing themes), both constants collapse to the original values → all goldens byte-identical.
+- When `labelWrap` is true (roadmap theme), near-adjacent labels are pushed to separate tiers. Result: 3 above-axis tiers for timeline-goals (tier 0 y≈279, tier 1 y≈227, tier 2 y≈176); MSI and 80% adoption now on different tiers with no visual overlap.
+
+**Principle:** The `aboveZoneH` reservation already scales with `maxAboveTier`, so adding tiers automatically grows the top margin — no extra code needed.
+
+**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `timeline-goals-skia.png` only.
+
+---
+
 ## Detailed Archive
 
 Strategic context, nodeWrap learnings, Flow grammar open questions, and cross-agent flags are preserved in `history-archive.md`.
