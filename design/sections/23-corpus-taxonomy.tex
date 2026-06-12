@@ -5,19 +5,39 @@ This section analyzes a corpus of technical explainer infographics provided as d
 
 \subsection{The Corpus}
 
-Nine technical infographics from the AI-engineering and developer content space:
+Sixteen technical infographics from the ByteByteGo-style AI-engineering and
+developer content space, organized by visual pattern:
 
 \begin{enumerate}
-  \item \textbf{10x-coding-playbook} (Figure~\ref{fig:corpus-10x}): Multi-section poster about parallel AI coding workflows
-  \item \textbf{rag-vectorless-explainer} (Figure~\ref{fig:corpus-rag}): Step-by-step explanation of vectorless RAG
+  \item \textbf{10x-coding-playbook}: Multi-section poster about parallel AI
+        coding workflows (timeline + step-cards + stats)
+  \item \textbf{rag-vectorless-explainer}: Step-by-step explanation of
+        vectorless RAG (flow + tree + step-cards + stats)
   \item \textbf{dsa-patterns-grid}: Grid of algorithm pattern visualizations
-  \item \textbf{claude-vs-openclaw-matrix}: Feature comparison matrix between two AI agents
+        (comparison/matrix kind)
+  \item \textbf{claude-vs-openclaw-matrix}: Feature comparison matrix between
+        two AI agents (comparison/matrix kind)
   \item \textbf{calculator-vs-ai}: Two-column comparison with stats
+        (comparison/matrix kind)
   \item \textbf{agent-harness}: Hub-and-spoke architecture diagram
-  \item \textbf{archon-harness-builder}: Multi-section poster with timeline, stats, flow, and comparison elements
-  \item \textbf{openclaw-vps-architecture}: Nested container architecture diagram with external connections
+        (node-link/topology kind)
+  \item \textbf{archon-harness-builder}: Multi-section poster with timeline,
+        stats, flow, and comparison elements
+  \item \textbf{openclaw-vps-architecture}: Nested container architecture
+        diagram with external connections (node-link/topology kind)
   \item \textbf{single-vs-multi-agent}: Stacked node-link diagrams
+        (node-link/topology kind)
+  \item \textbf{explainer-01} through \textbf{explainer-16}: Sixteen
+        ByteByteGo-style technical explainer infographics covering the full
+        taxonomy: pipeline/sequence diagrams with animated arrow cues,
+        step-card sequences, comparison/matrix grids, stat callouts,
+        swimlane timelines, and multi-panel poster compositions.
 \end{enumerate}
+
+Figure~\ref{fig:corpus-10x} shows a multi-pattern poster; Figure~\ref{fig:corpus-rag}
+shows a RAG pipeline explainer.
+Figure~\ref{fig:corpus-explainer} shows a representative ByteByteGo-style
+explainer from the extended corpus.
 
 \begin{figure}[h]
 \centering
@@ -31,6 +51,13 @@ Nine technical infographics from the AI-engineering and developer content space:
 \includegraphics[width=0.95\linewidth]{figures/corpus/rag-vectorless-explainer.png}
 \caption{Vectorless RAG Explainer: Combines flow/pipeline (top left, bottom), tree diagram (top right), numbered step-cards (middle), stat callouts (bottom right), and section-stacked poster composition.}
 \label{fig:corpus-rag}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.80\linewidth]{figures/corpus/explainer-05-d6bdbd.png}
+\caption{ByteByteGo-style technical explainer (corpus image 05). Representative of the pipeline/sequence kind with numbered steps, annotated arrows, and stat callouts. The animated-arrow variant of this kind (flowing dashes along connector paths) is a recurring motif in the extended corpus.}
+\label{fig:corpus-explainer}
 \end{figure}
 
 \subsection{Extracted Visual Vocabulary}
@@ -51,7 +78,7 @@ Analysis reveals recurring diagram kinds that form a taxonomy:
 
 \textbf{Layout challenge:} General 2D graph auto-layout is research-grade. Practical approach: opinionated layout per sub-kind (tidy-tree, left-right pipeline, hub-and-spoke, swimlane).
 
-\subsubsection{Flow/Pipeline}
+\subsubsection{Flow/Pipeline (including Animated-Arrow Variant)}
 
 \textbf{Description:} Ordered sequence of icon+label nodes connected by arrows. May include branches, loops, and legends. The dominant idiom for explaining processes.
 
@@ -60,9 +87,25 @@ Analysis reveals recurring diagram kinds that form a taxonomy:
   \item ``The Vectorless RAG Retrieval Flow'' (rag-vectorless-explainer, bottom)
   \item ``ONE WORKFLOW. ONE YAML FILE.'' (archon-harness-builder, middle)
   \item ``The Problem With Traditional Vector RAG'' (rag-vectorless-explainer, top-left)
+  \item Multiple explainers (explainer-03, explainer-07, explainer-11): pipeline
+        steps with dashed-line or colored-border connectors suggesting
+        sequential activation.
 \end{itemize}
 
 \textbf{Key observation:} Flow pipelines are essentially timeline milestone-nodes + connectors + icons \emph{minus the time axis}. Most of the rendering logic is reusable.
+
+\medskip\noindent
+\textbf{Animated-arrow variant.}
+Several corpus images (particularly in the ByteByteGo extended set) show
+connector arrows with dashed or pulsing aesthetics that strongly imply
+motion --- data flowing through a pipeline, a request propagating through
+a system.  In the SVG animation layer, this maps to
+\texttt{stroke-dashoffset} animation on the connector path:
+a CSS keyframe or SMIL \texttt{<animate>} element that advances the dash
+offset at a fixed rate produces the ``flowing'' effect.
+This is a first-class animation pattern for the Flow grammar and does not
+require any changes to the static Scene IR --- only an animation hint attached
+to the connector's path element.
 
 \subsubsection{Numbered Step-Cards}
 
@@ -77,15 +120,38 @@ Analysis reveals recurring diagram kinds that form a taxonomy:
 \textbf{Key observation:} The numbered-step arcs in 10x-coding-playbook are literally the timeline's numbered milestone nodes on a horizontal axis with connecting lines.
 
 \subsubsection{Comparison (Matrix/Table)}
+\label{sec:corpus-comparison-matrix}
 
-\textbf{Description:} N columns (or rows) comparing items across features. Cells contain checkmarks, X marks, stats, or feature descriptions.
+\textbf{Description:} $N$ columns (or rows) comparing items across features.
+Cells contain checkmarks, $\times$ marks, stats, or feature descriptions.
+This is a \emph{genuinely tabular} kind --- not a flow, not a graph ---
+where columns are items, rows are attributes, and cells encode presence,
+absence, or magnitude.
+It is structurally orthogonal to all flow-derived diagram kinds: there is
+no directed-edge concept, no time axis, and no positional encoding of
+ordering beyond row/column position.
 
 \textbf{Corpus examples:}
 \begin{itemize}
   \item claude-vs-openclaw-matrix: 2 columns, 5 feature rows with icons
   \item calculator-vs-ai: 2 columns with hero images and stat rows
-  \item ``THE PROBLEM'' / ``Archon -- The Harness'' (archon-harness-builder): side-by-side comparison
+  \item dsa-patterns-grid: 15 algorithm pattern cells in a 5$\times$3 grid
+        (each cell is a mini diagram + label --- a grid of comparison cells)
+  \item ``THE PROBLEM'' / ``Archon -- The Harness'' (archon-harness-builder):
+        side-by-side comparison columns
+  \item explainer-04 (corpus extended): 3-column capability comparison with
+        checkmark/X indicator cells
 \end{itemize}
+
+\textbf{Grammar design note.}
+The Comparison grammar must be kept separate from the Flow/Pipeline grammar.
+Its layout is a constrained-grid assignment (column widths auto-computed from
+cell content; row heights from maximum cell height in the row) rather than a
+directed-graph algorithm.
+The primitive unit is a \emph{cell} (possibly containing an icon, a stat, a
+description string, or a checkmark indicator), not a \emph{node with edges}.
+Conflating comparison with flow in a single grammar would violate the
+two-IR-layer principle of semantic tightness.
 
 \subsubsection{Stat Callout}
 

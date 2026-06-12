@@ -935,3 +935,334 @@
                   Context, Container, Component, Code. Implemented in Structurizr.
                   Domain-specific to software architecture.}
 }
+
+% -----------------------------------------------------------------------------
+% VISUAL COMMUNICATION THEORY (added 2026-06-12 by David, Research Lead)
+% Sources grounding the grammar concept and layout aesthetics in perceptual theory.
+% -----------------------------------------------------------------------------
+
+@book{bertin1967,
+  author    = {Bertin, Jacques},
+  title     = {S\'{e}miologie Graphique: Les diagrammes, les r\'{e}seaux, les cartes},
+  publisher = {Mouton/Gauthier-Villars},
+  address   = {Paris},
+  year      = {1967},
+  note      = {English translation: \textit{Semiology of Graphics},
+               University of Wisconsin Press, 1983. Foundational work
+               identifying seven visual variables (position, size, shape,
+               value, color, orientation, texture) and their selectivity,
+               order, and quantitative properties.}
+}
+
+@book{tufte1983,
+  author    = {Tufte, Edward R.},
+  title     = {The Visual Display of Quantitative Information},
+  publisher = {Graphics Press},
+  address   = {Cheshire, CT},
+  year      = {1983},
+  isbn      = {978-0961392109},
+  note      = {Introduces the data-ink ratio and the principle of maximizing
+               information-carrying ink while eliminating chartjunk. Small
+               multiples. Directly informs layout defaults in the diagram
+               compiler.}
+}
+
+@article{cleveland1984,
+  author  = {Cleveland, William S. and McGill, Robert},
+  title   = {Graphical Perception: Theory, Experimentation, and Application
+             to the Development of Graphical Methods},
+  journal = {Journal of the American Statistical Association},
+  year    = {1984},
+  volume  = {79},
+  number  = {387},
+  pages   = {531--554},
+  doi     = {10.1080/01621459.1984.10478080},
+  note    = {Empirical ranking of visual channels by decoding accuracy:
+             position $>$ length $>$ angle $>$ area $>$ color. Informs the
+             diagram compiler's priority of spatial position for ordering
+             and length for duration.}
+}
+
+@book{munzner2014,
+  author    = {Munzner, Tamara},
+  title     = {Visualization Analysis and Design},
+  publisher = {CRC Press / A K Peters},
+  series    = {AK Peters Visualization Series},
+  year      = {2014},
+  isbn      = {978-1-4665-0891-0},
+  url       = {https://www.cs.ubc.ca/~tmm/vadbook/},
+  note      = {Comprehensive framework for principled visualization design.
+               Marks-and-channels taxonomy distinguishes identity channels
+               (hue, shape) from magnitude channels (position, length, area),
+               directly informing which IR fields may be bound to which
+               visual properties.}
+}
+
+@article{munzner2009,
+  author  = {Munzner, Tamara},
+  title   = {A Nested Model for Visualization Design and Validation},
+  journal = {IEEE Transactions on Visualization and Computer Graphics},
+  year    = {2009},
+  volume  = {15},
+  number  = {6},
+  pages   = {945--952},
+  doi     = {10.1109/TVCG.2009.111},
+  note    = {Four-level nested model (domain situation, data/task abstraction,
+             visual encoding, algorithm). Key insight: a wrong design at a
+             higher level cannot be rescued by a better algorithm below.
+             Validates the primacy of IR design over rendering optimization.}
+}
+
+% -----------------------------------------------------------------------------
+% LLM / AGENT STRUCTURED GENERATION (added 2026-06-12 by David)
+% Sources grounding §20 and §50 in constrained-decoding research.
+% -----------------------------------------------------------------------------
+
+@misc{willard2023,
+  author       = {Willard, Brandon T. and Louf, R{\'e}mi},
+  title        = {Efficient Guided Generation for Large Language Models},
+  year         = {2023},
+  eprint       = {2307.09702},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CL},
+  url          = {https://arxiv.org/abs/2307.09702},
+  note         = {Reformulates LLM generation as transitions in a finite-state
+                  machine derived from a formal grammar or regex. Vocabulary
+                  index pre-computed at grammar-compilation time; per-step
+                  overhead is negligible. Open-source: Outlines library
+                  (\url{https://github.com/dottxt-ai/outlines}). Foundational
+                  result for grammar-constrained diagram IR generation.}
+}
+
+@inproceedings{wang2023grammar,
+  author    = {Wang, Bailin and Wang, Zi and Wang, Xuezhi and
+               Cao, Yuan and Saurous, Rif A. and Kim, Yoon},
+  title     = {Grammar Prompting for Domain-Specific Language Generation
+               with Large Language Models},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2023},
+  eprint    = {2305.19234},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2305.19234},
+  note      = {Grammar constraints derived from domain-specific knowledge
+               enable LLMs to generalize from few examples on complex DSL
+               generation tasks. Key finding: a \emph{minimal grammar
+               fragment} for a specific instance is more reliable than
+               the full schema. Directly motivates keeping domain IRs small.}
+}
+
+@misc{dong2024xgrammar,
+  author       = {Dong, Yixin and Ruan, Charlie F. and Cai, Yaxing and
+                  Lai, Ruihang and Xu, Ziyi and Zhao, Yilong and Chen, Tianqi},
+  title        = {{XGrammar}: Flexible and Efficient Structured Generation
+                  Engine for Large Language Models},
+  year         = {2024},
+  eprint       = {2411.15100},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.LG},
+  url          = {https://arxiv.org/abs/2411.15100},
+  note         = {Context-free grammar engine for LLM inference. Separates
+                  context-independent from context-dependent tokens to achieve
+                  up to 100$\times$ speedup over naive per-step CFG execution.
+                  Integrated into vLLM and SGLang. Supports JSON Schema
+                  directly, making the diagram Domain IR schema directly
+                  actionable for grammar-constrained generation.}
+}
+
+@misc{llama2024gbnf,
+  author       = {{ggml-org contributors}},
+  title        = {{GBNF} Guide: Grammar-Based Constrained Generation in
+                  \texttt{llama.cpp}},
+  year         = {2024},
+  url          = {https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md},
+  note         = {GGML BNF grammar format for constraining LLM output in the
+                  llama.cpp runtime. Auto-converts JSON Schema to GBNF,
+                  enabling diagram IR schema to be used as a grammar constraint
+                  for local on-device LLM authoring.}
+}
+
+@misc{tian2023chartgpt,
+  author       = {Tian, Yuan and Cui, Weiwei and Deng, Dazhen and
+                  Yi, Xinjing and Yang, Yurun and Zhang, Haidong and Wu, Yingcai},
+  title        = {{ChartGPT}: Leveraging {LLMs} to Generate Charts from
+                  Abstract Natural Language},
+  year         = {2023},
+  eprint       = {2311.01902},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.HC},
+  url          = {https://arxiv.org/abs/2311.01902},
+  note         = {Identifies LLM failure modes for chart spec generation:
+                  syntactically valid but semantically wrong specs; ambiguous
+                  field names; missing required fields. Mitigated by:
+                  grammar constraints (eliminate syntactic failures),
+                  validation layer (semantic failures), decomposed generation.
+                  Validates the compiler's validate-before-render step.}
+}
+
+@inproceedings{narechania2021nl4dv,
+  author    = {Narechania, Arpit and Srinivasan, Arjun and Stasko, John},
+  title     = {{NL4DV}: A Toolkit for Generating Analytic Specifications
+               for Data Visualization from Natural Language Queries},
+  booktitle = {Proceedings of the IEEE Conference on Visualization (IEEE VIS)},
+  year      = {2021},
+  journal   = {IEEE Transactions on Visualization and Computer Graphics},
+  volume    = {27},
+  number    = {2},
+  pages     = {369--379},
+  doi       = {10.1109/TVCG.2020.3030378},
+  note      = {NL query $\to$ Vega-Lite JSON spec pipeline. The Vega-Lite
+               grammar's compact, schema-validated JSON proved tractable
+               for programmatic generation. Key insight: targeting a
+               well-specified intermediate grammar (not a general-purpose
+               API) dramatically simplifies NL-to-visualization translation.}
+}
+
+@misc{ray2026constraint,
+  author       = {Ray, Jaideep},
+  title        = {The Constraint Tax: Measuring Validity--Correctness
+                  Tradeoffs in Structured Outputs for Small Language Models},
+  year         = {2026},
+  archivePrefix = {arXiv},
+  note         = {Preprint, May 2026. Hard schema-decoding raises syntactic
+                  validity 61.5\%$\to$100\% but \emph{lowers} semantic accuracy
+                  for sub-3B parameter models. Recommends ``reason free,
+                  constrain late'': unconstrained chain-of-thought reasoning
+                  followed by constrained structured output. Informs the
+                  two-stage authoring path for on-device models.}
+}
+
+% -----------------------------------------------------------------------------
+% ADDITIONAL GRAPH LAYOUT ALGORITHMS (added 2026-06-12 by David)
+% Supplementing §42 with B&K, Walker, Buchheim, Kamada-Kawai, stress, TSM.
+% -----------------------------------------------------------------------------
+
+@inproceedings{brandesKopf2001,
+  author    = {Brandes, Ulrik and K{\"o}pf, Boris},
+  title     = {Fast and Simple Horizontal Coordinate Assignment},
+  booktitle = {Proceedings of the 9th International Symposium on
+               Graph Drawing ({GD} 2001)},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {2265},
+  pages     = {31--44},
+  publisher = {Springer},
+  year      = {2001},
+  doi       = {10.1007/3-540-45848-4_3},
+  note      = {O(n) horizontal coordinate assignment for Sugiyama-style
+               layouts. Constructs four candidate alignments (left-top,
+               right-top, left-bottom, right-bottom) and takes the median.
+               Guarantees at most two bends per edge. Used in Graphviz dot,
+               dagre, and ELK Layered. Closes Phase 4 of the Sugiyama
+               pipeline deterministically.}
+}
+
+@article{walker1990,
+  author  = {Walker, John Q., II},
+  title   = {A Node-Positioning Algorithm for General Trees},
+  journal = {Software---Practice and Experience},
+  volume  = {20},
+  number  = {7},
+  pages   = {685--705},
+  year    = {1990},
+  doi     = {10.1002/spe.4380200705},
+  note    = {Extension of Reingold--Tilford to n-ary trees; claimed O(n)
+             but contains a bug causing O(n\textsuperscript{2}) worst-case
+             behaviour (corrected by Buchheim et al.\ 2002).}
+}
+
+@inproceedings{buchheim2002,
+  author    = {Buchheim, Christoph and J{\"u}nger, Michael and Leipert, Sebastian},
+  title     = {Improving {Walker's} Algorithm to Run in Linear Time},
+  booktitle = {Proceedings of the 10th International Symposium on
+               Graph Drawing ({GD} 2002)},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {2528},
+  pages     = {344--353},
+  publisher = {Springer},
+  year      = {2002},
+  doi       = {10.1007/3-540-36151-0_32},
+  note      = {Corrects Walker (1990) to true O(n) using a thread pointer
+               that prevents quadratic re-traversal. State-of-the-art
+               tree layout algorithm; the basis of D3's \texttt{d3.tree()}
+               layout.}
+}
+
+@article{kamadaKawai1989,
+  author  = {Kamada, Tomihisa and Kawai, Satoru},
+  title   = {An Algorithm for Drawing General Undirected Graphs},
+  journal = {Information Processing Letters},
+  volume  = {31},
+  number  = {1},
+  pages   = {7--15},
+  year    = {1989},
+  doi     = {10.1016/0020-0190(89)90102-6},
+  note    = {Energy-minimization algorithm connecting all node pairs by
+             springs whose ideal length is proportional to graph-theoretic
+             distance. O(n\textsuperscript{3}) complexity; highly aesthetic
+             for undirected networks. Graphviz \texttt{neato} \texttt{mode=KK}.}
+}
+
+@inproceedings{gansnerStressMaj2004,
+  author    = {Gansner, Emden R. and Koren, Yehuda and North, Stephen C.},
+  title     = {Graph Drawing by Stress Majorization},
+  booktitle = {Proceedings of the 12th International Symposium on
+               Graph Drawing ({GD} 2004)},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {3383},
+  pages     = {239--250},
+  publisher = {Springer},
+  year      = {2004},
+  doi       = {10.1007/978-3-540-31843-9_25},
+  url       = {https://graphviz.org/documentation/GKN04.pdf},
+  note      = {Stress majorization (SMACOF) for graph layout. Guaranteed
+               monotone convergence; deterministic given fixed initial
+               positions. Default algorithm in Graphviz \texttt{neato}.
+               Safer than Kamada-Kawai for the determinism contract.}
+}
+
+@article{tamassia1987,
+  author  = {Tamassia, Roberto},
+  title   = {On Embedding a Graph in the Grid with the Minimum Number of Bends},
+  journal = {{SIAM} Journal on Computing},
+  volume  = {16},
+  number  = {3},
+  pages   = {421--444},
+  year    = {1987},
+  doi     = {10.1137/0216030},
+  note    = {Topology--Shape--Metrics (TSM) framework for orthogonal graph
+             drawing. Bend minimisation formulated as minimum-cost network
+             flow on the dual graph, solvable in polynomial time. Foundational
+             for UML-style and circuit-schematic diagram layouts.}
+}
+
+@misc{webCola,
+  author       = {Dwyer, Tim},
+  title        = {{WebCoLa}: {JavaScript} Constraint-Based Layout},
+  howpublished = {\url{https://ialab.it.monash.edu/webcola/}},
+  year         = {2024},
+  url          = {https://github.com/tgdwyer/WebCola},
+  note         = {MIT license. JavaScript reimplementation of libcola:
+                  stress majorization combined with VPSC separation
+                  constraints. Prevents node overlap, enforces alignment,
+                  and supports directed layout hints. Deterministic given
+                  fixed initial positions. Useful for swimlane and
+                  constraint-heavy layouts.}
+}
+
+@article{gansner1993dot,
+  author  = {Gansner, Emden R. and Koutsofios, Eleftherios and
+             North, Stephen C. and Vo, Kiem-Phong},
+  title   = {A Technique for Drawing Directed Graphs},
+  journal = {IEEE Transactions on Software Engineering},
+  volume  = {19},
+  number  = {3},
+  pages   = {214--230},
+  year    = {1993},
+  doi     = {10.1109/32.221135},
+  url     = {https://www.graphviz.org/documentation/TSE93.pdf},
+  note    = {The ``dot'' paper. Introduces network simplex for layer
+             assignment (Phase~2 of Sugiyama) and a crossing-minimisation
+             improvement; the coordinate assignment in the current
+             implementation was later superseded by Brandes \& K{\"o}pf
+             (2001). Canonical reference for the Graphviz \texttt{dot}
+             algorithm.}
+}

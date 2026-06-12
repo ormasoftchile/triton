@@ -52,8 +52,14 @@ This is a feature, not a limitation: the author (human or agent) declares the gr
 For rooted trees: parent-child hierarchies with no cross-links.
 
 \begin{description}
-  \item[Algorithm] Reingold-Tilford (1981)~\cite{reingold1981}, extended by Walker (1990) for arbitrary trees.
-  \item[Complexity] O(n) time.
+  \item[Algorithm] Reingold-Tilford (1981)~\cite{reingold1981}, extended by
+    Walker (1990)~\cite{walker1990} for arbitrary $n$-ary trees (Walker's
+    claimed $O(n)$ has a known bug causing $O(n^2)$ worst case).
+    Buchheim, J{\"u}nger \& Leipert (2002)~\cite{buchheim2002} corrected
+    Walker to truly run in $O(n)$ by maintaining a thread pointer across
+    subtrees; this is the state-of-the-art and the basis of D3's
+    \texttt{d3.tree()} layout.
+  \item[Complexity] $O(n)$ (Buchheim et al.\ corrected algorithm).
   \item[Determinism] Fully deterministic given node order.
   \item[Implementation] Well-documented; available in dagre, ELK~\cite{elk}.
 \end{description}
@@ -63,10 +69,29 @@ For rooted trees: parent-child hierarchies with no cross-links.
 For directed acyclic graphs: pipelines, dependency graphs, workflow stages.
 
 \begin{description}
-  \item[Algorithm] Sugiyama, Tagawa \& Toda (1981)~\cite{sugiyama1981}: (1) cycle removal, (2) layer assignment, (3) crossing minimization, (4) x-coordinate assignment.
-  \item[Complexity] O(|V| + |E|) for layers, O(|V|²) for crossing minimization heuristics.
-  \item[Determinism] Deterministic with fixed layer-assignment and barycenter ordering.
-  \item[Implementation] dagre~\cite{dagre}, ELK~\cite{elk}, Graphviz dot~\cite{graphviz}.
+  \item[Algorithm] Sugiyama, Tagawa \& Toda (1981)~\cite{sugiyama1981}: four
+    canonical phases:
+    \begin{enumerate}
+      \item \textbf{Cycle removal} --- a minimal feedback arc set is reversed
+            to produce a DAG.  Greedy heuristics run in $O(|V|+|E|)$.
+      \item \textbf{Layer assignment} --- network simplex (Gansner et
+            al.~\cite{gansner1993dot}) minimises total edge span $\Sigma|\lambda(v)-\lambda(u)|$
+            in near-linear time.
+      \item \textbf{Crossing minimisation} --- barycenter/median heuristic
+            iterated over adjacent layer pairs (NP-complete
+            optimum~\cite{garey1983}); 24 sweeps is the standard practice.
+      \item \textbf{Coordinate assignment} --- Brandes \&
+            K{\"o}pf~\cite{brandesKopf2001} O(n) algorithm constructs four
+            candidate alignments and takes the median; guarantees at most two
+            bends per edge.
+    \end{enumerate}
+  \item[Complexity] $O(|V| + |E|)$ for layers; $O(|V|^2)$ for crossing
+    minimisation heuristics; $O(n)$ for coordinate assignment.
+  \item[Determinism] Deterministic with fixed layer-assignment and
+    barycenter ordering; tie-breaking by canonical node ID gives
+    byte-identical output~\cite{dagre}.
+  \item[Implementation] dagre~\cite{dagre}, ELK~\cite{elk}, Graphviz
+    dot~\cite{graphviz}.
 \end{description}
 
 \subsubsection{Hub-and-Spoke (Radial)}
@@ -84,19 +109,72 @@ For star topologies: central hub with peripheral spokes.
 For graphs with no clear hierarchy or structure.
 
 \begin{description}
-  \item[Algorithm] Fruchterman-Reingold (1991)~\cite{fruchterman1991} or Eades spring model (1984)~\cite{eades1984}.
-  \item[Complexity] O(|V|² × iterations).
-  \item[Determinism] \textbf{Risk}: iterative simulation can converge to different local minima. Mitigations:
+  \item[Algorithm] Fruchterman-Reingold (1991)~\cite{fruchterman1991} or
+    Eades spring model (1984)~\cite{eades1984}.
+    For undirected networks where force-directed \emph{aesthetics} are desired
+    but determinism is required, stress
+    majorization~\cite{gansnerStressMaj2004} (Gansner, Koren \& North 2004)
+    is the safer alternative: given a fixed canonical initial layout (e.g.,
+    nodes on a circle in alphabetical order), the SMACOF iteration is a pure
+    function of the distance matrix --- no randomness.
+    This is the default in Graphviz \texttt{neato} and available in
+    ELK~\cite{elk} as \texttt{org.eclipse.elk.stress}.
+    Kamada \& Kawai (1989)~\cite{kamadaKawai1989} offer a complementary
+    energy-minimization model connecting all node pairs by springs proportional
+    to graph-theoretic distance (Graphviz \texttt{neato mode=KK}).
+  \item[Complexity] $O(|V|^2 \times \text{iterations})$ for
+    Fruchterman-Reingold; $O(n^3)$ for Kamada-Kawai.
+  \item[Determinism] \textbf{Risk}: iterative simulation can converge to
+    different local minima.  Mitigations:
   \begin{itemize}
     \item Initial positions from sorted node IDs (deterministic starting point)
     \item Perturbations seeded by \texttt{scene\_hash}
     \item Fixed iteration count (no convergence-based termination)
+    \item Stress majorization with deterministic init (recommended)
   \end{itemize}
-  \item[Implementation] d3-force, sigma.js, custom.
+  \item[Implementation] d3-force, sigma.js, WebCola~\cite{webCola} (constraint-aware), custom.
 \end{description}
 
 \paragraph{Force-directed caveat.}
 Even with mitigations, force-directed layout is the least reliable for determinism. Small changes to nodes/edges can cause large layout changes. It is recommended for exploratory use, not production artifacts.
+
+\subsubsection{Orthogonal Layout (Architecture Diagrams)}
+
+For UML-style architecture diagrams and circuit schematics where all edges
+must be horizontal or vertical segments.
+
+\begin{description}
+  \item[Framework] Topology--Shape--Metrics (TSM), introduced by
+    Tamassia (1987)~\cite{tamassia1987}: (1)~find a planar embedding or
+    planarize via dummy crossings; (2)~assign edge orientations minimising total
+    bends via minimum-cost network flow on the dual graph (polynomial time);
+    (3)~assign coordinates by compaction.
+  \item[Determinism] Fully deterministic once the graph embedding is fixed.
+  \item[Practical engine] ELK Layered with orthogonal routing mode;
+    libavoid (Wybrow et al.) for edge-only routing around fixed nodes.
+    Used in Inkscape, draw.io, and Graphviz's orthogonal routing mode.
+  \item[When to use] Nested container architecture diagrams, ER diagrams,
+    and any diagram where right-angle edges reduce visual clutter.
+\end{description}
+
+\subsubsection{Constraint-Based Layout (Swimlanes, Alignment)}
+
+For diagrams with hard spatial constraints: swimlane boundaries, node
+alignment, and non-overlapping placement.
+
+\begin{description}
+  \item[Framework] IPSep-CoLa / WebCola~\cite{webCola} (Dwyer, Marriott \&
+    Stuckey): stress majorization combined with VPSC separation constraints
+    (a quadratic program minimising displacement subject to $x_j - x_i \ge
+    g_{ij}$).  Prevents node overlap, enforces lane boundaries, and supports
+    alignment constraints.
+  \item[Determinism] Deterministic given a fixed initial layout.
+    WebCola's monotone stress convergence avoids the oscillation of spring
+    models.
+  \item[When to use] Complex swimlane diagrams where Sugiyama alone produces
+    lane-boundary violations; interactive diagrams where nodes drag within
+    lane constraints.
+\end{description}
 
 \subsection{Practical Layout Engines}
 

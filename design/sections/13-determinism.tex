@@ -18,7 +18,7 @@ This is a \emph{specification-level} requirement, not an implementation detail. 
   
   \item[CI/CD integration.] Automated pipelines can render diagrams without human inspection. Build artifacts are reproducible.
   
-  \item[Agent reliability.] AI agents can trust that their generated IR produces the expected visual. Round-trip editing (generate → render → inspect → regenerate) works.
+  \item[Agent reliability.] AI agents can trust that their generated IR produces the expected visual. Round-trip editing (generate → render → inspect → regenerate) works. This property interacts with LLM-side grammar constraints~\cite{willard2023}: the compiler guarantees that a valid IR produces a specific visual, while grammar-constrained decoding guarantees that the LLM emits a valid IR. Together, they close the agent-authoring loop end-to-end.
   
   \item[Golden testing.] Reference images committed to the repository can be compared byte-for-byte against new renders. Regressions are detectable.
   
@@ -38,6 +38,8 @@ This is a \emph{specification-level} requirement, not an implementation detail. 
 \textbf{Problem:} Random values for layout jitter, effect seeds, or ID generation break determinism.
 
 \textbf{Solution:} No random state is consumed. Effect seeds for procedural effects (noise textures, cloud layers) are derived deterministically from \texttt{scene\_hash + effect\_id}.
+
+For layout engines: force-directed algorithms (Fruchterman-Reingold~\cite{fruchterman1991}, Eades~\cite{eades1984}) require a fixed initial placement. The recommended mitigation is to use stress majorization~\cite{gansnerStressMaj2004} with a deterministic initial layout (nodes sorted by ID on a circle), which makes the SMACOF iteration a pure function of the distance matrix with no random state. Alternatively, Sugiyama-style layered layout (dagre~\cite{dagre}, ELK~\cite{elk}) is deterministic by construction for a given node and edge ordering.
 
 \subsubsection{Floating-Point Rounding}
 

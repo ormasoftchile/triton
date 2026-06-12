@@ -15,21 +15,31 @@ temporal data (or natural-language plans) and deterministically renders
 presentation-quality timeline artefacts --- SVG, PNG, PDF, and PPTX --- from
 a stable, version-controlled, LLM-friendly Intermediate Representation (IR).
 
-The competitive landscape therefore contains two distinct clusters:
+\medskip\noindent
+\textbf{What the literature says.}
+The prior-art landscape reveals \emph{three} distinct clusters, not two:
 
 \begin{itemize}
-  \item \textbf{Diagram-as-code tools} (Mermaid, PlantUML, D2) --- source-
-        control friendly, developer-facing, but limited in presentation fidelity
-        and output format breadth.
+  \item \textbf{Diagram-as-code tools} (Mermaid~\cite{mermaid2023},
+        PlantUML~\cite{plantuml}, D2~\cite{d2lang}, Graphviz~\cite{graphviz})
+        --- source-control friendly, developer-facing, but limited in
+        presentation fidelity, output breadth, and formal IR guarantees.
+  \item \textbf{Declarative visualization grammars}
+        (Vega-Lite~\cite{vegalite2017}, ggplot2~\cite{layeredgrammar2010},
+        Vega) --- principled WHAT/HOW separation, deterministic rendering, and
+        strong LLM-authorability via JSON Schema, but chart-only: they have
+        no concept of node-link graphs, flows, or timeline swimlanes.
   \item \textbf{Presentation / project-management tools} (think-cell,
         PowerPoint, MS Project) --- presentation-quality, but proprietary,
         manual, and hostile to automation and version control.
 \end{itemize}
 
-\noindent
-Timeline Compiler is designed to occupy the empty cell at the intersection:
-open-source, git-friendly, agent-generation-friendly, \emph{and}
-presentation-quality.
+\medskip\noindent
+\textbf{What we recommend.}
+Timeline Compiler is designed to occupy the \emph{empty cell} at the
+intersection of all three clusters: open-source, git-friendly,
+agent-generation-friendly, presentation-quality, \emph{and} diagram-capable
+(not limited to statistical charts).
 Each tool below is evaluated on the axes most relevant to that position.
 
 % -----------------------------------------------------------------------------
@@ -186,6 +196,61 @@ version control.  Visual quality is constrained by SmartArt templates;
 professional roadmaps almost always require manual box placement, which
 is time-consuming and fragile when dates change.
 
+\subsubsection{D2 (Terrastruct)}
+
+D2~\cite{d2lang} (Mozilla Public License 2.0) is a modern Go-based
+diagram language that bundles dagre, ELK~\cite{elk}, and the proprietary
+TALA layout engine in a single tool.
+Its key innovations are first-class container nesting, a clean
+\texttt{a: label; a -> b: edge} syntax, and an official theme system
+with light/dark modes~\cite{d2lang}.
+D2 outputs SVG, PNG, and PDF.
+
+\medskip\noindent
+\textbf{Where it falls short for our goal.}
+\begin{itemize}
+  \item \emph{No timeline or Gantt diagram type.}  D2 is a general
+        graph-diagram tool; swimlane roadmaps require manual
+        node-positioning.
+  \item \emph{TALA (the best layout engine) is closed-source and paid.}
+        The open-source dagre and ELK engines produce lower-quality
+        output for complex architecture diagrams.
+  \item \emph{No animation.}
+        D2 has a roadmap item for animation but no implementation as of 2026.
+  \item \emph{No multi-panel poster layout.}
+  \item \emph{MPL-2.0 copyleft implications} for embedded use.
+\end{itemize}
+
+\subsubsection{Graphviz / DOT}
+
+Graphviz~\cite{graphviz} (Eclipse Public License) is the oldest and
+most foundational text-to-diagram system, developed at AT\&T Bell Labs
+circa 1991.  The DOT language declares a pure graph:
+\texttt{digraph G \{ A -> B [label="step"] \}}.
+Six layout engines cover different graph classes: \texttt{dot}
+(Sugiyama~\cite{sugiyama1981} layered, deterministic), \texttt{neato}
+(Kamada-Kawai / stress majorization~\cite{gansnerStressMaj2004},
+seed-dependent), \texttt{fdp}/\texttt{sfdp}
+(Fruchterman-Reingold~\cite{fruchterman1991}), \texttt{twopi}
+(radial), \texttt{circo} (circular).
+Output formats span SVG, PNG, PDF, PostScript, and \textasciitilde30
+more~\cite{graphviz}.
+
+\medskip\noindent
+\textbf{Where it falls short for our goal.}
+\begin{itemize}
+  \item \emph{No timeline or presentation diagram type.}
+        Graphviz is a pure graph-layout tool; swimlane roadmaps are outside
+        its domain.
+  \item \emph{Dated visual aesthetic.}
+        The default rendering style (monospace labels, thin edges) is
+        immediately recognisable as a developer tool, not an executive
+        infographic.
+  \item \emph{No animation and no theming system.}
+  \item \emph{Force-directed engines (\texttt{neato}/\texttt{fdp}/\texttt{sfdp})
+        are non-deterministic without a fixed seed.}
+\end{itemize}
+
 % -----------------------------------------------------------------------------
 \subsection{Comparison Table}
 \label{sec:comparison-table}
@@ -203,7 +268,8 @@ analysis above and are not precise benchmarks.
          \textnormal{H = High, M = Medium, L = Low.
          ``Agent-gen'' = suitability for automated generation by an LLM/agent.
          ``Determinism'' = stable, reproducible output from the same input.
-         ``SCM'' = source-control management friendliness.}}
+         ``SCM'' = source-control management friendliness.
+         Viz-grammar tools scored for their supported domain (charts only).}}
 \label{tab:comparison}
 \small
 \begin{tabular}{lccccccc}
@@ -220,11 +286,16 @@ analysis above and are not precise benchmarks.
 Mermaid timeline~\cite{mermaiddocs2024}   & M & M & H & H & H & L & M \\
 Mermaid gantt~\cite{mermaidgantt2024}     & L & M & H & H & H & L & M \\
 PlantUML~\cite{plantuml}                  & L & H & H & M & H & L & H \\
+D2~\cite{d2lang}                          & M & M & H & M & H & L & H \\
+Graphviz~\cite{graphviz}                  & L & H & H & M & H & L & H \\
 vis-timeline~\cite{vistimeline}           & M & L & L & L & H & L & L \\
 Frappe Gantt~\cite{frappegantt}           & M & L & L & L & H & L & L \\
 MS Project~\cite{msproject}               & M & L & L & L & L & L & M \\
 think-cell~\cite{thinkcell}               & H & M & L & L & L & H & L \\
 PowerPoint~\cite{powerpoint-timeline}     & M & L & L & L & L & H & L \\
+\midrule
+Vega-Lite~\cite{vegalite2017} (charts)    & H & H & H & H & H & L & H \\
+ggplot2~\cite{layeredgrammar2010} (charts) & H & H & M & M & H & L & H \\
 \midrule
 \textbf{Timeline Compiler (target)}       & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} & \textbf{H} \\
 \bottomrule
@@ -233,13 +304,62 @@ PowerPoint~\cite{powerpoint-timeline}     & M & L & L & L & L & H & L \\
 
 \noindent
 The table shows that no existing tool simultaneously achieves high scores
-across all seven axes.
+across all seven axes for \emph{diagram} types.
 think-cell scores highest on presentation quality but is closed-source with
 no agent path.
 Mermaid scores highest on openness and SCM friendliness but is limited in
 presentation fidelity and output format breadth.
+Vega-Lite and ggplot2 prove that determinism, agent-authoring, and
+presentation quality \emph{are} simultaneously achievable --- but only for
+statistical charts, not for diagrams.
 Timeline Compiler's design targets every axis at High --- a combination that
-is, at the time of writing, unoccupied.
+is, at the time of writing, unoccupied for diagram-type outputs.
+
+% -----------------------------------------------------------------------------
+\subsection{The Visualization Grammar Cluster}
+\label{sec:comparison-viz-grammar}
+% -----------------------------------------------------------------------------
+
+\textbf{What the literature says.}
+The grammar-of-graphics lineage --- Wilkinson's foundational
+work~\cite{grammarofgraphics2005}, Wickham's operationalisation in
+ggplot2~\cite{layeredgrammar2010}, and Satyanarayan et al.'s
+Vega-Lite~\cite{vegalite2017} --- has conclusively demonstrated that a
+small, composable, JSON-serializable grammar with a typed IR, default
+inference, and a clean WHAT/HOW separation can produce presentation-quality
+output, be version-controlled as plain text, and support LLM
+generation~\cite{narechania2021nl4dv}.
+Vega-Lite in particular is the single strongest reference architecture for
+``how to design a declarative JSON grammar for
+visualization''~\cite{vegalite2017}.
+
+\medskip\noindent
+\textbf{The chart/diagram gap.}
+The Grammar of Graphics is explicitly scoped to statistical
+graphics~\cite{grammarofgraphics2005}: it decomposes graphics into
+\emph{data}, \emph{aesthetic mappings}, \emph{geometric marks},
+\emph{statistical transforms}, \emph{scales}, \emph{coordinates}, and
+\emph{facets}.
+None of these components can express a swimlane roadmap, a node-link
+architecture diagram, or a numbered step-card sequence.
+Vega-Lite's \texttt{mark} vocabulary (\texttt{bar}, \texttt{line},
+\texttt{point}, \texttt{rect}, etc.) does not include \texttt{node},
+\texttt{edge}, \texttt{activity}, or \texttt{milestone}.
+The diagram-as-code tools (Mermaid, D2, Graphviz) fill part of this gap
+for developer graphs, but none delivers presentation quality,
+determinism guarantees, or PPTX output.
+
+\medskip\noindent
+\textbf{What we recommend.}
+The diagram compiler borrows the architectural pattern from
+Vega-Lite --- (1) a small, schema-validated Domain IR, (2) a compiler that
+infers defaults and validates, (3) a lower-level Scene IR, (4) multiple
+rendering backends --- and extends it into the unoccupied domain of
+\emph{diagram grammars}, starting with the Timeline grammar and expanding
+to Flow, Graph, Comparison, and Stat-Callout grammars.
+This positions the system as the ``Vega-Lite for diagrams'': the same
+principled approach, applied to the visual vocabulary of technical
+infographics.
 
 % -----------------------------------------------------------------------------
 \subsection{Where Timeline Compiler Intentionally Differs}

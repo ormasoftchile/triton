@@ -18,6 +18,108 @@ Each grammar is:
   \item \textbf{Peer to other grammars}: Timeline, flow, and graph grammars are siblings, not nested.
 \end{itemize}
 
+% -------------------------------------------------------------------------
+\subsection{Grounding in the Grammar of Graphics}
+\label{sec:grammar-gog}
+% -------------------------------------------------------------------------
+
+\textbf{What the literature says.}
+This architecture stands on the shoulders of three decades of
+visualization-grammar research.
+
+Wilkinson's \emph{Grammar of Graphics}~\cite{grammarofgraphics2005}
+established that any statistical graphic can be decomposed into a small
+algebra of orthogonal components: \textbf{data}, \textbf{aesthetic
+mappings}, \textbf{geometric marks}, \textbf{statistical transforms},
+\textbf{scales}, \textbf{coordinates}, and \textbf{facets}.
+The key insight is generativity: a finite, composable set of primitives
+describes an infinite variety of charts.
+This is precisely the principle underlying the diagram compiler's grammar
+abstraction --- a finite set of mark types (box, arrow, label, group,
+connector) combines through composition to cover all target diagram classes.
+
+Wickham's layered grammar~\cite{layeredgrammar2010} operationalized Wilkinson
+into ggplot2, adding two engineering contributions of direct relevance:
+(1)~\textbf{default inference} --- the system fills in unspecified dimensions
+(axes, colors, font sizes) from data type and context, so the author
+specifies only deviations from sensible defaults; and (2)~\textbf{spec/render
+separation} --- a ggplot object is a spec; calling \texttt{ggsave()} triggers
+the rendering pipeline.
+Both principles are adopted verbatim: Domain IR fields have sensible defaults
+inferred by the layout engine, and the render pass is strictly separated from
+the compile pass.
+
+Satyanarayan et al.'s Vega-Lite~\cite{vegalite2017} pushed the grammar further:
+a concise, JSON-serializable spec compiles to Vega's lower-level dataflow IR,
+which backends render to SVG or Canvas.
+Vega-Lite's composition algebra (\texttt{layer}, \texttt{hconcat},
+\texttt{vconcat}, \texttt{facet}) is the direct ancestor of the composition
+layer in Section~\ref{sec:composition}.
+
+\medskip\noindent
+\textbf{The diagram extension.}
+Where the GoG lineage addresses \emph{statistical graphics}, this architecture
+addresses \emph{diagram types} --- swimlane timelines, flow pipelines, node-link
+graphs, step-card sequences, and comparison matrices.
+These diagrams have no \emph{data/aesthetic-mapping} duality; they have a
+\emph{semantic entity / visual layout} duality instead.
+A Timeline activity has \texttt{start}, \texttt{end}, and \texttt{track};
+the compiler maps these to rectangle position, width, and vertical row ---
+an analogous but distinct encoding to GoG's \texttt{field $\to$ channel}
+mapping.
+
+% -------------------------------------------------------------------------
+\subsection{Agent-Authoring Reliability: Constrained DSL}
+\label{sec:grammar-llm}
+% -------------------------------------------------------------------------
+
+\textbf{What the literature says.}
+A growing body of constrained-generation research establishes that
+\emph{grammar-constrained decoding is the essential reliability lever for
+LLM-DSL pipelines}, and that small, well-constrained grammars lower the
+failure surface dramatically.
+
+Willard \& Louf~\cite{willard2023} show that reformulating LLM generation as
+transitions in a finite-state machine derived from a formal grammar (or
+regex) eliminates an entire class of syntax failures with negligible
+per-token overhead.
+Wang et al.~\cite{wang2023grammar} demonstrate that a \emph{minimal grammar
+fragment} for a specific diagram instance is more reliable than the full
+schema: ``grammar constraints derived from domain-specific knowledge enable
+LLMs to generalize from few examples on complex DSL generation tasks.''
+Dong et al.'s XGrammar~\cite{dong2024xgrammar} achieves up to $100\times$
+speedup over naive per-step CFG execution by separating context-independent
+from context-dependent tokens at grammar-compilation time, making
+schema-constrained diagram generation practical in production LLM
+serving stacks.
+
+Tian et al.~\cite{tian2023chartgpt} studied LLM failure modes for chart spec
+generation: LLMs produce syntactically valid but semantically wrong specs,
+miss required fields, and use ambiguous field names.
+Their mitigations map directly to the compiler's architecture: (1)~grammar
+constraints eliminate syntactic failures; (2)~the validation layer (§\ref{sec:two-ir-model}) catches semantic failures; (3)~decomposed
+generation (entity identification, then IR emission) handles complex diagrams.
+
+Narechania et al.~\cite{narechania2021nl4dv} showed that targeting a
+well-specified JSON grammar (Vega-Lite's schema) rather than a general-purpose
+API reduces NL-to-visualization complexity substantially.
+For small or on-device models, Ray~\cite{ray2026constraint} characterises the
+``constraint tax'' --- hard schema-decoding improves syntactic validity but
+can lower semantic accuracy for sub-3B models --- and recommends a
+``reason free, constrain late'' strategy.
+
+\medskip\noindent
+\textbf{What we recommend.}
+The Domain IR JSON Schema (one per grammar) is published as a formal
+constraint and submitted to OpenAI Structured Outputs~\cite{openai-structured-outputs},
+XGrammar~\cite{dong2024xgrammar}, or llama.cpp
+GBNF~\cite{llama2024gbnf} for grammar-constrained generation.
+Keeping each Domain IR \emph{small} (few required fields, flat nesting,
+minimal enum values) is not a simplification concession --- it is a
+reliability design decision grounded in the literature above.
+The god-IR (Section~\ref{sec:two-ir-model}) is rejected in part because a
+large, polymorphic schema is an agent-authoring failure vector.
+
 \subsection{The Two-IR-Layer Model}
 \label{sec:two-ir-model}
 
