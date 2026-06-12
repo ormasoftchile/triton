@@ -19,7 +19,7 @@ import type { Activity, IRDocument, Milestone, Track } from '../types.js';
 import type { Scene, ScenePrimitive } from '../scene.js';
 import type { ResolvedTheme } from '../themes/types.js';
 import { measureText, ptToPx } from '../fonts/metrics.js';
-import { truncateText } from '../text-wrap.js';
+import { truncateText, wrapText } from '../text-wrap.js';
 import { getIcon } from '../icons.js';
 import { loadImageAsset } from '../asset-loader.js';
 import {
@@ -99,14 +99,77 @@ interface AxisState {
   teOrd: number;
   offset: number; // H_hdr + m_L
   wDraw:  number;
+  /**
+   * Precomputed break segments.  Populated only when metadata.axis_breaks is
+   * non-empty and well-formed.  Empty/absent → EXACT original dateX formula.
+   */
+  breakSegs?:     BreakSeg[];
+  /** Total non-break ordinal span: (teOrd - tsOrd) − sum(break durations). */
+  nonBreakTime?:  number;
+  /** Draw width after subtracting per-break fixed gap pixels. */
+  nonBreakWDraw?: number;
 }
 
-/** Map a day ordinal to a canvas x coordinate (deterministic). */
+/**
+ * Geometry of a single collapsed break interval.
+ * All x coordinates are precomputed (deterministic).
+ */
+interface BreakSeg {
+  fromOrd: number;  // left boundary (inclusive)
+  toOrd:   number;  // right boundary (exclusive in dateX)
+  xLeft:   number;  // x at left edge of "//" gap
+  xRight:  number;  // x at right edge (xLeft + BREAK_GAP_PX)
+  xMid:    number;  // centre of gap (for "//" marker)
+}
+
+/** Fixed pixel width consumed by each break gap (replaces proportional time). */
+const BREAK_GAP_PX = 24;
+
+/**
+ * Map a day ordinal to a canvas x coordinate (deterministic).
+ *
+ * DETERMINISM CONTRACT:
+ *  - When `ax.breakSegs` is absent/empty the EXACT ORIGINAL formula is used —
+ *    guaranteed byte-identical output for every existing fixture/golden.
+ *  - When breaks are present a piecewise-linear scale is applied: each break
+ *    interval consumes BREAK_GAP_PX instead of proportional time width.
+ */
 function dateX(ord: number, ax: AxisState): number {
   const { tsOrd, teOrd, offset, wDraw } = ax;
   if (teOrd === tsOrd) return offset;
-  const raw = offset + Math.floor(((ord - tsOrd) * wDraw) / (teOrd - tsOrd) + 0.5);
+
+  // ── No-break path: EXACT original formula (byte-identical for all existing fixtures) ──
+  if (!ax.breakSegs || ax.breakSegs.length === 0) {
+    const raw = offset + Math.floor(((ord - tsOrd) * wDraw) / (teOrd - tsOrd) + 0.5);
+    return Math.max(offset, Math.min(offset + wDraw, raw));
+  }
+
+  // ── Break-aware piecewise scale ──
+  const nbTime  = ax.nonBreakTime!;
+  const nbWDraw = ax.nonBreakWDraw!;
+  let nonBreakOrd   = ord - tsOrd;
+  let nBreaksBefore = 0;
+
+  for (const seg of ax.breakSegs) {
+    if (ord <= seg.fromOrd) break;          // ord is before or at break start
+    if (ord < seg.toOrd) {
+      // ord falls INSIDE the break — snap to the left edge of the gap
+      return seg.xLeft;
+    }
+    // ord is at or after break end — subtract the collapsed duration
+    nonBreakOrd -= (seg.toOrd - seg.fromOrd);
+    nBreaksBefore++;
+  }
+
+  const raw = offset + nBreaksBefore * BREAK_GAP_PX +
+              Math.floor(nonBreakOrd * nbWDraw / nbTime + 0.5);
   return Math.max(offset, Math.min(offset + wDraw, raw));
+}
+
+/** Return true if `ord` falls strictly inside a break interval (exclusive of boundaries). */
+function ordInBreak(ord: number, breakSegs: BreakSeg[] | undefined): boolean {
+  if (!breakSegs || breakSegs.length === 0) return false;
+  return breakSegs.some((s) => ord > s.fromOrd && ord < s.toOrd);
 }
 
 // ---------------------------------------------------------------------------
@@ -195,7 +258,61 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   /** Effective top-of-canvas margin including the header block. */
   const mT_eff = mT + headerH;
 
-  const axisState: AxisState = { tsOrd, teOrd, offset, wDraw };
+  // ── Axis-break precomputation ─────────────────────────────────────────────
+  // Opt-in: only active when metadata.axis_breaks is non-empty.
+  // When absent/empty, axisState is constructed WITHOUT breakSegs → dateX uses
+  // the EXACT original formula, guaranteeing byte-identical output for all
+  // existing fixtures and goldens (DETERMINISM CONTRACT).
+  let breakSegs:     BreakSeg[] | undefined;
+  let nonBreakTime:  number    | undefined;
+  let nonBreakWDraw: number    | undefined;
+
+  {
+    const rawBreaks = ir.metadata.axis_breaks ?? [];
+    if (rawBreaks.length > 0) {
+      const parsed = rawBreaks
+        .map((b) => ({
+          fromOrd: (() => { try { return parseAndCoerceLeft(b.from); } catch { return -1; } })(),
+          toOrd:   (() => { try { return parseAndCoerceLeft(b.to);   } catch { return -1; } })(),
+        }))
+        .filter((b) => b.fromOrd >= 0 && b.toOrd > b.fromOrd)
+        .sort((a, b) => a.fromOrd - b.fromOrd);
+
+      if (parsed.length > 0) {
+        const totalBreakDuration = parsed.reduce((s, b) => s + (b.toOrd - b.fromOrd), 0);
+        const nbTime0  = teOrd - tsOrd - totalBreakDuration;
+        const nbWDraw0 = wDraw - parsed.length * BREAK_GAP_PX;
+
+        if (nbTime0 > 0 && nbWDraw0 > 0) {
+          nonBreakTime  = nbTime0;
+          nonBreakWDraw = nbWDraw0;
+
+          let priorDuration = 0;
+          breakSegs = parsed.map((b, idx) => {
+            const nonBreakOrdAtFrom = b.fromOrd - tsOrd - priorDuration;
+            const xLeft  = offset + idx * BREAK_GAP_PX +
+                           Math.floor(nonBreakOrdAtFrom * nbWDraw0 / nbTime0 + 0.5);
+            const xRight = xLeft + BREAK_GAP_PX;
+            priorDuration += (b.toOrd - b.fromOrd);
+            return {
+              fromOrd: b.fromOrd,
+              toOrd:   b.toOrd,
+              xLeft,
+              xRight,
+              xMid: Math.floor((xLeft + xRight) / 2 + 0.5),
+            } satisfies BreakSeg;
+          });
+        }
+      }
+    }
+  }
+
+  const axisState: AxisState = {
+    tsOrd, teOrd, offset, wDraw,
+    ...(breakSegs && nonBreakTime !== undefined && nonBreakWDraw !== undefined
+      ? { breakSegs, nonBreakTime, nonBreakWDraw }
+      : {}),
+  };
 
   // 1d. Enumerate ticks
   const ticks = enumTicks(tsOrd, teOrd, axisUnit);
@@ -240,7 +357,16 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   const dateFontPx  = ptToPx(ms.dateLabelFontSize);
   const blockTitleH    = rhu(titleFontPx * 1.3);
   const blockDateLineH = rhu(dateFontPx * 1.3);
-  const blockH         = rhu(blockTitleH + 4 + blockDateLineH);
+  // When labelWrap is enabled (opt-in, roadmap theme only), reserve 2 title
+  // lines worth of height. For all other themes maxTitleLines=1 → blockH
+  // is byte-identical with the original formula.
+  const maxTitleLines  = ms.labelWrap ? 2 : 1;
+  const TITLE_LINE_GAP = 2;  // px gap between wrapped title lines
+  const blockH         = rhu(
+    blockTitleH * maxTitleLines +
+    (maxTitleLines > 1 ? TITLE_LINE_GAP : 0) +
+    4 + blockDateLineH,
+  );
 
   // Build sorted milestone list (by date ordinal, then id) — same key as Phase 4
   const msWithOrd = (ir.milestones ?? [])
@@ -289,7 +415,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     side:        'above' | 'below';
     tier:        number;
     blockW:      number;
-    titleText:   string;
+    titleLines:  string[];  // 1 entry (truncated) or 0-2 entries (labelWrap)
     compactDate: string;
   }
 
@@ -304,9 +430,17 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     const side: 'above' | 'below' = forceAbove ? 'above' : ((i % 2 === 1) ? 'above' : 'below');
     const showTitle = ms.titleLabelBelow;
     const showDate  = ms.dateLabelAbove;
-    const titleText   = showTitle ? truncateText(mil.label, titleFontPx, ms.labelMaxWidth) : '';
+    // labelWrap (opt-in): wrap to 2 lines instead of truncating to 1.
+    // Default (undefined/false) keeps the original truncate path → byte-identical.
+    const titleLines: string[] = showTitle
+      ? (ms.labelWrap
+          ? wrapText(mil.label, titleFontPx, ms.labelMaxWidth, 2).lines
+          : [truncateText(mil.label, titleFontPx, ms.labelMaxWidth)])
+      : [];
     const compactDate = showDate  ? formatCompactDate(y, mo) : '';
-    const titleW = titleText   ? measureText(titleText,   titleFontPx).width : 0;
+    const titleW = titleLines.length > 0
+      ? Math.max(...titleLines.map((l) => measureText(l, titleFontPx).width))
+      : 0;
     const dateW  = compactDate ? measureText(compactDate, dateFontPx).width  : 0;
     const blockW = rhu(Math.max(titleW, dateW) + 4);
     blockInfos.push({
@@ -316,7 +450,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
       side,
       tier:        0,
       blockW,
-      titleText,
+      titleLines,
       compactDate,
     });
   }
@@ -510,7 +644,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     side:        'above' | 'below';
     tier:        number;
     blockW:      number;
-    titleText:   string;
+    titleLines:  string[];
     compactDate: string;
   }
 
@@ -529,7 +663,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
       side:        bi.side,
       tier:        bi.tier,
       blockW:      bi.blockW,
-      titleText:   bi.titleText,
+      titleLines:  bi.titleLines,
       compactDate: bi.compactDate,
     };
   });
@@ -556,7 +690,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   // Find the deepest below-block extent
   let belowMaxY = contentBottomY;
   for (const ml of milestoneLayouts) {
-    if (ml.side === 'below' && (ml.titleText || ml.compactDate)) {
+    if (ml.side === 'below' && (ml.titleLines.length > 0 || ml.compactDate)) {
       const blockBottom = rhu(
         ml.yCenter + ms.size + ms.labelGapPx + (ml.tier + 1) * (blockH + blockTierGap_eff),
       );
@@ -855,22 +989,65 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         });
       }
     } else {
-      // Default: single straight spine line (byte-identical to pre-feature behaviour)
-      primitives.push({
-        kind:        'line',
-        x1:          rhu(offset),
-        y1:          axisY,
-        x2:          rhu(offset + wDraw),
-        y2:          axisY,
-        stroke:      theme.axis.axisLineColor,
-        strokeWidth: 1,
-      });
+      // Default: single straight spine — OR break-aware segmented spine.
+      // DETERMINISM: when breakSegs is empty the EXACT original single-line
+      // primitive is emitted → byte-identical to pre-feature behaviour.
+      if (!breakSegs || breakSegs.length === 0) {
+        primitives.push({
+          kind:        'line',
+          x1:          rhu(offset),
+          y1:          axisY,
+          x2:          rhu(offset + wDraw),
+          y2:          axisY,
+          stroke:      theme.axis.axisLineColor,
+          strokeWidth: 1,
+        });
+      } else {
+        // Render axis line as segments separated by "//" break markers.
+        let segStartX = rhu(offset);
+        for (const seg of breakSegs) {
+          // Line segment up to the break
+          primitives.push({
+            kind: 'line',
+            x1: segStartX, y1: axisY,
+            x2: rhu(seg.xLeft), y2: axisY,
+            stroke: theme.axis.axisLineColor, strokeWidth: 1,
+          });
+          // "//" marker: two short forward-diagonal strokes centred in the gap.
+          // Each stroke goes from lower-left to upper-right (like a "/" character).
+          const xm = seg.xMid;
+          primitives.push({
+            kind: 'line',
+            x1: rhu(xm - 5), y1: rhu(axisY + 7),
+            x2: rhu(xm - 1), y2: rhu(axisY - 7),
+            stroke: theme.axis.axisLineColor, strokeWidth: 1.5,
+          });
+          primitives.push({
+            kind: 'line',
+            x1: rhu(xm + 1), y1: rhu(axisY + 7),
+            x2: rhu(xm + 5), y2: rhu(axisY - 7),
+            stroke: theme.axis.axisLineColor, strokeWidth: 1.5,
+          });
+          segStartX = rhu(seg.xRight);
+        }
+        // Final segment after the last break
+        primitives.push({
+          kind: 'line',
+          x1: segStartX, y1: axisY,
+          x2: rhu(offset + wDraw), y2: axisY,
+          stroke: theme.axis.axisLineColor, strokeWidth: 1,
+        });
+      }
     }
   }
 
   // 4. Tick marks
   for (let i = 0; i < ticks.length; i++) {
     const tick = ticks[i]!;
+    // Suppress ticks (mark + label + gridline) whose ordinal falls strictly
+    // inside a break interval — they map to dead time that is no longer shown.
+    // Boundary ticks (at fromOrd or toOrd) are shown normally.
+    if (ordInBreak(tick.ordinal, breakSegs)) continue;
     const xk = rhu(dateX(tick.ordinal, axisState));
     // Tick mark
     primitives.push({
@@ -1085,16 +1262,26 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
       }
     }
 
-    // Activity icon + label
+    // Activity icon + label (+ optional description subtitle)
     {
-      const LPAD       = 4; // inside padding px (matches existing width - 8 budget)
-      const barMidY    = rhu(al.y + theme.activity.barHeight / 2);
+      const LPAD        = 4; // inside padding px (matches existing width - 8 budget)
+      const barH        = theme.activity.barHeight;
+      const barMidY     = rhu(al.y + barH / 2);
       const insideColor = contrastColor(fill, theme.activity.labelColorInside, theme.activity.labelColorOutside);
+
+      // Description subtitle: shown as a smaller second line inside the bar when
+      // barHeight is tall enough (≥28 px) and description is set.
+      // No existing fixture sets activity.description → ZERO golden change.
+      const descText = al.activity.description;
+      const showDesc = !!descText && barH >= 28;
+      // When showing description, shift label up to the upper-third of the bar.
+      const labelY = showDesc ? rhu(al.y + barH * 0.35) : barMidY;
+      const descY  = showDesc ? rhu(al.y + barH * 0.70) : barMidY;
 
       // Icon: small glyph at the bar's left edge, vertically centred.
       // Size: barHeight − 4 px (2 px top/bottom padding). Only drawn when the
       // bar is wide enough to contain it without clipping (≥ iconPx + 2×LPAD).
-      const iconPx   = theme.activity.barHeight - 4;
+      const iconPx   = barH - 4;
       const iconName = al.activity.icon ? al.activity.icon.toLowerCase().trim() : undefined;
       const iconDef  = iconName ? getIcon(iconName) : undefined;
       let iconGutterW = 0; // extra left offset reserved for the icon + gap
@@ -1129,7 +1316,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         primitives.push({
           kind:             'text',
           x:                rhu(al.xLeft + LPAD + iconGutterW),
-          y:                barMidY,
+          y:                labelY,
           text:             al.activity.label,
           fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
           fontSize:         actFontPx,
@@ -1144,7 +1331,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         primitives.push({
           kind:             'text',
           x:                rhu(al.xLeft + LPAD + iconGutterW),
-          y:                barMidY,
+          y:                labelY,
           text:             truncated,
           fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
           fontSize:         actFontPx,
@@ -1188,6 +1375,28 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         }
         // Neither side has room (extreme edge case) — skip label silently
       }
+
+      // Description subtitle — second line below label, smaller font.
+      // Only rendered when: barHeight ≥ 28, description is set, bar wide enough.
+      if (showDesc && insideAvail >= theme.activity.labelInsideMinWidth) {
+        const descFontPx  = Math.max(6, actFontPx * 0.82);
+        const descTrunc   = truncateText(descText!, descFontPx, insideAvail);
+        if (descTrunc) {
+          primitives.push({
+            kind:             'text',
+            x:                rhu(al.xLeft + LPAD + iconGutterW),
+            y:                descY,
+            text:             descTrunc,
+            fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
+            fontSize:         descFontPx,
+            fontWeight:       400,
+            fill:             insideColor,
+            textAnchor:       'start',
+            dominantBaseline: 'middle',
+            opacity:          0.82,
+          });
+        }
+      }
     }
 
     // Open-end indicator (§5: right-edge decoration for ongoing/tbd activities)
@@ -1225,7 +1434,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   const aboveZoneBottom_ms = rhu(axisY_ms + aboveZoneH);
 
   milestoneLayouts.forEach((ml) => {
-    const { xCenter, yCenter, trueX, side, tier, titleText, compactDate, ordinal } = ml;
+    const { xCenter, yCenter, trueX, side, tier, titleLines, compactDate, ordinal, blockW } = ml;
     const mil = ml.milestone;
     const status = mil.status ?? 'planned';
     const base = theme.statusMap[status];
@@ -1262,7 +1471,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     }
 
     // (b) Leader line from node edge to label block
-    const hasBlock = !!(titleText || compactDate);
+    const hasBlock = !!(titleLines.length > 0 || compactDate);
     if (hasBlock) {
       if (side === 'above') {
         const blockBottom = rhu(aboveZoneBottom_ms - 6 - tier * (blockH + blockTierGap_eff));
@@ -1374,7 +1583,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
       }
     }
 
-    // (e) Combined label block: primary title line + secondary compact-date line
+    // (e) Combined label block: primary title line(s) + secondary compact-date line
     if (hasBlock) {
       let blockTopY: number;
       if (side === 'above') {
@@ -1384,26 +1593,38 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         blockTopY = rhu(yCenter + ms.size + ms.labelGapPx + tier * (blockH + blockTierGap_eff));
       }
 
-      if (titleText) {
-        primitives.push({
-          kind:             'text',
-          x:                xCenter,
-          y:                rhu(blockTopY + blockTitleH * 0.85),
-          text:             titleText,
-          fontFamily:       FONT_FAM,
-          fontSize:         titleFontPx,
-          fontWeight:       ms.titleLabelFontWeight,
-          fill:             ms.titleLabelColor,
-          textAnchor:       'middle',
-          dominantBaseline: 'alphabetic',
-        });
+      // Clamp label x so the text bbox stays within the canvas (textAnchor='middle').
+      // LABEL_EDGE_PAD keeps clamped labels ≥8 px from the canvas border.
+      // No-op for any xCenter already within [blockW/2 + 8, W − blockW/2 − 8].
+      const LABEL_EDGE_PAD = 8;
+      const labelClampX = rhu(Math.max(blockW / 2 + LABEL_EDGE_PAD, Math.min(W - blockW / 2 - LABEL_EDGE_PAD, xCenter)));
+
+      if (titleLines.length > 0) {
+        for (let li = 0; li < titleLines.length; li++) {
+          // Single-formula y: for li=0 this is rhu(blockTopY + blockTitleH * 0.85),
+          // byte-identical to the original single-line formula.
+          primitives.push({
+            kind:             'text',
+            x:                labelClampX,
+            y:                rhu(blockTopY + blockTitleH * (li + 0.85) + li * TITLE_LINE_GAP),
+            text:             titleLines[li]!,
+            fontFamily:       FONT_FAM,
+            fontSize:         titleFontPx,
+            fontWeight:       ms.titleLabelFontWeight,
+            fill:             ms.titleLabelColor,
+            textAnchor:       'middle',
+            dominantBaseline: 'alphabetic',
+          });
+        }
       }
 
       if (compactDate) {
+        const titleBlock = blockTitleH * titleLines.length +
+          (titleLines.length > 1 ? TITLE_LINE_GAP * (titleLines.length - 1) : 0);
         primitives.push({
           kind:             'text',
-          x:                xCenter,
-          y:                rhu(blockTopY + blockTitleH + 4 + dateFontPx * 0.85),
+          x:                labelClampX,
+          y:                rhu(blockTopY + titleBlock + 4 + dateFontPx * 0.85),
           text:             compactDate,
           fontFamily:       FONT_FAM,
           fontSize:         dateFontPx,

@@ -160,7 +160,7 @@
 <header>
   <h1>Timeline Compiler — Example Gallery</h1>
   <p>
-    Eleven representative IR documents rendered with the <strong>Horizontal layout</strong>
+    Twelve representative IR documents rendered with the <strong>Horizontal layout</strong>
     family. Most renders use the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong> showcase. Each example exercises a distinct
     combination of axis unit, track density, activity statuses, milestones, and edge-case
     behaviours. Use this contact sheet to bulk-check Phase 1 visual output.
@@ -434,6 +434,32 @@
     <div class="card-footer">
       <a href="our-timeline-numbered.svg">SVG</a>
       <a href="our-timeline-numbered.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 12. timeline-goals -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 12 · timeline-goals</div>
+      <div class="card-title">Timeline &amp; Goals — Discontinuous Axis + Phase Pills
+        <span class="tag tag-quarter">quarter axis</span>
+        <span class="tag tag-milestones">axis break · phases</span>
+      </div>
+      <div class="card-desc">
+        Recreates a "04 · Timeline &amp; Goals" engineering-roadmap slide: three coloured
+        phase pills (icon + title + subtitle) on a <strong>discontinuous axis</strong> —
+        the dead gap Nov 2025 → Apr 2026 is collapsed with a <code>//</code> break marker.
+        Six milestone callouts sit above the axis with date labels and vertical leaders.
+        Uses the new opt-in <code>axis_breaks</code> IR field and the
+        <em>roadmap</em> theme's tall pill-shaped bars (36 px, radius 8).
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="timeline-goals.png" alt="timeline-goals render">
+    </div>
+    <div class="card-footer">
+      <a href="timeline-goals.svg">SVG</a>
+      <a href="timeline-goals.timeline.yaml">Source YAML</a>
     </div>
   </div>
 

@@ -94,6 +94,21 @@ const contentBlockSchema = z.object({
   text: z.string().min(1),
 });
 
+/**
+ * A single axis-break interval: a [from, to) time range that is collapsed to a
+ * small "//" marker on the axis instead of proportional time width.
+ *
+ * ⚠ Open questions for Mark (schema validation):
+ *   - Enforce from < to (currently only basic date format is checked).
+ *   - Enforce breaks lie within metadata.time_range bounds.
+ *   - Enforce breaks are non-overlapping and sorted by `from`.
+ * For now only basic date format is validated.
+ */
+const axisBreakSchema = z.object({
+  from: irDateSchema,
+  to:   irDateSchema,
+});
+
 const metadataSchema = z.object({
   title: z.string().min(1),
   subtitle: z.string().optional(),
@@ -108,6 +123,11 @@ const metadataSchema = z.object({
   fiscal_year_start: z.number().int().min(1).max(12).optional(),
   description: z.string().optional(),
   logo: logoSchema.optional(),
+  /**
+   * Opt-in list of time intervals to collapse on the axis.
+   * When absent/empty → ZERO behaviour change (byte-identical output).
+   */
+  axis_breaks: z.array(axisBreakSchema).optional(),
 });
 
 const trackSchema = z.object({

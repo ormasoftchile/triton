@@ -105,6 +105,25 @@ export interface LogoSpec {
   height?: number;
 }
 
+/**
+ * A single axis break — a time interval collapsed to a small "//" marker.
+ *
+ * When `axis_breaks` is present and non-empty, the layout engine replaces
+ * each [from, to] interval with a fixed-width gap rather than proportional
+ * time width, and renders a "//" notch on the axis at that position.
+ *
+ * ⚠ Schema review deferred to Mark:
+ *   - Validate `from` < `to` (basic well-formedness only for now).
+ *   - Validate breaks lie within `time_range` bounds.
+ *   - Validate breaks are non-overlapping and sorted by `from`.
+ */
+export interface AxisBreak {
+  /** Start of the collapsed interval (inclusive). */
+  from: IRDate;
+  /** End of the collapsed interval (exclusive). */
+  to: IRDate;
+}
+
 export interface Metadata {
   title: string;
   subtitle?: string;
@@ -128,6 +147,16 @@ export interface Metadata {
    * own placement heuristic when omitted).
    */
   logo?: LogoSpec;
+  /**
+   * Optional list of time intervals to collapse on the axis.  Each interval
+   * is rendered as a "//" break marker consuming only a small fixed gap width
+   * instead of proportional time width — compressing "dead" calendar gaps.
+   *
+   * **Opt-in; default absent → ZERO behaviour change.**  When absent or empty
+   * the `dateX` function returns byte-identical values for every existing
+   * fixture/golden.
+   */
+  axis_breaks?: AxisBreak[];
 }
 
 export interface Track {
