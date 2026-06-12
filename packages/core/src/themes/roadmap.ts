@@ -52,10 +52,11 @@ export const roadmapTheme: ResolvedTheme = {
     axisLineColor:    '#374151',
     tickLabelColor:   '#6B7280',
     todayMarker: {
-      enabled: true,
-      color:   '#EF4444',
-      width:   1.5,
-      style:   'dashed',
+      enabled:   true,
+      color:     '#EF4444',
+      width:     1.5,
+      style:     'dashed',
+      labelChip: true,
     },
   },
 

@@ -21,6 +21,7 @@
   <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="948" x2="948" y1="154" y2="476.83"/>
   <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="948" y="142.4">Q4</text>
   <line opacity="0.85" stroke="#EF4444" stroke-dasharray="6,4" stroke-width="1.5" x1="571" x2="571" y1="320.83" y2="476.83"/>
+  <rect fill="#FFFFFF" height="16.67" opacity="0.9" rx="3" width="37.72" x="570" y="321.83"/>
   <text dominant-baseline="alphabetic" fill="#EF4444" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" opacity="0.9" text-anchor="start" x="574" y="335.5">Today</text>
   <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="392.83" y2="392.83"/>
   <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="476.83" y2="476.83"/>

@@ -1125,12 +1125,35 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
           dashArray:   theme.axis.todayMarker.style === 'dashed' ? '6,4' : undefined,
           opacity:     0.85,
         });
-        const todayFontPx = ptToPx(theme.typography.fontSizeAxis - 1);
+        const todayFontPx  = ptToPx(theme.typography.fontSizeAxis - 1);
+        const todayLabel   = todayMarkerAnnotation?.text ?? 'Today';
+        const todayTextX   = rhu(xToday + 3);
+        const todayTextY   = rhu(todayY1 + 4 + todayFontPx);
+        if (theme.axis.todayMarker.labelChip) {
+          // Chip: white background rect behind label so it stays legible over any pill.
+          const chipPadX    = 4;
+          const chipPadY    = 3;
+          const chipTextW   = measureText(todayLabel, todayFontPx).width;
+          const chipW       = rhu(chipTextW + chipPadX * 2);
+          const chipH       = rhu(todayFontPx + chipPadY * 2);
+          const chipX       = rhu(todayTextX - chipPadX);
+          const chipY       = rhu(todayTextY - todayFontPx - chipPadY);
+          primitives.push({
+            kind:    'rect',
+            x:       chipX,
+            y:       chipY,
+            width:   chipW,
+            height:  chipH,
+            fill:    theme.canvas.backgroundColor,
+            rx:      3,
+            opacity: 0.9,
+          });
+        }
         primitives.push({
           kind:             'text',
-          x:                rhu(xToday + 3),
-          y:                rhu(todayY1 + 4 + todayFontPx),
-          text:             todayMarkerAnnotation?.text ?? 'Today',
+          x:                todayTextX,
+          y:                todayTextY,
+          text:             todayLabel,
           fontFamily:       `${theme.typography.fontFamily}, ${theme.typography.fontFamilyFallback}`,
           fontSize:         todayFontPx,
           fontWeight:       600,
