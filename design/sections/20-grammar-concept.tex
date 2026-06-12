@@ -1,0 +1,189 @@
+\section{The Grammar Concept: Two-IR-Layer Model}
+\label{sec:grammar-concept}
+
+This section defines the ``grammar'' abstraction that structures the diagram compiler. A grammar is a self-contained visual vocabulary with its own Domain IR and layout engine(s), all compiling down to the shared Scene IR.
+
+\subsection{What Is a Grammar?}
+
+A \textbf{grammar} in this architecture is:
+
+\begin{quote}
+A grammar = (Domain IR, Layout Engine(s), Theme Extensions) that compiles a declarative description of \emph{what to communicate} into Scene IR primitives specifying \emph{what to draw}.
+\end{quote}
+
+Each grammar is:
+\begin{itemize}
+  \item \textbf{Self-contained}: It defines its own IR schema, validation rules, and layout logic.
+  \item \textbf{Kernel-dependent}: It consumes kernel services (Scene IR, backends, themes, icons) but does not modify them.
+  \item \textbf{Peer to other grammars}: Timeline, flow, and graph grammars are siblings, not nested.
+\end{itemize}
+
+\subsection{The Two-IR-Layer Model}
+\label{sec:two-ir-model}
+
+The architecture uses \textbf{two layers of intermediate representation}:
+
+\begin{figure}[h]
+\centering
+\begin{Verbatim}[frame=single,fontsize=\small]
+Layer 1: Domain IRs (grammar-specific)
+  +-------------+  +-------------+  +-------------+
+  | Timeline IR |  |   Flow IR   |  |  Graph IR   |
+  +-------------+  +-------------+  +-------------+
+        |                |                |
+        v                v                v
+  [Timeline        [Flow Layout    [Graph Layout
+   Layout Engine]   Engine]         Engine]
+        |                |                |
+        +-------+--------+-------+--------+
+                |
+                v
+Layer 2: Scene IR (universal)
+  +------------------------------------------+
+  |  Rect, Circle, Line, Path, Text, Group   |
+  |  Effects, Animation Hints                |
+  +------------------------------------------+
+                |
+                v
+  [Rendering Backends: SVG, Skia, PPTX]
+\end{Verbatim}
+\caption{The two-IR-layer model: diverse Domain IRs compile to unified Scene IR}
+\label{fig:two-ir-model}
+\end{figure}
+
+\paragraph{Domain IRs are diverse, small, and grammar-specific.}
+The Timeline IR has tracks, activities, milestones. The Flow IR has nodes, edges, lanes. The Graph IR has vertices, edges, clusters. These entities are \emph{semantically meaningful} within their grammar---an Activity knows it has a start date; a Node knows it has incoming edges.
+
+Domain IRs are kept \textbf{small on purpose}:
+\begin{itemize}
+  \item A small grammar is reliably emittable by an LLM
+  \item A small schema fits in a context window
+  \item A small grammar has clear boundaries and fewer edge cases
+\end{itemize}
+
+\paragraph{Scene IR is the universal assembly language.}
+All Domain IRs compile \emph{down} to the single shared Scene IR. The Scene IR knows nothing about timelines, flows, or graphs---it knows only primitives (Rect, Circle, Line, Path, Text, Group) and effects.
+
+The Scene IR is the \textbf{one integration point}:
+\begin{itemize}
+  \item Backends consume only Scene IR
+  \item Themes style Scene IR primitives
+  \item Golden tests can verify Scene IR determinism
+  \item Animation hints attach to Scene IR primitives
+\end{itemize}
+
+\subsection{Rejecting the God-IR Approach}
+
+An alternative architecture would use a single ``god IR'' that tries to express all diagram types in one schema:
+
+\begin{lstlisting}[language=yaml,caption={Hypothetical god-IR (rejected)}]
+# DON'T DO THIS
+diagram:
+  type: timeline | flow | graph | comparison | ...
+  entities:
+    - kind: activity | node | cell | stat | ...
+      properties: { ... massive union of all possible fields ... }
+\end{lstlisting}
+
+This approach is explicitly rejected because:
+
+\begin{description}
+  \item[Semantic muddiness] A single schema that means different things in different contexts is harder to validate, harder to understand, and harder to document.
+  
+  \item[Schema bloat] Every grammar's fields appear in the union, even when irrelevant. An activity has \texttt{start}/\texttt{end}; a graph node does not. The god-IR carries dead weight.
+  
+  \item[LLM hostility] A large, polymorphic schema with conditional validity rules is difficult for agents to emit correctly. Small, single-purpose schemas are easier.
+  
+  \item[Brittle evolution] Adding a new grammar requires modifying the central schema, risking regressions in all other grammars.
+  
+  \item[No clear ownership] Who owns the god-IR? Every grammar must negotiate changes. Separate Domain IRs have clear ownership.
+\end{description}
+
+The two-IR-layer model inverts the coupling: Domain IRs are independent; the Scene IR is the shared core. Adding a new grammar does not touch existing grammars' IRs.
+
+\subsection{Composition IR: Above Domain IRs}
+
+For multi-panel posters (Section~\ref{sec:composition}), a Composition IR sits \emph{above} the Domain IRs, not merged into them:
+
+\begin{Verbatim}[frame=single,fontsize=\small]
+Composition IR
+  +-------------------+
+  | panels: [         |
+  |   { type: timeline, ir: {...} },
+  |   { type: flow,     ir: {...} },
+  |   { type: stat,     ir: {...} }
+  | ]                 |
+  | layout: grid(2,2) |
+  +-------------------+
+        |
+        v  [Composition Layout Engine]
+        |
+  (compiles each panel's Domain IR, then arranges in Scene IR)
+\end{Verbatim}
+
+The Composition IR \emph{references} panels, each with its own grammar type and Domain IR. It does not flatten them into a single schema.
+
+\subsection{Grammar Interface Contract}
+
+Every grammar must implement:
+
+\begin{lstlisting}[language=javascript,caption={Grammar interface contract}]
+interface Grammar<DomainIR> {
+  // Schema
+  readonly name: string;               // e.g., 'timeline', 'flow'
+  readonly schema: JsonSchema;         // JSON Schema for DomainIR
+  
+  // Validation
+  validate(ir: unknown): ValidationResult;
+  
+  // Layout
+  layout(ir: DomainIR, theme: Theme): Scene;
+  
+  // Optional: grammar-specific theme extensions
+  readonly themeSchema?: JsonSchema;
+}
+\end{lstlisting}
+
+\paragraph{Schema.}
+The JSON Schema for the Domain IR, used for validation and agent generation.
+
+\paragraph{Validate.}
+Checks the IR against schema and semantic rules. Returns diagnostics.
+
+\paragraph{Layout.}
+The core transformation: Domain IR + Theme → Scene IR. This is where all layout computation happens.
+
+\paragraph{Theme extensions.}
+Grammars may extend the theme schema with grammar-specific properties (e.g., \texttt{timeline.trackHeight}, \texttt{flow.nodeSpacing}).
+
+\subsection{Current and Planned Grammars}
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Grammar} & \textbf{Domain Entities} & \textbf{Status} & \textbf{Priority} \\
+\midrule
+Timeline & tracks, activities, milestones, sections & Implemented & MVP \\
+Flow/Pipeline & nodes, edges, lanes, legends & Planned & High \\
+Node-Link Graph & vertices, edges, clusters & Planned & Medium \\
+Comparison & columns, rows, cells, indicators & Planned & Medium \\
+Stat Callout & stat, caption, trend & Planned & Low \\
+Step-Cards & ordinal, title, bullets, icon & Planned & Low \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The Compounding Payoff}
+
+The kernel/grammar separation creates a compounding payoff:
+
+\begin{itemize}
+  \item \textbf{Animation} added to the kernel is inherited by all grammars
+  \item \textbf{New backends} (e.g., Keynote) serve all grammars immediately
+  \item \textbf{Theme improvements} (new fonts, colors, effects) apply everywhere
+  \item \textbf{Determinism verification} at the Scene level covers all grammars
+  \item \textbf{Icon registry} additions are available to all grammars
+\end{itemize}
+
+Each new grammar starts with a full feature set: determinism, theming, SVG/PNG/PDF/PPTX output, animation support, validation, and agent integration---all for free.

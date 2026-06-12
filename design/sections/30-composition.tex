@@ -1,0 +1,219 @@
+\section{Composition: Multi-Panel Posters}
+\label{sec:composition}
+
+The Composition layer arranges multiple grammar outputs into a single poster or infographic. This is how the multi-section corpus images (10x-coding-playbook, archon-harness-builder, rag-vectorless-explainer) are assembled.
+
+\subsection{Design Philosophy}
+
+\paragraph{Composition is a thin layer.}
+The Composition layer does not define new visual primitives. It arranges existing grammar outputs (each a Scene IR) into a larger canvas.
+
+\paragraph{Each panel is an independent grammar.}
+A panel might be a timeline, a flow diagram, a comparison table, or a stat callout. Each panel has its own Domain IR and is compiled independently.
+
+\paragraph{The composition specifies arrangement, not content.}
+Content is defined in each panel's Domain IR. The Composition IR specifies panel positions, sizes, and inter-panel elements (dividers, titles).
+
+\subsection{Composition IR}
+
+\begin{lstlisting}[language=yaml,caption={Composition IR}]
+version: "1.0"
+metadata:
+  title: "The 10x AI Coding Playbook"
+  subtitle: "Everything is infrastructure for one thing: parallel development."
+  theme: dark-poster
+  canvas:
+    width: 1200
+    height: auto               # computed from panels
+composition:
+  layout: stack                # stack | grid | custom
+  gap: 40                      # px between panels
+  panels:
+    - id: reframe
+      grammar: timeline
+      title: "THE REFRAME"
+      ir:                      # inline Domain IR
+        tracks:
+          - id: solo
+            label: "2x = solo + AI"
+            # ...
+    - id: infrastructure
+      grammar: flow
+      title: "THE INFRASTRUCTURE"
+      ir:
+        direction: left-to-right
+        nodes:
+          # ...
+    - id: catch
+      grammar: flow
+      title: "THE CATCH"
+      ir:
+        # ...
+    - id: payoff
+      grammar: timeline
+      title: "THE PAYOFF"
+      ir:
+        # ...
+  chrome:                      # editorial elements
+    header:
+      logo: { src: "icon.png", position: top-left }
+      title_style: large-centered
+    footer:
+      badges: ["GitHub", "Linear", "Jira"]
+    dividers: between-panels   # none | between-panels | after-each
+\end{lstlisting}
+
+\subsection{Layout Modes}
+
+\subsubsection{Stack Layout}
+
+Panels arranged vertically, each taking full width. Most common for long-form infographics.
+
+\begin{Verbatim}[frame=single,fontsize=\small]
++----------------------------------+
+|  Panel 1 (full width)            |
++----------------------------------+
+|  Panel 2 (full width)            |
++----------------------------------+
+|  Panel 3 (full width)            |
++----------------------------------+
+\end{Verbatim}
+
+\subsubsection{Grid Layout}
+
+Panels arranged in a grid (rows × columns). Useful for dashboards or comparison layouts.
+
+\begin{lstlisting}[language=yaml,caption={Grid layout specification}]
+composition:
+  layout: grid
+  grid:
+    columns: 2
+    rows: auto                 # computed from panel count
+  panels:
+    - { id: p1, span: 1 }      # 1 cell
+    - { id: p2, span: 1 }
+    - { id: p3, span: 2 }      # 2 cells (full row)
+\end{lstlisting}
+
+\subsubsection{Custom Layout}
+
+Explicit (x, y, width, height) for each panel. Maximum control, most verbose.
+
+\begin{lstlisting}[language=yaml,caption={Custom layout specification}]
+composition:
+  layout: custom
+  panels:
+    - id: p1
+      x: 0
+      y: 0
+      width: 600
+      height: 300
+    - id: p2
+      x: 600
+      y: 0
+      width: 600
+      height: 300
+\end{lstlisting}
+
+\subsection{Compilation Process}
+
+\begin{enumerate}
+  \item \textbf{Parse Composition IR}: Validate structure, resolve grammar references.
+  
+  \item \textbf{Compile each panel}: For each panel, invoke the appropriate grammar's layout engine to produce a Scene IR.
+  
+  \item \textbf{Compute panel dimensions}: If not explicit, compute from panel Scene dimensions.
+  
+  \item \textbf{Arrange panels}: Apply layout mode to compute (x, y) for each panel.
+  
+  \item \textbf{Merge Scenes}: Combine all panel Scenes into a single composition Scene, translating coordinates.
+  
+  \item \textbf{Add chrome}: Render header, footer, dividers, badges.
+  
+  \item \textbf{Output}: The final Scene IR (a single scene containing all panels).
+\end{enumerate}
+
+\subsection{Panel References}
+
+Panels can reference external IR files instead of inline definitions:
+
+\begin{lstlisting}[language=yaml,caption={Panel with external IR reference}]
+panels:
+  - id: timeline-panel
+    grammar: timeline
+    title: "Project Roadmap"
+    ir_file: "./roadmap.timeline.yaml"  # external file
+\end{lstlisting}
+
+This enables:
+\begin{itemize}
+  \item Reusing the same diagram in multiple compositions
+  \item Separate version control for each panel's IR
+  \item Incremental updates (change one panel, not the whole poster)
+\end{itemize}
+
+\subsection{Chrome Elements}
+
+\subsubsection{Header}
+
+\begin{itemize}
+  \item \textbf{Logo}: positioned at top-left or top-right
+  \item \textbf{Title}: large centered text
+  \item \textbf{Subtitle}: smaller text below title
+\end{itemize}
+
+\subsubsection{Section Titles}
+
+Each panel can have a title rendered above it:
+
+\begin{lstlisting}[language=yaml,caption={Panel title configuration}]
+panels:
+  - id: infrastructure
+    title: "THE INFRASTRUCTURE"
+    title_style: section-header   # theme-defined style
+\end{lstlisting}
+
+\subsubsection{Dividers}
+
+Horizontal lines between panels:
+
+\begin{lstlisting}[language=yaml,caption={Divider options}]
+chrome:
+  dividers: between-panels       # none | between-panels | after-each
+  divider_style:
+    color: "#333"
+    thickness: 1
+    margin: 20
+\end{lstlisting}
+
+\subsubsection{Footer}
+
+\begin{itemize}
+  \item \textbf{Badges}: pill-shaped labels (``GitHub'', ``MIT License'')
+  \item \textbf{Author}: avatar + handle
+  \item \textbf{Branding}: company logo or URL
+\end{itemize}
+
+\subsection{Determinism in Composition}
+
+Composition inherits determinism from its constituent grammars:
+
+\begin{itemize}
+  \item Each panel's Scene is deterministic (by grammar contract)
+  \item Panel arrangement is deterministic (explicit layout)
+  \item Chrome rendering is deterministic (explicit configuration)
+\end{itemize}
+
+The composition's \texttt{scene\_hash} is computed from the merged Scene, enabling golden testing of complete posters.
+
+\subsection{Limitations}
+
+\begin{description}
+  \item[No cross-panel connectors] Edges cannot span from a node in panel A to a node in panel B. Panels are visually independent.
+  
+  \item[No responsive layout] Panel sizes are computed once; there is no responsive reflow for different canvas widths.
+  
+  \item[No interactive linking] Clicking a panel does not navigate or filter. Output is static.
+\end{description}
+
+These limitations are intentional: they keep the Composition layer simple and deterministic. Cross-panel connections and responsive layout would significantly complicate the architecture.

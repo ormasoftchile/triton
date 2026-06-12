@@ -1,0 +1,173 @@
+\section{Graph Auto-Layout: The Hard Problem}
+\label{sec:layout-engines}
+
+Graph auto-layout is the hardest problem in the diagram compiler. This section is honest about the difficulty, prescribes practical solutions, and identifies risks.
+
+\subsection{Why Graph Layout Is Hard}
+
+General 2D graph layout is research-grade:
+
+\begin{itemize}
+  \item \textbf{NP-hard subproblems}: Minimizing edge crossings in general graphs is NP-complete~\cite{garey1983}.
+  \item \textbf{Aesthetic trade-offs}: No single algorithm optimizes all criteria (crossing minimization, edge length uniformity, node distribution, symmetry).
+  \item \textbf{Non-determinism risk}: Many algorithms use randomized initialization or iterative convergence, which threatens the determinism contract.
+  \item \textbf{Label placement}: Text labels add collision constraints that classic algorithms don't handle.
+\end{itemize}
+
+\subsection{The Constraint as a Feature}
+
+The architecture embraces the constraint: \textbf{a small, opinionated grammar is both shippable AND reliably LLM-emittable}. Rather than attempting general graph layout, the compiler supports opinionated layouts per diagram sub-kind:
+
+\begin{center}
+\small
+\begin{tabular}{llp{7cm}}
+\toprule
+\textbf{Sub-Kind} & \textbf{Algorithm} & \textbf{Constraints / Trade-offs} \\
+\midrule
+Tree & Reingold-Tilford~\cite{reingold1981} & Single root, no cycles. Clean, compact. \\
+DAG (pipeline) & Sugiyama~\cite{sugiyama1981} & Directed acyclic. Layers + crossing minimization. \\
+Hub-and-spoke & Radial custom & Single hub. Spokes arranged radially. \\
+Left-to-right flow & Linear ranking & Nodes ranked by distance from sources. \\
+Swimlane & Constrained grid & Nodes assigned to lanes; x by sequence. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Explicit layout type.}
+The Graph grammar requires the author to specify the layout type:
+
+\begin{lstlisting}[language=yaml,caption={Explicit layout type in Graph IR}]
+graph:
+  layout: tidy-tree     # required: tidy-tree | dag | hub-spoke | swimlane
+  vertices: [...]
+  edges: [...]
+\end{lstlisting}
+
+This is a feature, not a limitation: the author (human or agent) declares the graph's structure, and the compiler uses an appropriate algorithm. Ambiguous ``auto-detect'' is out of scope.
+
+\subsection{Algorithm Details}
+
+\subsubsection{Tidy-Tree (Reingold-Tilford)}
+
+For rooted trees: parent-child hierarchies with no cross-links.
+
+\begin{description}
+  \item[Algorithm] Reingold-Tilford (1981)~\cite{reingold1981}, extended by Walker (1990) for arbitrary trees.
+  \item[Complexity] O(n) time.
+  \item[Determinism] Fully deterministic given node order.
+  \item[Implementation] Well-documented; available in dagre, ELK~\cite{elk}.
+\end{description}
+
+\subsubsection{DAG (Sugiyama Layered Layout)}
+
+For directed acyclic graphs: pipelines, dependency graphs, workflow stages.
+
+\begin{description}
+  \item[Algorithm] Sugiyama, Tagawa \& Toda (1981)~\cite{sugiyama1981}: (1) cycle removal, (2) layer assignment, (3) crossing minimization, (4) x-coordinate assignment.
+  \item[Complexity] O(|V| + |E|) for layers, O(|V|²) for crossing minimization heuristics.
+  \item[Determinism] Deterministic with fixed layer-assignment and barycenter ordering.
+  \item[Implementation] dagre~\cite{dagre}, ELK~\cite{elk}, Graphviz dot~\cite{graphviz}.
+\end{description}
+
+\subsubsection{Hub-and-Spoke (Radial)}
+
+For star topologies: central hub with peripheral spokes.
+
+\begin{description}
+  \item[Algorithm] Custom radial placement: hub at center, spokes at equal angular intervals.
+  \item[Complexity] O(n).
+  \item[Determinism] Fully deterministic with sorted spoke order.
+\end{description}
+
+\subsubsection{Force-Directed (General Graphs)}
+
+For graphs with no clear hierarchy or structure.
+
+\begin{description}
+  \item[Algorithm] Fruchterman-Reingold (1991)~\cite{fruchterman1991} or Eades spring model (1984)~\cite{eades1984}.
+  \item[Complexity] O(|V|² × iterations).
+  \item[Determinism] \textbf{Risk}: iterative simulation can converge to different local minima. Mitigations:
+  \begin{itemize}
+    \item Initial positions from sorted node IDs (deterministic starting point)
+    \item Perturbations seeded by \texttt{scene\_hash}
+    \item Fixed iteration count (no convergence-based termination)
+  \end{itemize}
+  \item[Implementation] d3-force, sigma.js, custom.
+\end{description}
+
+\paragraph{Force-directed caveat.}
+Even with mitigations, force-directed layout is the least reliable for determinism. Small changes to nodes/edges can cause large layout changes. It is recommended for exploratory use, not production artifacts.
+
+\subsection{Practical Layout Engines}
+
+Two battle-tested open-source layout engines are recommended:
+
+\subsubsection{ELK (Eclipse Layout Kernel)}
+\label{sec:elk}
+
+\begin{description}
+  \item[Project] Eclipse Layout Kernel~\cite{elk}
+  \item[License] EPL-2.0
+  \item[Algorithms] Layered (Sugiyama), tree, force, radial, and more
+  \item[Integration] Java library; JavaScript port (elkjs) via emscripten
+  \item[Determinism] Designed for determinism; used in production diagramming tools
+\end{description}
+
+\subsubsection{dagre}
+\label{sec:dagre}
+
+\begin{description}
+  \item[Project] dagre~\cite{dagre}
+  \item[License] MIT
+  \item[Algorithms] Sugiyama layered layout only
+  \item[Integration] Pure JavaScript; widely used (Mermaid uses dagre)
+  \item[Determinism] Deterministic for DAGs
+\end{description}
+
+\subsection{Build vs.\ Adopt Decision}
+
+\begin{center}
+\small
+\begin{tabular}{lp{5cm}p{5cm}}
+\toprule
+\textbf{Option} & \textbf{Pros} & \textbf{Cons} \\
+\midrule
+Build custom & Full control; no dependencies; tailored to Scene IR & High effort; bugs; maintenance burden \\
+Adopt ELK & Battle-tested; multiple algorithms; deterministic & Large dependency (elkjs ~2MB); EPL license \\
+Adopt dagre & Small; MIT; widely adopted & DAG only; no tree/radial \\
+Hybrid & dagre for DAGs; custom for simple cases & Two codepaths; integration complexity \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Recommendation.}
+Start with dagre for DAG/pipeline layouts (already proven in Mermaid). Implement custom radial layout for hub-and-spoke. Evaluate ELK for tree layout. Build custom force-directed only if needed.
+
+\subsection{Risk Assessment}
+
+\begin{description}
+  \item[Layout quality] Auto-layout may produce suboptimal results. Users may want manual position hints.
+  
+  \item[Determinism violations] Force-directed layout is risky. Recommend DAG/tree for production; force for drafts.
+  
+  \item[Label collisions] Standard algorithms don't handle labels. Post-processing required.
+  
+  \item[Performance] Large graphs (>1000 nodes) may be slow. Define reasonable limits.
+\end{description}
+
+\subsection{Layout Hints (Escape Hatch)}
+
+For cases where auto-layout fails, the IR supports position hints:
+
+\begin{lstlisting}[language=yaml,caption={Position hints in Graph IR}]
+graph:
+  layout: dag
+  vertices:
+    - id: start
+      position: { x: 0, y: 0 }   # hint: override auto-layout for this node
+    - id: end
+      position: { x: 400, y: 0 }
+  edges: [...]
+\end{lstlisting}
+
+Position hints are optional. When present, auto-layout respects them; when absent, auto-layout computes positions.

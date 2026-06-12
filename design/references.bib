@@ -750,3 +750,188 @@
                   produced from the SVG backend (via resvg) or the Raster backend
                   (via Skia).}
 }
+
+% -----------------------------------------------------------------------------
+% GRAPH LAYOUT ALGORITHMS (added 2026-06-11 by Leslie for §42)
+% -----------------------------------------------------------------------------
+
+@article{sugiyama1981,
+  author       = {Sugiyama, Kozo and Tagawa, Shojiro and Toda, Mitsuhiko},
+  title        = {Methods for Visual Understanding of Hierarchical System Structures},
+  journal      = {IEEE Transactions on Systems, Man, and Cybernetics},
+  volume       = {11},
+  number       = {2},
+  pages        = {109--125},
+  year         = {1981},
+  doi          = {10.1109/TSMC.1981.4308636},
+  note         = {The foundational layered graph drawing algorithm. Four phases:
+                  cycle removal, layer assignment, crossing minimization, horizontal
+                  coordinate assignment. Basis for DAG layout in dagre, Graphviz dot,
+                  and ELK.}
+}
+
+@article{reingold1981,
+  author       = {Reingold, Edward M. and Tilford, John S.},
+  title        = {Tidier Drawings of Trees},
+  journal      = {IEEE Transactions on Software Engineering},
+  volume       = {SE-7},
+  number       = {2},
+  pages        = {223--228},
+  year         = {1981},
+  doi          = {10.1109/TSE.1981.234519},
+  note         = {Linear-time algorithm for aesthetic tree layout. Produces compact,
+                  centered trees. Extended by Walker (1990) for n-ary trees.
+                  Standard tree layout in most graph visualization libraries.}
+}
+
+@article{fruchterman1991,
+  author       = {Fruchterman, Thomas M. J. and Reingold, Edward M.},
+  title        = {Graph Drawing by Force-Directed Placement},
+  journal      = {Software: Practice and Experience},
+  volume       = {21},
+  number       = {11},
+  pages        = {1129--1164},
+  year         = {1991},
+  doi          = {10.1002/spe.4380211102},
+  note         = {Influential force-directed algorithm treating edges as springs
+                  and nodes as repelling charges. O(|V|² × iterations). Used in
+                  d3-force and many visualization libraries. Non-deterministic
+                  without careful seeding.}
+}
+
+@inproceedings{eades1984,
+  author       = {Eades, Peter},
+  title        = {A Heuristic for Graph Drawing},
+  booktitle    = {Congressus Numerantium},
+  volume       = {42},
+  pages        = {149--160},
+  year         = {1984},
+  note         = {Early spring-embedder algorithm for force-directed graph layout.
+                  Simpler than Fruchterman-Reingold but foundational to the field.}
+}
+
+@article{garey1983,
+  author       = {Garey, Michael R. and Johnson, David S.},
+  title        = {Crossing Number Is {NP}-Complete},
+  journal      = {SIAM Journal on Algebraic and Discrete Methods},
+  volume       = {4},
+  number       = {3},
+  pages        = {312--316},
+  year         = {1983},
+  doi          = {10.1137/0604033},
+  note         = {Proves that minimizing edge crossings in graph drawings is
+                  NP-complete, motivating heuristic approaches in practical
+                  layout algorithms.}
+}
+
+@misc{elk,
+  author       = {{Eclipse Foundation}},
+  title        = {{ELK} --- Eclipse Layout Kernel},
+  year         = {2026},
+  howpublished = {\url{https://www.eclipse.org/elk/}},
+  urldate      = {2026-06-11},
+  note         = {EPL-2.0 license. Java library (JavaScript port: elkjs) providing
+                  multiple layout algorithms: layered (Sugiyama), tree, force,
+                  radial, and more. Designed for determinism. Used in production
+                  diagramming tools including Eclipse-based IDEs.}
+}
+
+@misc{dagre,
+  author       = {{Chris Pettitt and contributors}},
+  title        = {dagre: Directed Graph Layout for {JavaScript}},
+  year         = {2024},
+  howpublished = {\url{https://github.com/dagrejs/dagre}},
+  urldate      = {2026-06-11},
+  note         = {MIT license. Pure JavaScript implementation of Sugiyama layered
+                  layout for DAGs. Small footprint (~50KB). Used by Mermaid for
+                  flowchart and state diagram layout. Deterministic for DAGs.}
+}
+
+@misc{graphviz,
+  author       = {{Ellson, John and Gansner, Emden and Koutsofios, Lefteris and
+                  North, Stephen C. and Woodhull, Gordon}},
+  title        = {Graphviz --- Graph Visualization Software},
+  year         = {2024},
+  howpublished = {\url{https://graphviz.org/}},
+  urldate      = {2026-06-11},
+  note         = {Eclipse Public License. The classic graph visualization tool.
+                  DOT language for graph description; multiple layout engines
+                  (dot, neato, fdp, sfdp, circo, twopi). Excellent algorithms,
+                  dated visual output. Prior art for diagram-as-code.}
+}
+
+% -----------------------------------------------------------------------------
+% SVG ANIMATION AND VECTOR ANIMATION (added 2026-06-11 by Leslie for §14)
+% -----------------------------------------------------------------------------
+
+@misc{smil,
+  author       = {{W3C}},
+  title        = {{SMIL} Animation --- {W3C} Recommendation},
+  year         = {2001},
+  howpublished = {\url{https://www.w3.org/TR/smil-animation/}},
+  urldate      = {2026-06-11},
+  note         = {Synchronized Multimedia Integration Language animation module.
+                  Basis for SVG animation elements (\texttt{<animate>},
+                  \texttt{<animateMotion>}, \texttt{<animateTransform>}).
+                  Declarative animation without JavaScript.}
+}
+
+@misc{css-animations,
+  author       = {{W3C CSS Working Group}},
+  title        = {{CSS} Animations Level 1 --- {W3C} Working Draft},
+  year         = {2023},
+  howpublished = {\url{https://www.w3.org/TR/css-animations-1/}},
+  urldate      = {2026-06-11},
+  note         = {CSS mechanism for animating property values via keyframes.
+                  Alternative to SMIL for SVG animation. Widely supported in
+                  browsers.}
+}
+
+@misc{lottie,
+  author       = {{Airbnb Engineering}},
+  title        = {Lottie: Render After Effects Animations Natively},
+  year         = {2024},
+  howpublished = {\url{https://airbnb.io/lottie/}},
+  urldate      = {2026-06-11},
+  note         = {Open-source animation format (JSON) exported from After Effects
+                  via Bodymovin plugin. Rich animation capabilities but requires
+                  frame-based thinking. Out of scope for v1; potential future
+                  export target.}
+}
+
+% -----------------------------------------------------------------------------
+% DIAGRAM DSLs AND PRIOR ART (added 2026-06-11 by Leslie for §24)
+% -----------------------------------------------------------------------------
+
+@misc{kroki,
+  author       = {{Guillaume Grossetie and contributors}},
+  title        = {Kroki: Creates Diagrams from Textual Descriptions},
+  year         = {2024},
+  howpublished = {\url{https://kroki.io/}},
+  urldate      = {2026-06-11},
+  note         = {MIT license. Unified API for multiple diagram-as-code tools
+                  (Mermaid, PlantUML, Graphviz, etc.). Demonstrates the value
+                  of a single rendering endpoint for multiple DSLs.}
+}
+
+@misc{excalidraw,
+  author       = {{Excalidraw Contributors}},
+  title        = {Excalidraw: Virtual Whiteboard for Sketching Hand-Drawn Diagrams},
+  year         = {2024},
+  howpublished = {\url{https://excalidraw.com/}},
+  urldate      = {2026-06-11},
+  note         = {MIT license. Hand-drawn aesthetic, manual placement. Not
+                  declarative; not deterministic. Different design philosophy
+                  from the diagram compiler.}
+}
+
+@misc{c4model,
+  author       = {{Simon Brown}},
+  title        = {The {C4} Model for Visualising Software Architecture},
+  year         = {2024},
+  howpublished = {\url{https://c4model.com/}},
+  urldate      = {2026-06-11},
+  note         = {Hierarchical approach to software architecture diagramming:
+                  Context, Container, Component, Code. Implemented in Structurizr.
+                  Domain-specific to software architecture.}
+}

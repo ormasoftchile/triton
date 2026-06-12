@@ -1,0 +1,155 @@
+\section{Rendering Backends: SVG as Source of Truth}
+\label{sec:backends}
+
+This section defines the rendering backends that consume the Scene IR and produce final output artifacts. The key architectural decision is that \textbf{SVG is the canonical source of truth}---not one backend among equals, but the primary representation from which other formats are derived or specialized.
+
+\subsection{The Backend Architecture}
+
+\begin{figure}[h]
+\centering
+\begin{Verbatim}[frame=single,fontsize=\small]
+                      Scene IR
+                         |
+         +---------------+---------------+
+         |               |               |
+         v               v               v
+    SVG Backend     Skia Backend    PPTX Backend
+         |               |               |
+         v               v               v
+       SVG file     PNG / PDF       PPTX (native shapes)
+         |          (art effects)
+         |
+    +----+----+
+    |         |
+    v         v
+  resvg      PDF
+  (PNG)    (vector)
+\end{Verbatim}
+\caption{Backend architecture: SVG as the canonical path; Skia and PPTX as specialized backends}
+\label{fig:backend-arch}
+\end{figure}
+
+\subsection{SVG as Canonical Source of Truth}
+
+\paragraph{Rationale.}
+SVG is the canonical representation because:
+
+\begin{enumerate}
+  \item \textbf{Text-based and diff-friendly.} SVG is human-readable XML. Golden tests can compare SVG text, not just pixel hashes.
+  
+  \item \textbf{Resolution-independent.} SVG scales to any resolution without quality loss.
+  
+  \item \textbf{Deterministic.} The same Scene produces byte-identical SVG. No font rendering variance, no anti-aliasing differences.
+  
+  \item \textbf{Animation-capable.} SVG supports SMIL animation and CSS animations natively. An animated SVG is still a static text file---the animation is declarative.
+  
+  \item \textbf{Universal embedding.} SVG embeds in web pages, Markdown, documentation, and most design tools.
+  
+  \item \textbf{Superset relationship.} A static SVG is an animated SVG with no animation. An animated SVG degrades gracefully to still in print contexts.
+\end{enumerate}
+
+\paragraph{PNG and PDF as exports from SVG.}
+PNG output is produced by rasterizing SVG through resvg (a Rust-based SVG renderer with deterministic output). PDF output is produced by converting SVG to PDF vectors. Both are \emph{exports} of the SVG truth, not parallel primary targets.
+
+\subsection{The Skia Backend: Art Effects}
+
+For diagrams requiring art effects beyond SVG's native capabilities (high-quality glow, noise textures, bloom), the Skia backend~\cite{skia} renders directly from Scene IR to raster (PNG) or PDF.
+
+\paragraph{When to use Skia.}
+\begin{itemize}
+  \item Effects with \texttt{fallback\_policy: embed-raster} that SVG cannot approximate
+  \item Themes designated as ``Tier 2'' or ``Tier 3'' fidelity (see Section~\ref{sec:fidelity-tiers})
+  \item Explicit user request for Skia rendering
+\end{itemize}
+
+\paragraph{Skia determinism.}
+Skia output is deterministic given:
+\begin{itemize}
+  \item Pinned Skia version
+  \item Fixed effect seeds (derived from \texttt{scene\_hash + effect\_id})
+  \item No system font fallback (fonts embedded or specified)
+\end{itemize}
+
+\subsection{The PPTX Backend: Native Shapes}
+
+PowerPoint output is a specialized backend that maps Scene IR primitives to PPTX's native DrawingML shapes~\cite{ooxml}. This produces editable slides, not embedded images.
+
+\paragraph{Supported mappings.}
+\begin{itemize}
+  \item \texttt{Rect} → \texttt{<p:sp>} with \texttt{<a:prstGeom prst="rect">}
+  \item \texttt{Circle} → \texttt{<a:prstGeom prst="ellipse">}
+  \item \texttt{Line} → \texttt{<p:cxnSp>} connection shape
+  \item \texttt{Text} → \texttt{<p:txBody>} with \texttt{<a:p>/<a:r>}
+  \item \texttt{Group} → \texttt{<p:grpSp>}
+  \item Effects → DrawingML effects (\texttt{<a:effectLst>}, \texttt{<a:glow>}, \texttt{<a:outerShdw>})
+\end{itemize}
+
+\paragraph{Limitations.}
+PPTX cannot represent arbitrary SVG paths. Complex paths are rasterized and embedded as images. Animation hints are ignored (PPTX animations are a separate, complex system not in scope).
+
+\subsection{Rejecting HTML/CSS-First Architecture}
+
+An alternative architecture would use HTML/CSS as the primary representation, leveraging browser layout (flexbox, grid) and CSS animations. This approach was explicitly considered and rejected:
+
+\begin{description}
+  \item[Browser variance breaks determinism.] Different browsers render the same HTML/CSS differently. Font metrics, sub-pixel anti-aliasing, and layout rounding vary. This fundamentally violates the determinism contract.
+  
+  \item[No single-file portability.] HTML requires external CSS, fonts, and assets. SVG is self-contained.
+  
+  \item[Headless browser dependency.] Rasterizing HTML requires Puppeteer or Playwright---heavy, slow, and non-deterministic.
+  
+  \item[Layout leaks into rendering.] CSS layout (flexbox, grid) would compute positions. But determinism requires that layout happen in the Scene IR, not in the renderer. Mixing layout engines creates irreproducibility.
+\end{description}
+
+\paragraph{The honest caveat.}
+The real robustness risk is the \emph{layout engine}, not the backend. Computing node positions, label placements, and connector routing is hard. CSS auto-layout is tempting precisely because it solves layout. The architectural discipline is: keep layout computed deterministically in the grammar's layout engine; the Scene IR records the result; the backend only draws.
+
+If CSS auto-layout is ever desired (e.g., for a future HTML-interactive backend), it must be quarantined \emph{after} the Scene IR seam, with acceptance that HTML output is not golden-testable in the same way as SVG.
+
+\subsection{Backend Selection Logic}
+
+The compiler selects a backend based on:
+
+\begin{enumerate}
+  \item \textbf{Output format requested.} \texttt{.svg} → SVG backend; \texttt{.png} → SVG+resvg (default) or Skia (if effects require); \texttt{.pdf} → SVG+PDF conversion or Skia; \texttt{.pptx} → PPTX backend.
+  
+  \item \textbf{Theme fidelity tier.} Tier 1 (clean) → SVG; Tier 2/3 (effects) → Skia fallback for PNG/PDF.
+  
+  \item \textbf{Explicit override.} \texttt{--backend=skia} forces Skia for any format.
+\end{enumerate}
+
+\subsection{Fidelity Tiers}
+\label{sec:fidelity-tiers}
+
+Themes declare a fidelity tier that guides backend selection:
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Tier} & \textbf{Effects} & \textbf{SVG} & \textbf{Raster/PDF} \\
+\midrule
+Tier 1 & None (clean vectors) & Full fidelity & resvg \\
+Tier 2 & Drop shadows, gradients & Approximate & Skia (recommended) \\
+Tier 3 & Glow, noise, bloom & Omit/rasterize & Skia (required) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The default theme (``consulting'') is Tier 1. Art-effect themes (``dark-executive'', ``neon'') are Tier 2 or 3.
+
+\subsection{Determinism Verification}
+
+Each backend provides determinism verification:
+
+\begin{description}
+  \item[SVG] Byte-identical file comparison. Golden SVG files are committed and compared character-by-character.
+  
+  \item[PNG (resvg)] Pixel-identical comparison. resvg is deterministic given the same SVG input and version.
+  
+  \item[PNG (Skia)] Pixel-identical comparison with tolerance. Skia's anti-aliasing may vary slightly across platforms; a small per-pixel tolerance (e.g., ±1 in each channel) is permitted.
+  
+  \item[PDF] Text-layer comparison (ignore binary streams). PDF metadata (timestamps) is stripped before comparison.
+  
+  \item[PPTX] XML comparison of shape definitions. Binary image blobs compared by hash.
+\end{description}

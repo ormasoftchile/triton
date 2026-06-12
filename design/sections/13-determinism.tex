@@ -1,0 +1,137 @@
+\section{Determinism Contract}
+\label{sec:determinism}
+
+Determinism is not a feature of the diagram compiler---it is the \emph{central architectural invariant}. This section consolidates the determinism contract across all layers of the system.
+
+\subsection{The Fundamental Guarantee}
+
+\begin{quote}
+\textbf{Determinism Contract:} The same IR document plus the same theme plus the same backend version produces byte-identical output across all runs, platforms, and time.
+\end{quote}
+
+This is a \emph{specification-level} requirement, not an implementation detail. If two conforming implementations produce different outputs from identical inputs, one of them has a defect.
+
+\subsection{Why Determinism Matters}
+
+\begin{description}
+  \item[Version control.] Changes to the IR produce predictable visual diffs. Teams can review diagram changes in pull requests.
+  
+  \item[CI/CD integration.] Automated pipelines can render diagrams without human inspection. Build artifacts are reproducible.
+  
+  \item[Agent reliability.] AI agents can trust that their generated IR produces the expected visual. Round-trip editing (generate → render → inspect → regenerate) works.
+  
+  \item[Golden testing.] Reference images committed to the repository can be compared byte-for-byte against new renders. Regressions are detectable.
+  
+  \item[Audit trails.] Given an IR and theme, the exact output can be reconstructed at any future date.
+\end{description}
+
+\subsection{Sources of Non-Determinism (and How They're Eliminated)}
+
+\subsubsection{System Clock}
+
+\textbf{Problem:} Reading \texttt{Date.now()} or the system clock introduces time-dependent variability.
+
+\textbf{Solution:} The compiler never consults the system clock. The ``today'' marker uses \texttt{metadata.today} from the IR. Timestamps in output metadata are either omitted or taken from IR fields.
+
+\subsubsection{Random Number Generators}
+
+\textbf{Problem:} Random values for layout jitter, effect seeds, or ID generation break determinism.
+
+\textbf{Solution:} No random state is consumed. Effect seeds for procedural effects (noise textures, cloud layers) are derived deterministically from \texttt{scene\_hash + effect\_id}.
+
+\subsubsection{Floating-Point Rounding}
+
+\textbf{Problem:} Different CPUs may produce different floating-point results for the same operations due to extended precision, FMA instructions, or rounding mode differences.
+
+\textbf{Solution:} All intermediate values are rounded using round-half-up ($\lfloor v + 0.5 \rfloor$) to two decimal places. Scene coordinates are expressed as fixed-precision decimals, not arbitrary floats.
+
+\subsubsection{Collection Ordering}
+
+\textbf{Problem:} Hash maps and sets have undefined iteration order. Processing elements in arbitrary order produces arbitrary output order.
+
+\textbf{Solution:} Every ordered collection is sorted by an explicit, unambiguous key sequence:
+\begin{itemize}
+  \item Tracks: by \texttt{index} ascending
+  \item Activities: by \texttt{(start\_ordinal, id)} ascending
+  \item Milestones: by \texttt{(date\_ordinal, id)} ascending
+  \item All other entities: by \texttt{id} ascending (alphabetically)
+\end{itemize}
+ID uniqueness is guaranteed by schema validation; IDs break all ties.
+
+\subsubsection{Font Metrics}
+
+\textbf{Problem:} System fonts vary across platforms. Text measurement with system fonts produces different label widths on macOS vs.\ Linux vs.\ Windows.
+
+\textbf{Solution:} Themes must specify embedded font files (WOFF2 or equivalent) for all layout-critical fonts. The compiler ships font metrics tables at build time. System fonts are never consulted for text measurement.
+
+\subsubsection{Environment Variables and Locale}
+
+\textbf{Problem:} Environment variables (\texttt{TZ}, \texttt{LANG}, \texttt{LC\_*}) affect date formatting and text processing.
+
+\textbf{Solution:} The compiler uses explicit locale from \texttt{metadata.locale}. Environment variables are ignored. Date formatting uses ISO 8601 internally; display formatting is locale-aware but deterministic given the locale.
+
+\subsubsection{File System State}
+
+\textbf{Problem:} Reading external files (images, fonts) that may change between runs.
+
+\textbf{Solution:} External assets are resolved at IR load time and embedded (base64 data URIs) or checksummed. The Scene IR contains no file paths---only embedded data.
+
+\subsection{The Determinism Verification Protocol}
+
+Determinism is verified at multiple levels:
+
+\subsubsection{Scene-Level Verification}
+
+The \texttt{scene\_hash} (SHA-256 of canonical Scene JSON) is computed after layout. Tests verify:
+
+\begin{lstlisting}[language=javascript,caption={Scene determinism test pattern}]
+const scene1 = layoutEngine.compile(ir, theme);
+const scene2 = layoutEngine.compile(ir, theme);
+expect(scene1.meta.scene_hash).toBe(scene2.meta.scene_hash);
+\end{lstlisting}
+
+\subsubsection{SVG-Level Verification}
+
+SVG output is compared byte-for-byte:
+
+\begin{lstlisting}[language=javascript,caption={SVG determinism test pattern}]
+const svg1 = svgBackend.render(scene);
+const svg2 = svgBackend.render(scene);
+expect(svg1).toBe(svg2);  // Exact string equality
+\end{lstlisting}
+
+\subsubsection{Raster-Level Verification}
+
+PNG output is compared pixel-by-pixel with zero tolerance (for resvg) or minimal tolerance (for Skia):
+
+\begin{lstlisting}[language=javascript,caption={Raster determinism test pattern}]
+const png1 = pngBackend.render(scene);
+const png2 = pngBackend.render(scene);
+expect(pixelDiff(png1, png2)).toBeLessThan(tolerance);
+\end{lstlisting}
+
+\subsubsection{Cross-Platform Verification}
+
+CI runs on macOS, Linux, and Windows. Golden files committed on one platform must match on all platforms.
+
+\subsection{Determinism Across Backend Versions}
+
+Determinism is guaranteed \emph{within} a backend version. When backend versions change (e.g., resvg 0.35 → 0.36), output may change. This is expected and managed by:
+
+\begin{enumerate}
+  \item Recording backend version in output metadata
+  \item Regenerating golden files when backend versions are bumped
+  \item Semantic versioning: backend version bumps that change output are minor or major releases
+\end{enumerate}
+
+\subsection{The Exception: Cross-Backend Differences}
+
+Cross-backend pixel identity is \emph{explicitly not promised}. The SVG backend and Skia backend, given the same Scene, produce visually different outputs:
+
+\begin{itemize}
+  \item SVG may approximate or omit effects that Skia renders faithfully
+  \item Anti-aliasing algorithms differ
+  \item Font rendering differs (even with the same font metrics)
+\end{itemize}
+
+This is correct behavior. The determinism contract applies \emph{within} a backend, not \emph{across} backends. Cross-backend tests use per-backend golden images.

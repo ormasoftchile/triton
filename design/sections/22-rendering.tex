@@ -1,14 +1,16 @@
-\section{Rendering Model}
-\label{sec:rendering}
+\section{Timeline Layout Engine}
+\label{sec:timeline-rendering}
 
-The rendering model defines a \emph{deterministic mapping} from a Timeline IR document and a
-theme to a concrete visual geometry: positions, dimensions, label placements, and visual
+This section specifies the layout engine for the Timeline Grammar---the deterministic transformation from Timeline Domain IR to Scene IR. The layout engine is grammar-specific; the rendering backends (Section~\ref{sec:backends}) are shared across all grammars.
+
+\subsection{Layout Pipeline Overview}
+
+The Timeline layout engine defines a \emph{deterministic mapping} from a Timeline IR document and a
+theme to Scene IR geometry: positions, dimensions, label placements, and visual
 treatments. ``Deterministic'' is not aspirational; it is a hard contract. Two conforming
-renderers, given identical IR and theme, must produce geometrically identical output. If they
-diverge, a defect exists in one renderer---not an interpretation ambiguity in this
-specification~\cite{vegalite2017}.
+layout engines, given identical IR and theme, must produce geometrically identical Scene IR~\cite{vegalite2017}.
 
-The model is organized as an ordered six-phase pipeline. Each phase consumes only outputs
+The engine is organized as an ordered six-phase pipeline. Each phase consumes only outputs
 of preceding phases and produces geometry for later phases. The pipeline is \emph{pure}: no
 phase reads from the IR after its designated turn, and no phase performs I/O, reads a system
 clock, or invokes a random number generator.
@@ -16,7 +18,7 @@ clock, or invokes a random number generator.
 \subsection{Determinism Contract}
 \label{sec:rendering-determinism}
 
-Two conforming renderers $R_1$ and $R_2$, given the same IR document $D$ and theme $\theta$,
+Two conforming layout engines $R_1$ and $R_2$, given the same IR document $D$ and theme $\theta$,
 must produce identical coordinate values, label positions, and visual-treatment assignments.
 This contract requires:
 

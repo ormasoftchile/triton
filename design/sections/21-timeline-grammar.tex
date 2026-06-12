@@ -1,13 +1,13 @@
-\section{Timeline IR}
-\label{sec:ir}
+\section{Timeline Grammar: Domain IR}
+\label{sec:timeline-grammar}
 
-The Timeline Intermediate Representation (IR) is the central contract of this system. It defines
-\emph{what} a timeline communicates---entities, relationships, temporal structure, and semantic
-status---while remaining agnostic to \emph{how} that communication is rendered. This separation
-enables deterministic rendering, source-control-friendly editing, and reliable generation by
-both humans and AI agents.
+The Timeline Grammar is the first grammar implemented in the diagram compiler. This section specifies its Domain IR---the declarative representation of \emph{what} a timeline communicates.
+
+\textbf{Note:} This section re-homes and re-contextualizes the original Timeline IR specification as ``Grammar \#1'' in the broader diagram compiler architecture. The IR definition is unchanged; only the framing is updated.
 
 \subsection{Design Principles}
+
+The Timeline Domain IR follows the general grammar design principles (Section~\ref{sec:grammar-concept}), with timeline-specific elaboration:
 
 \begin{enumerate}
   \item \textbf{Make illegal states unrepresentable.} The IR's type system should prevent

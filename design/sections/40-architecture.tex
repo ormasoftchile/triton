@@ -1,0 +1,252 @@
+\section{Layered Architecture}
+\label{sec:architecture}
+
+This section defines the layered architecture of the diagram compiler, emphasizing the clean separation between kernel, grammars, and composition.
+
+\subsection{The Three Layers}
+
+\begin{figure}[h]
+\centering
+\begin{Verbatim}[frame=single,fontsize=\small]
++------------------------------------------------------------------+
+|                      COMPOSITION LAYER                           |
+|   (arranges panels into posters; references grammar outputs)     |
++------------------------------------------------------------------+
+        |               |               |               |
+        v               v               v               v
++---------------+ +-------------+ +-------------+ +-----------+
+|   Timeline    | |    Flow     | |    Graph    | | Comparison|
+|   Grammar     | |   Grammar   | |   Grammar   | |  Grammar  |
++---------------+ +-------------+ +-------------+ +-----------+
+        |               |               |               |
+        +-------+-------+-------+-------+-------+-------+
+                |
+                v
++------------------------------------------------------------------+
+|                          KERNEL                                  |
+|   Scene IR | Backends | Themes | Determinism | Icons | Lint     |
++------------------------------------------------------------------+
+\end{Verbatim}
+\caption{The three-layer architecture: Composition → Grammars → Kernel}
+\label{fig:three-layers}
+\end{figure}
+
+\subsection{Layer 1: The Kernel}
+\label{sec:arch-kernel}
+
+The kernel is the shared infrastructure that all grammars depend on. It is grammar-agnostic: it knows nothing about timelines, flows, or graphs.
+
+\subsubsection{Kernel Components}
+
+\begin{description}
+  \item[Scene IR (§\ref{sec:scene-ir})] The universal primitive set (Rect, Circle, Line, Path, Text, Group) and effect definitions. The render contract.
+  
+  \item[Rendering Backends (§\ref{sec:backends})] SVG, PNG (resvg), Skia, PPTX backends. Consume Scene IR, produce output.
+  
+  \item[Theme System (§\ref{sec:themes})] Theme schema, theme loading, inheritance, property resolution. Grammar-agnostic but grammars may extend.
+  
+  \item[Determinism Contract (§\ref{sec:determinism})] Rounding rules, sort ordering, no-random, no-clock guarantees.
+  
+  \item[Deterministic Font Metrics] Embedded font metric tables for layout-critical text measurement.
+  
+  \item[Icon Registry] Named icons (SVG paths) available to all grammars.
+  
+  \item[Asset/Image Loader] Resolves and embeds external images as data URIs.
+  
+  \item[Layout Helpers] Common layout primitives: text measurement, box collision, orthogonal routing.
+  
+  \item[Lint/Quality-Gate Framework] Validation diagnostics, severity levels, suggestion generation.
+  
+  \item[Animation Hints (§\ref{sec:animation})] Declarative animation attached to Scene primitives.
+\end{description}
+
+\subsubsection{Kernel Contract}
+
+The kernel makes the following guarantees to grammars:
+
+\begin{enumerate}
+  \item \textbf{Grammar-agnosticism}: The kernel never imports from, or references, any grammar module.
+  
+  \item \textbf{Determinism}: All kernel operations are deterministic given the same inputs.
+  
+  \item \textbf{Backend uniformity}: All backends consume the same Scene IR interface.
+  
+  \item \textbf{Theme uniformity}: Theme properties are resolved identically for all grammars.
+\end{enumerate}
+
+\subsection{Layer 2: Grammars}
+\label{sec:arch-grammars}
+
+Grammars are peer modules that sit atop the kernel. Each grammar:
+
+\begin{itemize}
+  \item Defines its own Domain IR schema
+  \item Implements one or more layout engines (Domain IR → Scene IR)
+  \item May extend the theme schema with grammar-specific properties
+  \item Exposes validation and compilation entry points
+\end{itemize}
+
+\subsubsection{Grammar Independence}
+
+Grammars are \emph{independent} of each other:
+
+\begin{itemize}
+  \item The Timeline grammar does not import from the Flow grammar
+  \item Adding a new grammar does not modify existing grammars
+  \item Each grammar can be versioned and released independently
+\end{itemize}
+
+\subsubsection{Grammar-Kernel Dependency}
+
+All grammars depend on the kernel:
+
+\begin{lstlisting}[language=javascript,caption={Grammar dependency structure}]
+// packages/timeline/package.json
+{
+  "dependencies": {
+    "@diagram-compiler/kernel": "^1.0.0"
+  }
+}
+
+// packages/flow/package.json
+{
+  "dependencies": {
+    "@diagram-compiler/kernel": "^1.0.0"
+  }
+}
+\end{lstlisting}
+
+\subsection{Layer 3: Composition}
+\label{sec:arch-composition}
+
+The Composition layer sits above grammars. It:
+
+\begin{itemize}
+  \item References panels, each specifying a grammar type and Domain IR
+  \item Invokes grammar compilation for each panel
+  \item Arranges panel Scenes into a unified poster Scene
+  \item Adds editorial chrome (headers, footers, dividers)
+\end{itemize}
+
+\subsubsection{Composition Dependencies}
+
+Composition depends on grammars (to compile panels) and kernel (for chrome rendering):
+
+\begin{lstlisting}[language=javascript,caption={Composition dependency structure}]
+// packages/composition/package.json
+{
+  "dependencies": {
+    "@diagram-compiler/kernel": "^1.0.0",
+    "@diagram-compiler/timeline": "^1.0.0",
+    "@diagram-compiler/flow": "^1.0.0",
+    "@diagram-compiler/comparison": "^1.0.0"
+    // ... all available grammars
+  }
+}
+\end{lstlisting}
+
+\subsection{Dependency Rules}
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Module} & \textbf{→ Kernel} & \textbf{→ Grammars} & \textbf{→ Composition} & \textbf{→ Other Grammars} \\
+\midrule
+Kernel & — & ✗ & ✗ & ✗ \\
+Grammar (any) & ✓ & — & ✗ & ✗ \\
+Composition & ✓ & ✓ & — & — \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Key rule:} The kernel must not import anything grammar-specific. This is enforced by linting.
+
+\subsection{Module Boundaries}
+
+\subsubsection{What Lives in the Kernel}
+
+\begin{itemize}
+  \item Scene IR types and serialization
+  \item All rendering backends
+  \item Theme schema (core properties)
+  \item Theme loader and resolver
+  \item Icon registry
+  \item Font metric tables
+  \item Validation framework (DiagnosticSeverity, ValidationResult)
+  \item Determinism utilities (rounding, sorting)
+  \item Animation hint types
+\end{itemize}
+
+\subsubsection{What Lives in Grammars}
+
+\begin{itemize}
+  \item Domain IR types (e.g., Activity, Track, Milestone for Timeline)
+  \item Domain IR schema (JSON Schema)
+  \item Validation rules (semantic validation beyond schema)
+  \item Layout engine(s)
+  \item Grammar-specific theme extensions
+\end{itemize}
+
+\subsubsection{What Lives in Composition}
+
+\begin{itemize}
+  \item Composition IR types
+  \item Composition IR schema
+  \item Panel arrangement algorithms (stack, grid, custom)
+  \item Chrome rendering (headers, footers, dividers)
+  \item Grammar dispatcher (routes panel to correct grammar)
+\end{itemize}
+
+\subsection{API Surface}
+
+Each layer exposes a clean API:
+
+\subsubsection{Kernel API}
+
+\begin{lstlisting}[language=javascript,caption={Kernel public API}]
+// Scene IR
+export type Scene, DrawingPrimitive, EffectDefinition, AnimationHint;
+export function sceneHash(scene: Scene): string;
+
+// Backends
+export function renderSvg(scene: Scene): string;
+export function renderPng(scene: Scene): Buffer;
+export function renderPdf(scene: Scene): Buffer;
+export function renderPptx(scene: Scene): Buffer;
+
+// Themes
+export function loadTheme(name: string): Theme;
+export function resolveTheme(base: Theme, overrides: Partial<Theme>): Theme;
+
+// Validation
+export type Diagnostic, ValidationResult;
+
+// Icons
+export function getIcon(name: string): SvgPath | undefined;
+
+// Font metrics
+export function measureText(text: string, font: FontSpec): TextMetrics;
+\end{lstlisting}
+
+\subsubsection{Grammar API}
+
+Each grammar exposes the same interface shape:
+
+\begin{lstlisting}[language=javascript,caption={Grammar public API (Timeline example)}]
+// @diagram-compiler/timeline
+export type TimelineIR;  // Domain IR type
+export const schema: JsonSchema;
+export function validate(ir: unknown): ValidationResult;
+export function compile(ir: TimelineIR, theme: Theme): Scene;
+\end{lstlisting}
+
+\subsubsection{Composition API}
+
+\begin{lstlisting}[language=javascript,caption={Composition public API}]
+// @diagram-compiler/composition
+export type CompositionIR;
+export const schema: JsonSchema;
+export function validate(ir: unknown): ValidationResult;
+export function compile(ir: CompositionIR, theme: Theme): Scene;
+\end{lstlisting}
