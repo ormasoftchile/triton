@@ -36,3 +36,14 @@ Processed Barbara's opt-in axis.todayMarker.labelChip token (default false, road
 - **Decisions Archive Gate:** decisions.md 50,337 bytes (under 51,200 gate) ✓
 - **Inbox:** 0 files (clean) ✓
 - **History Files:** All under 15,360-byte summarization threshold ✓
+
+### 2026-06-12 — Today Z-Order Fix Session
+
+Processed Barbara's today marker z-order fix (root cause analysis and token implementation).
+
+- **Orchestration Log:** 2026-06-12T17:37:26Z-barbara-today-zorder.md
+- **Session Log:** 2026-06-12T17:37:26Z-today-zorder.md
+- **Decisions Archive Gate:** decisions.md 50,337 bytes (under 51,200 gate) ✓
+- **Inbox:** 0 files (clean) ✓
+- **History Files:** All under 15,360-byte summarization threshold ✓
+- **Commit:** 7a2b465 (timeline-goals goldens; 577 tests pass; typecheck clean)

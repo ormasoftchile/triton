@@ -103,6 +103,30 @@ Deferred rules for `axis_breaks` IR field:
 
 **Pattern:** Follows the same opt-in theme-token gating pattern as `labelWrap` (milestone tier gap) and `nodeWrap` (spine routing) — new visual behaviour is isolated to the roadmap theme via a boolean token, never leaking into other themes.
 
+**⚠️ CORRECTION (2026-06-12):** The white chip alone was INSUFFICIENT. The chip appeared at SVG lines 24-25 but the activity pill rects were emitted at lines 28, 32, 36 — AFTER the chip — so the pills painted over the entire today marker (line + chip + text) regardless of the chip's opacity. Root cause was **SVG z-order (document order)**, not contrast. See fix below.
+
+---
+
+### 2026-06-12 — Today-Marker `onTop` Token (Z-Order Fix)
+
+**Defect (2nd attempt):** Despite the white chip, Cristian still saw the "Today" label buried under the teal Evangelization pill. Root cause confirmed by inspecting `examples/gallery/timeline-goals.svg` paint order: today-marker primitives (line + chip + text) were emitted at SVG lines 24-26, while the three activity phase pills (#6B7280, #0F766E, #1e3a5f) were emitted at lines 28, 32, 36. SVG paints in document order (later = on top), so the pills covered the entire marker. **The chip was never visible — z-order was the real defect.**
+
+**Fix (determinism-safe, gated behind `theme.axis.todayMarker.onTop`):**
+- Added `onTop?: boolean` to the `todayMarker` block in `AxisTheme` (`types.ts`). Default absent/false — all existing themes unaffected, byte-identical.
+- Set `onTop: true` in `roadmap.ts` only (alongside existing `labelChip: true`).
+- In `horizontal.ts` today-marker block: introduced `const deferredTodayPrims: ScenePrimitive[] = []`. When `onTop` is true, all three marker primitives (line, chip, text) are pushed to `deferredTodayPrims` instead of `primitives`. When false, pushed inline as before.
+- At the very end of primitive assembly (before `return`): `if (deferredTodayPrims.length > 0) primitives.push(...deferredTodayPrims)` — appended after activity bars, milestone nodes, legend, all annotations.
+- When `onTop` is false (all other themes), `deferredTodayPrims` stays empty → zero delta → byte-identical for all non-roadmap fixtures.
+
+**Verified SVG order (timeline-goals.svg after fix):**
+- Phase pills: #6B7280 at line 25, #0F766E at line 29, #1e3a5f at line 33
+- Today dashed line: line 85; white chip rect: line 86; "Today" text: line 87
+- Today marker (85–87) > all pill rects (25, 29, 33) ✅ — marker now paints on top.
+
+**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `timeline-goals-skia.png` only. All 577 tests pass.
+
+**Key Learning:** A chip/backdrop behind the label only works if the chip itself is above the occluding element in z-order. When activities are emitted after the today-marker block, no amount of chip opacity can fix the visibility — the pill paints on top of everything in that block. The fix must be to move the entire marker to after the activity bars. Gate with `onTop` token to avoid moving other fixtures.
+
 ---
 
 ## Detailed Archive
