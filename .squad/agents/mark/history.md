@@ -59,3 +59,29 @@ Added **`axis.nodeWrap?: 'none' | 'over-under'`** token to `AxisTheme` (packages
 - **Implication for future grammars:** Theme tokens can now express routing algorithms (arc-weaving, constraint-based, force-directed hints) — design alternative to embedding routing specs in the Domain IR
 
 **Mark/IR Note:** This confirms the two-IR-layer boundary. Layout is rendering/theming concern, not IR concern. Future grammars can define axis-routing patterns similarly as opt-in theme tokens rather than polluting domain IRs.
+
+---
+
+## Open Questions — Flow Grammar Phase 1 Preparation (2026-06-12)
+
+**Context:** Leslie (Spec Architect) authored Flow Grammar Spec (Grammar #2) in sections/25-flow-grammar.tex. Flow IR is now awaiting Mark's JSON Schema design. Scribe identified open questions for day-1 implementation context.
+
+### Flow Domain IR Schema Open Questions
+
+1. **Edge Unique Identity:** Should edges have explicit `id` field or rely on positional identity (source + target + port pairs)? Impact: reference resolution, validation, determinism.
+   - **Tradeoff:** Explicit id = easier JSON references, harder to serialize; positional = deterministic ordering, more fragile if port order changes.
+   - **Decision impact:** Validation invariants, LLM generation constraints.
+
+2. **Port Model Extensibility:** Current spec lists fixed ports (auto|top|right|bottom|left). Should schema allow named custom ports?
+   - **Use case:** Domain-specific node types might need ports like 'data-in', 'control-out' for semantic precision.
+   - **Impact on routing:** Layout engine (Sugiyama + port-aware connection coordinate resolution).
+
+3. **JSON Schema Constraints:** Enums for node shape, edge style, group layout, and directedness need exhaustive specification.
+   - **XGrammar / GBNF constraint grammar:** Per David's research, should be submitted as constraint grammar to LLM generation pipeline for syntactic reliability.
+
+4. **Validation Rule List:** 17 Timeline IR invariants exist. Flow needs similar well-formedness rules:
+   - Example: All source/target node refs must exist; no cycles in group nesting; at least one node if groups present?
+   - Impact: LLM generation failure modes; error messaging.
+
+---
+

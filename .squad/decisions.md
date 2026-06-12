@@ -724,135 +724,68 @@ Built as specced + Mark's IR schema. See `.squad/decisions/inbox/barbara-image-p
 
 ---
 
-## Decision Note: Research Synthesis — Prior-Art Positioning and the Gap We Fill (2026-06-12)
+## Decision Note: Research Synthesis — Prior-Art Positioning (2026-06-12)
 
 **From:** David (Research Lead)  
 **Date:** 2026-06-12T03:01:53Z  
-**Addresses:** 52-comparison.tex, 20-grammar-concept.tex, 42-layout-engines.tex, 23-corpus-taxonomy.tex, 13-determinism.tex  
-**Status:** FOR ADOPTION — findings are research-grade; design consequences flagged for Mark and Barbara
+**Status:** ADOPTED
 
-### The Three-Cluster Landscape
+**Decision:** Three-cluster prior-art landscape identified: diagram-as-code (Mermaid/D2, non-deterministic), visualization grammars (Vega-Lite, chart-only), proprietary tools (closed). **Unoccupied cell: diagram-capable + principled IR + presentation quality + determinism.** Strategy: adopt Vega-Lite's two-IR-layer architecture ("Vega-Lite for diagrams"). Grammar of Graphics and Munzner ground IR-design-first discipline.
 
-Prior-art research across four reports reveals **three distinct clusters**, not two:
+**For Mark:** Each Domain IR JSON Schema must be small & self-contained. Use constraint grammar (XGrammar/GBNF) for LLM generation (empirical: small fragments > full schemas for reliability).
 
-| Cluster | Tools | What They Get Right | Critical Gap |
-|---------|-------|---------------------|--------------|
-| **Diagram-as-code** | Mermaid, D2, Graphviz, PlantUML | Source-control friendly, developer-facing, LLM-known syntax | Limited presentation quality; no formal IR; non-deterministic layout across versions; no PPTX |
-| **Visualization grammars** | Vega-Lite \[vegalite2017\], ggplot2 \[layeredgrammar2010\] | Principled WHAT/HOW separation; JSON Schema IR; deterministic; agent-authorable; presentation-quality | **Chart-only.** No node-link, no swimlane timeline, no flow diagrams. Explicitly out of scope per Wilkinson \[grammarofgraphics2005\] |
-| **Proprietary presentation tools** | think-cell, PowerPoint, MS Project | Presentation quality | Closed, manual, hostile to agents and version control |
+**Layout algorithms:** Sugiyama four-phase; Buchheim O(n) trees; stress majorization; Tamassia TSM; WebCola for swimlanes. Corpus expanded 9→16; **Comparison/Matrix is genuinely tabular** (constrained-grid, not Sugiyama) — needs own IR (column, row, cell, indicator).
 
-**The unoccupied cell:** diagram-capable + principled grammar architecture + presentation quality + determinism. No existing tool occupies it.
-
-### The Gap We Fill
-
-> **"Vega-Lite for diagrams."**
-
-Vega-Lite \[vegalite2017\] proves the architecture works:
-- Small, JSON-serializable Domain IR
-- Compiler that validates and fills in defaults
-- Compilation to a lower-level scene IR
-- Multiple deterministic rendering backends
-
-We borrow this architecture wholesale and extend it into the **diagram domain**: Timeline (first), then Flow/Pipeline, Node-Link Graph, Comparison/Matrix, Stat-Callout, Step-Cards.
-
-The Grammar of Graphics \[grammarofgraphics2005\] and Wickham \[layeredgrammar2010\] ground the default-inference discipline. Munzner's nested model \[munzner2009\] validates that Domain IR design at the higher level cannot be rescued by better algorithms below — making IR design the primary leverage point.
-
-### LLM-Authoring Reliability
-
-Research on constrained LLM generation converges on a single finding: **small, minimal grammar fragments are more reliable than full schemas**.
-
-**Consequence:** The god-IR rejection is not only an architectural preference — it is a reliability engineering decision. A large polymorphic schema is an agent-authoring failure vector.
-
-**Recommendation for Mark:** Each Domain IR JSON Schema must be small and self-contained. Submit it as the constraint grammar (via XGrammar \[dong2024xgrammar\] or GBNF \[llama2024gbnf\]) to eliminate syntactic failures in LLM generation.
-
-### Layout Algorithm Grounding
-
-The layout engine section now cites the full Sugiyama four-phase pipeline. Tree layout: Buchheim et al. (2002) \[buchheim2002\] corrects Walker (1990) \[walker1990\] to true O(n). Force-directed safe path: Stress majorization \[gansnerStressMaj2004\] with deterministic initial layout. Orthogonal layout: Tamassia (1987) \[tamassia1987\] TSM framework. Constraint-based: WebCola \[webCola\] for swimlane boundary enforcement.
-
-### Corpus Taxonomy Update
-
-Corpus expanded from 9 to 16 images. **Critical distinction confirmed:** The Comparison/Matrix kind is genuinely tabular — NOT a flow or graph. Its layout is a constrained-grid algorithm (column-width × row-height), not any Sugiyama variant. It needs its own Domain IR with `column`, `row`, `cell`, and `indicator` entity types.
-
-**Animated-arrow pattern:** `stroke-dashoffset` animation on SVG connector paths is the mechanism for the "flowing" data-stream effect dominant in ByteByteGo-style technical explainers. This is an animation hint on the Scene IR connector path — static backends ignore it.
-
-### Key Citations Added This Sprint
-
-`bertin1967`, `tufte1983`, `cleveland1984`, `munzner2014`, `munzner2009` — visual communication theory  
-`willard2023`, `wang2023grammar`, `dong2024xgrammar`, `llama2024gbnf`, `tian2023chartgpt`, `narechania2021nl4dv`, `ray2026constraint` — LLM-DSL constrained generation  
-`brandesKopf2001`, `walker1990`, `buchheim2002`, `kamadaKawai1989`, `gansnerStressMaj2004`, `tamassia1987`, `webCola`, `gansner1993dot` — graph layout algorithms
-
-Total new bib entries: **20** (72 → 92)
-# Decision: `axis.nodeWrap` opt-in token — arc-around-node spine for horizontal layout
+**Animation:** `stroke-dashoffset` on Scene IR connector = ByteByteGo flowing effect; static backends ignore. **20 new bib entries** (72→92) added; verbose detail archived.
+## Decision: `axis.nodeWrap` opt-in token — arc-around-node spine (2026-06-12)
 
 **Date:** 2026-06-12  
 **Author:** Barbara (Semantics & Rendering)  
 **Status:** ADOPTED
 
+**Problem:** Our Timeline reference shows horizontal spine weaving around nodes (arc over/under alternating), not straight line behind. Previous output was visually inconsistent.
+
+**Decision:** Add `axis.nodeWrap?: 'none' | 'over-under'` to AxisTheme. Default 'none' (byte-identical to pre-feature). When 'over-under': replace straight line with single `kind:'path'` Scene primitive routing around circles as alternating arcs (CCW=over, CW=under). Only `our-timeline` theme uses 'over-under'; all others untouched.
+
+**Geometry:** Pre-collects circular nodes left-to-right; spine Y = first node yCenter (tight arcs hug circles). Arc radius = rhu(ms.size + ARC_CLEARANCE=9) — 9px clearance outside circle (initial 3px was invisible). Path deterministic: M offset spineY → [for each node: L (xCenter-arcR) nodeY; A arcR arcR 0 0 sweepFlag (xCenter+arcR) nodeY] → L (offset+wDraw) spineY where sweepFlag = ni%2. Emitted before node circles so circles render on top.
+
+**Determinism:** rhu() rounding only; stable sorts (xCenter, milestone.id); no floating non-determinism; two renders byte-identical.
+
+**Backend support:** kind:'path'/fill:'none' already handled: SVG (native fill="none"), PNG/resvg (respects SVG), Skia (existing strokeOnly branch). No new fixes.
+
+**Track separator suppression:** When nodeWrap='over-under', suppress bottom-of-track separator (~40px below nodes, confusing second spine). Hoist nodeWrap to function scope; gate section-5 push on `if (nodeWrap !== 'over-under')`. All other themes byte-identical.
+
+**Files:** packages/core/src/themes/types.ts (AxisTheme), our-timeline.ts (axis.nodeWrap:'over-under'), layout/horizontal.ts (arc logic, separator gating), examples/gallery/our-timeline-numbered.svg, our-timeline-numbered-skia.png.
+
+**Alternatives rejected:** (1) arcs at axisY (~128px U-shape detour ≠ reference); (2) move nodes onto axisY (breaks fixture); (3) always-on (violates determinism contract). Verbose technical detail archived.
+
 ---
 
-## Problem
+## Decision: Flow Grammar Spec (Grammar #2) — Authored (2026-06-12)
 
-The "Our Timeline" reference infographic (target-horizontal-numbered.png) shows a horizontal spine that **weaves around each circular milestone node** — bowing UP-and-OVER node 1, DOWN-and-UNDER node 2, UP-and-OVER node 3 — rather than passing straight behind them. The previous implementation emitted a single straight `line` primitive at `axisY`, which is visually inconsistent with the reference.
+**Date:** 2026-06-12  
+**Author:** Leslie (Spec Architect)  
+**Status:** PROPOSED — awaiting Mark (schema detail) and Barbara (rendering semantics) review
 
-## Decision
+**Decision:** Flow Grammar is specified as Grammar #2 in `sections/25-flow-grammar.tex`. It is the **template grammar** proving the kernel is grammar-agnostic by supporting directed node-link diagrams without kernel modifications.
 
-Add an **opt-in token** `axis.nodeWrap: 'none' | 'over-under'` to `AxisTheme` (in `packages/core/src/themes/types.ts`):
+**Flow Domain IR Shape:**
+- **Nodes:** id (unique), label, shape (5 enum), icon, status (6 semantic → theme-resolved), description, group ref
+- **Edges:** positional identity, source/target refs, ports (auto|top|right|bottom|left), label, style (solid|dashed|dotted), animated flag, directedness (directed|bidirectional|undirected)
+- **Groups:** id, label, node membership (bidirectional ref), style (lane|cluster|outline)
+- **Direction:** left-to-right | top-to-bottom (layout hard constraint)
 
-- **Default `'none'`** (field is optional, default applied via `ax.nodeWrap ?? 'none'` at the call site): behaviour is byte-identical to the pre-feature straight-line spine. No existing golden may change.
-- **`'over-under'`**: replaces the single straight spine line with a single `kind:'path'` Scene primitive that routes around each circular milestone node as an alternating semicircular arc.
+**Deterministic Layout Mandate:**
+1. Linear sequence for simple chains (auto-detected).
+2. Sugiyama layered for DAGs/cyclic (network-simplex + barycenter + Brandes–Köpf).
+3. NO force-directed; if needed: stress majorization deterministic init only.
+4. All tie-breaking by canonical list order. Fixed sweep count. Byte-identical output guaranteed.
 
-Only the `our-timeline` theme sets `'over-under'`. All other themes are untouched.
+**Lowering:** Maps entirely to existing Scene IR primitives (Rect, Circle, Path, Text, Image, Group). No kernel changes. Animated edges use `FlowingDashes` hint (stroke-dashoffset).
 
-## Arc-Path Geometry Contract
+**Deferred to Mark:** Exact JSON Schema; whether edges need `id` field; port model extensibility (named custom ports?); exhaustive validation rule list.
 
-When `nodeWrap === 'over-under'`, the horizontal layout engine (`layout/horizontal.ts`, section 3 "Axis band"):
+**Deferred to Barbara:** Self-loop curve routing; back-edge rendering style (Bézier/stepped/arc); multi-edge perpendicular offset; group visual rules; edge-label collision avoidance.
 
-1. **Pre-collects on-axis nodes** from `milestoneLayouts` where `ms.shape === 'circle'`, sorted left-to-right.
-2. **Spine Y = first node's `yCenter`** — the path runs at the node y-level, not at `axisY`. This ensures tight arcs that visually hug each circle (matching the reference). If the axis tick-mark line (`axisY`) is at a different y, the ticks remain at their y-position unchanged.
-3. **Arc radius** = `rhu(ms.size + ARC_CLEARANCE)` where `ARC_CLEARANCE = 9` — 9 px clearance gap outside the circle edge (gives 8 px visible clearance outside the stroke when stroke-width=2). The initial value of 3 was too small: the arc was nearly invisible behind the white-filled node. `ARC_CLEARANCE` is a named constant at the top of the branch so it's easy to tune.
-4. **Path construction** (deterministic, all coordinates through `rhu()`):
-   ```
-   M offset spineY
-   [for each node at index ni:]
-     L (xCenter - arcR) nodeY
-     A arcR arcR 0 0 sweepFlag (xCenter + arcR) nodeY
-   L (offset+wDraw) spineY
-   ```
-   where `sweepFlag = ni % 2 === 0 ? 0 : 1` (0 = CCW = bows above; 1 = CW = bows below).
-5. **Primitive**: `kind:'path'`, `fill:'none'`, `stroke: axisLineColor`, `strokeWidth: 1`.
-6. **Z-order**: emitted at the same position as the old spine line (before node circles), so circles render on top.
+**Rationale:** Flow is Grammar #2 per "flows first" sequencing (max reuse, best animation demo, cheapest impact). Two-IR-layer preserved: Flow IR small, semantic, LLM-friendly; Scene IR unchanged. Determinism sacred. Topology auto-detection (unlike Graph) because flow diagrams have natural directional reading order. Verbose technical detail archived.
 
-## Determinism Guarantee
-
-- The `'none'` default is a strict no-op: all other themes produce byte-identical output before and after this change.
-- The `'over-under'` path uses only `rhu()` rounding and stable sort keys (`xCenter`, then `milestone.id`) — no floating non-determinism.
-- Two re-renders of `our-timeline` with `'over-under'` are byte-identical (covered by the existing SVG determinism test in `skia.test.ts`).
-
-## Backend Coverage
-
-The `kind:'path'` / `fill:'none'` primitive is already handled as stroke-only in all three backends:
-- **SVG**: native `fill="none"` attribute — no fill rendered.
-- **PNG (resvg)**: resvg respects SVG `fill="none"`.
-- **Skia** (`render/skia.ts`): existing `strokeOnly = p.fill === 'none'` branch handles this correctly (added during serpentine gradient work). No additional fix needed.
-
-## Track Separator Suppression
-
-When `nodeWrap === 'over-under'`, the bottom-of-track separator line (section 5 "Track separators", emitted as a full-width `line` at `y = tl.yTop + tl.height`, `opacity: 0.3`) is suppressed. In the `our-timeline` single-track layout this line appeared ~40 px below the node centers as a confusing second parallel spine. The arc path IS the single visual spine.
-
-The `nodeWrap` constant was hoisted from the section-3 block to the function outer scope (just below `const axisY`). The section-5 push is gated on `if (nodeWrap !== 'over-under')`. All other themes (`nodeWrap === 'none'` default) are unaffected — separator emits exactly as before.
-
-## Affected Files
-
-| File | Change |
-|------|--------|
-| `packages/core/src/themes/types.ts` | Added `nodeWrap?: 'none' \| 'over-under'` to `AxisTheme` |
-| `packages/core/src/themes/our-timeline.ts` | Set `axis.nodeWrap: 'over-under'` |
-| `packages/core/src/layout/horizontal.ts` | Replaced straight spine; hoisted `nodeWrap` to function scope; gated track separator |
-| `examples/gallery/our-timeline-numbered.svg` | Regenerated (arc path, arcR=37, no track separator line) |
-| `examples/gallery/showcase/our-timeline-numbered-skia.png` | Regenerated (Skia golden) |
-
-## Alternatives Considered
-
-- **Route arcs at `axisY` (tick-mark level)**: rejected — the arc radius would need to be ~128 px (axis is ~97 px above the node centers) producing a large U-shaped detour, not the tight hugging arc shown in the reference.
-- **Move nodes onto `axisY`**: rejected — would require fixture changes and break the existing track-based layout positioning.
-- **Always-on (no opt-in)**: rejected — determinism contract forbids moving any existing golden without explicit opt-in. Default must be `'none'`.

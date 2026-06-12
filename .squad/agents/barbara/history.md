@@ -87,3 +87,40 @@ All 5 targets (T1–T5) remain fully renderable. The three layout families (hori
 - **Animated-Arrow Pattern:** ByteByteGo-style technical explainers use flowing data-stream effect via SVG `stroke-dashoffset` animation on connector paths. This is an animation hint on the Scene IR connector path. Static/raster backends ignore; SVG honors. Implication: Scene IR animation primitives are already the right abstraction.
 - **Stress-Majorization Determinism:** Force-directed layout must use stress-majorization \[gansnerStressMaj2004\] with deterministic initial layout (only variant compatible with the determinism contract). This is a critical constraint for future Graph grammar.
 - **Orthogonal TSM Framework:** For architecture diagrams, Tamassia's (1987) topology-shape-metrics framework using bend-minimisation as minimum-cost network flow is polynomial-time and deterministic. Consider for future specialized grammars.
+
+- **Gallery curation (2026-06-12):** Added Example 11 · our-timeline-numbered to examples/gallery/index.html — showcases the `axis.nodeWrap: over-under` arc-around-node spine (our-timeline theme) via showcase/our-timeline-numbered-skia.png.
+
+---
+
+## Open Questions — Flow Grammar Phase 1 Preparation (2026-06-12)
+
+**Context:** Leslie (Spec Architect) authored Flow Grammar Spec (Grammar #2) in sections/25-flow-grammar.tex. Flow rendering semantics now awaiting Barbara's design. Scribe identified open questions for day-1 implementation context.
+
+### Flow Rendering Semantics Open Questions
+
+1. **Self-Loop Curve Routing:** When a node has an edge to itself, what curve parameters? Examples: Bézier, quadratic arc, stepped loop-back.
+   - **Determinism requirement:** Same node size/position → same curve path (all coords via rhu()).
+   - **Alternatives:** arc radius as function of node size? fixed offset? theme-configurable?
+
+2. **Back-Edge Rendering Style:** In Sugiyama cyclic layouts, back-edges (feedback loops) are typically rendered distinctly (e.g., dashed, dotted, arc vs. Bézier).
+   - **Decision impact:** Is back-edge style a schema property (edge.style includes 'back-edge') or auto-detected from layout layer classification?
+   - **Visual precedent:** D2, Mermaid treat feedback distinctly; PlantUML uses dotted.
+
+3. **Multi-Edge Perpendicular Offset:** When multiple edges connect the same source→target pair (parallel edges), how to offset them visually?
+   - **Determinism:** Must compute offsets from edge count + stable sort order (edge.id or position).
+   - **Geometry:** Perpendicular offset direction? Fixed px offset or proportional to edge count?
+   - **Rendering:** Scene IR needs label positioning hints for multi-edge cases.
+
+4. **Group Visual Rules:** Groups have style (lane|cluster|outline). What are the visual primitives for each?
+   - **lane:** Full-width horizontal band (y-extent)?
+   - **cluster:** Bounding box + header label (like swimlane)?
+   - **outline:** Just border, no fill?
+   - **Nesting:** Can groups nest? Z-order rules?
+
+5. **Edge-Label Collision Avoidance:** Multiple edges may have labels that overlap. Strategy?
+   - **Option A:** Deterministic offset from edge midpoint (compute via layout edge info).
+   - **Option B:** Theme-configurable label positioning (above/below/offset-left/offset-right).
+   - **Determinism:** Must avoid floating-point convergence; all offsets computed from stable sort.
+
+---
+

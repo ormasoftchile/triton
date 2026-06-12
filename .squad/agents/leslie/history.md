@@ -120,3 +120,39 @@ Barbara implemented **`axis.nodeWrap?: 'none' | 'over-under'`** on AxisTheme to 
 - **Implication:** Rendering concern cleanly separated from IR concern. Domain IRs remain small and semantic; layout algorithms live in theme + layout engine.
 
 This is the **first precedent** for how future grammars extend the rendering system: via principled, opt-in theme tokens with clear determinism contracts — NOT unplanned proliferation of theme fields or IR polymorphism.
+
+## 2026-06-12 — Flow Grammar Spec Authored (Leslie)
+
+📐 **Flow Grammar: Domain IR — Concrete Spec (Grammar #2)**
+
+### Learnings
+
+**Flow Domain IR Shape:**
+- Root: `version`, `metadata`, `flow{direction, nodes[], edges[], groups[]}`
+- FlowNode: `id` (required, unique), `label`, `shape` (rect|rounded-rect|circle|diamond|stadium), `icon`, `status` (semantic→theme-resolved color), `description`, `group`
+- FlowEdge: positional identity (no explicit id), `source`, `target`, `source_port`, `target_port`, `label`, `style`, `animated` (bool, opt-in), `directedness`
+- FlowGroup: `id`, `label`, `nodes[]`, `style` (lane|cluster|outline)
+- Direction: `left-to-right` | `top-to-bottom` (hard layout constraint)
+
+**Layout Family Decisions:**
+- Linear sequence layout for simple chains (in-degree ≤ 1, out-degree ≤ 1)
+- Sugiyama layered (4 phases: cycle removal, network-simplex layer assignment, barycenter crossing minimization, Brandes–Köpf coordinate assignment) for DAGs and cyclic flows
+- Orthogonal edge routing via TSM principles where possible
+- **NO force-directed.** If ever needed: stress majorization only, with deterministic init + fixed iterations
+- Topology auto-detected (unlike Graph grammar which requires explicit layout selection)
+
+**Lowering — no kernel changes needed:**
+- Nodes → Group{Rect/Circle/Path + Text + Image}
+- Edges → Path + arrowhead Path + optional label Text
+- Animated edges → FlowingDashes animation hint on Path (stroke-dashoffset; raster shows resting frame)
+- Groups → background Rect + label Text + logical Group container
+
+**Open Questions Deferred:**
+- **Mark:** JSON Schema detail, whether edges need explicit `id`, port model extensibility, semantic validation rule set
+- **Barbara:** Self-loop curve parameters, back-edge rendering style, multi-edge offset geometry, group visual details, edge-label collision avoidance
+
+**New Section Wiring:**
+- Created `sections/25-flow-grammar.tex` — "Flow Grammar: Domain IR" (full concrete spec)
+- Added `\input{sections/25-flow-grammar}` to `design/main.tex` after 24-diagram-family
+- Updated `24-diagram-family.tex` §Flow/Pipeline to cross-reference §25 as the authoritative spec
+- Verified consistency with `20-grammar-concept.tex` two-IR-layer model (no contradictions)

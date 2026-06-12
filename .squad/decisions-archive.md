@@ -2950,3 +2950,64 @@ Filled paths (icons, rects, circles) use original code path; unaffected.
 
 ---
 
+---
+
+### Decision Note: Research Synthesis — Prior-Art Positioning and the Gap We Fill (2026-06-12) [ARCHIVED VERBOSE DETAIL]
+
+**From:** David (Research Lead)  
+**Date:** 2026-06-12T03:01:53Z  
+**Original Status:** FOR ADOPTION
+
+**Full Analysis (Archived):** 
+
+Three-cluster landscape research confirmed:
+- **Diagram-as-code** (Mermaid, D2, Graphviz, PlantUML): LLM-friendly but limited presentation; non-deterministic.
+- **Visualization grammars** (Vega-Lite, ggplot2): Principled IR, deterministic, agent-authorable — but chart-only, explicitly out of scope per Wilkinson.
+- **Proprietary** (think-cell, PowerPoint): closed, manual.
+
+**The unoccupied cell we fill:** diagram-capable + principled grammar + presentation quality + determinism = "Vega-Lite for diagrams."
+
+**LLM-authoring reliability finding:** Small minimal grammar fragments > full schemas. Consequence: god-IR rejection is reliability engineering, not aesthetic choice. Each Domain IR must be self-contained constraint grammar (XGrammar/GBNF).
+
+**Layout algorithms:** Sugiyama four-phase; Buchheim (2002) O(n) tree; stress majorization for force-directed; Tamassia TSM for orthogonal; WebCola for swimlanes.
+
+**Corpus expanded 9→16 images.** Critical: Comparison/Matrix is genuinely tabular (constrained-grid layout: column-width × row-height), not Sugiyama. Needs own Domain IR (column, row, cell, indicator types).
+
+**Animated-arrow pattern:** `stroke-dashoffset` on Scene IR connector = ByteByteGo flowing data-stream effect. Static backends ignore hint.
+
+**20 new bib entries added** (72→92): visual comm theory (bertin1967, tufte1983, cleveland1984, munzner2009/2014); LLM-DSL (willard2023, wang2023grammar, dong2024xgrammar, llama2024gbnf, tian2023chartgpt, narechania2021nl4dv, ray2026constraint); layout algorithms (brandesKopf2001, walker1990, buchheim2002, kamadaKawai1989, gansnerStressMaj2004, tamassia1987, webCola, gansner1993dot).
+
+---
+
+### Decision: `axis.nodeWrap` opt-in token — arc-around-node spine (2026-06-12) [ARCHIVED VERBOSE DETAIL]
+
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-12  
+**Status:** ADOPTED
+
+**Full Technical Detail (Archived):**
+
+Add `axis.nodeWrap?: 'none' | 'over-under'` to AxisTheme (packages/core/src/themes/types.ts). Default 'none' (no-op, byte-identical to pre-feature).
+
+**'over-under' implementation:**
+- Pre-collects on-axis circular milestone nodes, sorted left-to-right.
+- Spine Y = first node yCenter (tight arcs hugging circles, matching reference).
+- Arc radius = rhu(ms.size + ARC_CLEARANCE=9) — 9px gap outside circle (8px visible when stroke-width=2; initial 3 was invisible behind white fill).
+- Path construction (all coords via rhu()): M offset spineY → [for each node: L (xCenter-arcR) nodeY, A arcR arcR 0 0 sweepFlag (xCenter+arcR) nodeY] → L (offset+wDraw) spineY. sweepFlag = ni%2 (0=CCW=over, 1=CW=under).
+- Primitive: kind:'path', fill:'none', stroke:axisLineColor, strokeWidth:1.
+- Z-order: before node circles (circles render on top).
+
+**Determinism:** No floating non-determinism; only rhu() rounding and stable sorts (xCenter, milestone.id). Two renders byte-identical.
+
+**Backend support:** kind:'path' / fill:'none' already handled in SVG (native fill="none"), PNG/resvg (respects SVG), Skia (existing strokeOnly branch from serpentine work). No new fixes needed.
+
+**Track separator suppression:** When nodeWrap='over-under', suppress bottom-of-track separator line (section 5, emitted as full-width line at y=tl.yTop+tl.height, opacity:0.3) — in single-track our-timeline, it appeared ~40px below nodes as confusing second spine. Arc path IS the single spine. Hoisted nodeWrap to function outer scope; section-5 push gated on `if (nodeWrap !== 'over-under')`.
+
+**Only our-timeline theme sets 'over-under'.** All others untouched, byte-identical.
+
+**Files modified:** packages/core/src/themes/types.ts (AxisTheme), our-timeline.ts (axis.nodeWrap:'over-under'), layout/horizontal.ts (arc path logic, track separator gating), examples/gallery/our-timeline-numbered.svg (arc path, arcR=37), our-timeline-numbered-skia.png (Skia golden).
+
+**Determinism contract:** All 567 tests pass; existing goldens byte-identical; only 'over-under' case adds new rendering. Default 'none' guarantees no breakage.
+
+**Alternatives rejected:** (1) Route arcs at axisY (tick level) — would need ~128px radius U-shape detour, not the tight hug shown in reference. (2) Move nodes onto axisY — breaks fixture positioning. (3) Always-on — violates determinism contract; must default to 'none'.
+
