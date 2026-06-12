@@ -5,122 +5,70 @@
 **Stack:** TypeScript/Node, SVG/PNG/Skia backends, deterministic layout engine
 
 ---
-## 2026-06-11 — Strategic Alignment: Product Reframe to Diagram Compiler (Barbara)
 
-📐 **Scene IR as Rendering Kernel Contract**
+## Recent Work Summary
 
-### Positioning Within Diagram Compiler Strategic Reframe
+### 2026-06-12 — `axis_breaks` Discontinuous Axis + Phase Pills (Multi-Pass)
 
-With Leslie's architectural reframe (Timeline is Grammar #1 of a larger diagram compiler), Barbara's rendering work is repositioned:
+**Status:** Rendering ADOPTED; schema validation deferred to Mark
 
-**Scene IR Becomes Shared Kernel Contract:**
-- Scene IR (Rect, Line, Circle, Text, Path, Group, effects, animation hints) is the **universal rendering contract** shared by ALL future grammars (Timeline, Flow, Graph, Comparison, Stat, etc.)
-- Timeline rendering → produces Scene IR → multiple backends (SVG/PNG/Skia/PDF) all consume Scene IR
-- Backend diversity: SVG (text-deterministic), PNG (resvg WASM), Skia (art effects), PDF (exports)
-- Animation hints on Scene primitives are backend-conditional (SVG honors; raster ignores)
+#### Pass 1: IR Field + Piecewise-Linear Layout
+- Added `AxisBreak { from: IRDate; to: IRDate }` interface to `types.ts`
+- Added `axis_breaks?: AxisBreak[]` to `Metadata` (optional; absent → ZERO behaviour change)
+- Schema validation open questions flagged for Mark (from<to, bounds, non-overlap)
+- Piecewise-linear `dateX` approach: effective time = `teOrd − tsOrd − Σ(break durations)`, draw width = `wDraw − nBreaks × 24px`
+- Break gap = exactly 24px per break (calendar-independent)
+- "//" marker: two forward-diagonal line primitives per break
+- Activity description rendering: 2-line wrap for `barHeight ≥ 28`
+- New `roadmap` theme: `barHeight: 36`, `barRadius: 8`
 
-### Phase 0→1 Implementation Path
+#### Pass 2: Milestone Label Robustness
+- Milestone label left-edge clamp: `labelClampX = Math.max(blockW/2 + 8, Math.min(W − blockW/2 − 8, xCenter))`
+- New `labelWrap?: boolean` theme token: 2-line wrap with dynamic `blockH` expansion
+- Only `roadmap` activates `labelWrap: true`; all other themes byte-identical
 
-In Phase 0, kernel/timeline seam drawn in `packages/core`. Barbara owns Scene IR primitives, rendering backends, and theme system. Future grammars' layout engines will compile domain IRs to Scene IR, reusing Barbara's existing backend infrastructure.
+#### Pass 3: Roadmap Margin + Edge Clipping Fix
+- Root cause: `canvas.margin.left: 0` → first pill at `x=0` (clipped)
+- Fix A: `canvas.margin.left: 0 → 48` (symmetric `right: 48`)
+- Fix B: `LABEL_EDGE_PAD = 8` in clamp formula
+- Confirmed: first pill at `x="48"`, first milestone label `x≈59.02` (8px from edge)
 
-### No Changes to Current Implementation
+**Test Results:** 577/577 pass; 564 existing goldens byte-identical; 3 new fixture outputs (timeline-goals SVG, PNG, Skia)
 
-All 5 targets (T1–T5) remain fully renderable. The three layout families (horizontal-swimlane, vertical-spine, serpentine) and five showcase themes (consulting, subject-timeline, ai-timeline, serpentine, gitline) are now positioned as Timeline grammar exemplars, not the whole product.
+**Determinism:** All paths use `Math.floor(x + 0.5)` round-half-up; no floating non-determinism
 
-**Test status:** 570/570 tests pass. All golden images remain byte-identical.
-
----
-
-## Learnings
-
-### 2026-06-12 — `nodeWrap: 'over-under'` arc-around-node spine (Barbara)
-
-#### Token design
-- Added `nodeWrap?: 'none' | 'over-under'` to `AxisTheme` in `packages/core/src/themes/types.ts`.
-- Optional field → default `'none'` everywhere via `ax.nodeWrap ?? 'none'` in `horizontal.ts`.
-- Only `our-timeline.ts` sets `'over-under'`; every other theme is untouched → byte-identical golden guarantee.
-
-#### Arc-path geometry
-- Spine replaces the single straight `line` primitive (section 3 of Build Scene, z-order before node circles).
-- Emitted as `kind:'path'`, `fill:'none'`, `stroke: axisLineColor`, `strokeWidth: 1`.
-- Pre-collects `milestoneLayouts` (already computed at Phase 4, before Build Scene) filtered to `ms.shape === 'circle'`, sorted left-to-right by `xCenter`.
-- `spineY = first node's yCenter` — the spine runs at the node y-level (not axisY).
-  - **Assumption:** In the `our-timeline` fixture all milestones share the same yCenter because they sit on a single-row track (`main`). Routing at yCenter (not axisY) is what gives the tight "hugging" arc around each circle; routing at axisY (which is ≈97 px above the circle centers in the fixture) would require huge detour arcs unrelated to the reference visual.
-- Arc radius: `rhu(ms.size + ARC_CLEARANCE)` where `ARC_CLEARANCE = 9` → 37 px for `our-timeline`'s size=28.
-- SVG arc command: `A arcR arcR 0 0 sweepFlag exitX spineY`
-  - Node index 0 (first): `sweep=0` → counterclockwise in SVG y-down coords → **bows above** (−y).
-  - Node index 1: `sweep=1` → clockwise → **bows below** (+y). Alternates for each subsequent node.
-- Straight segments between consecutive arcs run at `spineY`.
-- All coordinates go through `rhu()` for determinism.
-
-#### Skia stroke-only paths
-- No fix required: `packages/core/src/render/skia.ts` already has a `strokeOnly` branch (`fill === 'none'`) added during the serpentine gradient work. The arc path renders identically across SVG, PNG (resvg), and Skia.
-
-#### Golden updates
-- **Only `our-timeline`-related outputs changed:**
-  - `examples/gallery/our-timeline-numbered.svg` — new path replaces old axis line (regenerated by `skia.test.ts`).
-  - `examples/gallery/showcase/our-timeline-numbered-skia.png` — Skia golden regenerated.
-- **Unchanged (confirmed byte-identical):**
-  - `examples/golden/our-timeline.svg` and `examples/golden/our-timeline.png` — consulting theme, no nodeWrap.
-  - All other gallery and showcase goldens.
-- Golden update mechanism: `skia.test.ts` writes gallery files on every run (no UPDATE_GOLDENS flag needed); `golden.test.ts` writes `examples/golden/` only if absent, then compares byte-for-byte.
-- All 564 tests pass after the change.
-
-#### Refinements (2026-06-12) — arc clearance + track separator suppression
-
-**Arc clearance constant:**
-- The initial `ARC_GAP = 3` gave arcR = 31 px. With node r=28 and stroke-width=2 (outer stroke edge at 29 px), the arc cleared the stroke by only 2 px — nearly invisible, hidden behind the white-filled node.
-- Renamed to `ARC_CLEARANCE = 9` → arcR = 37 px. Outer stroke edge = 29 px; arc clears stroke by 8 px. Produces a clearly visible semicircular bump hugging just outside each circle.
-- Constant lives at the top of the `over-under` branch in horizontal.ts section 3 — easy to tune.
-
-**Track separator suppression:**
-- The lower faint line at y≈281.93 (opacity 0.3) in the `over-under` SVG was the **track separator** emitted in section 5 "Track separators" of horizontal.ts — one line per track at `y = tl.yTop + tl.height`.
-- In `our-timeline` there is a single track (`main`), so this produced a single full-width hairline ~40 px below the node centers, reading as a confusing second parallel spine.
-- Fix: hoisted `const nodeWrap = ax.nodeWrap ?? 'none'` from inside the section-3 `{}` block to the outer function scope (just below `const axisY`), then gated the `primitives.push(...)` in section 5 with `if (nodeWrap !== 'over-under')`.
-- Themes with `nodeWrap === 'none'` (i.e., every theme except `our-timeline`) are completely unaffected — separator is emitted exactly as before. Byte-identical for all other goldens confirmed by 564/564 test pass.
+#### Files Changed
+- `types.ts`: `labelWrap?: boolean` to `MilestoneTheme`
+- `roadmap.ts`: new theme with fixed margins + `labelWrap: true`
+- `horizontal.ts`: piecewise scale + label clamp + 2-line render loop
+- `timeline-goals.yaml`: `axis_breaks[0].from: 2025-12-01 → 2026-01-15`
+- `quality.test.ts`, `skia.test.ts`: new gallery tests
 
 ---
 
-## Cross-Agent Flags — David's Research Synthesis (2026-06-12)
+## Architecture Notes
 
-**From David (Research Lead):**
-- **Animated-Arrow Pattern:** ByteByteGo-style technical explainers use flowing data-stream effect via SVG `stroke-dashoffset` animation on connector paths. This is an animation hint on the Scene IR connector path. Static/raster backends ignore; SVG honors. Implication: Scene IR animation primitives are already the right abstraction.
-- **Stress-Majorization Determinism:** Force-directed layout must use stress-majorization \[gansnerStressMaj2004\] with deterministic initial layout (only variant compatible with the determinism contract). This is a critical constraint for future Graph grammar.
-- **Orthogonal TSM Framework:** For architecture diagrams, Tamassia's (1987) topology-shape-metrics framework using bend-minimisation as minimum-cost network flow is polynomial-time and deterministic. Consider for future specialized grammars.
+**Scene IR as Kernel:** Scene IR (Rect, Line, Circle, Text, Path, Group) is the universal rendering contract shared by all future grammars (Timeline, Flow, Graph, etc.). Backend diversity (SVG/PNG/Skia/PDF) all consume Scene IR.
 
-- **Gallery curation (2026-06-12):** Added Example 11 · our-timeline-numbered to examples/gallery/index.html — showcases the `axis.nodeWrap: over-under` arc-around-node spine (our-timeline theme) via showcase/our-timeline-numbered-skia.png.
+**Theme Tokens for Layout:** Features like `axis.nodeWrap` and `labelWrap` demonstrate that layout modifications can be expressed as opt-in theme tokens (not embedded in domain IR).
 
 ---
 
-## Open Questions — Flow Grammar Phase 1 Preparation (2026-06-12)
+## Open Work (Flagged for Handoff)
 
-**Context:** Leslie (Spec Architect) authored Flow Grammar Spec (Grammar #2) in sections/25-flow-grammar.tex. Flow rendering semantics now awaiting Barbara's design. Scribe identified open questions for day-1 implementation context.
+### Schema Validation — Mark (2026-06-12)
 
-### Flow Rendering Semantics Open Questions
+Deferred rules for `axis_breaks` IR field:
 
-1. **Self-Loop Curve Routing:** When a node has an edge to itself, what curve parameters? Examples: Bézier, quadratic arc, stepped loop-back.
-   - **Determinism requirement:** Same node size/position → same curve path (all coords via rhu()).
-   - **Alternatives:** arc radius as function of node size? fixed offset? theme-configurable?
+1. **`from < to` enforcement** — Emit `BREAK_FROM_AFTER_TO` at parse time
+2. **Breaks within `time_range` bounds** — Emit `BREAK_OUT_OF_RANGE` warning
+3. **Non-overlapping, sorted** — Validate; emit `BREAKS_OVERLAP` / `BREAKS_UNSORTED`
+4. **Max breaks upper limit** — Warn if N excessive (e.g., > 20) or draw width < 100px
 
-2. **Back-Edge Rendering Style:** In Sugiyama cyclic layouts, back-edges (feedback loops) are typically rendered distinctly (e.g., dashed, dotted, arc vs. Bézier).
-   - **Decision impact:** Is back-edge style a schema property (edge.style includes 'back-edge') or auto-detected from layout layer classification?
-   - **Visual precedent:** D2, Mermaid treat feedback distinctly; PlantUML uses dotted.
-
-3. **Multi-Edge Perpendicular Offset:** When multiple edges connect the same source→target pair (parallel edges), how to offset them visually?
-   - **Determinism:** Must compute offsets from edge count + stable sort order (edge.id or position).
-   - **Geometry:** Perpendicular offset direction? Fixed px offset or proportional to edge count?
-   - **Rendering:** Scene IR needs label positioning hints for multi-edge cases.
-
-4. **Group Visual Rules:** Groups have style (lane|cluster|outline). What are the visual primitives for each?
-   - **lane:** Full-width horizontal band (y-extent)?
-   - **cluster:** Bounding box + header label (like swimlane)?
-   - **outline:** Just border, no fill?
-   - **Nesting:** Can groups nest? Z-order rules?
-
-5. **Edge-Label Collision Avoidance:** Multiple edges may have labels that overlap. Strategy?
-   - **Option A:** Deterministic offset from edge midpoint (compute via layout edge info).
-   - **Option B:** Theme-configurable label positioning (above/below/offset-left/offset-right).
-   - **Determinism:** Must avoid floating-point convergence; all offsets computed from stable sort.
+**Files to update:** `schema.ts` (Zod), `types.ts` (TypeScript), `validate.ts` (invariants)
 
 ---
 
+## Detailed Archive
+
+Strategic context, nodeWrap learnings, Flow grammar open questions, and cross-agent flags are preserved in `history-archive.md`.

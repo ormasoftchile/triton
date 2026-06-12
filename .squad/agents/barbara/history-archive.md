@@ -332,3 +332,66 @@ Older sessions summarized for reference. See history.md for current 2026-06-11 s
 
 **Constraint Satisfaction:** Every feature solves a target gap with backward compatibility (opt-in tokens, new fields defaulting to undefined, new layout registered independently).
 
+
+---
+
+## 2026-06-11 — Strategic Alignment: Product Reframe to Diagram Compiler (Barbara)
+
+📐 **Scene IR as Rendering Kernel Contract**
+
+### Positioning Within Diagram Compiler Strategic Reframe
+
+With Leslie's architectural reframe (Timeline is Grammar #1 of a larger diagram compiler), Barbara's rendering work is repositioned:
+
+**Scene IR Becomes Shared Kernel Contract:**
+- Scene IR (Rect, Line, Circle, Text, Path, Group, effects, animation hints) is the **universal rendering contract** shared by ALL future grammars (Timeline, Flow, Graph, Comparison, Stat, etc.)
+- Timeline rendering → produces Scene IR → multiple backends (SVG/PNG/Skia/PDF) all consume Scene IR
+- Backend diversity: SVG (text-deterministic), PNG (resvg WASM), Skia (art effects), PDF (exports)
+- Animation hints on Scene primitives are backend-conditional (SVG honors; raster ignores)
+
+### Phase 0→1 Implementation Path
+
+In Phase 0, kernel/timeline seam drawn in `packages/core`. Barbara owns Scene IR primitives, rendering backends, and theme system. Future grammars' layout engines will compile domain IRs to Scene IR, reusing Barbara's existing backend infrastructure.
+
+### No Changes to Current Implementation
+
+All 5 targets (T1–T5) remain fully renderable. The three layout families (horizontal-swimlane, vertical-spine, serpentine) and five showcase themes (consulting, subject-timeline, ai-timeline, serpentine, gitline) are now positioned as Timeline grammar exemplars, not the whole product.
+
+---
+
+## 2026-06-12 — `nodeWrap: 'over-under'` arc-around-node spine (Barbara)
+
+### Token design
+- Added `nodeWrap?: 'none' | 'over-under'` to `AxisTheme`.
+- Only `our-timeline.ts` sets `'over-under'`; all other themes unchanged → byte-identical.
+
+### Arc-path geometry
+- Arc radius: `rhu(ms.size + ARC_CLEARANCE=9)` → 37 px for our-timeline
+- SVG arc command: `A arcR arcR 0 0 sweepFlag exitX spineY`
+- Alternates: sweep=0 (CCW, above) for even nodes; sweep=1 (CW, below) for odd
+- All coordinates via `rhu()` for determinism
+
+### Refinements
+- Arc clearance: `ARC_GAP=3` → `ARC_CLEARANCE=9` (3px was invisible behind node)
+- Track separator suppression: gated by `if (nodeWrap !== 'over-under')` in section 5
+- All 564 tests pass byte-identical
+
+---
+
+## Cross-Agent Flags — David's Research (2026-06-12)
+
+- **Animated-Arrow Pattern:** ByteByteGo-style flowing data-stream via SVG `stroke-dashoffset` (Scene IR animation hint)
+- **Stress-Majorization Determinism:** Force-directed needs deterministic init (gansnerStressMaj2004) — critical for future Graph grammar
+- **Orthogonal TSM Framework:** Tamassia (1987) for architecture diagrams — polynomial-time deterministic
+
+---
+
+## Open Questions — Flow Grammar (2026-06-12)
+
+1. **Self-Loop Curve Routing:** Bézier/arc/stepped; deterministic via node size
+2. **Back-Edge Rendering Style:** Dashed/dotted/arc; schema property or auto-detected?
+3. **Multi-Edge Perpendicular Offset:** Fixed px or proportional; determinism via stable sort
+4. **Group Visual Rules:** lane (band), cluster (box+label), outline (border); nesting?
+5. **Edge-Label Collision Avoidance:** Deterministic offset from midpoint or theme-configurable?
+
+---

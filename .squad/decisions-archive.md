@@ -3011,3 +3011,139 @@ Add `axis.nodeWrap?: 'none' | 'over-under'` to AxisTheme (packages/core/src/them
 
 **Alternatives rejected:** (1) Route arcs at axisY (tick level) — would need ~128px radius U-shape detour, not the tight hug shown in reference. (2) Move nodes onto axisY — breaks fixture positioning. (3) Always-on — violates determinism contract; must default to 'none'.
 
+---
+
+## Archived 2026-06-12 — Barbara: Axis Breaks + Robustness (Multi-Pass)
+
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-12  
+**Status:** ADOPTED (rendering) · OPEN (schema validation — Mark review pending)
+
+### PASS 1: `axis_breaks` IR Field + Piecewise-Linear Layout Engine
+
+#### Decision Summary
+New optional field `axis_breaks?: Array<{ from: IRDate; to: IRDate }>` added to `Metadata` for **discontinuous axis rendering** — collapsing dead-time gaps into a small fixed-width "//" notch on the axis.
+
+#### Opt-In Guarantee
+**When `axis_breaks` is absent or empty → ZERO behaviour change.** The `dateX` function retains its exact original formula verbatim on the no-break path. All 564 existing goldens are byte-identical after this change (verified by full test suite).
+
+#### Piecewise-Linear Scale Algorithm
+When breaks present, `layoutHorizontal` builds piecewise-linear coordinate mapping:
+
+- **Effective time span:** `nonBreakTime = (teOrd − tsOrd) − Σ(toOrd − fromOrd)` per break
+- **Effective draw width:** `nonBreakWDraw = wDraw − nBreaks × BREAK_GAP_PX` where `BREAK_GAP_PX = 24`
+- Each break gap occupies exactly 24px regardless of its calendar duration
+- For a given ordinal `ord`, `dateX` accumulates non-break ordinals and adds `nBreaksBefore × 24px`
+- Ordinals strictly inside a break snap to `xLeft` (left edge of the "//" gap)
+- All coordinates go through `Math.floor(x + 0.5)` round-half-up for determinism
+
+#### "//" Marker Geometry
+Rendered using two existing `line` primitives — no new Scene IR primitives introduced:
+- Two forward-diagonal strokes centred in break gap, `strokeWidth: 1.5`, same `axisLineColor`
+- Tick marks and gridlines whose ordinals fall strictly inside break are suppressed (`ordInBreak`)
+- Boundary ticks (`fromOrd`, `toOrd`) shown normally on each side of gap
+- Axis line rendered as multiple segments separated by gap
+
+#### Activity Description Rendering (Additive)
+Activity bars with `description` set and `barHeight ≥ 28` now show a smaller second-line subtitle inside pill. Gated so no existing fixture (all `barHeight < 28` except new `roadmap` theme) is affected.
+
+#### New `roadmap` Theme
+A new theme `roadmap` added (based on `product`) with `barHeight: 36` for tall phase pills and `barRadius: 8` for pill look. Registered in `themes/index.ts`.
+
+#### Schema Validation Deferred to Mark
+The following validation rules were intentionally deferred to Mark's schema review. Currently only basic IRDate format of `from`/`to` is validated:
+
+1. **`from < to` enforcement** — A break with `from ≥ to` is structurally invalid but currently accepted. Should reject with `BREAK_FROM_AFTER_TO` error code.
+2. **Breaks within `time_range` bounds** — Breaks outside document's `time_range` silently ignored. Should emit `BREAK_OUT_OF_RANGE` warning.
+3. **Non-overlapping and sorted** — Overlapping or out-of-order breaks silently sorted; overlap may produce undefined visuals. Should validate with `BREAKS_OVERLAP` / `BREAKS_UNSORTED` check.
+4. **Maximum number of breaks** — No upper limit enforced. Many breaks could make `nonBreakWDraw → 0`. Schema warning recommended for authoring ergonomics.
+
+### PASS 2: Milestone Label Robustness (Clamp + Wrap)
+
+#### Milestone Callout-Label Left-Edge Clamp
+Added to milestone render section to prevent text clipping at canvas edge:
+```ts
+const LABEL_EDGE_PAD = 8;
+const labelClampX = rhu(Math.max(blockW / 2 + LABEL_EDGE_PAD, Math.min(W - blockW / 2 - LABEL_EDGE_PAD, xCenter)));
+```
+
+Replaces bare `x: xCenter` for title and date text pushes. Mirrors existing tick-label clamping. No-op for any `xCenter` already within `[blockW/2 + 8, W − blockW/2 − 8]` → zero impact on existing goldens.
+
+#### `labelWrap?: boolean` Opt-In Theme Token (MilestoneTheme)
+New optional field in `MilestoneTheme` (default `undefined/false`). When `true`:
+- Uses `wrapText(label, fontPx, labelMaxWidth, 2).lines` instead of `[truncateText(...)]`
+- `blockH` expands to `2 × blockTitleH + 2px TITLE_LINE_GAP + 4px + blockDateLineH`
+- Render emits one `text` primitive per wrapped line at `rhu(blockTopY + blockTitleH * (li + 0.85) + li * TITLE_LINE_GAP)`
+- For `li=0`, formula identical to original single-line formula → byte-identical when `labelWrap` is false
+
+Activated only in `roadmap.ts` (`labelWrap: true`). All other themes unchanged → all existing goldens byte-identical.
+
+### PASS 3: Roadmap Theme Margin + Edge Clipping Fix
+
+#### Root Cause
+`roadmap` theme had `canvas.margin.left: 0` and `headerWidth: 0` → `offset = 0`. First phase pill rendered at `x=0` (clipped). Previous label clamp floor (`blockW/2`) landed first milestone label's left edge exactly at x=0.
+
+#### Fix A: Roadmap Canvas Margins
+Updated in `packages/core/src/themes/roadmap.ts`:
+- `canvas.margin.left: 0 → 48`
+- `canvas.margin.right: 36 → 48`
+
+Only roadmap theme affected → only timeline-goals outputs move; all other goldens byte-identical.
+
+#### Fix B: Label Edge Padding Constant
+`LABEL_EDGE_PAD = 8` in milestone label clamp (as described above). Applied to title line(s) and compact-date sublabel. No-op for all existing fixtures (all milestone xCenters already ≥ blockW/2 + 8 from either edge in non-roadmap themes). 577/577 tests pass.
+
+#### Confirmed SVG Coordinates
+- First phase pill rect: `x="48"` (was `x="0"`, clipped)
+- First phase pill icon path: `translate(68, …)` (was clipped)
+- First milestone label "Tools installable and / functional": `x="59.02"` (left edge ≈ 8px from canvas border)
+- No text element within 8px of either canvas edge
+
+### Fixture Break-Tuning: timeline-goals
+
+`axis_breaks[0].from` advanced from `2025-12-01` to `2026-01-15`. Gives "Functional Readiness" pill ~75 days space (~269px at revised scale) — sufficient for "Functional Readiness" title + "Tools installable and functional" subtitle. Pure fixture data change; no engine involved.
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `packages/core/src/themes/types.ts` | Added `labelWrap?: boolean` to `MilestoneTheme` |
+| `packages/core/src/themes/roadmap.ts` | Added `labelWrap: true`; fixed margins (`left: 48`, `right: 48`) |
+| `packages/core/src/layout/horizontal.ts` | Piecewise scale + `dateX` update; `titleLines: string[]` in BlockInfo; `wrapText` import; `blockH` extended for 2 lines; clamped label x; 2-line render loop; single y-formula; `LABEL_EDGE_PAD = 8` |
+| `examples/gallery/timeline-goals.timeline.yaml` | `axis_breaks[0].from: 2025-12-01 → 2026-01-15` |
+| `packages/core/test/quality.test.ts` | New "Gallery emit — timeline-goals SVG + PNG" describe block |
+| `packages/core/test/skia.test.ts` | New "Timeline-goals — roadmap theme + axis-break" describe block |
+
+### Test Results
+577/577 tests pass. All existing goldens byte-identical. 3 new fixture outputs added (SVG, PNG, Skia for timeline-goals). Determinism preserved on all paths.
+
+
+---
+
+## Archived 2026-06-12 — Leslie: Flow Grammar Spec (Proposed)
+
+**Author:** Leslie (Spec Architect)  
+**Date:** 2026-06-12  
+**Status:** PROPOSED — awaiting Mark (schema detail) and Barbara (rendering semantics) review
+
+**Decision:** Flow Grammar is specified as Grammar #2 in `sections/25-flow-grammar.tex`. It is the **template grammar** proving the kernel is grammar-agnostic by supporting directed node-link diagrams without kernel modifications.
+
+**Flow Domain IR Shape:**
+- **Nodes:** id (unique), label, shape (5 enum), icon, status (6 semantic → theme-resolved), description, group ref
+- **Edges:** positional identity, source/target refs, ports (auto|top|right|bottom|left), label, style (solid|dashed|dotted), animated flag, directedness (directed|bidirectional|undirected)
+- **Groups:** id, label, node membership (bidirectional ref), style (lane|cluster|outline)
+- **Direction:** left-to-right | top-to-bottom (layout hard constraint)
+
+**Deterministic Layout Mandate:**
+1. Linear sequence for simple chains (auto-detected).
+2. Sugiyama layered for DAGs/cyclic (network-simplex + barycenter + Brandes–Köpf).
+3. NO force-directed; if needed: stress majorization deterministic init only.
+4. All tie-breaking by canonical list order. Fixed sweep count. Byte-identical output guaranteed.
+
+**Lowering:** Maps entirely to existing Scene IR primitives (Rect, Circle, Path, Text, Image, Group). No kernel changes. Animated edges use `FlowingDashes` hint (stroke-dashoffset).
+
+**Deferred to Mark:** Exact JSON Schema; whether edges need `id` field; port model extensibility (named custom ports?); exhaustive validation rule list.
+
+**Deferred to Barbara:** Self-loop curve routing; back-edge rendering style (Bézier/stepped/arc); multi-edge perpendicular offset; group visual rules; edge-label collision avoidance.
+
+**Rationale:** Flow is Grammar #2 per "flows first" sequencing (max reuse, best animation demo, cheapest impact). Two-IR-layer preserved: Flow IR small, semantic, LLM-friendly; Scene IR unchanged. Determinism sacred. Topology auto-detection (unlike Graph) because flow diagrams have natural directional reading order.

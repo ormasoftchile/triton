@@ -85,3 +85,49 @@ Added **`axis.nodeWrap?: 'none' | 'over-under'`** token to `AxisTheme` (packages
 
 ---
 
+
+## 2026-06-12 — Cross-Agent Context: `axis_breaks` IR Field Schema Review (Barbara → Mark)
+
+**From:** Barbara (Semantics & Rendering) | **Date:** 2026-06-12  
+**Feature:** Optional `axis_breaks?: Array<{from: IRDate; to: IRDate}>` field in Metadata IR
+
+### What Barbara Shipped (Rendering Adopted)
+
+1. **IR Field:** `axis_breaks?: Array<{from: IRDate; to: IRDate}>` (optional; currently accepts basic IRDate format)
+2. **Layout Engine:** Piecewise-linear scale with fixed 24px gaps per break; suppresses ticks/gridlines inside breaks
+3. **Visual:** "//" marker (two line primitives) at break boundary; axis line segments separated by gap
+4. **Determinism:** All 564 existing goldens byte-identical; 577/577 tests pass
+5. **Additive:** New `roadmap` theme, milestone label wrapping (`labelWrap` token), 8px edge clamp for timeline-goals fixture
+
+**Status:** Rendering ADOPTED. Schema validation rules deferred to Mark; detailed context in decisions-archive.md.
+
+### Open Schema Validation Rules (Marked for Mark)
+
+1. **`from < to` Enforcement**
+   - **Current:** Accepted by Zod schema (basic IRDate format only)
+   - **Issue:** Breaks with `from ≥ to` are structurally invalid; layout engine silently drops them
+   - **Recommendation:** Add constraint to Zod; emit error code `BREAK_FROM_AFTER_TO` at parse time
+
+2. **Breaks Within `time_range` Bounds**
+   - **Current:** Accepted; layout engine ignores breaks outside document's time_range
+   - **Issue:** Author intent unclear (accidental vs intentional)
+   - **Recommendation:** Add bounds check; emit warning `BREAK_OUT_OF_RANGE`
+
+3. **Non-Overlapping and Sorted**
+   - **Current:** Accepted; layout engine sorts and filters overlaps (may produce visual artifacts)
+   - **Issue:** Multiple breaks with same ordinal ranges cause undefined results
+   - **Recommendation:** Validate no overlaps; emit `BREAKS_OVERLAP` / `BREAKS_UNSORTED` error codes
+
+4. **Maximum Number of Breaks**
+   - **Current:** No upper limit enforced
+   - **Issue:** With N breaks, `nonBreakWDraw = wDraw − N × 24px`. If excessive, rendering invalid
+   - **Recommendation:** Warning code `BREAKS_TOO_MANY` if N excessive or draw width < 100px
+
+### Implementation Context
+
+- **Files:** `packages/core/src/schema.ts` (Zod), `types.ts` (TypeScript), `validate.ts` (invariants)
+- **Pattern:** Follow existing 17 well-formedness invariants in validate.ts
+- **Error codes:** Use `BREAK_*` prefix (e.g., `BREAK_FROM_AFTER_TO`)
+- **Testing:** Add to schema validation tests; existing goldens unaffected (axis_breaks opt-in)
+
+---

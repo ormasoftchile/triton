@@ -761,31 +761,17 @@ Built as specced + Mark's IR schema. See `.squad/decisions/inbox/barbara-image-p
 
 ---
 
-## Decision: Flow Grammar Spec (Grammar #2) — Authored (2026-06-12)
+## Decision: Flow Grammar Spec (Grammar #2) (2026-06-12)
 
-**Date:** 2026-06-12  
-**Author:** Leslie (Spec Architect)  
-**Status:** PROPOSED — awaiting Mark (schema detail) and Barbara (rendering semantics) review
+**Author:** Leslie | **Date:** 2026-06-12 | **Status:** PROPOSED
 
-**Decision:** Flow Grammar is specified as Grammar #2 in `sections/25-flow-grammar.tex`. It is the **template grammar** proving the kernel is grammar-agnostic by supporting directed node-link diagrams without kernel modifications.
+**Decision:** Flow Grammar (Grammar #2) specified in `sections/25-flow-grammar.tex` — template grammar proving kernel is grammar-agnostic. Domain IR (nodes, edges, groups, direction) maps to Scene IR; no kernel changes. Defers to Mark (schema) and Barbara (routing). Detail archived.
 
-**Flow Domain IR Shape:**
-- **Nodes:** id (unique), label, shape (5 enum), icon, status (6 semantic → theme-resolved), description, group ref
-- **Edges:** positional identity, source/target refs, ports (auto|top|right|bottom|left), label, style (solid|dashed|dotted), animated flag, directedness (directed|bidirectional|undirected)
-- **Groups:** id, label, node membership (bidirectional ref), style (lane|cluster|outline)
-- **Direction:** left-to-right | top-to-bottom (layout hard constraint)
+---
 
-**Deterministic Layout Mandate:**
-1. Linear sequence for simple chains (auto-detected).
-2. Sugiyama layered for DAGs/cyclic (network-simplex + barycenter + Brandes–Köpf).
-3. NO force-directed; if needed: stress majorization deterministic init only.
-4. All tie-breaking by canonical list order. Fixed sweep count. Byte-identical output guaranteed.
+## Decision: `axis_breaks` — Discontinuous Axis + Roadmap Theme (2026-06-12)
 
-**Lowering:** Maps entirely to existing Scene IR primitives (Rect, Circle, Path, Text, Image, Group). No kernel changes. Animated edges use `FlowingDashes` hint (stroke-dashoffset).
+**Date:** 2026-06-12 | **Author:** Barbara | **Status:** ADOPTED (rendering) | OPEN (schema validation)
 
-**Deferred to Mark:** Exact JSON Schema; whether edges need `id` field; port model extensibility (named custom ports?); exhaustive validation rule list.
-
-**Deferred to Barbara:** Self-loop curve routing; back-edge rendering style (Bézier/stepped/arc); multi-edge perpendicular offset; group visual rules; edge-label collision avoidance.
-
-**Rationale:** Flow is Grammar #2 per "flows first" sequencing (max reuse, best animation demo, cheapest impact). Two-IR-layer preserved: Flow IR small, semantic, LLM-friendly; Scene IR unchanged. Determinism sacred. Topology auto-detection (unlike Graph) because flow diagrams have natural directional reading order. Verbose technical detail archived.
+**Decision:** Optional `axis_breaks: Array<{from, to}>` field in Metadata IR; piecewise-linear layout collapses dead-time gaps to fixed 24px "//" notches. New `roadmap` theme with milestone label 2-line wrap (`labelWrap` token) + 8px edge clamp. Timeline-goals fixture added. 564 existing goldens byte-identical; 577/577 tests pass. Schema-validation rules (from<to, bounds, non-overlap) deferred to Mark. Full detail archived.
 
