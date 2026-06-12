@@ -455,6 +455,14 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     });
   }
 
+  // When labelWrap is on (roadmap theme), use a wider horizontal gap and a
+  // collision-pad to absorb measureText underestimation — keeps near-adjacent
+  // milestone labels from landing on the same tier and visually overlapping.
+  // When labelWrap is off the constants collapse to the original values so all
+  // existing goldens remain byte-identical.
+  const LABEL_TIER_HGAP      = ms.labelWrap ? 16 : 2;
+  const LABEL_COLLISION_PAD  = ms.labelWrap ? 12 : 0;
+
   // Above-side tier assignment (left-to-right greedy, x-space only)
   {
     const aboveBlocks = blockInfos
@@ -462,9 +470,9 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
       .sort((a, b) => a.xCenter !== b.xCenter ? a.xCenter - b.xCenter : a.msIdx - b.msIdx);
     const tierEndX: number[] = [];
     for (const b of aboveBlocks) {
-      const bL = rhu(b.xCenter - b.blockW / 2);
-      const bR = rhu(b.xCenter + b.blockW / 2);
-      let t = tierEndX.findIndex((ex) => ex + 2 <= bL);
+      const bL = rhu(b.xCenter - (b.blockW + LABEL_COLLISION_PAD) / 2);
+      const bR = rhu(b.xCenter + (b.blockW + LABEL_COLLISION_PAD) / 2);
+      let t = tierEndX.findIndex((ex) => ex + LABEL_TIER_HGAP <= bL);
       if (t === -1) { tierEndX.push(-Infinity); t = tierEndX.length - 1; }
       tierEndX[t] = bR;
       b.tier = t;
@@ -478,9 +486,9 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
       .sort((a, b) => a.xCenter !== b.xCenter ? a.xCenter - b.xCenter : a.msIdx - b.msIdx);
     const tierEndX: number[] = [];
     for (const b of belowBlocks) {
-      const bL = rhu(b.xCenter - b.blockW / 2);
-      const bR = rhu(b.xCenter + b.blockW / 2);
-      let t = tierEndX.findIndex((ex) => ex + 2 <= bL);
+      const bL = rhu(b.xCenter - (b.blockW + LABEL_COLLISION_PAD) / 2);
+      const bR = rhu(b.xCenter + (b.blockW + LABEL_COLLISION_PAD) / 2);
+      let t = tierEndX.findIndex((ex) => ex + LABEL_TIER_HGAP <= bL);
       if (t === -1) { tierEndX.push(-Infinity); t = tierEndX.length - 1; }
       tierEndX[t] = bR;
       b.tier = t;
