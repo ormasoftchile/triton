@@ -35,3 +35,13 @@ In Phase 0, the kernel/timeline seam is drawn inside `packages/core`. Timeline I
 - Scene IR compilation deterministic: same Timeline IR → same Scene IR (golden-testable as text/bytes)
 - Backend diversity supported: SVG, PNG (resvg), Skia, PDF — all consume Scene IR, not domain IR
 - Animation hints on Scene primitives are backend-conditional (SVG honors; raster ignores)
+
+---
+
+## Cross-Agent Flags — David's Research Synthesis (2026-06-12)
+
+**From David (Research Lead):**
+- Domain IR schemas must remain **small and self-contained**. Large polymorphic god-IRs are LLM-authoring failure vectors.
+- Constrained LLM generation: Research shows small grammars outperform full schemas (Willard 2023, Wang 2023, Dong 2024 XGrammar).
+- **Recommendation:** Submit each Domain IR JSON Schema as constraint grammar (XGrammar or GBNF) to eliminate syntactic failures.
+- **Comparison/Matrix Grammar Implication:** This grammar is genuinely **tabular**, not a flow or graph. It needs its own Domain IR with entity types: `column`, `row`, `cell`, `indicator` (not Sugiyama DAG entities). Layout is constrained-grid (column-width × row-height), not any Sugiyama variant.

@@ -95,7 +95,57 @@
 
 Next phase: OSS launch planning and agent integration validation.
 
-### 2026-06-10 — Build-vs-Adopt Output/Render Layer Survey
+### 2026-06-12 — Research Synthesis Sprint: Four-Report Integration
+
+**Reports synthesized:**
+- `diagramcode.md` — diagram-as-code landscape (Mermaid, D2, Graphviz, PlantUML, Structurizr, Excalidraw, tldraw, yEd, GoJS, Eraser, Napkin.ai, Pikchr, Ditaa, Nomnoml, Svgbob)
+- `vizgrammar.md` — visualization grammars, infographic tools, animation formats (Vega, Vega-Lite, D3, ECharts, ggplot2, Lottie, SMIL, CSS Animations, WAAPI, Motion Canvas, Manim)
+- `concept-theory.md` — viz grammar theory (Wilkinson GoG, Wickham, Vega-Lite), visual communication (Bertin, Cleveland & McGill, Tufte, Gestalt, Munzner), LLM-DSL generation (Outlines, Grammar Prompting, XGrammar, GBNF, ChartGPT, NL4DV, Constraint Tax)
+- `concept-layout.md` — graph drawing & layout algorithms (Sugiyama phases, Brandes-Köpf, Walker, Buchheim, Kamada-Kawai, stress majorization, Fruchterman-Reingold, Tamassia TSM, libcola/WebCola, ELK, dagre)
+
+**Section files touched:** 52-comparison.tex, 20-grammar-concept.tex, 42-layout-engines.tex, 23-corpus-taxonomy.tex, 13-determinism.tex
+
+**New BibTeX entries added:** 20 (references.bib: 72 → 92)
+Keys: `bertin1967`, `tufte1983`, `cleveland1984`, `munzner2014`, `munzner2009`, `willard2023`, `wang2023grammar`, `dong2024xgrammar`, `llama2024gbnf`, `tian2023chartgpt`, `narechania2021nl4dv`, `ray2026constraint`, `brandesKopf2001`, `walker1990`, `buchheim2002`, `kamadaKawai1989`, `gansnerStressMaj2004`, `tamassia1987`, `webCola`, `gansner1993dot`
+
+---
+
+**Key findings:**
+
+1. **Three-cluster landscape (not two):** The prior-art landscape has three clusters: (A) diagram-as-code tools (Mermaid, D2, Graphviz), (B) visualization grammars (Vega-Lite, ggplot2 — chart-only), and (C) proprietary presentation tools (think-cell, PowerPoint). The unoccupied cell is "diagram-capable + principled grammar + presentation quality + determinism."
+
+2. **Chart/diagram gap is the core opportunity:** Vega-Lite and ggplot2 prove the architecture works (JSON IR → compiler → deterministic presentation-quality output) but are explicitly scoped to statistical graphics. No existing tool applies this pattern to diagram types.
+
+3. **GoG principles directly applicable:** Wickham's default inference (specify only deviations), spec/render separation, and Vega-Lite's two-tier compile (spec → Vega IR → rendered output) are direct ancestors of the Domain IR → Scene IR pipeline. Munzner's nested model validates that IR design at the higher level cannot be rescued by better algorithms below.
+
+4. **LLM-DSL: small grammar = reliability:** Willard & Louf (Outlines), Wang et al. (Grammar Prompting), and Dong et al. (XGrammar) all converge on the same finding: a small, minimal grammar fragment for the specific task is more reliable than the full schema. This validates the god-IR rejection and the goal of keeping each Domain IR semantically tight. The "constraint tax" (Ray 2026) shows this especially matters for small/on-device models.
+
+5. **Sugiyama layout: four phases fully cited:** Phase 4 (coordinate assignment) is the Brandes-Köpf O(n) algorithm (2001), used in dagre, ELK Layered, and Graphviz dot. Phase 2 (layer assignment) uses the Gansner et al. (1993) network simplex algorithm. These are now explicitly cited in §42.
+
+6. **Tree layout: Buchheim (2002) is state-of-the-art:** Walker (1990) has a known O(n²) bug; Buchheim et al. fixed it. D3's `d3.tree()` implements the Buchheim algorithm. This is now cited in §42.
+
+7. **Force-directed: stress majorization is the safe alternative:** Gansner, Koren & North (2004) stress majorization with a deterministic initial placement is monotone-convergent with no randomness. This is the recommended algorithm for undirected networks where force-directed aesthetics are desired. Explicit fallback to Sugiyama for DAGs; force-directed only for exploratory use.
+
+8. **Orthogonal layout: Tamassia (1987) TSM framework:** Bend minimisation as minimum-cost network flow on the dual graph, solvable in polynomial time. Relevant for architecture diagrams (ER, UML). ELK Layered's orthogonal routing mode implements this.
+
+9. **Comparison/Matrix is a genuinely tabular kind:** Not a flow, not a graph. Its layout is constrained-grid assignment (column-width × row-height computation), not any graph algorithm. Must be its own grammar with its own Domain IR (cells, columns, rows, indicators).
+
+10. **Animated-arrow pattern for Flow grammar:** `stroke-dashoffset` animation on SVG connector paths produces the "flowing" effect dominant in ByteByteGo-style explainers. This attaches as an animation hint on the Scene IR connector path — no change to static geometry.
+
+11. **No prior art has SVG animation first-class:** Survey of all 17+ diagram-as-code tools found zero tools with a first-class SVG animation output layer. This is the most unambiguous market gap in the landscape.
+
+---
+
+**Constraints and recommendations for Mark (IR) and Barbara (rendering):**
+
+- **Mark:** The Comparison grammar Domain IR needs first-class `column`, `row`, `cell`, and `indicator` (checkmark/X/stat) entity types. Do NOT model comparison as a node-link graph. The layout engine for comparison is a constrained-grid algorithm, not a Sugiyama variant.
+
+- **Mark:** Each Domain IR's JSON Schema should be submitted as a formal grammar constraint for LLM generation (XGrammar, llama.cpp GBNF, or OpenAI Structured Outputs). This requires the schema to be machine-readable and self-contained. Keep enum lists short; keep required fields minimal.
+
+- **Barbara:** The `stroke-dashoffset` animation for the flowing-arrow effect in Flow grammar connectors must be an explicit animation hint in the Scene IR connector primitive. The raster backend ignores it (renders the static dash pattern); the SVG backend emits a SMIL `<animate>` element or a CSS `@keyframes` rule.
+
+- **Barbara:** Force-directed layout (when used at all) must use stress majorization with a deterministic initial layout. No random seeds in the production rendering path. Sugiyama layered (dagre/ELK) should be the default for all directed-graph cases.
+
 
 **Layer A: Scene / Render IR → BUILD-but-BORROW**
 

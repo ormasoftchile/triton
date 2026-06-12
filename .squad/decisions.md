@@ -721,3 +721,64 @@ Built as specced + Mark's IR schema. See `.squad/decisions/inbox/barbara-image-p
 **Milestone:** All five design targets are now fully renderable from IR to byte-deterministic output. The compiler meets all fidelity targets with theme-based opt-in features. The three layout families (horizontal, vertical-spine, serpentine) plus five showcase themes comprehensively cover the productization mandate.
 
 **Test coverage:** 567/567 pass (551 core + 13 schema + 3 cli); all existing goldens byte-identical; 6 new showcase goldens added.
+
+---
+
+## Decision Note: Research Synthesis — Prior-Art Positioning and the Gap We Fill (2026-06-12)
+
+**From:** David (Research Lead)  
+**Date:** 2026-06-12T03:01:53Z  
+**Addresses:** 52-comparison.tex, 20-grammar-concept.tex, 42-layout-engines.tex, 23-corpus-taxonomy.tex, 13-determinism.tex  
+**Status:** FOR ADOPTION — findings are research-grade; design consequences flagged for Mark and Barbara
+
+### The Three-Cluster Landscape
+
+Prior-art research across four reports reveals **three distinct clusters**, not two:
+
+| Cluster | Tools | What They Get Right | Critical Gap |
+|---------|-------|---------------------|--------------|
+| **Diagram-as-code** | Mermaid, D2, Graphviz, PlantUML | Source-control friendly, developer-facing, LLM-known syntax | Limited presentation quality; no formal IR; non-deterministic layout across versions; no PPTX |
+| **Visualization grammars** | Vega-Lite \[vegalite2017\], ggplot2 \[layeredgrammar2010\] | Principled WHAT/HOW separation; JSON Schema IR; deterministic; agent-authorable; presentation-quality | **Chart-only.** No node-link, no swimlane timeline, no flow diagrams. Explicitly out of scope per Wilkinson \[grammarofgraphics2005\] |
+| **Proprietary presentation tools** | think-cell, PowerPoint, MS Project | Presentation quality | Closed, manual, hostile to agents and version control |
+
+**The unoccupied cell:** diagram-capable + principled grammar architecture + presentation quality + determinism. No existing tool occupies it.
+
+### The Gap We Fill
+
+> **"Vega-Lite for diagrams."**
+
+Vega-Lite \[vegalite2017\] proves the architecture works:
+- Small, JSON-serializable Domain IR
+- Compiler that validates and fills in defaults
+- Compilation to a lower-level scene IR
+- Multiple deterministic rendering backends
+
+We borrow this architecture wholesale and extend it into the **diagram domain**: Timeline (first), then Flow/Pipeline, Node-Link Graph, Comparison/Matrix, Stat-Callout, Step-Cards.
+
+The Grammar of Graphics \[grammarofgraphics2005\] and Wickham \[layeredgrammar2010\] ground the default-inference discipline. Munzner's nested model \[munzner2009\] validates that Domain IR design at the higher level cannot be rescued by better algorithms below — making IR design the primary leverage point.
+
+### LLM-Authoring Reliability
+
+Research on constrained LLM generation converges on a single finding: **small, minimal grammar fragments are more reliable than full schemas**.
+
+**Consequence:** The god-IR rejection is not only an architectural preference — it is a reliability engineering decision. A large polymorphic schema is an agent-authoring failure vector.
+
+**Recommendation for Mark:** Each Domain IR JSON Schema must be small and self-contained. Submit it as the constraint grammar (via XGrammar \[dong2024xgrammar\] or GBNF \[llama2024gbnf\]) to eliminate syntactic failures in LLM generation.
+
+### Layout Algorithm Grounding
+
+The layout engine section now cites the full Sugiyama four-phase pipeline. Tree layout: Buchheim et al. (2002) \[buchheim2002\] corrects Walker (1990) \[walker1990\] to true O(n). Force-directed safe path: Stress majorization \[gansnerStressMaj2004\] with deterministic initial layout. Orthogonal layout: Tamassia (1987) \[tamassia1987\] TSM framework. Constraint-based: WebCola \[webCola\] for swimlane boundary enforcement.
+
+### Corpus Taxonomy Update
+
+Corpus expanded from 9 to 16 images. **Critical distinction confirmed:** The Comparison/Matrix kind is genuinely tabular — NOT a flow or graph. Its layout is a constrained-grid algorithm (column-width × row-height), not any Sugiyama variant. It needs its own Domain IR with `column`, `row`, `cell`, and `indicator` entity types.
+
+**Animated-arrow pattern:** `stroke-dashoffset` animation on SVG connector paths is the mechanism for the "flowing" data-stream effect dominant in ByteByteGo-style technical explainers. This is an animation hint on the Scene IR connector path — static backends ignore it.
+
+### Key Citations Added This Sprint
+
+`bertin1967`, `tufte1983`, `cleveland1984`, `munzner2014`, `munzner2009` — visual communication theory  
+`willard2023`, `wang2023grammar`, `dong2024xgrammar`, `llama2024gbnf`, `tian2023chartgpt`, `narechania2021nl4dv`, `ray2026constraint` — LLM-DSL constrained generation  
+`brandesKopf2001`, `walker1990`, `buchheim2002`, `kamadaKawai1989`, `gansnerStressMaj2004`, `tamassia1987`, `webCola`, `gansner1993dot` — graph layout algorithms
+
+Total new bib entries: **20** (72 → 92)
