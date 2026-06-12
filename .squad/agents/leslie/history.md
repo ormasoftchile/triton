@@ -156,3 +156,13 @@ This is the **first precedent** for how future grammars extend the rendering sys
 - Added `\input{sections/25-flow-grammar}` to `design/main.tex` after 24-diagram-family
 - Updated `24-diagram-family.tex` §Flow/Pipeline to cross-reference §25 as the authoritative spec
 - Verified consistency with `20-grammar-concept.tex` two-IR-layer model (no contradictions)
+
+### 2026-06-12 — Opt-In Theme Token Pattern Validation (Barbara)
+
+✅ **Theme-Token Pattern Confirmed as Reusable for Future Grammars**
+
+Barbara's implementation of axis.todayMarker.labelChip (plus prior axis.nodeWrap) has established a **validated pattern for grammar-independent rendering polish**: opt-in, default-false tokens gated to specific themes, each preserving byte-identical determinism for base themes. 
+
+- **labelWrap, milestone tier-gap, todayMarker.labelChip** all follow same pattern
+- **Implication for Flow/Graph grammars:** Edge-routing tokens, node-positioning knobs, grouping refinements can all use this same theme-token mechanism without IR pollution
+- **Pattern is ready for documentation** (e.g., Theme Token Guidelines) if Flow/Graph designers want replicable extensibility

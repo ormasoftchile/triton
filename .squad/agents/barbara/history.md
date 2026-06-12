@@ -87,6 +87,24 @@ Deferred rules for `axis_breaks` IR field:
 
 ---
 
+### 2026-06-12 — Today-Marker `labelChip` Token (Readability over Phase Pills)
+
+**Defect:** The "Today" label (red #EF4444) was positioned at `y = todayY1 + 4 + todayFontPx` where `todayY1` is the top of the draw band — which is exactly where the first activity pill row begins. In the `timeline-goals` roadmap slide, "Today" sat inside the Evangelization teal (#0F766E) pill band: red-on-teal, low contrast, partially occluded by the pill's own label text.
+
+**Fix (determinism-safe, gated behind `theme.axis.todayMarker.labelChip`):**
+- Added `labelChip?: boolean` to the `todayMarker` block in `AxisTheme` (`types.ts`). Default absent/false — all existing themes unaffected, byte-identical.
+- Set `labelChip: true` in `roadmap.ts` only.
+- In `horizontal.ts` today-marker block: when `labelChip` is true, measure the label text width with `measureText`, then emit a `kind: 'rect'` chip (fill: canvas backgroundColor, rx: 3, opacity: 0.9, padX: 4px, padY: 3px) **before** the text primitive. The chip sits under the red "Today" text, masking the teal pill behind it.
+- When `labelChip` is false (all other themes), the chip block is skipped entirely → zero primitive delta → byte-identical goldens for all non-roadmap fixtures.
+
+**Coordinates (timeline-goals.svg):** Chip at rect x=570, y=321.83, width=37.72, height=16.67 (rx=3). Text at x=574, y=335.5. Activity pill band at y=330.83–366.83. Chip creates white backdrop that spans the pill overlap zone, making red text clearly legible.
+
+**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `examples/gallery/showcase/timeline-goals-skia.png` only. All 577 tests pass; 574 existing goldens byte-identical.
+
+**Pattern:** Follows the same opt-in theme-token gating pattern as `labelWrap` (milestone tier gap) and `nodeWrap` (spine routing) — new visual behaviour is isolated to the roadmap theme via a boolean token, never leaking into other themes.
+
+---
+
 ## Detailed Archive
 
 Strategic context, nodeWrap learnings, Flow grammar open questions, and cross-agent flags are preserved in `history-archive.md`.
