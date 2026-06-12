@@ -57,6 +57,7 @@ export const roadmapTheme: ResolvedTheme = {
       width:     1.5,
       style:     'dashed',
       labelChip: true,
+      onTop:     true,
     },
   },
 

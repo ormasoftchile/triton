@@ -96,6 +96,14 @@ export interface AxisTheme {
      * existing themes. Only enabled in the `roadmap` theme.
      */
     labelChip?: boolean;
+    /**
+     * When true, the entire today-marker group (dashed line + chip + label) is
+     * deferred to the very end of primitive assembly so it renders on top of all
+     * activity bars and milestone nodes.  Default: false (absent) — inline
+     * z-order, byte-identical to pre-feature behaviour.  Only enabled in the
+     * `roadmap` theme.
+     */
+    onTop?: boolean;
   };
   /**
    * Controls how the horizontal spine line behaves at each circular milestone node.

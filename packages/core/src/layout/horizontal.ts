@@ -1107,6 +1107,11 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   const todayDate = todayMarkerAnnotation?.date ?? ir.metadata.today;
   const todayMarkerEnabled = !!todayDate && (theme.axis.todayMarker.enabled || !!todayMarkerAnnotation);
 
+  // When onTop is true the marker is deferred to after all activity bars so it
+  // paints on top in SVG document order.  When false (default) it is pushed
+  // inline here — preserving byte-identical output for all other themes.
+  const deferredTodayPrims: ScenePrimitive[] = [];
+
   if (todayMarkerEnabled && todayDate) {
     try {
       const todayOrd = parseAndCoerceLeft(todayDate);
@@ -1114,7 +1119,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         const xToday = rhu(dateX(todayOrd, axisState));
         const todayY1 = rhu(mT_eff + Haxis + aboveZoneH);
         const todayY2 = rhu(mT_eff + Haxis + aboveZoneH + hDraw);
-        primitives.push({
+        const todayTarget = theme.axis.todayMarker.onTop ? deferredTodayPrims : primitives;
+        todayTarget.push({
           kind:        'line',
           x1:          xToday,
           y1:          todayY1,
@@ -1138,7 +1144,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
           const chipH       = rhu(todayFontPx + chipPadY * 2);
           const chipX       = rhu(todayTextX - chipPadX);
           const chipY       = rhu(todayTextY - todayFontPx - chipPadY);
-          primitives.push({
+          todayTarget.push({
             kind:    'rect',
             x:       chipX,
             y:       chipY,
@@ -1149,7 +1155,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
             opacity: 0.9,
           });
         }
-        primitives.push({
+        todayTarget.push({
           kind:             'text',
           x:                todayTextX,
           y:                todayTextY,
@@ -1845,6 +1851,12 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         rowY = rhu(rowY + ROW_H + lg.rowGap);
       }
     }
+  }
+
+  // Flush deferred today-marker primitives (onTop:true) so the dashed line,
+  // chip, and label render above all activity bars and milestone nodes.
+  if (deferredTodayPrims.length > 0) {
+    primitives.push(...deferredTodayPrims);
   }
 
   return {
