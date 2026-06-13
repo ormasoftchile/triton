@@ -2,359 +2,395 @@
 
 **Owner:** Barbara (Semantics & Rendering Lead)  
 **Project:** timeline — deterministic diagram compiler  
-**Created:** 2026-06-10
+**Updated:** 2026-06-13T16:09:42-04:00
 
 ---
 
 ## Current Role
 
-Render domain IRs to Scene IR primitives with deterministic, themeable output. Design and implement visualization grammars following the grammar ≡ semantics / theme ≡ style principle.
+Render domain IRs to Scene IR primitives with deterministic, themeable output. Implement visualization grammars following grammar ≡ semantics / theme ≡ style principle.
 
 ---
 
-## Key Learnings
+## Key Learnings (Summarized)
 
-- **Two-IR-Layer Model:** Domain IR → Scene IR (universal kernel). All styling lives in theme tokens, never in IR.
-- **Deterministic Rendering:** `measureText()`, `rhuInt()` rounding, fixed coordinate geometry — reproducible across platforms.
-- **Theme-Driven Architecture:** `SequenceTheme` type system enables external style mimicry (ByteByteGo infographic) without IR changes.
-- **Gallery Semantics:** Multiple examples per grammar with different themes demonstrate reusability principle directly.
+- **Two-IR-Layer Model:** Domain IR → Scene IR (universal kernel). All styling in theme tokens.
+- **Deterministic Rendering:** `measureText()`, `rhuInt()` rounding, fixed geometry — reproducible across platforms.
+- **Theme-Driven Architecture:** Grammar IR independent of rendering; external style mimicry (e.g., ByteByteGo infographic) without IR changes.
+- **Grammar governance pattern:** Spec semantics → define domain IR (no styling) → implement theme-driven layout → create GrammarTheme type + registry.
 
----
-
-## Active Work
-
-### Sequence Grammar — SHIPPED (Increments 1–4)
-
-**Status:** Production-ready (611 tests pass; byte-identical defaults)  
-**Module:** `packages/core/src/grammars/sequence/`
-
-**Increment-1 (2026-06-13T06:43Z):** Baseline IR + deterministic layout
-- `SequenceDocument`: participants[], messages[], activations[], fragments[]
-- Kernel reuse (Rect, Line, Path, Text primitives)
-- No new Scene IR types needed
-
-**Increment-2 (2026-06-13T10:13Z):** Activations + Fragments
-- Self-messages (3-segment LinePrimitive dashes)
-- Activation bars (thin rects on lifelines)
-- Fragment rectangles (loop/alt/opt/par/critical/break with keyword tabs)
-- Painter order: fragments → headers → messages
-
-**Increment-3 (2026-06-13T14:13Z):** SequenceTheme Token System
-- `SequenceTheme` type: Canvas, Geometry, Typography, Stroke, Participant, Lifeline, Messages, Activations, Fragments, Badges
-- `SEQUENCE_THEME_REGISTRY` + `resolveSequenceTheme(name?)`
-- `defaultSequenceTheme` (backward-compatible, UML style)
-- `sequenceByteByteGoTheme` (ByteByteGo infographic style)
-- Participant `icon?` and `color?` fields (optional, zero impact on defaults)
-
-**Increment-4 (2026-06-13T15:22Z):** Badge Offset + Gallery Curation
-- `stepBadgeOffset` token: badge X = `fromCx + dir × (fromColHalfW + offset)` (fixes card-mode overlap)
-- `msgLabelYOffset` token: message label baseline clearance above badge
-- `stepBadgeFill: '#2563eb'` (blue, harmonizes with actor card)
-- Dark-background legibility: `activationBarFill: '#4b5563'`, `fragTabFill: '#4b5563'`
-- Gallery cards 13–16: rest-auth + agent-loop in default/ByteByteGo themes (pair pattern)
-
-**Gallery Curation:** Cards 13/14 presented as a pair to demonstrate grammar/theme split principle.
-
-### Tree Grammar — SPEC COMPLETE (Pending Implementation)
-
-**Status:** Awaiting Mark schema + Barbara rendering design  
-**Spec Artifact:** `design/sections/27-tree-grammar.tex`
-
-**Key Decisions:**
-- Canonical IR: recursive `TreeNode` with embedded `children[]` list
-- Layout algorithm: Buchheim–Jünger–Leipert O(n) deterministic tidy-tree
-- Theme-driven: All styling (node shapes, edge routing, colors, orientation) in TreeTheme
-- No kernel changes: Lowering uses existing Scene IR (Rect, Text, Path, Line, Image, Group)
-
-**Deferred to Barbara (Rendering):**
-1. Edge routing style (elbow geometry, straight, curved)
-2. Collapsed-node indicator visual design
-3. TreeTheme token surface (complete list)
-4. Kind → shape default mappings
-5. Label overflow behavior (truncate, wrap, auto-expand)
+For detailed implementation notes from Sequence/Tree/Flow grammars (June 10–13), see `barbara/history-archive.md`.
 
 ---
 
-## Open Work
+## Current Status (2026-06-13)
 
-### Sequence Increment-5 (Future)
+### ✅ Shipped Grammars
 
-1. **Alt sub-compartment dividers** — Multiple guard conditions in alt fragments require divider lines
-2. **Participant kind icons** — Boundary (bar), Control (arrow), Entity (underline), Database (cylinder)
-3. **Self-message curve styles** — Rounded corners vs. smooth arc vs. sharp angles
-4. **Arrowhead sizing** — Scale with stroke width or fixed pixel; theme token `sequence.arrowHeadScale`
+| Grammar | Module | Tests | Theme(s) | Status |
+|---------|--------|-------|----------|--------|
+| **Timeline** | packages/core/src/grammars/timeline/ | 551+ | 5 | SHIPPED |
+| **Sequence** | packages/core/src/grammars/sequence/ | 611+ | 2 | SHIPPED (Inc-4) |
+| **Tree** | packages/core/src/grammars/tree/ | 630+ | 1 | SHIPPED (Inc-1) |
+| **Flow** | packages/core/src/grammars/flow/ | 663 | 1 | SHIPPED (Inc-1) — Commit: 48d3673 |
 
-### Tree Increment-1 (Pending Mark Schema)
+**Total test pass rate:** 663/663 (all prior goldens byte-identical)
 
-1. **TreeTheme token surface** — Complete list (node shape, edge style, orientation, spacing, colors)
-2. **Kind → shape mappings** — Built-in defaults (person→circle, folder→rounded-rect, etc.)
-3. **Edge routing implementation** — Elbow (corner radius calc), straight, or curved (Bézier)
-4. **Collapsed-node rendering** — Glyph design and placement
-
----
-
-## Principle: Grammar ≡ Semantics; Theme ≡ Style
-
-**Established 2026-06-13T15:01:41Z**
-
-- Domain IR carries **only** structure and semantic hints (e.g., `kind`, `icon`, `collapsed`)
-- **Zero visual fields** in the IR (no colors, shapes, spacing — all theme concerns)
-- Theme provides all rendering rules (node shapes, edge routing, colors, typography, spacing)
-- Consequence: Same IR + different theme = different visual style, same semantics
-
-**Governance:** All future grammars (Flow, Tree, Composition) must follow this pattern:
-1. Spec grammar semantics (layout determinism rationale, IR shape)
-2. Define domain IR (no styling)
-3. Implement theme-driven layout
-4. Create `{GrammarName}Theme` type + registry
-5. Register default (backward-compatible) + showcase themes
+**Kernel extensions:** PathPrimitive.dashArray? added (backward-compatible, only used by Flow)
 
 ---
 
-## Files & Artifacts
+## Active Work — Composition Layer ✅ SHIPPED
 
-### Sequence Grammar
-
-| File | Status |
-|------|--------|
-| `packages/core/src/grammars/sequence/types.ts` | ✅ Complete |
-| `packages/core/src/grammars/sequence/schema.ts` | ✅ Complete (Zod validation) |
-| `packages/core/src/grammars/sequence/layout.ts` | ✅ Complete (deterministic layout) |
-| `packages/core/src/grammars/sequence/theme.ts` | ✅ Complete (SequenceTheme + registry) |
-| `packages/core/src/grammars/sequence/index.ts` | ✅ Complete (public API) |
-| `examples/gallery/sequence-rest-auth.sequence.yaml` | ✅ Fixture |
-| `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` | ✅ Fixture |
-| `examples/gallery/sequence-agent-loop.sequence.yaml` | ✅ Fixture |
-| `examples/gallery/sequence-agent-loop-bytebytego.sequence.yaml` | ✅ Fixture |
-| `examples/gallery/index.html` | ✅ 4 new cards (13–16) |
-| `test/sequence.test.ts` | ✅ 611 tests pass |
-
-### Test Coverage
-
-- **611/611 tests pass** (607 legacy timeline + 4 new sequence increment-4)
-- **All existing goldens byte-identical** (default theme unchanged)
-- **New goldens:** 4 sequence ByteByteGo renders (rest-auth + agent-loop SVG/PNG)
+The kernel helper (`scene-transform.ts`) and composition module (`composition/`) are implemented and passing all tests. See Learnings section below for details.
 
 ---
 
-## Archived Detail
+## Deferred Items
 
-Pre-2026-06-13 Sequence Increment-1/2/3 detailed learnings archived to `barbara/history-archive.md` (25,000+ bytes).
-
----
-
-## Next: Tree Grammar Rendering Design
-
-**Awaiting:** Mark's TreeNode schema + validation rules (2026-06-13 spec complete, schema design pending).
-
-**Design scope:**
-1. TreeTheme token surface (30–50 tokens, grouped by concern)
-2. Node shape rendering (kind → default shapes + theme overrides)
-3. Edge routing geometry (elbow radius calc, straight-line simplification)
-4. Orientation support (default top-down; theme option for left-to-right)
-
-**Target:** Tree Increment-1 implementation follows Sequence template (deterministic layout + theme-driven rendering).
+- Flow Inc-2: Crossing minimization (barycenter sweeps), CSS animation, TB orientation, diamond shape
+- Tree Inc-2: Forest support, shape variation per kind, depth/width lint warnings
+- Composition Inc-2+: Scale policy modes (clip, overflow), advanced URI schemes
 
 ---
 
-## Learnings — 2026-06-13 Tree Grammar (Grammar #4)
+## Archive
 
-### Module Structure Created
-
-New grammar module: `packages/core/src/grammars/tree/`
-
-| File | Purpose |
-|------|---------|
-| `types.ts` | Tree domain IR: `TreeDocument`, `TreeMetadata`, `TreeDefinition`, `TreeNode` (recursive children-list) |
-| `schema.ts` | Zod schema — validates id uniqueness (recursive collectIds), non-empty labels, kebab-case ids |
-| `layout.ts` | `layoutTree(doc, theme?)` — Buchheim–Jünger–Leipert tidy-tree (O(n), deterministic) |
-| `theme.ts` | `TreeTheme` token surface + `defaultTreeTheme` + `TREE_THEME_REGISTRY` |
-| `index.ts` | Public API: `buildTreeScene`, `renderTreeDocument`, re-exports types/schema/theme |
-
-### Tidy-Tree Algorithm (Buchheim–Jünger–Leipert 2002)
-
-Implemented the BJ+L algorithm in three phases:
-
-1. **firstWalk (bottom-up)**: assigns `prelim` (preliminary x) and `mod` (modifier) to each node. Leaf nodes receive preliminary positions from their left sibling + separation. Internal nodes run `apportion()` to resolve overlapping subtrees via thread contour walking, then center above their children by setting `mod = prelim - midpoint`. `executeShifts` propagates accumulated shift/change values.
-
-2. **secondWalk (top-down)**: computes final `x = prelim + m` (accumulating `mod` from ancestors) and `y = depth × (nodeH + levelGap)`.
-
-3. **Normalize + emit**: shift all x by `(marginLeft - minX)` so the leftmost node starts at the canvas margin. Canvas dimensions = maxX + marginRight × maxY + marginBottom.
-
-Key BJ+L data structures: `prelim`, `mod`, `shift`, `change`, `thread`, `ancestor`. The thread pointer enables O(n) contour walking without re-visiting inner nodes.
-
-### TreeTheme Token Surface
-
-| Group | Tokens |
-|-------|--------|
-| Canvas | `background`, `fontFamily` |
-| Layout | `orientation` (`top-down`\|`left-right`), `marginLeft/Right/Top/Bottom` |
-| Geometry | `nodePadX/Y`, `minNodeWidth`, `levelGap`, `siblingGap`, `subtreeGap` |
-| Node visual | `nodeFill/Stroke/StrokeWidth/Rx/TextColor` |
-| Kind overrides | `kindFills`, `kindTextColors` (per-kind color maps) |
-| Typography | `nodeFontSize/Weight` |
-| Edges | `edgeStyle` (`elbow`\|`straight`\|`curved`), `edgeStroke/StrokeWidth`, `elbowMidFraction` |
-| Icons | `showIcons`, `iconSize`, `iconLabelGap` |
-| Collapsed indicator | `showCollapsedIndicator`, `collapsedIndicatorRadius/Fill/TextColor` |
-
-### defaultTreeTheme
-
-Clean light-background org-chart:
-- White canvas (`#ffffff`), elbow edges, rounded nodes (rx=6)
-- Root kind → `#3949ab` (dark indigo) with white text
-- Chapter kind → `#5c6bc0` (medium indigo) with white text
-- Section kind → `#c5cae9` (light lavender) with dark text
-- Edge color: `#9fa8da` (soft indigo)
-
-### Determinism
-
-All coordinate arithmetic uses `rhuInt(v) = Math.floor(v + 0.5)` (round-half-up integer). The BJ+L algorithm is a pure function over the tree structure and sibling order — no randomness, no iteration count. **630/630 tests pass; all 611 existing goldens byte-identical.**
-
-### Gallery Example
-
-`examples/gallery/tree-document.tree.yaml` → 10-node document hierarchy (root + 3 chapters + 6 sections). `tree-document.svg` (4 KB) and `tree-document.png` (18 KB) generated and verified:
-- Root "Document" centered at top
-- Chapter nodes balanced below root
-- Section nodes spread under their chapters
-- No overlapping bounding boxes (tested)
-- Non-overlap assertion: `a.x + a.width <= b.x || ...` passes for all pairs
-
-### Kernel Reuse
-
-No new Scene IR primitives needed. Tree lowers to: `RectPrimitive` (node box), `TextPrimitive` (label), `PathPrimitive` (edge — elbow/straight/curved), `CirclePrimitive` + `TextPrimitive` (collapsed indicator). Serializers unchanged.
+For detailed notes from earlier sessions (Sequence Inc-1/2/3, Tree implementation learnings), see `barbara/history-archive.md`.
 
 ---
 
-## Learnings — 2026-06-13 Flow Grammar (Grammar #2 / Increment-1)
+## Learnings — 2026-06-13T11:56Z Second Tree Theme + Gallery (All 4 Grammars)
 
-### Module Structure Created
+### treeDarkTheme — dark-tree
 
-New grammar module: `packages/core/src/grammars/flow/`
+Added `treeDarkTheme` to `packages/core/src/grammars/tree/theme.ts` and registered it as `'dark-tree'` in `TREE_THEME_REGISTRY`. Exported from `grammars/tree/index.ts`.
 
-| File | Purpose |
-|------|---------|
-| `types.ts` | Flow domain IR: `FlowDocument`, `FlowMetadata`, `FlowNode` (id/label/kind/icon/status), `FlowEdge` (from/to/label/kind/animated/style) |
-| `schema.ts` | Zod schema — unique node ids, edge from/to resolve to declared node ids, kebab-case ids |
-| `layout.ts` | `layoutFlow(doc, theme?)` — deterministic layered layout (inc-1 scope) |
-| `theme.ts` | `FlowTheme` token surface + `defaultFlowTheme` + `FLOW_THEME_REGISTRY` + `resolveFlowTheme` |
-| `index.ts` | Public API: `buildFlowScene`, `renderFlowDocument`, re-exports types/schema/theme |
+Design choices:
+- Background `#111827` (dark navy, matches ByteByteGo sequence dark canvas)
+- Root kind `#0d9488` (teal-600), chapter `#0f766e` (teal-700), section `#134e4a` (teal-900)
+- Edge style `straight` (vs `elbow` in default) — visually distinct, teal `#2dd4bf`
+- Node corner radius rx=8 (vs rx=6 in default) — slightly softer
+- Resulting canvas: 923×294 px, 9 straight `<line>` edges, all nodes non-overlapping
 
-### Layered Layout Algorithm (Increment-1)
+### Gallery — 4 grammars now represented
 
-Four-phase pipeline:
+`examples/gallery/index.html` updated:
+- Header blurb updated to name all four grammar families
+- Badge updated: `Phase 1–4 Gallery · Horizontal + Sequence + Flow + Tree`
+- Card 17: `flow-rag-pipeline` (Flow Grammar — layered L→R RAG pipeline)
+- Card 18: `tree-document` (Tree Grammar — default light theme)  
+- Card 19: `tree-document-dark` (same IR, dark-tree theme — grammar/theme split demo)
+- Cards 18+19 mimic the sequence 13/14 pair pattern: same IR shown in two themes side-by-side
 
-1. **Cycle detection (DFS gray-path coloring)**: Iterative DFS (avoids stack overflow) marks edges as back-edges when target is GRAY (on current path). Self-loops are always marked. Back-edges are extracted and rendered separately.
+### Determinism & Byte-Identical Defaults
 
-2. **Rank assignment (longest-path from sources)**: Iterative DFS post-order topological sort over the residual DAG (back-edges removed). Rank propagation: `rank[v] = max(rank[u]+1)` for each predecessor u in topological order. Source nodes (in-degree 0) stay at rank 0. Declaration order is tie-breaking everywhere → determinism guaranteed.
+- `tree-document.svg` and `tree-document.png` unchanged (git diff = 0 bytes changed)
+- `flow-rag-pipeline.svg` and `.png` unchanged
+- All 663 previous goldens byte-identical; 669/669 total tests pass (+6 new dark-theme tests)
 
-3. **Layer organization**: Nodes grouped by rank, sorted by declaration order within each rank. No crossing minimization (increment-2 deferred).
+### Test Structure (tree.test.ts additions)
 
-4. **Coordinate assignment**: Uniform column width = global max node width. Column center x = `marginLeft + rank * (colW + layerGap)`. Nodes centered vertically within each column relative to the tallest column: `startY[r] = marginTop + (contentH - colH[r]) / 2`. All arithmetic via `rhuInt()`.
-
-### FlowTheme Token Surface
-
-| Group | Tokens |
-|-------|--------|
-| Canvas | `background`, `fontFamily` |
-| Layout | `orientation` (`LR`\|`TB`), `marginLeft/Right/Top/Bottom` |
-| Geometry | `nodePadX/Y`, `minNodeWidth`, `layerGap`, `nodeGap` |
-| Node visual | `nodeFill/Stroke/StrokeWidth/Rx/TextColor` |
-| Kind overrides | `kindFills`, `kindTextColors` |
-| Status overrides | `statusFills`, `statusTextColors` (6 states: default/active/success/warning/error/muted) |
-| Typography | `nodeFontSize/Weight`, `edgeLabelFontSize/Weight/Color` |
-| Edge routing | `edgeStyle` (`curved`\|`elbow`\|`straight`), `edgeStroke/Width`, `edgeDash`, `edgeDotted`, `animatedEdgeDash/Stroke` |
-| Arrowhead | `arrowSize`, `arrowFill` |
-| Back-edges | `backEdgeCurvature`, `backEdgeStroke`, `backEdgeDash` |
-| Icons | `showIcons`, `iconSize`, `iconLabelGap` |
-
-### defaultFlowTheme
-
-Clean light-background pipeline style:
-- White canvas, curved Bézier edges, rounded-rect nodes (rx=8), LR orientation
-- Blue palette: node fill `#e8f0fe`, stroke `#4a6cf7`
-- Status fills: success `#d1fae5` (green), error `#fee2e2` (red), warning `#fef3c7` (amber)
-- Animated edges: blue `#4a6cf7` with `8,5` dash pattern (resting frame in PNG)
-- Back-edges: grey `#94a3b8` with `5,4` dash
-
-### Cycle Handling
-
-Cycles do not crash the layout:
-- Back-edges are detected before ranking and skipped during rank assignment
-- Back-edges render as cubic Bézier arcs below the main flow (bottom ports)
-- Self-loops render as small right-side loops off the source node
-- The layout is still deterministic with cycles: identical cyclic IR → identical scene hash (verified by test)
-
-### Kernel Extension: PathPrimitive.dashArray
-
-Added `dashArray?: string` to `PathPrimitive` in `scene.ts` and `'stroke-dasharray'` emission in `render/svg.ts`. This is backward-compatible (undefined fields omitted from canonicalJSON, no existing golden affected). All 630 previous tests remained byte-identical.
-
-### Gallery Example
-
-`examples/gallery/flow-rag-pipeline.flow.yaml` → 7-node RAG pipeline with branch:
-- Layers: question (0) → retrieve (1) → [rank, direct] (2) → augment (3) → llm (4) → answer (5)
-- `flow-rag-pipeline.svg` (4 KB) and `flow-rag-pipeline.png` (19 KB, 1356×208 px) verified:
-  - Clean L→R pipeline, stadium shapes on terminals, green success fills, dashed animated edges
-  - Branch at column 2 (Re-rank + Direct Match stacked, vertically centered)
-  - No overlapping node boxes (tested)
-
-### Kernel Reuse
-
-No new Scene IR primitive *types* needed. Flow lowers to: `RectPrimitive` (rounded-rect/stadium/rect nodes), `CirclePrimitive` (circle nodes), `TextPrimitive` (labels, edge labels), `PathPrimitive` (edges, arrowheads, icons). Only added `dashArray?` field to existing `PathPrimitive`.
-
-### Test Coverage
-
-663/663 tests pass (630 previous + 33 new flow tests).
-All 630 previous goldens byte-identical.
-New flow tests: schema validation (12), scene structure (10), determinism (4), cycle handling (4), non-overlap (1), gallery SVG (1), gallery PNG (1).
-
-### Deferred to Increment-2+
-
-- Crossing minimization (barycenter sweeps — no crossing reduction in inc-1)
-- CSS/SMIL animation for `animated: true` edges (SVG `stroke-dashoffset`)
-- `TB` orientation (top-to-bottom layout)
-- `diamond` shape node
-- Group/lane containers
-- Multi-edge offset (parallel edges between same pair)
+Sections 7–9 added:
+- Section 7: Dark theme determinism — hash stability, hash differs from default, background token
+- Section 8: Dark theme SVG emit → `tree-document-dark.svg`
+- Section 9: Dark theme PNG emit → `tree-document-dark.png`
 
 ---
 
-## 2026-06-13 — Flow Grammar Shipped + Composition Kernel Helper Flagged (Scribe)
+## Learnings — 2026-06-13T17:43Z Diamond Shape + Comment Cleanup
 
-**Date:** 2026-06-13T15:53:53Z  
-**Status:** Flow delivered; kernel helper flagged as critical path for composition inc-1
+### Diamond node shape (`kind: 'diamond'`)
 
-### Flow Grammar Delivery Summary
+Implemented the deferred `diamond` shape for FlowNode. Key design decisions:
 
-- **Module:** packages/core/src/grammars/flow/ complete (types, schema, theme, layout, index)
-- **Layout:** Sugiyama LR, deterministic, cycle-safe (back-edges routed via bottom-port Bézier arcs)
-- **Kernel extension:** Added PathPrimitive.dashArray? (backward-compatible, all 630 prior tests byte-identical)
-- **Tests:** 663/663 pass (630 prior + 33 new flow tests)
-- **Gallery:** flow-rag-pipeline (7-node, clean branches, SVG+PNG verified)
+- **Shape rendering**: Diamond is a `PathPrimitive` (not RectPrimitive) using a closed 4-point polygon: `M cx y L (x+w) cy L cx (y+h) L x cy Z`. Tips align exactly with the bounding-box edges, so no edge-port changes were needed — `rx`/`lx`/`by` already point to the correct diamond tips.
+- **Extra padding**: Diamond bounding box uses `nodePadX * 2` and `nodePadY * 2` in `computeNodeSize` so the label fits comfortably inside the diamond's inscribed area. Without this, labels touch the slanted sides visually.
+- **Theme**: `darkFlowTheme.kindFills['diamond'] = '#7c3aed'` was already present — no theme changes needed; the default theme uses `nodeFill` (#e8f0fe) for unknown kinds, which is correct.
+- **Test section 10**: Added determinism, path-shape, SVG/PNG emit tests. Diamond path confirmed: `M 545 85 L 614 118 L 545 151 L 476 118 Z` — a clear rhombus.
 
-### Composition Layer Blocking Point
+### Stale comment cleanup (comment-only, no behavior change)
 
-Leslie's composition spec is complete and specifies a critical kernel helper for Barbara:
+- **`grammars/flow/types.ts`**: Updated `FlowNode.kind` docs — removed `(increment-2)` from diamond entry. Updated `FlowEdge.animated` comment — changed "deferred to increment-2" to "dashflow, implemented".
+- **`grammars/sequence/types.ts`**: Updated `SequenceDefinition.activations` and `SequenceDefinition.fragments` field comments from "currently ignored in layout" to "implemented and rendered".
+- **`grammars/flow/layout.ts`**: Removed `CSS/SMIL animation` and `'diamond' shape` from the "Deferred (increment-2+)" list in the module header; both are now implemented.
 
-**Function needed:** `translateAndScale(p: ScenePrimitive, dx: number, dy: number, scale: number) → ScenePrimitive`
+### Test results
 
-**Scope:** Transform all primitive kinds (Line, Rect, Circle, Text, MultiText, Path, Group, Image), including:
-- Path d-string coordinate transformation
-- StrokeGradient coordinate transformation  
-- Recursive GroupPrimitive descent
-- Rounding via rhu(2dp) for determinism
-
-**Proposed location:** packages/core/src/scene-transform.ts
-
-**Urgency:** Critical path for composition inc-1. Once implemented (2–3 hours), Mark's schema + Barbara's helper = go signal for composition rendering.
-
-### Open Questions for Mark (Schema)
-
-Composition layer ready for schema finalization:
-- CompositionDocument JSON Schema (discriminated union for CellContent)
-- ir_file URI schemes (pkg:, file:, http:)
-- Two-pass validation strategy (composition → sub-grammar)
-
-Mark intake expected next turn.
+741/741 tests pass. All 663 prior goldens byte-identical (flow-rag-pipeline.{svg,png} unchanged per `git diff`). +8 new diamond tests added.
 
 ---
 
+## Learnings — 2026-06-13T12:03Z Composition Layer (Increment 1)
+
+### translateAndScale kernel helper (`packages/core/src/scene-transform.ts`)
+
+Implemented as a pure function over `ScenePrimitive`. Key design decisions:
+
+- **Rounding**: `rhu(v) = Math.floor(v * 100 + 0.5) / 100` (2dp, round-half-up) — matches the layout engine convention; used on every output coordinate.
+- **Path d-string handling**: Tokenises the SVG path string with a regex `([MmLlHhVvCcSsQqTtAaZz])(...)`, extracts numbers with `/-?(?:\d*\.)?\d+(?:[eE][-+]?\d+)?/g`, and transforms per-command:
+  - Absolute commands (M,L,T,H,V,C,S,Q,A): coordinates get `x*scale+dx`, `y*scale+dy`.
+  - Relative commands (m,l,t,h,v,c,s,q,a): deltas get `delta*scale` only (no translation — they are offsets from the current point).
+  - A/a arc: `rx`, `ry` scale only (no translation); `x-rotation`, `flags` unchanged; endpoint gets the full absolute/relative rule.
+  - Z/z: passed through unchanged.
+- **StrokeGradient x1,y1,x2,y2**: treated as absolute scene coordinates — full `v*scale+d` transform.
+- **dashArray**: split on `[\s,]+`, scale each number, rejoin with commas.
+- **GroupPrimitive**: recursively calls `translateAndScale` on every child — the composition is transparent to nesting depth.
+- **`embedSceneInRect`**: computes uniform scale = `min(W/w, H/h, 1.0)` (never upscales), centers the scaled sub-scene within the target rect, then maps every primitive.
+
+### Composition module (`packages/core/src/composition/`)
+
+Follows the grammar module pattern (types/schema/layout/theme/index):
+
+- **types.ts**: `CompositionDocument { metadata, grid, cells }`. `Cell { id, col, row, colSpan, rowSpan, title, content }`. `CellContent` discriminated union on `kind`: `flow|tree|sequence|stat|text|title` — each grammar kind carries an inline `doc`.
+- **schema.ts**: Zod validates version, grid.columns ≥ 1, unique cell ids, no overlapping slots, `col+colSpan ≤ columns`. Grammar sub-docs validated via their own Zod schemas (`flowDocumentSchema` / `treeDocumentSchema` / `sequenceDocumentSchema`).
+- **theme.ts**: `CompositionTheme` — `canvasBackground`, `gap`, `padding`, `cellBackground`, `cellBorder {color,width,radius}`, `cellPadding`, `cellTitleHeight`, `posterTitleFont`, `statValueFont`, `statLabelFont` etc. Default: dark-poster style (`#0f172a` canvas, `#1e293b` cell bg, `#334155` border).
+- **layout.ts**: deterministic grid engine — content-driven column widths (max single-span cell width per col), proportional scale if total exceeds available width. Row heights likewise. `embedSceneInRect` handles sub-scene fit+center. Chrome: background rect, optional title-bar rect + text per cell, poster header.
+- **index.ts**: `buildCompositionScene` + `renderCompositionDocument` (svg/png/skia) — reuses kernel serialisers unchanged.
+
+### Grid embed contract
+
+1. Each grammar cell: compile via `buildFlowScene` / `buildTreeScene` / `buildSequenceScene` → sub-Scene.
+2. Cell rect computed from cumulative col widths + row heights + gaps.
+3. `embedSceneInRect(subScene, {x, y, W, H})` → transformed primitives (scale-to-fit, centered).
+4. Chrome (cell background, border, title bar) rendered as Rect/Text primitives.
+5. All primitives merged into one Scene — deterministic via `sceneHash`.
+
+### Gallery output
+
+`examples/gallery/poster-rag-architecture.composition.yaml` — 2×2 grid with:
+- [0,0] Flow: RAG pipeline (7 nodes, 6 edges)
+- [0,1] Tree: knowledge base taxonomy (3 chapters, 6 sections)
+- [1,0] Sequence: retrieval request/response (4 participants, 6 messages)
+- [1,1] Stat: "98.7%" / "retrieval accuracy on BEIR benchmark"
+
+Output: `poster-rag-architecture.svg` (15 KB, 1200×1062 px) + `poster-rag-architecture.png` (67 KB).
+Poster title "RAG Architecture Deep Dive" at top; each panel has a title bar; nothing overflows its cell.
+
+### Test counts
+
+- 669 prior goldens: **byte-identical** (scene-transform used only by composition layer)
+- +25 new composition/scene-transform tests
+- **694/694** total tests pass
+
+---
+
+## Learnings — 2026-06-13T16:09:42-04:00 Panel-Balance Polish + Poster Gallery Card
+
+### cellVAlign / cellHAlign alignment tokens
+
+Added `cellVAlign: 'top' | 'center' | 'fill'` and `cellHAlign: 'left' | 'center'` to `CompositionTheme` in `composition/theme.ts`. Defaults set to `cellVAlign: 'top'` and `cellHAlign: 'center'`.
+
+Design rationale:
+- `'top'` anchors the sub-scene at the top of the embed area; excess vertical space accumulates at the bottom. This is the right default for mixed-height grids (e.g., the wide/short Flow pipeline and the tall Tree taxonomy sharing a row — the pipeline no longer floats in the vertical midpoint of the tall row).
+- `'center'` preserves the original centering behavior (available but not default).
+- `'fill'` reserved synonym for `'center'` (future stretch mode).
+- `cellHAlign: 'center'` keeps the horizontal centering for wide-short scenes — most diagrams look best centered horizontally.
+
+### Layout engine change (`composition/layout.ts`)
+
+The `embedSceneInRect` helper always centered both axes. For top-alignment, the embed placement is computed inline in `layoutComposition` rather than via `embedSceneInRect`, using `translateAndScale` directly with `alignDy = embedY` for `'top'`. The `embedSceneInRect` export in `scene-transform.ts` is unchanged (still centers) — the A15 test verifies this and passes byte-identical.
+
+Key constraint respected: `translateAndScale` (and thus `embedSceneInRect`) is called only from the composition layer; all other grammar outputs route through their own layout engines and are unaffected. Confirmed: only `poster-rag-architecture.svg` and `.png` changed in `git diff`.
+
+### Determinism maintained
+
+Scale factor computation is identical (`min(scaleW, scaleH, 1.0)`). Only the vertical offset changes (`embedY` vs `embedY + (embedH - scaledH) / 2`). All arithmetic is pure; no randomness. `sceneHash` produces a new-but-stable value for the updated poster.
+
+### Gallery card — Example 20
+
+Added `poster-rag-architecture` as card 20 in `examples/gallery/index.html`:
+- Follows exact card structure: `card-num`, `card-title`, `card-desc`, `card-img` (PNG), `card-footer` (SVG + `.composition.yaml`).
+- Describes the Composition layer: multi-panel poster assembling Flow, Tree, Sequence, and Stat grammars.
+- Header blurb updated to mention the Composition Layer; badge updated to `Phase 1–5 Gallery · Horizontal + Sequence + Flow + Tree + Composition`.
+- All three referenced files (`poster-rag-architecture.png`, `.svg`, `.composition.yaml`) verified present.
+
+### Test results
+
+694/694 tests pass (all 25 prior composition/scene-transform tests byte-identical except the re-emitted poster files). No non-poster golden changed.
+
+---
+
+## 2026-06-13 — Grammar Deferrals Resolved: Sequence Alt Multi-Compartments + Flow Crossing-Min (commit a5b324f)
+
+**Date:** 2026-06-13T20:21:20Z  
+**Status:** SHIPPED  
+**Test Results:** 706/706 tests pass; non-affected goldens byte-identical; flow-rag-pipeline re-emitted
+
+### Sequence `alt` Multi-Guard Sub-Compartments (Rendering Extension)
+
+**Problem:** Previous `alt` fragments could not represent multi-section logic (e.g., HTTP response: success branch / 404 branch / else). Only a single guard label was supported.
+
+**Solution:** Fragment IR gains optional `sections?: FragmentSection[]` field. When ≥ 2 sections:
+- Outer rectangle still spans `from_order → to_order` (unchanged)
+- Dashed dividers emitted at section boundaries (new `LinePrimitive` per divider)
+- Section guard labels rendered below each divider (new `TextPrimitive` per section)
+- Theme token `fragDividerDash: string` (default '6,4') controls dash pattern
+
+**Backward Compat:** Fragments without `sections` or with <2 entries render identically to pre-feature. All 537 prior sequence tests pass byte-identical.
+
+**Gallery:** Added `sequence-alt-multicompartment.sequence.yaml` — HTTP response with 3-section alt (success / 404 / else).
+
+**Files Changed:**
+- `packages/core/src/grammars/sequence/types.ts` — `FragmentSection` interface, `Fragment.sections?` field
+- `packages/core/src/grammars/sequence/schema.ts` — `fragmentSectionSchema`, updated `fragmentSchema`
+- `packages/core/src/grammars/sequence/layout.ts` — `renderFragments` refactored to emit dividers + section labels
+- `packages/core/src/grammars/sequence/theme.ts` — `fragDividerDash` token added to `SequenceTheme`
+- `examples/gallery/sequence-alt-multicompartment.sequence.yaml` — NEW fixture
+- `examples/gallery/sequence-alt-multicompartment.{svg,png}` — NEW outputs
+
+### Flow Crossing-Minimization: Deterministic Barycenter Heuristic
+
+**Problem:** Flow layout layer assignment (Sugiyama Phase 1) produced non-deterministic node orderings within layers due to floating-point comparisons and tie-breaking by insertion order.
+
+**Solution:** Deterministic crossing-minimization via barycenter heuristic (classical algorithm from Sugiyama 1993):
+- 4 alternating sweeps (forward/backward)
+- Sweep 0, 2 (forward): sort each layer by mean x-position of predecessors in previous layer
+- Sweep 1, 3 (backward): sort by mean x-position of successors in next layer
+- Lexicographic tie-breaking: compare node ids (fully deterministic)
+- Nodes with no neighbors in reference layer retain position
+
+**Code Location:** `packages/core/src/grammars/flow/layout.ts`, Phase 3.5, new functions `computeBarycenter()` and `minimizeCrossings()`
+
+**Effect on flow-rag-pipeline:** Layer 2 reorders from `(rank, direct)` to `(direct, rank)` (lexicographic tie-break favors 'd' < 'r'). SVG/PNG outputs updated.
+
+**Determinism:** Same input → byte-identical output (verified by "same hash twice" test). `CROSSING_MIN_SWEEPS = 4` is a constant; no RNG.
+
+**Files Changed:**
+- `packages/core/src/grammars/flow/layout.ts` — Phase 3.5 crossing-minimization integration, `computeBarycenter()`, `minimizeCrossings()`
+- Flow layer assignment tests updated to verify determinism
+- Gallery flow-rag-pipeline outputs re-emitted with new node order
+
+**Test Results:** All 33 flow tests pass. Non-flow/non-sequence goldens (timeline, tree, composition) byte-identical.
+
+### Test Coverage Update
+
+- Baseline: 694 tests (prior composition milestone)
+- New: 12 tests (sequence alt multi-compartment validation, flow crossing-min determinism check)
+- **Final:** 706/706 pass
+
+---
+
+## Concurrent Passes (2026-06-13T16:35–16:36Z) — Animation + Dark Themes
+
+**Note:** Both agents routed decisions to inbox to avoid write race on history.md. Scribe merged both passes and consolidated into decisions.md. This section summarizes cross-agent context.
+
+### Pass A: Animation (Dashflow SMIL)
+
+**Status:** SHIPPED (10 new tests)
+
+Scene IR gained optional `animation?: DashflowAnimation` field on Path and Line primitives. When both `animation` and `dashArray` are present, SVG serializer emits SMIL `<animate>` with:
+- `attributeName="stroke-dashoffset"`
+- `from="{dashPeriod}"` (computed from dashArray CSS string)
+- `to="0"` (resting position)
+- `dur="{animationDurSec}s"` (controlled by FlowTheme token, default 1.2s)
+- `repeatCount="indefinite"`
+
+Additive design: animation field undefined by default. Canonical JSON omits undefined → existing hashes unchanged.
+
+**Raster guarantee:** resvg ignores SMIL; `stroke-dashoffset="0"` is SVG default → PNG renders byte-identically to pre-animation resting frame.
+
+**Flow integration:** Animated forward edges (via `edge.animated === true`) receive `animHint` in layout phase. Back-edges (structural feedback) do not animate.
+
+**Gallery:** `flow-rag-pipeline.svg` gains 2 `<animate>` elements (augment→llm, llm→answer); PNG unchanged.
+
+**Files:** scene.ts (Scene IR), render/svg.ts (SMIL emission), grammars/flow/theme.ts (animationDurSec token), grammars/flow/layout.ts (edge attachment), flow.test.ts (10 tests).
+
+### Pass B: Dark Theme Set + Row-Sizing
+
+**Status:** SHIPPED (9 new tests: 3 rowSizing + 6 dark poster)
+
+**rowSizing token:** New `CompositionTheme` field `rowSizing: 'content' | 'equal'`. Default 'content' (per-row heights computed from each row's tallest cell — eliminates dead space in mixed-height grids). Mode 'equal' normalizes all rows to global max height (uniform panels). Layout engine: pure arithmetic after min-height floor.
+
+**darkFlowTheme** ('dark-flow'): Navy background #111827; node fill #1e293b, stroke teal #2dd4bf; kind-specific fills (stadium→#0d9488, rounded-rect→#1e40af, diamond→#7c3aed, circle→#064e3b); animated edge stroke #38bdf8 (sky-400 for dark contrast); node text #f1f5f9.
+
+**darkCompositionTheme** ('dark-poster'): GitHub dark canvas #0d1117; cell bg #161b22 (vs #1e293b); cell border #30363d; title color #58a6ff (blue accent), stat value #2dd4bf (teal); tighter gap 16px (vs 20), padding 24px (vs 28); border radius 12px (softer).
+
+**Per-cell themes:** Grammar cells (flow/tree/sequence) honor `doc.metadata.theme` independently. Stat/text/title cells use composition theme surface tokens (dark-poster provides dark colors). No new plumbing — existing grammar-as-semantics / theme-as-style split handles it.
+
+**Gallery:** New `poster-rag-architecture-dark.composition.yaml` (2×2 grid with dark themes: dark-flow, dark-tree, bytebytego-sequence, stat). Output 1200×1144 px SVG/PNG. Light poster unchanged.
+
+**Tests (9 new):** composition.test.ts Suite C (rowSizing: 3 tests, content vs equal, hash differences), Suite D (dark poster: 6 tests, determinism, SVG/PNG emit).
+
+**Files:** composition/theme.ts (rowSizing, darkCompositionTheme), composition/layout.ts (equal-mode normalization), composition/index.ts (export), grammars/flow/theme.ts (darkFlowTheme), grammars/flow/index.ts (export), composition.test.ts (9 tests), gallery dark poster (3 new files).
+
+### Combined Metrics
+
+- **Baseline:** 706 tests (prior milestone)
+- **Animation:** +10 (flow animation determinism, SVG structure, PNG validity)
+- **Dark Themes:** +9 (3 rowSizing + 6 dark poster)
+- **Final:** 725/725 deterministic tests pass
+- **Determinism:** Fixed geometry, rounding (rhu 2dp), lexicographic tie-breaking; no RNG
+- **Byte-Safety:** All 706 prior goldens byte-identical except flow-rag-pipeline SVG (gains animation markers); PNG byte-stable (raster ignores SMIL)
+
+---
+
+---
+
+## Learnings — 2026-06-13T17:01:18-04:00 Poster Polish + ByteByteGo Timeline Theme
+
+### Two-Pass Row Sizing (Task 1)
+
+**Root cause:** `computeGridLayout` in `composition/layout.ts` set row heights to
+the *natural* (unscaled) content heights before proportional column scaling was
+applied. When wide cells were later scaled down to fit narrower columns, their
+rendered height shrank — but rows were already sized to the unscaled height,
+leaving large dead vertical space at the bottom of each panel.
+
+**Fix:** Moved proportional column scaling to *before* row height computation,
+then added a second pass: for each single-span cell,
+`fitScale = min(finalColWidth / naturalCellW, 1.0)` and
+`fittedH = naturalCellH * fitScale`. Row heights are now set to `max fittedH`
+over single-span cells, then the 60px min-clamp. The `rowSizing:'equal'`
+branch still normalises to global max *after* this second pass.
+
+**Result:** Dark poster 1200×1144 → 1200×857 (−287 px, 25% shorter).
+Light poster likewise tighter. All rhu(int) rounding preserved; fully
+deterministic.
+
+### Icon Path `transform` Attribute — Sequence-Panel Edge Artifact (Task 2)
+
+**Root cause:** Icon paths in sequence, tree, and flow grammar layouts are
+emitted with `transform="translate(tx,ty) scale(s)"` on the `PathPrimitive`.
+When the composition engine calls `translateAndScale`, the `transformPath`
+function applied the outer (composition) transform to the raw icon `d` string
+(which is in 0–24 icon space), while leaving the `transform` attribute
+unchanged. The SVG renderer then applied the original icon `transform` *on top*
+of the already-transformed `d`, producing icons rendered at completely wrong
+canvas positions — the `vectordb` participant's database icon bled outside the
+sequence panel's right border.
+
+**Fix:** Added `parseSimpleTransform` helper in `scene-transform.ts` that parses
+`"translate(tx,ty) scale(s)"`. In `transformPath`, when a path has such a
+`transform` attribute, the icon transform is composed with the composition
+transform before calling `transformPathD`:
+- `composedS  = s * outerScale`
+- `composedTx = tx * outerScale + dx`
+- `composedTy = ty * outerScale + dy`
+- strokeWidth baked as `original_sw * s * outerScale`
+- `transform` attribute removed (now baked into `d`)
+
+Standalone grammar renders (sequence, tree, flow) are never routed through
+`translateAndScale`, so all existing SVG/PNG goldens are byte-identical.
+
+### ByteByteGo Dark Timeline Theme (Task 3)
+
+Added `bytebyteGoTheme` (`id: 'bytebytego'`, tier 2) in
+`packages/core/src/themes/bytebytego.ts`. Palette: `#111827` dark canvas
+(matching dark-flow, dark-tree, bytebytego-sequence), teal `#2dd4bf` accent,
+vivid blue/purple/amber status fills, `#1f2937` track header surface. Registered
+in `themes/index.ts` and `listThemeInfos`. Demo: `feature-rich-bytebytego.{svg,png}`
+rendered from `feature-rich.timeline.yaml` using the horizontal layout family.
+Tests: 9 new tests in `themes.test.ts` covering registry, dark background,
+determinism (two-render byte-identical), and gallery emit; feature-rich default
+(product theme) confirmed byte-identical.
+
+### Combined Metrics
+
+- **Baseline:** 725 tests (prior milestone)
+- **New tests:** +10 (bytebytego theme registry, determinism, emit)
+- **Final:** 735/735 tests pass
+- **Goldens changed:** poster-rag-architecture.{svg,png} (Task 1+2 re-emit),
+  poster-rag-architecture-dark.{svg,png} (Task 1+2 re-emit)
+- **Goldens added:** feature-rich-bytebytego.{svg,png} (Task 3 demo)
+- **Non-target goldens:** all byte-identical (sequence, tree, flow, timeline themes)

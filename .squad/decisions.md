@@ -931,3 +931,185 @@ Grammar cells (flow/tree/sequence) pass `content.doc` to their builders, which c
 **Files:** `composition/layout.ts` (two-pass), `scene-transform.ts` (icon bake), `themes/bytebytego.ts` (NEW), plus theme registry + 10 new tests. Demos: `feature-rich-bytebytego.{svg,png}`, `poster-rag-architecture-dark.{svg,png}`.
 
 > **Full detail archived:** See decisions-archive.md for Problem/Decision/Geometry sections.
+
+---
+
+# Decision: Design Doc Implementation-Status Sync (2026-06-13)
+
+**Agent:** Leslie (Spec Architect)  
+**Date:** 2026-06-13T17:45:35-04:00  
+**Requested By:** Cristian (@ormasoftchile)  
+**Status:** COMPLETE
+
+## Summary
+
+Synced the design document (design/sections/*.tex) with the now-implemented reality of the timeline compiler: all four grammars, composition layer, and animation features are built and running. Added concise "Implementation status" paragraphs to each major section, clearly indicating what is implemented, where it lives in the codebase, and which features are deferred.
+
+## Rationale
+
+The design document was written as a specification before implementation. Now that code exists, the spec should carry live status notes so readers understand: (1) the feature is shipped, (2) where to find the source, (3) what's deferred to future increments.
+
+## Changes Made
+
+### .tex Edits (design/sections/)
+
+- **21-timeline-grammar.tex** (line 8–10): Added `\paragraph{Implementation Status}` noting the four layout families, theme variants (ByteByteGo, dark), and arc-spine node support. No deferrals.
+- **25-flow-grammar.tex** (line 6–8): Added `\paragraph{Implementation Status}` describing the Sugiyama four-phase layout implementation (cycle detection, longest-path rank, barycenter-based crossing-min, Brandes–Köpf coordinate assignment), FlowTheme, and deferred feature (general non-layered layouts).
+- **26-sequence-grammar.tex** (line 6–8): Added `\paragraph{Implementation Status}` covering participant/message/activation/fragment IR, all fragment kinds (alt with multi-guard), self-message curve geometry, and stereotype icons. No deferrals.
+- **27-tree-grammar.tex** (line 6–8): Added `\paragraph{Implementation Status}` for Buchheim–Jünger–Leipert O(n) tidy-tree layout, recursive nesting, and TreeTheme (light + dark).
+- **30-composition.tex** (line 6–8): Added `\paragraph{Implementation Status}` noting grid-based layout, `scene-transform.ts` kernel helpers (`translateAndScale`, `embedSceneInRect`), content-driven row sizing, CompositionTheme, and deferred feature (ir_file URI references; currently inline embedding only).
+- **14-animation.tex** (line 6–8): Added `\paragraph{Implementation Status}` describing optional Scene animation field, SVG SMIL emission, raster resting-frame byte-identity, and flowing-dash edge animation on flow diagrams.
+
+## Status Notes Summary
+
+| Section | Location | Impl? | Deferred |
+|---------|----------|-------|----------|
+| Timeline Grammar | 21-timeline-grammar.tex | ✅ | None |
+| Flow Grammar | 25-flow-grammar.tex | ✅ | Force-directed, stress-majorization |
+| Sequence Grammar | 26-sequence-grammar.tex | ✅ | None |
+| Tree Grammar | 27-tree-grammar.tex | ✅ | None |
+| Composition | 30-composition.tex | ✅ | ir_file URI refs (pkg:, file:, http:) |
+| Animation | 14-animation.tex | ✅ | Frame-by-frame, video, Lottie |
+
+## Impact
+
+- **Traceability:** Readers can now trace from spec (what) to code (how) in a single page.
+- **Roadmap clarity:** Deferred features are explicit and discoverable in the doc.
+- **Architecture validation:** All six sections confirm the two-IR-layer (Domain IR → Scene IR) architecture holds.
+
+---
+
+# Decision: Flow Grammar — Diamond Node Shape (Increment-2 Closeout) (2026-06-13)
+
+**Date:** 2026-06-13T17:43:20-04:00  
+**Author:** Barbara (Semantics & Rendering)  
+**Status:** SHIPPED  
+
+## Context
+
+The Flow Grammar shipped in Increment-1 with `kind: 'diamond'` listed as a deferred shape. This session closes that item out as part of broader Increment-2 deferred-feature closeout.
+
+## Decision
+
+### Diamond shape rendered as a PathPrimitive polygon
+
+A `FlowNode` with `kind: 'diamond'` renders as a rhombus (4-point closed polygon) via `PathPrimitive`. The four tips are positioned at the bounding-box edge midpoints:
+
+```
+Top    = (cx, y)
+Right  = (x + w, cy)
+Bottom = (cx, y + h)
+Left   = (x, cy)
+```
+
+Path SVG: `M cx y  L (x+w) cy  L cx (y+h)  L x cy  Z`
+
+### Rationale
+
+- `PathPrimitive` already exists in the kernel. No new primitive type needed.
+- Tips coincide exactly with the bounding-box edge midpoints, so the existing `PlacedNode.rx` / `lx` / `by` edge ports work without modification.
+- Grammar ≡ semantics: `kind: 'diamond'` is a shape hint on the domain IR. Fill color is resolved by the theme (`kindFills['diamond']`) as for all other kinds.
+
+### Bounding-box sizing
+
+Diamond nodes use double padding (`nodePadX * 2`, `nodePadY * 2`) in `computeNodeSize` so the label sits inside the diamond's inscribed area. Without the extra padding, labels would visually touch the slanted sides.
+
+### Stale comment cleanup (same session)
+
+Removed now-inaccurate deferred notes:
+- `flow/layout.ts` "Deferred" list: removed CSS animation and diamond (both implemented).
+- `flow/types.ts` `kind` doc: removed `(increment-2)` suffix from diamond entry.
+- `flow/types.ts` `animated` field: updated "deferred to increment-2" → "dashflow, implemented".
+- `sequence/types.ts` SequenceDefinition: `activations`/`fragments` "currently ignored in layout" → "implemented and rendered".
+
+## Files Changed
+
+- `packages/core/src/grammars/flow/layout.ts` — diamond case in `computeNodeSize` + `emitNode`; updated header comment
+- `packages/core/src/grammars/flow/types.ts` — comment-only updates
+- `packages/core/src/grammars/sequence/types.ts` — comment-only updates
+- `examples/gallery/flow-decision.flow.yaml` — new example (diamond decision branch)
+- `examples/gallery/flow-decision.svg` + `.png` — generated by test suite
+- `packages/core/test/flow.test.ts` — section 10: diamond tests (determinism + path shape + gallery emit)
+
+## Test Coverage
+
+- `flow.test.ts` section 10 (8 new tests): diamond fixture validates, diamond emits `PathPrimitive`, polygon has correct form, scene is deterministic, SVG and PNG emit.
+- All 741 tests pass. Flow-rag-pipeline goldens byte-identical (zero diff).
+
+---
+
+# Decision: Schema Validation Hardening — All Grammars + Composition + axis_breaks (2026-06-13)
+
+**Date:** 2026-06-13T17:45:35-04:00  
+**Author:** Mark (IR & Schema Lead)  
+**Status:** SHIPPED  
+
+## Summary
+
+Hardened Zod schema validation across all four grammars (sequence, tree, flow, composition) and the timeline `axis_breaks` field. Every constraint named in the charter is now enforced with a clear, targeted error message. Illegal states are unrepresentable.
+
+## Invariants Added (per domain)
+
+### Sequence — `grammars/sequence/schema.ts`
+
+- `SEQ_MSG_ORDER_UNIQUE`: No two messages may share the same `order` value
+- `SEQ_ACT_BOUNDS`: Activation `from_order`/`to_order` must lie within message order range
+- `SEQ_FRAG_BOUNDS`: Fragment `from_order`/`to_order` within messages' range
+- `SEQ_SECT_ORDER`: Section `fromOrder ≤ toOrder`
+- `SEQ_SECT_WITHIN`: Section `[fromOrder, toOrder]` ⊆ fragment `[from_order, to_order]`
+- `SEQ_SECT_SORTED`: Sections must be sorted non-descendingly by `fromOrder`
+
+### Tree — `grammars/tree/schema.ts`
+
+- `TREE_ROOT_REQUIRED`: Explicit superRefine guard for missing root
+- `TREE_ACYCLIC` (structural): Cycles are impossible by construction in children-list form
+
+### Flow — `grammars/flow/schema.ts`
+
+- `FLOW_EDGE_ID_UNIQUE`: When `edge.id` is present, it must be unique across all edges
+- `FLOW_SELF_LOOP_OK`: `from == to` is explicitly allowed
+
+### Composition — `composition/schema.ts`
+
+- `COMP_ROW_BOUNDS`: `row + rowSpan ≤ grid.rows` (only when `grid.rows` is declared)
+
+### axis_breaks — `schema.ts` (timeline)
+
+- `BREAK_FROM_BEFORE_TO`: `break.from < break.to` for comparable IR date formats
+- `BREAK_WITHIN_START`: `break.from ≥ time_range.start`
+- `BREAK_WITHIN_END`: `break.to ≤ time_range.end`
+- `BREAK_NO_OVERLAP`: No two breaks may overlap; sort-tolerant
+
+**IR date comparison strategy:** `parseIrDateToMs()` converts ISO dates, year-month, year, quarter, and half formats to UTC ms. Symbolic (`now`, `tbd`, `ongoing`, `unknown`), relative (`+3m`), and approximate (`~2026-Q3`) values return `undefined` — comparisons are silently skipped for those, preserving backwards compatibility.
+
+## Test Coverage
+
+**File:** `packages/core/test/schema-validation.test.ts` — **55 tests**
+
+- Sequence: 3 valid + 9 invalid
+- Tree: 2 valid + 3 invalid
+- Flow: 3 valid + 4 invalid
+- Composition: 3 valid + 4 invalid
+- axis_breaks: 5 valid + 6 invalid
+
+**Total test count after hardening:** 790 (up from 735). All 735 pre-existing tests pass; goldens byte-identical.
+
+## Files Changed
+
+```
+packages/core/src/grammars/sequence/schema.ts   — new: msg order uniqueness, act/frag bounds, section invariants
+packages/core/src/grammars/tree/schema.ts        — new: explicit root-present guard, acyclicity docs
+packages/core/src/grammars/flow/schema.ts        — new: duplicate edge id check, self-loop docs
+packages/core/src/composition/schema.ts          — new: row+rowSpan ≤ grid.rows check
+packages/core/src/schema.ts                       — new: parseIrDateToMs(), metadataSchema.superRefine for axis_breaks
+packages/core/test/schema-validation.test.ts     — NEW FILE: 55 validation tests
+```
+
+## Design Principles Upheld
+
+1. **Rendering-agnostic IR** — no layout/theme changes; schema only.
+2. **Clear messages** — every error has a human-readable message naming the field, value, and constraint violated.
+3. **Fail early, fail loudly** — invalid states are caught at parse time, before any layout or rendering occurs.
+4. **Sort-tolerance** — axis_breaks non-overlapping check sorts internally.
+5. **Skip-when-undecidable** — comparisons involving symbolic/relative IR dates are skipped rather than false-rejected.
+

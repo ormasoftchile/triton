@@ -164,3 +164,29 @@ The implementation confirms:
 | **Determinism** | No RNG, all closed-form layouts | ✅ |
 
 **Vision complete.** The deterministic diagram compiler is now functional end-to-end: all four grammars (timeline, flow, sequence, tree) + shared Scene kernel + theme-driven styling + composition layer for multi-diagram posters.
+
+---
+
+## 2026-06-13 — Design Doc Synced with Implementation (Leslie)
+
+**Date:** 2026-06-13T17:45:35-04:00  
+**Status:** COMPLETE
+
+Added concise "Implementation status" paragraphs to the design document, syncing specs with the now-implemented reality. Each status note (1–3 sentences) appears immediately after the section introduction, indicating what is built, where it lives (file paths), and any deferred features.
+
+### Sections Updated
+
+- **21-timeline-grammar.tex** — all four layout families (horizontal, vertical-spine, serpentine, roadmap); ByteByteGo + dark rendering; arc-spine nodes
+- **25-flow-grammar.tex** — Sugiyama four-phase layout; cycle detection, longest-path rank, barycenter crossing-min; FlowTheme + dark; **deferred:** force-directed, stress-majorization
+- **26-sequence-grammar.tex** — participant/message/activation/fragment IR; all fragment kinds + multi-guard alt; self-message curves; stereotypes; SequenceTheme + ByteByteGo
+- **27-tree-grammar.tex** — Buchheim–Jünger–Leipert O(n) tidy-tree; recursive nesting; TreeTheme + dark
+- **30-composition.tex** — grid-based layout; \texttt{scene-transform.ts} kernel helpers; content-driven row sizing; CompositionTheme + dark-poster; **deferred:** ir\_file external URI references (pkg:, file:, http:)
+- **14-animation.tex** — optional Scene animation field; SVG SMIL \texttt{<animate>}/\texttt{<animateMotion>}; raster resting-frame byte-identical; flowing dashes on flow edges
+
+### Learnings
+
+1. **Doc as living record:** The design document now carries both spec and implementation status in a single place, improving traceability from principle to code.
+2. **Two-IR-layer validated:** All six sections confirm the grammar ≡ semantics; theme ≡ style discipline holds across timeline, flow, sequence, tree, composition, and animation.
+3. **Deferred features clearly marked:** Future work (general non-layered flow layouts, ir_file URI refs, interactive animation) is explicit in the doc, reducing ambiguity.
+4. **Determinism preserved:** Animation implementation maintains byte-identical SVG hashes; raster backends render static resting frames without branching.
+

@@ -222,3 +222,54 @@ Barbara delivered the Composition Layer kernel helper + module (commit 9c092cc):
 **Note for future IR extensions:** If Flow ever gains nested-subgraph support, ensure node id uniqueness validation includes scope/namespace rules. Current flat namespace (all ids globally unique) is compatible with deterministic lexicographic ordering.
 
 ---
+
+---
+
+## 2026-06-13 — Validation Hardening: All Grammars + Composition + axis_breaks
+
+**Date:** 2026-06-13T17:45:35-04:00  
+**Status:** SHIPPED (schema-validation-hardening pass)
+
+## Learnings
+
+Invariants now enforced per grammar (via Zod `.refine` / `.superRefine`):
+
+### Sequence (`grammars/sequence/schema.ts`)
+- **Duplicate participant ids** — rejected with `"Duplicate participant id: '<id>'"`.
+- **Duplicate message orders** — each `message.order` must be unique; rejected with `"Duplicate message order: <n>"`.
+- **Message from/to refs** — both fields must reference a declared participant id.
+- **Activation participant ref** — participant must be declared.
+- **Activation order range** — `from_order ≤ to_order`; both must lie within `[min(msg.order), max(msg.order)]`.
+- **Fragment order range** — `from_order ≤ to_order`; both must lie within the messages' order range.
+- **Fragment participant refs** — each id in `participants[]` must be declared.
+- **Fragment sections** (new) — each section: `fromOrder ≤ toOrder` (via `fragmentSectionSchema.refine`); each section within fragment `[from_order, to_order]`; sections are sorted non-descendingly by `fromOrder`.
+
+### Tree (`grammars/tree/schema.ts`)
+- **Globally-unique node ids** — `collectIds()` walk; `"Duplicate node id '<id>' found at path '...'"`.
+- **Non-empty root** — explicit superRefine guard with message `"tree.root is required — a TreeDocument must have exactly one root node"`.
+- **Acyclicity** — structurally guaranteed by the children-list canonical form; documented in file header (no runtime check needed, by construction).
+
+### Flow (`grammars/flow/schema.ts`)
+- **Unique node ids** — `"Duplicate node id: '<id>'"`.
+- **Edge from/to refs** — both must reference declared node ids.
+- **Duplicate edge ids** (new) — when `edge.id` is present, it must be unique; `"Duplicate edge id: '<id>'"`.
+- **Self-loops allowed** — documented: `from == to` is legal, handled by layout engine.
+
+### Composition (`composition/schema.ts`)
+- **Unique cell ids** — `"Duplicate cell id: '<id>'"`.
+- **col + colSpan ≤ grid.columns** — per-cell bounds check.
+- **row + rowSpan ≤ grid.rows** (new) — checked only when `grid.rows` is declared; `"Cell '...': row(n) + rowSpan(m) = k exceeds grid.rows(r)"`.
+- **No overlapping cells** — occupied-grid-square set; `"Cell '...' overlaps with another cell at grid position (row=r, col=c)"`.
+- **Grammar sub-doc delegation** — `flowDocumentSchema`, `treeDocumentSchema`, `sequenceDocumentSchema` inline-validate cell content.
+
+### axis_breaks (timeline `schema.ts`)
+- **from < to** — `parseIrDateToMs()` helper converts ISO/year-month/year/quarter/half to UTC ms; skips symbolic/relative/approximate. Rejected: `"axis_breaks[i]: 'from' (...) must be strictly before 'to' (...)"`.
+- **Breaks within time_range** — `from ≥ time_range.start` and `to ≤ time_range.end` (when both are comparable).
+- **Non-overlapping** — sort by `fromMs`, check adjacent `curr.toMs > next.fromMs`. Sort-tolerant: authored order doesn't matter.
+- Existing `timeline-goals.timeline.yaml` fixture (single break `2026-01-15 → 2026-04-01`) still validates ✓.
+- All 735 prior goldens are byte-identical (validation changes do not affect rendering path).
+
+### Test Coverage
+- New file: `packages/core/test/schema-validation.test.ts` — 55 tests.
+- 790 total tests pass (735 pre-existing + 55 new).
+
