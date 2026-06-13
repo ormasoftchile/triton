@@ -166,3 +166,32 @@ Barbara's implementation of axis.todayMarker.labelChip (plus prior axis.nodeWrap
 - **labelWrap, milestone tier-gap, todayMarker.labelChip** all follow same pattern
 - **Implication for Flow/Graph grammars:** Edge-routing tokens, node-positioning knobs, grouping refinements can all use this same theme-token mechanism without IR pollution
 - **Pattern is ready for documentation** (e.g., Theme Token Guidelines) if Flow/Graph designers want replicable extensibility
+
+## 2026-06-12 — Roadmap Layout Family: Fourth Layout Family Completed (Barbara)
+
+🎯 **New Infographic-Composition Layout Family Proves Dedicated-Family Pattern**
+
+### Strategic Validation
+
+Barbara's work on the `roadmap` layout family (rendering "Timeline & Goals" infographic) validates **a critical architectural principle: purpose-built infographic compositions belong as dedicated layout families, not feature-hacks on horizontal.**
+
+Three failed approaches (Gantt approximation, pixel-mimic CSS transforms, general-features added to horizontal) proved that semantic mismatch between composition intent and existing layout logic required pervasive conditionals. The resolution: launch `layout: 'roadmap'` as a sibling to `horizontal`, `vertical-spine`, and `serpentine`.
+
+### What This Establishes
+
+- **Fourth layout family** (after horizontal/vertical-spine/serpentine) proves the family pattern is replicable, not a one-off.
+- **Determinism sacred:** Roadmap reuses `dateX`, `AxisState`, `BreakSeg` verbatim from horizontal (copy, not shared), ensuring date→x mapping is identical across families.
+- **Greedy de-collision algorithm** (forward pass left→right, backward clamp) surfaces as a reusable tool for any layout needing to spread overlapped milestones while preserving vertical alignment.
+- **Implication for Flow/Graph grammars:** Node-and-edge layouts will benefit from similar orthogonal family design — don't shoehorn Graph layout into Timeline layout; build a peer family with its own semantics and reuse kernel helpers verbatim.
+
+### Architecture Pattern Reinforced
+
+When a new diagram composition surfaces:
+1. Assess whether it maps cleanly onto an existing layout family's semantics.
+2. If mapping requires pervasive conditionals or new IR fields → **dedicated layout family is the right call.**
+3. Preserve determinism by reusing critical geometry helpers verbatim (copy, not shared code).
+4. Keep families orthogonal; each proves a distinct composition pattern.
+
+**Lesson for design:** The layout family pattern is NOT limited to Timeline. It is the proper architectural unit for composition-specific rendering logic across all grammars. This will guide Flow, Graph, Comparison, and Stat implementations.
+
+

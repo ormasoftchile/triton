@@ -777,3 +777,157 @@ Built as specced + Mark's IR schema. See `.squad/decisions/inbox/barbara-image-p
 
 **Label De-collision Refinement (2026-06-12):** When `labelWrap` is enabled (roadmap theme), greedy tier packer uses `LABEL_TIER_HGAP=16` (vs. hardcoded `+2`) and `LABEL_COLLISION_PAD=12` to inflate collision bounds, ensuring near-adjacent milestone labels land on separate tiers. Timeline-goals now renders 3 above-axis tiers (y≈279, 227, 176); MSI Installer and 80% adoption labels no longer collide. All existing goldens byte-identical; 577/577 tests pass. Full detail archived.
 
+---
+
+## Decision: Roadmap Layout Family — INCREMENT 2
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-12  
+**Status:** ADOPTED (INCREMENT 2 shipped — callout de-collision complete)
+
+### Summary
+
+Introduced `layout: 'roadmap'` as a new sibling layout family alongside
+`'horizontal'`, `'vertical-spine'`, and `'serpentine'`.  It renders a
+three-zone infographic composition for the "Timeline & Goals" slide.
+
+### Motivation
+
+The existing `horizontal` layout places milestones in alternating above/below
+tiers on a traditional timeline axis.  The target slide has a fundamentally
+different composition: a continuous colour-coded PHASE BAND with icon badges,
+milestone callouts that ALL sit above the band (not alternating), and an axis
+below (not above the activity rows).  Rather than shoehorning this into the
+horizontal layout via new theme tokens, a dedicated layout family provides a
+clean separation of concerns.
+
+### Architecture Decisions
+
+**1 — New layout family file**
+
+`packages/core/src/layout/roadmap.ts` exports `layoutRoadmap(ir, theme, baseDir?)`.
+It is parallel to the other layout families and is dispatched from `layout/index.ts`.
+
+**Rationale:** Consistent with the existing family pattern; zero impact on
+other families; easy to evolve independently.
+
+**2 — Reuse dateX / axisState / breakSegs verbatim**
+
+The break-aware `dateX` function, `AxisState`, `BreakSeg`, and
+`BREAK_GAP_PX = 24` are copied from `horizontal.ts` without modification.
+Both axis-break rendering paths (axis line segments + "//" marker) use
+identical geometry.
+
+**Rationale:** DETERMINISM SACRED — same date→x mapping across families
+ensures that a milestone at a given date always lands at the same pixel
+regardless of which layout is used.  Avoids drift between families.
+
+**3 — `metadata.layout` as IR field (with render-option override)**
+
+Added `layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap'`
+to `Metadata` interface in `types.ts` and Zod `metadataSchema` in `schema.ts`.
+`buildScene` uses `opts?.layout ?? ir.metadata.layout` so YAML can self-declare
+layout without caller knowledge.
+
+**Rationale:** Enables generators/agents to embed layout intent in documents.
+Render-option override takes precedence, preserving CLI/API flexibility.
+
+**4 — Phase band: pills at true dateX positions**
+
+Each activity pill occupies `[dateX(start), dateX(end)]` on the horizontal
+axis, respecting axis_breaks.  Activities ending inside a break snap to
+`seg.xLeft`; those starting at break boundary snap to `seg.xRight`.
+Creates 24px visual gap in band at break, matching axis "//" marker.
+
+**5 — Icon badges in phase pills**
+
+Each pill has circular badge: `darkenHex(activity.color, 0.65)` fill,
+`getIcon(activity.icon)` rendered in white at `scale = (badgeR * 0.72) / 12`.
+
+**Rationale:** Reuses existing icon registry; white glyphs contrast badge.
+
+**6 — Goal milestone outlined box**
+
+Milestones with `category: 'goal'` receive `fill:'none'` rounded rect
+around callout text block (`stroke: theme.axis.axisLineColor`).
+
+**Rationale:** Matches target infographic; reuses existing `category` field.
+
+### Geometry (INCREMENT 1)
+
+```
+Y layout (roadmap layout):
+  mT (44px)
+  ─ HEADER ─────────────── (title + subtitle)
+  HEADER_CALLOUT_GAP (16px)
+  ─ CALLOUT ROW ─────────── (maxCalloutH — shared top baseline)
+  LEADER_GAP (6px)
+  ─ PHASE BAND ───────────── (PILL_HEIGHT = 56px)
+  AXIS_BELOW_GAP (4px)
+  ─ AXIS LINE ─────────────
+  AXIS_LABEL_GAP + axisLabelPx
+  ─ DATE LABELS ──────────
+  mB (44px)
+```
+
+### Known Roughness (INCREMENT 3+)
+
+| Item | Status |
+|------|--------|
+| Callout de-collision (Jun 30 / Jul 2026 overlap) | **DONE — INCREMENT 2** |
+| Pill text truncation (label + description) | **DONE — INCREMENT 2** |
+| Continuous band across axis break | Deferred |
+| 3px rounding gap between adjacent pills | Deferred |
+| Axis tick labels (quarterly ticks on band) | Deferred |
+| Pill rx-corners: shared band container or clip | Deferred |
+
+### INCREMENT 2 — Greedy Callout De-Collision (2026-06-12)
+
+**Problem:** Six milestone callouts placed at strict `xTrue = dateX(date)` positions. "MSI Installer (Jun 30)" and "Adoption goal (Jul 1)" one day apart (≈3px difference), causing complete overlap. Axis date labels "Jun 30" and "Jul 2026" also overlapped. Leaders and dots used `xTrue` while boxes used edge-clamped `xCenter` — never guaranteed alignment.
+
+**Fix:** Greedy left→right de-collision with backward clamp pass:
+
+```
+// Forward pass
+placedCenters[0] = max(canvasMinX, xTrue[0])
+for i in 1..n-1:
+  minNext = placedCenters[i-1] + blockW[i-1]/2 + blockW[i]/2 + GAP
+  placedCenters[i] = max(xTrue[i], minNext)
+
+// Backward clamp
+for i in n-1..0:
+  if placedCenters[i] > canvasMaxX:
+    placedCenters[i] = canvasMaxX
+  if i < n-1:
+    maxForThis = placedCenters[i+1] - blockW[i+1]/2 - blockW[i]/2 - GAP
+    if placedCenters[i] > maxForThis:
+      placedCenters[i] = max(canvasMinX, maxForThis)
+```
+
+`CALLOUT_DECOLLIDE_GAP = 12px` (≥ widest axis date label, ensuring axis labels never overlap).
+
+**Single x for all milestone elements:** After pass, ALL components use `placedCenters[i]`:
+- Callout text box
+- Vertical leader line
+- Band-top dot
+- Axis tick mark
+- Axis date label
+
+**Pill text truncation:** `truncateText(label, actLabelPx, textAvailW)` and `truncateText(description, actDescPx, textAvailW)` guard against overflow in narrow pills. Imported from existing `text-wrap.ts`.
+
+**Result (timeline-goals.svg):** Six callout centers: 103, 553, 700, 840, 971, 1097px. Minimum gap between adjacent block edges ≥ 12px. All elements vertically aligned; straight leaders. Zero text overlaps.
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `packages/core/src/layout/roadmap.ts` | **CREATED** — new layout family |
+| `packages/core/src/layout/index.ts` | Add `'roadmap'` dispatch + export |
+| `packages/core/src/types.ts` | `Metadata.layout?`, `RenderOptions.layout` union |
+| `packages/core/src/schema.ts` | `metadata.layout` Zod enum |
+| `packages/core/src/render/index.ts` | `BuildSceneOptions.layout` union, `ir.metadata.layout` fallback |
+| `examples/gallery/timeline-goals.timeline.yaml` | `layout: roadmap` |
+| `packages/core/test/quality.test.ts` | Gallery emit: `layout: 'roadmap'` |
+| `packages/core/test/skia.test.ts` | Skia golden: `layout: 'roadmap'` |
+| `.squad/agents/barbara/history.md` | Learnings appended |
+
