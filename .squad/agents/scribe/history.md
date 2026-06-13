@@ -47,3 +47,14 @@ Processed Barbara's today marker z-order fix (root cause analysis and token impl
 - **Inbox:** 0 files (clean) ✓
 - **History Files:** All under 15,360-byte summarization threshold ✓
 - **Commit:** 7a2b465 (timeline-goals goldens; 577 tests pass; typecheck clean)
+
+### 2026-06-13 — Tree Dark Gallery Session
+
+Processed Barbara's treeDarkTheme addition and gallery curation.
+
+- **Orchestration Log:** 2026-06-13T16:00:00Z-tree-dark-gallery.md
+- **Session Log:** 2026-06-13T16:00:00Z-tree-dark-gallery.md
+- **Decisions Archive Gate:** decisions.md 50,130 bytes (under 51,200 gate) ✓
+- **Inbox:** 0 files (clean) ✓
+- **History Files:** All under 15,360-byte summarization threshold ✓
+- **Manifest Note:** treeDarkTheme (dark navy + teal, 'dark-tree'), tree-document-dark.* emitted, gallery cards added for all 4 grammar families, 669 tests pass, commit 045a756
