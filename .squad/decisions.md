@@ -868,98 +868,139 @@ Lowering uses existing Scene IR primitives (Rect, Text, Path, Line, Image, Group
 - Added `\input{sections/27-tree-grammar}` in `design/main.tex` (after sequence grammar)
 - Updated grammar sequencing note in `design/sections/24-diagram-family.tex`
 - Reused existing bib keys: `reingold1981`, `walker1990`, `buchheim2002`, `garey1983`
-# Tree Grammar Implementation — Decision Record
+# MILESTONE DECISION: All Four Grammars Implemented + Composition Layer Specced (2026-06-13)
 
-**From:** Barbara (Semantics & Rendering)
-**Date:** 2026-06-13T11:02:15-04:00
-**Status:** SHIPPED — tree grammar fully implemented
+**From:** Scribe (Orchestration)  
+**Date:** 2026-06-13T11:53:53-04:00  
+**Status:** MILESTONE ACHIEVED
 
----
+## Summary
 
-## What Was Implemented
+As of 2026-06-13, two critical deliverables are complete:
 
-The Tree Grammar (Grammar #4) is now complete at `packages/core/src/grammars/tree/`.
+1. **Flow Grammar (Grammar #2) fully implemented** — Barbara shipped packages/core/src/grammars/flow/ with deterministic Sugiyama layering, cycle-safe routing (back-edges), and cubic-Bézier forward edges. Includes 33 new tests; 663/663 pass. Commit: 48d3673.
 
-### Module Files
+2. **Composition Layer fully specced** — Leslie completed design/sections/30-composition.tex with grid-based IR, sub-Scene embed mechanism, and deterministic layout contract. RAG-poster (2×2) example renders clean. PDF rebuilt. Commit: 8ae0ff7.
 
-| File | Role |
-|------|------|
-| `types.ts` | Domain IR: `TreeDocument { version, metadata, tree: { root: TreeNode } }`. `TreeNode { id, label, children?, kind?, icon?, collapsed?, description? }`. Recursive children-list canonical form — no cycles/orphans by construction. Semantic fields only; no styling. |
-| `schema.ts` | Zod schema with `z.lazy()` for recursive node validation. Global id uniqueness check via `collectIds()` walking the nested structure. Validates kebab-case ids, non-empty labels, version presence. |
-| `layout.ts` | `layoutTree(doc, theme?)` → `Scene`. Three-phase Buchheim–Jünger–Leipert (BJ+L) O(n) tidy-tree: (1) `firstWalk` bottom-up prelim assignment + contour thread walking, (2) `secondWalk` top-down mod accumulation for final x, (3) normalize + emit Scene primitives. |
-| `theme.ts` | `TreeTheme` token type + `defaultTreeTheme` + `TREE_THEME_REGISTRY` + `resolveTreeTheme()`. Grammar=semantics / Theme=style principle enforced throughout. |
-| `index.ts` | `buildTreeScene(doc)` (validate + layout), `renderTreeDocument(doc, options)` reusing shared serializers. |
+## Grammar Status Summary
 
-### Core exports added
+| Grammar | Spec | IR | Layout | Theme | Tests | Gallery | Status |
+|---------|------|----|----|-------|-------|---------|--------|
+| Timeline (T1-T5) | ✅ | ✅ | ✅ | ✅ (5) | 551/663 | ✅ | SHIPPED |
+| Sequence Inc-1 | ✅ | ✅ | ✅ | ✅ (2) | 580/663 | ✅ | SHIPPED |
+| Tree Inc-1 | ✅ | ✅ | ✅ B–J–L | ✅ | 630/663 | ✅ | SHIPPED |
+| Flow Inc-1 | ✅ | ✅ | ✅ Sugiyama | ✅ | 663/663 | ✅ | SHIPPED |
 
-`packages/core/src/index.ts` now exports `buildTreeScene`, `renderTreeDocument`, `treeDocumentSchema`, `defaultTreeTheme`, `resolveTreeTheme`, `TREE_THEME_REGISTRY`, and all tree types.
+**Total:** 663/663 pass (630 prior + 33 new flow). All 630 prior goldens byte-identical.
 
----
+## Composition Layer Readiness
 
-## Tidy-Tree Algorithm Used
+- **IR shape finalized:** CompositionDocument(grid, cells[], CellContent union)
+- **Embed algorithm specified:** Sub-Scene → grid sizing → fit-to-rect scale → merge
+- **Blocked on:** Barbara's `translateAndScale()` kernel helper (Mark schema ready; Leslie spec done)
+- **Next:** Mark finalizes CompositionDocument JSON Schema; Barbara implements kernel helper; integration
 
-**Buchheim–Jünger–Leipert (2002)** — corrects Walker (1990), which corrects Reingold–Tilford (1981).
+## Cross-Agent Status
 
-- **Complexity**: O(n) time and O(n) space.
-- **Determinism**: pure function over tree structure + sibling order + theme tokens. No randomness, no iteration.
-- **Non-overlap guarantee**: thread contour walking detects all subtree collisions; `moveSubtree` shifts entire subtrees atomically.
-- **Compactness**: parent is centered above its children; siblings are as close as permitted by the `siblingGap`/`subtreeGap` tokens.
+- **Mark:** CompositionDocument schema + ir_file URI schemes
+- **Barbara:** Kernel helper `scene-transform.ts` — critical path for composition inc-1
+- **Leslie:** Spec complete; composition-inc-1 awaits Mark/Barbara
 
-Working fields on each internal `LayoutNode`: `prelim`, `mod`, `shift`, `change`, `thread`, `ancestor`. All coordinates rounded via `rhuInt = Math.floor(v + 0.5)` for determinism.
+## Artifacts Merged
 
----
+- Barbara decision: `.squad/decisions/inbox/barbara-flow-impl.md` → decisions.md
+- Leslie decision: `.squad/decisions/inbox/leslie-composition.md` → decisions.md
+- Tree implementation detail → decisions-archive.md (compaction)
+- Commits: 48d3673 (flow), 8ae0ff7 (composition spec)
 
-## TreeTheme
-
-All styling lives in `TreeTheme`. Key design decisions made for the default theme:
-
-- **Kind color system**: `kindFills` and `kindTextColors` are per-kind maps, giving themes semantic color hierarchies without touching the IR.
-- **defaultTreeTheme**: indigo palette (root `#3949ab`, chapter `#5c6bc0`, section `#c5cae9`), white canvas, elbow edges.
-- **Edge styles**: `elbow` (default, classic org-chart), `straight`, `curved` (cubic Bézier). Controlled by `edgeStyle` theme token.
-- **Collapsed indicator**: `+` circle below collapsed nodes when `showCollapsedIndicator=true`.
-- **Icon support**: `showIcons=false` by default; when true, renders `IconDef.paths[]` scaled to `iconSize`.
 
 ---
 
-## Gallery Outputs
+# Decision: Flow Grammar — Increment-1 Implementation
 
-- `examples/gallery/tree-document.tree.yaml` — 10-node document hierarchy (root + 3 chapters + 6 sections), matches the spec's worked example verbatim.
-- `examples/gallery/tree-document.svg` — 4 KB, clean top-down tree, root centered at top, 3 chapters below, 6 sections at leaf level.
-- `examples/gallery/tree-document.png` — 18 KB raster render via resvg.
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-13T11:32:58-04:00  
+**Status:** Implemented  
+**Refs:** `design/sections/25-flow-grammar.tex`, `packages/core/src/grammars/flow/`, Commit: 48d3673
 
-Self-check: root (dark blue) at top, chapter boxes (medium blue) at level 1 centered under root, section boxes (light lavender) at level 2. No overlapping nodes (validated by test). Root center x=493 = (ch1_x=175 + ch3_x=811)/2 ✓.
+## Context
 
----
+The Flow Grammar (Grammar #2) has been implemented at Increment-1 scope. This document records the design decisions made during implementation that deviate from or extend the spec.
+
+## Design Decisions Summary
+
+1. **IR Field Names:** `from`/`to` (consistent with SequenceMessage)
+2. **Cycle Handling:** Iterative DFS (stack-safe for production)
+3. **Column Width:** Uniform global max (simple, clean pipeline look)
+4. **PathPrimitive.dashArray:** Non-breaking kernel extension (backward-compatible)
+5. **Edge Routing:** Cubic Bézier default (S-curve, visual superiority)
+6. **Animated Edges:** Resting frame only (CSS animation deferred)
+7. **Back-Edge Routing:** Bottom-port Bézier arc (cycle-safe, visually distinct)
+
+## Files Created/Modified
+
+```
+packages/core/src/grammars/flow/
+  types.ts, schema.ts, theme.ts, layout.ts, index.ts
+packages/core/src/scene.ts  — PathPrimitive.dashArray? added
+packages/core/src/render/svg.ts  — stroke-dasharray emission
+packages/core/test/flow.test.ts  — 33 new tests
+examples/gallery/flow-rag-pipeline.{flow.yaml,svg,png}
+```
 
 ## Test Results
 
-- **630/630 tests pass** — 611 existing + 19 new tree tests.
-- All existing goldens byte-identical (no kernel changes).
-- New tree tests cover: schema validation (6), scene structure (7, including non-overlap assertion), determinism (3), single-node tree (1), gallery SVG emit (1), gallery PNG emit (1).
+- **663/663 pass** (630 prior + 33 new)
+- **All 630 prior goldens byte-identical** (dashArray undefined on all existing scenes)
+- New flow tests: schema (12), scene structure (10), determinism (4), cycles (4), gallery (2), non-overlap (1)
 
 ---
 
-## Open Questions for Mark
+# Decision Record: Composition Layer Concretized
 
-The spec (§27 tree-open-questions) flags the following IR questions as needing Mark's input:
+**From:** Leslie (Spec Architect)  
+**Date:** 2026-06-13T11:32:58-04:00  
+**Status:** SPEC COMPLETE (implementation blocked on Mark schema + Barbara kernel helper)
 
-1. **Canonical form only vs. flat parent-ref alternative**: Current schema accepts only the canonical children-list form. Flat parent-ref input (each node has a `parent` id) is NOT supported in v1. Should we add it? Requires normalization + cycle detection.
+## Summary
 
-2. **Forest handling**: Multiple-root documents are rejected with a validation error. Confirm this is the right policy (spec says rejected, but if future requirements need forests, this is the place to note it).
+The Composition Layer spec (design/sections/30-composition.tex) has been enriched from sketch into a precise, implementable specification covering IR shape, embed mechanism, layout contract, and edge cases.
 
-3. **`kind` as free string vs. closed enum**: Currently free string — themes can map arbitrary kind values. A closed enum would enable schema-level validation. The spec leaves this open.
+## Composition IR Shape
 
-4. **Node id format**: Kebab-case enforced (`^[a-z][a-z0-9-]*$`). The spec mentions path-based namespacing (e.g., `ch1/s1-1`) as a possible alternative. Current implementation uses a global flat namespace with uniqueness check.
+- **CompositionDocument:** version, metadata, grid (columns, rows, gap, padding), cells[]
+- **Cell:** id, row/col, rowSpan/colSpan, title/caption, content: CellContent
+- **CellContent union:** grammar | stat | text | title | image
+- **GrammarContent:** grammar name (timeline/sequence/tree/flow) + inline ir OR ir_file reference
+- **Canonical model:** Grid-based (rows×cols). Stack = grid with C=1. No custom/freeform.
 
-5. **Validation invariants**: Current schema checks: id uniqueness, non-empty labels, kebab-case format. The spec suggests optional lint warnings for very wide (>20 children) or very deep (>20 levels) trees. Not implemented in v1 — should these be added to the `lintScene` pipeline or as a tree-specific validator?
+## Sub-Scene Embed Mechanism
 
----
+1. **Compile:** Each cell's content → independent sub-Scene
+2. **Grid sizing:** Column widths = max(sub-scene widths per column); row heights analogous
+3. **Translate + Scale:** s = min(W_cell/w_scene, H_cell/h_scene), capped at 1.0; center; apply translateAndScale()
+4. **Merge:** All transformed primitives + chrome in painter's order → one Scene
 
-## Rendering Semantics Notes (Barbara)
+## Kernel Helper Required
 
-Addressing the spec's Barbara-flagged open questions:
+**Function:** `translateAndScale(p: ScenePrimitive, dx, dy, scale) → ScenePrimitive`
 
-- **Edge routing default**: Elbow with `elbowMidFraction=0.5` (midpoint between parent bottom and child top). No minimum segment length — may add a `minElbowSegment` token in v2 if very shallow `levelGap` values create near-zero horizontal segments.
-- **Collapsed-node handling**: Static "+" circle indicator. No interactive expand/collapse in v1 (static backend).
-- **Label overflow**: Auto-expand node width via `measureText()` — no truncation. The spec's choice.
-- **Kind→shape mapping**: v1 uses only fill/text color overrides per kind. Shape variation (circles for leaves, diamonds for decisions) is deferred to v2 as an additional `kindShapes` token.
+Must handle ALL primitive kinds (Line, Rect, Circle, Text, MultiText, Path, Group, Image), including Path d-string and StrokeGradient coordinate transformation, recursive GroupPrimitive descent, rounding via rhu(2dp).
+
+**Location:** packages/core/src/scene-transform.ts  
+**Blocker on:** Barbara (Mark schema ready; Leslie spec complete)
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Layout model | Grid only | Totality, determinism, small IR |
+| Scale policy | fit (scale-down) | All content visible, no pixelation |
+| Nested compositions | Allowed (depth ≤ 3) | Complex layouts without richer primitives |
+| Empty cells | Valid, grid-allocated | Ragged grids natural |
+
+## Deferred
+
+- Mark: CompositionDocument JSON Schema, ir_file URI schemes, two-pass validation, named grid tracks
+- Barbara: translateAndScale kernel helper (critical path), Path d-string strategy, clip policy, chrome rendering
+

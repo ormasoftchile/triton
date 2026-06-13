@@ -266,3 +266,36 @@ Tree grammar IR fully implemented by Barbara with canonical children-list form a
 
 **Blocks on:** Definitive schema decision affects v1.1 normalizer (if parent-ref accepted), validation rule completeness, XGrammar delivery.
 
+
+---
+
+## 2026-06-13 — Composition Layer Schema Intake (Scribe)
+
+**Date:** 2026-06-13T15:53:53Z  
+**Status:** Ready for schema intake; blocking point for composition inc-1
+
+### Composition Schema Finalization Needed
+
+Leslie's composition layer spec is complete and ready for Mark's schema work:
+
+**Input artifact:** design/sections/30-composition.tex (enriched spec with full IR shape, algorithm, edge cases)
+
+**Schema deliverables:**
+1. **CompositionDocument JSON Schema** — discriminated union structure for CellContent (grammar/stat/text/title/image)
+2. **ir_file URI schemes** — support for pkg:, file:, http: references (lexical vs. semantic validation)
+3. **Two-pass validation strategy** — composition schema → sub-grammar schema validation flow
+
+**Composition IR Summary:**
+- CompositionDocument: version, metadata, grid (columns, rows, gap, padding), cells[]
+- Cell: id, row/col, rowSpan/colSpan, title/caption, content
+- CellContent: discriminated union on `kind` field
+- GrammarContent: grammar name + inline ir OR ir_file reference
+
+**Test fixtures available:** RAG Architecture Poster (2×2 example with flow, sequence, tree, stat)
+
+**Estimated effort:** 1–2 hours (straightforward schema; validation strategy well-specified in §30)
+
+**Downstream blocker:** Once schema finalized, Barbara implements kernel helper → composition inc-1 rendering ready
+
+---
+

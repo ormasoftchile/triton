@@ -1,252 +1,360 @@
+# Barbara — Semantics & Rendering
 
-## 2026-06-13 — Sequence Grammar Rendering Open Questions (Barbara Intake)
-
-**From:** Scribe (recording Leslie's deferred work) | **Date:** 2026-06-13T06:43:00Z  
-**Artifact:** `design/sections/26-sequence-grammar.tex` (Grammar #3 Specification)  
-**Status:** Ready for Barbara's rendering semantics refinement
-
-### Sequence Rendering Specification Queries (Priority: Barbara intake for Phase 2)
-
-1. **Self-Message Curve Geometry**
-   - Current spec: self-messages (participant → same participant) render as 3-segment Path (exit right, descend, return left).
-   - **Options:** Sharp right angles vs. smooth arc at corners vs. Bézier curves?
-   - **Impact:** Visual clarity, aesthetics, font size scaling.
-   - **Pattern:** Align with existing activation-bar styling; consider `axis.nodeWrap` precedent for opt-in routing tokens.
-
-2. **Fragment Nesting Depth Recommendation**
-   - Fragments can nest (alt inside loop, etc.). Any soft limit for readability?
-   - **Example:** Warn if depth > 3? Visual precedent from UML diagram tools?
-   - **Impact:** LLM generation guidance; user feedback.
-
-3. **Participant Stereotype Icon Geometries**
-   - `kind` values: `actor|object|boundary|control|entity|database`
-   - **Actor:** Stick figure (circle head, line arms/body, legs) — existing precedent from Timeline icons
-   - **Boundary:** Vertical bar (left edge line)
-   - **Control:** Arrowhead shape or state machine symbol?
-   - **Entity:** Underline or special box?
-   - **Database:** Cylinder (concentric ellipses + vertical offset)?
-   - **Decision:** Fixed icon set vs. customizable?
-
-4. **Arrowhead Sizing & Style**
-   - Current spec: message `kind` (sync|async|reply) implies arrow style.
-     - sync: filled triangle arrow
-     - async: open (outline-only) arrow
-     - reply: dashed line + open arrow
-   - **Sizing:** Scale with stroke width or fixed pixel size? Min/max bounds?
-   - **Impact:** Clarity at different zoom levels; theme token extensibility (e.g., `sequence.arrowHeadScale`).
-
-5. **Activation Bar Width**
-   - Thin Rect on lifeline during activation span. Fixed width or proportional?
-   - **Pattern:** Compare to Timeline badge width precedent.
-   - **Decision:** `sequence.activationBarWidth: number` as theme token?
-
-6. **Fragment Tab Label Styling**
-   - Fragment keyword tab (loop, alt, etc.) + guard label. Typography, padding, icon?
-   - **Pattern:** Align with existing callout/box styling from roadmap layout.
+**Owner:** Barbara (Semantics & Rendering Lead)  
+**Project:** timeline — deterministic diagram compiler  
+**Created:** 2026-06-10
 
 ---
 
-## Learnings — 2026-06-13 Sequence Grammar Increment-1
+## Current Role
+
+Render domain IRs to Scene IR primitives with deterministic, themeable output. Design and implement visualization grammars following the grammar ≡ semantics / theme ≡ style principle.
+
+---
+
+## Key Learnings
+
+- **Two-IR-Layer Model:** Domain IR → Scene IR (universal kernel). All styling lives in theme tokens, never in IR.
+- **Deterministic Rendering:** `measureText()`, `rhuInt()` rounding, fixed coordinate geometry — reproducible across platforms.
+- **Theme-Driven Architecture:** `SequenceTheme` type system enables external style mimicry (ByteByteGo infographic) without IR changes.
+- **Gallery Semantics:** Multiple examples per grammar with different themes demonstrate reusability principle directly.
+
+---
+
+## Active Work
+
+### Sequence Grammar — SHIPPED (Increments 1–4)
+
+**Status:** Production-ready (611 tests pass; byte-identical defaults)  
+**Module:** `packages/core/src/grammars/sequence/`
+
+**Increment-1 (2026-06-13T06:43Z):** Baseline IR + deterministic layout
+- `SequenceDocument`: participants[], messages[], activations[], fragments[]
+- Kernel reuse (Rect, Line, Path, Text primitives)
+- No new Scene IR types needed
+
+**Increment-2 (2026-06-13T10:13Z):** Activations + Fragments
+- Self-messages (3-segment LinePrimitive dashes)
+- Activation bars (thin rects on lifelines)
+- Fragment rectangles (loop/alt/opt/par/critical/break with keyword tabs)
+- Painter order: fragments → headers → messages
+
+**Increment-3 (2026-06-13T14:13Z):** SequenceTheme Token System
+- `SequenceTheme` type: Canvas, Geometry, Typography, Stroke, Participant, Lifeline, Messages, Activations, Fragments, Badges
+- `SEQUENCE_THEME_REGISTRY` + `resolveSequenceTheme(name?)`
+- `defaultSequenceTheme` (backward-compatible, UML style)
+- `sequenceByteByteGoTheme` (ByteByteGo infographic style)
+- Participant `icon?` and `color?` fields (optional, zero impact on defaults)
+
+**Increment-4 (2026-06-13T15:22Z):** Badge Offset + Gallery Curation
+- `stepBadgeOffset` token: badge X = `fromCx + dir × (fromColHalfW + offset)` (fixes card-mode overlap)
+- `msgLabelYOffset` token: message label baseline clearance above badge
+- `stepBadgeFill: '#2563eb'` (blue, harmonizes with actor card)
+- Dark-background legibility: `activationBarFill: '#4b5563'`, `fragTabFill: '#4b5563'`
+- Gallery cards 13–16: rest-auth + agent-loop in default/ByteByteGo themes (pair pattern)
+
+**Gallery Curation:** Cards 13/14 presented as a pair to demonstrate grammar/theme split principle.
+
+### Tree Grammar — SPEC COMPLETE (Pending Implementation)
+
+**Status:** Awaiting Mark schema + Barbara rendering design  
+**Spec Artifact:** `design/sections/27-tree-grammar.tex`
+
+**Key Decisions:**
+- Canonical IR: recursive `TreeNode` with embedded `children[]` list
+- Layout algorithm: Buchheim–Jünger–Leipert O(n) deterministic tidy-tree
+- Theme-driven: All styling (node shapes, edge routing, colors, orientation) in TreeTheme
+- No kernel changes: Lowering uses existing Scene IR (Rect, Text, Path, Line, Image, Group)
+
+**Deferred to Barbara (Rendering):**
+1. Edge routing style (elbow geometry, straight, curved)
+2. Collapsed-node indicator visual design
+3. TreeTheme token surface (complete list)
+4. Kind → shape default mappings
+5. Label overflow behavior (truncate, wrap, auto-expand)
+
+---
+
+## Open Work
+
+### Sequence Increment-5 (Future)
+
+1. **Alt sub-compartment dividers** — Multiple guard conditions in alt fragments require divider lines
+2. **Participant kind icons** — Boundary (bar), Control (arrow), Entity (underline), Database (cylinder)
+3. **Self-message curve styles** — Rounded corners vs. smooth arc vs. sharp angles
+4. **Arrowhead sizing** — Scale with stroke width or fixed pixel; theme token `sequence.arrowHeadScale`
+
+### Tree Increment-1 (Pending Mark Schema)
+
+1. **TreeTheme token surface** — Complete list (node shape, edge style, orientation, spacing, colors)
+2. **Kind → shape mappings** — Built-in defaults (person→circle, folder→rounded-rect, etc.)
+3. **Edge routing implementation** — Elbow (corner radius calc), straight, or curved (Bézier)
+4. **Collapsed-node rendering** — Glyph design and placement
+
+---
+
+## Principle: Grammar ≡ Semantics; Theme ≡ Style
+
+**Established 2026-06-13T15:01:41Z**
+
+- Domain IR carries **only** structure and semantic hints (e.g., `kind`, `icon`, `collapsed`)
+- **Zero visual fields** in the IR (no colors, shapes, spacing — all theme concerns)
+- Theme provides all rendering rules (node shapes, edge routing, colors, typography, spacing)
+- Consequence: Same IR + different theme = different visual style, same semantics
+
+**Governance:** All future grammars (Flow, Tree, Composition) must follow this pattern:
+1. Spec grammar semantics (layout determinism rationale, IR shape)
+2. Define domain IR (no styling)
+3. Implement theme-driven layout
+4. Create `{GrammarName}Theme` type + registry
+5. Register default (backward-compatible) + showcase themes
+
+---
+
+## Files & Artifacts
+
+### Sequence Grammar
+
+| File | Status |
+|------|--------|
+| `packages/core/src/grammars/sequence/types.ts` | ✅ Complete |
+| `packages/core/src/grammars/sequence/schema.ts` | ✅ Complete (Zod validation) |
+| `packages/core/src/grammars/sequence/layout.ts` | ✅ Complete (deterministic layout) |
+| `packages/core/src/grammars/sequence/theme.ts` | ✅ Complete (SequenceTheme + registry) |
+| `packages/core/src/grammars/sequence/index.ts` | ✅ Complete (public API) |
+| `examples/gallery/sequence-rest-auth.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/sequence-agent-loop.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/sequence-agent-loop-bytebytego.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/index.html` | ✅ 4 new cards (13–16) |
+| `test/sequence.test.ts` | ✅ 611 tests pass |
+
+### Test Coverage
+
+- **611/611 tests pass** (607 legacy timeline + 4 new sequence increment-4)
+- **All existing goldens byte-identical** (default theme unchanged)
+- **New goldens:** 4 sequence ByteByteGo renders (rest-auth + agent-loop SVG/PNG)
+
+---
+
+## Archived Detail
+
+Pre-2026-06-13 Sequence Increment-1/2/3 detailed learnings archived to `barbara/history-archive.md` (25,000+ bytes).
+
+---
+
+## Next: Tree Grammar Rendering Design
+
+**Awaiting:** Mark's TreeNode schema + validation rules (2026-06-13 spec complete, schema design pending).
+
+**Design scope:**
+1. TreeTheme token surface (30–50 tokens, grouped by concern)
+2. Node shape rendering (kind → default shapes + theme overrides)
+3. Edge routing geometry (elbow radius calc, straight-line simplification)
+4. Orientation support (default top-down; theme option for left-to-right)
+
+**Target:** Tree Increment-1 implementation follows Sequence template (deterministic layout + theme-driven rendering).
+
+---
+
+## Learnings — 2026-06-13 Tree Grammar (Grammar #4)
 
 ### Module Structure Created
 
-New grammar module: `packages/core/src/grammars/sequence/`
+New grammar module: `packages/core/src/grammars/tree/`
 
 | File | Purpose |
 |------|---------|
-| `types.ts` | Sequence domain IR: `SequenceDocument`, `Participant`, `Message`, `Activation` (stub), `Fragment` (stub) |
-| `schema.ts` | Zod schema — validates participant id uniqueness, message from/to refs, order ≥ 0 |
-| `layout.ts` | `layoutSequence(doc)` — deterministic-by-construction Scene emission |
-| `index.ts` | Public API: `buildSequenceScene`, `renderSequenceDocument`, re-exports types/schema |
+| `types.ts` | Tree domain IR: `TreeDocument`, `TreeMetadata`, `TreeDefinition`, `TreeNode` (recursive children-list) |
+| `schema.ts` | Zod schema — validates id uniqueness (recursive collectIds), non-empty labels, kebab-case ids |
+| `layout.ts` | `layoutTree(doc, theme?)` — Buchheim–Jünger–Leipert tidy-tree (O(n), deterministic) |
+| `theme.ts` | `TreeTheme` token surface + `defaultTreeTheme` + `TREE_THEME_REGISTRY` |
+| `index.ts` | Public API: `buildTreeScene`, `renderTreeDocument`, re-exports types/schema/theme |
 
-### Kernel Reuse Pattern
+### Tidy-Tree Algorithm (Buchheim–Jünger–Leipert 2002)
 
-The Sequence Grammar emits only existing Scene IR primitives (rect/line/path/text). No new kernel primitives were added. Serialisers (`sceneToSvg`, `svgToPng`, `sceneToPngSkia`) are imported unchanged from `render/`. This is the two-IR-layer architecture: Sequence Domain IR → `layoutSequence()` → Scene → existing backends.
+Implemented the BJ+L algorithm in three phases:
 
-Layout is deterministic-by-construction: participant x = cumulative column widths (measured via `measureText`); message y = `headerBottom + firstMsgGap + rank * rowHeight`. Rounding uses `rhuInt` (round-half-up, integer). All 577+12=589 tests pass; 577 existing goldens byte-identical.
+1. **firstWalk (bottom-up)**: assigns `prelim` (preliminary x) and `mod` (modifier) to each node. Leaf nodes receive preliminary positions from their left sibling + separation. Internal nodes run `apportion()` to resolve overlapping subtrees via thread contour walking, then center above their children by setting `mod = prelim - midpoint`. `executeShifts` propagates accumulated shift/change values.
 
-### What Is Deferred to Increment-2
+2. **secondWalk (top-down)**: computes final `x = prelim + m` (accumulating `mod` from ancestors) and `y = depth × (nodeH + levelGap)`.
 
-- **Activations**: thin filled rect on lifeline; `Activation` type exists in types.ts, schema accepts it, layout ignores it
-- **Fragments**: combined fragment (loop/alt/opt/par/critical/break) rect+tab; `Fragment` type exists, deferred
-- **Self-message curve geometry**: currently sharp right angles; increment-2 may add rounded corners via theme token
-- **Additional participant kinds**: `boundary`, `control`, `entity`, `database` — currently fall back to `object` box styling; increment-2 adds their specific icons/shapes
-- **Theme integration**: sequence uses fixed DEFAULTS; increment-2 adds a `SequenceTheme` block on `ResolvedTheme` with configurable tokens
+3. **Normalize + emit**: shift all x by `(marginLeft - minX)` so the leftmost node starts at the canvas margin. Canvas dimensions = maxX + marginRight × maxY + marginBottom.
 
----
+Key BJ+L data structures: `prelim`, `mod`, `shift`, `change`, `thread`, `ancestor`. The thread pointer enables O(n) contour walking without re-visiting inner nodes.
 
-## Learnings — 2026-06-13 Sequence Grammar Increment-2
-
-### Activations (Increment-2)
-
-**Implementation:** `renderActivationBars()` in layout.ts emits a `RectPrimitive` per activation, colored `#c5cae9` fill / `#5c6bc0` stroke, `rx:2`, `activationBarHalfW=5px` each side, rendered **after** lifelines but **before** messages (painter order).
-
-**Minimum height:** When `from_order == to_order` the bar would be zero-height. `activationBarMinH=20px` clamps with vertical centering on the row Y.
-
-**Edge attachment:** Messages arriving/leaving an active participant offset their endpoint by `±barHalfW` so arrows visually land on the activation bar edge rather than the bare lifeline center. The offset direction is computed per-message in `layoutSequence()`: right edge for outgoing-right / incoming-right, left edge for outgoing-left / incoming-left. Self-messages exit/return at the right edge.
-
-**Order→Y map:** `buildOrderToRowY()` maps message order values to row Y coordinates (first occurrence wins for duplicate orders). Used by both activations and fragments to convert order references to pixel positions.
-
-### Fragments (Increment-2)
-
-**Rendering:** `renderFragments()` sorts fragments by span size descending (outer first, inner on top — painter's algorithm). Emits:
-1. Main `RectPrimitive` (`#eff1fb` fill, `#7986cb` stroke, `rx:6`) — light indigo background.
-2. Tab `RectPrimitive` (`#5c6bc0` fill) in upper-left corner — sized to keyword text width.
-3. Keyword `TextPrimitive` (white, bold, 11px) centered in tab.
-4. Guard label `TextPrimitive` (dark indigo, 11px) immediately after the tab.
-
-**Horizontal extent:** When `fragment.participants` is absent, use the leftmost participant's `boxX - fragPadX` to the rightmost participant's `boxX + boxW + fragPadX`, clamped to `[0, canvasW]`.
-
-**Vertical extent:** `rowY(from_order) - fragPadY` to `rowY(to_order) + fragPadY` (fragPadY=14px).
-
-**Painter order:** Fragments rendered as step 6 (right after background), before participant headers (step 7) and messages (step 9). This puts fragments visually behind all content.
-
-**Alt sub-compartment dividers deferred:** Only a single guard label per fragment. Multiple operands/guards in `alt` fragments require divider line primitives — deferred to increment-3.
-
-### Self-messages (Increment-2 fix)
-
-**3-segment LinePrimitives:** Changed from a single `PathPrimitive` (which lacked `dashArray` support) to 3 separate `LinePrimitive`s (horizontal right → vertical down → horizontal left). This correctly supports `dashArray` for dashed reply self-messages.
-
-**Label placement:** Changed from "centered above the exit segment" to "to the right of the loop, vertically centered on the loop height" (`textAnchor: 'start'`). This matches the spec and avoids overlap with the fragment box above.
-
-**Activation edge attachment:** Self-message exit/return point shifts to `cx + barHalfW` when the participant has an active activation bar at that message order.
-
-### Schema Updates
-
-Added fragment validation in `superRefine`:
-- `from_order > to_order` → validation error
-- `fragment.participants` refs unknown participant → validation error
-(Activation validation was already present in increment-1.)
-
-### Determinism
-
-All new rendering paths use `rhuInt(v) = Math.floor(v + 0.5)` for coordinate rounding. The fragment tab width uses `measureText()` which is deterministic (same font/size → same width). Activation bar rendering uses the same deterministic `orderToRowY` map. **603/603 tests pass; all existing goldens byte-identical.**
-
-### Open Work (Increment-3+)
-
-- Alt fragment sub-compartment dividers (multiple guard conditions per alt)
-- Additional participant kinds: boundary/control/entity/database icons
-- Theme integration: `SequenceTheme` tokens on `ResolvedTheme`
-- Fragment partial-overlap validation (currently only `from_order <= to_order` is enforced)
-- Soft nesting depth limit (recommend max 3 levels with lint warning)
-
-
----
-
-## 2026-06-13 — Sequence Grammar Increment-1 SHIPPED (Barbara)
-
-**Date:** 2026-06-13T14:13:38Z | **Commit:** 301a188
-
-### Completed
-
-✅ Module created: `packages/core/src/grammars/sequence/` (types, schema, layout, index)  
-✅ Kernel reuse verified: no new Scene IR primitives needed  
-✅ All 577 timeline goldens byte-identical  
-✅ 589/589 tests pass (577 legacy + 12 new sequence)  
-✅ Example fixture: `examples/gallery/sequence-rest-auth.{sequence.yaml, svg, png}`
-
-### Architecture Achievement
-
-The two-IR-layer model is now production-proven with a second grammar. Sequence eliminates the "hard problem" (Sugiyama auto-layout) entirely via deterministic-by-construction placement. The `grammars/sequence/` module is the template for all future grammars (own IR → deterministic layout → shared Scene kernel → backends).
-
-### Increment-2 Roadmap
-
-Barbara will implement (in priority order):
-1. Self-message curve geometry (rounded corners or smooth arc vs. sharp angles)
-2. Activation bar width + styling
-3. Fragment rectangles + tab labels
-4. Participant stereotype icons (actor stick-figure, boundary bar, control arrow, entity underline, database cylinder)
-5. `SequenceTheme` integration on `ResolvedTheme` + arrowhead sizing tokens
-
----
-
-## Learnings — 2026-06-13 Sequence Theme (Increment-3)
-
-### SequenceTheme Token Surface
-
-Created `packages/core/src/grammars/sequence/theme.ts` — a standalone type file holding all styling tokens for the sequence diagram. Token groups:
+### TreeTheme Token Surface
 
 | Group | Tokens |
 |-------|--------|
 | Canvas | `background`, `fontFamily` |
-| Geometry | `marginH/Top/Bottom`, `headerPadX/Y`, `minColWidth`, `colGap`, `firstMsgGap`, `rowHeight`, `actorIconHeight`, `activationBarHalfW/MinH`, `arrowHeadSize`, `selfMsgLoopW/H`, `fragPadX/Y/Rx`, `fragTabPadX/Y` |
-| Typography | `labelFontSize/Weight`, `msgFontSize/Weight`, `fragKeyFontSize/Weight`, `fragLabelFontSize/Weight` |
-| Stroke widths | `participantBoxStrokeWidth`, `lifelineStrokeWidth`, `messageLineStrokeWidth`, `activationBarStrokeWidth`, `fragStrokeWidth` |
-| Participant | `participantRenderMode` (`'box'`\|`'card'`), `participantBoxRx`, `participantBoxFill/Stroke`, `participantLabelColor` |
-| Card mode | `cardIconAreaSize`, `cardKindColors` (per-kind `fill/textColor/accentColor/iconColor`), `cardKindIconMap` |
-| Lifeline | `lifelineVisible`, `lifelineStroke`, `lifelineDash` |
-| Messages | `messageLineStroke`, `messageLineDashSync/Async/Reply`, `messageLabelColor`, `arrowFill` |
-| Activation bars | `activationBarFill/Stroke/Rx` |
-| Fragments | `fragStroke/Fill`, `fragTabFill/TextColor`, `fragLabelColor` |
-| Step badges | `showStepNumbers`, `stepBadgeRadius/Fill/TextColor/FontSize` |
+| Layout | `orientation` (`top-down`\|`left-right`), `marginLeft/Right/Top/Bottom` |
+| Geometry | `nodePadX/Y`, `minNodeWidth`, `levelGap`, `siblingGap`, `subtreeGap` |
+| Node visual | `nodeFill/Stroke/StrokeWidth/Rx/TextColor` |
+| Kind overrides | `kindFills`, `kindTextColors` (per-kind color maps) |
+| Typography | `nodeFontSize/Weight` |
+| Edges | `edgeStyle` (`elbow`\|`straight`\|`curved`), `edgeStroke/StrokeWidth`, `elbowMidFraction` |
+| Icons | `showIcons`, `iconSize`, `iconLabelGap` |
+| Collapsed indicator | `showCollapsedIndicator`, `collapsedIndicatorRadius/Fill/TextColor` |
 
-### Grammar = Semantics / Theme = Style Split
+### defaultTreeTheme
 
-The IR (`SequenceDocument`, `Participant`, `Message`, `Activation`, `Fragment`) captures only semantics — who talks to whom, in what order. All visual decisions live in `SequenceTheme`. Two documents with identical IR but different theme names (`default-sequence` vs `bytebytego-sequence`) render as UML vs ByteByteGo infographic without any IR change.
+Clean light-background org-chart:
+- White canvas (`#ffffff`), elbow edges, rounded nodes (rx=6)
+- Root kind → `#3949ab` (dark indigo) with white text
+- Chapter kind → `#5c6bc0` (medium indigo) with white text
+- Section kind → `#c5cae9` (light lavender) with dark text
+- Edge color: `#9fa8da` (soft indigo)
 
-`metadata.theme` → `resolveSequenceTheme()` → `SEQUENCE_THEME_REGISTRY` lookup → theme struct → `layoutSequence(doc, theme)`. Callers can also pass an explicit `themeOverride` bypassing the registry.
+### Determinism
 
-### Participant Extensions
+All coordinate arithmetic uses `rhuInt(v) = Math.floor(v + 0.5)` (round-half-up integer). The BJ+L algorithm is a pure function over the tree structure and sibling order — no randomness, no iteration count. **630/630 tests pass; all 611 existing goldens byte-identical.**
 
-Added `icon?: string` (icon registry name, e.g. `'people'`, `'lock'`) and `color?: string` (per-participant fill override) to `Participant`. Both optional → zero effect on default theme / existing documents. Schema updated to accept both fields.
+### Gallery Example
 
-### ByteByteGo Theme (`sequenceByteByteGoTheme`)
+`examples/gallery/tree-document.tree.yaml` → 10-node document hierarchy (root + 3 chapters + 6 sections). `tree-document.svg` (4 KB) and `tree-document.png` (18 KB) generated and verified:
+- Root "Document" centered at top
+- Chapter nodes balanced below root
+- Section nodes spread under their chapters
+- No overlapping bounding boxes (tested)
+- Non-overlap assertion: `a.x + a.width <= b.x || ...` passes for all pairs
 
-Mimics the ByteByteGo infographic style:
-- **Dark canvas**: `background: '#111827'`
-- **Card mode**: `participantRenderMode: 'card'`, `participantBoxRx: 14`, colored cards per kind  
-  - Actor `#2563eb`, Object `#7c3aed`, Boundary `#0891b2`, Control `#d97706`, Entity `#059669`, Database `#dc2626`
-- **Icon glyphs**: `cardKindIconMap` maps `actor→people`, `object→gear`, `boundary→cloud`, `control→bolt`, `entity→doc`, `database→database`. Icons scaled via SVG `transform="translate(...) scale(...)"` on PathPrimitive.
-- **Hidden lifelines**: `lifelineVisible: false`
-- **Numbered step badges**: `showStepNumbers: true`, amber circles (`#f59e0b`) with dark number text, drawn at 25% along each message arrow
-- **Light message text**: `messageLabelColor: '#e2e8f0'`, dashed reply arrows `8,5`
+### Kernel Reuse
 
-### Byte-Identical Default Theme
-
-`defaultSequenceTheme` matches ALL previously hardcoded values in `layout.ts` exactly. New feature tokens (card mode, step badges, hidden lifelines) are off by default. Result: `git diff examples/gallery/sequence-rest-auth.* examples/gallery/sequence-agent-loop.*` shows **zero lines changed**. 607/607 tests pass.
-
-### New Gallery Outputs
-
-- `examples/gallery/sequence-rest-auth-bytebytego.{svg,png}` — ByteByteGo-theme render of REST auth  
-- `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` — matching fixture (participants with `icon` fields)
+No new Scene IR primitives needed. Tree lowers to: `RectPrimitive` (node box), `TextPrimitive` (label), `PathPrimitive` (edge — elbow/straight/curved), `CirclePrimitive` + `TextPrimitive` (collapsed indicator). Serializers unchanged.
 
 ---
 
-## Learnings — 2026-06-13 Sequence Theme Polish + Gallery Curation (Increment-4)
+## Learnings — 2026-06-13 Flow Grammar (Grammar #2 / Increment-1)
 
-### Badge-Offset Token (`stepBadgeOffset`)
+### Module Structure Created
 
-The previous badge placement (25% along from `effectiveFromX`) had two bugs in card mode:
-1. `effectiveFromX` is the lifeline *centre*, so the badge landed **inside the participant card** (participant colW=140 → halfW=70; badge at +25% of arrow was well within card bounds).
-2. Same-colour badge on same-colour card (both `#2563eb` for actor kind) → invisible.
+New grammar module: `packages/core/src/grammars/flow/`
 
-**Fix:** New `stepBadgeOffset: number` token. When `> 0`, badge X = `fromCx + dir × (fromColHalfW + stepBadgeOffset)` — anchored to the **box edge**, not lifeline centre. `fromColHalfW` is now passed as a param to `renderMessage`. This reliably puts the badge on the dark-background gap between cards.
+| File | Purpose |
+|------|---------|
+| `types.ts` | Flow domain IR: `FlowDocument`, `FlowMetadata`, `FlowNode` (id/label/kind/icon/status), `FlowEdge` (from/to/label/kind/animated/style) |
+| `schema.ts` | Zod schema — unique node ids, edge from/to resolve to declared node ids, kebab-case ids |
+| `layout.ts` | `layoutFlow(doc, theme?)` — deterministic layered layout (inc-1 scope) |
+| `theme.ts` | `FlowTheme` token surface + `defaultFlowTheme` + `FLOW_THEME_REGISTRY` + `resolveFlowTheme` |
+| `index.ts` | Public API: `buildFlowScene`, `renderFlowDocument`, re-exports types/schema/theme |
 
-### `msgLabelYOffset` Token
+### Layered Layout Algorithm (Increment-1)
 
-The label alphabetic baseline was hardcoded at `rowY - 6`. With font-size 12, descenders extend to `baselineY + 4 ≈ rowY - 2`, which is only `badgeRadius - 2 = 9px` above the badge top (`rowY - 11`). This created vertical overlap. Token `msgLabelYOffset` (default 6, ByteByteGo 20) lifts the label clear of the badge circle.
+Four-phase pipeline:
 
-### Blue Badge Colour
+1. **Cycle detection (DFS gray-path coloring)**: Iterative DFS (avoids stack overflow) marks edges as back-edges when target is GRAY (on current path). Self-loops are always marked. Back-edges are extracted and rendered separately.
 
-Reference (image copy 6.png) uses blue numbered circles. Changed `stepBadgeFill` from amber `#f59e0b` to `#2563eb` with `stepBadgeTextColor: '#ffffff'`. This harmonises with the actor card colour and matches ByteByteGo's blue palette.
+2. **Rank assignment (longest-path from sources)**: Iterative DFS post-order topological sort over the residual DAG (back-edges removed). Rank propagation: `rank[v] = max(rank[u]+1)` for each predecessor u in topological order. Source nodes (in-degree 0) stay at rank 0. Declaration order is tie-breaking everywhere → determinism guaranteed.
 
-### Activation / Fragment Legibility on Dark Background
+3. **Layer organization**: Nodes grouped by rank, sorted by declaration order within each rank. No crossing minimization (increment-2 deferred).
 
-On `#111827`, the previous `activationBarFill: '#374151'` was nearly invisible. Brightened to `#4b5563` fill / `#94a3b8` stroke. Fragment tab updated: `fragTabFill: '#4b5563'`, `fragTabTextColor: '#f3f4f6'`. Fragment box fill `#1e2433` remains (subtle dark-blue tint against pure-black bg is legible without being garish).
+4. **Coordinate assignment**: Uniform column width = global max node width. Column center x = `marginLeft + rank * (colW + layerGap)`. Nodes centered vertically within each column relative to the tallest column: `startY[r] = marginTop + (contentH - colH[r]) / 2`. All arithmetic via `rhuInt()`.
 
-### Gallery Curation Pattern
+### FlowTheme Token Surface
 
-Sequence cards follow the same card structure as timeline cards. Used existing CSS tag classes only (no new classes added). Cards 13+14 are presented as a pair (same YAML, different theme) to communicate the grammar=semantics / theme=style principle directly in the gallery. Card `card-num` uses the slug as the sub-label. All four PNGs/SVGs/YAMLs verified to exist before committing.
+| Group | Tokens |
+|-------|--------|
+| Canvas | `background`, `fontFamily` |
+| Layout | `orientation` (`LR`\|`TB`), `marginLeft/Right/Top/Bottom` |
+| Geometry | `nodePadX/Y`, `minNodeWidth`, `layerGap`, `nodeGap` |
+| Node visual | `nodeFill/Stroke/StrokeWidth/Rx/TextColor` |
+| Kind overrides | `kindFills`, `kindTextColors` |
+| Status overrides | `statusFills`, `statusTextColors` (6 states: default/active/success/warning/error/muted) |
+| Typography | `nodeFontSize/Weight`, `edgeLabelFontSize/Weight/Color` |
+| Edge routing | `edgeStyle` (`curved`\|`elbow`\|`straight`), `edgeStroke/Width`, `edgeDash`, `edgeDotted`, `animatedEdgeDash/Stroke` |
+| Arrowhead | `arrowSize`, `arrowFill` |
+| Back-edges | `backEdgeCurvature`, `backEdgeStroke`, `backEdgeDash` |
+| Icons | `showIcons`, `iconSize`, `iconLabelGap` |
 
-### New Output Files
+### defaultFlowTheme
 
-| File | Type | Notes |
-|------|------|-------|
-| `examples/gallery/sequence-agent-loop-bytebytego.sequence.yaml` | Fixture | ByteByteGo theme, adds `icon` fields per kind |
-| `examples/gallery/sequence-agent-loop-bytebytego.svg` | Gallery | Generated by test suite |
-| `examples/gallery/sequence-agent-loop-bytebytego.png` | Gallery | Generated by test suite |
+Clean light-background pipeline style:
+- White canvas, curved Bézier edges, rounded-rect nodes (rx=8), LR orientation
+- Blue palette: node fill `#e8f0fe`, stroke `#4a6cf7`
+- Status fills: success `#d1fae5` (green), error `#fee2e2` (red), warning `#fef3c7` (amber)
+- Animated edges: blue `#4a6cf7` with `8,5` dash pattern (resting frame in PNG)
+- Back-edges: grey `#94a3b8` with `5,4` dash
 
-### Test Count
+### Cycle Handling
 
-607 → 611 (4 new tests: agent-loop-bytebytego SVG emit, PNG emit, blue-badge assertion, determinism).  
-All 611 pass; default-theme sequence goldens byte-identical.
+Cycles do not crash the layout:
+- Back-edges are detected before ranking and skipped during rank assignment
+- Back-edges render as cubic Bézier arcs below the main flow (bottom ports)
+- Self-loops render as small right-side loops off the source node
+- The layout is still deterministic with cycles: identical cyclic IR → identical scene hash (verified by test)
+
+### Kernel Extension: PathPrimitive.dashArray
+
+Added `dashArray?: string` to `PathPrimitive` in `scene.ts` and `'stroke-dasharray'` emission in `render/svg.ts`. This is backward-compatible (undefined fields omitted from canonicalJSON, no existing golden affected). All 630 previous tests remained byte-identical.
+
+### Gallery Example
+
+`examples/gallery/flow-rag-pipeline.flow.yaml` → 7-node RAG pipeline with branch:
+- Layers: question (0) → retrieve (1) → [rank, direct] (2) → augment (3) → llm (4) → answer (5)
+- `flow-rag-pipeline.svg` (4 KB) and `flow-rag-pipeline.png` (19 KB, 1356×208 px) verified:
+  - Clean L→R pipeline, stadium shapes on terminals, green success fills, dashed animated edges
+  - Branch at column 2 (Re-rank + Direct Match stacked, vertically centered)
+  - No overlapping node boxes (tested)
+
+### Kernel Reuse
+
+No new Scene IR primitive *types* needed. Flow lowers to: `RectPrimitive` (rounded-rect/stadium/rect nodes), `CirclePrimitive` (circle nodes), `TextPrimitive` (labels, edge labels), `PathPrimitive` (edges, arrowheads, icons). Only added `dashArray?` field to existing `PathPrimitive`.
+
+### Test Coverage
+
+663/663 tests pass (630 previous + 33 new flow tests).
+All 630 previous goldens byte-identical.
+New flow tests: schema validation (12), scene structure (10), determinism (4), cycle handling (4), non-overlap (1), gallery SVG (1), gallery PNG (1).
+
+### Deferred to Increment-2+
+
+- Crossing minimization (barycenter sweeps — no crossing reduction in inc-1)
+- CSS/SMIL animation for `animated: true` edges (SVG `stroke-dashoffset`)
+- `TB` orientation (top-to-bottom layout)
+- `diamond` shape node
+- Group/lane containers
+- Multi-edge offset (parallel edges between same pair)
+
+---
+
+## 2026-06-13 — Flow Grammar Shipped + Composition Kernel Helper Flagged (Scribe)
+
+**Date:** 2026-06-13T15:53:53Z  
+**Status:** Flow delivered; kernel helper flagged as critical path for composition inc-1
+
+### Flow Grammar Delivery Summary
+
+- **Module:** packages/core/src/grammars/flow/ complete (types, schema, theme, layout, index)
+- **Layout:** Sugiyama LR, deterministic, cycle-safe (back-edges routed via bottom-port Bézier arcs)
+- **Kernel extension:** Added PathPrimitive.dashArray? (backward-compatible, all 630 prior tests byte-identical)
+- **Tests:** 663/663 pass (630 prior + 33 new flow tests)
+- **Gallery:** flow-rag-pipeline (7-node, clean branches, SVG+PNG verified)
+
+### Composition Layer Blocking Point
+
+Leslie's composition spec is complete and specifies a critical kernel helper for Barbara:
+
+**Function needed:** `translateAndScale(p: ScenePrimitive, dx: number, dy: number, scale: number) → ScenePrimitive`
+
+**Scope:** Transform all primitive kinds (Line, Rect, Circle, Text, MultiText, Path, Group, Image), including:
+- Path d-string coordinate transformation
+- StrokeGradient coordinate transformation  
+- Recursive GroupPrimitive descent
+- Rounding via rhu(2dp) for determinism
+
+**Proposed location:** packages/core/src/scene-transform.ts
+
+**Urgency:** Critical path for composition inc-1. Once implemented (2–3 hours), Mark's schema + Barbara's helper = go signal for composition rendering.
+
+### Open Questions for Mark (Schema)
+
+Composition layer ready for schema finalization:
+- CompositionDocument JSON Schema (discriminated union for CellContent)
+- ir_file URI schemes (pkg:, file:, http:)
+- Two-pass validation strategy (composition → sub-grammar)
+
+Mark intake expected next turn.
+
+---
+
