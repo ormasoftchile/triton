@@ -247,3 +247,57 @@ Added `poster-rag-architecture` as card 20 in `examples/gallery/index.html`:
 - **Final:** 706/706 pass
 
 ---
+
+## Concurrent Passes (2026-06-13T16:35–16:36Z) — Animation + Dark Themes
+
+**Note:** Both agents routed decisions to inbox to avoid write race on history.md. Scribe merged both passes and consolidated into decisions.md. This section summarizes cross-agent context.
+
+### Pass A: Animation (Dashflow SMIL)
+
+**Status:** SHIPPED (10 new tests)
+
+Scene IR gained optional `animation?: DashflowAnimation` field on Path and Line primitives. When both `animation` and `dashArray` are present, SVG serializer emits SMIL `<animate>` with:
+- `attributeName="stroke-dashoffset"`
+- `from="{dashPeriod}"` (computed from dashArray CSS string)
+- `to="0"` (resting position)
+- `dur="{animationDurSec}s"` (controlled by FlowTheme token, default 1.2s)
+- `repeatCount="indefinite"`
+
+Additive design: animation field undefined by default. Canonical JSON omits undefined → existing hashes unchanged.
+
+**Raster guarantee:** resvg ignores SMIL; `stroke-dashoffset="0"` is SVG default → PNG renders byte-identically to pre-animation resting frame.
+
+**Flow integration:** Animated forward edges (via `edge.animated === true`) receive `animHint` in layout phase. Back-edges (structural feedback) do not animate.
+
+**Gallery:** `flow-rag-pipeline.svg` gains 2 `<animate>` elements (augment→llm, llm→answer); PNG unchanged.
+
+**Files:** scene.ts (Scene IR), render/svg.ts (SMIL emission), grammars/flow/theme.ts (animationDurSec token), grammars/flow/layout.ts (edge attachment), flow.test.ts (10 tests).
+
+### Pass B: Dark Theme Set + Row-Sizing
+
+**Status:** SHIPPED (9 new tests: 3 rowSizing + 6 dark poster)
+
+**rowSizing token:** New `CompositionTheme` field `rowSizing: 'content' | 'equal'`. Default 'content' (per-row heights computed from each row's tallest cell — eliminates dead space in mixed-height grids). Mode 'equal' normalizes all rows to global max height (uniform panels). Layout engine: pure arithmetic after min-height floor.
+
+**darkFlowTheme** ('dark-flow'): Navy background #111827; node fill #1e293b, stroke teal #2dd4bf; kind-specific fills (stadium→#0d9488, rounded-rect→#1e40af, diamond→#7c3aed, circle→#064e3b); animated edge stroke #38bdf8 (sky-400 for dark contrast); node text #f1f5f9.
+
+**darkCompositionTheme** ('dark-poster'): GitHub dark canvas #0d1117; cell bg #161b22 (vs #1e293b); cell border #30363d; title color #58a6ff (blue accent), stat value #2dd4bf (teal); tighter gap 16px (vs 20), padding 24px (vs 28); border radius 12px (softer).
+
+**Per-cell themes:** Grammar cells (flow/tree/sequence) honor `doc.metadata.theme` independently. Stat/text/title cells use composition theme surface tokens (dark-poster provides dark colors). No new plumbing — existing grammar-as-semantics / theme-as-style split handles it.
+
+**Gallery:** New `poster-rag-architecture-dark.composition.yaml` (2×2 grid with dark themes: dark-flow, dark-tree, bytebytego-sequence, stat). Output 1200×1144 px SVG/PNG. Light poster unchanged.
+
+**Tests (9 new):** composition.test.ts Suite C (rowSizing: 3 tests, content vs equal, hash differences), Suite D (dark poster: 6 tests, determinism, SVG/PNG emit).
+
+**Files:** composition/theme.ts (rowSizing, darkCompositionTheme), composition/layout.ts (equal-mode normalization), composition/index.ts (export), grammars/flow/theme.ts (darkFlowTheme), grammars/flow/index.ts (export), composition.test.ts (9 tests), gallery dark poster (3 new files).
+
+### Combined Metrics
+
+- **Baseline:** 706 tests (prior milestone)
+- **Animation:** +10 (flow animation determinism, SVG structure, PNG validity)
+- **Dark Themes:** +9 (3 rowSizing + 6 dark poster)
+- **Final:** 725/725 deterministic tests pass
+- **Determinism:** Fixed geometry, rounding (rhu 2dp), lexicographic tie-breaking; no RNG
+- **Byte-Safety:** All 706 prior goldens byte-identical except flow-rag-pipeline SVG (gains animation markers); PNG byte-stable (raster ignores SMIL)
+
+---
