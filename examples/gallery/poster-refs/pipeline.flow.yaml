@@ -1,0 +1,38 @@
+version: "1.0"
+metadata:
+  title: "Auth Request Flow"
+  theme: default-flow
+
+flow:
+  nodes:
+    - id: request
+      label: "Request"
+      kind: stadium
+
+    - id: validate
+      label: "Validate"
+      kind: rounded-rect
+
+    - id: auth-check
+      label: "Auth OK?"
+      kind: diamond
+
+    - id: process
+      label: "Process"
+      kind: rounded-rect
+
+    - id: reject
+      label: "Reject"
+      kind: rounded-rect
+
+  edges:
+    - from: request
+      to: validate
+    - from: validate
+      to: auth-check
+    - from: auth-check
+      to: process
+      label: "yes"
+    - from: auth-check
+      to: reject
+      label: "no"

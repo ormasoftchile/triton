@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { flowDocumentSchema }     from '../grammars/flow/schema.js';
 import { treeDocumentSchema }     from '../grammars/tree/schema.js';
 import { sequenceDocumentSchema } from '../grammars/sequence/schema.js';
+import { irDocumentSchema }       from '../schema.js';
 
 // ---------------------------------------------------------------------------
 // CellContent schemas
@@ -35,6 +36,26 @@ const treeCellContentSchema = z.object({
 const sequenceCellContentSchema = z.object({
   kind: z.literal('sequence'),
   doc: sequenceDocumentSchema,
+});
+
+const timelineCellContentSchema = z.object({
+  kind: z.literal('timeline'),
+  doc: irDocumentSchema,
+});
+
+/**
+ * External file reference — resolved by resolveCompositionRefs before layout.
+ * The layout engine never sees this variant; after resolution it is replaced
+ * with the corresponding inline variant (flow / tree / sequence / timeline).
+ */
+const refCellContentSchema = z.object({
+  kind: z.literal('ref'),
+  grammar: z.enum(['flow', 'tree', 'sequence', 'timeline'], {
+    errorMap: () => ({
+      message: "ref.grammar must be one of: 'flow', 'tree', 'sequence', 'timeline'",
+    }),
+  }),
+  ir_file: z.string().min(1, 'ref.ir_file must be a non-empty relative path'),
 });
 
 const statCellContentSchema = z.object({
@@ -57,6 +78,8 @@ const cellContentSchema = z.discriminatedUnion('kind', [
   flowCellContentSchema,
   treeCellContentSchema,
   sequenceCellContentSchema,
+  timelineCellContentSchema,
+  refCellContentSchema,
   statCellContentSchema,
   textCellContentSchema,
   titleCellContentSchema,

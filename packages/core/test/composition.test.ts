@@ -27,6 +27,13 @@
  *     B5. Gallery emit — writes poster-rag-architecture.{svg,png} to examples/gallery/
  *     B6. Scene structure — canvas background rect is first primitive
  *     B7. Stat cell synthesises a scene with text primitives
+ *
+ *  E. ir_file ref resolution
+ *     E1. resolveCompositionRefs inlines ref cells correctly
+ *     E2. missing ir_file throws a descriptive error
+ *     E3. resolved poster is deterministic (stable sceneHash)
+ *     E4. resolved poster equals equivalent inline poster (byte-identical hash)
+ *     E5. Gallery emit — writes poster-refs.{svg,png} to examples/gallery/
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -45,6 +52,7 @@ import {
   renderCompositionDocument,
   compositionDocumentSchema,
   darkCompositionTheme,
+  resolveCompositionRefs,
 } from '../src/composition/index.js';
 import { sceneHash } from '../src/scene.js';
 import type { CompositionDocument } from '../src/composition/index.js';
@@ -659,3 +667,159 @@ describe('Composition Grammar — dark poster', () => {
     console.log(`[gallery] Dark Poster PNG: ${pngPath} (${pngResult.png.length} bytes)`);
   });
 });
+
+// ---------------------------------------------------------------------------
+// E. ir_file ref resolution
+// ---------------------------------------------------------------------------
+
+const POSTER_REFS_DIR = join(GALLERY_DIR, 'poster-refs');
+
+/** Load the poster-refs composition YAML (contains ref cells). */
+function loadRefsFixture(): CompositionDocument {
+  const raw = readFileSync(
+    join(POSTER_REFS_DIR, 'poster-refs.composition.yaml'),
+    'utf-8',
+  );
+  return parseYaml(raw) as CompositionDocument;
+}
+
+/**
+ * Build the equivalent inline poster directly (no ir_file) so we can verify
+ * that resolve + build ≡ inline build (byte-identical sceneHash).
+ */
+function buildInlinePoster(): CompositionDocument {
+  const flowRaw = readFileSync(join(POSTER_REFS_DIR, 'pipeline.flow.yaml'), 'utf-8');
+  const treeRaw = readFileSync(join(POSTER_REFS_DIR, 'taxonomy.tree.yaml'), 'utf-8');
+  const flowDoc = parseYaml(flowRaw) as CompositionDocument['cells'][0]['content'];
+  const treeDoc = parseYaml(treeRaw) as CompositionDocument['cells'][0]['content'];
+
+  return {
+    version: '1.0',
+    metadata: { title: 'Poster via ir_file Refs', theme: 'default' },
+    grid: { columns: 2, rows: 2 },
+    cells: [
+      {
+        id: 'flow-panel',
+        col: 0,
+        row: 0,
+        title: 'Auth Request Flow',
+        content: { kind: 'flow', doc: (flowDoc as { flow: unknown; version: string; metadata: unknown }) as import('../src/composition/index.js').FlowCellContent['doc'] },
+      },
+      {
+        id: 'tree-panel',
+        col: 1,
+        row: 0,
+        title: 'Document Taxonomy',
+        content: { kind: 'tree', doc: (treeDoc as { tree: unknown; version: string; metadata: unknown }) as import('../src/composition/index.js').TreeCellContent['doc'] },
+      },
+      {
+        id: 'stat-panel',
+        col: 0,
+        row: 1,
+        title: 'Key Metric',
+        content: { kind: 'stat', value: '98.7%', label: 'validation accuracy' },
+      },
+      {
+        id: 'text-panel',
+        col: 1,
+        row: 1,
+        content: { kind: 'text', text: 'External refs keep each panel versioned independently.' },
+      },
+    ],
+  };
+}
+
+describe('Composition Grammar — ir_file ref resolution', () => {
+  // E1. resolveCompositionRefs replaces ref cells with their inline equivalents.
+  it('E1: resolveCompositionRefs inlines ref cells', () => {
+    const doc = loadRefsFixture();
+    // Before resolution: first two cells are 'ref'
+    expect(doc.cells[0]!.content.kind).toBe('ref');
+    expect(doc.cells[1]!.content.kind).toBe('ref');
+
+    const resolved = resolveCompositionRefs(doc, POSTER_REFS_DIR);
+
+    // After resolution: replaced by their grammar kinds
+    expect(resolved.cells[0]!.content.kind).toBe('flow');
+    expect(resolved.cells[1]!.content.kind).toBe('tree');
+    // Non-ref cells are unchanged
+    expect(resolved.cells[2]!.content.kind).toBe('stat');
+    expect(resolved.cells[3]!.content.kind).toBe('text');
+    // Original doc is not mutated
+    expect(doc.cells[0]!.content.kind).toBe('ref');
+  });
+
+  // E2. A missing ir_file throws a clear, actionable error.
+  it('E2: missing ir_file throws a descriptive error', () => {
+    const doc: CompositionDocument = {
+      version: '1.0',
+      metadata: {},
+      grid: { columns: 1 },
+      cells: [
+        {
+          id: 'missing',
+          content: { kind: 'ref', grammar: 'flow', ir_file: './does-not-exist.flow.yaml' },
+        },
+      ],
+    };
+    expect(() => resolveCompositionRefs(doc, POSTER_REFS_DIR)).toThrow(
+      /cannot read ir_file.*does-not-exist/,
+    );
+  });
+
+  // E3. Resolved poster builds a deterministic scene (stable sceneHash).
+  it('E3: resolved poster is deterministic (same sceneHash on two builds)', () => {
+    const doc = loadRefsFixture();
+    const resolved = resolveCompositionRefs(doc, POSTER_REFS_DIR);
+    const h1 = sceneHash(buildCompositionScene(resolved));
+    const h2 = sceneHash(buildCompositionScene(resolved));
+    expect(h1).toBe(h2);
+    expect(h1).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  // E4. Resolved poster produces identical sceneHash to the equivalent inline poster.
+  it('E4: resolved poster hash equals equivalent inline poster hash', () => {
+    const refDoc     = loadRefsFixture();
+    const resolved   = resolveCompositionRefs(refDoc, POSTER_REFS_DIR);
+    const inlineDoc  = buildInlinePoster();
+
+    const refHash    = sceneHash(buildCompositionScene(resolved));
+    const inlineHash = sceneHash(buildCompositionScene(inlineDoc));
+    expect(refHash).toBe(inlineHash);
+  });
+
+  // E5. Emit the resolved poster to the gallery as poster-refs.{svg,png}.
+  it('E5: emits poster-refs.svg and poster-refs.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) {
+      mkdirSync(GALLERY_DIR, { recursive: true });
+    }
+
+    const doc = loadRefsFixture();
+    const resolved = resolveCompositionRefs(doc, POSTER_REFS_DIR);
+
+    const svgResult = renderCompositionDocument(resolved, { format: 'svg' }) as {
+      svg: string;
+      sceneHash: string;
+    };
+    expect(typeof svgResult.svg).toBe('string');
+    expect(svgResult.svg.length).toBeGreaterThan(100);
+
+    const svgPath = join(GALLERY_DIR, 'poster-refs.svg');
+    writeFileSync(svgPath, svgResult.svg, 'utf-8');
+    expect(existsSync(svgPath)).toBe(true);
+
+    const pngResult = renderCompositionDocument(resolved, { format: 'png' }) as {
+      png: Uint8Array;
+    };
+    expect(pngResult.png).toBeInstanceOf(Uint8Array);
+    expect(pngResult.png.length).toBeGreaterThan(100);
+
+    const pngPath = join(GALLERY_DIR, 'poster-refs.png');
+    writeFileSync(pngPath, pngResult.png);
+    expect(existsSync(pngPath)).toBe(true);
+
+    console.log(`[gallery] Poster-Refs SVG: ${svgPath} (${svgResult.svg.length} chars)`);
+    console.log(`[gallery] Poster-Refs PNG: ${pngPath} (${pngResult.png.length} bytes)`);
+  });
+});
+

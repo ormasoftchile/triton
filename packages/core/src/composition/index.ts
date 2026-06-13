@@ -3,8 +3,11 @@
  *
  * Provides:
  *  - `buildCompositionScene(doc)` — validates the document and produces a Scene
+ *    (pure; doc must have all refs resolved)
  *  - `renderCompositionDocument(doc, options)` — builds the Scene and serialises
  *    it to SVG or PNG using the existing shared serialisers (no new backends).
+ *  - `renderCompositionDocumentFromRefs(doc, baseDir, options)` — resolves any
+ *    ir_file ref cells from baseDir, then renders (convenience wrapper).
  *
  * The kernel serialisers (sceneToSvg, svgToPng, sceneToPngSkia) are reused
  * without modification. Same kernel, new composition layer — extends the
@@ -21,12 +24,15 @@ import type { CompositionDocument } from './types.js';
 import type { CompositionTheme }    from './theme.js';
 import { compositionDocumentSchema } from './schema.js';
 import { layoutComposition }         from './layout.js';
+import { resolveCompositionRefs }    from './resolve.js';
 
 export type { CompositionDocument, Cell, CellContent } from './types.js';
 export type {
   FlowCellContent,
   TreeCellContent,
   SequenceCellContent,
+  TimelineCellContent,
+  RefCellContent,
   StatCellContent,
   TextCellContent,
   TitleCellContent,
@@ -40,6 +46,7 @@ export {
   resolveCompositionTheme,
   COMPOSITION_THEME_REGISTRY,
 } from './theme.js';
+export { resolveCompositionRefs } from './resolve.js';
 
 // ---------------------------------------------------------------------------
 // buildCompositionScene
@@ -111,4 +118,33 @@ export function renderCompositionDocument(
   const svg = sceneToSvg(scene);
   const png = svgToPng(svg);
   return { ...base, png };
+}
+
+// ---------------------------------------------------------------------------
+// renderCompositionDocumentFromRefs
+// ---------------------------------------------------------------------------
+
+/**
+ * Convenience wrapper: resolve any `kind:'ref'` cells in `doc` by reading
+ * the referenced files from `baseDir`, then render the fully-inlined document.
+ *
+ * This is the recommended entry point when authoring composition YAML files
+ * that use `ir_file` external references.
+ *
+ * @param doc     - CompositionDocument (may contain ref cells).
+ * @param baseDir - Directory from which `ir_file` paths are resolved
+ *                  (typically `dirname` of the composition YAML file).
+ * @param options - Same render options as `renderCompositionDocument`.
+ * @param themeOverride - Optional theme override.
+ *
+ * Throws if any ref file is missing, invalid, or fails schema validation.
+ */
+export function renderCompositionDocumentFromRefs(
+  doc: CompositionDocument,
+  baseDir: string,
+  options: CompositionRenderOptions,
+  themeOverride?: CompositionTheme,
+): CompositionRenderResult | Promise<CompositionRenderResult> {
+  const resolved = resolveCompositionRefs(doc, baseDir);
+  return renderCompositionDocument(resolved, options, themeOverride);
 }

@@ -37,6 +37,7 @@ import { measureText } from '../fonts/metrics.js';
 import { buildFlowScene }     from '../grammars/flow/index.js';
 import { buildTreeScene }     from '../grammars/tree/index.js';
 import { buildSequenceScene } from '../grammars/sequence/index.js';
+import { buildScene as buildTimelineScene } from '../render/index.js';
 
 import type { CompositionDocument, Cell, CellContent } from './types.js';
 import type { CompositionTheme } from './theme.js';
@@ -167,9 +168,16 @@ function compileCellContent(content: CellContent, theme: CompositionTheme): Scen
     case 'flow':     return buildFlowScene(content.doc);
     case 'tree':     return buildTreeScene(content.doc);
     case 'sequence': return buildSequenceScene(content.doc);
+    case 'timeline': return buildTimelineScene(content.doc);
     case 'stat':     return buildStatScene(content.value, content.label, theme);
     case 'text':     return buildTextScene(content.text, theme);
     case 'title':    return buildTitleScene(content.text, theme);
+    case 'ref':
+      // RefCellContent must be resolved by resolveCompositionRefs before layout.
+      throw new Error(
+        `Cell content kind 'ref' (ir_file: "${content.ir_file}") must be resolved ` +
+        `before calling buildCompositionScene. Call resolveCompositionRefs(doc, baseDir) first.`,
+      );
   }
 }
 

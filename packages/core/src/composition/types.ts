@@ -9,12 +9,14 @@
  *   - The theme says "render that title in Inter 18 bold white, 1px border, 12px radius."
  *
  * Increment 1: inline grammar documents (ir field) only.
- * Deferred: ir_file URI references, nested composition, image cells.
+ * Increment 2: ir_file external references (resolved before layout; keeps layout pure).
+ * Deferred: nested composition, image cells.
  */
 
 import type { FlowDocument }     from '../grammars/flow/types.js';
 import type { TreeDocument }     from '../grammars/tree/types.js';
 import type { SequenceDocument } from '../grammars/sequence/types.js';
+import type { IRDocument }       from '../types.js';
 
 // ---------------------------------------------------------------------------
 // CellContent — discriminated union
@@ -36,6 +38,27 @@ export interface TreeCellContent {
 export interface SequenceCellContent {
   kind: 'sequence';
   doc: SequenceDocument;
+}
+
+/** A cell whose content is a Timeline grammar diagram (inline IR). */
+export interface TimelineCellContent {
+  kind: 'timeline';
+  doc: IRDocument;
+}
+
+/**
+ * A cell whose content is loaded from an external file at render time.
+ * `grammar` names the expected grammar; `ir_file` is a relative path from
+ * the base directory supplied to `resolveCompositionRefs`.
+ * This variant is resolved to the corresponding inline variant before
+ * the layout engine runs — the layout stays pure (no file I/O).
+ */
+export interface RefCellContent {
+  kind: 'ref';
+  /** Grammar the referenced file must conform to. */
+  grammar: 'flow' | 'tree' | 'sequence' | 'timeline';
+  /** Relative path to the grammar file (e.g. "./pipeline.flow.yaml"). */
+  ir_file: string;
 }
 
 /** A cell showing a large numeric/text stat callout with an optional label. */
@@ -61,13 +84,15 @@ export interface TitleCellContent {
 
 /**
  * Discriminated union of all supported cell content types.
- * Increment 1 supports: flow, tree, sequence, stat, text, title.
- * Deferred: timeline (IRDocument), image, ir_file references.
+ * Increment 1 supports inline: flow, tree, sequence, stat, text, title.
+ * Increment 2 adds: timeline (inline IRDocument), ref (external ir_file).
  */
 export type CellContent =
   | FlowCellContent
   | TreeCellContent
   | SequenceCellContent
+  | TimelineCellContent
+  | RefCellContent
   | StatCellContent
   | TextCellContent
   | TitleCellContent;

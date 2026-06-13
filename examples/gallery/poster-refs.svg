@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="511" version="1.1" viewBox="0 0 1200 511" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0f172a" height="511" width="1200" x="0" y="0"/>
+  <rect fill="#0f172a" height="52" width="1200" x="0" y="0"/>
+  <text dominant-baseline="central" fill="#f1f5f9" font-family="Inter, sans-serif" font-size="22" font-weight="700" text-anchor="middle" x="600" y="26">Poster via ir_file Refs</text>
+  <rect fill="#1e293b" height="229" rx="10" stroke="#334155" stroke-width="1" width="590" x="28" y="80"/>
+  <rect fill="#1e293b" height="28" rx="10" width="588" x="29" y="81"/>
+  <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="49" y="95">Auth Request Flow</text>
+  <rect fill="#ffffff" height="165.58" width="564" x="41" y="121"/>
+  <path d="M150.31 197.32 C171.65 197.32 192.35 197.32 209.17 197.32" fill="none" stroke="#6b7280" stroke-width="0.97"/>
+  <path d="M291.31 197.32 C310.71 197.32 329.47 197.32 344.34 197.32" fill="none" stroke="#6b7280" stroke-width="0.97"/>
+  <path d="M438.13 197.32 C457.53 197.32 476.29 168.22 491.17 168.22" fill="none" stroke="#6b7280" stroke-width="0.97"/>
+  <path d="M438.13 197.32 C457.53 197.32 476.29 226.43 491.17 226.43" fill="none" stroke="#6b7280" stroke-width="0.97"/>
+  <rect fill="#e8f0fe" height="42.69" rx="21.34" stroke="#4a6cf7" stroke-width="0.97" width="77.61" x="72.69" y="175.98"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="8.41" font-weight="600" text-anchor="middle" x="111.5" y="197.32">Request</text>
+  <rect fill="#e8f0fe" height="42.69" rx="5.17" stroke="#4a6cf7" stroke-width="0.97" width="77.61" x="213.69" y="175.98"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="8.41" font-weight="600" text-anchor="middle" x="252.5" y="197.32">Validate</text>
+  <path d="M393.5 175.98 L438.13 197.32 L393.5 218.67 L348.87 197.32 Z" fill="#e8f0fe" stroke="#4a6cf7" stroke-width="0.97"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="8.41" font-weight="600" text-anchor="middle" x="393.5" y="197.32">Auth OK?</text>
+  <rect fill="#e8f0fe" height="42.69" rx="5.17" stroke="#4a6cf7" stroke-width="0.97" width="77.61" x="495.69" y="146.87"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="8.41" font-weight="600" text-anchor="middle" x="534.5" y="168.22">Process</text>
+  <rect fill="#e8f0fe" height="42.69" rx="5.17" stroke="#4a6cf7" stroke-width="0.97" width="77.61" x="495.69" y="205.08"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="8.41" font-weight="600" text-anchor="middle" x="534.5" y="226.43">Reject</text>
+  <path d="M213.69 197.32 L209.17 194.73 L209.17 199.91 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <path d="M348.87 197.32 L344.34 194.73 L344.34 199.91 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <path d="M495.69 168.22 L491.17 165.63 L491.17 170.8 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <path d="M495.69 226.43 L491.17 223.84 L491.17 229.01 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="auto" fill="#4b5563" font-family="DejaVu Sans, sans-serif" font-size="7.11" font-weight="400" text-anchor="middle" x="467.23" y="177.92">yes</text>
+  <text dominant-baseline="auto" fill="#4b5563" font-family="DejaVu Sans, sans-serif" font-size="7.11" font-weight="400" text-anchor="middle" x="467.23" y="207.02">no</text>
+  <rect fill="#1e293b" height="229" rx="10" stroke="#334155" stroke-width="1" width="534" x="638" y="80"/>
+  <rect fill="#1e293b" height="28" rx="10" width="532" x="639" y="81"/>
+  <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="659" y="95">Document Taxonomy</text>
+  <rect fill="#ffffff" height="175" width="468.45" x="670.77" y="121"/>
+  <path d="M923.75 143.62 L923.75 164.45 L774.94 164.45 L774.94 185.29" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <path d="M774.94 207.9 L774.94 228.74 L732.68 228.74 L732.68 249.57" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <path d="M774.94 207.9 L774.94 228.74 L817.8 228.74 L817.8 249.57" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <path d="M923.75 143.62 L923.75 164.45 L952.92 164.45 L952.92 185.29" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <path d="M952.92 207.9 L952.92 228.74 L909.46 228.74 L909.46 249.57" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <path d="M952.92 207.9 L952.92 228.74 L996.96 228.74 L996.96 249.57" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <path d="M923.75 143.62 L923.75 164.45 L1072.56 164.45 L1072.56 185.29" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <path d="M1072.56 207.9 L1072.56 228.74 L1072.56 228.74 L1072.56 249.57" fill="none" stroke="#9fa8da" stroke-width="0.89"/>
+  <rect fill="#c5cae9" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="75.6" x="694.58" y="249.57"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="732.68" y="260.88">1.1 Background</text>
+  <rect fill="#c5cae9" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="70.83" x="782.08" y="249.57"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="817.8" y="260.88">1.2 Motivation</text>
+  <rect fill="#5c6bc0" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="101.79" x="724.35" y="185.29"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="774.94" y="196.6">Chapter 1: Introduction</text>
+  <rect fill="#c5cae9" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="88.1" x="865.42" y="249.57"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="909.46" y="260.88">2.1 Data Collection</text>
+  <rect fill="#c5cae9" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="63.1" x="965.42" y="249.57"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="996.96" y="260.88">2.2 Analysis</text>
+  <rect fill="#5c6bc0" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="90.48" x="907.68" y="185.29"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="952.92" y="196.6">Chapter 2: Methods</text>
+  <rect fill="#c5cae9" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="63.69" x="1040.42" y="249.57"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="1072.56" y="260.88">3.1 Findings</text>
+  <rect fill="#5c6bc0" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="86.31" x="1029.11" y="185.29"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="1072.56" y="196.6">Chapter 3: Results</text>
+  <rect fill="#3949ab" height="22.62" rx="3.57" stroke="#5c6bc0" stroke-width="0.89" width="59.52" x="893.99" y="121"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="7.74" font-weight="600" text-anchor="middle" x="923.75" y="132.31">Document</text>
+  <rect fill="#1e293b" height="154" rx="10" stroke="#334155" stroke-width="1" width="590" x="28" y="329"/>
+  <rect fill="#1e293b" height="28" rx="10" width="588" x="29" y="330"/>
+  <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="49" y="344">Key Metric</text>
+  <text dominant-baseline="central" fill="#38bdf8" font-family="Inter, sans-serif" font-size="48" font-weight="700" text-anchor="middle" x="323" y="411">98.7%</text>
+  <text dominant-baseline="hanging" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="400" text-anchor="middle" x="323" y="477">validation accuracy</text>
+  <rect fill="#1e293b" height="154" rx="10" stroke="#334155" stroke-width="1" width="534" x="638" y="329"/>
+  <text dominant-baseline="central" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="14" font-weight="400" text-anchor="start" x="797" y="359">External refs keep each panel versioned independently.</text>
+</svg>
