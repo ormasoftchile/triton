@@ -211,3 +211,26 @@ Team de-risked grammar roadmap by **choosing Sequence first** (over Flow). Tree 
 **Barbara (Rendering):** TreeTheme token surface, edge routing geometry (elbow/straight/curved), collapsed-node indicator design, kind→shape mappings, label overflow handling.
 
 **Timeline:** Tree Increment-1 implementation targets production parity with Sequence (deterministic layout + theme-driven rendering, no kernel changes).
+
+## 2026-06-13 — Tree Grammar Implementation Complete (Scribe)
+
+**Date:** 2026-06-13T15:02:15Z  
+**Status:** IMPLEMENTED
+
+Tree Grammar (Grammar #4) has moved from spec to production implementation. Barbara completed the module with deterministic tidy-tree layout and theme-driven rendering.
+
+**Pattern Established:**
+- `grammars/tree/` follows the sequence module template exactly
+- Own IR (TreeDocument → TreeNode recursive) → schema validation (Zod + global id uniqueness)
+- Own layout determinism (Buchheim–Jünger–Leipert O(n) tidy-tree)
+- Scene IR kernel (no new primitives) + existing serializers (sceneToSvg, svgToPng, sceneToPngSkia)
+- TreeTheme (30+ tokens) + defaultTreeTheme enforcing grammar=semantics / theme=style principle
+
+**Artifacts:**
+- `packages/core/src/grammars/tree/` (types.ts, schema.ts, layout.ts, theme.ts, index.ts)
+- Gallery: `examples/gallery/tree-document.{tree.yaml, svg, png}` (10-node document hierarchy)
+- Tests: 630/630 pass (611 existing byte-identical, 19 new tree tests)
+- Commit: 39f43ce
+
+**Strategic:** Tree's O(n) tidy-tree eliminates layout hard problem (no crossing minimization needed). Reinforces de-risked grammar roadmap: sequence + tree deferred Flow due to higher Sugiyama complexity.
+

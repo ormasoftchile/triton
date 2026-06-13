@@ -242,3 +242,27 @@ TreeNode (recursive):
 - **Spec:** `design/sections/27-tree-grammar.tex` § Layout Algorithm (Buchheim–Jünger–Leipert 2002)
 - **Precedent:** Sequence IR (Mark authored schema 2026-06-13, Barbara implements layout/theme)
 - **Decision Record:** `.squad/decisions.md` — "Decision Record: Tree Grammar Spec (Grammar #4, De-Risked)"
+
+## 2026-06-13 — Tree IR Implementation: Schema Questions (Scribe)
+
+**Date:** 2026-06-13T15:02:15Z  
+**Status:** SHIPPED (open schema questions remain for v1.1)
+
+Tree grammar IR fully implemented by Barbara with canonical children-list form and global id uniqueness validation.
+
+**IR Implementation:**
+- `packages/core/src/grammars/tree/types.ts` — TreeDocument, TreeNode recursive type, all fields semantic (no styling)
+- `packages/core/src/grammars/tree/schema.ts` — Zod z.lazy() for recursive validation, collectIds() global uniqueness check
+- Validation: kebab-case ids, non-empty labels, version, single root, acyclicity (structural guarantee)
+
+**Open Questions (Mark intake for v1.1):**
+1. **Parent-ref support:** Accept flat parent-ref form (with normalizer) or children-list-only? (Spec deferred decision)
+2. **Kind field semantics:** Free string or closed enum? (Currently free string with theme-based mapping)
+3. **Forest handling:** Confirmed rejected (single root required, use Composition layer for disjoint forests)
+4. **Node id format:** Flat kebab-case namespace (current) or path-based (root/ch1/s1) for hierarchy refs?
+5. **Validation invariants:** Complete list + rule names (TREE_ID_DUPLICATE, TREE_MULTIPLE_ROOTS, TREE_ACYCLIC, nesting depth soft limit?)
+
+**Constraint Grammar:** XGrammar version for LLM generation pipeline (matches Sequence pattern)
+
+**Blocks on:** Definitive schema decision affects v1.1 normalizer (if parent-ref accepted), validation rule completeness, XGrammar delivery.
+

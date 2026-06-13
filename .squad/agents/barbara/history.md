@@ -154,3 +154,71 @@ Pre-2026-06-13 Sequence Increment-1/2/3 detailed learnings archived to `barbara/
 4. Orientation support (default top-down; theme option for left-to-right)
 
 **Target:** Tree Increment-1 implementation follows Sequence template (deterministic layout + theme-driven rendering).
+
+---
+
+## Learnings — 2026-06-13 Tree Grammar (Grammar #4)
+
+### Module Structure Created
+
+New grammar module: `packages/core/src/grammars/tree/`
+
+| File | Purpose |
+|------|---------|
+| `types.ts` | Tree domain IR: `TreeDocument`, `TreeMetadata`, `TreeDefinition`, `TreeNode` (recursive children-list) |
+| `schema.ts` | Zod schema — validates id uniqueness (recursive collectIds), non-empty labels, kebab-case ids |
+| `layout.ts` | `layoutTree(doc, theme?)` — Buchheim–Jünger–Leipert tidy-tree (O(n), deterministic) |
+| `theme.ts` | `TreeTheme` token surface + `defaultTreeTheme` + `TREE_THEME_REGISTRY` |
+| `index.ts` | Public API: `buildTreeScene`, `renderTreeDocument`, re-exports types/schema/theme |
+
+### Tidy-Tree Algorithm (Buchheim–Jünger–Leipert 2002)
+
+Implemented the BJ+L algorithm in three phases:
+
+1. **firstWalk (bottom-up)**: assigns `prelim` (preliminary x) and `mod` (modifier) to each node. Leaf nodes receive preliminary positions from their left sibling + separation. Internal nodes run `apportion()` to resolve overlapping subtrees via thread contour walking, then center above their children by setting `mod = prelim - midpoint`. `executeShifts` propagates accumulated shift/change values.
+
+2. **secondWalk (top-down)**: computes final `x = prelim + m` (accumulating `mod` from ancestors) and `y = depth × (nodeH + levelGap)`.
+
+3. **Normalize + emit**: shift all x by `(marginLeft - minX)` so the leftmost node starts at the canvas margin. Canvas dimensions = maxX + marginRight × maxY + marginBottom.
+
+Key BJ+L data structures: `prelim`, `mod`, `shift`, `change`, `thread`, `ancestor`. The thread pointer enables O(n) contour walking without re-visiting inner nodes.
+
+### TreeTheme Token Surface
+
+| Group | Tokens |
+|-------|--------|
+| Canvas | `background`, `fontFamily` |
+| Layout | `orientation` (`top-down`\|`left-right`), `marginLeft/Right/Top/Bottom` |
+| Geometry | `nodePadX/Y`, `minNodeWidth`, `levelGap`, `siblingGap`, `subtreeGap` |
+| Node visual | `nodeFill/Stroke/StrokeWidth/Rx/TextColor` |
+| Kind overrides | `kindFills`, `kindTextColors` (per-kind color maps) |
+| Typography | `nodeFontSize/Weight` |
+| Edges | `edgeStyle` (`elbow`\|`straight`\|`curved`), `edgeStroke/StrokeWidth`, `elbowMidFraction` |
+| Icons | `showIcons`, `iconSize`, `iconLabelGap` |
+| Collapsed indicator | `showCollapsedIndicator`, `collapsedIndicatorRadius/Fill/TextColor` |
+
+### defaultTreeTheme
+
+Clean light-background org-chart:
+- White canvas (`#ffffff`), elbow edges, rounded nodes (rx=6)
+- Root kind → `#3949ab` (dark indigo) with white text
+- Chapter kind → `#5c6bc0` (medium indigo) with white text
+- Section kind → `#c5cae9` (light lavender) with dark text
+- Edge color: `#9fa8da` (soft indigo)
+
+### Determinism
+
+All coordinate arithmetic uses `rhuInt(v) = Math.floor(v + 0.5)` (round-half-up integer). The BJ+L algorithm is a pure function over the tree structure and sibling order — no randomness, no iteration count. **630/630 tests pass; all 611 existing goldens byte-identical.**
+
+### Gallery Example
+
+`examples/gallery/tree-document.tree.yaml` → 10-node document hierarchy (root + 3 chapters + 6 sections). `tree-document.svg` (4 KB) and `tree-document.png` (18 KB) generated and verified:
+- Root "Document" centered at top
+- Chapter nodes balanced below root
+- Section nodes spread under their chapters
+- No overlapping bounding boxes (tested)
+- Non-overlap assertion: `a.x + a.width <= b.x || ...` passes for all pairs
+
+### Kernel Reuse
+
+No new Scene IR primitives needed. Tree lowers to: `RectPrimitive` (node box), `TextPrimitive` (label), `PathPrimitive` (edge — elbow/straight/curved), `CirclePrimitive` + `TextPrimitive` (collapsed indicator). Serializers unchanged.

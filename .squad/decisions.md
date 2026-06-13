@@ -868,3 +868,98 @@ Lowering uses existing Scene IR primitives (Rect, Text, Path, Line, Image, Group
 - Added `\input{sections/27-tree-grammar}` in `design/main.tex` (after sequence grammar)
 - Updated grammar sequencing note in `design/sections/24-diagram-family.tex`
 - Reused existing bib keys: `reingold1981`, `walker1990`, `buchheim2002`, `garey1983`
+# Tree Grammar Implementation — Decision Record
+
+**From:** Barbara (Semantics & Rendering)
+**Date:** 2026-06-13T11:02:15-04:00
+**Status:** SHIPPED — tree grammar fully implemented
+
+---
+
+## What Was Implemented
+
+The Tree Grammar (Grammar #4) is now complete at `packages/core/src/grammars/tree/`.
+
+### Module Files
+
+| File | Role |
+|------|------|
+| `types.ts` | Domain IR: `TreeDocument { version, metadata, tree: { root: TreeNode } }`. `TreeNode { id, label, children?, kind?, icon?, collapsed?, description? }`. Recursive children-list canonical form — no cycles/orphans by construction. Semantic fields only; no styling. |
+| `schema.ts` | Zod schema with `z.lazy()` for recursive node validation. Global id uniqueness check via `collectIds()` walking the nested structure. Validates kebab-case ids, non-empty labels, version presence. |
+| `layout.ts` | `layoutTree(doc, theme?)` → `Scene`. Three-phase Buchheim–Jünger–Leipert (BJ+L) O(n) tidy-tree: (1) `firstWalk` bottom-up prelim assignment + contour thread walking, (2) `secondWalk` top-down mod accumulation for final x, (3) normalize + emit Scene primitives. |
+| `theme.ts` | `TreeTheme` token type + `defaultTreeTheme` + `TREE_THEME_REGISTRY` + `resolveTreeTheme()`. Grammar=semantics / Theme=style principle enforced throughout. |
+| `index.ts` | `buildTreeScene(doc)` (validate + layout), `renderTreeDocument(doc, options)` reusing shared serializers. |
+
+### Core exports added
+
+`packages/core/src/index.ts` now exports `buildTreeScene`, `renderTreeDocument`, `treeDocumentSchema`, `defaultTreeTheme`, `resolveTreeTheme`, `TREE_THEME_REGISTRY`, and all tree types.
+
+---
+
+## Tidy-Tree Algorithm Used
+
+**Buchheim–Jünger–Leipert (2002)** — corrects Walker (1990), which corrects Reingold–Tilford (1981).
+
+- **Complexity**: O(n) time and O(n) space.
+- **Determinism**: pure function over tree structure + sibling order + theme tokens. No randomness, no iteration.
+- **Non-overlap guarantee**: thread contour walking detects all subtree collisions; `moveSubtree` shifts entire subtrees atomically.
+- **Compactness**: parent is centered above its children; siblings are as close as permitted by the `siblingGap`/`subtreeGap` tokens.
+
+Working fields on each internal `LayoutNode`: `prelim`, `mod`, `shift`, `change`, `thread`, `ancestor`. All coordinates rounded via `rhuInt = Math.floor(v + 0.5)` for determinism.
+
+---
+
+## TreeTheme
+
+All styling lives in `TreeTheme`. Key design decisions made for the default theme:
+
+- **Kind color system**: `kindFills` and `kindTextColors` are per-kind maps, giving themes semantic color hierarchies without touching the IR.
+- **defaultTreeTheme**: indigo palette (root `#3949ab`, chapter `#5c6bc0`, section `#c5cae9`), white canvas, elbow edges.
+- **Edge styles**: `elbow` (default, classic org-chart), `straight`, `curved` (cubic Bézier). Controlled by `edgeStyle` theme token.
+- **Collapsed indicator**: `+` circle below collapsed nodes when `showCollapsedIndicator=true`.
+- **Icon support**: `showIcons=false` by default; when true, renders `IconDef.paths[]` scaled to `iconSize`.
+
+---
+
+## Gallery Outputs
+
+- `examples/gallery/tree-document.tree.yaml` — 10-node document hierarchy (root + 3 chapters + 6 sections), matches the spec's worked example verbatim.
+- `examples/gallery/tree-document.svg` — 4 KB, clean top-down tree, root centered at top, 3 chapters below, 6 sections at leaf level.
+- `examples/gallery/tree-document.png` — 18 KB raster render via resvg.
+
+Self-check: root (dark blue) at top, chapter boxes (medium blue) at level 1 centered under root, section boxes (light lavender) at level 2. No overlapping nodes (validated by test). Root center x=493 = (ch1_x=175 + ch3_x=811)/2 ✓.
+
+---
+
+## Test Results
+
+- **630/630 tests pass** — 611 existing + 19 new tree tests.
+- All existing goldens byte-identical (no kernel changes).
+- New tree tests cover: schema validation (6), scene structure (7, including non-overlap assertion), determinism (3), single-node tree (1), gallery SVG emit (1), gallery PNG emit (1).
+
+---
+
+## Open Questions for Mark
+
+The spec (§27 tree-open-questions) flags the following IR questions as needing Mark's input:
+
+1. **Canonical form only vs. flat parent-ref alternative**: Current schema accepts only the canonical children-list form. Flat parent-ref input (each node has a `parent` id) is NOT supported in v1. Should we add it? Requires normalization + cycle detection.
+
+2. **Forest handling**: Multiple-root documents are rejected with a validation error. Confirm this is the right policy (spec says rejected, but if future requirements need forests, this is the place to note it).
+
+3. **`kind` as free string vs. closed enum**: Currently free string — themes can map arbitrary kind values. A closed enum would enable schema-level validation. The spec leaves this open.
+
+4. **Node id format**: Kebab-case enforced (`^[a-z][a-z0-9-]*$`). The spec mentions path-based namespacing (e.g., `ch1/s1-1`) as a possible alternative. Current implementation uses a global flat namespace with uniqueness check.
+
+5. **Validation invariants**: Current schema checks: id uniqueness, non-empty labels, kebab-case format. The spec suggests optional lint warnings for very wide (>20 children) or very deep (>20 levels) trees. Not implemented in v1 — should these be added to the `lintScene` pipeline or as a tree-specific validator?
+
+---
+
+## Rendering Semantics Notes (Barbara)
+
+Addressing the spec's Barbara-flagged open questions:
+
+- **Edge routing default**: Elbow with `elbowMidFraction=0.5` (midpoint between parent bottom and child top). No minimum segment length — may add a `minElbowSegment` token in v2 if very shallow `levelGap` values create near-zero horizontal segments.
+- **Collapsed-node handling**: Static "+" circle indicator. No interactive expand/collapse in v1 (static backend).
+- **Label overflow**: Auto-expand node width via `measureText()` — no truncation. The spec's choice.
+- **Kind→shape mapping**: v1 uses only fill/text color overrides per kind. Shape variation (circles for leaves, diamonds for decisions) is deferred to v2 as an additional `kindShapes` token.
