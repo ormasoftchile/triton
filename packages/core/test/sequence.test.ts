@@ -561,3 +561,65 @@ describe('Sequence Grammar — ByteByteGo theme gallery emit', () => {
     expect(h1).toBe(h2);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 10. Gallery emit — agent-loop ByteByteGo theme (fragments + activations on dark bg)
+// ---------------------------------------------------------------------------
+
+describe('Sequence Grammar — agent-loop ByteByteGo gallery emit', () => {
+  function loadAgentLoopBBGFixture(): SequenceDocument {
+    const raw = readFileSync(
+      join(GALLERY_DIR, 'sequence-agent-loop-bytebytego.sequence.yaml'),
+      'utf-8',
+    );
+    return parseYaml(raw) as SequenceDocument;
+  }
+
+  it('emits sequence-agent-loop-bytebytego.svg to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadAgentLoopBBGFixture();
+    const result = renderSequenceDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('#111827'); // dark background
+    expect(svg).toContain('loop');
+    expect(svg).toContain('reflect');
+    const outPath = join(GALLERY_DIR, 'sequence-agent-loop-bytebytego.svg');
+    writeFileSync(outPath, svg, 'utf-8');
+    console.log('[sequence] sequence-agent-loop-bytebytego.svg →', outPath);
+  });
+
+  it('emits sequence-agent-loop-bytebytego.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadAgentLoopBBGFixture();
+    const result = renderSequenceDocument(doc, { format: 'png' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89);
+    const outPath = join(GALLERY_DIR, 'sequence-agent-loop-bytebytego.png');
+    writeFileSync(outPath, png);
+    console.log('[sequence] sequence-agent-loop-bytebytego.png →', outPath);
+  });
+
+  it('agent-loop ByteByteGo scene has blue step badges and dark background', () => {
+    const doc = loadAgentLoopBBGFixture();
+    const scene = buildSequenceScene(doc);
+    expect(scene.background).toBe('#111827');
+    // Blue badges (#2563eb)
+    const blueBadges = scene.primitives.filter(
+      (p) => p.kind === 'circle' && (p as { fill: string }).fill === '#2563eb',
+    );
+    expect(blueBadges.length).toBeGreaterThan(0);
+    // Step count = number of messages (7)
+    expect(blueBadges.length).toBe(7);
+  });
+
+  it('agent-loop ByteByteGo scene is deterministic', () => {
+    const doc = loadAgentLoopBBGFixture();
+    const h1 = sceneHash(buildSequenceScene(doc));
+    const h2 = sceneHash(buildSequenceScene(doc));
+    expect(h1).toBe(h2);
+  });
+});

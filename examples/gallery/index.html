@@ -160,12 +160,12 @@
 <header>
   <h1>Timeline Compiler — Example Gallery</h1>
   <p>
-    Twelve representative IR documents rendered with the <strong>Horizontal layout</strong>
-    family. Most renders use the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong> showcase. Each example exercises a distinct
+    Twelve timeline IR documents rendered with the <strong>Horizontal layout</strong>
+    family, plus four <strong>Sequence Grammar</strong> examples (UML default and ByteByteGo themes). Most timeline renders use the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong> showcase. Each example exercises a distinct
     combination of axis unit, track density, activity statuses, milestones, and edge-case
     behaviours. Use this contact sheet to bulk-check Phase 1 visual output.
   </p>
-  <span class="badge">Phase 1 MVP · Horizontal gallery + feature-rich showcase</span>
+  <span class="badge">Phase 1 MVP · Horizontal gallery + Sequence Grammar</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -460,6 +460,98 @@
     <div class="card-footer">
       <a href="timeline-goals.svg">SVG</a>
       <a href="timeline-goals.timeline.yaml">Source YAML</a>
+    </div>
+  </div>
+  <!-- 13. sequence-rest-auth — default UML theme -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 13 · sequence-rest-auth</div>
+      <div class="card-title">Token-Based REST Auth — UML Style</div>
+      <div class="card-desc">
+        Sequence diagram: Client ↔ Auth Server over two request/response pairs
+        (POST /auth/token then GET /api/data). Rendered with the
+        <strong>default-sequence theme</strong> — plain UML boxes, visible lifelines,
+        dashed reply arrows, activation bars. Demonstrates the
+        <strong>grammar&nbsp;=&nbsp;semantics</strong> half of the two-IR-layer model:
+        the document captures <em>who talks to whom in what order</em>,
+        nothing else. Compare with Example 14 (same IR, different theme).
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="sequence-rest-auth.png" alt="sequence-rest-auth UML render">
+    </div>
+    <div class="card-footer">
+      <a href="sequence-rest-auth.svg">SVG</a>
+      <a href="sequence-rest-auth.sequence.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 14. sequence-rest-auth-bytebytego — ByteByteGo theme, SAME IR -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 14 · sequence-rest-auth-bytebytego</div>
+      <div class="card-title">Token-Based REST Auth — ByteByteGo Style</div>
+      <div class="card-desc">
+        <strong>Identical IR</strong> to Example 13, rendered with the
+        <strong>bytebytego-sequence theme</strong> — dark canvas (#111827), colored
+        icon cards per participant kind, hidden lifelines, and numbered blue step badges
+        placed just outside each participant card on the arrow. Demonstrates the
+        <strong>theme&nbsp;=&nbsp;style</strong> half: the same semantics produce an
+        entirely different visual presentation without touching the source document.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="sequence-rest-auth-bytebytego.png" alt="sequence-rest-auth ByteByteGo render">
+    </div>
+    <div class="card-footer">
+      <a href="sequence-rest-auth-bytebytego.svg">SVG</a>
+      <a href="sequence-rest-auth-bytebytego.sequence.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 15. sequence-agent-loop — default UML with fragments + activation + self-message -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 15 · sequence-agent-loop</div>
+      <div class="card-title">Agent Retry Loop — Fragments &amp; Activation</div>
+      <div class="card-desc">
+        LLM agent invoking a tool with retry logic: User → Agent → Tool (×2 with
+        503 → 200). Exercises all three advanced sequence features:
+        <strong>activation bars</strong> (Agent active for orders 2–6),
+        <strong>combined fragments</strong> (<code>loop</code> + nested <code>opt</code>),
+        and a <strong>self-message</strong> (<code>reflect</code>, order 4) rendered as
+        a 3-segment right-angle loop. Default UML theme.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="sequence-agent-loop.png" alt="sequence-agent-loop UML render">
+    </div>
+    <div class="card-footer">
+      <a href="sequence-agent-loop.svg">SVG</a>
+      <a href="sequence-agent-loop.sequence.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 16. sequence-agent-loop-bytebytego — same IR, ByteByteGo theme -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 16 · sequence-agent-loop-bytebytego</div>
+      <div class="card-title">Agent Retry Loop — ByteByteGo Style</div>
+      <div class="card-desc">
+        Same agent-loop IR as Example 15 rendered with the
+        <strong>bytebytego-sequence theme</strong>. Verifies that fragments
+        (dark-background boxes), activation bars (visible on the dark canvas),
+        and self-message loops all remain legible under the dark infographic style.
+        Numbered blue badges (1–7) appear outside each participant card, clear of
+        the centered message labels.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="sequence-agent-loop-bytebytego.png" alt="sequence-agent-loop ByteByteGo render">
+    </div>
+    <div class="card-footer">
+      <a href="sequence-agent-loop-bytebytego.svg">SVG</a>
+      <a href="sequence-agent-loop-bytebytego.sequence.yaml">Source YAML</a>
     </div>
   </div>
 

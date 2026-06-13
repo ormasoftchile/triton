@@ -7,26 +7,26 @@
   <rect fill="#7c3aed" height="78" rx="14" width="140" x="252" y="28"/>
   <path d="M 8 11 L 8 8 A 4 4 0 0 1 16 8 L 16 11 M 4 11 L 4 22 L 20 22 L 20 11 Z M 10 15 A 2 2 0 1 0 14 15 A 2 2 0 1 0 10 15" fill="none" stroke="#ddd6fe" stroke-width="0.95" transform="translate(303,40) scale(1.5833333333333333)"/>
   <text dominant-baseline="alphabetic" fill="#ffffff" font-family="DejaVu Sans" font-size="13" font-weight="700" text-anchor="middle" x="322" y="90">Auth Server</text>
-  <rect fill="#374151" height="64" rx="2" stroke="#6b7280" stroke-width="1.5" width="10" x="317" y="150"/>
-  <rect fill="#374151" height="64" rx="2" stroke="#6b7280" stroke-width="1.5" width="10" x="317" y="278"/>
+  <rect fill="#4b5563" height="64" rx="2" stroke="#94a3b8" stroke-width="1.5" width="10" x="317" y="150"/>
+  <rect fill="#4b5563" height="64" rx="2" stroke="#94a3b8" stroke-width="1.5" width="10" x="317" y="278"/>
   <line stroke="#94a3b8" stroke-width="1.5" x1="118" x2="309" y1="150" y2="150"/>
   <path d="M 317 150 L 309 146 L 309 154 Z" fill="#94a3b8" stroke="none" stroke-width="0"/>
-  <circle cx="168" cy="150" fill="#f59e0b" r="11"/>
-  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="168" y="150">1</text>
-  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="144">POST /auth/token (credentials)</text>
+  <circle cx="202" cy="150" fill="#2563eb" r="11"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="202" y="150">1</text>
+  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="130">POST /auth/token (credentials)</text>
   <line stroke="#94a3b8" stroke-dasharray="8,5" stroke-width="1.5" x1="317" x2="126" y1="214" y2="214"/>
   <path d="M 126 210 L 118 214 L 126 218" fill="none" stroke="#94a3b8" stroke-linecap="round" stroke-width="1.5"/>
-  <circle cx="267" cy="214" fill="#f59e0b" r="11"/>
-  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="267" y="214">2</text>
-  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="208">200 OK { token: 'jwt...' }</text>
+  <circle cx="238" cy="214" fill="#2563eb" r="11"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="238" y="214">2</text>
+  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="194">200 OK { token: 'jwt...' }</text>
   <line stroke="#94a3b8" stroke-width="1.5" x1="118" x2="309" y1="278" y2="278"/>
   <path d="M 317 278 L 309 274 L 309 282 Z" fill="#94a3b8" stroke="none" stroke-width="0"/>
-  <circle cx="168" cy="278" fill="#f59e0b" r="11"/>
-  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="168" y="278">3</text>
-  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="272">GET /api/data (Bearer jwt...)</text>
+  <circle cx="202" cy="278" fill="#2563eb" r="11"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="202" y="278">3</text>
+  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="258">GET /api/data (Bearer jwt...)</text>
   <line stroke="#94a3b8" stroke-dasharray="8,5" stroke-width="1.5" x1="317" x2="126" y1="342" y2="342"/>
   <path d="M 126 338 L 118 342 L 126 346" fill="none" stroke="#94a3b8" stroke-linecap="round" stroke-width="1.5"/>
-  <circle cx="267" cy="342" fill="#f59e0b" r="11"/>
-  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="267" y="342">4</text>
-  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="336">200 OK { data: [...] }</text>
+  <circle cx="238" cy="342" fill="#2563eb" r="11"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="DejaVu Sans" font-size="10" font-weight="700" text-anchor="middle" x="238" y="342">4</text>
+  <text dominant-baseline="alphabetic" fill="#e2e8f0" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="218" y="322">200 OK { data: [...] }</text>
 </svg>

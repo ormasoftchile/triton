@@ -259,6 +259,8 @@ function renderMessage(
   primitives: ScenePrimitive[],
   fromBarOffset: number,
   toBarOffset: number,
+  fromColHalfW: number,
+  _toColHalfW: number,
 ): void {
   const isSelf = fromCx === toCx;
   const isSync = !msg.kind || msg.kind === 'sync';
@@ -355,9 +357,14 @@ function renderMessage(
     : openArrowHead(effectiveToX, rowY, dir, sz, tk);
   primitives.push(ah);
 
-  // Step badge (drawn on the line, at ~1/4 from source)
+  // Step badge at the arrow's source end (stepBadgeOffset pixels along direction).
+  // Uses the source participant's box edge (fromCx ± fromColHalfW) rather than
+  // the lifeline centre so the badge always lands on the visible dark-background
+  // arrow segment in card mode. stepBadgeOffset===0 falls back to legacy ¼-along.
   if (tk.showStepNumbers) {
-    const badgeX = rhuInt(effectiveFromX + (effectiveToX - effectiveFromX) * 0.25);
+    const badgeX = tk.stepBadgeOffset > 0
+      ? rhuInt(fromCx + dir * (fromColHalfW + tk.stepBadgeOffset))
+      : rhuInt(effectiveFromX + (effectiveToX - effectiveFromX) * 0.25);
     primitives.push({
       kind: 'circle',
       cx: badgeX,
@@ -380,7 +387,7 @@ function renderMessage(
   }
 
   const midX = rhuInt((effectiveFromX + effectiveToX) / 2);
-  const labelY = rhuInt(rowY - 6);
+  const labelY = rhuInt(rowY - tk.msgLabelYOffset);
   primitives.push({
     kind: 'text',
     x: midX,
@@ -744,7 +751,10 @@ export function layoutSequence(doc: SequenceDocument, themeOverride?: SequenceTh
       toBarOffset = toActive ? barHW : 0;
     }
 
-    renderMessage(msg, rowY, fromCx, toCx, tk, primitives, fromBarOffset, toBarOffset);
+    const fromColHalfW = rhuInt((pLayouts[fromIdx] ?? pLayouts[0]!).colW / 2);
+    const toColHalfW = rhuInt((pLayouts[toIdx] ?? pLayouts[0]!).colW / 2);
+
+    renderMessage(msg, rowY, fromCx, toCx, tk, primitives, fromBarOffset, toBarOffset, fromColHalfW, toColHalfW);
   }
 
   return {

@@ -163,6 +163,19 @@ export interface SequenceTheme {
   stepBadgeFill: string;
   stepBadgeTextColor: string;
   stepBadgeFontSize: number;
+  /**
+   * Pixels from the source participant's box edge (along the arrow direction)
+   * to the badge centre. Using the box edge (rather than the lifeline centre)
+   * ensures the badge lands on the visible dark-background arrow segment in
+   * card mode. Set to 0 to use the legacy ¼-along placement.
+   */
+  stepBadgeOffset: number;
+  /**
+   * Vertical distance (pixels) from the arrow row Y to the message label
+   * baseline. Increase this in dark/card themes to ensure clear separation
+   * between the label text descenders and the badge circle on the line.
+   */
+  msgLabelYOffset: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -243,6 +256,8 @@ export const defaultSequenceTheme: SequenceTheme = {
   stepBadgeFill: '#4a6cf7',
   stepBadgeTextColor: '#ffffff',
   stepBadgeFontSize: 10,
+  stepBadgeOffset: 0,
+  msgLabelYOffset: 6,
 };
 
 // ---------------------------------------------------------------------------
@@ -297,12 +312,14 @@ export const sequenceByteByteGoTheme: SequenceTheme = {
   // No lifelines — cards span the diagram width
   lifelineVisible: false,
 
-  // Step number badges
+  // Step number badges — blue circles at the source card edge
   showStepNumbers: true,
   stepBadgeRadius: 11,
-  stepBadgeFill: '#f59e0b',
-  stepBadgeTextColor: '#1f2937',
+  stepBadgeFill: '#2563eb',
+  stepBadgeTextColor: '#ffffff',
   stepBadgeFontSize: 10,
+  stepBadgeOffset: 14,
+  msgLabelYOffset: 20,
 
   // Light message lines on dark bg
   messageLineStroke: '#94a3b8',
@@ -311,15 +328,15 @@ export const sequenceByteByteGoTheme: SequenceTheme = {
   arrowFill: '#94a3b8',
   messageLineStrokeWidth: 1.5,
 
-  // Subtle activation bars on dark bg
-  activationBarFill: '#374151',
-  activationBarStroke: '#6b7280',
+  // Activation bars — slightly lighter for visibility on dark bg
+  activationBarFill: '#4b5563',
+  activationBarStroke: '#94a3b8',
 
-  // Fragment on dark bg
+  // Fragment on dark bg — visible but unobtrusive
   fragFill: '#1e2433',
   fragStroke: '#4b5563',
-  fragTabFill: '#374151',
-  fragTabTextColor: '#d1d5db',
+  fragTabFill: '#4b5563',
+  fragTabTextColor: '#f3f4f6',
   fragLabelColor: '#9ca3af',
 };
 
