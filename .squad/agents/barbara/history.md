@@ -119,6 +119,64 @@ Layout is deterministic-by-construction: participant x = cumulative column width
 
 ---
 
+## Learnings — 2026-06-13 Sequence Grammar Increment-2
+
+### Activations (Increment-2)
+
+**Implementation:** `renderActivationBars()` in layout.ts emits a `RectPrimitive` per activation, colored `#c5cae9` fill / `#5c6bc0` stroke, `rx:2`, `activationBarHalfW=5px` each side, rendered **after** lifelines but **before** messages (painter order).
+
+**Minimum height:** When `from_order == to_order` the bar would be zero-height. `activationBarMinH=20px` clamps with vertical centering on the row Y.
+
+**Edge attachment:** Messages arriving/leaving an active participant offset their endpoint by `±barHalfW` so arrows visually land on the activation bar edge rather than the bare lifeline center. The offset direction is computed per-message in `layoutSequence()`: right edge for outgoing-right / incoming-right, left edge for outgoing-left / incoming-left. Self-messages exit/return at the right edge.
+
+**Order→Y map:** `buildOrderToRowY()` maps message order values to row Y coordinates (first occurrence wins for duplicate orders). Used by both activations and fragments to convert order references to pixel positions.
+
+### Fragments (Increment-2)
+
+**Rendering:** `renderFragments()` sorts fragments by span size descending (outer first, inner on top — painter's algorithm). Emits:
+1. Main `RectPrimitive` (`#eff1fb` fill, `#7986cb` stroke, `rx:6`) — light indigo background.
+2. Tab `RectPrimitive` (`#5c6bc0` fill) in upper-left corner — sized to keyword text width.
+3. Keyword `TextPrimitive` (white, bold, 11px) centered in tab.
+4. Guard label `TextPrimitive` (dark indigo, 11px) immediately after the tab.
+
+**Horizontal extent:** When `fragment.participants` is absent, use the leftmost participant's `boxX - fragPadX` to the rightmost participant's `boxX + boxW + fragPadX`, clamped to `[0, canvasW]`.
+
+**Vertical extent:** `rowY(from_order) - fragPadY` to `rowY(to_order) + fragPadY` (fragPadY=14px).
+
+**Painter order:** Fragments rendered as step 6 (right after background), before participant headers (step 7) and messages (step 9). This puts fragments visually behind all content.
+
+**Alt sub-compartment dividers deferred:** Only a single guard label per fragment. Multiple operands/guards in `alt` fragments require divider line primitives — deferred to increment-3.
+
+### Self-messages (Increment-2 fix)
+
+**3-segment LinePrimitives:** Changed from a single `PathPrimitive` (which lacked `dashArray` support) to 3 separate `LinePrimitive`s (horizontal right → vertical down → horizontal left). This correctly supports `dashArray` for dashed reply self-messages.
+
+**Label placement:** Changed from "centered above the exit segment" to "to the right of the loop, vertically centered on the loop height" (`textAnchor: 'start'`). This matches the spec and avoids overlap with the fragment box above.
+
+**Activation edge attachment:** Self-message exit/return point shifts to `cx + barHalfW` when the participant has an active activation bar at that message order.
+
+### Schema Updates
+
+Added fragment validation in `superRefine`:
+- `from_order > to_order` → validation error
+- `fragment.participants` refs unknown participant → validation error
+(Activation validation was already present in increment-1.)
+
+### Determinism
+
+All new rendering paths use `rhuInt(v) = Math.floor(v + 0.5)` for coordinate rounding. The fragment tab width uses `measureText()` which is deterministic (same font/size → same width). Activation bar rendering uses the same deterministic `orderToRowY` map. **603/603 tests pass; all existing goldens byte-identical.**
+
+### Open Work (Increment-3+)
+
+- Alt fragment sub-compartment dividers (multiple guard conditions per alt)
+- Additional participant kinds: boundary/control/entity/database icons
+- Theme integration: `SequenceTheme` tokens on `ResolvedTheme`
+- Fragment partial-overlap validation (currently only `from_order <= to_order` is enforced)
+- Soft nesting depth limit (recommend max 3 levels with lint warning)
+
+
+---
+
 ## 2026-06-13 — Sequence Grammar Increment-1 SHIPPED (Barbara)
 
 **Date:** 2026-06-13T14:13:38Z | **Commit:** 301a188

@@ -486,3 +486,111 @@ Exported from `packages/core/src/index.ts` as `buildSequenceScene`, `renderSeque
 - Self-message curve geometry (currently sharp right angles)
 - Additional participant kinds: `boundary`, `control`, `entity`, `database` icons
 - Theme token integration (SequenceTheme on ResolvedTheme)
+
+---
+
+# Decision: Sequence Grammar — Increment-2 Implementation (Self-messages, Activations, Fragments)
+
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-13T10:13:06-04:00  
+**Status:** ADOPTED; Increment-2 complete
+
+---
+
+## Summary
+
+Increment-2 builds on the increment-1 foundation (participants, messages, lifelines) with three new features:
+1. **Self-messages:** Fixed layout using dashed `LinePrimitive` segments (replaced `PathPrimitive` which lacks `dashArray`).
+2. **Activations:** Thin filled rectangles on lifelines, anchored to message order ranges.
+3. **Fragments:** Labeled rounded boxes (`loop`, `alt`, `opt`, `par`, `critical`, `break`) with keyword tabs and guard labels.
+
+All 603 tests pass (589 existing + 14 new). Pre-existing goldens byte-identical.
+
+---
+
+## Features Added
+
+### 1. Self-messages (Layout Refinement)
+
+**Problem:** Increment-1 rendered self-messages as single `PathPrimitive` (sharp right angles), but `PathPrimitive` lacks `dashArray` field → dashed reply arrows didn't render.
+
+**Solution:** Split each self-message into 3 `LinePrimitive` segments:
+- Downstroke: vertical line from participant lifeline
+- Right segment: horizontal line offset to the right
+- Return segment: vertical line back to lifeline with optional dash
+
+Label moved to right side of loop (`textAnchor: 'start'`, x=loopX+6, y=midpoint of loop height) per spec.
+
+**Geometry:** Sharp right angles; no curves; deterministic by construction.
+
+### 2. Activations
+
+**Semantics:** Thin filled rectangles (`activationBarHalfW=5`, `#c5cae9` fill / `#5c6bc0` stroke, `rx:2`) on participant lifelines, spanning `from_order` to `to_order`.
+
+**Rendering:** `renderActivationBars()` draws bars after lifelines, before messages. Message endpoint attachment: `±barHalfW` offset in direction of message travel, so arrows visually land on bar edge.
+
+**Layout:** `buildOrderToRowY()` maps message order→Y coordinate; bars positioned accordingly.
+
+### 3. Fragments
+
+**Semantics:** Optional labeled boxes for control flow (loop, alt, opt, par, critical, break). Each fragment spans `from_order` to `to_order` and may nest.
+
+**Rendering:** `renderFragments()` renders before participant headers (outer fragments first). Each:
+- Rounded rect with light-indigo background
+- Keyword tab (small filled rect, `#5c6bc0` fill, white text) top-left
+- Guard label inside tab
+
+**Geometry:**
+- Horizontal extent: leftmost/rightmost participant boxX ± fragPadX (clamped to canvas)
+- Vertical: rowY(from_order) - fragPadY … rowY(to_order) + fragPadY
+- Nesting: inner fragments layer on top (z-order resolved by render order)
+
+**Deferral:** Alt sub-compartments (multiple guard conditions with divider lines) → increment-3.
+
+---
+
+## New Fixture
+
+`examples/gallery/sequence-agent-loop.sequence.yaml`:
+- 3 participants: User (actor), Agent, Tool
+- 7 messages including 1 self-message (Agent → Agent: "reflect")
+- 1 activation: Agent (orders 2–6)
+- 2 fragments: `loop [retry until 200]` (orders 2–6), `opt [if token valid]` (order 7)
+- Outputs: `sequence-agent-loop.svg` + `.png`
+
+Validates full integration: self-message, activation, nested fragments.
+
+---
+
+## Test Results
+
+- **603/603 tests pass** (589 pre-existing + 14 new)
+- All pre-existing goldens byte-identical
+- New sequence-agent-loop fixture rendered correctly
+
+---
+
+## Commit
+
+**0f21596** — Barbara, Sequence grammar increment-2: self-messages (dashed), activations (bars), fragments (loops/opts/etc). 603/603 tests; goldens byte-identical.
+
+---
+
+## Open for Increment-3+
+
+- Alt sub-compartment dividers (multiple guard conditions with horizontal separators)
+- Participant kinds: `boundary`, `control`, `entity`, `database` icons (visual subtypes)
+- SequenceTheme tokens on ResolvedTheme (layout currently uses hardcoded defaults)
+- Fragment partial-overlap validation (e.g., warn if fragment spans don't align with message ranges)
+- Soft nesting depth limit (recommend ≤3, lint warning if exceeded)
+
+---
+
+## Questions for Mark (IR & Schema)
+
+1. **Order-range validation:** Should `Activation` and `Fragment` ranges be validated cross-semantically (e.g., `from_order < to_order`, both within message count) at schema or layout time?
+
+2. **Alt multi-guard schema:** When alt sub-compartments are implemented, the schema will need to support multiple guards per alt fragment. Current design: `guard?: string` on Fragment. Should multi-guard be `guard?: string | string[]` or a nested `guards: Array<{label, from_order, to_order}>`?
+
+3. **Nesting depth:** Is there a maximum nesting depth for fragments? Current design allows arbitrary nesting. Recommend soft limit (≤3) with lint warning in validation pass.
+
