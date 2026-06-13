@@ -914,3 +914,105 @@ Grammar cells (flow/tree/sequence) pass `content.doc` to their builders, which c
 | `examples/gallery/poster-rag-architecture-dark.svg` | NEW |
 | `examples/gallery/poster-rag-architecture-dark.png` | NEW |
 
+
+## Decision: Poster Polish + ByteByteGo Timeline Theme
+
+**Date:** 2026-06-13T17:01:18-04:00
+**Author:** Barbara (Semantics & Rendering)
+**Status:** ADOPTED
+
+---
+
+## Decision 1 — Two-Pass Row Sizing in Composition Layout
+
+**Problem:** `computeGridLayout` computed row heights from natural (unscaled)
+sub-scene heights *before* proportionally scaling columns to fit the available
+canvas width. When a wide cell (e.g. the flow sub-scene at 1503 px) was scaled
+down to fit a ~737 px column, its rendered height dropped from ~175 px to ~84 px
+— but the row was already sized to the unscaled value (~348 px), leaving
+≈264 px of dead vertical space.
+
+**Decision:** Two-pass algorithm in `composition/layout.ts → computeGridLayout`:
+
+1. **Pass 1a:** Compute natural column widths; apply 80 px minimum clamp.
+2. **Pass 1b:** Apply proportional column scaling (if total > available width).
+3. **Pass 2:** For each single-span cell compute  
+   `fitScale = min(finalColWidth / naturalCellW, 1.0)`,  
+   `fittedH = naturalCellH × fitScale`,  
+   set `rowHeights[row] = max(fittedH)` over cells in that row.
+4. Apply 60 px minimum row-height clamp.
+5. If `rowSizing = 'equal'`, normalise to global max *after* Pass 2.
+
+**Impact:** Dark poster 1200×1144 → 1200×857 (−287 px, 25% tighter).
+Light poster similarly reduced. Determinism preserved (all rhu rounding intact).
+
+---
+
+## Decision 2 — Icon Path `transform` Attribute Composition Fix
+
+**Problem:** Grammar layouts (sequence, tree, flow) emit icon `PathPrimitive`s
+with `transform="translate(tx,ty) scale(s)"` to place 0–24 icon-space
+coordinates into canvas space. The composition engine's `translateAndScale`
+applied the outer (composition) scale/translate to the raw icon `d` string
+(still in 0–24 space) while leaving the `transform` attribute unchanged. The
+SVG renderer then applied the icon transform *on top of* the already-distorted
+`d` coordinates, producing icons rendered at completely wrong positions (e.g.
+the `vectordb` participant icon bled outside the sequence panel border).
+
+**Decision:** `transformPath` in `scene-transform.ts` now detects
+`transform="translate(tx,ty) scale(s)"` and composes the transforms:
+- `composedS  = s × outerScale`
+- `composedTx = tx × outerScale + dx`
+- `composedTy = ty × outerScale + dy`
+
+The `transform` attribute is removed from the output (baked into `d`).
+StrokeWidth is baked as `original_sw × s × outerScale`.
+
+Standalone grammar renders (which never invoke `translateAndScale`) are
+completely unaffected — all existing non-poster goldens remain byte-identical.
+
+---
+
+## Decision 3 — ByteByteGo Dark Timeline Theme
+
+**Decision:** New `bytebyteGoTheme` (id: `'bytebytego'`, tier 2) added at
+`packages/core/src/themes/bytebytego.ts`.
+
+**Palette:** Mirrors the ByteByteGo dark infographic palette used across all
+four grammar families for a cohesive cross-grammar look:
+
+| Token             | Value     | Source                          |
+|-------------------|-----------|---------------------------------|
+| Canvas background | `#111827` | matches dark-flow, dark-tree, bytebytego-sequence |
+| Track surface     | `#1f2937` | ByteByteGo card fill            |
+| Teal accent       | `#2dd4bf` | ByteByteGo primary teal         |
+| Text bright       | `#f9fafb` | near-white                      |
+| Text mid          | `#e2e8f0` | mid-weight labels               |
+| Text dim          | `#9ca3af` | secondary/dim labels            |
+| Grid/separator    | `#374151` | dark border                     |
+
+Status fills: vivid blue (planned), teal (in-progress), green (done),
+amber (at-risk), red (blocked), dark gray (cancelled), purple (tentative).
+
+**Demo:** `feature-rich-bytebytego.{svg,png}` in `examples/gallery/`.
+The default `feature-rich.{svg,png}` (product theme) remains byte-identical.
+
+**Tests:** 10 new tests in `themes.test.ts` — registry, dark bg, determinism,
+sceneHash differs from consulting, gallery emit (SVG + PNG), default unchanged.
+
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `packages/core/src/composition/layout.ts` | Two-pass row sizing |
+| `packages/core/src/scene-transform.ts` | Icon path transform composition |
+| `packages/core/src/themes/bytebytego.ts` | NEW — ByteByteGo dark theme |
+| `packages/core/src/themes/index.ts` | Register bytebytego theme |
+| `packages/core/test/themes.test.ts` | 10 new bytebytego tests |
+| `examples/gallery/poster-rag-architecture.{svg,png}` | Re-emitted (tighter) |
+| `examples/gallery/poster-rag-architecture-dark.{svg,png}` | Re-emitted (tighter + artifact fixed) |
+| `examples/gallery/feature-rich-bytebytego.{svg,png}` | NEW — bytebytego demo |
+
+**Test count:** 725 → 735 (all pass, no regressions).

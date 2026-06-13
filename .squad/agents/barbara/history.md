@@ -301,3 +301,73 @@ Additive design: animation field undefined by default. Canonical JSON omits unde
 - **Byte-Safety:** All 706 prior goldens byte-identical except flow-rag-pipeline SVG (gains animation markers); PNG byte-stable (raster ignores SMIL)
 
 ---
+
+---
+
+## Learnings — 2026-06-13T17:01:18-04:00 Poster Polish + ByteByteGo Timeline Theme
+
+### Two-Pass Row Sizing (Task 1)
+
+**Root cause:** `computeGridLayout` in `composition/layout.ts` set row heights to
+the *natural* (unscaled) content heights before proportional column scaling was
+applied. When wide cells were later scaled down to fit narrower columns, their
+rendered height shrank — but rows were already sized to the unscaled height,
+leaving large dead vertical space at the bottom of each panel.
+
+**Fix:** Moved proportional column scaling to *before* row height computation,
+then added a second pass: for each single-span cell,
+`fitScale = min(finalColWidth / naturalCellW, 1.0)` and
+`fittedH = naturalCellH * fitScale`. Row heights are now set to `max fittedH`
+over single-span cells, then the 60px min-clamp. The `rowSizing:'equal'`
+branch still normalises to global max *after* this second pass.
+
+**Result:** Dark poster 1200×1144 → 1200×857 (−287 px, 25% shorter).
+Light poster likewise tighter. All rhu(int) rounding preserved; fully
+deterministic.
+
+### Icon Path `transform` Attribute — Sequence-Panel Edge Artifact (Task 2)
+
+**Root cause:** Icon paths in sequence, tree, and flow grammar layouts are
+emitted with `transform="translate(tx,ty) scale(s)"` on the `PathPrimitive`.
+When the composition engine calls `translateAndScale`, the `transformPath`
+function applied the outer (composition) transform to the raw icon `d` string
+(which is in 0–24 icon space), while leaving the `transform` attribute
+unchanged. The SVG renderer then applied the original icon `transform` *on top*
+of the already-transformed `d`, producing icons rendered at completely wrong
+canvas positions — the `vectordb` participant's database icon bled outside the
+sequence panel's right border.
+
+**Fix:** Added `parseSimpleTransform` helper in `scene-transform.ts` that parses
+`"translate(tx,ty) scale(s)"`. In `transformPath`, when a path has such a
+`transform` attribute, the icon transform is composed with the composition
+transform before calling `transformPathD`:
+- `composedS  = s * outerScale`
+- `composedTx = tx * outerScale + dx`
+- `composedTy = ty * outerScale + dy`
+- strokeWidth baked as `original_sw * s * outerScale`
+- `transform` attribute removed (now baked into `d`)
+
+Standalone grammar renders (sequence, tree, flow) are never routed through
+`translateAndScale`, so all existing SVG/PNG goldens are byte-identical.
+
+### ByteByteGo Dark Timeline Theme (Task 3)
+
+Added `bytebyteGoTheme` (`id: 'bytebytego'`, tier 2) in
+`packages/core/src/themes/bytebytego.ts`. Palette: `#111827` dark canvas
+(matching dark-flow, dark-tree, bytebytego-sequence), teal `#2dd4bf` accent,
+vivid blue/purple/amber status fills, `#1f2937` track header surface. Registered
+in `themes/index.ts` and `listThemeInfos`. Demo: `feature-rich-bytebytego.{svg,png}`
+rendered from `feature-rich.timeline.yaml` using the horizontal layout family.
+Tests: 9 new tests in `themes.test.ts` covering registry, dark background,
+determinism (two-render byte-identical), and gallery emit; feature-rich default
+(product theme) confirmed byte-identical.
+
+### Combined Metrics
+
+- **Baseline:** 725 tests (prior milestone)
+- **New tests:** +10 (bytebytego theme registry, determinism, emit)
+- **Final:** 735/735 tests pass
+- **Goldens changed:** poster-rag-architecture.{svg,png} (Task 1+2 re-emit),
+  poster-rag-architecture-dark.{svg,png} (Task 1+2 re-emit)
+- **Goldens added:** feature-rich-bytebytego.{svg,png} (Task 3 demo)
+- **Non-target goldens:** all byte-identical (sequence, tree, flow, timeline themes)
