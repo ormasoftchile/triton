@@ -92,6 +92,104 @@ Flow grammar IR omits layout logic entirely (deferred to Sugiyama phase separati
 
 ---
 
+## Decision: De-Risked Grammar Sequencing (Taxonomy Refinement)
+
+**Agent:** Leslie (Spec Architect)  
+**Date:** 2026-06-13T02:42:44-04:00  
+**Status:** ADOPTED
+
+**Strategic Insight:** After analyzing the inspiration corpus (sample-images 5–11) and scope alignment with IR contract, the team adopted a **de-risked grammar roadmap** where **Sequence is the first new grammar** (ahead of general-DAG Flow layout extension).
+
+**Core Reason:** Sequence layout is **deterministic-by-construction** (declared participant order → x-position; explicit message `order` field → y-position). No Sugiyama four-phase, no force-directed, no RNG, no convergence. Contrast: Flow (Grammar #2) requires full Sugiyama layer-assignment + crossing-minimization + coordinate assignment with pinned determinism. Sequence eliminates the "hard problem" (§42 Graph Auto-Layout) entirely.
+
+**Taxonomy Refinement:**
+
+- **Shape Grammars** (diagram structure & deterministic layout): Flow (pipeline/linear first scope), **Sequence (new — de-risked first)**, Tree (hierarchical)
+- **Composition Layer** (multi-diagram comparison/panel arrangement): Grids (tabular-constrained), Panels (multi-diagram posters) — these are NOT standalone grammars; they compose shape grammars
+
+**Roadmap Priority:**
+1. Flow scoped to linear/pipeline (avoids Sugiyama complexity for MVP)
+2. **Sequence [chosen first NEW grammar for de-risk]** — IR in place; Mark refines JSON Schema; Barbara defines rendering (self-message curves, fragment nesting, stereotype icons)
+3. Tree (hierarchical layout, Buchheim O(n), self-contained)
+4. Composition/Grid (tabular + multi-panel layouts)
+5. Later: general-DAG Flow layout, data-structure diagrams (niche)
+
+**Journey/Roadmap Images Mapping:** Existing serpentine + roadmap layout families already cover these visualization intents; no new grammar needed.
+
+---
+
+## Decision: Sequence Grammar = De-Risked First New Grammar (Grammar #3)
+
+**Agent:** Leslie (Spec Architect)  
+**Date:** 2026-06-13  
+**Status:** ADOPTED
+
+### Summary
+
+The Sequence Grammar is the third grammar in the diagram compiler (after Timeline #1 and Flow #2) and the **first de-risked new grammar** — its layout is deterministic-by-construction, requiring no graph auto-layout algorithm.
+
+### IR Shape
+
+```
+sequence:
+  participants: [{id, label, kind?, description?}]   # declared order = x-position
+  messages: [{from, to, label, order, kind?}]        # order field = y-position
+  activations: [{participant, from_order, to_order}]  # optional lifeline bars
+  fragments: [{kind, label, from_order, to_order, participants?}]  # optional combined fragments
+```
+
+- **Participant**: id (unique), label (display text), kind (actor|object|boundary|control|entity|database), description
+- **Message**: from/to (participant refs), label, order (explicit integer — the deterministic backbone), kind (sync|async|reply)
+- **Activation**: participant ref + message order range
+- **Fragment**: loop|alt|opt|par|critical|break + guard label + message order range + optional participant subset
+
+### Deterministic-by-Construction Layout Rationale
+
+The critical insight: sequence diagram placement is **fully determined by two ordered lists**:
+1. Participants declared left-to-right → x-positions via cumulative label widths
+2. Messages with explicit `order` field → y-positions via `rank × rowHeight`
+
+**No optimization required.** No Sugiyama layer assignment, no crossing minimization, no coordinate assignment, no force-directed simulation, no RNG, no convergence. Placement is a closed-form arithmetic function of declaration order.
+
+**Contrast with Flow Grammar:** Flow requires four-phase Sugiyama (cycle removal → network simplex → barycenter crossing min. → Brandes–Köpf coordinate assignment) with careful determinism pinning (fixed 24 sweeps, canonical tie-breaking). Sequence needs none of this.
+
+This makes Sequence the lowest-risk grammar to add — the "hard problem" of §42 (Graph Auto-Layout) simply does not apply.
+
+### Lowering to Scene IR
+
+All sequence constructs map to existing kernel primitives:
+- Participant headers → Rect + Text
+- Lifelines → dashed Line
+- Messages → Line + arrowhead Path + label Text
+- Activations → thin Rect
+- Fragments → rounded Rect + tab Rect + Text
+
+**No new Scene IR primitives required.**
+
+### Deferred to Mark (IR Schema Detail)
+
+- Exact JSON Schema (enum values, string patterns, min/max on `order`)
+- Whether Message needs an explicit `id` field
+- Whether `order` can alternatively be implicit (list position as default)
+- Exhaustive semantic validation rule set (fragment overlap detection, activation range validation)
+
+### Deferred to Barbara (Rendering Semantics)
+
+- Self-message curve geometry (rounded corners vs. smooth arc vs. sharp bends)
+- Fragment nesting depth recommendation (soft limit for readability)
+- Participant stereotype icon geometries (actor stick-figure, boundary bar, control arrow, entity underline, database cylinder)
+- Arrowhead sizing (scale with stroke or fixed pixel)
+- Activation bar width
+
+### Files
+
+- `design/sections/26-sequence-grammar.tex` — full concrete spec
+- `design/main.tex` — `\input{sections/26-sequence-grammar}` added
+- `design/sections/24-diagram-family.tex` — cross-reference added
+- `design/references.bib` — `uml25`, `itu-msc` entries added
+
+---
+
 ## Decision: Roadmap Layout Family — INCREMENT 2
 
 **Agent:** Barbara (Semantics & Rendering)  

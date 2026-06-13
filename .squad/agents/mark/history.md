@@ -85,6 +85,41 @@ Added **`axis.nodeWrap?: 'none' | 'over-under'`** token to `AxisTheme` (packages
 
 ---
 
+## 2026-06-13 — Sequence Grammar Domain IR Open Questions (Mark Intake)
+
+**From:** Scribe (recording Leslie's deferred work) | **Date:** 2026-06-13T06:43:00Z  
+**Artifact:** `design/sections/26-sequence-grammar.tex` (Grammar #3 Specification)  
+**Status:** Ready for Mark's JSON Schema refinement
+
+### Sequence IR Schema Queries (Priority: Mark intake for Phase 2)
+
+1. **Message Unique Identity**
+   - Should Message require explicit `id` field or rely on positional identity (from + to + order)?
+   - **Impact:** Reference resolution in fragments, activation ranges; validation determinism; LLM generation constraints.
+
+2. **Order Field — Implicit vs. Explicit**
+   - Current spec: messages have explicit `order` integer. Alternative: infer order from list position?
+   - **Tradeoff:** Explicit = self-documenting, reorderable; implicit = compact, fragile if position changes.
+   - **Impact:** Serialization, validation, evolution path.
+
+3. **Fragment Overlap & Nesting Validation**
+   - Fragments specify `from_order`, `to_order` ranges. What invariants guard against:
+     - Fragment A nested in Fragment B but order ranges don't nest?
+     - Multiple fragments with identical order spans?
+     - Participants in fragment subset not in global participants list?
+   - **Pattern:** Add to 17-strong well-formedness rule set (Timeline invariants model).
+
+4. **JSON Schema Precision**
+   - Participant `kind` enum: `actor|object|boundary|control|entity|database`
+   - Message `kind` enum: `sync|async|reply`
+   - Fragment `kind` enum: `loop|alt|opt|par|critical|break`
+   - Enums complete? Any domain-specific extensions to anticipate?
+
+5. **Constraint Grammar (XGrammar/GBNF)**
+   - Per David's research guidance: Submit Sequence JSON schema as constraint grammar for LLM generation pipeline reliability.
+   - Deliverable: Annotated XGrammar version of schema for constraint-based syntactic validation.
+
+---
 
 ## 2026-06-12 — Cross-Agent Context: `axis_breaks` IR Field Schema Review (Barbara → Mark)
 
