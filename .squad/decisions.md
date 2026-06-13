@@ -398,3 +398,91 @@ All 17 hardcoded geometry constants in `packages/core/src/layout/roadmap.ts` hav
 
 **Commit:** 21ab190 (Barbara) — Roadmap geometry token promotion; all goldens byte-identical; 577/577 tests pass.
 
+
+---
+
+# Decision: Sequence Grammar — Increment-1 Implementation
+
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-13T09:49:15-04:00  
+**Status:** ADOPTED
+
+---
+
+## Summary
+
+The Sequence Grammar is now implemented as the first `grammars/*` module — the first real test of the multi-grammar architecture (Flow Grammar has IR stubs only; Sequence has full layout + render). Increment-1 covers: participants, messages (sync/async/reply), lifelines, actor stick-figure icons. Activations and Fragments are deferred to increment-2.
+
+---
+
+## Kernel Reuse Pattern
+
+The two-IR-layer model works cleanly:
+
+```
+SequenceDocument (domain IR)
+       │
+       ▼
+ layoutSequence()            ← new, in grammars/sequence/
+       │
+       ▼
+    Scene (kernel IR)        ← unchanged
+       │
+       ├──► sceneToSvg()     ← unchanged
+       ├──► svgToPng()       ← unchanged
+       └──► sceneToPngSkia() ← unchanged
+```
+
+No new Scene IR primitives were needed. The existing kernel (scene.ts + render/) is sufficient for a complete sequence diagram. All 577 pre-existing golden outputs are byte-identical.
+
+---
+
+## Module Structure
+
+```
+packages/core/src/grammars/sequence/
+  types.ts    — SequenceDocument domain IR
+  schema.ts   — Zod validation (participant uniqueness, message refs)
+  layout.ts   — layoutSequence() → Scene (deterministic-by-construction)
+  index.ts    — buildSequenceScene() + renderSequenceDocument() public API
+```
+
+Exported from `packages/core/src/index.ts` as `buildSequenceScene`, `renderSequenceDocument`, `sequenceDocumentSchema`, and all sequence types.
+
+---
+
+## Example Fixture
+
+`examples/gallery/sequence-rest-auth.sequence.yaml` — REST API token auth flow (Client → Auth Server, 4 messages). Gallery outputs:
+- `examples/gallery/sequence-rest-auth.svg`
+- `examples/gallery/sequence-rest-auth.png`
+
+---
+
+## Test Results
+
+- **589/589 tests pass** (577 existing + 12 new sequence tests)
+- Determinism verified: two builds → identical `sceneHash`
+- Gallery files emitted and valid
+
+---
+
+## Open Questions for Mark (IR & Schema)
+
+1. **YAML loader integration**: The fixture is loaded as raw YAML then parsed by Zod. Should the `compile()` / `loadIR()` API be extended to dispatch on document type (timeline vs sequence vs flow), or is sequence always a separate entry point? Recommend: add a `kind` field to root document and a dispatcher.
+
+2. **Version field semantics**: The `version: "1.0"` field is validated as a non-empty string. Should there be a Zod `.refine` enforcing semver format or an allowlist of supported versions?
+
+3. **Theme token block**: Sequence layout currently uses hardcoded DEFAULTS. When the `SequenceTheme` block is added to `ResolvedTheme`, the layout will accept a theme name and call `resolveTheme()`. Needs Mark's sign-off on where `sequence?` sits in the `ResolvedTheme` interface.
+
+4. **Activation schema validation**: `Activation.from_order` and `to_order` should reference valid message `order` values. Currently accepted structurally but not cross-validated. This is a semantic check (like `validate.ts` for the timeline grammar) — deferred to increment-2.
+
+---
+
+## Deferred to Increment-2
+
+- Activation bar rendering (thin rect on lifeline)
+- Fragment rectangles (loop/alt/opt/par/critical/break tabs)
+- Self-message curve geometry (currently sharp right angles)
+- Additional participant kinds: `boundary`, `control`, `entity`, `database` icons
+- Theme token integration (SequenceTheme on ResolvedTheme)

@@ -121,6 +121,66 @@ Added **`axis.nodeWrap?: 'none' | 'over-under'`** token to `AxisTheme` (packages
 
 ---
 
+## 2026-06-13 — Sequence Grammar Implementation Complete (Barbara → Mark)
+
+**From:** Scribe | **Date:** 2026-06-13T14:13:38Z  
+**Artifact:** Commit 301a188 | `packages/core/src/grammars/sequence/` module  
+**Status:** COMPLETED — First full multi-grammar implementation
+
+### Sequence IR Implemented (Domain IR Validation)
+
+**Barbara shipped full Sequence Grammar Increment-1:**
+
+```
+SequenceDocument (Domain IR)
+  - participants: [{id, label, kind, description}]
+  - messages: [{from, to, label, order, kind}]
+  - activations: [{participant, from_order, to_order}]
+  - fragments: [{kind, label, from_order, to_order, participants?}]
+```
+
+**Module Structure:**
+- `types.ts` — SequenceDocument + Participant/Message/Activation/Fragment interfaces
+- `schema.ts` — Zod validation (participant uniqueness enforced; message refs validated)
+- `layout.ts` — `layoutSequence()` deterministic-by-construction → Scene IR
+- `index.ts` — `buildSequenceScene()` + `renderSequenceDocument()` public API
+
+**Schema Validation Currently Implemented:**
+- Participant id uniqueness (via Zod set)
+- Message `from`/`to` references (must be valid participant ids)
+- Message `order` as integer (no explicit validation of range; deferred per open questions)
+- Fragment `kind` enum: `loop|alt|opt|par|critical|break`
+
+### Key Insight: No Kernel Changes Required
+
+All sequence constructs lowered to existing Scene IR primitives. All 577 timeline goldens byte-identical. 589/589 tests pass (577 legacy + 12 new sequence).
+
+### Open Schema Questions — Next Actions for Mark
+
+1. **YAML Loader Dispatch:** Should `compile()` / `loadIR()` dispatch on document `kind` field, or is sequence always separate entry point?
+   - **Recommend:** Add `kind` field to root document + dispatcher
+
+2. **Version Field Semantics:** Current validation is non-empty string. Enforce semver or allowlist?
+
+3. **Theme Token Block:** When `SequenceTheme` added to `ResolvedTheme`, where does `sequence?` sit in interface? Currently using DEFAULTS in layout.
+
+4. **Activation Cross-Validation:** `from_order`, `to_order` should reference valid message `order` values. Currently accepted structurally only — deferred to increment-2.
+
+### Constraint Grammar Candidate
+
+Per David's research (2026-06-12): Sequence JSON schema should be submitted as XGrammar/GBNF constraint grammar for LLM generation pipeline reliability. **Action:** Mark to author constraint grammar version of schema.
+
+### Test Coverage: 589/589 Pass
+
+12 new test cases cover:
+- Participant uniqueness validation
+- Message reference validation (from/to exist)
+- Fragment nesting (increment-2 semantic rules deferred)
+- Schema serialization round-trip
+- Gallery fixture (sequence-rest-auth.sequence.yaml) renders clean UML-style sequence diagram
+
+---
+
 ## 2026-06-12 — Cross-Agent Context: `axis_breaks` IR Field Schema Review (Barbara → Mark)
 
 **From:** Barbara (Semantics & Rendering) | **Date:** 2026-06-12  

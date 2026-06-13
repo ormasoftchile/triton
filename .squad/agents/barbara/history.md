@@ -89,3 +89,57 @@ Full learnings archived to `history-archive.md`.
    - **Pattern:** Align with existing callout/box styling from roadmap layout.
 
 ---
+
+## Learnings — 2026-06-13 Sequence Grammar Increment-1
+
+### Module Structure Created
+
+New grammar module: `packages/core/src/grammars/sequence/`
+
+| File | Purpose |
+|------|---------|
+| `types.ts` | Sequence domain IR: `SequenceDocument`, `Participant`, `Message`, `Activation` (stub), `Fragment` (stub) |
+| `schema.ts` | Zod schema — validates participant id uniqueness, message from/to refs, order ≥ 0 |
+| `layout.ts` | `layoutSequence(doc)` — deterministic-by-construction Scene emission |
+| `index.ts` | Public API: `buildSequenceScene`, `renderSequenceDocument`, re-exports types/schema |
+
+### Kernel Reuse Pattern
+
+The Sequence Grammar emits only existing Scene IR primitives (rect/line/path/text). No new kernel primitives were added. Serialisers (`sceneToSvg`, `svgToPng`, `sceneToPngSkia`) are imported unchanged from `render/`. This is the two-IR-layer architecture: Sequence Domain IR → `layoutSequence()` → Scene → existing backends.
+
+Layout is deterministic-by-construction: participant x = cumulative column widths (measured via `measureText`); message y = `headerBottom + firstMsgGap + rank * rowHeight`. Rounding uses `rhuInt` (round-half-up, integer). All 577+12=589 tests pass; 577 existing goldens byte-identical.
+
+### What Is Deferred to Increment-2
+
+- **Activations**: thin filled rect on lifeline; `Activation` type exists in types.ts, schema accepts it, layout ignores it
+- **Fragments**: combined fragment (loop/alt/opt/par/critical/break) rect+tab; `Fragment` type exists, deferred
+- **Self-message curve geometry**: currently sharp right angles; increment-2 may add rounded corners via theme token
+- **Additional participant kinds**: `boundary`, `control`, `entity`, `database` — currently fall back to `object` box styling; increment-2 adds their specific icons/shapes
+- **Theme integration**: sequence uses fixed DEFAULTS; increment-2 adds a `SequenceTheme` block on `ResolvedTheme` with configurable tokens
+
+---
+
+## 2026-06-13 — Sequence Grammar Increment-1 SHIPPED (Barbara)
+
+**Date:** 2026-06-13T14:13:38Z | **Commit:** 301a188
+
+### Completed
+
+✅ Module created: `packages/core/src/grammars/sequence/` (types, schema, layout, index)  
+✅ Kernel reuse verified: no new Scene IR primitives needed  
+✅ All 577 timeline goldens byte-identical  
+✅ 589/589 tests pass (577 legacy + 12 new sequence)  
+✅ Example fixture: `examples/gallery/sequence-rest-auth.{sequence.yaml, svg, png}`
+
+### Architecture Achievement
+
+The two-IR-layer model is now production-proven with a second grammar. Sequence eliminates the "hard problem" (Sugiyama auto-layout) entirely via deterministic-by-construction placement. The `grammars/sequence/` module is the template for all future grammars (own IR → deterministic layout → shared Scene kernel → backends).
+
+### Increment-2 Roadmap
+
+Barbara will implement (in priority order):
+1. Self-message curve geometry (rounded corners or smooth arc vs. sharp angles)
+2. Activation bar width + styling
+3. Fragment rectangles + tab labels
+4. Participant stereotype icons (actor stick-figure, boundary bar, control arrow, entity underline, database cylinder)
+5. `SequenceTheme` integration on `ResolvedTheme` + arrowhead sizing tokens

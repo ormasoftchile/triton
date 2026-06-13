@@ -43,6 +43,59 @@
 
 ---
 
+## 2026-06-13 — Sequence Grammar Spec → Implementation (Barbara Complete)
+
+**From:** Scribe | **Date:** 2026-06-13T14:13:38Z  
+**Milestone:** First new grammar beyond Timeline fully implemented  
+**Commit:** 301a188
+
+### What Barbara Shipped
+
+**Sequence Grammar Increment-1 COMPLETE** — the spec (sections/26-sequence-grammar.tex) is now production code:
+
+```
+packages/core/src/grammars/sequence/
+  ├── types.ts (SequenceDocument, Participant, Message, Activation, Fragment)
+  ├── schema.ts (Zod: participant uniqueness, message ref validation)
+  ├── layout.ts (layoutSequence() → Scene IR, deterministic-by-construction)
+  └── index.ts (buildSequenceScene + renderSequenceDocument public API)
+```
+
+**Architecture Validated:**
+- Two-IR-layer model (Domain IR → Scene kernel) works cleanly
+- No new Scene IR primitives needed (reuses Rect, Text, Line, Path, arrowhead)
+- All 577 timeline goldens byte-identical
+- 589/589 tests pass (12 new sequence tests)
+
+**Example Fixture:** `examples/gallery/sequence-rest-auth.{sequence.yaml, svg, png}` — REST token auth flow (4 messages, 2 participants)
+
+### Grammars/* Module as Template
+
+`packages/core/src/grammars/sequence/` is now the **canonical template for all future grammar implementations**:
+- Own IR (domain-specific)
+- Own schema validation (Zod)
+- Own layout determinism rules
+- Reuse Scene kernel + existing serializers (sceneToSvg, svgToPng, sceneToPngSkia)
+
+### Roadmap Implications
+
+**Sequence moved from "Grammar #3 Spec" to "Grammar #3 Implemented".**
+
+Current Status:
+- **Grammar #1 (Timeline)** — Full implementation, 5 themes (T1–T5 showcase, all closed)
+- **Grammar #2 (Flow)** — Spec stage (sections/25-flow-grammar.tex); IR stubs in packages/core/src/flow/; awaiting Mark's JSON Schema + Barbara's Sugiyama + Leslie's integration decision
+- **Grammar #3 (Sequence)** — **IMPLEMENTATION COMPLETE** ✅; increment-2 deferred (activations, fragments, icons, themes)
+- **Grammar #4 (Tree)** — Spec candidate (Buchheim O(n) hierarchical layout, deterministic)
+- **Composition (Grids/Panels)** — Spec stage; architecture TBD
+
+### Open Questions
+
+1. **Mark:** YAML dispatcher, version semantics, theme token placement, activation validation
+2. **Barbara:** Increment-2 features (activation bars, fragment rects, self-message curves, participant icons)
+3. **Leslie:** Flow grammar integration decision (Sugiyama pinning strategy + determinism gates)
+
+---
+
 ## Archive
 
 See `history-archive.md` for pre-2026-06-13 strategic reframe (2026-06-11) and Flow Grammar spec (2026-06-12).
