@@ -146,3 +146,99 @@ When defining new Domain IR schemas, ensure optional styling fields follow this 
 5. Zero impact on existing documents + extensibility for new use-cases
 
 **Theme Principle Reinforced:** Participant styling (icon, color) is orthogonal to participant semantics (kind, label, description). Theme provides visual rendering rules; IR provides semantic data.
+
+---
+
+## 2026-06-13 — Tree Grammar Spec: Schema Design Questions (Leslie → Mark)
+
+**Date:** 2026-06-13T15:22:03Z  
+**Status:** INTAKE (spec complete 2026-06-13T11:02:15Z, schema design pending)
+
+### Tree Grammar Canonical IR
+
+**Spec:** `design/sections/27-tree-grammar.tex` — Grammar #4, Buchheim O(n) deterministic tidy-tree layout.
+
+**Domain IR Shape:**
+```
+TreeDocument:
+  root: TreeNode
+  metadata?: {theme?, ...}
+
+TreeNode (recursive):
+  id: string (globally unique across all nesting levels)
+  label: string
+  children?: TreeNode[]
+  kind?: string
+  icon?: string
+  collapsed?: boolean
+  description?: string
+```
+
+**Canonical Representation Decision: Children-List (Nested)**
+- Natural top-down authoring (mirrors mental model)
+- Structural guarantee: valid nesting = valid tree (no cycles, orphans, or invalid refs)
+- Sibling order implicit in list position
+
+**Alternative (Deferred):** Flat parent-ref representation for input convenience.
+- Normalizer converts parent-ref → children-list for layout
+- **Decision point for Mark:** Accept both in schema, or canonical form only?
+
+### Design Questions for Mark (Schema Ownership)
+
+1. **Parent-Ref Support**
+   - Should schema accept flat parent-ref form: `{id, parent_id, label, ...}`?
+   - If yes: normalizer must convert parent-ref → children-list before layout
+   - If no: children-list is the only accepted form
+   - **Recommendation:** Start with children-list (simpler); add normalizer if LLM generation prefers parent-ref
+
+2. **Kind Field Semantics**
+   - Free string (e.g., "person", "folder", "document") or closed enum?
+   - Built-in defaults (person→circle, folder→rounded-rect, etc.) or theme-only?
+   - Barbara will define `kind→shape` mappings in TreeTheme
+   - **Recommendation:** Free string initially; validate during rendering if kind not in theme
+
+3. **Forest Handling: Confirmed Rejected**
+   - Multiple root nodes are a validation error
+   - Rationale: Ambiguous layout of disjoint trees; use Composition layer (multiple Tree panels) instead
+   - **Validation rule:** Single root required; field constraint `root` is non-optional TreeNode
+
+4. **Node ID Format & Namespacing**
+   - Flat namespace (kebab-case, globally unique) or path-based (e.g., `root/chapter1/section2`)?
+   - **Impact:** Affects validation (uniqueness check scope), serialization, referencing
+   - **Recommendation:** Flat kebab-case initially (simpler); path-based deferred if hierarchy references needed
+
+5. **Validation Invariant List**
+   - Sequence IR has ~8 invariants (order >= 0, participant refs valid, activation order range valid, etc.)
+   - Tree IR likely needs:
+     - Node ID uniqueness (global across all nesting)
+     - Tree acyclicity (structurally guaranteed in children-list; explicit check in parent-ref normalization)
+     - Single root
+     - Max nesting depth soft limit?
+     - Collapsed-node semantics (valid only if has children?)
+   - **Request:** Full list + validation rule names (e.g., TREE_ID_DUPLICATE, TREE_MULTIPLE_ROOTS, etc.)
+
+### Schema Deliverables (Roadmap)
+
+1. **Zod Schema + TypeScript Types**
+   - `packages/core/src/grammars/tree/types.ts` — `TreeDocument`, `TreeNode` recursive type
+   - `packages/core/src/grammars/tree/schema.ts` — Zod validation + well-formedness rules
+
+2. **Constraint Grammar (XGrammar)**
+   - For LLM generation pipeline (per David's research: small fragments > full schemas)
+   - Deliverable: `design/schemas/tree.xgrammar` (or similar)
+
+3. **Normalizer (if parent-ref accepted)**
+   - `packages/core/src/grammars/tree/normalize.ts` — flat parent-ref → children-list converter
+   - Needed only if Mark decides to accept both forms
+
+### Timeline & Dependencies
+
+- **Depends on:** Mark schema decision (children-list-only vs. parent-ref support)
+- **Blocks:** Barbara's TreeTheme design (needs schema to finalize theme token list)
+- **Blocks:** Tree grammar layout implementation (increment-1)
+
+### Reference
+
+- **Spec:** `design/sections/27-tree-grammar.tex` § Layout Algorithm (Buchheim–Jünger–Leipert 2002)
+- **Precedent:** Sequence IR (Mark authored schema 2026-06-13, Barbara implements layout/theme)
+- **Decision Record:** `.squad/decisions.md` — "Decision Record: Tree Grammar Spec (Grammar #4, De-Risked)"

@@ -719,3 +719,152 @@ Mimics the ByteByteGo "5 REST API Authentication Methods" style:
 | `grammars/sequence/index.ts` | Export theme API, thread themeOverride through |
 | `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` | NEW ByteByteGo fixture |
 | `test/sequence.test.ts` | 4 new ByteByteGo theme tests (gallery emit + scene assertions) |
+
+---
+
+## Decision: Sequence Theme Polish — Badge Offset + Gallery Curation
+
+**From:** Barbara (Semantics & Rendering) | **Date:** 2026-06-13T11:17:00-04:00  
+**Status:** ADOPTED
+
+---
+
+### Decision 1 — `stepBadgeOffset` + `msgLabelYOffset` tokens
+
+**Problem:** In card-mode (ByteByteGo theme), the step-number badge was drawn at the
+lifeline centre (25% along the arrow from `effectiveFromX`). Since the participant box
+half-width is 70 px and `effectiveFromX` is the lifeline centre, the badge landed
+**inside the participant card** — invisible (same colour) and overlapping the card.
+
+**Fix:** Added two tunable tokens to `SequenceTheme`:
+
+| Token | Default | ByteByteGo | Semantics |
+|-------|---------|-----------|-----------|
+| `stepBadgeOffset` | 0 | 14 | Pixels past the participant box edge to badge centre. `0` ↔ legacy ¼-along. |
+| `msgLabelYOffset` | 6 | 20 | Pixels above the row Y to the label alphabetic baseline. Separates label descenders from badge circle. |
+
+**Algorithm change in `layout.ts`:**
+- When `stepBadgeOffset > 0`: `badgeX = fromCx + dir × (fromColHalfW + stepBadgeOffset)`
+  where `fromColHalfW = pl.colW / 2` (box edge). This puts the badge on the dark-background
+  arrow segment between cards, regardless of arrow direction.
+- When `stepBadgeOffset === 0`: old ¼-along formula preserved for backward compat.
+- `renderMessage` accepts two new params `fromColHalfW` and `toColHalfW`; default theme
+  is unaffected (`showStepNumbers: false` means badge code path is never entered).
+
+**Determinism:** Zero impact on default-theme outputs. All 611 tests pass;
+`sequence-rest-auth.*` and `sequence-agent-loop.*` are byte-identical.
+
+---
+
+### Decision 2 — Blue step badges (#2563eb, white text)
+
+Reference image (sample-images/image copy 6.png) uses blue numbered circles.
+The prior amber (#f59e0b) was inconsistent with the ByteByteGo colour palette.
+
+**Changed in `sequenceByteByteGoTheme`:**
+- `stepBadgeFill: '#2563eb'` (matches actor card colour — harmonious)
+- `stepBadgeTextColor: '#ffffff'` (white, high contrast on blue)
+
+---
+
+### Decision 3 — Activation + fragment legibility on dark background
+
+Adjusted for the `bytebytego-sequence` theme:
+- `activationBarFill: '#4b5563'` (up from `#374151`) — more visible on `#111827`
+- `activationBarStroke: '#94a3b8'` (brighter border)
+- `fragTabFill: '#4b5563'` (up from `#374151`) — legible tab on dark bg
+- `fragTabTextColor: '#f3f4f6'` (up from `#d1d5db`) — higher contrast
+
+---
+
+### Decision 4 — Gallery curation
+
+Four sequence examples added to `examples/gallery/index.html`:
+
+| Card | Slug | Theme | Highlights |
+|------|------|-------|-----------|
+| 13 | `sequence-rest-auth` | default-sequence | UML reference render |
+| 14 | `sequence-rest-auth-bytebytego` | bytebytego-sequence | Same IR, different style — grammar/theme split |
+| 15 | `sequence-agent-loop` | default-sequence | Activation + loop/opt fragments + self-message |
+| 16 | `sequence-agent-loop-bytebytego` | bytebytego-sequence | Dark theme with all advanced features |
+
+Card descriptions explicitly name the grammar=semantics / theme=style principle for
+cards 13/14 (presented as a pair).
+
+New file: `examples/gallery/sequence-agent-loop-bytebytego.sequence.yaml` — same IR as
+`sequence-agent-loop` with `theme: bytebytego-sequence` and participant icon fields.
+
+---
+
+## Decision Record: Tree Grammar Spec (Grammar #4, De-Risked)
+
+**From:** Leslie (Spec Architect)  
+**Date:** 2026-06-13T11:02:15-04:00  
+**Status:** PROPOSED (pending Mark/Barbara review)
+
+---
+
+### Summary
+
+The Tree Grammar is now fully specified as Grammar #4 in the deterministic diagram compiler. It is de-risked: the Buchheim–Jünger–Leipert (2002) tidy-tree algorithm is O(n), deterministic, and a solved problem.
+
+**Artifact:** `design/sections/27-tree-grammar.tex`
+
+---
+
+### Key Decisions Made
+
+#### 1. Canonical IR Form: Children-List (not Parent-Ref)
+
+The Tree Domain IR uses a **recursive `TreeNode` with an embedded `children[]` list** as its canonical representation. Rationale:
+- Natural top-down authoring (mirrors mental model).
+- Structural validity guarantee (no cycles or orphans possible in nested form).
+- Sibling order is implicit in list position.
+
+A flat parent-ref alternative is documented as a possible input convenience, deferred to Mark for schema acceptance decision.
+
+#### 2. Forest Handling: Rejected (Single Root Required)
+
+Multiple roots are a validation error. Forest layout is a composition concern — authors use the Composition layer with multiple Tree panels. Rationale: avoids ambiguity in how disjoint trees are arranged relative to each other.
+
+#### 3. Layout Algorithm: Buchheim–Jünger–Leipert 2002
+
+- Reingold–Tilford / Walker / Buchheim lineage.
+- O(n) time and space (thread-pointer technique).
+- Deterministic: pure function of tree structure + sibling order.
+- Top-down default orientation; left-to-right as theme option.
+
+#### 4. Grammar = Semantics; Theme = Style
+
+The IR carries structure and semantic hints only (`kind`, `icon`, `collapsed`). All visual styling (node shapes, edge routing, colors, spacing, orientation) is deferred to a `TreeTheme` type, consistent with `SequenceTheme` and `FlowTheme` precedent.
+
+#### 5. No New Kernel Primitives
+
+Lowering uses existing Scene IR primitives (Rect, Text, Path, Line, Image, Group). No kernel changes needed.
+
+---
+
+### Deferred to Mark (Schema)
+
+- Parent-ref vs children-list: accept both, or canonical form only?
+- `kind` field: free string or closed enum?
+- Forest support: confirmed rejected, or revisit later?
+- Validation invariants: exhaustive list needed.
+- Node `id` format: kebab-case flat namespace vs path-based namespacing.
+
+### Deferred to Barbara (Rendering)
+
+- Edge routing style: elbow geometry (corner radius, midpoint), straight, curved.
+- Collapsed-node indicator: visual design ("+" glyph, ellipsis, count badge).
+- TreeTheme token surface: complete token list for default + showcase themes.
+- Kind → shape mappings: built-in defaults (person→circle, folder→rounded-rect, etc.).
+- Label overflow behavior: truncate, wrap, or auto-expand.
+
+---
+
+### Wiring
+
+- Created `design/sections/27-tree-grammar.tex`
+- Added `\input{sections/27-tree-grammar}` in `design/main.tex` (after sequence grammar)
+- Updated grammar sequencing note in `design/sections/24-diagram-family.tex`
+- Reused existing bib keys: `reingold1981`, `walker1990`, `buchheim2002`, `garey1983`

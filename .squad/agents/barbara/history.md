@@ -1,211 +1,156 @@
+# Barbara — Semantics & Rendering
 
-## 2026-06-13 — Sequence Grammar Rendering Open Questions (Barbara Intake)
-
-**From:** Scribe (recording Leslie's deferred work) | **Date:** 2026-06-13T06:43:00Z  
-**Artifact:** `design/sections/26-sequence-grammar.tex` (Grammar #3 Specification)  
-**Status:** Ready for Barbara's rendering semantics refinement
-
-### Sequence Rendering Specification Queries (Priority: Barbara intake for Phase 2)
-
-1. **Self-Message Curve Geometry**
-   - Current spec: self-messages (participant → same participant) render as 3-segment Path (exit right, descend, return left).
-   - **Options:** Sharp right angles vs. smooth arc at corners vs. Bézier curves?
-   - **Impact:** Visual clarity, aesthetics, font size scaling.
-   - **Pattern:** Align with existing activation-bar styling; consider `axis.nodeWrap` precedent for opt-in routing tokens.
-
-2. **Fragment Nesting Depth Recommendation**
-   - Fragments can nest (alt inside loop, etc.). Any soft limit for readability?
-   - **Example:** Warn if depth > 3? Visual precedent from UML diagram tools?
-   - **Impact:** LLM generation guidance; user feedback.
-
-3. **Participant Stereotype Icon Geometries**
-   - `kind` values: `actor|object|boundary|control|entity|database`
-   - **Actor:** Stick figure (circle head, line arms/body, legs) — existing precedent from Timeline icons
-   - **Boundary:** Vertical bar (left edge line)
-   - **Control:** Arrowhead shape or state machine symbol?
-   - **Entity:** Underline or special box?
-   - **Database:** Cylinder (concentric ellipses + vertical offset)?
-   - **Decision:** Fixed icon set vs. customizable?
-
-4. **Arrowhead Sizing & Style**
-   - Current spec: message `kind` (sync|async|reply) implies arrow style.
-     - sync: filled triangle arrow
-     - async: open (outline-only) arrow
-     - reply: dashed line + open arrow
-   - **Sizing:** Scale with stroke width or fixed pixel size? Min/max bounds?
-   - **Impact:** Clarity at different zoom levels; theme token extensibility (e.g., `sequence.arrowHeadScale`).
-
-5. **Activation Bar Width**
-   - Thin Rect on lifeline during activation span. Fixed width or proportional?
-   - **Pattern:** Compare to Timeline badge width precedent.
-   - **Decision:** `sequence.activationBarWidth: number` as theme token?
-
-6. **Fragment Tab Label Styling**
-   - Fragment keyword tab (loop, alt, etc.) + guard label. Typography, padding, icon?
-   - **Pattern:** Align with existing callout/box styling from roadmap layout.
+**Owner:** Barbara (Semantics & Rendering Lead)  
+**Project:** timeline — deterministic diagram compiler  
+**Created:** 2026-06-10
 
 ---
 
-## Learnings — 2026-06-13 Sequence Grammar Increment-1
+## Current Role
 
-### Module Structure Created
-
-New grammar module: `packages/core/src/grammars/sequence/`
-
-| File | Purpose |
-|------|---------|
-| `types.ts` | Sequence domain IR: `SequenceDocument`, `Participant`, `Message`, `Activation` (stub), `Fragment` (stub) |
-| `schema.ts` | Zod schema — validates participant id uniqueness, message from/to refs, order ≥ 0 |
-| `layout.ts` | `layoutSequence(doc)` — deterministic-by-construction Scene emission |
-| `index.ts` | Public API: `buildSequenceScene`, `renderSequenceDocument`, re-exports types/schema |
-
-### Kernel Reuse Pattern
-
-The Sequence Grammar emits only existing Scene IR primitives (rect/line/path/text). No new kernel primitives were added. Serialisers (`sceneToSvg`, `svgToPng`, `sceneToPngSkia`) are imported unchanged from `render/`. This is the two-IR-layer architecture: Sequence Domain IR → `layoutSequence()` → Scene → existing backends.
-
-Layout is deterministic-by-construction: participant x = cumulative column widths (measured via `measureText`); message y = `headerBottom + firstMsgGap + rank * rowHeight`. Rounding uses `rhuInt` (round-half-up, integer). All 577+12=589 tests pass; 577 existing goldens byte-identical.
-
-### What Is Deferred to Increment-2
-
-- **Activations**: thin filled rect on lifeline; `Activation` type exists in types.ts, schema accepts it, layout ignores it
-- **Fragments**: combined fragment (loop/alt/opt/par/critical/break) rect+tab; `Fragment` type exists, deferred
-- **Self-message curve geometry**: currently sharp right angles; increment-2 may add rounded corners via theme token
-- **Additional participant kinds**: `boundary`, `control`, `entity`, `database` — currently fall back to `object` box styling; increment-2 adds their specific icons/shapes
-- **Theme integration**: sequence uses fixed DEFAULTS; increment-2 adds a `SequenceTheme` block on `ResolvedTheme` with configurable tokens
+Render domain IRs to Scene IR primitives with deterministic, themeable output. Design and implement visualization grammars following the grammar ≡ semantics / theme ≡ style principle.
 
 ---
 
-## Learnings — 2026-06-13 Sequence Grammar Increment-2
+## Key Learnings
 
-### Activations (Increment-2)
-
-**Implementation:** `renderActivationBars()` in layout.ts emits a `RectPrimitive` per activation, colored `#c5cae9` fill / `#5c6bc0` stroke, `rx:2`, `activationBarHalfW=5px` each side, rendered **after** lifelines but **before** messages (painter order).
-
-**Minimum height:** When `from_order == to_order` the bar would be zero-height. `activationBarMinH=20px` clamps with vertical centering on the row Y.
-
-**Edge attachment:** Messages arriving/leaving an active participant offset their endpoint by `±barHalfW` so arrows visually land on the activation bar edge rather than the bare lifeline center. The offset direction is computed per-message in `layoutSequence()`: right edge for outgoing-right / incoming-right, left edge for outgoing-left / incoming-left. Self-messages exit/return at the right edge.
-
-**Order→Y map:** `buildOrderToRowY()` maps message order values to row Y coordinates (first occurrence wins for duplicate orders). Used by both activations and fragments to convert order references to pixel positions.
-
-### Fragments (Increment-2)
-
-**Rendering:** `renderFragments()` sorts fragments by span size descending (outer first, inner on top — painter's algorithm). Emits:
-1. Main `RectPrimitive` (`#eff1fb` fill, `#7986cb` stroke, `rx:6`) — light indigo background.
-2. Tab `RectPrimitive` (`#5c6bc0` fill) in upper-left corner — sized to keyword text width.
-3. Keyword `TextPrimitive` (white, bold, 11px) centered in tab.
-4. Guard label `TextPrimitive` (dark indigo, 11px) immediately after the tab.
-
-**Horizontal extent:** When `fragment.participants` is absent, use the leftmost participant's `boxX - fragPadX` to the rightmost participant's `boxX + boxW + fragPadX`, clamped to `[0, canvasW]`.
-
-**Vertical extent:** `rowY(from_order) - fragPadY` to `rowY(to_order) + fragPadY` (fragPadY=14px).
-
-**Painter order:** Fragments rendered as step 6 (right after background), before participant headers (step 7) and messages (step 9). This puts fragments visually behind all content.
-
-**Alt sub-compartment dividers deferred:** Only a single guard label per fragment. Multiple operands/guards in `alt` fragments require divider line primitives — deferred to increment-3.
-
-### Self-messages (Increment-2 fix)
-
-**3-segment LinePrimitives:** Changed from a single `PathPrimitive` (which lacked `dashArray` support) to 3 separate `LinePrimitive`s (horizontal right → vertical down → horizontal left). This correctly supports `dashArray` for dashed reply self-messages.
-
-**Label placement:** Changed from "centered above the exit segment" to "to the right of the loop, vertically centered on the loop height" (`textAnchor: 'start'`). This matches the spec and avoids overlap with the fragment box above.
-
-**Activation edge attachment:** Self-message exit/return point shifts to `cx + barHalfW` when the participant has an active activation bar at that message order.
-
-### Schema Updates
-
-Added fragment validation in `superRefine`:
-- `from_order > to_order` → validation error
-- `fragment.participants` refs unknown participant → validation error
-(Activation validation was already present in increment-1.)
-
-### Determinism
-
-All new rendering paths use `rhuInt(v) = Math.floor(v + 0.5)` for coordinate rounding. The fragment tab width uses `measureText()` which is deterministic (same font/size → same width). Activation bar rendering uses the same deterministic `orderToRowY` map. **603/603 tests pass; all existing goldens byte-identical.**
-
-### Open Work (Increment-3+)
-
-- Alt fragment sub-compartment dividers (multiple guard conditions per alt)
-- Additional participant kinds: boundary/control/entity/database icons
-- Theme integration: `SequenceTheme` tokens on `ResolvedTheme`
-- Fragment partial-overlap validation (currently only `from_order <= to_order` is enforced)
-- Soft nesting depth limit (recommend max 3 levels with lint warning)
-
+- **Two-IR-Layer Model:** Domain IR → Scene IR (universal kernel). All styling lives in theme tokens, never in IR.
+- **Deterministic Rendering:** `measureText()`, `rhuInt()` rounding, fixed coordinate geometry — reproducible across platforms.
+- **Theme-Driven Architecture:** `SequenceTheme` type system enables external style mimicry (ByteByteGo infographic) without IR changes.
+- **Gallery Semantics:** Multiple examples per grammar with different themes demonstrate reusability principle directly.
 
 ---
 
-## 2026-06-13 — Sequence Grammar Increment-1 SHIPPED (Barbara)
+## Active Work
 
-**Date:** 2026-06-13T14:13:38Z | **Commit:** 301a188
+### Sequence Grammar — SHIPPED (Increments 1–4)
 
-### Completed
+**Status:** Production-ready (611 tests pass; byte-identical defaults)  
+**Module:** `packages/core/src/grammars/sequence/`
 
-✅ Module created: `packages/core/src/grammars/sequence/` (types, schema, layout, index)  
-✅ Kernel reuse verified: no new Scene IR primitives needed  
-✅ All 577 timeline goldens byte-identical  
-✅ 589/589 tests pass (577 legacy + 12 new sequence)  
-✅ Example fixture: `examples/gallery/sequence-rest-auth.{sequence.yaml, svg, png}`
+**Increment-1 (2026-06-13T06:43Z):** Baseline IR + deterministic layout
+- `SequenceDocument`: participants[], messages[], activations[], fragments[]
+- Kernel reuse (Rect, Line, Path, Text primitives)
+- No new Scene IR types needed
 
-### Architecture Achievement
+**Increment-2 (2026-06-13T10:13Z):** Activations + Fragments
+- Self-messages (3-segment LinePrimitive dashes)
+- Activation bars (thin rects on lifelines)
+- Fragment rectangles (loop/alt/opt/par/critical/break with keyword tabs)
+- Painter order: fragments → headers → messages
 
-The two-IR-layer model is now production-proven with a second grammar. Sequence eliminates the "hard problem" (Sugiyama auto-layout) entirely via deterministic-by-construction placement. The `grammars/sequence/` module is the template for all future grammars (own IR → deterministic layout → shared Scene kernel → backends).
+**Increment-3 (2026-06-13T14:13Z):** SequenceTheme Token System
+- `SequenceTheme` type: Canvas, Geometry, Typography, Stroke, Participant, Lifeline, Messages, Activations, Fragments, Badges
+- `SEQUENCE_THEME_REGISTRY` + `resolveSequenceTheme(name?)`
+- `defaultSequenceTheme` (backward-compatible, UML style)
+- `sequenceByteByteGoTheme` (ByteByteGo infographic style)
+- Participant `icon?` and `color?` fields (optional, zero impact on defaults)
 
-### Increment-2 Roadmap
+**Increment-4 (2026-06-13T15:22Z):** Badge Offset + Gallery Curation
+- `stepBadgeOffset` token: badge X = `fromCx + dir × (fromColHalfW + offset)` (fixes card-mode overlap)
+- `msgLabelYOffset` token: message label baseline clearance above badge
+- `stepBadgeFill: '#2563eb'` (blue, harmonizes with actor card)
+- Dark-background legibility: `activationBarFill: '#4b5563'`, `fragTabFill: '#4b5563'`
+- Gallery cards 13–16: rest-auth + agent-loop in default/ByteByteGo themes (pair pattern)
 
-Barbara will implement (in priority order):
-1. Self-message curve geometry (rounded corners or smooth arc vs. sharp angles)
-2. Activation bar width + styling
-3. Fragment rectangles + tab labels
-4. Participant stereotype icons (actor stick-figure, boundary bar, control arrow, entity underline, database cylinder)
-5. `SequenceTheme` integration on `ResolvedTheme` + arrowhead sizing tokens
+**Gallery Curation:** Cards 13/14 presented as a pair to demonstrate grammar/theme split principle.
+
+### Tree Grammar — SPEC COMPLETE (Pending Implementation)
+
+**Status:** Awaiting Mark schema + Barbara rendering design  
+**Spec Artifact:** `design/sections/27-tree-grammar.tex`
+
+**Key Decisions:**
+- Canonical IR: recursive `TreeNode` with embedded `children[]` list
+- Layout algorithm: Buchheim–Jünger–Leipert O(n) deterministic tidy-tree
+- Theme-driven: All styling (node shapes, edge routing, colors, orientation) in TreeTheme
+- No kernel changes: Lowering uses existing Scene IR (Rect, Text, Path, Line, Image, Group)
+
+**Deferred to Barbara (Rendering):**
+1. Edge routing style (elbow geometry, straight, curved)
+2. Collapsed-node indicator visual design
+3. TreeTheme token surface (complete list)
+4. Kind → shape default mappings
+5. Label overflow behavior (truncate, wrap, auto-expand)
 
 ---
 
-## Learnings — 2026-06-13 Sequence Theme (Increment-3)
+## Open Work
 
-### SequenceTheme Token Surface
+### Sequence Increment-5 (Future)
 
-Created `packages/core/src/grammars/sequence/theme.ts` — a standalone type file holding all styling tokens for the sequence diagram. Token groups:
+1. **Alt sub-compartment dividers** — Multiple guard conditions in alt fragments require divider lines
+2. **Participant kind icons** — Boundary (bar), Control (arrow), Entity (underline), Database (cylinder)
+3. **Self-message curve styles** — Rounded corners vs. smooth arc vs. sharp angles
+4. **Arrowhead sizing** — Scale with stroke width or fixed pixel; theme token `sequence.arrowHeadScale`
 
-| Group | Tokens |
-|-------|--------|
-| Canvas | `background`, `fontFamily` |
-| Geometry | `marginH/Top/Bottom`, `headerPadX/Y`, `minColWidth`, `colGap`, `firstMsgGap`, `rowHeight`, `actorIconHeight`, `activationBarHalfW/MinH`, `arrowHeadSize`, `selfMsgLoopW/H`, `fragPadX/Y/Rx`, `fragTabPadX/Y` |
-| Typography | `labelFontSize/Weight`, `msgFontSize/Weight`, `fragKeyFontSize/Weight`, `fragLabelFontSize/Weight` |
-| Stroke widths | `participantBoxStrokeWidth`, `lifelineStrokeWidth`, `messageLineStrokeWidth`, `activationBarStrokeWidth`, `fragStrokeWidth` |
-| Participant | `participantRenderMode` (`'box'`\|`'card'`), `participantBoxRx`, `participantBoxFill/Stroke`, `participantLabelColor` |
-| Card mode | `cardIconAreaSize`, `cardKindColors` (per-kind `fill/textColor/accentColor/iconColor`), `cardKindIconMap` |
-| Lifeline | `lifelineVisible`, `lifelineStroke`, `lifelineDash` |
-| Messages | `messageLineStroke`, `messageLineDashSync/Async/Reply`, `messageLabelColor`, `arrowFill` |
-| Activation bars | `activationBarFill/Stroke/Rx` |
-| Fragments | `fragStroke/Fill`, `fragTabFill/TextColor`, `fragLabelColor` |
-| Step badges | `showStepNumbers`, `stepBadgeRadius/Fill/TextColor/FontSize` |
+### Tree Increment-1 (Pending Mark Schema)
 
-### Grammar = Semantics / Theme = Style Split
+1. **TreeTheme token surface** — Complete list (node shape, edge style, orientation, spacing, colors)
+2. **Kind → shape mappings** — Built-in defaults (person→circle, folder→rounded-rect, etc.)
+3. **Edge routing implementation** — Elbow (corner radius calc), straight, or curved (Bézier)
+4. **Collapsed-node rendering** — Glyph design and placement
 
-The IR (`SequenceDocument`, `Participant`, `Message`, `Activation`, `Fragment`) captures only semantics — who talks to whom, in what order. All visual decisions live in `SequenceTheme`. Two documents with identical IR but different theme names (`default-sequence` vs `bytebytego-sequence`) render as UML vs ByteByteGo infographic without any IR change.
+---
 
-`metadata.theme` → `resolveSequenceTheme()` → `SEQUENCE_THEME_REGISTRY` lookup → theme struct → `layoutSequence(doc, theme)`. Callers can also pass an explicit `themeOverride` bypassing the registry.
+## Principle: Grammar ≡ Semantics; Theme ≡ Style
 
-### Participant Extensions
+**Established 2026-06-13T15:01:41Z**
 
-Added `icon?: string` (icon registry name, e.g. `'people'`, `'lock'`) and `color?: string` (per-participant fill override) to `Participant`. Both optional → zero effect on default theme / existing documents. Schema updated to accept both fields.
+- Domain IR carries **only** structure and semantic hints (e.g., `kind`, `icon`, `collapsed`)
+- **Zero visual fields** in the IR (no colors, shapes, spacing — all theme concerns)
+- Theme provides all rendering rules (node shapes, edge routing, colors, typography, spacing)
+- Consequence: Same IR + different theme = different visual style, same semantics
 
-### ByteByteGo Theme (`sequenceByteByteGoTheme`)
+**Governance:** All future grammars (Flow, Tree, Composition) must follow this pattern:
+1. Spec grammar semantics (layout determinism rationale, IR shape)
+2. Define domain IR (no styling)
+3. Implement theme-driven layout
+4. Create `{GrammarName}Theme` type + registry
+5. Register default (backward-compatible) + showcase themes
 
-Mimics the ByteByteGo infographic style:
-- **Dark canvas**: `background: '#111827'`
-- **Card mode**: `participantRenderMode: 'card'`, `participantBoxRx: 14`, colored cards per kind  
-  - Actor `#2563eb`, Object `#7c3aed`, Boundary `#0891b2`, Control `#d97706`, Entity `#059669`, Database `#dc2626`
-- **Icon glyphs**: `cardKindIconMap` maps `actor→people`, `object→gear`, `boundary→cloud`, `control→bolt`, `entity→doc`, `database→database`. Icons scaled via SVG `transform="translate(...) scale(...)"` on PathPrimitive.
-- **Hidden lifelines**: `lifelineVisible: false`
-- **Numbered step badges**: `showStepNumbers: true`, amber circles (`#f59e0b`) with dark number text, drawn at 25% along each message arrow
-- **Light message text**: `messageLabelColor: '#e2e8f0'`, dashed reply arrows `8,5`
+---
 
-### Byte-Identical Default Theme
+## Files & Artifacts
 
-`defaultSequenceTheme` matches ALL previously hardcoded values in `layout.ts` exactly. New feature tokens (card mode, step badges, hidden lifelines) are off by default. Result: `git diff examples/gallery/sequence-rest-auth.* examples/gallery/sequence-agent-loop.*` shows **zero lines changed**. 607/607 tests pass.
+### Sequence Grammar
 
-### New Gallery Outputs
+| File | Status |
+|------|--------|
+| `packages/core/src/grammars/sequence/types.ts` | ✅ Complete |
+| `packages/core/src/grammars/sequence/schema.ts` | ✅ Complete (Zod validation) |
+| `packages/core/src/grammars/sequence/layout.ts` | ✅ Complete (deterministic layout) |
+| `packages/core/src/grammars/sequence/theme.ts` | ✅ Complete (SequenceTheme + registry) |
+| `packages/core/src/grammars/sequence/index.ts` | ✅ Complete (public API) |
+| `examples/gallery/sequence-rest-auth.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/sequence-agent-loop.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/sequence-agent-loop-bytebytego.sequence.yaml` | ✅ Fixture |
+| `examples/gallery/index.html` | ✅ 4 new cards (13–16) |
+| `test/sequence.test.ts` | ✅ 611 tests pass |
 
-- `examples/gallery/sequence-rest-auth-bytebytego.{svg,png}` — ByteByteGo-theme render of REST auth  
-- `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` — matching fixture (participants with `icon` fields)
+### Test Coverage
+
+- **611/611 tests pass** (607 legacy timeline + 4 new sequence increment-4)
+- **All existing goldens byte-identical** (default theme unchanged)
+- **New goldens:** 4 sequence ByteByteGo renders (rest-auth + agent-loop SVG/PNG)
+
+---
+
+## Archived Detail
+
+Pre-2026-06-13 Sequence Increment-1/2/3 detailed learnings archived to `barbara/history-archive.md` (25,000+ bytes).
+
+---
+
+## Next: Tree Grammar Rendering Design
+
+**Awaiting:** Mark's TreeNode schema + validation rules (2026-06-13 spec complete, schema design pending).
+
+**Design scope:**
+1. TreeTheme token surface (30–50 tokens, grouped by concern)
+2. Node shape rendering (kind → default shapes + theme overrides)
+3. Edge routing geometry (elbow radius calc, straight-line simplification)
+4. Orientation support (default top-down; theme option for left-to-right)
+
+**Target:** Tree Increment-1 implementation follows Sequence template (deterministic layout + theme-driven rendering).

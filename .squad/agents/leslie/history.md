@@ -129,3 +129,85 @@ The two-IR-layer architecture is now reinforced by a categorical principle: **Gr
 - Non-duplication (avoids Mermaid/D2 conflation of grammar and style)
 
 **Consequence:** The compiler is a presentation-engine for diagram semantics, not a rigid style enforcer. External diagram styles can be intentionally mimicked through theme design choices.
+
+---
+
+## 2026-06-13 — Tree Grammar Spec Authored (Leslie)
+
+## Learnings
+
+📐 **Tree Grammar: Domain IR — Concrete Spec (Grammar #4, De-Risked)**
+
+**Tree Domain IR Shape:** Recursive `TreeNode` with embedded `children[]` list (canonical form). Each node: `id`, `label`, `children`, optional `kind`/`icon`/`collapsed`/`description`. Single declared `root` at the document level.
+
+**Canonical representation choice: children-list (not parent-ref).**
+- Nested children mirrors the authoring mental model (write top-down).
+- Structural guarantee: valid nesting = valid tree (no cycles, no orphans possible).
+- Sibling order is implicit in list position — no separate ordering field needed.
+- Flat parent-ref is a possible alternative input convenience (validator normalizes to children-list). Deferred to Mark for schema decision.
+
+**Deterministic Tidy-Tree Layout (Buchheim–Jünger–Leipert 2002):**
+- Depth = y-level (root at top); siblings spread horizontally via contour-walking algorithm.
+- O(n) time and space; thread-pointer fixes Walker's quadratic bug.
+- Fully deterministic: pure function of tree structure + sibling order + theme tokens.
+- No crossing minimization (trees have no crossings), no iterative convergence.
+- Contrast: Flow's Sugiyama has O(|V|²) crossing minimization; Tree's Buchheim is O(n) with no hard subproblems.
+
+**Theme/Semantics Split:**
+- Grammar carries ONLY structure + semantic hints (kind, icon, collapsed).
+- NO colors, shapes, edge styles, spacing in the IR — all are TreeTheme tokens.
+- Node shape, edge routing style (elbow/straight/curved), orientation (top-down/left-right) are theme concerns.
+- Follows SequenceTheme/FlowTheme precedent exactly.
+
+**Lowering:** All constructs map to existing Scene IR primitives (Rect, Text, Path, Line, Image, Group) — no kernel changes needed.
+
+**Edge Cases:**
+- Multiple roots → REJECTED (validation error; use Composition for forests).
+- Cycles → REJECTED (structurally impossible in canonical children-list form; detected in flat parent-ref form).
+- Single-node tree → valid minimal case.
+- Duplicate IDs → validation error (global uniqueness across all nesting levels).
+
+**Open Questions Deferred:**
+- **Mark:** Parent-ref vs children-list exclusivity, forest handling confirmation, kind as free string vs closed enum, id format/namespacing, validation invariant list.
+- **Barbara:** Edge routing geometry (elbow radius, midpoint calc), collapsed-node indicator design, TreeTheme token surface, kind→shape default mappings, label overflow behavior.
+
+**Worked Example:** Document→Chapters→Sections hierarchy (10 nodes, 9 edges, 3 depth levels). Demonstrates complete lowering to 29 Scene IR primitives.
+
+**Wiring:** Created `design/sections/27-tree-grammar.tex`; added `\input` in `design/main.tex`; updated grammar sequencing note in `design/sections/24-diagram-family.tex`. Reused existing bib keys: `reingold1981`, `walker1990`, `buchheim2002`, `garey1983`.
+
+---
+
+## 2026-06-13 — Tree Grammar Specification Complete (Scribe Log)
+
+**Date:** 2026-06-13T15:22:03Z  
+**Status:** SPEC COMPLETE (awaiting Mark schema + Barbara rendering design)
+**Decision Record:** `.squad/decisions.md` — "Decision Record: Tree Grammar Spec (Grammar #4, De-Risked)"
+
+### Deliverables Confirmed
+
+✅ **Spec:** `design/sections/27-tree-grammar.tex` (2000+ words, Grammar #4)  
+✅ **Wiring:** `\input{sections/27-tree-grammar}` in design/main.tex  
+✅ **Cross-refs:** Updated in design/sections/24-diagram-family.tex  
+✅ **Bibliography:** Reused entries (reingold1981, walker1990, buchheim2002, garey1983)  
+✅ **Worked Example:** Document→Chapters→Sections hierarchy (10 nodes, complete Scene IR lowering demonstrated)
+
+### De-Risk Summary
+
+| Grammar | Layout Type | Algorithm | Risk Level | Status |
+|---------|-------------|-----------|-----------|--------|
+| **Timeline #1** | Horizontal spine | Fixed (no algorithm) | Eliminated | ✅ 5 themes shipped |
+| **Sequence #3** | UML message order | Deterministic-by-construction | Eliminated | ✅ Implemented (611 tests) |
+| **Tree #4** | Hierarchical | Buchheim–Jünger–Leipert O(n) | Eliminated | ✅ Spec complete |
+| **Flow #2** | DAG | Sugiyama 4-phase O(\|V\|²) | Higher | Spec done; impl. pending |
+
+### Strategic Implication
+
+Team de-risked grammar roadmap by **choosing Sequence first** (over Flow). Tree spec confirms the same pattern: O(n) deterministic tidy-tree eliminates the "hard problem" (crossing minimization) entirely. Flow deferred to after Tree due to higher algorithmic complexity.
+
+### Handoff to Mark & Barbara
+
+**Mark (Schema):** Tree IR canonical form (children-list vs. parent-ref support), kind semantics, validation invariants, id namespacing.
+
+**Barbara (Rendering):** TreeTheme token surface, edge routing geometry (elbow/straight/curved), collapsed-node indicator design, kind→shape mappings, label overflow handling.
+
+**Timeline:** Tree Increment-1 implementation targets production parity with Sequence (deterministic layout + theme-driven rendering, no kernel changes).

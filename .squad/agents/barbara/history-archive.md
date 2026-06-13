@@ -1,286 +1,252 @@
-# Barbara — Semantics & Rendering Specialist
 
-**Owner:** ormasoftchile  
-**Project:** timeline — IR-based rendering system for timelines/roadmaps  
-**Stack:** TypeScript/Node, SVG/PNG/Skia backends, deterministic layout engine
+## 2026-06-13 — Sequence Grammar Rendering Open Questions (Barbara Intake)
 
----
+**From:** Scribe (recording Leslie's deferred work) | **Date:** 2026-06-13T06:43:00Z  
+**Artifact:** `design/sections/26-sequence-grammar.tex` (Grammar #3 Specification)  
+**Status:** Ready for Barbara's rendering semantics refinement
 
-## Recent Work Summary
+### Sequence Rendering Specification Queries (Priority: Barbara intake for Phase 2)
 
-### 2026-06-12 — `axis_breaks` Discontinuous Axis + Phase Pills (Multi-Pass)
+1. **Self-Message Curve Geometry**
+   - Current spec: self-messages (participant → same participant) render as 3-segment Path (exit right, descend, return left).
+   - **Options:** Sharp right angles vs. smooth arc at corners vs. Bézier curves?
+   - **Impact:** Visual clarity, aesthetics, font size scaling.
+   - **Pattern:** Align with existing activation-bar styling; consider `axis.nodeWrap` precedent for opt-in routing tokens.
 
-**Status:** Rendering ADOPTED; schema validation deferred to Mark
+2. **Fragment Nesting Depth Recommendation**
+   - Fragments can nest (alt inside loop, etc.). Any soft limit for readability?
+   - **Example:** Warn if depth > 3? Visual precedent from UML diagram tools?
+   - **Impact:** LLM generation guidance; user feedback.
 
-#### Pass 1: IR Field + Piecewise-Linear Layout
-- Added `AxisBreak { from: IRDate; to: IRDate }` interface to `types.ts`
-- Added `axis_breaks?: AxisBreak[]` to `Metadata` (optional; absent → ZERO behaviour change)
-- Schema validation open questions flagged for Mark (from<to, bounds, non-overlap)
-- Piecewise-linear `dateX` approach: effective time = `teOrd − tsOrd − Σ(break durations)`, draw width = `wDraw − nBreaks × 24px`
-- Break gap = exactly 24px per break (calendar-independent)
-- "//" marker: two forward-diagonal line primitives per break
-- Activity description rendering: 2-line wrap for `barHeight ≥ 28`
-- New `roadmap` theme: `barHeight: 36`, `barRadius: 8`
+3. **Participant Stereotype Icon Geometries**
+   - `kind` values: `actor|object|boundary|control|entity|database`
+   - **Actor:** Stick figure (circle head, line arms/body, legs) — existing precedent from Timeline icons
+   - **Boundary:** Vertical bar (left edge line)
+   - **Control:** Arrowhead shape or state machine symbol?
+   - **Entity:** Underline or special box?
+   - **Database:** Cylinder (concentric ellipses + vertical offset)?
+   - **Decision:** Fixed icon set vs. customizable?
 
-#### Pass 2: Milestone Label Robustness
-- Milestone label left-edge clamp: `labelClampX = Math.max(blockW/2 + 8, Math.min(W − blockW/2 − 8, xCenter))`
-- New `labelWrap?: boolean` theme token: 2-line wrap with dynamic `blockH` expansion
-- Only `roadmap` activates `labelWrap: true`; all other themes byte-identical
+4. **Arrowhead Sizing & Style**
+   - Current spec: message `kind` (sync|async|reply) implies arrow style.
+     - sync: filled triangle arrow
+     - async: open (outline-only) arrow
+     - reply: dashed line + open arrow
+   - **Sizing:** Scale with stroke width or fixed pixel size? Min/max bounds?
+   - **Impact:** Clarity at different zoom levels; theme token extensibility (e.g., `sequence.arrowHeadScale`).
 
-#### Pass 3: Roadmap Margin + Edge Clipping Fix
-- Root cause: `canvas.margin.left: 0` → first pill at `x=0` (clipped)
-- Fix A: `canvas.margin.left: 0 → 48` (symmetric `right: 48`)
-- Fix B: `LABEL_EDGE_PAD = 8` in clamp formula
-- Confirmed: first pill at `x="48"`, first milestone label `x≈59.02` (8px from edge)
+5. **Activation Bar Width**
+   - Thin Rect on lifeline during activation span. Fixed width or proportional?
+   - **Pattern:** Compare to Timeline badge width precedent.
+   - **Decision:** `sequence.activationBarWidth: number` as theme token?
 
-**Test Results:** 577/577 pass; 564 existing goldens byte-identical; 3 new fixture outputs (timeline-goals SVG, PNG, Skia)
-
-**Determinism:** All paths use `Math.floor(x + 0.5)` round-half-up; no floating non-determinism
-
-#### Files Changed
-- `types.ts`: `labelWrap?: boolean` to `MilestoneTheme`
-- `roadmap.ts`: new theme with fixed margins + `labelWrap: true`
-- `horizontal.ts`: piecewise scale + label clamp + 2-line render loop
-- `timeline-goals.yaml`: `axis_breaks[0].from: 2025-12-01 → 2026-01-15`
-- `quality.test.ts`, `skia.test.ts`: new gallery tests
-
----
-
-## Architecture Notes
-
-**Scene IR as Kernel:** Scene IR (Rect, Line, Circle, Text, Path, Group) is the universal rendering contract shared by all future grammars (Timeline, Flow, Graph, etc.). Backend diversity (SVG/PNG/Skia/PDF) all consume Scene IR.
-
-**Theme Tokens for Layout:** Features like `axis.nodeWrap` and `labelWrap` demonstrate that layout modifications can be expressed as opt-in theme tokens (not embedded in domain IR).
+6. **Fragment Tab Label Styling**
+   - Fragment keyword tab (loop, alt, etc.) + guard label. Typography, padding, icon?
+   - **Pattern:** Align with existing callout/box styling from roadmap layout.
 
 ---
 
-## Open Work (Flagged for Handoff)
+## Learnings — 2026-06-13 Sequence Grammar Increment-1
 
-### Schema Validation — Mark (2026-06-12)
+### Module Structure Created
 
-Deferred rules for `axis_breaks` IR field:
+New grammar module: `packages/core/src/grammars/sequence/`
 
-1. **`from < to` enforcement** — Emit `BREAK_FROM_AFTER_TO` at parse time
-2. **Breaks within `time_range` bounds** — Emit `BREAK_OUT_OF_RANGE` warning
-3. **Non-overlapping, sorted** — Validate; emit `BREAKS_OVERLAP` / `BREAKS_UNSORTED`
-4. **Max breaks upper limit** — Warn if N excessive (e.g., > 20) or draw width < 100px
+| File | Purpose |
+|------|---------|
+| `types.ts` | Sequence domain IR: `SequenceDocument`, `Participant`, `Message`, `Activation` (stub), `Fragment` (stub) |
+| `schema.ts` | Zod schema — validates participant id uniqueness, message from/to refs, order ≥ 0 |
+| `layout.ts` | `layoutSequence(doc)` — deterministic-by-construction Scene emission |
+| `index.ts` | Public API: `buildSequenceScene`, `renderSequenceDocument`, re-exports types/schema |
 
-**Files to update:** `schema.ts` (Zod), `types.ts` (TypeScript), `validate.ts` (invariants)
+### Kernel Reuse Pattern
 
----
+The Sequence Grammar emits only existing Scene IR primitives (rect/line/path/text). No new kernel primitives were added. Serialisers (`sceneToSvg`, `svgToPng`, `sceneToPngSkia`) are imported unchanged from `render/`. This is the two-IR-layer architecture: Sequence Domain IR → `layoutSequence()` → Scene → existing backends.
 
-## Learnings
+Layout is deterministic-by-construction: participant x = cumulative column widths (measured via `measureText`); message y = `headerBottom + firstMsgGap + rank * rowHeight`. Rounding uses `rhuInt` (round-half-up, integer). All 577+12=589 tests pass; 577 existing goldens byte-identical.
 
-### 2026-06-12 — Label Collision De-collision (`labelWrap`-gated tier gap)
+### What Is Deferred to Increment-2
 
-**Defect:** Two milestone callouts ("MSI Installer / Install Path" at x≈632 and "80% adoption + queue signoff" at x≈741) were both assigned to tier 0 (y≈227.4) because the greedy tier packer used a `+2` horizontal gap which was too small to catch the visual overlap, compounded by `measureText` underestimating rendered text widths.
-
-**Fix (determinism-safe, gated behind `ms.labelWrap`):**
-- `LABEL_TIER_HGAP = ms.labelWrap ? 16 : 2` — replaces the hardcoded `+2` in both the above-side and below-side greedy tier loops.
-- `LABEL_COLLISION_PAD = ms.labelWrap ? 12 : 0` — inflates the collision footprint (`bL/bR`) for tier-packing purposes only; the actual rendered label x/width is unchanged.
-- When `labelWrap` is false (all existing themes), both constants collapse to the original values → all goldens byte-identical.
-- When `labelWrap` is true (roadmap theme), near-adjacent labels are pushed to separate tiers. Result: 3 above-axis tiers for timeline-goals (tier 0 y≈279, tier 1 y≈227, tier 2 y≈176); MSI and 80% adoption now on different tiers with no visual overlap.
-
-**Principle:** The `aboveZoneH` reservation already scales with `maxAboveTier`, so adding tiers automatically grows the top margin — no extra code needed.
-
-**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `timeline-goals-skia.png` only.
+- **Activations**: thin filled rect on lifeline; `Activation` type exists in types.ts, schema accepts it, layout ignores it
+- **Fragments**: combined fragment (loop/alt/opt/par/critical/break) rect+tab; `Fragment` type exists, deferred
+- **Self-message curve geometry**: currently sharp right angles; increment-2 may add rounded corners via theme token
+- **Additional participant kinds**: `boundary`, `control`, `entity`, `database` — currently fall back to `object` box styling; increment-2 adds their specific icons/shapes
+- **Theme integration**: sequence uses fixed DEFAULTS; increment-2 adds a `SequenceTheme` block on `ResolvedTheme` with configurable tokens
 
 ---
 
-### 2026-06-12 — Today-Marker `labelChip` Token (Readability over Phase Pills)
+## Learnings — 2026-06-13 Sequence Grammar Increment-2
 
-**Defect:** The "Today" label (red #EF4444) was positioned at `y = todayY1 + 4 + todayFontPx` where `todayY1` is the top of the draw band — which is exactly where the first activity pill row begins. In the `timeline-goals` roadmap slide, "Today" sat inside the Evangelization teal (#0F766E) pill band: red-on-teal, low contrast, partially occluded by the pill's own label text.
+### Activations (Increment-2)
 
-**Fix (determinism-safe, gated behind `theme.axis.todayMarker.labelChip`):**
-- Added `labelChip?: boolean` to the `todayMarker` block in `AxisTheme` (`types.ts`). Default absent/false — all existing themes unaffected, byte-identical.
-- Set `labelChip: true` in `roadmap.ts` only.
-- In `horizontal.ts` today-marker block: when `labelChip` is true, measure the label text width with `measureText`, then emit a `kind: 'rect'` chip (fill: canvas backgroundColor, rx: 3, opacity: 0.9, padX: 4px, padY: 3px) **before** the text primitive. The chip sits under the red "Today" text, masking the teal pill behind it.
-- When `labelChip` is false (all other themes), the chip block is skipped entirely → zero primitive delta → byte-identical goldens for all non-roadmap fixtures.
+**Implementation:** `renderActivationBars()` in layout.ts emits a `RectPrimitive` per activation, colored `#c5cae9` fill / `#5c6bc0` stroke, `rx:2`, `activationBarHalfW=5px` each side, rendered **after** lifelines but **before** messages (painter order).
 
-**Coordinates (timeline-goals.svg):** Chip at rect x=570, y=321.83, width=37.72, height=16.67 (rx=3). Text at x=574, y=335.5. Activity pill band at y=330.83–366.83. Chip creates white backdrop that spans the pill overlap zone, making red text clearly legible.
+**Minimum height:** When `from_order == to_order` the bar would be zero-height. `activationBarMinH=20px` clamps with vertical centering on the row Y.
 
-**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `examples/gallery/showcase/timeline-goals-skia.png` only. All 577 tests pass; 574 existing goldens byte-identical.
+**Edge attachment:** Messages arriving/leaving an active participant offset their endpoint by `±barHalfW` so arrows visually land on the activation bar edge rather than the bare lifeline center. The offset direction is computed per-message in `layoutSequence()`: right edge for outgoing-right / incoming-right, left edge for outgoing-left / incoming-left. Self-messages exit/return at the right edge.
 
-**Pattern:** Follows the same opt-in theme-token gating pattern as `labelWrap` (milestone tier gap) and `nodeWrap` (spine routing) — new visual behaviour is isolated to the roadmap theme via a boolean token, never leaking into other themes.
+**Order→Y map:** `buildOrderToRowY()` maps message order values to row Y coordinates (first occurrence wins for duplicate orders). Used by both activations and fragments to convert order references to pixel positions.
 
-**⚠️ CORRECTION (2026-06-12):** The white chip alone was INSUFFICIENT. The chip appeared at SVG lines 24-25 but the activity pill rects were emitted at lines 28, 32, 36 — AFTER the chip — so the pills painted over the entire today marker (line + chip + text) regardless of the chip's opacity. Root cause was **SVG z-order (document order)**, not contrast. See fix below.
+### Fragments (Increment-2)
 
----
+**Rendering:** `renderFragments()` sorts fragments by span size descending (outer first, inner on top — painter's algorithm). Emits:
+1. Main `RectPrimitive` (`#eff1fb` fill, `#7986cb` stroke, `rx:6`) — light indigo background.
+2. Tab `RectPrimitive` (`#5c6bc0` fill) in upper-left corner — sized to keyword text width.
+3. Keyword `TextPrimitive` (white, bold, 11px) centered in tab.
+4. Guard label `TextPrimitive` (dark indigo, 11px) immediately after the tab.
 
-### 2026-06-12 — Today-Marker `onTop` Token (Z-Order Fix)
+**Horizontal extent:** When `fragment.participants` is absent, use the leftmost participant's `boxX - fragPadX` to the rightmost participant's `boxX + boxW + fragPadX`, clamped to `[0, canvasW]`.
 
-**Defect (2nd attempt):** Despite the white chip, Cristian still saw the "Today" label buried under the teal Evangelization pill. Root cause confirmed by inspecting `examples/gallery/timeline-goals.svg` paint order: today-marker primitives (line + chip + text) were emitted at SVG lines 24-26, while the three activity phase pills (#6B7280, #0F766E, #1e3a5f) were emitted at lines 28, 32, 36. SVG paints in document order (later = on top), so the pills covered the entire marker. **The chip was never visible — z-order was the real defect.**
+**Vertical extent:** `rowY(from_order) - fragPadY` to `rowY(to_order) + fragPadY` (fragPadY=14px).
 
-**Fix (determinism-safe, gated behind `theme.axis.todayMarker.onTop`):**
-- Added `onTop?: boolean` to the `todayMarker` block in `AxisTheme` (`types.ts`). Default absent/false — all existing themes unaffected, byte-identical.
-- Set `onTop: true` in `roadmap.ts` only (alongside existing `labelChip: true`).
-- In `horizontal.ts` today-marker block: introduced `const deferredTodayPrims: ScenePrimitive[] = []`. When `onTop` is true, all three marker primitives (line, chip, text) are pushed to `deferredTodayPrims` instead of `primitives`. When false, pushed inline as before.
-- At the very end of primitive assembly (before `return`): `if (deferredTodayPrims.length > 0) primitives.push(...deferredTodayPrims)` — appended after activity bars, milestone nodes, legend, all annotations.
-- When `onTop` is false (all other themes), `deferredTodayPrims` stays empty → zero delta → byte-identical for all non-roadmap fixtures.
+**Painter order:** Fragments rendered as step 6 (right after background), before participant headers (step 7) and messages (step 9). This puts fragments visually behind all content.
 
-**Verified SVG order (timeline-goals.svg after fix):**
-- Phase pills: #6B7280 at line 25, #0F766E at line 29, #1e3a5f at line 33
-- Today dashed line: line 85; white chip rect: line 86; "Today" text: line 87
-- Today marker (85–87) > all pill rects (25, 29, 33) ✅ — marker now paints on top.
+**Alt sub-compartment dividers deferred:** Only a single guard label per fragment. Multiple operands/guards in `alt` fragments require divider line primitives — deferred to increment-3.
 
-**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `timeline-goals-skia.png` only. All 577 tests pass.
+### Self-messages (Increment-2 fix)
 
-**Key Learning:** A chip/backdrop behind the label only works if the chip itself is above the occluding element in z-order. When activities are emitted after the today-marker block, no amount of chip opacity can fix the visibility — the pill paints on top of everything in that block. The fix must be to move the entire marker to after the activity bars. Gate with `onTop` token to avoid moving other fixtures.
+**3-segment LinePrimitives:** Changed from a single `PathPrimitive` (which lacked `dashArray` support) to 3 separate `LinePrimitive`s (horizontal right → vertical down → horizontal left). This correctly supports `dashArray` for dashed reply self-messages.
 
----
+**Label placement:** Changed from "centered above the exit segment" to "to the right of the loop, vertically centered on the loop height" (`textAnchor: 'start'`). This matches the spec and avoids overlap with the fragment box above.
 
-## Learnings
+**Activation edge attachment:** Self-message exit/return point shifts to `cx + barHalfW` when the participant has an active activation bar at that message order.
 
-### 2026-06-12 — Roadmap Layout Family (`layout/roadmap.ts`)
+### Schema Updates
 
-**Status:** INCREMENT 1 shipped; three-zone structure correct; refinements deferred.
+Added fragment validation in `superRefine`:
+- `from_order > to_order` → validation error
+- `fragment.participants` refs unknown participant → validation error
+(Activation validation was already present in increment-1.)
 
-#### Architecture
-- Created a new layout family `packages/core/src/layout/roadmap.ts` exporting `layoutRoadmap(ir, theme, baseDir?)`.
-- Wired into `layout/index.ts` dispatcher, `types.ts` union (`'roadmap'`), `schema.ts` Zod enum, `render/index.ts` `BuildSceneOptions`, and the fixture YAML (`metadata.layout: roadmap`).
-- `metadata.layout` in the YAML now acts as a render-option fallback (honoured by `buildScene` via `opts?.layout ?? ir.metadata.layout`).
+### Determinism
 
-#### Reused Machinery
-- **dateX / axisState / breakSegs**: Copied verbatim from `horizontal.ts` — same formula, same `BREAK_GAP_PX = 24`, same piecewise-linear scale. Axis-break rendering (axis line segments, "//" marker) is identical.
-- **measureText / ptToPx / rhu / rhuInt**: Shared helpers; no reimplementation.
-- **getIcon**: Used to render white icon glyphs inside the icon badge circles.
-- **wrapText**: Wraps milestone callout labels to ≤2 lines.
+All new rendering paths use `rhuInt(v) = Math.floor(v + 0.5)` for coordinate rounding. The fragment tab width uses `measureText()` which is deterministic (same font/size → same width). Activation bar rendering uses the same deterministic `orderToRowY` map. **603/603 tests pass; all existing goldens byte-identical.**
 
-#### Three-Zone Geometry (INCREMENT 1)
-1. **HEADER**: title bold top-left, optional subtitle; `calloutTopY = mT + headerH + HEADER_CALLOUT_GAP`.
-2. **CALLOUT ROW**: all milestones at the same `calloutTopY` (shared top baseline). Each has: title lines (bold, centred), date-in-parens (lighter). Leader from `calloutTopY + blockH` → `bandTopY`. Coloured dot at `cy=bandTopY`. Goal milestones get an outlined rounded rect (`fill:'none'`).
-3. **PHASE BAND**: `bandTopY = calloutTopY + maxCalloutH + LEADER_GAP`. Each activity pill at that y, height=56px. Icon badge = circle at `darkenHex(fill, 0.65)` with `getIcon` glyph in white. Label + description at upper/lower thirds of pill.
-4. **DATE AXIS**: line below band with "//" break marker; date labels at each milestone's `dateX` position.
+### Open Work (Increment-3+)
 
-#### Known Roughness (for later passes)
-- Middle callouts (Jun 30 / Jul 2026) visually overlap — de-collision not yet implemented for the roadmap layout.
-- 24px break gap shows as white space in the phase band (activities end/start at break boundaries).
-- Pill gap between Evangelization (xRight=738) and Physical SAW (xLeft=741) = 3px due to rounding on adjacent days.
-- No `axis_unit` tick labels on the band (roadmap only shows milestone-date labels on axis).
-
-**Test Results:** 577/577 pass; all existing goldens byte-identical. `timeline-goals.svg/png/skia.png` regenerated with roadmap layout.
+- Alt fragment sub-compartment dividers (multiple guard conditions per alt)
+- Additional participant kinds: boundary/control/entity/database icons
+- Theme integration: `SequenceTheme` tokens on `ResolvedTheme`
+- Fragment partial-overlap validation (currently only `from_order <= to_order` is enforced)
+- Soft nesting depth limit (recommend max 3 levels with lint warning)
 
 
 ---
 
-## Learnings
+## 2026-06-13 — Sequence Grammar Increment-1 SHIPPED (Barbara)
 
-### 2026-06-12 — Greedy De-Collision for Roadmap Callouts (INCREMENT 2)
+**Date:** 2026-06-13T14:13:38Z | **Commit:** 301a188
 
-**Problem:** Six milestone callouts were rendered at their strict `xTrue = dateX(date)` positions. "MSI Installer (Jun 30)" and "Adoption goal (Jul 1)" differ by only 1 day → ~3px difference in `xTrue` → complete text overlap. The axis date labels "Jun 30" / "Jul 2026" also overlapped. Additionally, callout boxes used edge-clamped `xCenter`, while leader lines and dots used `xTrue` directly — these three elements were never guaranteed to share the same x after clamping.
+### Completed
 
-**Fix: Greedy left→right forward pass + backward clamp:**
+✅ Module created: `packages/core/src/grammars/sequence/` (types, schema, layout, index)  
+✅ Kernel reuse verified: no new Scene IR primitives needed  
+✅ All 577 timeline goldens byte-identical  
+✅ 589/589 tests pass (577 legacy + 12 new sequence)  
+✅ Example fixture: `examples/gallery/sequence-rest-auth.{sequence.yaml, svg, png}`
 
-```typescript
-// Forward pass: push each block right as needed to clear the previous
-for i in 0..n-1:
-  placedCenters[0] = max(canvasMinX, xTrue[0])
-  minNext = placedCenters[i-1] + blockW[i-1]/2 + blockW[i]/2 + GAP   // GAP=12
-  placedCenters[i] = max(xTrue[i], minNext)
+### Architecture Achievement
 
-// Backward clamp: prevent rightmost block from overflowing right canvas edge
-for i in n-1..0:
-  if placedCenters[i] > canvasMaxX → clamp
-  if next block too close → push this block left (bounded by canvasMinX)
-```
+The two-IR-layer model is now production-proven with a second grammar. Sequence eliminates the "hard problem" (Sugiyama auto-layout) entirely via deterministic-by-construction placement. The `grammars/sequence/` module is the template for all future grammars (own IR → deterministic layout → shared Scene kernel → backends).
 
-**Critical: single x per milestone.** ALL four visual components now use `placedCenters[i]`:
-- Callout text block (center)
-- Vertical leader line (x1 = x2)
-- Band-top dot (cx)
-- Axis tick mark + date label (x)
+### Increment-2 Roadmap
 
-Previously the leader and dot used `xTrue` while the box used a different `xCenter`. If edge-clamping kicked in, the leader and box became misaligned (angled/skewed leader). Fix: derive everything from `placedCenters[i]`.
-
-**Why GAP=12?** 12px > the widest axis date label (~30px / 2 halfwidth = 15px). Since axis labels also use `placedCenters`, a 12px block-edge gap ensures axis labels also don't overlap.
-
-**Pill text truncation:** Added `truncateText(a.label, actLabelPx, textAvailW)` and `truncateText(a.description, actDescPx, textAvailW)` in the Phase Band zone. Prevents overflow when a narrow phase pill's text exceeds its available width. Uses the existing `truncateText` from `text-wrap.ts` — no new utility needed.
-
-**CalloutInfo schema change:** Added `y, mo, d` fields to the `CalloutInfo` interface so the axis date label loop can use `calloutInfos[idx]` directly (instead of maintaining a parallel `msWithOrd` iteration), making it trivial to pass `placedCenters[idx]` to both the callout box and the axis tick/label in a single indexed loop.
-
-**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `examples/gallery/showcase/timeline-goals-skia.png` only. All 577 tests pass; all other goldens byte-identical.
-
-**Result:** Six callout centers at 103, 553, 700, 840, 971, 1097px. All block edges separated by ≥ 12px. Zero text overlaps anywhere in the render.
+Barbara will implement (in priority order):
+1. Self-message curve geometry (rounded corners or smooth arc vs. sharp angles)
+2. Activation bar width + styling
+3. Fragment rectangles + tab labels
+4. Participant stereotype icons (actor stick-figure, boundary bar, control arrow, entity underline, database cylinder)
+5. `SequenceTheme` integration on `ResolvedTheme` + arrowhead sizing tokens
 
 ---
 
-## Learnings
+## Learnings — 2026-06-13 Sequence Theme (Increment-3)
 
-### 2026-06-12 — Roadmap Geometry Tokens (`theme.roadmap?: RoadmapTheme`)
+### SequenceTheme Token Surface
 
-**Task:** Promote all 17 hardcoded geometry constants in `layout/roadmap.ts` to configurable theme tokens without changing any existing render.
+Created `packages/core/src/grammars/sequence/theme.ts` — a standalone type file holding all styling tokens for the sequence diagram. Token groups:
 
-**Token surface added (`RoadmapTheme` in `themes/types.ts`):**
+| Group | Tokens |
+|-------|--------|
+| Canvas | `background`, `fontFamily` |
+| Geometry | `marginH/Top/Bottom`, `headerPadX/Y`, `minColWidth`, `colGap`, `firstMsgGap`, `rowHeight`, `actorIconHeight`, `activationBarHalfW/MinH`, `arrowHeadSize`, `selfMsgLoopW/H`, `fragPadX/Y/Rx`, `fragTabPadX/Y` |
+| Typography | `labelFontSize/Weight`, `msgFontSize/Weight`, `fragKeyFontSize/Weight`, `fragLabelFontSize/Weight` |
+| Stroke widths | `participantBoxStrokeWidth`, `lifelineStrokeWidth`, `messageLineStrokeWidth`, `activationBarStrokeWidth`, `fragStrokeWidth` |
+| Participant | `participantRenderMode` (`'box'`\|`'card'`), `participantBoxRx`, `participantBoxFill/Stroke`, `participantLabelColor` |
+| Card mode | `cardIconAreaSize`, `cardKindColors` (per-kind `fill/textColor/accentColor/iconColor`), `cardKindIconMap` |
+| Lifeline | `lifelineVisible`, `lifelineStroke`, `lifelineDash` |
+| Messages | `messageLineStroke`, `messageLineDashSync/Async/Reply`, `messageLabelColor`, `arrowFill` |
+| Activation bars | `activationBarFill/Stroke/Rx` |
+| Fragments | `fragStroke/Fill`, `fragTabFill/TextColor`, `fragLabelColor` |
+| Step badges | `showStepNumbers`, `stepBadgeRadius/Fill/TextColor/FontSize` |
 
-*Padding (5 tokens):*
-- `calloutHPad` (6) — horizontal padding inside callout text block
-- `calloutVPad` (4) — vertical padding inside callout text block
-- `goalBoxPadX` (9) — extra horizontal outward padding on goal-milestone box
-- `goalBoxPadTop` (6) — extra top padding on goal-milestone box
-- `goalBoxPadBottom` (3) — extra bottom padding on goal-milestone box
+### Grammar = Semantics / Theme = Style Split
 
-*Gaps / separation (6 tokens):*
-- `headerCalloutGap` (16) — vertical gap header→callout row
-- `leaderGap` (6) — vertical gap callout row→band top
-- `axisBelowGap` (4) — vertical gap band bottom→axis line
-- `axisLabelGap` (3) — vertical gap axis line→date label baseline
-- `milestoneGap` (12) — minimum horizontal gap between adjacent callout edges
-- `titleLineGap` (2) — vertical gap between wrapped callout title lines
+The IR (`SequenceDocument`, `Participant`, `Message`, `Activation`, `Fragment`) captures only semantics — who talks to whom, in what order. All visual decisions live in `SequenceTheme`. Two documents with identical IR but different theme names (`default-sequence` vs `bytebytego-sequence`) render as UML vs ByteByteGo infographic without any IR change.
 
-*Sizes (6 tokens):*
-- `pillHeight` (56) — height of phase-band pill rects
-- `badgeRadius` (18) — icon badge circle radius inside pills
-- `badgeDarkFrac` (0.65) — multiplier for badge fill darken
-- `dotRadius` (4) — leader-landing dot radius
-- `calloutWrapWidth` (130) — max callout text-block width before wrapping
-- `breakGapPx` (24) — fixed pixel width per axis-break gap
+`metadata.theme` → `resolveSequenceTheme()` → `SEQUENCE_THEME_REGISTRY` lookup → theme struct → `layoutSequence(doc, theme)`. Callers can also pass an explicit `themeOverride` bypassing the registry.
 
-**`breakGapPx` wiring:** Required adding `breakGapPx?: number` to the module-local `AxisState` interface and updating the `dateX` function to use `ax.breakGapPx ?? BREAK_GAP_PX` for the break-offset accumulation. The resolved value is also passed into `axisState` and used in the axis-break precomputation loop (`nbWDraw0`, `xLeft`, `xRight`).
+### Participant Extensions
 
-**Byte-identical defaults:** The `roadmapTheme` object sets every token to its current constant value. Since `theme.roadmap?.X ?? CONSTANT` resolves identically to `CONSTANT` when the theme value equals the constant, and all defaults match exactly, the `timeline-goals` SVG/PNG/Skia goldens did not change at all (confirmed: `git diff --stat examples/gallery/` → zero changes, 577/577 tests pass).
+Added `icon?: string` (icon registry name, e.g. `'people'`, `'lock'`) and `color?: string` (per-participant fill override) to `Participant`. Both optional → zero effect on default theme / existing documents. Schema updated to accept both fields.
 
-**Pattern:** Follows the same opt-in theme-token pattern as `labelWrap`, `labelChip`, `onTop` — new configurability is isolated to the consuming theme; the layout falls back to the old constant when the token is absent.
-# Barbara — Semantics & Rendering Specialist
+### ByteByteGo Theme (`sequenceByteByteGoTheme`)
 
-**Owner:** ormasoftchile  
-**Project:** timeline — IR-based rendering system for timelines/roadmaps  
-**Stack:** TypeScript/Node, SVG/PNG/Skia backends, deterministic layout engine
+Mimics the ByteByteGo infographic style:
+- **Dark canvas**: `background: '#111827'`
+- **Card mode**: `participantRenderMode: 'card'`, `participantBoxRx: 14`, colored cards per kind  
+  - Actor `#2563eb`, Object `#7c3aed`, Boundary `#0891b2`, Control `#d97706`, Entity `#059669`, Database `#dc2626`
+- **Icon glyphs**: `cardKindIconMap` maps `actor→people`, `object→gear`, `boundary→cloud`, `control→bolt`, `entity→doc`, `database→database`. Icons scaled via SVG `transform="translate(...) scale(...)"` on PathPrimitive.
+- **Hidden lifelines**: `lifelineVisible: false`
+- **Numbered step badges**: `showStepNumbers: true`, amber circles (`#f59e0b`) with dark number text, drawn at 25% along each message arrow
+- **Light message text**: `messageLabelColor: '#e2e8f0'`, dashed reply arrows `8,5`
 
----
+### Byte-Identical Default Theme
 
-## Recent Summary (2026-06-12)
+`defaultSequenceTheme` matches ALL previously hardcoded values in `layout.ts` exactly. New feature tokens (card mode, step badges, hidden lifelines) are off by default. Result: `git diff examples/gallery/sequence-rest-auth.* examples/gallery/sequence-agent-loop.*` shows **zero lines changed**. 607/607 tests pass.
 
-### Roadmap Layout Family (3 increments)
+### New Gallery Outputs
 
-**INCREMENT 1:** Created `layout/roadmap.ts` — new layout family alongside horizontal/vertical-spine/serpentine. Three-zone infographic: header, milestone callouts (all above), phase band with icon badges, date axis below. Wired `metadata.layout` as IR field + render option. 577/577 tests pass; byte-identical goldens.
-
-**INCREMENT 2:** Greedy left→right de-collision for callout placement. Forward pass (push blocks right to clear previous) + backward clamp (prevent overflow). GAP=12px ensures axis date labels don't overlap. Single x for all milestone elements (block/leader/dot/axis tick). Result: 6 callouts at 103, 553, 700, 840, 971, 1097px with ≥12px edges.
-
-**INCREMENT 3:** Promoted 17 hardcoded geometry constants to optional theme tokens (RoadmapTheme: 5 padding + 6 gaps + 6 sizes). `breakGapPx` required AxisState wiring. All defaults match current constants → byte-identical goldens.
-
-### Theme Tokens & Opt-In Features
-
-- `axis.nodeWrap: 'over-under'` — spine arcs around nodes (our-timeline only)
-- `milestone.labelWrap: boolean` — 2-line milestone wrap with dynamic box height  
-- `axis.todayMarker.labelChip: boolean` — white chip backdrop under Today label
-- `axis.todayMarker.onTop: boolean` — defer today marker after activity pills (z-order fix)
-- `axis_breaks: Array<{from, to}>` — piecewise-linear layout with 24px gaps + "//" markers
-
-### Test Coverage & Determinism
-
-- 577/577 tests pass (564 core + 13 schema + 3 cli)
-- All existing goldens byte-identical (0 regression)
-- Determinism: `Math.floor(x + 0.5)` round-half-up throughout
-- Timeline-goals fixture: 3 new outputs (SVG/PNG/Skia)
-
-### Handoff Notes (Open Work)
-
-**Mark (schema validation):** Defer `axis_breaks` field constraints:
-- `from < to` enforcement
-- Breaks within `time_range` bounds
-- Non-overlapping, sorted validation
-- Max breaks upper limit warning
-
-Full learnings archived to `history-archive.md`.
+- `examples/gallery/sequence-rest-auth-bytebytego.{svg,png}` — ByteByteGo-theme render of REST auth  
+- `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` — matching fixture (participants with `icon` fields)
 
 ---
+
+## Learnings — 2026-06-13 Sequence Theme Polish + Gallery Curation (Increment-4)
+
+### Badge-Offset Token (`stepBadgeOffset`)
+
+The previous badge placement (25% along from `effectiveFromX`) had two bugs in card mode:
+1. `effectiveFromX` is the lifeline *centre*, so the badge landed **inside the participant card** (participant colW=140 → halfW=70; badge at +25% of arrow was well within card bounds).
+2. Same-colour badge on same-colour card (both `#2563eb` for actor kind) → invisible.
+
+**Fix:** New `stepBadgeOffset: number` token. When `> 0`, badge X = `fromCx + dir × (fromColHalfW + stepBadgeOffset)` — anchored to the **box edge**, not lifeline centre. `fromColHalfW` is now passed as a param to `renderMessage`. This reliably puts the badge on the dark-background gap between cards.
+
+### `msgLabelYOffset` Token
+
+The label alphabetic baseline was hardcoded at `rowY - 6`. With font-size 12, descenders extend to `baselineY + 4 ≈ rowY - 2`, which is only `badgeRadius - 2 = 9px` above the badge top (`rowY - 11`). This created vertical overlap. Token `msgLabelYOffset` (default 6, ByteByteGo 20) lifts the label clear of the badge circle.
+
+### Blue Badge Colour
+
+Reference (image copy 6.png) uses blue numbered circles. Changed `stepBadgeFill` from amber `#f59e0b` to `#2563eb` with `stepBadgeTextColor: '#ffffff'`. This harmonises with the actor card colour and matches ByteByteGo's blue palette.
+
+### Activation / Fragment Legibility on Dark Background
+
+On `#111827`, the previous `activationBarFill: '#374151'` was nearly invisible. Brightened to `#4b5563` fill / `#94a3b8` stroke. Fragment tab updated: `fragTabFill: '#4b5563'`, `fragTabTextColor: '#f3f4f6'`. Fragment box fill `#1e2433` remains (subtle dark-blue tint against pure-black bg is legible without being garish).
+
+### Gallery Curation Pattern
+
+Sequence cards follow the same card structure as timeline cards. Used existing CSS tag classes only (no new classes added). Cards 13+14 are presented as a pair (same YAML, different theme) to communicate the grammar=semantics / theme=style principle directly in the gallery. Card `card-num` uses the slug as the sub-label. All four PNGs/SVGs/YAMLs verified to exist before committing.
+
+### New Output Files
+
+| File | Type | Notes |
+|------|------|-------|
+| `examples/gallery/sequence-agent-loop-bytebytego.sequence.yaml` | Fixture | ByteByteGo theme, adds `icon` fields per kind |
+| `examples/gallery/sequence-agent-loop-bytebytego.svg` | Gallery | Generated by test suite |
+| `examples/gallery/sequence-agent-loop-bytebytego.png` | Gallery | Generated by test suite |
+
+### Test Count
+
+607 → 611 (4 new tests: agent-loop-bytebytego SVG emit, PNG emit, blue-badge assertion, determinism).  
+All 611 pass; default-theme sequence goldens byte-identical.
