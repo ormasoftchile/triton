@@ -288,6 +288,61 @@ export interface SectionTheme {
 }
 
 // ---------------------------------------------------------------------------
+// Roadmap layout geometry tokens
+// ---------------------------------------------------------------------------
+
+/**
+ * Configurable geometry tokens for the roadmap layout family.
+ *
+ * Every field is optional.  When a field is absent the layout falls back to
+ * the hardcoded constant in layout/roadmap.ts, keeping all existing golden
+ * outputs byte-identical for themes that do not supply this block.
+ *
+ * Has NO effect on horizontal, vertical-spine, or serpentine layouts.
+ */
+export interface RoadmapTheme {
+  // ── Padding ──────────────────────────────────────────────────────────────
+  /** Horizontal padding inside the callout text block (px). Default: 6. */
+  calloutHPad?: number;
+  /** Vertical padding inside the callout text block (px). Default: 4. */
+  calloutVPad?: number;
+  /** Extra horizontal outward padding on the goal-milestone outlined box (px). Default: 9. */
+  goalBoxPadX?: number;
+  /** Extra top padding on the goal-milestone outlined box (px). Default: 6. */
+  goalBoxPadTop?: number;
+  /** Extra bottom padding on the goal-milestone outlined box (px). Default: 3. */
+  goalBoxPadBottom?: number;
+
+  // ── Gaps / separation ────────────────────────────────────────────────────
+  /** Vertical gap between header bottom edge and callout row top (px). Default: 16. */
+  headerCalloutGap?: number;
+  /** Vertical gap between callout block bottoms and phase band top (px). Default: 6. */
+  leaderGap?: number;
+  /** Vertical gap between phase band bottom and axis line (px). Default: 4. */
+  axisBelowGap?: number;
+  /** Vertical gap between axis line and date label baseline (px). Default: 3. */
+  axisLabelGap?: number;
+  /** Minimum horizontal gap between adjacent callout block edges during de-collision (px). Default: 12. */
+  milestoneGap?: number;
+  /** Vertical gap between wrapped title lines inside a callout block (px). Default: 2. */
+  titleLineGap?: number;
+
+  // ── Sizes ─────────────────────────────────────────────────────────────────
+  /** Height of the continuous phase band pills (px). Default: 56. */
+  pillHeight?: number;
+  /** Radius of the icon badge circle inside each phase pill (px). Default: 18. */
+  badgeRadius?: number;
+  /** Multiplier applied to the pill fill colour to derive the badge fill (0–1). Default: 0.65. */
+  badgeDarkFrac?: number;
+  /** Radius of the filled dot at the band top edge where each leader line lands (px). Default: 4. */
+  dotRadius?: number;
+  /** Maximum callout text-block width before the label wraps to a second line (px). Default: 130. */
+  calloutWrapWidth?: number;
+  /** Fixed pixel width consumed by each axis-break gap. Default: 24. */
+  breakGapPx?: number;
+}
+
+// ---------------------------------------------------------------------------
 // Root resolved-theme
 // ---------------------------------------------------------------------------
 
@@ -512,4 +567,12 @@ export interface ResolvedTheme {
     /** Label font size in pt. */
     labelFontSize?: number;
   };
+
+  /**
+   * Geometry tokens for the roadmap layout family.
+   * When absent, the roadmap layout falls back to its hardcoded constant
+   * defaults, preserving byte-identical output for all other themes.
+   * Has NO effect on horizontal, vertical-spine, or serpentine layouts.
+   */
+  roadmap?: RoadmapTheme;
 }

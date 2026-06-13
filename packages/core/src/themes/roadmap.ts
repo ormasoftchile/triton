@@ -170,4 +170,27 @@ export const roadmapTheme: ResolvedTheme = {
     labelOpacity:    0.7,
   },
   entryStyle: 'card',
+
+  roadmap: {
+    // Padding
+    calloutHPad:     6,
+    calloutVPad:     4,
+    goalBoxPadX:     9,
+    goalBoxPadTop:   6,
+    goalBoxPadBottom: 3,
+    // Gaps / separation
+    headerCalloutGap: 16,
+    leaderGap:        6,
+    axisBelowGap:     4,
+    axisLabelGap:     3,
+    milestoneGap:    12,
+    titleLineGap:     2,
+    // Sizes
+    pillHeight:      56,
+    badgeRadius:     18,
+    badgeDarkFrac:    0.65,
+    dotRadius:        4,
+    calloutWrapWidth: 130,
+    breakGapPx:      24,
+  },
 };

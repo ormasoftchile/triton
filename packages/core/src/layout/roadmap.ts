@@ -93,6 +93,8 @@ interface AxisState {
   breakSegs?:     BreakSeg[];
   nonBreakTime?:  number;
   nonBreakWDraw?: number;
+  /** Resolved break-gap width (px); falls back to BREAK_GAP_PX when absent. */
+  breakGapPx?: number;
 }
 
 interface BreakSeg {
@@ -131,7 +133,7 @@ function dateX(ord: number, ax: AxisState): number {
     nBreaksBefore++;
   }
 
-  const raw = offset + nBreaksBefore * BREAK_GAP_PX +
+  const raw = offset + nBreaksBefore * (ax.breakGapPx ?? BREAK_GAP_PX) +
               Math.floor(nonBreakOrd * nbWDraw / nbTime + 0.5);
   return Math.max(offset, Math.min(offset + wDraw, raw));
 }
@@ -204,6 +206,28 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
     throw new Error(`time_range end (${trEnd}) is before start (${trStart})`);
   }
 
+  // ── Resolve geometry tokens from theme (fallback → hardcoded constant) ───
+  // Padding
+  const calloutHPad      = theme.roadmap?.calloutHPad      ?? CALLOUT_H_PAD;
+  const calloutVPad      = theme.roadmap?.calloutVPad      ?? CALLOUT_V_PAD;
+  const goalBoxPadX      = theme.roadmap?.goalBoxPadX      ?? GOAL_BOX_PAD_X;
+  const goalBoxPadTop    = theme.roadmap?.goalBoxPadTop    ?? GOAL_BOX_PAD_TOP;
+  const goalBoxPadBot    = theme.roadmap?.goalBoxPadBottom ?? GOAL_BOX_PAD_BOT;
+  // Gaps / separation
+  const headerCalloutGap = theme.roadmap?.headerCalloutGap ?? HEADER_CALLOUT_GAP;
+  const leaderGap        = theme.roadmap?.leaderGap        ?? LEADER_GAP;
+  const axisBelowGap     = theme.roadmap?.axisBelowGap     ?? AXIS_BELOW_GAP;
+  const axisLabelGap     = theme.roadmap?.axisLabelGap     ?? AXIS_LABEL_GAP;
+  const milestoneGap     = theme.roadmap?.milestoneGap     ?? CALLOUT_DECOLLIDE_GAP;
+  const titleLineGap     = theme.roadmap?.titleLineGap     ?? TITLE_LINE_GAP;
+  // Sizes
+  const pillHeight       = theme.roadmap?.pillHeight       ?? PILL_HEIGHT;
+  const badgeRadius      = theme.roadmap?.badgeRadius      ?? BADGE_RADIUS;
+  const badgeDarkFrac    = theme.roadmap?.badgeDarkFrac    ?? BADGE_DARK_FRAC;
+  const dotRadius        = theme.roadmap?.dotRadius        ?? DOT_RADIUS;
+  const calloutWrapW     = theme.roadmap?.calloutWrapWidth ?? CALLOUT_WRAP_W;
+  const breakGapPx       = theme.roadmap?.breakGapPx       ?? BREAK_GAP_PX;
+
   // ── Axis-break precomputation ────────────────────────────────────────────
   // Opt-in: absent/empty → breakSegs undefined → dateX uses exact original formula.
   let breakSegs:     BreakSeg[] | undefined;
@@ -224,7 +248,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
       if (parsed.length > 0) {
         const totalBreakDuration = parsed.reduce((s, b) => s + (b.toOrd - b.fromOrd), 0);
         const nbTime0  = teOrd - tsOrd - totalBreakDuration;
-        const nbWDraw0 = wDraw - parsed.length * BREAK_GAP_PX;
+        const nbWDraw0 = wDraw - parsed.length * breakGapPx;
 
         if (nbTime0 > 0 && nbWDraw0 > 0) {
           nonBreakTime  = nbTime0;
@@ -232,9 +256,9 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
           let priorDuration = 0;
           breakSegs = parsed.map((b, idx) => {
             const nonBreakOrdAtFrom = b.fromOrd - tsOrd - priorDuration;
-            const xLeft  = offset + idx * BREAK_GAP_PX +
+            const xLeft  = offset + idx * breakGapPx +
                            Math.floor(nonBreakOrdAtFrom * nbWDraw0 / nbTime0 + 0.5);
-            const xRight = xLeft + BREAK_GAP_PX;
+            const xRight = xLeft + breakGapPx;
             priorDuration += (b.toOrd - b.fromOrd);
             return {
               fromOrd: b.fromOrd,
@@ -250,7 +274,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
   }
 
   const axisState: AxisState = {
-    tsOrd, teOrd, offset, wDraw,
+    tsOrd, teOrd, offset, wDraw, breakGapPx,
     ...(breakSegs && nonBreakTime !== undefined && nonBreakWDraw !== undefined
       ? { breakSegs, nonBreakTime, nonBreakWDraw }
       : {}),
@@ -303,7 +327,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
 
   const calloutInfos: CalloutInfo[] = msWithOrd.map(({ ms, ord, y, mo, d }) => {
     const xTrue      = rhu(dateX(ord, axisState));
-    const titleLines = wrapText(ms.label, calloutTitlePx, CALLOUT_WRAP_W, 2).lines;
+    const titleLines = wrapText(ms.label, calloutTitlePx, calloutWrapW, 2).lines;
     const dateStr    = formatCalloutDate(y, mo, d);
 
     const titleW     = titleLines.length > 0
@@ -311,11 +335,11 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
       : 0;
     const dateW      = measureText(dateStr, calloutDatePx).width;
     const textInnerW = Math.max(titleW, dateW);
-    const blockW     = rhu(textInnerW + CALLOUT_H_PAD * 2);
+    const blockW     = rhu(textInnerW + calloutHPad * 2);
 
     const titleBlockH = titleLines.length * titleLineH +
-                        (titleLines.length > 1 ? TITLE_LINE_GAP * (titleLines.length - 1) : 0);
-    const blockH      = rhu(CALLOUT_V_PAD * 2 + titleBlockH + 3 + rhu(calloutDatePx * 1.25));
+                        (titleLines.length > 1 ? titleLineGap * (titleLines.length - 1) : 0);
+    const blockH      = rhu(calloutVPad * 2 + titleBlockH + 3 + rhu(calloutDatePx * 1.25));
 
     return { ms, ord, y, mo, d, xTrue, titleLines, dateStr, blockW, blockH };
   });
@@ -336,7 +360,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
       placedCenters[i] = rhu(Math.max(canvasMinX, c.xTrue));
     } else {
       const prev    = calloutInfos[i - 1]!;
-      const minNext = placedCenters[i - 1]! + prev.blockW / 2 + c.blockW / 2 + CALLOUT_DECOLLIDE_GAP;
+      const minNext = placedCenters[i - 1]! + prev.blockW / 2 + c.blockW / 2 + milestoneGap;
       placedCenters[i] = rhu(Math.max(c.xTrue, minNext));
     }
   }
@@ -351,7 +375,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
     }
     if (i < calloutInfos.length - 1) {
       const next       = calloutInfos[i + 1]!;
-      const maxForThis = placedCenters[i + 1]! - next.blockW / 2 - c.blockW / 2 - CALLOUT_DECOLLIDE_GAP;
+      const maxForThis = placedCenters[i + 1]! - next.blockW / 2 - c.blockW / 2 - milestoneGap;
       if (placedCenters[i]! > maxForThis) {
         placedCenters[i] = rhu(Math.max(mL + c.blockW / 2, maxForThis));
       }
@@ -359,11 +383,11 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
   }
 
   // ── Zone Y coordinates ───────────────────────────────────────────────────
-  const calloutTopY  = rhu(mT + headerH + HEADER_CALLOUT_GAP);
-  const bandTopY     = rhu(calloutTopY + maxCalloutH + LEADER_GAP);
-  const bandBottomY  = rhu(bandTopY + PILL_HEIGHT);
-  const axisY        = rhu(bandBottomY + AXIS_BELOW_GAP);
-  const axisLabelY   = rhu(axisY + AXIS_LABEL_GAP + axisLabelPx);
+  const calloutTopY  = rhu(mT + headerH + headerCalloutGap);
+  const bandTopY     = rhu(calloutTopY + maxCalloutH + leaderGap);
+  const bandBottomY  = rhu(bandTopY + pillHeight);
+  const axisY        = rhu(bandBottomY + axisBelowGap);
+  const axisLabelY   = rhu(axisY + axisLabelGap + axisLabelPx);
   const H            = rhu(axisLabelY + axisLabelPx * 0.3 + mB);
 
   // ── Sorted activities for the phase band ─────────────────────────────────
@@ -461,16 +485,16 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
       x:       xLeft,
       y:       bandTopY,
       width:   pillW,
-      height:  PILL_HEIGHT,
+      height:  pillHeight,
       fill,
       rx:      theme.activity.barRadius,
     });
 
     // Icon badge: darker circle, white icon inside
-    const badgeR  = Math.min(BADGE_RADIUS, rhuInt(PILL_HEIGHT / 2) - 2);
+    const badgeR  = Math.min(badgeRadius, rhuInt(pillHeight / 2) - 2);
     const badgeCX = rhu(xLeft + badgeR + 8);
-    const badgeCY = rhu(bandTopY + PILL_HEIGHT / 2);
-    const badgeFill = darkenHex(fill, BADGE_DARK_FRAC);
+    const badgeCY = rhu(bandTopY + pillHeight / 2);
+    const badgeFill = darkenHex(fill, badgeDarkFrac);
 
     primitives.push({
       kind: 'circle',
@@ -504,7 +528,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
 
     if (textAvailW >= 20) {
       // Label: vertically positioned at upper-third of pill; truncated to fit
-      const labelY     = rhu(bandTopY + PILL_HEIGHT * 0.38);
+      const labelY     = rhu(bandTopY + pillHeight * 0.38);
       const truncLabel = truncateText(a.label, actLabelPx, textAvailW);
       primitives.push({
         kind:             'text',
@@ -521,7 +545,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
 
       // Description: vertically positioned at lower-third of pill; truncated to fit
       if (a.description) {
-        const descY      = rhu(bandTopY + PILL_HEIGHT * 0.72);
+        const descY      = rhu(bandTopY + pillHeight * 0.72);
         const truncDesc  = truncateText(a.description, actDescPx, textAvailW);
         primitives.push({
           kind:             'text',
@@ -557,10 +581,10 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
     if (isGoal) {
       primitives.push({
         kind:        'rect',
-        x:           rhu(boxLeft - GOAL_BOX_PAD_X),
-        y:           rhu(calloutTopY - GOAL_BOX_PAD_TOP),
-        width:       rhu(blockW + GOAL_BOX_PAD_X * 2),
-        height:      rhu(blockH + GOAL_BOX_PAD_TOP + GOAL_BOX_PAD_BOT),
+        x:           rhu(boxLeft - goalBoxPadX),
+        y:           rhu(calloutTopY - goalBoxPadTop),
+        width:       rhu(blockW + goalBoxPadX * 2),
+        height:      rhu(blockH + goalBoxPadTop + goalBoxPadBot),
         fill:        'none',
         stroke:      theme.axis.axisLineColor,
         strokeWidth: 1.5,
@@ -574,7 +598,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
       primitives.push({
         kind:             'text',
         x:                xCenter,
-        y:                rhu(calloutTopY + CALLOUT_V_PAD + titleLineH * (li + 0.85) + li * TITLE_LINE_GAP),
+        y:                rhu(calloutTopY + calloutVPad + titleLineH * (li + 0.85) + li * titleLineGap),
         text:             titleLines[li]!,
         fontFamily:       FONT_FAM,
         fontSize:         calloutTitlePx,
@@ -587,11 +611,11 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
 
     // Date-in-parens line (smaller, lighter)
     const titleBlockH = titleLines.length * titleLineH +
-                        (titleLines.length > 1 ? TITLE_LINE_GAP * (titleLines.length - 1) : 0);
+                        (titleLines.length > 1 ? titleLineGap * (titleLines.length - 1) : 0);
     primitives.push({
       kind:             'text',
       x:                xCenter,
-      y:                rhu(calloutTopY + CALLOUT_V_PAD + titleBlockH + 3 + calloutDatePx * 0.85),
+      y:                rhu(calloutTopY + calloutVPad + titleBlockH + 3 + calloutDatePx * 0.85),
       text:             dateStr,
       fontFamily:       FONT_FAM,
       fontSize:         calloutDatePx,
@@ -602,7 +626,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
     });
 
     // Leader line: from bottom of callout block down to band top, aligned with xCenter
-    const leaderStartY = rhu(calloutTopY + blockH + (isGoal ? GOAL_BOX_PAD_BOT : 0));
+    const leaderStartY = rhu(calloutTopY + blockH + (isGoal ? goalBoxPadBot : 0));
     primitives.push({
       kind:        'line',
       x1:          xCenter,
@@ -620,7 +644,7 @@ export function layoutRoadmap(ir: IRDocument, theme: ResolvedTheme, _baseDir?: s
       kind: 'circle',
       cx:   xCenter,
       cy:   bandTopY,
-      r:    DOT_RADIUS,
+      r:    dotRadius,
       fill: dotFill,
     });
   }
