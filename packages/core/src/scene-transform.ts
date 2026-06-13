@@ -319,12 +319,67 @@ function transformMultiText(
   };
 }
 
+/**
+ * Parse a simple `transform="translate(tx,ty) scale(s)"` attribute.
+ * Returns null for any other form.
+ */
+function parseSimpleTransform(
+  transform: string,
+): { tx: number; ty: number; s: number } | null {
+  const m = transform.match(
+    /^\s*translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)\s*scale\(\s*([-\d.]+)\s*\)\s*$/,
+  );
+  if (!m) return null;
+  return { tx: parseFloat(m[1]!), ty: parseFloat(m[2]!), s: parseFloat(m[3]!) };
+}
+
 function transformPath(
   p: PathPrimitive,
   dx: number,
   dy: number,
   scale: number,
 ): PathPrimitive {
+  // Icon paths use `transform="translate(tx,ty) scale(s)"` to place 0–24 icon
+  // coordinates into canvas space.  When a sub-scene containing such paths is
+  // embedded by the composition engine (which calls translateAndScale), we must
+  // COMPOSE the icon transform with the composition transform rather than
+  // applying the outer transform to the raw 0–24 icon coordinates.
+  // Composition: final = compose(outer) ∘ compose(icon)
+  //   composed scale:     s_out = icon_s * outer_scale
+  //   composed translate: tx_out = icon_tx * outer_scale + dx
+  //                       ty_out = icon_ty * outer_scale + dy
+  // The transform attribute is then removed (baked into d).
+  if (p.transform) {
+    const parsed = parseSimpleTransform(p.transform);
+    if (parsed) {
+      const { tx, ty, s } = parsed;
+      const composedS  = rhu(s * scale);
+      const composedTx = rhu(tx * scale + dx);
+      const composedTy = rhu(ty * scale + dy);
+      // strokeWidth in the icon path is pre-divided by iconScale so that SVG's
+      // scale(s) restores it to the target rendered width.  After baking,
+      // composed strokeWidth = original_sw * s (rendered width) * outer_scale.
+      const composedSW = p.strokeWidth !== undefined
+        ? rhu(p.strokeWidth * s * scale)
+        : undefined;
+      return {
+        ...p,
+        d: transformPathD(p.d, composedTx, composedTy, composedS),
+        transform: undefined,
+        ...(composedSW !== undefined ? { strokeWidth: composedSW } : {}),
+        ...(p.dashArray !== undefined
+          ? { dashArray: scaleDashArray(p.dashArray, scale) }
+          : {}),
+        ...(p.strokeGradient !== undefined
+          ? { strokeGradient: scaleGradient(p.strokeGradient, dx, dy, scale) }
+          : {}),
+        ...(p.effects
+          ? { effects: p.effects.map((e) => scaleEffect(e, scale)) }
+          : {}),
+      };
+    }
+  }
+
   return {
     ...p,
     d: transformPathD(p.d, dx, dy, scale),

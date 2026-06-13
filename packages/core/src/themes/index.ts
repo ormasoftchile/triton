@@ -18,6 +18,7 @@ import { aiTimelineTheme } from './ai-timeline.js';
 import { gitlineTheme } from './gitline.js';
 import { ourTimelineTheme } from './our-timeline.js';
 import { subjectTimelineTheme } from './subject-timeline.js';
+import { bytebyteGoTheme } from './bytebytego.js';
 import type { ResolvedTheme } from './types.js';
 
 export type { ResolvedTheme } from './types.js';
@@ -40,6 +41,7 @@ const REGISTRY = new Map<string, ResolvedTheme>([
   ['gitline', gitlineTheme],
   ['our-timeline', ourTimelineTheme],
   ['subject-timeline', subjectTimelineTheme],
+  ['bytebytego', bytebyteGoTheme],
 ]);
 
 /**
@@ -86,6 +88,7 @@ export function listThemeInfos(): ThemeInfo[] {
     { id: 'ai-timeline', title: 'AI Timeline', tier: 2 },
     { id: 'gitline', title: 'Gitline', tier: 2 },
     { id: 'subject-timeline', title: 'Subject Timeline', tier: 2 },
+    { id: 'bytebytego', title: 'ByteByteGo Dark', tier: 2 },
     { id: 'serpentine', title: 'Serpentine Journey', tier: 3 },
     { id: 'showcase', title: 'Showcase', tier: 3 },
   ];

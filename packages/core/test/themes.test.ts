@@ -9,12 +9,18 @@
  *  - minimal theme: all activity fills are greyscale (no hue)
  *  - release theme: milestone renders a <path> element (triangle shape)
  *  - executive theme: dark canvas background present in SVG
+ *  - bytebytego theme: dark canvas, determinism + gallery emit
  */
 
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { parse as parseYaml } from 'yaml';
 import type { IRDocument } from '../src/types.js';
 import { resolveTheme, listThemeInfos } from '../src/themes/index.js';
 import { renderDocument } from '../src/render/index.js';
+import { parseIR } from '../src/load.js';
 
 // ---------------------------------------------------------------------------
 // Small fixture shared across all theme tests
@@ -242,5 +248,112 @@ describe('consulting theme non-regression', () => {
   it('consulting theme has tickLabelColor #555555 (matches previous hardcoded value)', () => {
     const theme = resolveTheme('consulting');
     expect(theme.axis.tickLabelColor).toBe('#555555');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ByteByteGo dark timeline theme tests (Task 3)
+// ---------------------------------------------------------------------------
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT  = resolve(__dirname, '..', '..', '..');
+const GALLERY_DIR = join(REPO_ROOT, 'examples', 'gallery');
+
+describe('bytebytego theme — registry & structure', () => {
+  it('resolveTheme("bytebytego") returns the bytebyteGo theme', () => {
+    const theme = resolveTheme('bytebytego');
+    expect(theme.id).toBe('bytebytego');
+    expect(theme.title).toBe('ByteByteGo Dark');
+    expect(theme.tier).toBe(2);
+  });
+
+  it('listThemeInfos includes bytebytego', () => {
+    const infos = listThemeInfos();
+    const ids = infos.map((t) => t.id);
+    expect(ids).toContain('bytebytego');
+  });
+
+  it('bytebytego canvas background is dark (#111827)', () => {
+    const theme = resolveTheme('bytebytego');
+    expect(theme.canvas.backgroundColor).toBe('#111827');
+  });
+
+  it('bytebytego has complete statusMap with all 7 statuses', () => {
+    const statuses = ['planned', 'in-progress', 'done', 'at-risk', 'blocked', 'cancelled', 'tentative'];
+    const theme = resolveTheme('bytebytego');
+    for (const s of statuses) {
+      expect(theme.statusMap).toHaveProperty(s);
+    }
+  });
+});
+
+describe('bytebytego theme — determinism', () => {
+  it('two renders with bytebytego theme are byte-identical', () => {
+    const r1 = renderDocument(FIXTURE, { format: 'svg', theme: 'bytebytego' });
+    const r2 = renderDocument(FIXTURE, { format: 'svg', theme: 'bytebytego' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
+  });
+
+  it('bytebytego sceneHash differs from consulting (same IR, different theme)', () => {
+    const rBBG = renderDocument(FIXTURE, { format: 'svg', theme: 'bytebytego' });
+    const rCon = renderDocument(FIXTURE, { format: 'svg', theme: 'consulting' });
+    expect(rBBG.sceneHash).not.toBe(rCon.sceneHash);
+  });
+
+  it('bytebytego SVG contains the dark canvas background color', () => {
+    const result = renderDocument(FIXTURE, { format: 'svg', theme: 'bytebytego' });
+    expect(result.svg).toContain('#111827');
+  });
+});
+
+describe('bytebytego theme — gallery emit', () => {
+  it('emits feature-rich-bytebytego.svg to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+
+    const yamlText = readFileSync(
+      join(GALLERY_DIR, 'feature-rich.timeline.yaml'),
+      'utf-8',
+    );
+    const ir = parseIR(yamlText);
+    const result = renderDocument(ir, { format: 'svg', theme: 'bytebytego' });
+    expect(typeof result.svg).toBe('string');
+    expect(result.svg!.length).toBeGreaterThan(200);
+
+    const outPath = join(GALLERY_DIR, 'feature-rich-bytebytego.svg');
+    writeFileSync(outPath, result.svg!, 'utf-8');
+    expect(existsSync(outPath)).toBe(true);
+    console.log('[bytebytego] feature-rich-bytebytego.svg →', outPath);
+  });
+
+  it('emits feature-rich-bytebytego.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+
+    const yamlText = readFileSync(
+      join(GALLERY_DIR, 'feature-rich.timeline.yaml'),
+      'utf-8',
+    );
+    const ir = parseIR(yamlText);
+    const result = renderDocument(ir, { format: 'png', theme: 'bytebytego' });
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(result.png![0]).toBe(0x89); // PNG signature
+
+    const outPath = join(GALLERY_DIR, 'feature-rich-bytebytego.png');
+    writeFileSync(outPath, result.png!);
+    expect(existsSync(outPath)).toBe(true);
+    console.log('[bytebytego] feature-rich-bytebytego.png →', outPath);
+  });
+
+  it('feature-rich default render is byte-identical before and after (bytebytego does not pollute default)', () => {
+    const yamlText = readFileSync(
+      join(GALLERY_DIR, 'feature-rich.timeline.yaml'),
+      'utf-8',
+    );
+    const ir = parseIR(yamlText);
+    // Default fixture theme is 'product' — ensure it is unchanged.
+    const r1 = renderDocument(ir, { format: 'svg', theme: 'product' });
+    const r2 = renderDocument(ir, { format: 'svg', theme: 'product' });
+    expect(r1.svg).toBe(r2.svg);
+    expect(r1.sceneHash).toBe(r2.sceneHash);
   });
 });

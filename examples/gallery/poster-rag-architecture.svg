@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="1062" version="1.1" viewBox="0 0 1200 1062" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#0f172a" height="1062" width="1200" x="0" y="0"/>
+<svg height="814" version="1.1" viewBox="0 0 1200 814" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0f172a" height="814" width="1200" x="0" y="0"/>
   <rect fill="#0f172a" height="52" width="1200" x="0" y="0"/>
   <text dominant-baseline="central" fill="#f1f5f9" font-family="Inter, sans-serif" font-size="22" font-weight="700" text-anchor="middle" x="600" y="26">RAG Architecture Deep Dive</text>
-  <rect fill="#1e293b" height="348" rx="10" stroke="#334155" stroke-width="1" width="739" x="28" y="80"/>
+  <rect fill="#1e293b" height="162" rx="10" stroke="#334155" stroke-width="1" width="739" x="28" y="80"/>
   <rect fill="#1e293b" height="28" rx="10" width="737" x="29" y="81"/>
   <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="49" y="95">Retrieval Pipeline</text>
   <rect fill="#ffffff" height="64.86" width="713" x="41" y="121"/>
@@ -22,7 +22,7 @@
   <rect fill="#e8f0fe" height="19.18" rx="3.65" stroke="#4a6cf7" stroke-width="0.69" width="55.27" x="166.61" y="139.27"/>
   <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="5.94" font-weight="600" text-anchor="middle" x="194.01" y="148.86">Embed Query</text>
   <rect fill="#e8f0fe" height="19.18" rx="3.65" stroke="#4a6cf7" stroke-width="0.69" width="65.32" x="263.44" y="139.27"/>
-  <path d="M42.83 124.2 A3.65 1.14 0 0 1 50.14 124.2 A3.65 1.14 0 0 1 42.83 124.2 L42.83 128.76 A3.65 1.14 0 0 0 50.14 128.76 L50.14 124.2 M42.83 126.48 A3.65 1.14 0 0 1 50.14 126.48" fill="none" opacity="0.85" stroke="#1a1a2e" stroke-width="0.46" transform="translate(507,54) scale(0.5833)"/>
+  <path d="M273.66 147.55 A2.16 0.68 0 0 1 277.98 147.55 A2.16 0.68 0 0 1 273.66 147.55 L273.66 150.25 A2.16 0.68 0 0 0 277.98 150.25 L277.98 147.55 M273.66 148.9 A2.16 0.68 0 0 1 277.98 148.9" fill="none" opacity="0.85" stroke="#1a1a2e" stroke-width="0.27"/>
   <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="5.94" font-weight="600" text-anchor="middle" x="300.9" y="148.86">Vector Search</text>
   <rect fill="#e8f0fe" height="19.18" rx="3.65" stroke="#4a6cf7" stroke-width="0.69" width="54.81" x="370.32" y="139.27"/>
   <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="5.94" font-weight="600" text-anchor="middle" x="397.73" y="148.86">Re-rank</text>
@@ -39,77 +39,77 @@
   <path d="M573.12 148.86 L569.93 147.04 L569.93 150.69 Z" fill="#4a6cf7" stroke="none" stroke-width="0"/>
   <path d="M675.89 148.86 L672.7 147.04 L672.7 150.69 Z" fill="#4a6cf7" stroke="none" stroke-width="0"/>
   <text dominant-baseline="auto" fill="#4b5563" font-family="DejaVu Sans, sans-serif" font-size="5.02" font-weight="400" text-anchor="middle" x="349.77" y="145.21">top-k</text>
-  <rect fill="#1e293b" height="348" rx="10" stroke="#334155" stroke-width="1" width="385" x="787" y="80"/>
+  <rect fill="#1e293b" height="162" rx="10" stroke="#334155" stroke-width="1" width="385" x="787" y="80"/>
   <rect fill="#1e293b" height="28" rx="10" width="383" x="788" y="81"/>
   <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="808" y="95">Knowledge Base</text>
-  <rect fill="#ffffff" height="131.6" width="359" x="800" y="121"/>
-  <path d="M979.95 138.01 L979.95 153.68 L867.59 153.68 L867.59 169.34" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M867.59 186.35 L867.59 202.02 L840.29 202.02 L840.29 217.69" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M867.59 186.35 L867.59 202.02 L894.9 202.02 L894.9 217.69" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M979.95 138.01 L979.95 153.68 L980.84 153.68 L980.84 169.34" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M980.84 186.35 L980.84 202.02 L951.75 202.02 L951.75 217.69" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M980.84 186.35 L980.84 202.02 L1009.49 202.02 L1009.49 217.69" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M979.95 138.01 L979.95 153.68 L1091.86 153.68 L1091.86 169.34" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M1091.86 186.35 L1091.86 202.02 L1065 202.02 L1065 217.69" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <path d="M1091.86 186.35 L1091.86 202.02 L1118.71 202.02 L1118.71 217.69" fill="none" stroke="#9fa8da" stroke-width="0.67"/>
-  <rect fill="#c5cae9" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="44.76" x="817.91" y="217.69"/>
-  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="840.29" y="226.19">PDFs</text>
-  <rect fill="#c5cae9" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="46.11" x="872.07" y="217.69"/>
-  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="894.9" y="226.19">Web Pages</text>
-  <rect fill="#5c6bc0" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="46.11" x="844.76" y="169.34"/>
-  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="867.59" y="177.85">Documents</text>
-  <rect fill="#c5cae9" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="49.24" x="927.13" y="217.69"/>
-  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="951.75" y="226.19">Text Chunks</text>
-  <rect fill="#c5cae9" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="48.34" x="985.32" y="217.69"/>
-  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="1009.49" y="226.19">Embeddings</text>
-  <rect fill="#5c6bc0" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="44.76" x="958.46" y="169.34"/>
-  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="980.84" y="177.85">Chunks</text>
-  <rect fill="#c5cae9" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="44.76" x="1042.62" y="217.69"/>
-  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="1065" y="226.19">FAISS</text>
-  <rect fill="#c5cae9" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="44.76" x="1096.33" y="217.69"/>
-  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="1118.71" y="226.19">Metadata</text>
-  <rect fill="#5c6bc0" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="49.24" x="1067.24" y="169.34"/>
-  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="1091.86" y="177.85">Vector Index</text>
-  <rect fill="#3949ab" height="17.01" rx="2.69" stroke="#5c6bc0" stroke-width="0.67" width="59.98" x="949.96" y="121"/>
-  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="5.82" font-weight="600" text-anchor="middle" x="979.95" y="129.5">Knowledge Base</text>
-  <rect fill="#1e293b" height="586" rx="10" stroke="#334155" stroke-width="1" width="739" x="28" y="448"/>
-  <rect fill="#1e293b" height="28" rx="10" width="737" x="29" y="449"/>
-  <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="49" y="463">Retrieval Sequence</text>
-  <rect fill="#ffffff" height="474.15" width="713" x="41" y="489"/>
-  <rect fill="#e8f0fe" height="67.74" rx="3.57" stroke="#4a6cf7" stroke-width="1.34" width="106.95" x="76.65" y="506.83"/>
-  <path d="M130.13 517.52 A6.24 6.24 0 1 1 130.04 517.52 Z M130.13 530 L130.13 541.58 M122.1 533.56 L138.15 533.56 M130.13 541.58 L123 553.17 M130.13 541.58 L137.26 553.17" fill="none" stroke="#4a6cf7" stroke-width="1.34"/>
-  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.59" font-weight="700" text-anchor="middle" x="130.13" y="562.97">Client</text>
-  <line stroke="#9aa3b2" stroke-dasharray="5.35,3.57" stroke-width="0.89" x1="130.13" x2="130.13" y1="574.56" y2="927.5"/>
-  <rect fill="#e8f0fe" height="32.09" rx="3.57" stroke="#4a6cf7" stroke-width="1.34" width="106.95" x="254.9" y="506.83"/>
-  <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.59" font-weight="700" text-anchor="middle" x="308.38" y="522.87">API Gateway</text>
-  <line stroke="#9aa3b2" stroke-dasharray="5.35,3.57" stroke-width="0.89" x1="308.38" x2="308.38" y1="574.56" y2="927.5"/>
-  <rect fill="#e8f0fe" height="32.09" rx="3.57" stroke="#4a6cf7" stroke-width="1.34" width="106.95" x="433.15" y="506.83"/>
-  <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.59" font-weight="700" text-anchor="middle" x="486.63" y="522.87">Retriever</text>
-  <line stroke="#9aa3b2" stroke-dasharray="5.35,3.57" stroke-width="0.89" x1="486.63" x2="486.63" y1="574.56" y2="927.5"/>
-  <rect fill="#e8f0fe" height="32.09" rx="3.57" stroke="#4a6cf7" stroke-width="1.34" width="106.95" x="611.4" y="506.83"/>
-  <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.59" font-weight="700" text-anchor="middle" x="664.88" y="522.87">Vector DB</text>
-  <line stroke="#9aa3b2" stroke-dasharray="5.35,3.57" stroke-width="0.89" x1="664.88" x2="664.88" y1="574.56" y2="927.5"/>
-  <line stroke="#2c3e50" stroke-width="1.34" x1="130.13" x2="301.25" y1="601.3" y2="601.3"/>
-  <path d="M308.38 601.3 L301.25 597.73 L301.25 604.86 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.7" font-weight="400" text-anchor="middle" x="219.25" y="595.95">POST /query</text>
-  <line stroke="#2c3e50" stroke-width="1.34" x1="308.38" x2="479.5" y1="651.21" y2="651.21"/>
-  <path d="M479.5 647.64 L486.63 651.21 L479.5 654.77" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.34"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.7" font-weight="400" text-anchor="middle" x="397.5" y="645.86">retrieve(query)</text>
-  <line stroke="#2c3e50" stroke-width="1.34" x1="486.63" x2="657.75" y1="701.12" y2="701.12"/>
-  <path d="M657.75 697.55 L664.88 701.12 L657.75 704.68" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.34"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.7" font-weight="400" text-anchor="middle" x="575.75" y="695.77">search(embedding)</text>
-  <line stroke="#2c3e50" stroke-dasharray="5.35,3.57" stroke-width="1.34" x1="664.88" x2="493.76" y1="751.03" y2="751.03"/>
-  <path d="M493.76 747.46 L486.63 751.03 L493.76 754.59" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.34"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.7" font-weight="400" text-anchor="middle" x="575.75" y="745.68">top-k results</text>
-  <line stroke="#2c3e50" stroke-dasharray="5.35,3.57" stroke-width="1.34" x1="486.63" x2="315.51" y1="800.94" y2="800.94"/>
-  <path d="M315.51 797.37 L308.38 800.94 L315.51 804.5" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.34"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.7" font-weight="400" text-anchor="middle" x="397.5" y="795.59">ranked chunks</text>
-  <line stroke="#2c3e50" stroke-dasharray="5.35,3.57" stroke-width="1.34" x1="308.38" x2="137.26" y1="850.85" y2="850.85"/>
-  <path d="M137.26 847.28 L130.13 850.85 L137.26 854.41" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.34"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.7" font-weight="400" text-anchor="middle" x="219.25" y="845.5">200 context</text>
-  <rect fill="#1e293b" height="586" rx="10" stroke="#334155" stroke-width="1" width="385" x="787" y="448"/>
-  <rect fill="#1e293b" height="28" rx="10" width="383" x="788" y="449"/>
-  <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="808" y="463">Accuracy</text>
-  <text dominant-baseline="central" fill="#38bdf8" font-family="Inter, sans-serif" font-size="48" font-weight="700" text-anchor="middle" x="979.5" y="530">98.7%</text>
-  <text dominant-baseline="hanging" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="400" text-anchor="middle" x="979.5" y="596">retrieval accuracy on BEIR benchmark</text>
+  <rect fill="#ffffff" height="108" width="294.61" x="832.19" y="121"/>
+  <path d="M979.87 134.96 L979.87 147.82 L887.66 147.82 L887.66 160.67" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M887.66 174.63 L887.66 187.49 L865.26 187.49 L865.26 200.35" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M887.66 174.63 L887.66 187.49 L910.07 187.49 L910.07 200.35" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M979.87 134.96 L979.87 147.82 L980.6 147.82 L980.6 160.67" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M980.6 174.63 L980.6 187.49 L956.72 187.49 L956.72 200.35" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M980.6 174.63 L980.6 187.49 L1004.11 187.49 L1004.11 200.35" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M979.87 134.96 L979.87 147.82 L1071.7 147.82 L1071.7 160.67" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M1071.7 174.63 L1071.7 187.49 L1049.66 187.49 L1049.66 200.35" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <path d="M1071.7 174.63 L1071.7 187.49 L1093.74 187.49 L1093.74 200.35" fill="none" stroke="#9fa8da" stroke-width="0.55"/>
+  <rect fill="#c5cae9" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="36.73" x="846.89" y="200.35"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="865.26" y="207.33">PDFs</text>
+  <rect fill="#c5cae9" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="37.84" x="891.34" y="200.35"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="910.07" y="207.33">Web Pages</text>
+  <rect fill="#5c6bc0" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="37.84" x="868.93" y="160.67"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="887.66" y="167.65">Documents</text>
+  <rect fill="#c5cae9" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="40.41" x="936.52" y="200.35"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="956.72" y="207.33">Text Chunks</text>
+  <rect fill="#c5cae9" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="39.67" x="984.28" y="200.35"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="1004.11" y="207.33">Embeddings</text>
+  <rect fill="#5c6bc0" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="36.73" x="962.23" y="160.67"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="980.6" y="167.65">Chunks</text>
+  <rect fill="#c5cae9" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="36.73" x="1031.3" y="200.35"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="1049.66" y="207.33">FAISS</text>
+  <rect fill="#c5cae9" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="36.73" x="1075.38" y="200.35"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="1093.74" y="207.33">Metadata</text>
+  <rect fill="#5c6bc0" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="40.41" x="1051.5" y="160.67"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="1071.7" y="167.65">Vector Index</text>
+  <rect fill="#3949ab" height="13.96" rx="2.2" stroke="#5c6bc0" stroke-width="0.55" width="49.22" x="955.26" y="121"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="4.78" font-weight="600" text-anchor="middle" x="979.87" y="127.98">Knowledge Base</text>
+  <rect fill="#1e293b" height="524" rx="10" stroke="#334155" stroke-width="1" width="739" x="28" y="262"/>
+  <rect fill="#1e293b" height="28" rx="10" width="737" x="29" y="263"/>
+  <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="49" y="277">Retrieval Sequence</text>
+  <rect fill="#ffffff" height="470" width="706.77" x="44.12" y="303"/>
+  <rect fill="#e8f0fe" height="67.14" rx="3.53" stroke="#4a6cf7" stroke-width="1.33" width="106.02" x="79.45" y="320.67"/>
+  <path d="M132.46 331.27 A6.18 6.18 0 1 1 132.37 331.27 Z M132.46 343.64 L132.46 355.12 M124.51 347.17 L140.41 347.17 M132.46 355.12 L125.39 366.61 M132.46 355.12 L139.53 366.61" fill="none" stroke="#4a6cf7" stroke-width="1.33"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.48" font-weight="700" text-anchor="middle" x="132.46" y="376.33">Client</text>
+  <line stroke="#9aa3b2" stroke-dasharray="5.3,3.53" stroke-width="0.88" x1="132.46" x2="132.46" y1="387.81" y2="737.66"/>
+  <rect fill="#e8f0fe" height="31.8" rx="3.53" stroke="#4a6cf7" stroke-width="1.33" width="106.02" x="256.15" y="320.67"/>
+  <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.48" font-weight="700" text-anchor="middle" x="309.15" y="336.57">API Gateway</text>
+  <line stroke="#9aa3b2" stroke-dasharray="5.3,3.53" stroke-width="0.88" x1="309.15" x2="309.15" y1="387.81" y2="737.66"/>
+  <rect fill="#e8f0fe" height="31.8" rx="3.53" stroke="#4a6cf7" stroke-width="1.33" width="106.02" x="432.84" y="320.67"/>
+  <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.48" font-weight="700" text-anchor="middle" x="485.85" y="336.57">Retriever</text>
+  <line stroke="#9aa3b2" stroke-dasharray="5.3,3.53" stroke-width="0.88" x1="485.85" x2="485.85" y1="387.81" y2="737.66"/>
+  <rect fill="#e8f0fe" height="31.8" rx="3.53" stroke="#4a6cf7" stroke-width="1.33" width="106.02" x="609.53" y="320.67"/>
+  <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="11.48" font-weight="700" text-anchor="middle" x="662.54" y="336.57">Vector DB</text>
+  <line stroke="#9aa3b2" stroke-dasharray="5.3,3.53" stroke-width="0.88" x1="662.54" x2="662.54" y1="387.81" y2="737.66"/>
+  <line stroke="#2c3e50" stroke-width="1.33" x1="132.46" x2="302.09" y1="414.32" y2="414.32"/>
+  <path d="M309.15 414.32 L302.09 410.78 L302.09 417.85 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.6" font-weight="400" text-anchor="middle" x="220.81" y="409.02">POST /query</text>
+  <line stroke="#2c3e50" stroke-width="1.33" x1="309.15" x2="478.78" y1="463.79" y2="463.79"/>
+  <path d="M478.78 460.26 L485.85 463.79 L478.78 467.32" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.33"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.6" font-weight="400" text-anchor="middle" x="397.5" y="458.49">retrieve(query)</text>
+  <line stroke="#2c3e50" stroke-width="1.33" x1="485.85" x2="655.47" y1="513.26" y2="513.26"/>
+  <path d="M655.47 509.73 L662.54 513.26 L655.47 516.8" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.33"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.6" font-weight="400" text-anchor="middle" x="574.19" y="507.96">search(embedding)</text>
+  <line stroke="#2c3e50" stroke-dasharray="5.3,3.53" stroke-width="1.33" x1="662.54" x2="492.91" y1="562.74" y2="562.74"/>
+  <path d="M492.91 559.2 L485.85 562.74 L492.91 566.27" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.33"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.6" font-weight="400" text-anchor="middle" x="574.19" y="557.44">top-k results</text>
+  <line stroke="#2c3e50" stroke-dasharray="5.3,3.53" stroke-width="1.33" x1="485.85" x2="316.22" y1="612.21" y2="612.21"/>
+  <path d="M316.22 608.68 L309.15 612.21 L316.22 615.74" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.33"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.6" font-weight="400" text-anchor="middle" x="397.5" y="606.91">ranked chunks</text>
+  <line stroke="#2c3e50" stroke-dasharray="5.3,3.53" stroke-width="1.33" x1="309.15" x2="139.53" y1="661.68" y2="661.68"/>
+  <path d="M139.53 658.15 L132.46 661.68 L139.53 665.22" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.33"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="10.6" font-weight="400" text-anchor="middle" x="220.81" y="656.38">200 context</text>
+  <rect fill="#1e293b" height="524" rx="10" stroke="#334155" stroke-width="1" width="385" x="787" y="262"/>
+  <rect fill="#1e293b" height="28" rx="10" width="383" x="788" y="263"/>
+  <text dominant-baseline="central" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="808" y="277">Accuracy</text>
+  <text dominant-baseline="central" fill="#38bdf8" font-family="Inter, sans-serif" font-size="48" font-weight="700" text-anchor="middle" x="979.5" y="344">98.7%</text>
+  <text dominant-baseline="hanging" fill="#94a3b8" font-family="Inter, sans-serif" font-size="13" font-weight="400" text-anchor="middle" x="979.5" y="410">retrieval accuracy on BEIR benchmark</text>
 </svg>

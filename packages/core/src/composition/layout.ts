@@ -11,7 +11,10 @@
  *        - stat/text/title cells → synthesised minimal Scene
  *   3. Compute column widths (max content width in each col, single-span only;
  *      then proportionally scale if sum exceeds available width).
- *   4. Compute row heights (max content height in each row, single-span only).
+ *   4. Recompute row heights from WIDTH-FITTED cell heights (two-pass): for
+ *      each cell, fitScale = min(finalColWidth/naturalW, 1.0); fittedH =
+ *      naturalH * fitScale; rowHeights[row] = max fittedH.  Eliminates dead
+ *      vertical space left by the old one-pass approach.
  *   5. Compute each cell's rectangle (x,y,W,H) from cumulative col/row sizes + gaps.
  *   6. For each cell: scale = min(cellW/subW, cellH/subH, 1.0); center inside cell.
  *      Call embedSceneInRect(subScene, cellRect) to get transformed primitives.
@@ -194,12 +197,22 @@ interface PlacedCell {
 const DEFAULT_CANVAS_WIDTH = 1200;
 
 /**
- * Deterministic grid sizing.
+ * Deterministic grid sizing — two-pass algorithm.
  *
- * Column widths: max natural content width of single-span cells in each col.
- *   If total exceeds available width, columns are proportionally scaled.
- * Row heights: max natural content height of single-span cells in each row.
- *   (Row heights are not constrained by a canvas height.)
+ * Pass 1: Compute natural column widths from single-span cell content widths.
+ *   Apply minimum column clamp (80 px), then proportionally scale columns to
+ *   fit the available canvas width.
+ *
+ * Pass 2: Recompute row heights from WIDTH-FITTED cell heights.
+ *   When wide cells are proportionally scaled down to fit their (narrowed)
+ *   columns, they also render shorter.  Using the natural height (before
+ *   column scaling) leaves dead vertical space.  The second pass computes:
+ *     fitScale = min(finalColWidth / naturalCellW, 1.0)
+ *     fittedCellH = naturalCellH * fitScale
+ *   and sets rowHeight = max fittedCellH over single-span cells in that row.
+ *
+ * The `rowSizing:'equal'` branch normalises to the global max AFTER the
+ * two-pass so it still produces uniform row heights based on fitted sizes.
  */
 function computeGridLayout(
   placed: PlacedCell[],
@@ -216,9 +229,8 @@ function computeGridLayout(
   const chromeHeightExtra = cellTitleHeight + chromePadding;
   const chromeWidthExtra = chromePadding;
 
-  // Initialise to a sensible minimum.
+  // ── Pass 1a: natural column widths ────────────────────────────────────────
   const colWidths: number[] = new Array(columns).fill(0) as number[];
-  const rowHeights: number[] = new Array(rows).fill(0) as number[];
 
   for (const pc of placed) {
     if (pc.colSpan === 1) {
@@ -227,40 +239,52 @@ function computeGridLayout(
         colWidths[pc.col] = naturalW;
       }
     }
-    if (pc.rowSpan === 1) {
-      const naturalH = pc.subScene.height + chromeHeightExtra;
-      if (naturalH > rowHeights[pc.row]!) {
-        rowHeights[pc.row] = naturalH;
-      }
-    }
   }
 
   // Ensure minimum column widths (at least 80px).
   for (let c = 0; c < columns; c++) {
     if (colWidths[c]! < 80) colWidths[c] = 80;
   }
-  // Ensure minimum row heights (at least 60px).
-  for (let r = 0; r < rows; r++) {
-    if (rowHeights[r]! < 60) rowHeights[r] = 60;
-  }
 
-  // rowSizing: 'equal' normalizes all rows to the global max height so every
-  // panel has the same vertical extent. 'content' (default) keeps per-row
-  // sizing, so a row of short diagrams stays short.
-  if (theme.rowSizing === 'equal') {
-    const maxRowH = Math.max(...rowHeights);
-    for (let r = 0; r < rows; r++) {
-      rowHeights[r] = maxRowH;
-    }
-  }
-
-  // Proportionally scale columns if total exceeds available width.
+  // ── Pass 1b: proportionally scale columns to fit available width ──────────
   const availableWidth = canvasWidth - 2 * padding - (columns - 1) * gap;
   const totalColW = colWidths.reduce((s, w) => s + w, 0);
   if (totalColW > availableWidth && availableWidth > 0) {
     const ratio = availableWidth / totalColW;
     for (let c = 0; c < columns; c++) {
       colWidths[c] = rhuInt(colWidths[c]! * ratio);
+    }
+  }
+
+  // ── Pass 2: recompute row heights from WIDTH-FITTED cell heights ──────────
+  // For each single-span cell: fitScale = min(finalColWidth / naturalCellW, 1.0)
+  // fittedCellH = naturalCellH * fitScale
+  // rowHeights[row] = max fittedCellH; then clamp to min 60px.
+  const rowHeights: number[] = new Array(rows).fill(0) as number[];
+
+  for (const pc of placed) {
+    if (pc.rowSpan === 1) {
+      const naturalW = pc.subScene.width + chromeWidthExtra;
+      const naturalH = pc.subScene.height + chromeHeightExtra;
+      const fitScale = naturalW > 0 ? Math.min(colWidths[pc.col]! / naturalW, 1.0) : 1.0;
+      const fittedH = naturalH * fitScale;
+      if (fittedH > rowHeights[pc.row]!) {
+        rowHeights[pc.row] = fittedH;
+      }
+    }
+  }
+
+  // Ensure minimum row heights (at least 60px).
+  for (let r = 0; r < rows; r++) {
+    rowHeights[r] = Math.max(rhuInt(rowHeights[r]!), 60);
+  }
+
+  // rowSizing: 'equal' normalizes all rows to the global max height AFTER the
+  // two-pass so every panel has the same vertical extent based on fitted sizes.
+  if (theme.rowSizing === 'equal') {
+    const maxRowH = Math.max(...rowHeights);
+    for (let r = 0; r < rows; r++) {
+      rowHeights[r] = maxRowH;
     }
   }
 
