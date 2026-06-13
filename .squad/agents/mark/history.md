@@ -67,3 +67,40 @@ Previously only `flow`/`tree`/`sequence` had explicit inline variants. Timeline 
 **Test additions (E1–E5):** ref inlining, error handling, determinism, byte-equivalence, gallery emit  
 **Result:** 795 tests pass; all existing goldens byte-identical.
 
+---
+
+## 2026-06-13 — STRATEGIC PIVOT: Mermaid-Superset Positioning (Scribe Update)
+
+**Status:** LOCKED — MAJOR DIRECTION CHANGE
+
+Product repositioned as **full Mermaid superset** (all 22 types) compiling to shared deterministic Scene IR.
+
+### Implications for IR & Schema
+
+1. **Mermaid Front-End Coverage:** 22 diagram types → 5 families (node-link, UML, charts, timeline, tree)
+   - IR must support dual path: **Mermaid DSL input** → Domain IR → Scene IR; **structured IR input** → Domain IR → Scene IR
+   - Parser layer: Mermaid syntax tokenizer → AST → Domain IR
+   - Domain IR: unified interface; grammar-specific validators
+
+2. **UML/Software Line (Tier-1):** class, state, ER, C4 diagrams
+   - New domain IRs: ClassDiagram IR, StateDiagram IR, ERDiagram IR, C4Diagram IR
+   - Schema validation: UML constraints (inheritance, multiplicity, reachability)
+   - Mark work: Define these IRs early; unblock Barbara's rendering
+
+3. **Charts (Tier-2):** Grammar-of-graphics backend (pie, xychart, quadrant, radar)
+   - New domain IR family: ChartData → ChartSpec → ChartScene
+   - Marks work: Domain IR shape; schema for aggregate functions
+
+4. **IR-as-API (Agent Path):** Structured IR input is first-class
+   - Agents generate domain IRs directly
+   - Implication: Domain IRs must be stable, well-documented, schema-locked
+   - Mark work: Publish IR spec as part of CLI/SDK surface
+
+### Current State
+- 4 grammars shipped; 790/790 tests pass; all goldens byte-identical
+- Schema: Exhaustive validation across all grammars
+
+### Next Build Phase
+- **T0 wiring:** Mermaid flowchart/sequence/gantt/timeline/mindmap → existing domain IRs
+- **T1 UML:** Define class/state/ER/C4 IRs; pass to Barbara for rendering
+- **T2 charts:** Design ChartData family IR; pass to Barbara

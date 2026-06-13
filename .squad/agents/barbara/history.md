@@ -133,3 +133,47 @@ Added `kind: 'ref'` variant to `CellContent` and `timeline` inline variant. The 
 **Example created:** `examples/gallery/poster-refs/` — composition YAML referencing `pipeline.flow.yaml` + `taxonomy.tree.yaml`; rendered outputs at `examples/gallery/poster-refs.{svg,png}`.
 
 **All 795 tests pass; all existing goldens byte-identical.**
+
+---
+
+## 2026-06-13 — STRATEGIC PIVOT: Mermaid-Superset Positioning (Scribe Update)
+
+**Status:** LOCKED — MAJOR DIRECTION CHANGE
+
+Product repositioned as **full Mermaid superset** (all 22 types) compiling to shared deterministic Scene IR.
+
+### Positioning & Differentiators
+
+1. **Aesthetics is a headline pillar** (explicit competitive advantage)
+   - Beat Mermaid's look-and-feel out of the box
+   - Barbara work: Theme system for all 5 families; typography, color harmony, layout polish
+   - Scoped deliverables: 5-family theme families; dark/light variants + domain-specific (ByteByteGo, corporate, academic)
+
+2. **Chart Family (New Grammar-of-Graphics Kernel)**
+   - Grammar-of-graphics layer for pie, xychart, quadrant, radar
+   - Barbara work: Design ChartScene IR; implement Mark's ChartData specs → geometries
+   - Downstream: Tier-2 coverage roadmap
+
+3. **UML/Software Diagram Line (Tier-1)**
+   - class, state, ER, C4 as architectural/UML story
+   - Barbara work: Class diagram rendering (boxes, inheritance, composition, abstract); state diagram (state circles, transitions, guards); ER (entity/attribute/relationship); C4 (system/container/component/code views)
+   - Blocking: Mark's UML domain IRs must be designed first
+
+4. **Five Families (Taxonomy)**
+   1. Node-Link/Graph (Sugiyama kernel) — flowchart, C4, architecture, block, requirement, gitGraph, sankey
+   2. UML/Software — sequence, class, state, ER
+   3. Charts (grammar-of-graphics) — pie, xychart, quadrant, radar
+   4. Timeline/Project (track-based) — gantt, timeline, journey, kanban
+   5. Tree/Hierarchy (Buchheim–Jünger–Leipert) — mindmap, treemap
+
+### Current State
+- 4 grammars shipped (timeline, sequence, tree, flow) + composition
+- Theme-driven architecture verified; 790/790 tests pass
+- All pre-existing goldens byte-identical; dark theme closures stable
+
+### Next Build Phase
+- **T0 wiring:** Mermaid → existing grammars (Mark: parser; Barbara: theme coverage)
+- **T1 UML:** Class/state/ER/C4 rendering (Barbara: increment-2 work; blocks on Mark's IRs)
+- **T2 charts:** Grammar-of-graphics rendering (Barbara: increment-3; blocks on Mark's ChartData IR)
+- **Aesthetics:** Complete 5-family theme set; establish design system (Barbara: parallel priority)
+

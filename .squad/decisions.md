@@ -1,9 +1,42 @@
 # Squad Decisions — Recent & Current (2026-06-13)
 
+---
+
+## 🎯 STRATEGIC PIVOT: FULL MERMAID-SUPERSET POSITIONING (2026-06-13)
+
+**MAJOR DIRECTION CHANGE** — Supersedes earlier "diagram compiler reframe"
+
+### Core Positioning
+- **Full Mermaid Superset:** All 22 Mermaid diagram types parse & render out of the box
+- **Beautiful Output:** Explicitly beat Mermaid's aesthetics (first-class pillar)
+- **UML/Software Line:** Dedicated Tier-1 priority for class, state, ER, C4 diagrams
+- **Agent-Authorable IR:** Dual front-end (humans: Mermaid-superset DSL; agents: structured IR) → shared Domain IR → Scene IR → backends
+
+### Five Diagram Families
+1. **Node-Link/Graph** — flowchart, C4, architecture, block, requirement, gitGraph, sankey (Sugiyama kernel)
+2. **UML/Software** — sequence, class, state, ER (grammar-specific layouts)
+3. **Charts (Grammar-of-Graphics)** — pie, xychart, quadrant, radar (NEW kernel)
+4. **Timeline/Project** — gantt, timeline, journey, kanban (track-based)
+5. **Tree/Hierarchy** — mindmap, treemap (Buchheim–Jünger–Leipert)
+
+### Coverage Roadmap
+- **T0:** Wire existing (flowchart, sequence, gantt, timeline, mindmap) — kernels ready; need parsers
+- **T1:** UML line (class, state, ER, C4) — new IRs + layouts
+- **T2:** Charts (pie, xychart, quadrant, radar) — grammar-of-graphics
+- **T3:** Remaining (sankey, requirement, gitGraph, block, etc.)
+
+### Superset+ Extensions
+- Composition/posters, rich theming, animation, structured IR-as-API, cross-refs, icons
+
+**Design doc** restructured (Leslie) to center Mermaid compatibility, aesthetics pillar, UML line, and dual front-end. PDF builds. PDF structure: 8 parts, 8 new sections (05-comparison, 15-frontend, 16-mermaid-compat, 17-superset-extensions, 18-aesthetics, 28-family-taxonomy, 29-chart-family, 60-roadmap); retired 4 old; rewrote/recontextualized core.
+
+---
+
 > **Compaction Note (2026-06-13):** Detailed decision sections for all grammars (Timeline T1–T5 variants, Sequence Inc1-2, Tree Inc1, Flow Inc1, Composition Inc1, Animation, Dark themes, Design doc sync, Diamond shape, Schema validation) have been archived to decisions-archive.md. Focusing this file on:
 > - Index of shipped milestones  
 > - Pending items list (now EMPTY — all closed)
-> - Barbara's composition ir_file refs (just merged from inbox)
+> - Barbara's composition ir_file refs (merged from inbox)
+> - Leslie's Mermaid-superset strategic pivot (merged from inbox)
 
 ---
 
@@ -124,6 +157,53 @@ Resolved poster output: `poster-refs.{svg,png}` — byte-identical to equivalent
 | `examples/gallery/poster-refs.{svg,png}` | **NEW** gallery outputs |
 
 **Test result:** 795/795 tests pass. All existing goldens byte-identical.
+
+---
+
+---
+
+# Decision: Mermaid-Superset Design Doc Restructure (MERGED FROM INBOX)
+
+**Agent:** Leslie (Spec Architect)  
+**Date:** 2026-06-13T19:25:34-04:00  
+**Status:** ADOPTED
+
+## Summary
+
+Restructured LaTeX design document (design/main.tex) around new Mermaid-superset positioning: beautiful/themeable output, dedicated UML/software line, dual front-end (Mermaid DSL + structured IR).
+
+## New Document Structure (8 Parts)
+
+| Part | Title | Key Sections |
+|------|-------|--------------|
+| I | Thesis & Positioning | 01-problem, 02-central-thesis, 03-principles, 04-scope, 05-comparison |
+| II | Front-End | 15-frontend, 16-mermaid-compat, 17-superset-extensions |
+| III | Kernel | 10-scene-ir, 11-backends, 13-determinism, 14-animation |
+| IV | Families | 20-grammar, 28-family-taxonomy, 21-timeline, 22-rendering, 25-flow, 26-sequence, 27-tree, 29-chart-family |
+| V | Aesthetics | 12-themes, 18-aesthetics |
+| VI | Composition | 30-composition |
+| VII | Architecture | 40-architecture, 41-packaging, 42-layout-engines, 50-agent-integration |
+| VIII | Roadmap | 60-roadmap, 51-distribution, 53-oss-strategy, 55-target-outputs |
+
+## Files Created
+- `05-comparison.tex` — Mermaid/PlantUML/D2/Vega comparison
+- `15-frontend.tex` — Dual front-end architecture
+- `16-mermaid-compat.tex` — 22-type Mermaid coverage
+- `17-superset-extensions.tex` — Composition, theming, animation, IR-as-API
+- `18-aesthetics.tex` — Aesthetic bar as first-class pillar
+- `28-family-taxonomy.tex` — Five families, 22-type taxonomy
+- `29-chart-family.tex` — Grammar-of-graphics chart layer
+- `60-roadmap.tex` — Tiered coverage roadmap
+
+## Files Retired (Subsumed/Replaced)
+- `23-corpus-taxonomy.tex`, `24-diagram-family.tex`, `52-comparison.tex`, `54-mvp.tex`
+
+## Files Recontextualized
+- `01-problem.tex`, `02-central-thesis.tex`, `04-scope.tex`, `14-animation.tex`, `20-grammar-concept.tex`, `25-flow-grammar.tex`, `50-agent-integration.tex`, `12-themes.tex` (cross-references fixed)
+
+## Determinism & Delivery
+
+PDF builds. All design sections coherent across new family taxonomy and aesthetic-first positioning.
 
 ---
 

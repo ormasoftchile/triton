@@ -190,3 +190,43 @@ Added concise "Implementation status" paragraphs to the design document, syncing
 3. **Deferred features clearly marked:** Future work (general non-layered flow layouts, ir_file URI refs, interactive animation) is explicit in the doc, reducing ambiguity.
 4. **Determinism preserved:** Animation implementation maintains byte-identical SVG hashes; raster backends render static resting frames without branching.
 
+---
+
+## 2026-06-13 — Design Doc Restructured for Mermaid-Superset Positioning (Leslie)
+
+**Date:** 2026-06-13T19:25:34-04:00  
+**Status:** COMPLETE
+
+Major restructure of the LaTeX design document around the new product positioning: **full Mermaid superset** with differentiation on aesthetics, UML/software line, and agent IR.
+
+### New Document Structure (8 Parts, was 6)
+
+| Part | Title | Key Content |
+|------|-------|-------------|
+| I | Thesis & Positioning | Problem (Mermaid ubiquitous but ugly); central thesis; principles; scope; sharpened comparison |
+| II | The Front-End | **NEW** — Dual front-end (Mermaid DSL + structured IR); full 22-type compat strategy; superset extensions |
+| III | The Kernel | Scene IR, backends, determinism, animation (recontextualized) |
+| IV | The Diagram Families | 5-family taxonomy; 22-type coverage; per-family grammar specs (4 built + chart layer spec) |
+| V | Aesthetics & Theming | **ELEVATED** — Aesthetic bar as first-class pillar; theme architecture |
+| VI | Composition | Posters/grids/refs (existing) |
+| VII | Architecture & Packaging | Layered arch incl. parser layer; agent surface (MCP/SDK/CLI) |
+| VIII | Roadmap & MVP | **NEW** — Tier 0→3 coverage roadmap; reframed MVP |
+
+### New Section Files Created
+
+- `05-comparison.tex` — Positioning matrix vs Mermaid/PlantUML/D2/Vega-Lite
+- `15-frontend.tex` — Dual front-end architecture (DSL + structured IR convergence)
+- `16-mermaid-compat.tex` — All 22 Mermaid types; compatibility strategy; kernel reuse
+- `17-superset-extensions.tex` — Poster keyword, rich theming, animation, cross-refs, icons
+- `18-aesthetics.tex` — Aesthetic bar; design system; default theme craft; verification
+- `28-family-taxonomy.tex` — 5 families; per-family types/kernel/status; tier definitions
+- `29-chart-family.tex` — Grammar-of-graphics layer for pie/xy/quadrant/radar
+- `60-roadmap.tex` — Tiered roadmap; reframed MVP = Tier 0 complete + aesthetic bar
+
+### Learnings
+
+1. **Positioning drives structure:** The Mermaid-superset positioning naturally organizes into front-end (how we accept Mermaid), families (how we cover 22 types), and aesthetics (how we beat Mermaid visually). These became Parts II, IV, V.
+2. **Aesthetics as architecture:** Elevating aesthetics to its own Part (not buried in themes) reflects the strategic decision that "looking better" is the primary reason users switch.
+3. **Family taxonomy = roadmap taxonomy:** The 5-family / 4-tier structure serves both the technical architecture (shared kernels) and the product roadmap (prioritization).
+4. **Dual front-end is the key new concept:** The parser layer (Mermaid DSL → Domain IR) is the major new architectural component; everything below it (Domain IR → Scene IR → backends) is proven and built.
+5. **Most new types need only parsers:** Of 22 types, the 5 Tier-0 types only need parsers (kernels exist), Tier-1 UML needs new IRs + layouts, and only Tier-2 charts require a genuinely new kernel.
