@@ -1,0 +1,194 @@
+# Composition Example — RAG Architecture Deep Dive
+#
+# A 2x2 multi-panel poster demonstrating the Composition Grammar:
+#   Cell [0,0]: Flow diagram — RAG retrieval pipeline
+#   Cell [0,1]: Tree diagram — document taxonomy / knowledge base structure
+#   Cell [1,0]: Sequence diagram — retrieval request/response
+#   Cell [1,1]: Stat callout — 98.7% accuracy highlight
+#
+# Reproduces the structure of corpus infographics (sample-images/image copy 5/11):
+# each grammar compiled independently, then embedded via translateAndScale into
+# bordered panels on a single poster canvas.
+
+version: "1.0"
+metadata:
+  title: "RAG Architecture Deep Dive"
+  theme: default
+
+grid:
+  columns: 2
+  rows: 2
+
+cells:
+  # ── Top-left: Flow diagram — RAG retrieval pipeline ──────────────────────
+  - id: flow-pipeline
+    col: 0
+    row: 0
+    title: "Retrieval Pipeline"
+    content:
+      kind: flow
+      doc:
+        version: "1.0"
+        metadata:
+          title: "RAG Retrieval Pipeline"
+          theme: default-flow
+        flow:
+          nodes:
+            - id: query
+              label: "User Query"
+              kind: stadium
+            - id: embed
+              label: "Embed Query"
+              kind: rounded-rect
+              icon: sparkles
+            - id: search
+              label: "Vector Search"
+              kind: rounded-rect
+              icon: database
+            - id: rank
+              label: "Re-rank"
+              kind: rounded-rect
+            - id: augment
+              label: "Augment Prompt"
+              kind: rounded-rect
+            - id: llm
+              label: "LLM Generate"
+              kind: rounded-rect
+              icon: sparkles
+            - id: answer
+              label: "Answer"
+              kind: stadium
+              status: success
+          edges:
+            - from: query
+              to: embed
+            - from: embed
+              to: search
+            - from: search
+              to: rank
+              label: "top-k"
+            - from: rank
+              to: augment
+            - from: augment
+              to: llm
+              animated: true
+            - from: llm
+              to: answer
+              animated: true
+
+  # ── Top-right: Tree diagram — knowledge base taxonomy ────────────────────
+  - id: kb-taxonomy
+    col: 1
+    row: 0
+    title: "Knowledge Base"
+    content:
+      kind: tree
+      doc:
+        version: "1.0"
+        metadata:
+          title: "Knowledge Base Structure"
+          theme: default-tree
+        tree:
+          root:
+            id: kb
+            label: "Knowledge Base"
+            kind: root
+            children:
+              - id: docs
+                label: "Documents"
+                kind: chapter
+                children:
+                  - id: pdfs
+                    label: "PDFs"
+                    kind: section
+                  - id: html
+                    label: "Web Pages"
+                    kind: section
+              - id: chunks
+                label: "Chunks"
+                kind: chapter
+                children:
+                  - id: text-chunks
+                    label: "Text Chunks"
+                    kind: section
+                  - id: embeddings
+                    label: "Embeddings"
+                    kind: section
+              - id: index
+                label: "Vector Index"
+                kind: chapter
+                children:
+                  - id: faiss
+                    label: "FAISS"
+                    kind: section
+                  - id: metadata-store
+                    label: "Metadata"
+                    kind: section
+
+  # ── Bottom-left: Sequence diagram — retrieval request/response ────────────
+  - id: retrieval-seq
+    col: 0
+    row: 1
+    title: "Retrieval Sequence"
+    content:
+      kind: sequence
+      doc:
+        version: "1.0"
+        metadata:
+          title: "Retrieval Request/Response"
+          theme: default-sequence
+        sequence:
+          participants:
+            - id: client
+              label: "Client"
+              kind: actor
+            - id: api
+              label: "API Gateway"
+              kind: object
+            - id: retriever
+              label: "Retriever"
+              kind: object
+            - id: vectordb
+              label: "Vector DB"
+              kind: object
+          messages:
+            - from: client
+              to: api
+              label: "POST /query"
+              order: 1
+              kind: sync
+            - from: api
+              to: retriever
+              label: "retrieve(query)"
+              order: 2
+              kind: async
+            - from: retriever
+              to: vectordb
+              label: "search(embedding)"
+              order: 3
+              kind: async
+            - from: vectordb
+              to: retriever
+              label: "top-k results"
+              order: 4
+              kind: reply
+            - from: retriever
+              to: api
+              label: "ranked chunks"
+              order: 5
+              kind: reply
+            - from: api
+              to: client
+              label: "200 context"
+              order: 6
+              kind: reply
+
+  # ── Bottom-right: Stat callout — accuracy highlight ───────────────────────
+  - id: accuracy-stat
+    col: 1
+    row: 1
+    title: "Accuracy"
+    content:
+      kind: stat
+      value: "98.7%"
+      label: "retrieval accuracy on BEIR benchmark"

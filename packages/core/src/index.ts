@@ -128,3 +128,31 @@ export type {
   FlowOrientation,
   FlowEdgeStyle,
 } from './grammars/flow/index.js';
+
+// Scene-transform kernel helper (used by composition layer)
+export { translateAndScale, embedSceneInRect, transformPathD } from './scene-transform.js';
+
+// Composition grammar (fourth entry point — multi-panel poster layout)
+export {
+  buildCompositionScene,
+  renderCompositionDocument,
+  compositionDocumentSchema,
+  defaultCompositionTheme,
+  resolveCompositionTheme,
+  COMPOSITION_THEME_REGISTRY,
+} from './composition/index.js';
+export type {
+  CompositionDocument,
+  Cell,
+  CellContent,
+  FlowCellContent,
+  TreeCellContent,
+  SequenceCellContent,
+  StatCellContent,
+  TextCellContent,
+  TitleCellContent,
+  CompositionDocumentInput,
+  CompositionRenderOptions,
+  CompositionRenderResult,
+  CompositionTheme,
+} from './composition/index.js';
