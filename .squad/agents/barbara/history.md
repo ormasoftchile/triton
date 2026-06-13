@@ -2,7 +2,7 @@
 
 **Owner:** Barbara (Semantics & Rendering Lead)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-13T15:53:53Z
+**Updated:** 2026-06-13T16:09:42-04:00
 
 ---
 
@@ -149,3 +149,101 @@ Poster title "RAG Architecture Deep Dive" at top; each panel has a title bar; no
 - 669 prior goldens: **byte-identical** (scene-transform used only by composition layer)
 - +25 new composition/scene-transform tests
 - **694/694** total tests pass
+
+---
+
+## Learnings — 2026-06-13T16:09:42-04:00 Panel-Balance Polish + Poster Gallery Card
+
+### cellVAlign / cellHAlign alignment tokens
+
+Added `cellVAlign: 'top' | 'center' | 'fill'` and `cellHAlign: 'left' | 'center'` to `CompositionTheme` in `composition/theme.ts`. Defaults set to `cellVAlign: 'top'` and `cellHAlign: 'center'`.
+
+Design rationale:
+- `'top'` anchors the sub-scene at the top of the embed area; excess vertical space accumulates at the bottom. This is the right default for mixed-height grids (e.g., the wide/short Flow pipeline and the tall Tree taxonomy sharing a row — the pipeline no longer floats in the vertical midpoint of the tall row).
+- `'center'` preserves the original centering behavior (available but not default).
+- `'fill'` reserved synonym for `'center'` (future stretch mode).
+- `cellHAlign: 'center'` keeps the horizontal centering for wide-short scenes — most diagrams look best centered horizontally.
+
+### Layout engine change (`composition/layout.ts`)
+
+The `embedSceneInRect` helper always centered both axes. For top-alignment, the embed placement is computed inline in `layoutComposition` rather than via `embedSceneInRect`, using `translateAndScale` directly with `alignDy = embedY` for `'top'`. The `embedSceneInRect` export in `scene-transform.ts` is unchanged (still centers) — the A15 test verifies this and passes byte-identical.
+
+Key constraint respected: `translateAndScale` (and thus `embedSceneInRect`) is called only from the composition layer; all other grammar outputs route through their own layout engines and are unaffected. Confirmed: only `poster-rag-architecture.svg` and `.png` changed in `git diff`.
+
+### Determinism maintained
+
+Scale factor computation is identical (`min(scaleW, scaleH, 1.0)`). Only the vertical offset changes (`embedY` vs `embedY + (embedH - scaledH) / 2`). All arithmetic is pure; no randomness. `sceneHash` produces a new-but-stable value for the updated poster.
+
+### Gallery card — Example 20
+
+Added `poster-rag-architecture` as card 20 in `examples/gallery/index.html`:
+- Follows exact card structure: `card-num`, `card-title`, `card-desc`, `card-img` (PNG), `card-footer` (SVG + `.composition.yaml`).
+- Describes the Composition layer: multi-panel poster assembling Flow, Tree, Sequence, and Stat grammars.
+- Header blurb updated to mention the Composition Layer; badge updated to `Phase 1–5 Gallery · Horizontal + Sequence + Flow + Tree + Composition`.
+- All three referenced files (`poster-rag-architecture.png`, `.svg`, `.composition.yaml`) verified present.
+
+### Test results
+
+694/694 tests pass (all 25 prior composition/scene-transform tests byte-identical except the re-emitted poster files). No non-poster golden changed.
+
+---
+
+## 2026-06-13 — Grammar Deferrals Resolved: Sequence Alt Multi-Compartments + Flow Crossing-Min (commit a5b324f)
+
+**Date:** 2026-06-13T20:21:20Z  
+**Status:** SHIPPED  
+**Test Results:** 706/706 tests pass; non-affected goldens byte-identical; flow-rag-pipeline re-emitted
+
+### Sequence `alt` Multi-Guard Sub-Compartments (Rendering Extension)
+
+**Problem:** Previous `alt` fragments could not represent multi-section logic (e.g., HTTP response: success branch / 404 branch / else). Only a single guard label was supported.
+
+**Solution:** Fragment IR gains optional `sections?: FragmentSection[]` field. When ≥ 2 sections:
+- Outer rectangle still spans `from_order → to_order` (unchanged)
+- Dashed dividers emitted at section boundaries (new `LinePrimitive` per divider)
+- Section guard labels rendered below each divider (new `TextPrimitive` per section)
+- Theme token `fragDividerDash: string` (default '6,4') controls dash pattern
+
+**Backward Compat:** Fragments without `sections` or with <2 entries render identically to pre-feature. All 537 prior sequence tests pass byte-identical.
+
+**Gallery:** Added `sequence-alt-multicompartment.sequence.yaml` — HTTP response with 3-section alt (success / 404 / else).
+
+**Files Changed:**
+- `packages/core/src/grammars/sequence/types.ts` — `FragmentSection` interface, `Fragment.sections?` field
+- `packages/core/src/grammars/sequence/schema.ts` — `fragmentSectionSchema`, updated `fragmentSchema`
+- `packages/core/src/grammars/sequence/layout.ts` — `renderFragments` refactored to emit dividers + section labels
+- `packages/core/src/grammars/sequence/theme.ts` — `fragDividerDash` token added to `SequenceTheme`
+- `examples/gallery/sequence-alt-multicompartment.sequence.yaml` — NEW fixture
+- `examples/gallery/sequence-alt-multicompartment.{svg,png}` — NEW outputs
+
+### Flow Crossing-Minimization: Deterministic Barycenter Heuristic
+
+**Problem:** Flow layout layer assignment (Sugiyama Phase 1) produced non-deterministic node orderings within layers due to floating-point comparisons and tie-breaking by insertion order.
+
+**Solution:** Deterministic crossing-minimization via barycenter heuristic (classical algorithm from Sugiyama 1993):
+- 4 alternating sweeps (forward/backward)
+- Sweep 0, 2 (forward): sort each layer by mean x-position of predecessors in previous layer
+- Sweep 1, 3 (backward): sort by mean x-position of successors in next layer
+- Lexicographic tie-breaking: compare node ids (fully deterministic)
+- Nodes with no neighbors in reference layer retain position
+
+**Code Location:** `packages/core/src/grammars/flow/layout.ts`, Phase 3.5, new functions `computeBarycenter()` and `minimizeCrossings()`
+
+**Effect on flow-rag-pipeline:** Layer 2 reorders from `(rank, direct)` to `(direct, rank)` (lexicographic tie-break favors 'd' < 'r'). SVG/PNG outputs updated.
+
+**Determinism:** Same input → byte-identical output (verified by "same hash twice" test). `CROSSING_MIN_SWEEPS = 4` is a constant; no RNG.
+
+**Files Changed:**
+- `packages/core/src/grammars/flow/layout.ts` — Phase 3.5 crossing-minimization integration, `computeBarycenter()`, `minimizeCrossings()`
+- Flow layer assignment tests updated to verify determinism
+- Gallery flow-rag-pipeline outputs re-emitted with new node order
+
+**Test Results:** All 33 flow tests pass. Non-flow/non-sequence goldens (timeline, tree, composition) byte-identical.
+
+### Test Coverage Update
+
+- Baseline: 694 tests (prior composition milestone)
+- New: 12 tests (sequence alt multi-compartment validation, flow crossing-min determinism check)
+- **Final:** 706/706 pass
+
+---

@@ -302,3 +302,33 @@ Barbara delivered the Composition Layer kernel helper + module (commit 9c092cc):
 **Blocks on:** Nothing — composition inc-1 is feature-complete. Future enhancements (ir_file, depth enforcement) are orthogonal to current gallery example.
 
 ---
+---
+
+## 2026-06-13 — Sequence IR Extension: Fragment.sections[] + Flow Crossing-Min Determinism (Barbara + Cross-Agent)
+
+**Date:** 2026-06-13T20:21:20Z  
+**Status:** SHIPPED (commit a5b324f: grammar deferrals resolved)
+
+### Fragment.sections[] Multi-Compartment Support
+
+**IR Extension (Mark schema responsibility):**
+- `Fragment` IR gains optional `sections?: FragmentSection[]` field
+- Each `FragmentSection` contains: `guard?: string`, `fromOrder: number`, `toOrder: number`
+- When `sections` is present with ≥ 2 entries, `alt` fragment renders multiple sub-compartments with dashed dividers
+- New theme token: `fragDividerDash: string` (default '6,4')
+- Backward compat: fragments without `sections` or with <2 entries render identically to pre-feature (byte-identical)
+
+**Schema Location:** `packages/core/src/grammars/sequence/schema.ts`  
+**XGrammar:** Add `fragmentSectionSchema` to constraint grammar for LLM generation
+
+**Gallery:** New fixture `examples/gallery/sequence-alt-multicompartment.sequence.yaml` demonstrates 3-section alt (HTTP success / not found / else)
+
+### Flow Crossing-Minimization: Deterministic Barycenter (Rendering concern, but IR-relevant for ordering)
+
+**Algorithm:** 4 barycenter sweeps (alternating forward/backward), lexicographic tie-breaking by node id.  
+**IR Impact:** None — node/edge IR unchanged. Layout layer reorders layer-2 nodes deterministically.  
+**Determinism:** Verified; 706 tests pass; flow-rag-pipeline output byte-identical across runs.
+
+**Note for future IR extensions:** If Flow ever gains nested-subgraph support, ensure node id uniqueness validation includes scope/namespace rules. Current flat namespace (all ids globally unique) is compatible with deterministic lexicographic ordering.
+
+---
