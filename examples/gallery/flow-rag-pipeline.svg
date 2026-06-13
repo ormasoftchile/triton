@@ -6,8 +6,12 @@
   <path d="M 399 94 C 434 94 470 61 498 61" fill="none" stroke="#6b7280" stroke-dasharray="6,4" stroke-width="1.5"/>
   <path d="M 625 127 C 660 127 696 94 724 94" fill="none" stroke="#6b7280" stroke-width="1.5"/>
   <path d="M 625 61 C 660 61 696 94 724 94" fill="none" stroke="#6b7280" stroke-width="1.5"/>
-  <path d="M 851 94 C 886 94 920 94 948 94" fill="none" stroke="#4a6cf7" stroke-dasharray="8,5" stroke-width="1.5"/>
-  <path d="M 1080 94 C 1110 94 1140 94 1163 94" fill="none" stroke="#4a6cf7" stroke-dasharray="8,5" stroke-width="1.5"/>
+  <path d="M 851 94 C 886 94 920 94 948 94" fill="none" stroke="#4a6cf7" stroke-dasharray="8,5" stroke-dashoffset="0" stroke-width="1.5">
+    <animate attributeName="stroke-dashoffset" dur="1.2s" from="13" repeatCount="indefinite" to="0"/>
+  </path>
+  <path d="M 1080 94 C 1110 94 1140 94 1163 94" fill="none" stroke="#4a6cf7" stroke-dasharray="8,5" stroke-dashoffset="0" stroke-width="1.5">
+    <animate attributeName="stroke-dashoffset" dur="1.2s" from="13" repeatCount="indefinite" to="0"/>
+  </path>
   <rect fill="#e8f0fe" height="42" rx="21" stroke="#4a6cf7" stroke-width="1.5" width="124" x="51" y="73"/>
   <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="113" y="94">User Question</text>
   <rect fill="#e8f0fe" height="42" rx="8" stroke="#4a6cf7" stroke-width="1.5" width="120" x="279" y="73"/>

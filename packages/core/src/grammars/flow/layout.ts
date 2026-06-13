@@ -36,7 +36,7 @@
  * Scene → byte-identical SVG/PNG.
  */
 
-import type { Scene, ScenePrimitive } from '../../scene.js';
+import type { Scene, ScenePrimitive, SceneAnimation } from '../../scene.js';
 import { measureText } from '../../fonts/metrics.js';
 import { getIcon } from '../../icons.js';
 
@@ -555,6 +555,11 @@ function emitForwardEdge(
   const sz = tk.arrowSize;
   const arrowFill = edge.animated ? tk.animatedEdgeStroke : tk.arrowFill;
 
+  // Animation hint for animated edges (SVG only; raster ignores)
+  const animHint: SceneAnimation | undefined = edge.animated && dash
+    ? { kind: 'dashflow', durSec: tk.animationDurSec }
+    : undefined;
+
   // Port positions (right-center of source, left-center of target)
   const x1 = srcPlaced.rx;
   const y1 = srcPlaced.cy;
@@ -576,6 +581,7 @@ function emitForwardEdge(
       stroke,
       strokeWidth: sw,
       ...(dash ? { dashArray: dash } : {}),
+      ...(animHint ? { animation: animHint } : {}),
     });
   } else if (tk.edgeStyle === 'elbow') {
     // Orthogonal elbow: H → V → H
@@ -593,6 +599,7 @@ function emitForwardEdge(
       stroke,
       strokeWidth: sw,
       ...(dash ? { dashArray: dash } : {}),
+      ...(animHint ? { animation: animHint } : {}),
     });
   } else {
     // Default: cubic Bézier (smooth curve)
@@ -608,6 +615,7 @@ function emitForwardEdge(
       stroke,
       strokeWidth: sw,
       ...(dash ? { dashArray: dash } : {}),
+      ...(animHint ? { animation: animHint } : {}),
     });
   }
 

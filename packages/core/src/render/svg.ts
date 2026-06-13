@@ -8,7 +8,7 @@
  * CONTRACT: returns a plain `string` — never a Buffer, stream, or promise.
  */
 
-import type { Scene, ScenePrimitive, ImagePrimitive, StrokeGradient } from '../scene.js';
+import type { Scene, ScenePrimitive, ImagePrimitive, StrokeGradient, SceneAnimation } from '../scene.js';
 
 // ---------------------------------------------------------------------------
 // Formatting helpers
@@ -48,6 +48,51 @@ function attrs(map: AttrMap): string {
     parts.push(`${k}="${vs}"`);
   }
   return parts.length > 0 ? ' ' + parts.join(' ') : '';
+}
+
+// ---------------------------------------------------------------------------
+// Animation helpers (§14 dashflow — additive, SVG only)
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute the total period of a CSS stroke-dasharray string.
+ * e.g. "8,5" → 13; "6,4" → 10; "2,4,2" → 8.
+ * Returns 0 for empty or unparseable strings (animation is silently omitted).
+ */
+function dashPeriod(dashArray: string): number {
+  return dashArray
+    .split(',')
+    .map((s) => parseFloat(s.trim()))
+    .filter((n) => isFinite(n))
+    .reduce((sum, n) => sum + n, 0);
+}
+
+/**
+ * Build a SMIL <animate> element for a dashflow animation hint.
+ * Returns the element string (indented) or empty string if the hint cannot
+ * produce a valid animation (no dashArray period derivable).
+ *
+ * The initial stroke-dashoffset on the parent element is 0 (the SVG default)
+ * so that static renderers (resvg/Skia) show the resting frame unchanged.
+ */
+function dashflowAnimate(
+  anim: SceneAnimation,
+  dashArray: string,
+  indent: string,
+): string {
+  if (anim.kind !== 'dashflow') return '';
+  const period = dashPeriod(dashArray);
+  if (period <= 0) return '';
+  const fromVal = anim.from !== undefined ? anim.from : period;
+  const toVal   = anim.to   !== undefined ? anim.to   : 0;
+  const animAttrs: AttrMap = {
+    attributeName: 'stroke-dashoffset',
+    dur:           `${anim.durSec}s`,
+    from:          fromVal,
+    repeatCount:   'indefinite',
+    to:            toVal,
+  };
+  return `${indent}  <animate${attrs(animAttrs)}/>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -145,12 +190,19 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
         opacity:        p.opacity,
         stroke:         p.stroke,
         'stroke-dasharray': p.dashArray,
+        'stroke-dashoffset': (p.animation && p.dashArray) ? 0 : undefined,
         'stroke-width': p.strokeWidth,
         x1:             p.x1,
         x2:             p.x2,
         y1:             p.y1,
         y2:             p.y2,
       };
+      if (p.animation && p.dashArray) {
+        const animEl = dashflowAnimate(p.animation, p.dashArray, indent);
+        if (animEl) {
+          return `${indent}<line${attrs(a)}>\n${animEl}\n${indent}</line>`;
+        }
+      }
       return `${indent}<line${attrs(a)}/>`;
     }
 
@@ -202,10 +254,17 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
         opacity:      p.opacity,
         stroke:       strokeRef,
         'stroke-dasharray': p.dashArray,
+        'stroke-dashoffset': (p.animation && p.dashArray) ? 0 : undefined,
         'stroke-linecap': p.strokeLinecap,
         'stroke-width': p.strokeWidth,
         transform:    p.transform,
       };
+      if (p.animation && p.dashArray) {
+        const animEl = dashflowAnimate(p.animation, p.dashArray, indent);
+        if (animEl) {
+          return `${indent}<path${attrs(a)}>\n${animEl}\n${indent}</path>`;
+        }
+      }
       return `${indent}<path${attrs(a)}/>`;
     }
 

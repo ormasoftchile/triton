@@ -108,6 +108,18 @@ export interface CompositionTheme {
    */
   cellHAlign: 'left' | 'center';
 
+  // ── Row sizing ────────────────────────────────────────────────────────────
+  /**
+   * Controls how row heights are computed.
+   *
+   * - 'content' (default): each row's height = its own tallest cell content
+   *   (+ padding). A row of short diagrams is short; a row with a tall
+   *   diagram is tall. Eliminates dead vertical space in mixed-height grids.
+   * - 'equal': all rows are normalized to the same height (the global maximum
+   *   across all rows). Useful when uniform panel heights are desired.
+   */
+  rowSizing: 'equal' | 'content';
+
   // ── Text / title cells ────────────────────────────────────────────────────
   /** Font for text cells. */
   textFont: {
@@ -152,8 +164,48 @@ export const defaultCompositionTheme: CompositionTheme = {
   cellVAlign: 'top',
   cellHAlign: 'center',
 
+  rowSizing: 'content',
+
   textFont: { family: 'Inter, sans-serif', size: 14, weight: 400, color: '#cbd5e1' },
   titleFont: { family: 'Inter, sans-serif', size: 20, weight: 700, color: '#f1f5f9' },
+};
+
+// ---------------------------------------------------------------------------
+// Dark composition theme — ByteByteGo-style cohesive dark poster
+// ---------------------------------------------------------------------------
+
+/**
+ * Dark poster theme: deep navy canvas, teal-accented cell borders,
+ * vivid stat callouts. Designed to pair with dark/BBG grammar themes
+ * (dark-flow, dark-tree, bytebytego-sequence) for cohesive infographics.
+ */
+export const darkCompositionTheme: CompositionTheme = {
+  canvasBackground: '#0d1117',
+  gap: 16,
+  padding: 24,
+
+  cellBackground: '#161b22',
+  cellBorder: { color: '#30363d', width: 1, radius: 12 },
+  cellPadding: 12,
+
+  cellTitleFont: { family: 'Inter, sans-serif', size: 12, weight: 600, color: '#58a6ff' },
+  cellTitleHeight: 28,
+  cellTitleBackground: '#161b22',
+
+  posterTitleFont: { family: 'Inter, sans-serif', size: 22, weight: 700, color: '#e6edf3' },
+  posterHeaderHeight: 52,
+  posterHeaderBackground: '#0d1117',
+
+  statValueFont: { family: 'Inter, sans-serif', size: 48, weight: 700, color: '#2dd4bf' },
+  statLabelFont: { family: 'Inter, sans-serif', size: 13, weight: 400, color: '#8b949e' },
+
+  cellVAlign: 'top',
+  cellHAlign: 'center',
+
+  rowSizing: 'content',
+
+  textFont: { family: 'Inter, sans-serif', size: 14, weight: 400, color: '#c9d1d9' },
+  titleFont: { family: 'Inter, sans-serif', size: 20, weight: 700, color: '#e6edf3' },
 };
 
 // ---------------------------------------------------------------------------
@@ -162,6 +214,7 @@ export const defaultCompositionTheme: CompositionTheme = {
 
 export const COMPOSITION_THEME_REGISTRY: Record<string, CompositionTheme> = {
   default: defaultCompositionTheme,
+  'dark-poster': darkCompositionTheme,
 };
 
 export function resolveCompositionTheme(name?: string): CompositionTheme {

@@ -12,6 +12,39 @@
 import { createHash } from 'node:crypto';
 
 // ---------------------------------------------------------------------------
+// Animation model (additive, backend-conditional, §14)
+// ---------------------------------------------------------------------------
+
+/**
+ * Declarative animation hint for stroke-dashoffset looping (§14 dashflow).
+ *
+ * Backends that support animation (SVG) emit SMIL <animate> elements.
+ * Backends that do not (PNG/resvg, Skia) IGNORE this field entirely and
+ * render the resting frame — the element's explicit stroke-dashoffset="0"
+ * initial attribute — byte-identically to the pre-animation resting frame.
+ *
+ * Additive & opt-in: primitives without this field are UNCHANGED.
+ *
+ * dashflow: animates stroke-dashoffset from `from` (default = dash period
+ * derived from dashArray) to `to` (default = 0), looping indefinitely.
+ */
+export interface DashflowAnimation {
+  kind: 'dashflow';
+  /** Animation duration in seconds. */
+  durSec: number;
+  /**
+   * Starting dashoffset value. Defaults to the dash period (sum of all
+   * dash/gap values parsed from the element's dashArray) so one full
+   * cycle moves the dash pattern by exactly one period.
+   */
+  from?: number;
+  /** Ending dashoffset value. Defaults to 0. */
+  to?: number;
+}
+
+export type SceneAnimation = DashflowAnimation;
+
+// ---------------------------------------------------------------------------
 // Effect model (additive, backend-agnostic, Phase 4)
 // ---------------------------------------------------------------------------
 
@@ -56,6 +89,13 @@ export interface LinePrimitive {
   opacity?: number;
   dashArray?: string;
   effects?: SceneEffect[];
+  /**
+   * Optional animation hint. Only honoured by animated backends (SVG).
+   * Raster backends (PNG/Skia) IGNORE this and render the resting frame
+   * (stroke-dashoffset=0 default). Absent by default → no change to
+   * existing primitives.
+   */
+  animation?: SceneAnimation;
 }
 
 export interface RectPrimitive {
@@ -168,6 +208,13 @@ export interface PathPrimitive {
    * The `stroke` field is ignored when `strokeGradient` is present.
    */
   strokeGradient?: StrokeGradient;
+  /**
+   * Optional animation hint. Only honoured by animated backends (SVG).
+   * Raster backends (PNG/Skia) IGNORE this and render the resting frame
+   * (stroke-dashoffset=0 default). Absent by default → no change to
+   * existing primitives. Requires `dashArray` to be set to have visible effect.
+   */
+  animation?: SceneAnimation;
 }
 
 export interface GroupPrimitive {

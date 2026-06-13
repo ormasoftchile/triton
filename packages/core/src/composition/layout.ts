@@ -244,6 +244,16 @@ function computeGridLayout(
     if (rowHeights[r]! < 60) rowHeights[r] = 60;
   }
 
+  // rowSizing: 'equal' normalizes all rows to the global max height so every
+  // panel has the same vertical extent. 'content' (default) keeps per-row
+  // sizing, so a row of short diagrams stays short.
+  if (theme.rowSizing === 'equal') {
+    const maxRowH = Math.max(...rowHeights);
+    for (let r = 0; r < rows; r++) {
+      rowHeights[r] = maxRowH;
+    }
+  }
+
   // Proportionally scale columns if total exceeds available width.
   const availableWidth = canvasWidth - 2 * padding - (columns - 1) * gap;
   const totalColW = colWidths.reduce((s, w) => s + w, 0);

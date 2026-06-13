@@ -27,6 +27,7 @@ export type { FlowDocumentInput } from './schema.js';
 export type { FlowTheme, FlowOrientation, FlowEdgeStyle } from './theme.js';
 export {
   defaultFlowTheme,
+  darkFlowTheme,
   resolveFlowTheme,
   FLOW_THEME_REGISTRY,
 } from './theme.js';

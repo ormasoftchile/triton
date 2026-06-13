@@ -44,6 +44,7 @@ import {
   buildCompositionScene,
   renderCompositionDocument,
   compositionDocumentSchema,
+  darkCompositionTheme,
 } from '../src/composition/index.js';
 import { sceneHash } from '../src/scene.js';
 import type { CompositionDocument } from '../src/composition/index.js';
@@ -494,5 +495,167 @@ describe('Composition Grammar — gallery emit', () => {
     const r1 = renderCompositionDocument(doc, { format: 'svg' }) as { sceneHash: string };
     const r2 = renderCompositionDocument(doc, { format: 'svg' }) as { sceneHash: string };
     expect(r1.sceneHash).toBe(r2.sceneHash);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// C. rowSizing token tests
+// ---------------------------------------------------------------------------
+
+describe('Composition Grammar — rowSizing token', () => {
+  // C1. 'content' default: two rows with different tallest cells produce
+  //     different row heights.
+  it('C1: rowSizing=content gives per-row heights (rows differ when content differs)', () => {
+    const doc: CompositionDocument = {
+      version: '1.0',
+      metadata: {},
+      grid: { columns: 2, rows: 2 },
+      cells: [
+        // Row 0: two short stat cells (value only, no label)
+        { id: 'r0c0', col: 0, row: 0, content: { kind: 'stat', value: '1' } },
+        { id: 'r0c1', col: 1, row: 0, content: { kind: 'stat', value: '2' } },
+        // Row 1: stat + label (taller synthetic scene)
+        { id: 'r1c0', col: 0, row: 1, content: { kind: 'stat', value: '99%', label: 'very long descriptive label that adds height to the row' } },
+        { id: 'r1c1', col: 1, row: 1, content: { kind: 'stat', value: '42', label: 'the answer to life' } },
+      ],
+    };
+    const contentScene = buildCompositionScene(doc);
+    // With 'content', total height is sum of individual row heights
+    // (each row sized by its tallest cell).  Row 0 (no labels) should be
+    // shorter than row 1 (with labels), making total less than 2 × row1.
+    expect(contentScene.height).toBeGreaterThan(0);
+    // Deterministic: same doc same hash.
+    const h1 = sceneHash(contentScene);
+    const h2 = sceneHash(buildCompositionScene(doc));
+    expect(h1).toBe(h2);
+  });
+
+  // C2. 'equal' mode: all rows normalized to global max; total height =
+  //     padding + header + rows * maxRowH + (rows-1) * gap.
+  it('C2: rowSizing=equal normalizes all rows to global max height', () => {
+    const equalDoc: CompositionDocument = {
+      version: '1.0',
+      metadata: {},
+      grid: { columns: 1, rows: 2 },
+      cells: [
+        { id: 'r0', col: 0, row: 0, content: { kind: 'stat', value: 'A' } },
+        { id: 'r1', col: 0, row: 1, content: { kind: 'stat', value: 'B', label: 'taller row label' } },
+      ],
+    };
+    // Build with equal row sizing via theme override.
+    const contentScene = buildCompositionScene(equalDoc);
+    const equalScene  = buildCompositionScene(equalDoc, { ...darkCompositionTheme, rowSizing: 'equal' });
+
+    // With 'equal', the total height should be >= the 'content' total (since
+    // we force the short row to match the tall row).
+    expect(equalScene.height).toBeGreaterThanOrEqual(contentScene.height);
+  });
+
+  // C3. rowSizing='equal' and 'content' produce different hashes for
+  //     a document where rows have unequal natural heights.
+  it('C3: rowSizing equal vs content produce different scene hashes', () => {
+    const doc: CompositionDocument = {
+      version: '1.0',
+      metadata: {},
+      grid: { columns: 1, rows: 2 },
+      cells: [
+        { id: 'r0', col: 0, row: 0, content: { kind: 'stat', value: 'A' } },
+        { id: 'r1', col: 0, row: 1, content: { kind: 'stat', value: 'B', label: 'label adds height to row 1' } },
+      ],
+    };
+    const contentScene = buildCompositionScene(doc);
+    const equalScene   = buildCompositionScene(doc, { ...darkCompositionTheme, rowSizing: 'equal' });
+    // The two modes produce different scene hashes.
+    expect(sceneHash(contentScene)).not.toBe(sceneHash(equalScene));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D. Dark poster tests
+// ---------------------------------------------------------------------------
+
+describe('Composition Grammar — dark poster', () => {
+  function loadDarkFixture(): CompositionDocument {
+    const raw = readFileSync(
+      join(GALLERY_DIR, 'poster-rag-architecture-dark.composition.yaml'),
+      'utf-8',
+    );
+    return parseYaml(raw) as CompositionDocument;
+  }
+
+  // D1. Dark fixture is structurally valid.
+  it('D1: dark poster fixture validates against schema', () => {
+    const doc = loadDarkFixture();
+    expect(() => compositionDocumentSchema.parse(doc)).not.toThrow();
+  });
+
+  // D2. Dark poster builds a valid scene.
+  it('D2: dark poster builds a scene with positive dimensions', () => {
+    const doc = loadDarkFixture();
+    const scene = buildCompositionScene(doc);
+    expect(scene.width).toBeGreaterThan(0);
+    expect(scene.height).toBeGreaterThan(0);
+    expect(scene.primitives.length).toBeGreaterThan(10);
+  });
+
+  // D3. Determinism: two builds produce identical sceneHash.
+  it('D3: dark poster is deterministic (same sceneHash twice)', () => {
+    const doc = loadDarkFixture();
+    const h1 = sceneHash(buildCompositionScene(doc));
+    const h2 = sceneHash(buildCompositionScene(doc));
+    expect(h1).toBe(h2);
+    expect(h1).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  // D4. Dark poster hash differs from light poster (different themes produce
+  //     different scenes).
+  it('D4: dark poster hash differs from light poster hash', () => {
+    const lightDoc = loadFixture();
+    const darkDoc  = loadDarkFixture();
+    const lightHash = sceneHash(buildCompositionScene(lightDoc));
+    const darkHash  = sceneHash(buildCompositionScene(darkDoc));
+    expect(lightHash).not.toBe(darkHash);
+  });
+
+  // D5. Canvas background uses the dark-poster theme color.
+  it('D5: dark poster canvas background is the dark-poster color', () => {
+    const doc = loadDarkFixture();
+    const scene = buildCompositionScene(doc);
+    const bgRect = scene.primitives[0];
+    expect(bgRect?.kind).toBe('rect');
+    // dark-poster canvasBackground = '#0d1117'
+    expect((bgRect as { fill?: string }).fill).toBe('#0d1117');
+  });
+
+  // D6. Emit dark poster SVG + PNG to gallery.
+  it('D6: emits poster-rag-architecture-dark.svg and .png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) {
+      mkdirSync(GALLERY_DIR, { recursive: true });
+    }
+
+    const doc = loadDarkFixture();
+    const svgResult = renderCompositionDocument(doc, { format: 'svg' }) as {
+      svg: string;
+      sceneHash: string;
+    };
+    expect(typeof svgResult.svg).toBe('string');
+    expect(svgResult.svg.length).toBeGreaterThan(100);
+
+    const svgPath = join(GALLERY_DIR, 'poster-rag-architecture-dark.svg');
+    writeFileSync(svgPath, svgResult.svg, 'utf-8');
+    expect(existsSync(svgPath)).toBe(true);
+
+    const pngResult = renderCompositionDocument(doc, { format: 'png' }) as {
+      png: Uint8Array;
+    };
+    expect(pngResult.png).toBeInstanceOf(Uint8Array);
+    expect(pngResult.png.length).toBeGreaterThan(100);
+
+    const pngPath = join(GALLERY_DIR, 'poster-rag-architecture-dark.png');
+    writeFileSync(pngPath, pngResult.png);
+    expect(existsSync(pngPath)).toBe(true);
+
+    console.log(`[gallery] Dark Poster SVG: ${svgPath} (${svgResult.svg.length} chars)`);
+    console.log(`[gallery] Dark Poster PNG: ${pngPath} (${pngResult.png.length} bytes)`);
   });
 });

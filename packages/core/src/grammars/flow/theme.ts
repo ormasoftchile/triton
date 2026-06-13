@@ -161,6 +161,14 @@ export interface FlowTheme {
   /** Dash pattern for back-edges. Empty string = solid. */
   backEdgeDash: string;
 
+  // ── Animation ─────────────────────────────────────────────────────────────
+  /**
+   * Duration (seconds) for the dashflow animation on animated edges in SVG.
+   * Raster backends (PNG/Skia) ignore animation entirely.
+   * Default: 1.2s (smooth, not too fast, not too slow).
+   */
+  animationDurSec: number;
+
   // ── Icon support ──────────────────────────────────────────────────────────
   /** Whether to render icons when node.icon is set. */
   showIcons: boolean;
@@ -248,6 +256,100 @@ export const defaultFlowTheme: FlowTheme = {
   backEdgeStroke: '#94a3b8',
   backEdgeDash: '5,4',
 
+  animationDurSec: 1.2,
+
+  showIcons: true,
+  iconSize: 14,
+  iconLabelGap: 6,
+};
+
+// ---------------------------------------------------------------------------
+// darkFlowTheme — ByteByteGo-style dark infographic for flow diagrams
+// ---------------------------------------------------------------------------
+
+/**
+ * Dark flow theme: deep navy canvas, teal-accented node cards, vivid colored
+ * edges. Designed to complement bytebytego-sequence and dark-tree for
+ * cohesive dark infographic posters.
+ *
+ * Demonstrates grammar = semantics / theme = style: the same FlowDocument
+ * renders as a clean light pipeline or a rich dark infographic.
+ */
+export const darkFlowTheme: FlowTheme = {
+  ...defaultFlowTheme,
+
+  background: '#111827',
+  fontFamily: 'DejaVu Sans, sans-serif',
+
+  // Tighter margins for card-style dark layout
+  marginLeft: 32,
+  marginRight: 32,
+  marginTop: 32,
+  marginBottom: 48,
+
+  // Node styling — dark cards with teal stroke
+  nodeFill: '#1e293b',
+  nodeStroke: '#2dd4bf',
+  nodeStrokeWidth: 1.5,
+  nodeRx: 10,
+  nodeTextColor: '#f1f5f9',
+
+  // Kind → fill: vivid accent fills matching BBG color palette
+  kindFills: {
+    stadium:       '#0d9488',  // teal-600 — start/end stadium shapes
+    'rounded-rect': '#1e40af', // blue-800 — generic process nodes
+    diamond:       '#7c3aed',  // violet-700 — decision nodes
+    circle:        '#065f46',  // emerald-900 — terminal nodes
+    rect:          '#1e293b',  // slate-800 — plain rect nodes
+  },
+  kindTextColors: {
+    stadium:       '#ffffff',
+    'rounded-rect': '#dbeafe',
+    diamond:       '#ede9fe',
+    circle:        '#d1fae5',
+    rect:          '#f1f5f9',
+  },
+
+  // Status → fill in dark palette
+  statusFills: {
+    default: '#1e293b',
+    active:  '#1e3a5f',
+    success: '#064e3b',
+    warning: '#451a03',
+    error:   '#4c0519',
+    muted:   '#111827',
+  },
+  statusTextColors: {
+    default: '#f1f5f9',
+    active:  '#bfdbfe',
+    success: '#6ee7b7',
+    warning: '#fde68a',
+    error:   '#fca5a5',
+    muted:   '#94a3b8',
+  },
+
+  nodeFontSize: 12,
+  nodeFontWeight: 600,
+  edgeLabelFontSize: 10,
+  edgeLabelFontWeight: 400,
+  edgeLabelColor: '#94a3b8',
+
+  // Curved edges with teal stroke on dark background
+  edgeStyle: 'curved',
+  edgeStroke: '#2dd4bf',
+  edgeStrokeWidth: 1.5,
+  edgeDash: '6,4',
+  edgeDotted: '2,4',
+  animatedEdgeDash: '8,5',
+  animatedEdgeStroke: '#38bdf8',
+
+  arrowSize: 7,
+  arrowFill: '#2dd4bf',
+
+  backEdgeCurvature: 50,
+  backEdgeStroke: '#475569',
+  backEdgeDash: '5,4',
+
   showIcons: true,
   iconSize: 14,
   iconLabelGap: 6,
@@ -259,6 +361,7 @@ export const defaultFlowTheme: FlowTheme = {
 
 export const FLOW_THEME_REGISTRY: Record<string, FlowTheme> = {
   'default-flow': defaultFlowTheme,
+  'dark-flow': darkFlowTheme,
 };
 
 /**

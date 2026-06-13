@@ -36,6 +36,7 @@ export type { CompositionDocumentInput } from './schema.js';
 export type { CompositionTheme } from './theme.js';
 export {
   defaultCompositionTheme,
+  darkCompositionTheme,
   resolveCompositionTheme,
   COMPOSITION_THEME_REGISTRY,
 } from './theme.js';

@@ -606,3 +606,112 @@ describe('Flow Grammar — crossing minimization', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// 9. Animation — dashflow on animated edges (§14)
+// ---------------------------------------------------------------------------
+
+describe('Flow Grammar — animation (dashflow)', () => {
+  it('animated edges produce path primitives with animation field', () => {
+    const doc = loadFixture();
+    const scene = buildFlowScene(doc);
+    // The fixture has two animated edges: augment→llm and llm→answer.
+    const animatedPaths = scene.primitives.filter(
+      (p) =>
+        p.kind === 'path' &&
+        (p as { animation?: { kind: string } }).animation?.kind === 'dashflow',
+    );
+    expect(animatedPaths.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('animated path carries dashArray alongside animation', () => {
+    const doc = loadFixture();
+    const scene = buildFlowScene(doc);
+    const animatedPaths = scene.primitives.filter(
+      (p) =>
+        p.kind === 'path' &&
+        (p as { animation?: { kind: string } }).animation?.kind === 'dashflow',
+    ) as Array<{ dashArray?: string; animation?: { kind: string; durSec: number } }>;
+    expect(animatedPaths.length).toBeGreaterThan(0);
+    for (const p of animatedPaths) {
+      expect(p.dashArray).toBeTruthy();
+      expect(p.animation!.durSec).toBeGreaterThan(0);
+    }
+  });
+
+  it('non-animated edges do NOT have an animation field', () => {
+    const doc = loadFixture();
+    const scene = buildFlowScene(doc);
+    const nonAnimatedPaths = scene.primitives.filter(
+      (p) =>
+        p.kind === 'path' &&
+        !(p as { animation?: unknown }).animation,
+    );
+    expect(nonAnimatedPaths.length).toBeGreaterThan(0);
+  });
+
+  it('SVG output contains <animate> elements for animated edges', () => {
+    const doc = loadFixture();
+    const result = renderFlowDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('<animate');
+    expect(svg).toContain('attributeName="stroke-dashoffset"');
+    expect(svg).toContain('repeatCount="indefinite"');
+  });
+
+  it('SVG animated paths have stroke-dashoffset="0" (resting frame)', () => {
+    const doc = loadFixture();
+    const result = renderFlowDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('stroke-dashoffset="0"');
+  });
+
+  it('SVG <path> with animation is NOT self-closing (has children)', () => {
+    const doc = loadFixture();
+    const result = renderFlowDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('</path>');
+  });
+
+  it('animation field is deterministic across two builds', () => {
+    const doc = loadFixture();
+    const h1 = sceneHash(buildFlowScene(doc));
+    const h2 = sceneHash(buildFlowScene(doc));
+    expect(h1).toBe(h2);
+    expect(h1).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('removing animation from edges changes the sceneHash', () => {
+    const fixtureDoc = loadFixture();
+    const withAnim = buildFlowScene(fixtureDoc);
+    const noAnimDoc: FlowDocument = {
+      ...fixtureDoc,
+      flow: {
+        ...fixtureDoc.flow,
+        edges: fixtureDoc.flow.edges.map((e) => ({ ...e, animated: undefined })),
+      },
+    };
+    const withoutAnim = buildFlowScene(noAnimDoc);
+    expect(sceneHash(withAnim)).not.toBe(sceneHash(withoutAnim));
+  });
+
+  it('PNG render of animated scene produces valid PNG (raster ignores animation)', () => {
+    const doc = loadFixture();
+    const result = renderFlowDocument(doc, { format: 'png' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    expect(result.png).toBeInstanceOf(Uint8Array);
+    expect(result.png![0]).toBe(0x89); // PNG signature byte
+  });
+
+  it('animationDurSec token (1.2s) appears in SVG dur attribute', () => {
+    const doc = loadFixture();
+    const result = renderFlowDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    // defaultFlowTheme.animationDurSec = 1.2
+    expect(svg).toContain('dur="1.2s"');
+  });
+});
