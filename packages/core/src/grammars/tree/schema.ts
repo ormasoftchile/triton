@@ -3,13 +3,16 @@
  *
  * Validates:
  *  - version is present.
- *  - tree.root is non-empty (id + label).
+ *  - tree.root is required and must be a non-empty node (id + label); missing or
+ *    null root is rejected with a clear message.
  *  - Node ids are globally unique across all levels of nesting.
  *  - Recursive children structure is well-formed.
  *
- * The canonical children-list form prevents cycles and orphans by
- * construction (nested YAML/JSON cannot reference an ancestor). Uniqueness
- * is the only cross-node constraint that requires an explicit check.
+ * ACYCLICITY GUARANTEE: The canonical children-list form structurally prevents
+ * cycles and orphan nodes — a YAML/JSON node cannot reference an ancestor by
+ * nesting, so a valid parse is always a DAG (in fact a rooted tree).
+ * No explicit cycle-detection pass is required; uniqueness is the only
+ * cross-node constraint that demands an explicit check.
  *
  * Mirrors the style of packages/core/src/grammars/sequence/schema.ts.
  */
@@ -89,6 +92,16 @@ const treeDefinitionSchema = z
     root: treeNodeSchema,
   })
   .superRefine((def, ctx) => {
+    // Explicit guard: root must be present (Zod enforces this, but we surface
+    // a targeted message in case the runtime value is unexpected).
+    if (!def.root) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['root'],
+        message: 'tree.root is required — a TreeDocument must have exactly one root node',
+      });
+      return;
+    }
     try {
       const ids = new Map<string, string>();
       collectIds(def.root, ids, 'tree.root');

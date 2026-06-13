@@ -4,12 +4,15 @@
  * Validates:
  *  - Participant ids are unique.
  *  - Message from/to reference declared participant ids.
- *  - Message order is present (non-negative integer).
+ *  - Message order is present (non-negative integer) and unique across all messages.
  *  - At least one participant is declared.
- *
- * Cross-entity reference checks (activations referencing order values,
- * fragment overlap validation) are in the schema for structural checks and
- * would belong to a validate.ts counterpart for semantic checks.
+ *  - Activations: participant ref declared; from_order ≤ to_order; range within
+ *    the messages' order range [minOrder, maxOrder].
+ *  - Fragments: participant refs declared; from_order ≤ to_order; range within
+ *    the messages' order range.
+ *  - Fragment sections (alt): each section fromOrder ≤ toOrder; sections lie
+ *    within the fragment's [from_order, to_order]; sections are sorted by
+ *    fromOrder (non-descending).
  *
  * Mirrors the style of packages/core/src/schema.ts (zod + refinements).
  */
@@ -69,14 +72,18 @@ const activationSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Fragment (increment-2; accepted but not enforced deeply)
+// Fragment (increment-2; cross-field rules enforced in sequenceDefinitionSchema)
 // ---------------------------------------------------------------------------
 
-const fragmentSectionSchema = z.object({
-  guard: z.string().optional(),
-  fromOrder: z.number().int().min(0),
-  toOrder: z.number().int().min(0),
-});
+const fragmentSectionSchema = z
+  .object({
+    guard: z.string().optional(),
+    fromOrder: z.number().int().min(0),
+    toOrder: z.number().int().min(0),
+  })
+  .refine((s) => s.fromOrder <= s.toOrder, {
+    message: 'Fragment section fromOrder must be ≤ toOrder',
+  });
 
 const fragmentSchema = z.object({
   kind: z.enum(['loop', 'alt', 'opt', 'par', 'critical', 'break']),
@@ -123,6 +130,18 @@ const sequenceDefinitionSchema = z
       ids.add(p.id);
     }
 
+    // Message order must be unique
+    const orderSet = new Set<number>();
+    for (const msg of def.messages) {
+      if (orderSet.has(msg.order)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate message order: ${msg.order} — each message must have a unique order value`,
+        });
+      }
+      orderSet.add(msg.order);
+    }
+
     // Message from/to must reference declared participant ids
     for (const msg of def.messages) {
       if (!ids.has(msg.from)) {
@@ -139,7 +158,12 @@ const sequenceDefinitionSchema = z
       }
     }
 
-    // Activation participant refs must be declared
+    // Compute messages' order range (only when messages are present)
+    const orders = def.messages.map((m) => m.order);
+    const minOrder = orders.length > 0 ? Math.min(...orders) : undefined;
+    const maxOrder = orders.length > 0 ? Math.max(...orders) : undefined;
+
+    // Activation participant refs must be declared; order range must be within messages' range
     for (const act of def.activations ?? []) {
       if (!ids.has(act.participant)) {
         ctx.addIssue({
@@ -153,6 +177,18 @@ const sequenceDefinitionSchema = z
           message: `Activation for participant '${act.participant}' has from_order (${act.from_order}) > to_order (${act.to_order})`,
         });
       }
+      if (minOrder !== undefined && act.from_order < minOrder) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Activation for participant '${act.participant}' has from_order (${act.from_order}) below the minimum message order (${minOrder})`,
+        });
+      }
+      if (maxOrder !== undefined && act.to_order > maxOrder) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Activation for participant '${act.participant}' has to_order (${act.to_order}) above the maximum message order (${maxOrder})`,
+        });
+      }
     }
 
     // Fragment validation
@@ -163,12 +199,50 @@ const sequenceDefinitionSchema = z
           message: `Fragment '${frag.kind}' has from_order (${frag.from_order}) > to_order (${frag.to_order})`,
         });
       }
+      if (minOrder !== undefined && frag.from_order < minOrder) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Fragment '${frag.kind}' has from_order (${frag.from_order}) below the minimum message order (${minOrder})`,
+        });
+      }
+      if (maxOrder !== undefined && frag.to_order > maxOrder) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Fragment '${frag.kind}' has to_order (${frag.to_order}) above the maximum message order (${maxOrder})`,
+        });
+      }
       for (const pid of frag.participants ?? []) {
         if (!ids.has(pid)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `Fragment '${frag.kind}' references unknown participant id '${pid}'`,
           });
+        }
+      }
+      // Fragment sections: within fragment bounds and sorted by fromOrder
+      const sections = frag.sections ?? [];
+      for (let si = 0; si < sections.length; si++) {
+        const sec = sections[si]!;
+        if (sec.fromOrder < frag.from_order) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Fragment '${frag.kind}' section[${si}] fromOrder (${sec.fromOrder}) is below fragment from_order (${frag.from_order})`,
+          });
+        }
+        if (sec.toOrder > frag.to_order) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Fragment '${frag.kind}' section[${si}] toOrder (${sec.toOrder}) is above fragment to_order (${frag.to_order})`,
+          });
+        }
+        if (si > 0) {
+          const prev = sections[si - 1]!;
+          if (sec.fromOrder < prev.fromOrder) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Fragment '${frag.kind}' sections must be sorted by fromOrder; section[${si}].fromOrder (${sec.fromOrder}) < section[${si - 1}].fromOrder (${prev.fromOrder})`,
+            });
+          }
         }
       }
     }

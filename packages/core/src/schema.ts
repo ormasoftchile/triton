@@ -65,6 +65,50 @@ const statusSchema = z.enum([
 const axisUnitSchema = z.enum(['day', 'week', 'month', 'quarter', 'half', 'year']);
 
 // ---------------------------------------------------------------------------
+// IR-date comparison helper (used by axis_breaks validation)
+// ---------------------------------------------------------------------------
+
+/**
+ * Attempt to convert an IR date string to a UTC millisecond timestamp for
+ * ordering comparisons.  Returns `undefined` for formats that cannot be
+ * reduced to a concrete instant (symbolic, relative, uncertain, approximate).
+ */
+function parseIrDateToMs(d: string): number | undefined {
+  // ISO date: 2026-06-09
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    return Date.UTC(
+      parseInt(d.slice(0, 4)),
+      parseInt(d.slice(5, 7)) - 1,
+      parseInt(d.slice(8, 10)),
+    );
+  }
+  // ISO datetime: 2026-06-09T14:00 or 2026-06-09T14:00:00
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(d)) {
+    return new Date(d.length === 16 ? d + ':00Z' : d + 'Z').getTime();
+  }
+  // Year-month: 2026-06
+  if (/^\d{4}-\d{2}$/.test(d)) {
+    return Date.UTC(parseInt(d.slice(0, 4)), parseInt(d.slice(5, 7)) - 1, 1);
+  }
+  // Year: 2026
+  if (/^\d{4}$/.test(d)) {
+    return Date.UTC(parseInt(d), 0, 1);
+  }
+  // Quarter: 2026-Q1 → Jan 1, Q2 → Apr 1, Q3 → Jul 1, Q4 → Oct 1
+  const qm = d.match(/^(\d{4})-Q([1-4])$/);
+  if (qm) {
+    return Date.UTC(parseInt(qm[1]!), (parseInt(qm[2]!) - 1) * 3, 1);
+  }
+  // Half: 2026-H1 → Jan 1, 2026-H2 → Jul 1
+  const hm = d.match(/^(\d{4})-H([12])$/);
+  if (hm) {
+    return Date.UTC(parseInt(hm[1]!), parseInt(hm[2]!) === 1 ? 0 : 6, 1);
+  }
+  // Symbolic / relative / uncertain / approximate → not comparable
+  return undefined;
+}
+
+// ---------------------------------------------------------------------------
 // Sub-schemas
 // ---------------------------------------------------------------------------
 
@@ -98,38 +142,108 @@ const contentBlockSchema = z.object({
  * A single axis-break interval: a [from, to) time range that is collapsed to a
  * small "//" marker on the axis instead of proportional time width.
  *
- * ⚠ Open questions for Mark (schema validation):
- *   - Enforce from < to (currently only basic date format is checked).
- *   - Enforce breaks lie within metadata.time_range bounds.
- *   - Enforce breaks are non-overlapping and sorted by `from`.
- * For now only basic date format is validated.
+ * Invariants enforced:
+ *   - from < to (when both dates are in a comparable format).
+ *   - from ≥ metadata.time_range.start (when comparable).
+ *   - to ≤ metadata.time_range.end (when comparable and end is declared).
+ *   - Breaks are non-overlapping (when all dates are comparable).
+ * Comparisons are skipped for symbolic/relative/approximate dates that cannot
+ * be reduced to a concrete timestamp.
  */
 const axisBreakSchema = z.object({
   from: irDateSchema,
   to:   irDateSchema,
 });
 
-const metadataSchema = z.object({
-  title: z.string().min(1),
-  subtitle: z.string().optional(),
-  author: z.string().optional(),
-  created: irDateSchema.optional(),
-  updated: irDateSchema.optional(),
-  time_range: timeRangeSchema,
-  axis_unit: axisUnitSchema.optional(),
-  theme: z.string().optional(),
-  layout: z.enum(['horizontal', 'vertical-spine', 'serpentine', 'roadmap']).optional(),
-  locale: z.string().optional(),
-  today: irDateSchema.optional(),
-  fiscal_year_start: z.number().int().min(1).max(12).optional(),
-  description: z.string().optional(),
-  logo: logoSchema.optional(),
-  /**
-   * Opt-in list of time intervals to collapse on the axis.
-   * When absent/empty → ZERO behaviour change (byte-identical output).
-   */
-  axis_breaks: z.array(axisBreakSchema).optional(),
-});
+const metadataSchema = z
+  .object({
+    title: z.string().min(1),
+    subtitle: z.string().optional(),
+    author: z.string().optional(),
+    created: irDateSchema.optional(),
+    updated: irDateSchema.optional(),
+    time_range: timeRangeSchema,
+    axis_unit: axisUnitSchema.optional(),
+    theme: z.string().optional(),
+    layout: z.enum(['horizontal', 'vertical-spine', 'serpentine', 'roadmap']).optional(),
+    locale: z.string().optional(),
+    today: irDateSchema.optional(),
+    fiscal_year_start: z.number().int().min(1).max(12).optional(),
+    description: z.string().optional(),
+    logo: logoSchema.optional(),
+    /**
+     * Opt-in list of time intervals to collapse on the axis.
+     * When absent/empty → ZERO behaviour change (byte-identical output).
+     */
+    axis_breaks: z.array(axisBreakSchema).optional(),
+  })
+  .superRefine((meta, ctx) => {
+    const breaks = meta.axis_breaks;
+    if (!breaks || breaks.length === 0) return;
+
+    const rangeStartMs = parseIrDateToMs(meta.time_range.start);
+    const rangeEndMs   = meta.time_range.end ? parseIrDateToMs(meta.time_range.end) : undefined;
+
+    // Per-break invariants
+    for (let i = 0; i < breaks.length; i++) {
+      const b = breaks[i]!;
+      const fromMs = parseIrDateToMs(b.from);
+      const toMs   = parseIrDateToMs(b.to);
+
+      // from < to
+      if (fromMs !== undefined && toMs !== undefined && fromMs >= toMs) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['axis_breaks', i],
+          message: `axis_breaks[${i}]: 'from' (${b.from}) must be strictly before 'to' (${b.to})`,
+        });
+      }
+
+      // break lies within time_range
+      if (fromMs !== undefined && rangeStartMs !== undefined && fromMs < rangeStartMs) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['axis_breaks', i, 'from'],
+          message: `axis_breaks[${i}]: 'from' (${b.from}) is before time_range.start (${meta.time_range.start})`,
+        });
+      }
+      if (toMs !== undefined && rangeEndMs !== undefined && toMs > rangeEndMs) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['axis_breaks', i, 'to'],
+          message: `axis_breaks[${i}]: 'to' (${b.to}) is after time_range.end (${meta.time_range.end})`,
+        });
+      }
+    }
+
+    // Non-overlapping: sort comparable breaks by from, then check adjacent pairs.
+    // Sort-tolerant: breaks need not be authored in order — we sort internally.
+    const parsedBreaks = breaks
+      .map((b, i) => ({
+        i,
+        fromMs: parseIrDateToMs(b.from),
+        toMs:   parseIrDateToMs(b.to),
+        fromStr: b.from,
+        toStr:   b.to,
+      }))
+      .filter((b): b is typeof b & { fromMs: number; toMs: number } =>
+        b.fromMs !== undefined && b.toMs !== undefined,
+      );
+
+    parsedBreaks.sort((a, b) => a.fromMs - b.fromMs);
+
+    for (let i = 0; i < parsedBreaks.length - 1; i++) {
+      const curr = parsedBreaks[i]!;
+      const next = parsedBreaks[i + 1]!;
+      if (curr.toMs > next.fromMs) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['axis_breaks'],
+          message: `axis_breaks overlap: break [${curr.fromStr}, ${curr.toStr}] overlaps with [${next.fromStr}, ${next.toStr}]`,
+        });
+      }
+    }
+  });
 
 const trackSchema = z.object({
   id: idSchema,

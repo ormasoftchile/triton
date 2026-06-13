@@ -6,8 +6,9 @@
  *  - grid.columns >= 1.
  *  - All cell ids are unique.
  *  - Cell placements (col + colSpan) fit within grid.columns.
- *  - Cell placements (row + rowSpan) fit within the effective row count.
- *  - Grammar sub-documents validate via their own schemas.
+ *  - Cell placements (row + rowSpan) fit within grid.rows when grid.rows is
+ *    declared.
+ *  - Grammar sub-documents validate via their own schemas (delegated).
  *  - No two cells occupy the same grid slot.
  */
 
@@ -141,6 +142,15 @@ export const compositionDocumentSchema = z
           code: z.ZodIssueCode.custom,
           path: ['cells', idx],
           message: `Cell '${cell.id}': col(${col}) + colSpan(${colSpan}) = ${col + colSpan} exceeds grid.columns(${columns})`,
+        });
+      }
+
+      // row + rowSpan must fit within grid.rows when declared
+      if (doc.grid.rows !== undefined && row + rowSpan > doc.grid.rows) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cells', idx],
+          message: `Cell '${cell.id}': row(${row}) + rowSpan(${rowSpan}) = ${row + rowSpan} exceeds grid.rows(${doc.grid.rows})`,
         });
       }
     }

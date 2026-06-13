@@ -5,6 +5,7 @@
  *  - version is present (non-empty string).
  *  - Node ids are unique across the nodes list.
  *  - Edge from/to values reference declared node ids.
+ *  - Edge ids (when present) are unique across the edges list.
  *  - Node labels are non-empty.
  *
  * Self-loops (from == to) are valid by spec — cycles in flows are legal
@@ -98,6 +99,22 @@ const flowDefinitionSchema = z
           code: z.ZodIssueCode.custom,
           message: `Edge at index ${i} references unknown node id '${e.to}' in field 'to'`,
         });
+      }
+    }
+
+    // Edge ids (when present) must be unique
+    const edgeIds = new Set<string>();
+    for (let i = 0; i < def.edges.length; i++) {
+      const e = def.edges[i]!;
+      if (e.id !== undefined) {
+        if (edgeIds.has(e.id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['edges', i, 'id'],
+            message: `Duplicate edge id: '${e.id}'`,
+          });
+        }
+        edgeIds.add(e.id);
       }
     }
   });
