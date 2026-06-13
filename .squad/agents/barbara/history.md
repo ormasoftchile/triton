@@ -1,47 +1,3 @@
-# Barbara — Semantics & Rendering Specialist
-
-**Owner:** ormasoftchile  
-**Project:** timeline — IR-based rendering system for timelines/roadmaps  
-**Stack:** TypeScript/Node, SVG/PNG/Skia backends, deterministic layout engine
-
----
-
-## Recent Summary (2026-06-12)
-
-### Roadmap Layout Family (3 increments)
-
-**INCREMENT 1:** Created `layout/roadmap.ts` — new layout family alongside horizontal/vertical-spine/serpentine. Three-zone infographic: header, milestone callouts (all above), phase band with icon badges, date axis below. Wired `metadata.layout` as IR field + render option. 577/577 tests pass; byte-identical goldens.
-
-**INCREMENT 2:** Greedy left→right de-collision for callout placement. Forward pass (push blocks right to clear previous) + backward clamp (prevent overflow). GAP=12px ensures axis date labels don't overlap. Single x for all milestone elements (block/leader/dot/axis tick). Result: 6 callouts at 103, 553, 700, 840, 971, 1097px with ≥12px edges.
-
-**INCREMENT 3:** Promoted 17 hardcoded geometry constants to optional theme tokens (RoadmapTheme: 5 padding + 6 gaps + 6 sizes). `breakGapPx` required AxisState wiring. All defaults match current constants → byte-identical goldens.
-
-### Theme Tokens & Opt-In Features
-
-- `axis.nodeWrap: 'over-under'` — spine arcs around nodes (our-timeline only)
-- `milestone.labelWrap: boolean` — 2-line milestone wrap with dynamic box height  
-- `axis.todayMarker.labelChip: boolean` — white chip backdrop under Today label
-- `axis.todayMarker.onTop: boolean` — defer today marker after activity pills (z-order fix)
-- `axis_breaks: Array<{from, to}>` — piecewise-linear layout with 24px gaps + "//" markers
-
-### Test Coverage & Determinism
-
-- 577/577 tests pass (564 core + 13 schema + 3 cli)
-- All existing goldens byte-identical (0 regression)
-- Determinism: `Math.floor(x + 0.5)` round-half-up throughout
-- Timeline-goals fixture: 3 new outputs (SVG/PNG/Skia)
-
-### Handoff Notes (Open Work)
-
-**Mark (schema validation):** Defer `axis_breaks` field constraints:
-- `from < to` enforcement
-- Breaks within `time_range` bounds
-- Non-overlapping, sorted validation
-- Max breaks upper limit warning
-
-Full learnings archived to `history-archive.md`.
-
----
 
 ## 2026-06-13 — Sequence Grammar Rendering Open Questions (Barbara Intake)
 
@@ -201,3 +157,55 @@ Barbara will implement (in priority order):
 3. Fragment rectangles + tab labels
 4. Participant stereotype icons (actor stick-figure, boundary bar, control arrow, entity underline, database cylinder)
 5. `SequenceTheme` integration on `ResolvedTheme` + arrowhead sizing tokens
+
+---
+
+## Learnings — 2026-06-13 Sequence Theme (Increment-3)
+
+### SequenceTheme Token Surface
+
+Created `packages/core/src/grammars/sequence/theme.ts` — a standalone type file holding all styling tokens for the sequence diagram. Token groups:
+
+| Group | Tokens |
+|-------|--------|
+| Canvas | `background`, `fontFamily` |
+| Geometry | `marginH/Top/Bottom`, `headerPadX/Y`, `minColWidth`, `colGap`, `firstMsgGap`, `rowHeight`, `actorIconHeight`, `activationBarHalfW/MinH`, `arrowHeadSize`, `selfMsgLoopW/H`, `fragPadX/Y/Rx`, `fragTabPadX/Y` |
+| Typography | `labelFontSize/Weight`, `msgFontSize/Weight`, `fragKeyFontSize/Weight`, `fragLabelFontSize/Weight` |
+| Stroke widths | `participantBoxStrokeWidth`, `lifelineStrokeWidth`, `messageLineStrokeWidth`, `activationBarStrokeWidth`, `fragStrokeWidth` |
+| Participant | `participantRenderMode` (`'box'`\|`'card'`), `participantBoxRx`, `participantBoxFill/Stroke`, `participantLabelColor` |
+| Card mode | `cardIconAreaSize`, `cardKindColors` (per-kind `fill/textColor/accentColor/iconColor`), `cardKindIconMap` |
+| Lifeline | `lifelineVisible`, `lifelineStroke`, `lifelineDash` |
+| Messages | `messageLineStroke`, `messageLineDashSync/Async/Reply`, `messageLabelColor`, `arrowFill` |
+| Activation bars | `activationBarFill/Stroke/Rx` |
+| Fragments | `fragStroke/Fill`, `fragTabFill/TextColor`, `fragLabelColor` |
+| Step badges | `showStepNumbers`, `stepBadgeRadius/Fill/TextColor/FontSize` |
+
+### Grammar = Semantics / Theme = Style Split
+
+The IR (`SequenceDocument`, `Participant`, `Message`, `Activation`, `Fragment`) captures only semantics — who talks to whom, in what order. All visual decisions live in `SequenceTheme`. Two documents with identical IR but different theme names (`default-sequence` vs `bytebytego-sequence`) render as UML vs ByteByteGo infographic without any IR change.
+
+`metadata.theme` → `resolveSequenceTheme()` → `SEQUENCE_THEME_REGISTRY` lookup → theme struct → `layoutSequence(doc, theme)`. Callers can also pass an explicit `themeOverride` bypassing the registry.
+
+### Participant Extensions
+
+Added `icon?: string` (icon registry name, e.g. `'people'`, `'lock'`) and `color?: string` (per-participant fill override) to `Participant`. Both optional → zero effect on default theme / existing documents. Schema updated to accept both fields.
+
+### ByteByteGo Theme (`sequenceByteByteGoTheme`)
+
+Mimics the ByteByteGo infographic style:
+- **Dark canvas**: `background: '#111827'`
+- **Card mode**: `participantRenderMode: 'card'`, `participantBoxRx: 14`, colored cards per kind  
+  - Actor `#2563eb`, Object `#7c3aed`, Boundary `#0891b2`, Control `#d97706`, Entity `#059669`, Database `#dc2626`
+- **Icon glyphs**: `cardKindIconMap` maps `actor→people`, `object→gear`, `boundary→cloud`, `control→bolt`, `entity→doc`, `database→database`. Icons scaled via SVG `transform="translate(...) scale(...)"` on PathPrimitive.
+- **Hidden lifelines**: `lifelineVisible: false`
+- **Numbered step badges**: `showStepNumbers: true`, amber circles (`#f59e0b`) with dark number text, drawn at 25% along each message arrow
+- **Light message text**: `messageLabelColor: '#e2e8f0'`, dashed reply arrows `8,5`
+
+### Byte-Identical Default Theme
+
+`defaultSequenceTheme` matches ALL previously hardcoded values in `layout.ts` exactly. New feature tokens (card mode, step badges, hidden lifelines) are off by default. Result: `git diff examples/gallery/sequence-rest-auth.* examples/gallery/sequence-agent-loop.*` shows **zero lines changed**. 607/607 tests pass.
+
+### New Gallery Outputs
+
+- `examples/gallery/sequence-rest-auth-bytebytego.{svg,png}` — ByteByteGo-theme render of REST auth  
+- `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` — matching fixture (participants with `icon` fields)

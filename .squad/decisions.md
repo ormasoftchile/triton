@@ -594,3 +594,128 @@ Validates full integration: self-message, activation, nested fragments.
 
 3. **Nesting depth:** Is there a maximum nesting depth for fragments? Current design allows arbitrary nesting. Recommend soft limit (≤3) with lint warning in validation pass.
 
+
+---
+
+## PRINCIPLE: Grammar ≡ Semantics; Theme ≡ Style (2026-06-13)
+
+**Author:** Barbara (Semantics & Rendering), affirmed by Leslie (Spec Architect)  
+**Date:** 2026-06-13T10:44:40-04:00  
+**Status:** ESTABLISHED — governs all grammars
+
+### The Principle
+
+The two-IR-layer architecture (Domain IR → Scene IR) is now reinforced by a categorical principle:
+
+- **Grammar** captures the diagram **structure and layout semantics** only:
+  - Participant order, message order (deterministic-by-construction placement)
+  - Fragment nesting, activation ranges
+  - Connector routing rules, hierarchy definitions
+  - No visual styling decisions → no hardcoded colors, fonts, stroke widths, geometry offsets
+
+- **Theme** captures **all visual presentation**:
+  - Canvas color, typography (font family, size, weight, line-height)
+  - Participant render modes (`'box'` ≡ plain UML, `'card'` ≡ infographic)
+  - Color palettes per diagram kind/participant/message type
+  - Geometry tokens (padding, gaps, badge sizes, corner radii)
+  - Feature flags (lifeline visibility, step-number badges, message dashes)
+
+### Rationale
+
+1. **Reusability:** The same domain IR can be re-skinned by swapping themes (e.g., sequence-rest-auth rendered in UML style vs. ByteByteGo style).
+2. **Consistency:** All grammars follow the same pattern → layered, testable, deterministic.
+3. **Specification Clarity:** Designers define themes; engineers define grammars. Clean responsibility boundary.
+4. **Non-Duplication:** Existing codebases (Vega-Lite, Mermaid) conflate grammar and style; this architecture avoids that trap.
+
+### Enforced By
+
+- `SequenceTheme` type on `grammars/sequence/theme.ts` — all styling from theme tokens, defaulting to UML values.
+- Registry pattern: `SEQUENCE_THEME_REGISTRY`, `resolveSequenceTheme(name?)`.
+- Future grammars (Flow, Tree) must follow the same pattern before receiving layout implementation.
+
+### External Style Mimicry
+
+Themes can intentionally mimic external visual languages (e.g., `sequenceByteByteGoTheme` mimics the ByteByteGo "5 REST API Methods" infographic style). This is **design by choice**, not accident — the grammar remains deterministic UML semantics; the theme provides the visual voice.
+
+**Consequence:** The compiler is a presentation-engine for diagram semantics, not a rigid diagram-style enforcer.
+
+---
+# Decision: Sequence Grammar Theme System
+
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-13T10:44:40-04:00  
+**Status:** ACCEPTED — implemented in increment-3
+
+---
+
+## Context
+
+The Sequence Grammar (increment-1 and -2) had all styling hardcoded in `layout.ts`. The project direction is: grammar captures SEMANTICS only; ALL visual styling must be THEME-DRIVEN so the same IR can be re-skinned.
+
+---
+
+## Decision
+
+### 1. `SequenceTheme` type lives in `grammars/sequence/theme.ts`
+
+Every styling decision that was hardcoded in `layout.ts` is now a token in `SequenceTheme`. The interface covers: canvas, geometry, typography, stroke widths, participant rendering mode, card-mode card colors, lifeline visibility, message line styles, step number badges, activation bars, and fragments.
+
+**The `defaultSequenceTheme` constant reproduces the original UML look byte-identically** — all previous hardcoded values are preserved as defaults.
+
+### 2. `participantRenderMode: 'box' | 'card'`
+
+- `'box'` (default): plain rectangular headers (UML style)
+- `'card'`: colored rounded cards with a per-kind icon glyph + label (infographic style)
+
+Card colors are defined per `kind` via `cardKindColors: Partial<Record<string, CardKindStyle>>`. The `CardKindStyle` has `fill`, `textColor`, `accentColor`, `iconColor`.
+
+### 3. Icon support on `Participant`
+
+Added `icon?: string` (icon registry name) and `color?: string` (per-participant color override) to the `Participant` IR. Both are optional → zero impact on existing documents/schemas.
+
+Card mode looks up `p.icon ?? tk.cardKindIconMap[p.kind]` and renders the 24×24 icon path scaled into the `cardIconAreaSize` area via SVG `transform="translate(...) scale(...)"` on `PathPrimitive`.
+
+### 4. `lifelineVisible: boolean`
+
+When `false`, lifeline dashed vertical lines are not emitted. Infographic themes (ByteByteGo) hide lifelines; messages span between card columns directly.
+
+### 5. Step number badges
+
+`showStepNumbers: boolean` — when true, a filled circle (`stepBadgeFill`) with the `msg.order` number is drawn at 25% along each message arrow line, using the `circle` Scene primitive. Self-messages get the badge at the loop corner.
+
+### 6. `SEQUENCE_THEME_REGISTRY` + `resolveSequenceTheme(name?)`
+
+Named themes are stored in `SEQUENCE_THEME_REGISTRY` keyed by name string. `doc.metadata.theme` → `resolveSequenceTheme()` → theme struct. Currently registered: `'default-sequence'`, `'bytebytego-sequence'`. Callers can also pass an explicit `themeOverride` to `layoutSequence()`.
+
+### 7. `sequenceByteByteGoTheme` — ByteByteGo infographic style
+
+Mimics the ByteByteGo "5 REST API Authentication Methods" style:
+- Dark canvas `#111827`
+- Card mode: per-kind vibrant fills (actor=blue, object=purple, entity=green, database=red, …)
+- Icon glyphs from icon registry
+- Hidden lifelines
+- Amber step-number badges
+- Light message text and dashed reply arrows
+
+---
+
+## Consequences
+
+- Any future sequence diagram can choose its visual style by setting `metadata.theme`
+- Adding a new named theme requires only a new `SequenceTheme` object + registry entry — zero layout code changes
+- The grammar=semantics / theme=style split is now formally enforced by the type boundary
+- The `defaultSequenceTheme` acts as the living spec for what the UML style values are
+
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `grammars/sequence/theme.ts` | NEW — SequenceTheme type, defaultSequenceTheme, sequenceByteByteGoTheme, registry |
+| `grammars/sequence/types.ts` | Add `icon?`, `color?` to Participant |
+| `grammars/sequence/schema.ts` | Accept `icon`, `color` on participant |
+| `grammars/sequence/layout.ts` | Full refactor: all styling from theme, card mode, badges, lifelineVisible |
+| `grammars/sequence/index.ts` | Export theme API, thread themeOverride through |
+| `examples/gallery/sequence-rest-auth-bytebytego.sequence.yaml` | NEW ByteByteGo fixture |
+| `test/sequence.test.ts` | 4 new ByteByteGo theme tests (gallery emit + scene assertions) |

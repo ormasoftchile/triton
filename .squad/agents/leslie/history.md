@@ -100,3 +100,32 @@ Current Status:
 
 See `history-archive.md` for pre-2026-06-13 strategic reframe (2026-06-11) and Flow Grammar spec (2026-06-12).
 
+
+---
+
+## 2026-06-13 — PRINCIPLE: Grammar ≡ Semantics; Theme ≡ Style (Scribe)
+
+**Date:** 2026-06-13T15:01:41Z  
+**Status:** ESTABLISHED
+
+The two-IR-layer architecture is now reinforced by a categorical principle: **Grammars define structure and layout semantics only; themes define all visual presentation.**
+
+**Application:** Sequence Grammar Theme System (increment-3) fully implements the principle:
+- `SequenceTheme` type on `grammars/sequence/theme.ts` — all styling from theme tokens
+- `SEQUENCE_THEME_REGISTRY` + `resolveSequenceTheme()` — named themes are reusable, deterministic
+- `sequenceByteByteGoTheme` — demonstrates external style mimicry (ByteByteGo infographic rendering)
+
+**Governance Impact:** All future grammars (Flow, Tree) must follow the same pattern before implementation:
+1. Spec grammar semantics (layout rules, determinism rationale)
+2. Define domain IR (no styling fields)
+3. Implement grammar layout as theme-driven
+4. Create `{GrammarName}Theme` type + registry
+5. Register default (backward-compatible) + showcase themes
+
+**Rationale:**
+- Reusability (re-skin existing IR via theme swap)
+- Consistency (all grammars follow same pattern)
+- Specification clarity (designers define themes; engineers define grammars)
+- Non-duplication (avoids Mermaid/D2 conflation of grammar and style)
+
+**Consequence:** The compiler is a presentation-engine for diagram semantics, not a rigid style enforcer. External diagram styles can be intentionally mimicked through theme design choices.

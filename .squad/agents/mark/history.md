@@ -117,3 +117,32 @@ Design and validate Domain IR schemas for each grammar (Timeline, Flow, Sequence
 ## Archive
 
 Detailed architectural context, learnings, and cross-agent handoff notes archived to `mark/history-2026-06-13-archived.md` (16,808 bytes).
+
+---
+
+## 2026-06-13 — Sequence IR Updated: Participant.icon Field (Scribe)
+
+**Date:** 2026-06-13T15:01:41Z  
+**Status:** IMPLEMENTED (increment-3)
+
+Added optional `icon?: string` field to `Participant` IR (reuses icon registry). Also `color?: string` per-participant override.
+
+**Schema Impact:**
+- `grammars/sequence/schema.ts` accepts `icon`, `color` on participant
+- Both fields optional → zero impact on existing documents
+- Zero-cost in backwards compatibility
+
+**Rendering Impact:**
+- Card mode (`participantRenderMode: 'card'`) looks up `p.icon ?? tk.cardKindIconMap[p.kind]`
+- Icon rendered as 24×24 scaled into `cardIconAreaSize` via SVG transform
+- Theme provides `cardKindIconMap[kind]` → fallback icon per kind if participant.icon unset
+
+**Future Domain IR Updates (applies to Flow, Tree):**
+When defining new Domain IR schemas, ensure optional styling fields follow this pattern:
+1. Add field to domain IR type (e.g., `icon?: string`)
+2. Add to schema with Zod `.optional()`
+3. Theme provides defaults and per-kind mappings
+4. Layout reads `ir.field ?? theme.defaultValue`
+5. Zero impact on existing documents + extensibility for new use-cases
+
+**Theme Principle Reinforced:** Participant styling (icon, color) is orthogonal to participant semantics (kind, label, description). Theme provides visual rendering rules; IR provides semantic data.
