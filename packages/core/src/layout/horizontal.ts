@@ -969,6 +969,10 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         //            alternates for remaining nodes.
         let d = `M ${rhu(offset)} ${spineY}`;
 
+        // Apex of each arc (peak of the semicircle) — a small dot is drawn here,
+        // matching the reference "Our Timeline" figure.
+        const arcApexes: Array<{ x: number; y: number }> = [];
+
         for (let ni = 0; ni < onAxisNodes.length; ni++) {
           const node   = onAxisNodes[ni]!;
           const entryX = rhu(node.xCenter - arcR);
@@ -983,6 +987,12 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
           // sweep=1 → clockwise                            → bows BELOW (+y)
           const sweep = ni % 2 === 0 ? 0 : 1;
           d += ` A ${arcR} ${arcR} 0 0 ${sweep} ${exitX} ${nodeY}`;
+
+          // Apex dot position: top of the arc for over-arcs, bottom for under-arcs.
+          arcApexes.push({
+            x: rhu(node.xCenter),
+            y: rhu(sweep === 0 ? nodeY - arcR : nodeY + arcR),
+          });
         }
 
         // Final straight segment from last arc exit to right canvas edge
@@ -995,6 +1005,18 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
           stroke:      theme.axis.axisLineColor,
           strokeWidth: 1,
         });
+
+        // Small filled dot at each arc apex (matches the reference figure).
+        const APEX_DOT_R = 3;
+        for (const apex of arcApexes) {
+          primitives.push({
+            kind: 'circle',
+            cx:   apex.x,
+            cy:   apex.y,
+            r:    APEX_DOT_R,
+            fill: ms.strokeColor,
+          });
+        }
       }
     } else {
       // Default: single straight spine — OR break-aware segmented spine.
