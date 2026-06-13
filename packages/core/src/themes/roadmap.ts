@@ -39,6 +39,7 @@ export const roadmapTheme: ResolvedTheme = {
     fontWeightAxis:     400,
     fontWeightHeader:   700,
     titleColor:         BLACK,
+    titleAlign:         'left',
   },
 
   axis: {

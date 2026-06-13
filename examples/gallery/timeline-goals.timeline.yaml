@@ -18,10 +18,13 @@ metadata:
     end: 2026-11-30
   axis_unit: quarter
   theme: roadmap
-  today: 2026-06-12
+  layout: roadmap
   axis_breaks:
     - from: 2026-01-15
       to: 2026-04-01
+
+legend:
+  show: false
 
 tracks:
   - id: phases

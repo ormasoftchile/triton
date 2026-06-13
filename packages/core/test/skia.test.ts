@@ -476,10 +476,10 @@ describe('Showcase gallery images', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Timeline-goals — roadmap theme + axis-break Skia golden
+// Timeline-goals — roadmap layout + axis-break Skia golden
 // ---------------------------------------------------------------------------
 
-describe('Timeline-goals — roadmap theme + axis-break', () => {
+describe('Timeline-goals — roadmap layout + axis-break', () => {
   const GALLERY_ROOT = join(REPO_ROOT, 'examples', 'gallery');
   const SHOWCASE_DIR = join(GALLERY_ROOT, 'showcase');
   const TG_FIXTURE   = join(GALLERY_ROOT, 'timeline-goals.timeline.yaml');
@@ -492,7 +492,7 @@ describe('Timeline-goals — roadmap theme + axis-break', () => {
     const result = await renderDocumentAsync(ir, {
       format: 'png',
       backend: 'skia',
-      layout: 'horizontal',
+      layout: 'roadmap',
     });
     const png = result.png!;
     expect(isPngSignature(png)).toBe(true);

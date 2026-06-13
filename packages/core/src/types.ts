@@ -134,6 +134,8 @@ export interface Metadata {
   axis_unit?: AxisUnit;
   /** Theme identifier resolved by the renderer. */
   theme?: string;
+  /** Layout family override.  When present, takes precedence over the render-option default. */
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap';
   /** BCP-47 locale for date formatting. */
   locale?: string;
   /** Reference date for `now` and relative dates.  Renderers must NOT use system clock. */
@@ -342,7 +344,7 @@ export interface RenderOptions {
    *   'vertical-spine' — central vertical spine, alternating L/R entries, T1/T3/T5 targets.
    *   'serpentine'     — boustrophedon winding path, T4 journey-path target.
    */
-  layout?: 'horizontal' | 'vertical-spine' | 'serpentine';
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap';
   /**
    * Rendering backend.  Defaults to 'svg'.
    *   'svg'  — deterministic SVG → resvg PNG (default; SVG golden stays byte-identical).

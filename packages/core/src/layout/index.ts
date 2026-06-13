@@ -18,10 +18,12 @@ import type { ResolvedTheme } from '../themes/types.js';
 import { layoutHorizontal }    from './horizontal.js';
 import { layoutSerpentine }    from './serpentine.js';
 import { layoutVerticalSpine } from './vertical-spine.js';
+import { layoutRoadmap }       from './roadmap.js';
 
 export { layoutHorizontal }    from './horizontal.js';
 export { layoutSerpentine }    from './serpentine.js';
 export { layoutVerticalSpine } from './vertical-spine.js';
+export { layoutRoadmap }       from './roadmap.js';
 
 /**
  * Dispatch to the correct layout family.
@@ -35,7 +37,7 @@ export { layoutVerticalSpine } from './vertical-spine.js';
 export function layout(
   ir:      IRDocument,
   theme:   ResolvedTheme,
-  family?: 'horizontal' | 'vertical-spine' | 'serpentine',
+  family?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap',
   baseDir?: string,
 ): Scene {
   if (family === 'vertical-spine') {
@@ -43,6 +45,9 @@ export function layout(
   }
   if (family === 'serpentine') {
     return layoutSerpentine(ir, theme, baseDir);
+  }
+  if (family === 'roadmap') {
+    return layoutRoadmap(ir, theme, baseDir);
   }
   return layoutHorizontal(ir, theme, baseDir);
 }

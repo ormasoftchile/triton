@@ -118,6 +118,7 @@ const metadataSchema = z.object({
   time_range: timeRangeSchema,
   axis_unit: axisUnitSchema.optional(),
   theme: z.string().optional(),
+  layout: z.enum(['horizontal', 'vertical-spine', 'serpentine', 'roadmap']).optional(),
   locale: z.string().optional(),
   today: irDateSchema.optional(),
   fiscal_year_start: z.number().int().min(1).max(12).optional(),

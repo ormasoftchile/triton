@@ -374,9 +374,9 @@ describe('Gallery emit — ai-timeline SVG + PNG', () => {
 // ---------------------------------------------------------------------------
 // Gallery emit — timeline-goals.svg / timeline-goals.png
 //
-// Regenerates the horizontal roadmap gallery images for the timeline-goals
-// fixture.  Uses layout: horizontal and the fixture's own roadmap theme
-// (specified in the YAML via metadata.theme: roadmap).
+// Regenerates the roadmap layout gallery images for the timeline-goals
+// fixture.  Uses layout: roadmap and the fixture's own roadmap theme
+// (specified in the YAML via metadata.theme: roadmap + metadata.layout: roadmap).
 // ---------------------------------------------------------------------------
 
 describe('Gallery emit — timeline-goals SVG + PNG', () => {
@@ -385,22 +385,22 @@ describe('Gallery emit — timeline-goals SVG + PNG', () => {
   const OUT_SVG       = join(GALLERY_DIR, 'timeline-goals.svg');
   const OUT_PNG       = join(GALLERY_DIR, 'timeline-goals.png');
 
-  it('emits timeline-goals.svg (roadmap theme, horizontal)', () => {
+  it('emits timeline-goals.svg (roadmap theme, roadmap layout)', () => {
     if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
     const text = readFileSync(TG_FIXTURE, 'utf-8');
     const ir   = parseIR(text);
-    const result = renderDocument(ir, { format: 'svg', layout: 'horizontal' });
+    const result = renderDocument(ir, { format: 'svg', layout: 'roadmap' });
     const svg = result.svg!;
     expect(svg).toContain('<svg');
     writeFileSync(OUT_SVG, svg, 'utf-8');
     console.log('[gallery-emit] timeline-goals.svg written →', OUT_SVG);
   });
 
-  it('emits timeline-goals.png (roadmap theme, horizontal)', () => {
+  it('emits timeline-goals.png (roadmap theme, roadmap layout)', () => {
     if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
     const text = readFileSync(TG_FIXTURE, 'utf-8');
     const ir   = parseIR(text);
-    const result = renderDocument(ir, { format: 'png', layout: 'horizontal' });
+    const result = renderDocument(ir, { format: 'png', layout: 'roadmap' });
     const png = result.png!;
     expect(png).toBeInstanceOf(Uint8Array);
     expect(png[0]).toBe(0x89); // PNG signature

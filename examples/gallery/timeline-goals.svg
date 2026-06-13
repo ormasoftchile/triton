@@ -1,88 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="647.83" version="1.1" viewBox="0 0 1200 647.83" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="647.83" width="1200" x="0" y="0"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="80">Timeline &amp; Goals</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="400" opacity="0.75" text-anchor="middle" x="600" y="108.67">Engineering Roadmap · 2025 – 2026</text>
-  <line opacity="0.35" stroke="#374151" stroke-width="0.5" x1="48" x2="1152" y1="120" y2="120"/>
-  <line stroke="#374151" stroke-width="1" x1="48" x2="303" y1="154" y2="154"/>
-  <line stroke="#374151" stroke-width="1.5" x1="310" x2="314" y1="161" y2="147"/>
-  <line stroke="#374151" stroke-width="1.5" x1="316" x2="320" y1="161" y2="147"/>
-  <line stroke="#374151" stroke-width="1" x1="327" x2="1152" y1="154" y2="154"/>
-  <line stroke="#374151" stroke-width="1" x1="255" x2="255" y1="149" y2="154"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="255" x2="255" y1="154" y2="476.83"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="255" y="142.4">Q1 2026</text>
-  <line stroke="#374151" stroke-width="1" x1="327" x2="327" y1="149" y2="154"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="327" x2="327" y1="154" y2="476.83"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="327" y="142.4">Q2</text>
-  <line stroke="#374151" stroke-width="1" x1="636" x2="636" y1="149" y2="154"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="636" x2="636" y1="154" y2="476.83"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="636" y="142.4">Q3</text>
-  <line stroke="#374151" stroke-width="1" x1="948" x2="948" y1="149" y2="154"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="948" x2="948" y1="154" y2="476.83"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="948" y="142.4">Q4</text>
-  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="392.83" y2="392.83"/>
-  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="476.83" y2="476.83"/>
-  <rect fill="#6B7280" height="36" opacity="0.9" rx="8" stroke="#6B7280" stroke-width="0.5" width="255" x="48" y="330.83"/>
-  <path d="M 14.7 6.3 A 5 5 0 0 0 5.6 13.4 L 2 17 A 1.5 1.5 0 0 0 4 19 L 7.6 15.4 A 5 5 0 0 0 14.7 6.3 Z M 14.7 6.3 L 10 11" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(68,348.83) scale(1.3333) translate(-12,-12)"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="88" y="343.43">Functional Readiness</text>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.93" font-weight="400" opacity="0.82" text-anchor="start" x="88" y="356.03">Tools installable and functional</text>
-  <rect fill="#0F766E" height="36" opacity="0.9" rx="8" stroke="#0F766E" stroke-width="0.5" width="411" x="327" y="330.83"/>
-  <path d="M 14 2 L 6 13 L 12 13 L 10 22 L 18 11 L 12 11 Z" fill="#FFFFFF" transform="translate(347,348.83) scale(1.3333) translate(-12,-12)"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="367" y="343.43">Evangelization</text>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.93" font-weight="400" opacity="0.82" text-anchor="start" x="367" y="356.03">Increase adoption + track blockers</text>
-  <rect fill="#1e3a5f" height="36" opacity="0.9" rx="8" stroke="#1e3a5f" stroke-width="0.5" width="309" x="741" y="330.83"/>
-  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(761,348.83) scale(1.3333) translate(-12,-12)"/>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="781" y="343.43">Physical SAW Reduction</text>
-  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.93" font-weight="400" opacity="0.82" text-anchor="start" x="781" y="356.03">Start removing Physical SAW dependency</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="48" x2="48" y1="314.83" y2="388.83"/>
-  <circle cx="48" cy="398.83" fill="#4ADE80" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(48,398.83) scale(0.5417) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="59.02" y="279.01">Tools installable and</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="59.02" y="294.88">functional</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="59.02" y="310.03">November 2025</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="632" x2="632" y1="314.83" y2="388.83"/>
-  <circle cx="632" cy="398.83" fill="#3B82F6" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M 14.7 6.3 A 5 5 0 0 0 5.6 13.4 L 2 17 A 1.5 1.5 0 0 0 4 19 L 7.6 15.4 A 5 5 0 0 0 14.7 6.3 Z M 14.7 6.3 L 10 11" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(632,398.83) scale(0.5417) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="632" y="279.01">MSI Installer / Install</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="632" y="294.88">Path</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="632" y="310.03">June 2026</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="636" x2="636" y1="149" y2="158"/>
-  <line opacity="0.25" stroke="#6B7280" stroke-dasharray="2,3" stroke-width="0.75" x1="636" x2="660" y1="154" y2="154"/>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="660" x2="660" y1="263.22" y2="388.83"/>
-  <circle cx="660" cy="398.83" fill="#3B82F6" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M 12 2 L 16 11 L 15 11 L 15 18 L 9 18 L 9 11 L 8 11 Z M 9 18 L 6 22 L 9 16 Z M 15 18 L 18 22 L 15 16 Z" fill="#FFFFFF" transform="translate(660,398.83) scale(0.5417) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="660" y="227.4">Adoption goal 40-80</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="660" y="243.27">WAU</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="660" y="258.42">July 2026</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="741" x2="741" y1="211.61" y2="388.83"/>
-  <circle cx="741" cy="398.83" fill="#0F766E" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(741,398.83) scale(0.5417) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="741" y="175.79">80% adoption + queue</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="741" y="191.66">signoff</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="741" y="206.81">August 2026</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="846" x2="846" y1="314.83" y2="388.83"/>
-  <circle cx="846" cy="398.83" fill="#1e3a5f" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M 3 12 A 9 9 0 1 0 21 12 A 9 9 0 1 0 3 12 M 7 12 A 5 5 0 1 0 17 12 A 5 5 0 1 0 7 12 M 10 12 A 2 2 0 1 0 14 12 A 2 2 0 1 0 10 12" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(846,398.83) scale(0.5417) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="846" y="279.01">Reduce Physical SAW</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="846" y="294.88">dependency</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="846" y="310.03">September 2026</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="1054" x2="1054" y1="314.83" y2="388.83"/>
-  <circle cx="1054" cy="398.83" fill="#1e3a5f" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M 3 12 A 9 9 0 1 0 21 12 A 9 9 0 1 0 3 12 M 7 12 A 5 5 0 1 0 17 12 A 5 5 0 1 0 7 12 M 10 12 A 2 2 0 1 0 14 12 A 2 2 0 1 0 10 12" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(1054,398.83) scale(0.5417) translate(-12,-12)"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="1054" y="279.01">No Physical SAW for</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="1054" y="294.88">device refresh</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1054" y="310.03">November 2026</text>
-  <rect fill="#FFFFFF" height="111" opacity="0.95" rx="4" stroke="#E5E7EB" stroke-width="1" width="160" x="976" y="492.83"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" text-anchor="start" x="986" y="514.83">Legend</text>
-  <rect fill="#4ADE80" height="12" rx="3" width="12" x="986" y="525.03"/>
-  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1006" y="531.03">done</text>
-  <rect fill="#3B82F6" height="12" rx="3" width="12" x="986" y="543.83"/>
-  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1006" y="549.83">in-progress</text>
-  <rect fill="#93C5FD" height="12" rx="3" width="12" x="986" y="562.63"/>
-  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1006" y="568.63">planned</text>
-  <rect fill="#1e3a5f" height="12" rx="3" width="12" x="986" y="581.43"/>
-  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1006" y="587.43">goal</text>
-  <line opacity="0.85" stroke="#EF4444" stroke-dasharray="6,4" stroke-width="1.5" x1="571" x2="571" y1="320.83" y2="476.83"/>
-  <rect fill="#FFFFFF" height="16.67" opacity="0.9" rx="3" width="37.72" x="570" y="321.83"/>
-  <text dominant-baseline="alphabetic" fill="#EF4444" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" opacity="0.9" text-anchor="start" x="574" y="335.5">Today</text>
+<svg height="323.59" version="1.1" viewBox="0 0 1200 323.59" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="323.59" width="1200" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="start" x="48" y="80">Timeline &amp; Goals</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="14.67" font-weight="400" opacity="0.7" text-anchor="start" x="48" y="108.67">Engineering Roadmap · 2025 – 2026</text>
+  <rect fill="#6B7280" height="56" rx="8" width="255" x="48" y="200.99"/>
+  <circle cx="74" cy="228.99" fill="#464a53" r="18"/>
+  <path d="M 14.7 6.3 A 5 5 0 0 0 5.6 13.4 L 2 17 A 1.5 1.5 0 0 0 4 19 L 7.6 15.4 A 5 5 0 0 0 14.7 6.3 Z M 14.7 6.3 L 10 11" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(74,228.99) scale(1.08) translate(-12,-12)"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="100" y="222.27">Functional Readiness</text>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.93" font-weight="400" opacity="0.82" text-anchor="start" x="100" y="241.31">Tools installable and functional</text>
+  <rect fill="#0F766E" height="56" rx="8" width="411" x="327" y="200.99"/>
+  <circle cx="353" cy="228.99" fill="#0a4d48" r="18"/>
+  <path d="M 14 2 L 6 13 L 12 13 L 10 22 L 18 11 L 12 11 Z" fill="#FFFFFF" transform="translate(353,228.99) scale(1.08) translate(-12,-12)"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="379" y="222.27">Evangelization</text>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.93" font-weight="400" opacity="0.82" text-anchor="start" x="379" y="241.31">Increase adoption + track blockers</text>
+  <rect fill="#1e3a5f" height="56" rx="8" width="309" x="741" y="200.99"/>
+  <circle cx="767" cy="228.99" fill="#14263e" r="18"/>
+  <path d="M 4 12 L 9.5 17.5 L 20 7" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="2" transform="translate(767,228.99) scale(1.08) translate(-12,-12)"/>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="793" y="222.27">Physical SAW Reduction</text>
+  <text dominant-baseline="middle" fill="#FFFFFF" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.93" font-weight="400" opacity="0.82" text-anchor="start" x="793" y="241.31">Start removing Physical SAW dependency</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="103.02" y="157.33">Tools installable and</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="103.02" y="172.66">functional</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="103.02" y="186.73">(Nov 2025)</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="103.02" x2="103.02" y1="194.99" y2="200.99"/>
+  <circle cx="103.02" cy="200.99" fill="#4ADE80" r="4"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="552.99" y="157.33">MSI Installer / Install Path</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="552.99" y="171.4">(Jun 30)</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="552.99" x2="552.99" y1="179.66" y2="200.99"/>
+  <circle cx="552.99" cy="200.99" fill="#3B82F6" r="4"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="700.2" y="157.33">Adoption goal 40-80 WAU</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="700.2" y="171.4">(Jul 2026)</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="700.2" x2="700.2" y1="179.66" y2="200.99"/>
+  <circle cx="700.2" cy="200.99" fill="#3B82F6" r="4"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="840.29" y="157.33">80% adoption + queue</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="840.29" y="172.66">signoff</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="840.29" y="186.73">(Aug 2026)</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="840.29" x2="840.29" y1="194.99" y2="200.99"/>
+  <circle cx="840.29" cy="200.99" fill="#0F766E" r="4"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="971.12" y="157.33">Reduce Physical SAW</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="971.12" y="172.66">dependency</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="971.12" y="186.73">(Sep 2026)</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="971.12" x2="971.12" y1="194.99" y2="200.99"/>
+  <circle cx="971.12" cy="200.99" fill="#1e3a5f" r="4"/>
+  <rect fill="none" height="61.99" opacity="0.9" rx="5" stroke="#374151" stroke-width="1.5" width="128.02" x="1032.98" y="136"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="1096.99" y="157.33">No Physical SAW for</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" text-anchor="middle" x="1096.99" y="172.66">device refresh</text>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1096.99" y="186.73">(Nov 2026)</text>
+  <line opacity="0.5" stroke="#374151" stroke-width="1" x1="1096.99" x2="1096.99" y1="197.99" y2="200.99"/>
+  <circle cx="1096.99" cy="200.99" fill="#1e3a5f" r="4"/>
+  <line stroke="#374151" stroke-width="1" x1="48" x2="303" y1="260.99" y2="260.99"/>
+  <line stroke="#374151" stroke-width="1.5" x1="310" x2="314" y1="267.99" y2="253.99"/>
+  <line stroke="#374151" stroke-width="1.5" x1="316" x2="320" y1="267.99" y2="253.99"/>
+  <line stroke="#374151" stroke-width="1" x1="327" x2="1152" y1="260.99" y2="260.99"/>
+  <line stroke="#374151" stroke-width="1" x1="103.02" x2="103.02" y1="256.99" y2="260.99"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="103.02" y="275.99">Nov 2025</text>
+  <line stroke="#374151" stroke-width="1" x1="552.99" x2="552.99" y1="256.99" y2="260.99"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="552.99" y="275.99">Jun 30</text>
+  <line stroke="#374151" stroke-width="1" x1="700.2" x2="700.2" y1="256.99" y2="260.99"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="700.2" y="275.99">Jul 2026</text>
+  <line stroke="#374151" stroke-width="1" x1="840.29" x2="840.29" y1="256.99" y2="260.99"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="840.29" y="275.99">Aug 2026</text>
+  <line stroke="#374151" stroke-width="1" x1="971.12" x2="971.12" y1="256.99" y2="260.99"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="971.12" y="275.99">Sep 2026</text>
+  <line stroke="#374151" stroke-width="1" x1="1096.99" x2="1096.99" y1="256.99" y2="260.99"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1096.99" y="275.99">Nov 2026</text>
 </svg>

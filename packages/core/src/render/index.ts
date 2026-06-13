@@ -41,7 +41,7 @@ import { sceneHash }       from '../scene.js';
  */
 export interface BuildSceneOptions {
   theme?: string;
-  layout?: 'horizontal' | 'vertical-spine' | 'serpentine';
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap';
   spineSpacing?: 'time' | 'even';
   /**
    * Base directory for resolving relative asset paths in `metadata.logo.src`
@@ -70,7 +70,7 @@ export function buildScene(
   if (opts?.spineSpacing !== undefined) {
     theme = { ...theme, spineSpacing: opts.spineSpacing };
   }
-  return layout(ir, theme, opts?.layout, opts?.baseDir);
+  return layout(ir, theme, opts?.layout ?? ir.metadata.layout, opts?.baseDir);
 }
 
 /**
