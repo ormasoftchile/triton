@@ -35,7 +35,7 @@ export interface FlowNode {
    *   'rounded-rect' → rounded rectangle (default)
    *   'stadium'      → pill shape (rx = height/2)
    *   'circle'       → circle
-   *   'diamond'      → diamond / rhombus (increment-2)
+   *   'diamond'      → diamond / rhombus (decision node)
    * Any unknown value falls back to 'rounded-rect'.
    */
   kind?: string;
@@ -79,7 +79,7 @@ export interface FlowEdge {
   kind?: 'sync' | 'async';
   /**
    * Animated flowing-dash hint.
-   * SVG/HTML backends: CSS stroke-dashoffset animation (deferred to increment-2).
+   * SVG/HTML backends: CSS stroke-dashoffset animation (dashflow, implemented).
    * PNG/raster backends: static dashed stroke (resting frame).
    * Setting animated=true has zero impact on PNG output (deterministic).
    */

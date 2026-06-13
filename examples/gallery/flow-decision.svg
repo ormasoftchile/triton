@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="256" version="1.1" viewBox="0 0 872 256" width="872" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#ffffff" height="256" width="872" x="0" y="0"/>
+  <path d="M 169 118 C 202 118 234 118 260 118" fill="none" stroke="#6b7280" stroke-width="1.5"/>
+  <path d="M 387 118 C 417 118 446 118 469 118" fill="none" stroke="#6b7280" stroke-width="1.5"/>
+  <path d="M 614 118 C 644 118 673 73 696 73" fill="none" stroke="#6b7280" stroke-width="1.5"/>
+  <path d="M 614 118 C 644 118 673 163 696 163" fill="none" stroke="#6b7280" stroke-width="1.5"/>
+  <rect fill="#e8f0fe" height="66" rx="33" stroke="#4a6cf7" stroke-width="1.5" width="120" x="49" y="85"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="109" y="118">Request</text>
+  <rect fill="#e8f0fe" height="66" rx="8" stroke="#4a6cf7" stroke-width="1.5" width="120" x="267" y="85"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="327" y="118">Validate</text>
+  <path d="M 545 85 L 614 118 L 545 151 L 476 118 Z" fill="#e8f0fe" stroke="#4a6cf7" stroke-width="1.5"/>
+  <text dominant-baseline="central" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="545" y="118">Auth OK?</text>
+  <rect fill="#d1fae5" height="66" rx="8" stroke="#4a6cf7" stroke-width="1.5" width="120" x="703" y="40"/>
+  <text dominant-baseline="central" fill="#065f46" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="763" y="73">Process</text>
+  <rect fill="#fee2e2" height="66" rx="8" stroke="#4a6cf7" stroke-width="1.5" width="120" x="703" y="130"/>
+  <text dominant-baseline="central" fill="#991b1b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="763" y="163">Reject</text>
+  <path d="M 267 118 L 260 114 L 260 122 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <path d="M 476 118 L 469 114 L 469 122 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <path d="M 703 73 L 696 69 L 696 77 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <path d="M 703 163 L 696 159 L 696 167 Z" fill="#6b7280" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="auto" fill="#4b5563" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="659" y="88">yes</text>
+  <text dominant-baseline="auto" fill="#4b5563" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="659" y="133">no</text>
+</svg>

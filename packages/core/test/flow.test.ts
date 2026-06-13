@@ -45,6 +45,14 @@ function loadFixture(): FlowDocument {
   return parseYaml(raw) as FlowDocument;
 }
 
+function loadDecisionFixture(): FlowDocument {
+  const raw = readFileSync(
+    join(GALLERY_DIR, 'flow-decision.flow.yaml'),
+    'utf-8',
+  );
+  return parseYaml(raw) as FlowDocument;
+}
+
 function minimalDoc(override?: Partial<FlowDocument['flow']>): FlowDocument {
   return {
     version: '1.0',
@@ -713,5 +721,85 @@ describe('Flow Grammar — animation (dashflow)', () => {
     const svg = result.svg!;
     // defaultFlowTheme.animationDurSec = 1.2
     expect(svg).toContain('dur="1.2s"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 10. Diamond shape — decision node rendering and gallery emit
+// ---------------------------------------------------------------------------
+
+describe('Flow Grammar — diamond shape', () => {
+  it('flow-decision fixture validates cleanly', () => {
+    const doc = loadDecisionFixture();
+    expect(() => flowDocumentSchema.parse(doc)).not.toThrow();
+  });
+
+  it('diamond node produces a PathPrimitive (not RectPrimitive)', () => {
+    const doc = loadDecisionFixture();
+    const scene = buildFlowScene(doc);
+    // The "Auth OK?" node has kind: diamond — must emit a path, not a rect
+    const texts = scene.primitives.filter(
+      (p) => p.kind === 'text' && (p as { text: string }).text === 'Auth OK?',
+    );
+    expect(texts.length).toBe(1);
+    // There should be at least one path primitive that is NOT an edge (fill ≠ 'none')
+    const filledPaths = scene.primitives.filter(
+      (p) => p.kind === 'path' && (p as { fill: string }).fill !== 'none',
+    );
+    expect(filledPaths.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('diamond path uses M…L…L…L…Z diamond polygon', () => {
+    const doc = loadDecisionFixture();
+    const scene = buildFlowScene(doc);
+    // Diamond node emits a closed polygon path: M cx y L rx cy L cx by L lx cy Z
+    const filledPaths = scene.primitives.filter(
+      (p) => p.kind === 'path' && (p as { fill: string }).fill !== 'none',
+    ) as Array<{ d: string; fill: string }>;
+    // At least one filled path must be a diamond polygon (contains exactly 4 L segments + Z)
+    const diamondPaths = filledPaths.filter((p) => {
+      const parts = p.d.split(' ');
+      const moves = parts.filter((t) => t === 'M').length;
+      const lines = parts.filter((t) => t === 'L').length;
+      const closes = parts.filter((t) => t === 'Z').length;
+      return moves === 1 && lines === 3 && closes === 1;
+    });
+    expect(diamondPaths.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('diamond node scene is deterministic (same hash twice)', () => {
+    const doc = loadDecisionFixture();
+    const h1 = sceneHash(buildFlowScene(doc));
+    const h2 = sceneHash(buildFlowScene(doc));
+    expect(h1).toBe(h2);
+    expect(h1).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('emits flow-decision.svg to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadDecisionFixture();
+    const result = renderFlowDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('Auth OK?');
+    expect(svg).toContain('Process');
+    expect(svg).toContain('Reject');
+    const outPath = join(GALLERY_DIR, 'flow-decision.svg');
+    writeFileSync(outPath, svg, 'utf-8');
+    console.log('[flow] flow-decision.svg →', outPath);
+  });
+
+  it('emits flow-decision.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadDecisionFixture();
+    const result = renderFlowDocument(doc, { format: 'png' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89); // PNG signature byte
+    const outPath = join(GALLERY_DIR, 'flow-decision.png');
+    writeFileSync(outPath, png);
+    console.log('[flow] flow-decision.png →', outPath);
   });
 });

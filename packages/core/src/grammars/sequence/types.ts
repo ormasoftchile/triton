@@ -171,9 +171,9 @@ export interface SequenceDefinition {
   participants: Participant[];
   /** Messages (may be empty). */
   messages: Message[];
-  /** Activation spans (increment-2; currently ignored in layout). */
+  /** Activation spans (increment-2; implemented and rendered). */
   activations?: Activation[];
-  /** Combined fragments (increment-2; currently ignored in layout). */
+  /** Combined fragments (increment-2; implemented and rendered). */
   fragments?: Fragment[];
 }
 

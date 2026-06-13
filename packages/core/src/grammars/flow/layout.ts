@@ -26,9 +26,7 @@
  *      currently — all edges are PathPrimitive for uniform curve support).
  *
  * Deferred (increment-2+):
- *   - CSS/SMIL animation for animated edges [still deferred, unchanged]
  *   - 'TB' orientation (top-to-bottom)
- *   - 'diamond' shape
  *   - Group/lane containers
  *
  * Determinism: pure function over (FlowDocument, FlowTheme). No randomness,
@@ -364,8 +362,12 @@ function computeNodeSize(
       ? tk.iconSize + tk.iconLabelGap
       : 0;
   const textW = Math.ceil(measured.width);
-  const w = Math.max(textW + iconW + 2 * tk.nodePadX, tk.minNodeWidth);
-  const h = rhuInt(tk.nodeFontSize * 1.4 + 2 * tk.nodePadY);
+  // Diamond nodes use double padding so the label fits inside the inscribed area.
+  const isDiamond = node.kind === 'diamond';
+  const padX = isDiamond ? tk.nodePadX * 2 : tk.nodePadX;
+  const padY = isDiamond ? tk.nodePadY * 2 : tk.nodePadY;
+  const w = Math.max(textW + iconW + 2 * padX, tk.minNodeWidth);
+  const h = rhuInt(tk.nodeFontSize * 1.4 + 2 * padY);
   return { w, h };
 }
 
@@ -469,6 +471,24 @@ function emitNode(
       cx,
       cy,
       r,
+      fill,
+      stroke: tk.nodeStroke,
+      strokeWidth: tk.nodeStrokeWidth,
+    });
+  } else if (shapeKind === 'diamond') {
+    // Diamond: rhombus with tips at the four cardinal edge midpoints of the bounding box.
+    // The bounding box is (x, y, w, h); tips: top=(cx,y), right=(x+w,cy), bottom=(cx,y+h), left=(x,cy).
+    // Edges attach at the right tip (rx) and left tip (lx) — identical to normal port positions.
+    const d = [
+      `M ${cx} ${y}`,
+      `L ${rhuInt(x + w)} ${cy}`,
+      `L ${cx} ${rhuInt(y + h)}`,
+      `L ${x} ${cy}`,
+      'Z',
+    ].join(' ');
+    primitives.push({
+      kind: 'path',
+      d,
       fill,
       stroke: tk.nodeStroke,
       strokeWidth: tk.nodeStrokeWidth,
