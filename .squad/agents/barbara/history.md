@@ -105,3 +105,31 @@ For detailed implementation notes from increments 1–4 (June 10–13), includin
 - **Kernel Stability:** No breaking changes; all extensions backward-compatible
 - **Code Quality:** Theme-driven architecture verified across all 5 grammars + composition layer
 
+
+---
+
+## Learnings — 2026-06-13T17:43:20-04:00 Composition ir_file Ref Resolution
+
+### ir_file ref resolution as a separate pure-preserving step
+
+Added `kind: 'ref'` variant to `CellContent` and `timeline` inline variant. The core insight is that file I/O is isolated in a single module (`resolve.ts`) that produces a fully-inlined `CompositionDocument` BEFORE the layout pipeline runs. `buildCompositionScene` / `layoutComposition` remain pure (no I/O) — they never see `kind:'ref'` cells.
+
+**Files changed:**
+- `composition/types.ts` — Added `TimelineCellContent` and `RefCellContent` to `CellContent` union
+- `composition/schema.ts` — Added `timelineCellContentSchema`, `refCellContentSchema` to discriminated union; imported `irDocumentSchema`
+- `composition/layout.ts` — Added `case 'timeline'` (calls `buildScene` from render/index); added guard for `case 'ref'` (throws if unresolved ref reaches layout)
+- `composition/resolve.ts` — New file: `resolveCompositionRefs(doc, baseDir)` — the only file-I/O in the composition pipeline
+- `composition/index.ts` — Exported new types + `resolveCompositionRefs`; added `renderCompositionDocumentFromRefs(doc, baseDir, opts)` convenience wrapper
+
+**Architecture pattern:** This mirrors how grammar docs are loaded by the CLI/tests, not by the layout. The resolver reads → parses (YAML/JSON) → validates via grammar schema → returns inline CellContent. The layout stays pure.
+
+**Test additions (E1–E5):**
+- E1: `resolveCompositionRefs` inlines ref cells, preserves inline cells, does not mutate original
+- E2: Missing file throws clear error matching `/cannot read ir_file/`
+- E3: Resolved poster is deterministic (sceneHash stable)
+- E4: Resolved poster hash ≡ equivalent inline poster hash (byte-identical)
+- E5: Gallery emit → `examples/gallery/poster-refs.{svg,png}`
+
+**Example created:** `examples/gallery/poster-refs/` — composition YAML referencing `pipeline.flow.yaml` + `taxonomy.tree.yaml`; rendered outputs at `examples/gallery/poster-refs.{svg,png}`.
+
+**All 795 tests pass; all existing goldens byte-identical.**
