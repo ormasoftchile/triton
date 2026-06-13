@@ -1,0 +1,583 @@
+\section{Sequence Grammar: Domain IR}
+\label{sec:sequence-grammar}
+
+The Sequence Grammar is the third grammar implemented in the diagram compiler and the \textbf{first de-risked new grammar}: its layout is deterministic-by-construction---no graph auto-layout algorithm is required. Where the Flow Grammar (Section~\ref{sec:flow-grammar}) requires Sugiyama layered layout~\cite{sugiyama1981} with cycle removal, crossing minimization, and coordinate assignment (Section~\ref{sec:layout-engines}), the Sequence Grammar's placement is fully determined by two ordered lists: participants declared left-to-right, and messages declared top-to-bottom. This makes it the lowest-risk grammar to add after Timeline and Flow.
+
+% ============================================================================
+\subsection{Scope \& Intent}
+\label{sec:sequence-scope}
+% ============================================================================
+
+\subsubsection{What a Sequence Diagram IS}
+
+A \textbf{sequence diagram} in this grammar is a \emph{time-ordered interaction diagram} representing:
+
+\begin{itemize}
+  \item \textbf{Participants}: Named entities (actors, objects, services, boundaries) declared in a fixed horizontal order.
+  \item \textbf{Messages}: Ordered communications between participants---synchronous calls, asynchronous signals, and return/reply messages---flowing downward along vertical lifelines.
+  \item \textbf{Lifelines}: Vertical dashed lines descending from each participant, representing the entity's existence over time.
+  \item \textbf{Activations} (optional): Thin rectangles on lifelines indicating processing spans.
+  \item \textbf{Fragments} (optional): Labeled rectangles spanning a range of messages, representing control-flow semantics (loop, alt, opt, par).
+\end{itemize}
+
+The visual lineage is UML 2.x Sequence Diagrams~\cite{uml25} and ITU-T Message Sequence Charts~\cite{itu-msc}. The grammar captures the essential structural semantics---participant ordering plus message ordering---without the full UML behavioral metamodel.
+
+\subsubsection{What a Sequence Diagram is NOT}
+
+\begin{description}
+  \item[Not a free node-link flow.] Flows (Section~\ref{sec:flow-grammar}) have nodes at arbitrary graph positions connected by routed edges. Sequence diagrams have a rigid two-axis structure: participants span x, messages span y. There is no node-link topology to lay out.
+  \item[Not a timeline.] The timeline grammar's entities have temporal semantics (\texttt{start}, \texttt{end}, \texttt{track}) on a calibrated time axis. Sequence diagrams use \emph{ordinal} vertical position (message 1, message 2, \ldots)---not absolute time.
+  \item[Not a general graph.] No force-directed, Sugiyama, or tree-layout algorithm is involved. Placement is tabular.
+\end{description}
+
+\subsubsection{Modeling Boundary}
+
+The Sequence Grammar covers diagrams where:
+\begin{enumerate}
+  \item Entities are \textbf{participants} arranged in a fixed horizontal order.
+  \item Interactions are \textbf{messages} between participants, with a total order defining vertical position.
+  \item Time is \textbf{ordinal} (row index), not metric.
+\end{enumerate}
+
+Diagrams requiring metric time (Gantt-like durations) belong to the Timeline grammar. Diagrams requiring arbitrary node placement belong to Flow or Graph grammars.
+
+\subsubsection{Why De-Risked}
+
+\textbf{Deterministic layout is trivial.} Given $n$ participants and $m$ messages:
+\begin{itemize}
+  \item Participant $i$ is placed at $x_i$ determined solely by declared order and measured label widths (no optimization).
+  \item Message $j$ is placed at $y_j = \text{headerHeight} + j \times \text{rowHeight}$ (no crossing minimization, no coordinate assignment).
+  \item No iterative algorithm, no RNG, no convergence criterion.
+\end{itemize}
+
+Contrast with the Flow grammar's reliance on four-phase Sugiyama layout (Section~\ref{sec:flow-layout-contract}) where even tie-breaking heuristics must be carefully pinned for determinism. Here, placement is a pure arithmetic function of declaration order---the ``hard problem'' of \S\ref{sec:layout-engines} simply does not apply.
+
+% ============================================================================
+\subsection{Sequence Domain IR}
+\label{sec:sequence-domain-ir}
+% ============================================================================
+
+The Sequence Domain IR is the small, grammar-specific representation that compiles \emph{down} to the shared Scene IR (Section~\ref{sec:scene-ir}). It is \textbf{not} a ``god-IR''---it contains only the constructs necessary to describe participant-message interaction diagrams.
+
+\subsubsection{Document Structure}
+
+A Sequence IR document is a single YAML/JSON object with the following root structure:
+
+\begin{lstlisting}[language=yaml,caption={Sequence IR root document structure}]
+version: "1.0"
+metadata:
+  title: string             # required
+  subtitle: string          # optional; default null
+  theme: string             # optional; default "default-sequence"
+sequence:
+  participants: [...]       # required; list<Participant>; min 1
+  messages: [...]           # required; list<Message>; may be empty
+  activations: [...]        # optional; list<Activation>; default []
+  fragments: [...]          # optional; list<Fragment>; default []
+\end{lstlisting}
+
+\subsubsection{Root Fields}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.8cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{version} & \texttt{string} & Yes & --- & Spec version (semver, e.g., \texttt{"1.0"}) \\
+\texttt{metadata} & \texttt{SeqMetadata} & Yes & --- & Document-level metadata \\
+\texttt{sequence} & \texttt{SeqDefinition} & Yes & --- & The sequence definition \\
+\bottomrule
+\end{tabular}
+\caption{Sequence IR root fields}
+\label{tab:seq-root-fields}
+\end{table}
+
+\subsubsection{Participant}
+\label{sec:seq-participant}
+
+A participant is a named entity with a vertical lifeline.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{id} & \texttt{id} & Yes & --- & Document-unique identifier (kebab-case) \\
+\texttt{label} & \texttt{string} & Yes & --- & Display text in the header box \\
+\texttt{kind} & \texttt{enum\{actor, object, boundary, control, entity, database\}} & No & \texttt{object} & Participant stereotype (affects header icon/shape) \\
+\texttt{description} & \texttt{string?} & No & \texttt{null} & Tooltip/secondary text \\
+\bottomrule
+\end{tabular}
+\caption{Participant fields}
+\label{tab:seq-participant-fields}
+\end{table}
+
+\paragraph{Identity.}
+Participant \texttt{id} is the primary key. It must be unique across all participants. Messages reference participants by this \texttt{id}. Two participants with the same \texttt{id} are a validation error.
+
+\paragraph{Declared order.}
+Participants are placed left-to-right in the order they appear in the \texttt{participants} list. This order is the \textbf{canonical horizontal order}---the sole determinant of x-position. Reordering participants in the IR changes the diagram (this is intentional; order is semantic).
+
+\paragraph{Kind semantics.}
+The \texttt{kind} field controls the visual stereotype of the participant header:
+\begin{description}
+  \item[\texttt{actor}] Stick-figure icon above the label (UML actor).
+  \item[\texttt{object}] Rectangular box with label (default, most common).
+  \item[\texttt{boundary}] Box with a vertical bar on the left edge.
+  \item[\texttt{control}] Box with a circular arrow icon.
+  \item[\texttt{entity}] Box with a horizontal underline.
+  \item[\texttt{database}] Cylinder (DB drum) icon above the label.
+\end{description}
+
+The \texttt{kind} does NOT affect layout---only the header's visual representation. All participants occupy the same column width regardless of kind.
+
+\subsubsection{Message}
+\label{sec:seq-message}
+
+A message is a directed communication between two participants (or a self-message within one participant).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.0cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{from} & \texttt{ref<Participant>} & Yes & --- & Source participant id \\
+\texttt{to} & \texttt{ref<Participant>} & Yes & --- & Target participant id \\
+\texttt{label} & \texttt{string} & Yes & --- & Message annotation text \\
+\texttt{order} & \texttt{integer} & Yes & --- & Explicit sequence index ($\ge 0$); determines y-position \\
+\texttt{kind} & \texttt{enum\{sync, async, reply\}} & No & \texttt{sync} & Message kind (controls arrowhead style) \\
+\bottomrule
+\end{tabular}
+\caption{Message fields}
+\label{tab:seq-message-fields}
+\end{table}
+
+\paragraph{Identity.}
+Messages are identified by their \texttt{order} field---the explicit sequence index. The \texttt{order} is the sole determinant of vertical position. Messages with lower \texttt{order} values appear higher in the diagram.
+
+\paragraph{Total order contract.}
+The \texttt{order} field imposes a \textbf{total order} on messages. This is the deterministic backbone of the layout:
+\begin{itemize}
+  \item Messages are sorted by \texttt{order} (ascending) before layout.
+  \item Message at rank $k$ (0-indexed after sorting) is placed at $y_k = \text{headerHeight} + k \times \text{rowHeight}$.
+  \item If two messages share the same \texttt{order} value, the tie is broken by list position in the \texttt{messages} array (stable sort). See edge cases (\S\ref{sec:seq-edge-cases}).
+\end{itemize}
+
+\paragraph{Self-message.}
+When \texttt{from == to}, the message is a self-message: a loopback arrow on a single lifeline. It occupies one message row like any other message, but is rendered as a small rightward loop returning to the same lifeline (see \S\ref{sec:seq-lowering}).
+
+\paragraph{Message kind semantics.}
+\begin{description}
+  \item[\texttt{sync}] Synchronous call. Rendered as a solid line with a \textbf{filled} triangular arrowhead at the target.
+  \item[\texttt{async}] Asynchronous signal. Rendered as a solid line with an \textbf{open} (line-only) arrowhead at the target.
+  \item[\texttt{reply}] Return/response message. Rendered as a \textbf{dashed} line with an open arrowhead at the target.
+\end{description}
+
+\subsubsection{Activation}
+\label{sec:seq-activation}
+
+An activation represents a processing span on a participant's lifeline---the period during which the participant is actively handling a request.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{participant} & \texttt{ref<Participant>} & Yes & --- & Lifeline on which the activation appears \\
+\texttt{from\_order} & \texttt{integer} & Yes & --- & Message order at which activation begins \\
+\texttt{to\_order} & \texttt{integer} & Yes & --- & Message order at which activation ends \\
+\bottomrule
+\end{tabular}
+\caption{Activation fields}
+\label{tab:seq-activation-fields}
+\end{table}
+
+\paragraph{Semantics.}
+An activation bar is drawn as a thin filled rectangle on the participant's lifeline, spanning from the y-position of the message with \texttt{order == from\_order} to the y-position of the message with \texttt{order == to\_order}. The bar is centered on the lifeline.
+
+\paragraph{Validation.}
+\texttt{from\_order} must be $\le$ \texttt{to\_order}. Both values must reference \texttt{order} values that exist in the \texttt{messages} list (not necessarily on messages involving this participant---activations can span any message range). A zero-height activation (\texttt{from\_order == to\_order}) is valid: it renders as a minimal-height bar at that message row.
+
+\subsubsection{Fragment}
+\label{sec:seq-fragment}
+
+A fragment represents a combined fragment (UML 2.x interaction fragment)---a labeled region spanning a range of messages that carries control-flow semantics.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llccp{4.0cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Req} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\texttt{kind} & \texttt{enum\{loop, alt, opt, par, critical, break\}} & Yes & --- & Fragment operator \\
+\texttt{label} & \texttt{string} & Yes & --- & Guard condition or description text \\
+\texttt{from\_order} & \texttt{integer} & Yes & --- & First message order in the span \\
+\texttt{to\_order} & \texttt{integer} & Yes & --- & Last message order in the span \\
+\texttt{participants} & \texttt{list<ref<Participant>>?} & No & all & Subset of participants the fragment spans horizontally \\
+\bottomrule
+\end{tabular}
+\caption{Fragment fields}
+\label{tab:seq-fragment-fields}
+\end{table}
+
+\paragraph{Semantics.}
+A fragment is rendered as a labeled rounded rectangle spanning:
+\begin{itemize}
+  \item Vertically: from the y-position of \texttt{from\_order} to the y-position of \texttt{to\_order} (with padding).
+  \item Horizontally: from the leftmost to the rightmost participant in \texttt{participants} (or all participants if omitted), with padding.
+\end{itemize}
+
+The \texttt{kind} keyword is rendered in a small tab in the upper-left corner of the rectangle (e.g., ``\texttt{loop}'', ``\texttt{alt}'').
+
+\paragraph{Nesting.}
+Fragments may nest: a fragment with \texttt{from\_order}=2, \texttt{to\_order}=5 may contain another with \texttt{from\_order}=3, \texttt{to\_order}=4. Nested fragments are rendered inside their parent with visual inset. Overlapping but non-nested fragments (partial overlap) are a validation error.
+
+% ============================================================================
+\subsection{Layout Contract (Deterministic-by-Construction)}
+\label{sec:sequence-layout-contract}
+% ============================================================================
+
+The Sequence Grammar's layout is \textbf{fully determined by two ordered lists}: participants (horizontal) and messages (vertical). No optimization, heuristic, or iterative algorithm is involved.
+
+\subsubsection{Participant Placement (x-axis)}
+
+Given $n$ participants $p_1, p_2, \ldots, p_n$ in declared order:
+
+\begin{enumerate}
+  \item Compute the header width for each participant: $w_i = \text{measureText}(p_i.\text{label}) + 2 \times \text{headerPadX}$.
+  \item Apply a minimum column width: $\text{colW}_i = \max(w_i, \text{minColWidth})$.
+  \item Place participant centers at cumulative positions:
+    \begin{align*}
+      x_1 &= \text{marginLeft} + \text{colW}_1 / 2 \\
+      x_i &= x_{i-1} + \text{colW}_{i-1}/2 + \text{colGap} + \text{colW}_i/2 \quad (i > 1)
+    \end{align*}
+\end{enumerate}
+
+\paragraph{Determinism.}
+Placement is a pure function of the participant list and theme geometry tokens (\texttt{headerPadX}, \texttt{minColWidth}, \texttt{colGap}, \texttt{marginLeft}). Same input $\rightarrow$ identical pixel positions. No force-directed layout, no crossing minimization, no Sugiyama---contrast with the Flow Grammar's four-phase Sugiyama pipeline (Section~\ref{sec:flow-layout-contract}).
+
+\subsubsection{Lifelines (y-axis skeleton)}
+
+Each participant $p_i$ emits a vertical dashed line from the bottom of its header box to the bottom of the diagram:
+$$
+  \text{lifeline}_i: (x_i, y_{\text{headerBottom}}) \longrightarrow (x_i, y_{\text{diagramBottom}})
+$$
+
+The lifeline is purely decorative; it does not participate in layout computation.
+
+\subsubsection{Message Placement (y-axis)}
+
+Given $m$ messages sorted by \texttt{order} (ties broken by list position), message at rank $k$ (0-indexed) is placed at:
+$$
+  y_k = y_{\text{headerBottom}} + \text{firstMsgGap} + k \times \text{rowHeight}
+$$
+
+Each message is rendered as a horizontal (or angled) arrow from $x_{\text{from}}$ to $x_{\text{to}}$ at height $y_k$, with its label text positioned above the arrow.
+
+\paragraph{Self-messages.}
+A self-message ($\text{from} = \text{to}$) is rendered as a small rightward loop: an arrow that exits the lifeline to the right, descends by a fixed \texttt{selfMsgHeight}, and returns to the same lifeline. It still occupies exactly one message row at $y_k$.
+
+\subsubsection{Activation Bars}
+
+An activation bar for participant $p_i$ spanning orders $[a, b]$ is placed as a thin filled rectangle:
+$$
+  \text{rect}: (x_i - \text{barHalfW},\; y_{\text{rank}(a)}) \longrightarrow (x_i + \text{barHalfW},\; y_{\text{rank}(b)})
+$$
+
+where $\text{rank}(a)$ is the y-position of the message with that order value.
+
+\subsubsection{Fragment Rectangles}
+
+A fragment spanning orders $[a, b]$ over participants $[p_l, p_r]$ is placed as a rounded rectangle:
+\begin{align*}
+  x_{\text{left}}  &= x_l - \text{colW}_l/2 - \text{fragPadX} \\
+  x_{\text{right}} &= x_r + \text{colW}_r/2 + \text{fragPadX} \\
+  y_{\text{top}}   &= y_{\text{rank}(a)} - \text{fragPadY} \\
+  y_{\text{bot}}   &= y_{\text{rank}(b)} + \text{fragPadY}
+\end{align*}
+
+The operator keyword tab is positioned at $(x_{\text{left}} + \text{tabInset}, y_{\text{top}} + \text{tabInset})$.
+
+\subsubsection{Contrast with Flow Grammar Layout}
+
+\begin{center}
+\small
+\begin{tabular}{lp{5cm}p{5cm}}
+\toprule
+\textbf{Aspect} & \textbf{Flow Grammar} & \textbf{Sequence Grammar} \\
+\midrule
+Layout family & Sugiyama 4-phase (layer assignment, crossing min., coordinate assignment) & Arithmetic placement (declared order $\rightarrow$ position) \\
+Determinism mechanism & Fixed sweep count, canonical tie-breaking & Trivially deterministic (no optimization) \\
+Risk & Cycle removal heuristics, convergence control & None---placement is a closed-form function \\
+New algorithms needed & Yes (Sugiyama, network simplex) & No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================================
+\subsection{Lowering to the Scene IR}
+\label{sec:seq-lowering}
+% ============================================================================
+
+The sequence layout engine emits Scene IR primitives (Section~\ref{sec:scene-ir}). \textbf{No new Scene IR primitives are required}---the existing kernel is sufficient.
+
+\subsubsection{Participant Headers}
+
+Each participant header emits:
+\begin{enumerate}
+  \item A \texttt{Rect} primitive for the header box (or a \texttt{Path} for non-rectangular kinds like \texttt{database} cylinder).
+  \item A \texttt{Text} primitive for the participant label, centered within the box.
+  \item For \texttt{kind: actor}: an additional small \texttt{Path} (stick-figure) above the label.
+\end{enumerate}
+
+\subsubsection{Lifelines}
+
+Each lifeline emits a single \texttt{Line} (or \texttt{Path}) primitive:
+\begin{Verbatim}[frame=single,fontsize=\small]
+Line {
+  x1: x_i, y1: headerBottom,
+  x2: x_i, y2: diagramBottom,
+  stroke_style: dashed,
+  stroke_width: theme.sequence.lifelineWidth   // default 1px
+}
+\end{Verbatim}
+
+\subsubsection{Messages}
+
+Each message emits:
+\begin{enumerate}
+  \item A \texttt{Line} or \texttt{Path} primitive for the connector:
+    \begin{description}
+      \item[\texttt{sync}] Solid stroke.
+      \item[\texttt{async}] Solid stroke.
+      \item[\texttt{reply}] Dashed stroke.
+    \end{description}
+  \item An arrowhead \texttt{Path}:
+    \begin{description}
+      \item[\texttt{sync}] Filled triangular arrowhead (solid, closed polygon).
+      \item[\texttt{async}] Open arrowhead (two lines forming a ``V'').
+      \item[\texttt{reply}] Open arrowhead (two lines forming a ``V''), on a dashed connector.
+    \end{description}
+  \item A \texttt{Text} primitive for the message label, positioned above the connector midpoint.
+\end{enumerate}
+
+\paragraph{Self-message rendering.}
+A self-message emits a \texttt{Path} with three segments: rightward horizontal, downward vertical (height = \texttt{selfMsgHeight}), leftward horizontal returning to the lifeline. The arrowhead is placed at the return point.
+
+\textbf{Open question for Barbara:} The exact curve geometry for self-messages (rounded corners vs.\ sharp right angles vs.\ a smooth arc) is a rendering-detail decision. The spec defines the logical shape (exit right, descend, return left); Barbara owns the curve parameterization.
+
+\subsubsection{Activation Bars}
+
+Each activation emits a single \texttt{Rect} primitive:
+\begin{Verbatim}[frame=single,fontsize=\small]
+Rect {
+  x: x_i - barHalfW,  y: y_rank(from_order),
+  width: 2 * barHalfW,
+  height: y_rank(to_order) - y_rank(from_order),
+  fill: theme.sequence.activationFill,
+  stroke: theme.sequence.activationStroke
+}
+\end{Verbatim}
+
+\subsubsection{Fragments}
+
+Each fragment emits:
+\begin{enumerate}
+  \item A \texttt{Rect} primitive (rounded corners, no fill or light fill per theme) for the frame.
+  \item A small \texttt{Rect} + \texttt{Text} for the operator keyword tab in the upper-left corner.
+  \item A \texttt{Text} primitive for the guard label, positioned after the keyword tab.
+\end{enumerate}
+
+\paragraph{No new kernel primitives needed.}
+The entire sequence grammar maps to existing Scene IR primitives: \texttt{Rect}, \texttt{Line}/\texttt{Path}, \texttt{Text}, and \texttt{Group}. No kernel changes are required. If future extensions (e.g., destruction markers, creation messages with offset lifeline starts) prove necessary, those would require kernel review---\textbf{flagged for Barbara/Mark sign-off} rather than assumed.
+
+\paragraph{Animation.}
+Animation semantics are out of scope for this grammar specification. Per the project's additive animation model (Section~\ref{sec:scene-animation}), future animation hints (e.g., sequential message fade-in) can be layered onto the Scene IR without modifying the domain IR.
+
+% ============================================================================
+\subsection{Edge Cases \& Total Semantics}
+\label{sec:seq-edge-cases}
+% ============================================================================
+
+Every possible input must have a defined meaning or produce a clear validation error.
+
+\subsubsection{Self-Message}
+
+\textbf{Valid.} A message where \texttt{from == to} is rendered as a loopback on the participant's lifeline (see \S\ref{sec:seq-lowering}). It occupies one row like any other message.
+
+\subsubsection{Message Referencing an Undeclared Participant}
+
+\textbf{Validation error.} If a message's \texttt{from} or \texttt{to} references a participant \texttt{id} not in the \texttt{participants} list, the document fails validation: \texttt{"Message at order N references unknown participant id 'X' in field 'from|to'."}
+
+\subsubsection{Duplicate Order Indices}
+
+\textbf{Valid (tie-broken).} If two or more messages share the same \texttt{order} value, they are placed at consecutive y-positions in the order they appear in the \texttt{messages} array (stable sort). A lint warning is emitted: \texttt{"Messages at indices M and N share order value K; list position used as tie-breaker."}
+
+This ensures total determinism even with duplicate orders---but authors are encouraged to use unique order values for clarity.
+
+\subsubsection{Participant with No Messages}
+
+\textbf{Valid.} A participant that is never referenced by any message still appears in the diagram with its header box and lifeline. It occupies its declared column position. A lint warning is emitted: \texttt{"Participant 'X' has no messages; lifeline will be empty."}
+
+\subsubsection{Empty Diagram}
+
+\textbf{Partially valid.} A sequence with at least one participant but zero messages produces a diagram showing only participant headers and lifelines (no message arrows). A sequence with zero participants is a validation error: \texttt{"Sequence must declare at least one participant."}
+
+\subsubsection{Nested Fragments}
+
+\textbf{Valid.} Fragment $A$ may fully contain fragment $B$ ($A.\text{from\_order} \le B.\text{from\_order}$ and $B.\text{to\_order} \le A.\text{to\_order}$). Nested fragments are rendered with visual inset (each nesting level offsets inward by \texttt{fragNestInset} pixels). Rendering order: outermost fragments first (painter's algorithm), innermost on top.
+
+\textbf{Partial overlap is invalid.} If fragment $A$ and fragment $B$ overlap but neither fully contains the other ($A.\text{from\_order} < B.\text{from\_order} < A.\text{to\_order} < B.\text{to\_order}$), validation fails: \texttt{"Fragments at indices M and N partially overlap; fragments must nest or be disjoint."}
+
+\textbf{Open question for Barbara:} Maximum nesting depth for readable rendering. The spec imposes no hard limit; Barbara may recommend a soft limit (e.g., 3--4 levels) with a lint warning.
+
+\subsubsection{Async Message with No Corresponding Reply}
+
+\textbf{Valid.} An \texttt{async} message with no subsequent \texttt{reply} from the target back to the source is perfectly valid---it represents a fire-and-forget signal. No implicit reply is generated.
+
+\subsubsection{Activation Referencing Non-Existent Order}
+
+\textbf{Validation error.} If \texttt{from\_order} or \texttt{to\_order} does not match any message's \texttt{order} value, validation fails: \texttt{"Activation for participant 'X' references non-existent order value N."}
+
+% ============================================================================
+\subsection{Worked Example: Token-Based REST API Authentication}
+\label{sec:seq-worked-example}
+% ============================================================================
+
+This example models a simple token-based REST API authentication flow: a client requests a token, the server returns it, then the client uses the token in a subsequent authenticated request.
+
+\subsubsection{Sequence Domain IR}
+
+\begin{lstlisting}[language=yaml,caption={REST API auth --- Sequence Domain IR}]
+version: "1.0"
+metadata:
+  title: "Token-Based REST API Authentication"
+  theme: default-sequence
+sequence:
+  participants:
+    - id: client
+      label: "Client"
+      kind: actor
+    - id: server
+      label: "Auth Server"
+      kind: object
+  messages:
+    - from: client
+      to: server
+      label: "POST /auth/token (credentials)"
+      order: 1
+      kind: sync
+    - from: server
+      to: client
+      label: "200 OK { token: 'jwt...' }"
+      order: 2
+      kind: reply
+    - from: client
+      to: server
+      label: "GET /api/data (Authorization: Bearer jwt...)"
+      order: 3
+      kind: sync
+    - from: server
+      to: client
+      label: "200 OK { data: [...] }"
+      order: 4
+      kind: reply
+  activations:
+    - participant: server
+      from_order: 1
+      to_order: 2
+    - participant: server
+      from_order: 3
+      to_order: 4
+\end{lstlisting}
+
+\subsubsection{Lowering to Scene IR (Detailed)}
+
+The layout engine processes this document as follows:
+
+\begin{enumerate}
+  \item \textbf{Participant placement.} Two participants in declared order: Client at $x_1$, Auth Server at $x_2$. With \texttt{colGap}=80px and measured label widths, suppose $x_1 = 120$px, $x_2 = 320$px.
+
+  \item \textbf{Message placement.} Four messages sorted by order (1, 2, 3, 4). With \texttt{rowHeight}=50px and \texttt{firstMsgGap}=30px:
+  \begin{itemize}
+    \item Message 1 at $y = 30 + 0 \times 50 = 30$px below header.
+    \item Message 2 at $y = 30 + 1 \times 50 = 80$px below header.
+    \item Message 3 at $y = 30 + 2 \times 50 = 130$px below header.
+    \item Message 4 at $y = 30 + 3 \times 50 = 180$px below header.
+  \end{itemize}
+
+  \item \textbf{Scene IR emission.} The resulting Scene contains:
+  \begin{itemize}
+    \item \textbf{2 header Groups}: each a \texttt{Rect} + \texttt{Text}. Client additionally has a stick-figure \texttt{Path} (kind=actor).
+    \item \textbf{2 lifeline Lines}: dashed vertical lines from header bottom to diagram bottom, at $x_1$ and $x_2$.
+    \item \textbf{4 message Lines}: horizontal arrows from $x_1$ to $x_2$ (messages 1, 3) and from $x_2$ to $x_1$ (messages 2, 4). Messages 2 and 4 have \texttt{stroke\_style: dashed} (reply kind).
+    \item \textbf{4 arrowhead Paths}: filled triangles for messages 1, 3 (sync); open V-shapes for messages 2, 4 (reply).
+    \item \textbf{4 label Texts}: positioned above each message arrow at the midpoint.
+    \item \textbf{2 activation Rects}: thin filled rectangles on the server lifeline ($x_2$), spanning $[y_1, y_2]$ and $[y_3, y_4]$.
+    \item \textbf{Canvas}: width computed from rightmost participant + margin; height from last message row + footer margin.
+    \item \textbf{Meta}: \texttt{scene\_hash} computed from serialized element list.
+  \end{itemize}
+\end{enumerate}
+
+\paragraph{Primitive count.}
+Total Scene primitives: 2 Groups (headers) + 2 Lines (lifelines) + 4 Lines (messages) + 4 Paths (arrowheads) + 4 Texts (labels) + 2 Rects (activations) + canvas + meta = 18 drawing primitives. All are existing kernel types---no extensions required.
+
+\paragraph{Determinism verification.}
+Running this IR through the layout engine twice produces an identical \texttt{scene\_hash}. Participant placement is a function of declaration order and label widths; message placement is a function of order values. No randomness, no iteration, no heuristic.
+
+% ============================================================================
+\subsection{Determinism \& Opt-In Discipline}
+\label{sec:seq-determinism}
+% ============================================================================
+
+The Sequence Grammar respects the project's sacred determinism contract (Section~\ref{sec:determinism}):
+
+\begin{description}
+  \item[Byte-identical output.] The same Sequence IR + same engine version + same theme = identical Scene IR (and therefore identical SVG). No exceptions.
+
+  \item[No-change defaults.] All optional fields (\texttt{kind}, \texttt{description}, \texttt{activations}, \texttt{fragments}) have explicit defaults. Omitting optional fields produces the same output as specifying the default value explicitly.
+
+  \item[New tokens are opt-in.] Future additions to the Sequence IR (e.g., new participant kinds, destruction markers, creation messages) must have no-change defaults: existing documents that do not use new features must produce byte-identical output after an engine upgrade.
+
+  \item[Canonical ordering.] Declaration order in \texttt{participants} determines x-position; \texttt{order} field in messages determines y-position; list position is the final tie-breaker. These are the \emph{only} inputs to layout.
+
+  \item[No iterative algorithms.] Unlike the Flow Grammar's Sugiyama layout, the Sequence Grammar uses no iterative or heuristic algorithms. Placement is a closed-form arithmetic function. This is the strongest possible determinism guarantee.
+\end{description}
+
+% ============================================================================
+\subsection{Open Questions (Deferred to Mark/Barbara)}
+\label{sec:seq-open-questions}
+% ============================================================================
+
+The following design points are flagged for specialist review before the schema is finalized:
+
+\begin{description}
+  \item[Mark (IR schema detail):]
+  \begin{itemize}
+    \item Exact JSON Schema for the Sequence Domain IR (enum values, string patterns, min/max constraints on \texttt{order}).
+    \item Whether \texttt{Message} should carry an optional explicit \texttt{id} field for cross-referencing in composition or annotation contexts.
+    \item Validation rule completeness: the exhaustive set of semantic checks beyond schema conformance (e.g., fragment overlap detection algorithm, activation range validation).
+    \item Whether \texttt{order} should be required or whether implicit ordering (list position as order) is acceptable as an alternative mode.
+  \end{itemize}
+
+  \item[Barbara (rendering semantics):]
+  \begin{itemize}
+    \item Self-message curve geometry: rounded corners, smooth arc, or sharp right-angle bends. Radius parameters.
+    \item Fragment nesting depth: recommended maximum for readability; visual inset scaling per level.
+    \item Participant header rendering for non-\texttt{object} kinds: exact icon geometries for actor (stick-figure), boundary, control, entity, database stereotypes.
+    \item Arrowhead sizing: scale relative to stroke width or fixed pixel size.
+    \item Activation bar width: fixed or proportional to lifeline stroke width.
+  \end{itemize}
+\end{description}
+
+\paragraph{Kernel change flag.}
+No kernel (Scene IR) changes are required for the Sequence Grammar as specified. If future extensions (destruction markers with ``X'' terminators, participant creation mid-diagram with offset lifeline starts, or ``found/lost'' messages from/to diagram boundaries) prove necessary, those would require kernel-level review needing Barbara and Mark sign-off before adoption.

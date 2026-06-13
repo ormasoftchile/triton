@@ -3,6 +3,13 @@
 
 Building on the corpus taxonomy (Section~\ref{sec:corpus-taxonomy}), this section specifies the planned diagram grammars beyond Timeline. Each grammar has a distinct Domain IR, layout algorithm, and use case.
 
+\medskip\noindent
+\textbf{Grammar sequencing note.} The first two new grammars to receive full concrete specifications are:
+\begin{enumerate}
+  \item \textbf{Flow Grammar} (Grammar \#2, Section~\ref{sec:flow-grammar}) --- directed node-link diagrams; requires Sugiyama layered layout.
+  \item \textbf{Sequence Grammar} (Grammar \#3, Section~\ref{sec:sequence-grammar}) --- participant-message interaction diagrams; \emph{de-risked} first new grammar because its layout is deterministic-by-construction (no graph auto-layout required).
+\end{enumerate}
+
 \subsection{Flow/Pipeline Grammar}
 \label{sec:flow-grammar-overview}
 
