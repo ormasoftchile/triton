@@ -623,3 +623,149 @@ describe('Sequence Grammar — agent-loop ByteByteGo gallery emit', () => {
     expect(h1).toBe(h2);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 11. Multi-guard alt sub-compartments
+// ---------------------------------------------------------------------------
+
+describe('Sequence Grammar — alt multi-guard sub-compartments', () => {
+  function loadAltMultiGuardFixture(): SequenceDocument {
+    const raw = readFileSync(
+      join(GALLERY_DIR, 'sequence-alt-multicompartment.sequence.yaml'),
+      'utf-8',
+    );
+    return parseYaml(raw) as SequenceDocument;
+  }
+
+  it('schema accepts a fragment with sections', () => {
+    const doc = loadAltMultiGuardFixture();
+    expect(() => sequenceDocumentSchema.parse(doc)).not.toThrow();
+  });
+
+  it('schema accepts an alt fragment with two sections', () => {
+    const doc: SequenceDocument = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [
+          { id: 'a', label: 'A' },
+          { id: 'b', label: 'B' },
+        ],
+        messages: [
+          { from: 'a', to: 'b', label: 'req', order: 1 },
+          { from: 'b', to: 'a', label: 'ok', order: 2, kind: 'reply' },
+          { from: 'b', to: 'a', label: 'err', order: 3, kind: 'reply' },
+        ],
+        fragments: [
+          {
+            kind: 'alt',
+            label: '[ok]',
+            from_order: 2,
+            to_order: 3,
+            sections: [
+              { guard: '[ok]', fromOrder: 2, toOrder: 2 },
+              { guard: '[error]', fromOrder: 3, toOrder: 3 },
+            ],
+          },
+        ],
+      },
+    };
+    expect(() => sequenceDocumentSchema.parse(doc)).not.toThrow();
+  });
+
+  it('scene has dashed divider lines between alt compartments', () => {
+    const doc = loadAltMultiGuardFixture();
+    const scene = buildSequenceScene(doc);
+    // Fragment dividers are dashed lines with dashArray = fragDividerDash ('6,4')
+    const dividers = scene.primitives.filter(
+      (p) =>
+        p.kind === 'line' &&
+        (p as { dashArray?: string }).dashArray === '6,4' &&
+        // Not a vertical lifeline (x1 !== x2 for horizontal lines)
+        (p as { x1: number; x2: number }).x1 !== (p as { x1: number; x2: number }).x2,
+    );
+    // 3-section alt has 2 dividers
+    expect(dividers.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('scene contains guard labels for all sections', () => {
+    const doc = loadAltMultiGuardFixture();
+    const scene = buildSequenceScene(doc);
+    const texts = scene.primitives.filter((p) => p.kind === 'text').map((p) => (p as { text: string }).text);
+    expect(texts.some((t) => t.includes('[success]'))).toBe(true);
+    expect(texts.some((t) => t.includes('[not found]'))).toBe(true);
+    expect(texts.some((t) => t.includes('[else]'))).toBe(true);
+  });
+
+  it('single-section alt (legacy) renders byte-identically to no-sections alt', () => {
+    const withoutSections: SequenceDocument = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [
+          { id: 'a', label: 'A' },
+          { id: 'b', label: 'B' },
+        ],
+        messages: [
+          { from: 'a', to: 'b', label: 'req', order: 1 },
+          { from: 'b', to: 'a', label: 'ok', order: 2, kind: 'reply' },
+        ],
+        fragments: [{ kind: 'alt', label: '[ok]', from_order: 2, to_order: 2 }],
+      },
+    };
+    const withSingleSection: SequenceDocument = {
+      ...withoutSections,
+      sequence: {
+        ...withoutSections.sequence,
+        fragments: [
+          {
+            kind: 'alt',
+            label: '[ok]',
+            from_order: 2,
+            to_order: 2,
+            sections: [{ guard: '[ok]', fromOrder: 2, toOrder: 2 }],
+          },
+        ],
+      },
+    };
+    const h1 = sceneHash(buildSequenceScene(withoutSections));
+    const h2 = sceneHash(buildSequenceScene(withSingleSection));
+    expect(h1).toBe(h2);
+  });
+
+  it('multi-guard alt scene is deterministic (same hash twice)', () => {
+    const doc = loadAltMultiGuardFixture();
+    const h1 = sceneHash(buildSequenceScene(doc));
+    const h2 = sceneHash(buildSequenceScene(doc));
+    expect(h1).toBe(h2);
+  });
+
+  it('emits sequence-alt-multicompartment.svg to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadAltMultiGuardFixture();
+    const result = renderSequenceDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('alt');
+    expect(svg).toContain('[success]');
+    expect(svg).toContain('[not found]');
+    expect(svg).toContain('[else]');
+    const outPath = join(GALLERY_DIR, 'sequence-alt-multicompartment.svg');
+    writeFileSync(outPath, svg, 'utf-8');
+    console.log('[sequence] sequence-alt-multicompartment.svg →', outPath);
+  });
+
+  it('emits sequence-alt-multicompartment.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadAltMultiGuardFixture();
+    const result = renderSequenceDocument(doc, { format: 'png' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89); // PNG signature byte
+    const outPath = join(GALLERY_DIR, 'sequence-alt-multicompartment.png');
+    writeFileSync(outPath, png);
+    console.log('[sequence] sequence-alt-multicompartment.png →', outPath);
+  });
+});

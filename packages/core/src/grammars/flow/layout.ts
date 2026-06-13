@@ -13,7 +13,9 @@
  *      in the acyclic residual). Source nodes → rank 0. Each successor gets
  *      max(predecessor rank + 1). Topological order via DFS post-order reverse.
  *   3. LAYER ORDERING — Nodes within each rank sorted by declaration order
- *      (first-appearance). No crossing minimization in increment-1.
+ *      (first-appearance).
+ *   3.5. CROSSING MINIMIZATION — Barycenter heuristic, CROSSING_MIN_SWEEPS
+ *      alternating forward/backward sweeps, lexicographic tie-breaking.
  *   4. COORDINATE ASSIGNMENT — Uniform column width (global max node width).
  *      Nodes centered vertically within each column relative to the tallest
  *      column. All arithmetic uses rhuInt() (round-half-up integer) per the
@@ -24,8 +26,7 @@
  *      currently — all edges are PathPrimitive for uniform curve support).
  *
  * Deferred (increment-2+):
- *   - Crossing minimization (barycenter sweeps)
- *   - CSS/SMIL animation for animated edges
+ *   - CSS/SMIL animation for animated edges [still deferred, unchanged]
  *   - 'TB' orientation (top-to-bottom)
  *   - 'diamond' shape
  *   - Group/lane containers
@@ -247,6 +248,106 @@ function buildLayers(
     layers.get(r)!.push(id);
   }
   return layers;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3.5: Crossing minimization (barycenter/median heuristic)
+// ---------------------------------------------------------------------------
+
+const CROSSING_MIN_SWEEPS = 4;
+
+/**
+ * Compute barycenter (mean position of neighbors in reference layer) for each
+ * node in `layer`. Nodes with no neighbors in the reference layer retain their
+ * current position (stable fallback).
+ *
+ * @param layer   The layer to compute barycenters for (mutable order).
+ * @param adjMap  Adjacency map (node → list of neighbors).
+ * @param refPos  Position map for the reference layer (neighbor → index).
+ * @returns       Map from node id → barycenter value.
+ */
+function computeBarycenter(
+  layer: string[],
+  adjMap: Map<string, string[]>,
+  refPos: Map<string, number>,
+): Map<string, number> {
+  const curPos = new Map<string, number>();
+  for (let i = 0; i < layer.length; i++) curPos.set(layer[i]!, i);
+
+  const bc = new Map<string, number>();
+  for (const id of layer) {
+    const neighbors = adjMap.get(id) ?? [];
+    const positions: number[] = [];
+    for (const n of neighbors) {
+      const p = refPos.get(n);
+      if (p !== undefined) positions.push(p);
+    }
+    bc.set(id, positions.length === 0 ? curPos.get(id)! : positions.reduce((s, p) => s + p, 0) / positions.length);
+  }
+  return bc;
+}
+
+/**
+ * Deterministic crossing-minimization using the barycenter heuristic.
+ *
+ * Runs CROSSING_MIN_SWEEPS alternating forward (left-to-right) and backward
+ * (right-to-left) sweeps. Within each sweep, nodes in each layer are sorted
+ * by barycenter; ties broken lexicographically by node id for stability.
+ *
+ * Modifies `layers` in-place.
+ * Determinism: fixed sweep count, lexicographic tie-breaking — same input
+ * always produces the same output.
+ */
+function minimizeCrossings(
+  layers: Map<number, string[]>,
+  edges: FlowEdge[],
+  backEdgeSet: Set<number>,
+  maxRank: number,
+): void {
+  // Build forward/backward adjacency maps (skip back-edges and self-loops)
+  const predMap = new Map<string, string[]>();
+  const succMap = new Map<string, string[]>();
+  for (const layer of layers.values()) {
+    for (const id of layer) {
+      if (!predMap.has(id)) predMap.set(id, []);
+      if (!succMap.has(id)) succMap.set(id, []);
+    }
+  }
+  for (let i = 0; i < edges.length; i++) {
+    if (backEdgeSet.has(i)) continue;
+    const e = edges[i]!;
+    if (e.from === e.to) continue;
+    succMap.get(e.from)?.push(e.to);
+    predMap.get(e.to)?.push(e.from);
+  }
+
+  for (let sweep = 0; sweep < CROSSING_MIN_SWEEPS; sweep++) {
+    const forward = sweep % 2 === 0;
+
+    if (forward) {
+      // Forward sweep: order each layer by barycenter of predecessors
+      for (let r = 1; r <= maxRank; r++) {
+        const layer = layers.get(r);
+        if (!layer || layer.length <= 1) continue;
+        const prevLayer = layers.get(r - 1) ?? [];
+        const prevPos = new Map<string, number>();
+        for (let i = 0; i < prevLayer.length; i++) prevPos.set(prevLayer[i]!, i);
+        const bc = computeBarycenter(layer, predMap, prevPos);
+        layer.sort((a, b) => (bc.get(a)! - bc.get(b)!) || a.localeCompare(b));
+      }
+    } else {
+      // Backward sweep: order each layer by barycenter of successors
+      for (let r = maxRank - 1; r >= 0; r--) {
+        const layer = layers.get(r);
+        if (!layer || layer.length <= 1) continue;
+        const nextLayer = layers.get(r + 1) ?? [];
+        const nextPos = new Map<string, number>();
+        for (let i = 0; i < nextLayer.length; i++) nextPos.set(nextLayer[i]!, i);
+        const bc = computeBarycenter(layer, succMap, nextPos);
+        layer.sort((a, b) => (bc.get(a)! - bc.get(b)!) || a.localeCompare(b));
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -648,6 +749,11 @@ export function layoutFlow(
   // ── Phase 3: Layer assignment ─────────────────────────────────────────────
   const layers = buildLayers(nodeIds, rankMap);
   const maxRank = nodeIds.length === 0 ? 0 : Math.max(...rankMap.values());
+
+  // ── Phase 3.5: Crossing minimization ─────────────────────────────────────
+  if (maxRank > 0) {
+    minimizeCrossings(layers, edges, backEdgeSet, maxRank);
+  }
 
   // ── Phase 4: Coordinate assignment ───────────────────────────────────────
   // Compute node sizes

@@ -1,0 +1,47 @@
+version: "1.0"
+metadata:
+  title: "HTTP Response Handling"
+  subtitle: "alt multi-guard: success / not found / error"
+  theme: default-sequence
+sequence:
+  participants:
+    - id: client
+      label: "Client"
+    - id: server
+      label: "Server"
+  messages:
+    - from: client
+      to: server
+      label: "GET /resource"
+      order: 1
+      kind: sync
+    - from: server
+      to: client
+      label: "200 OK"
+      order: 2
+      kind: reply
+    - from: server
+      to: client
+      label: "404 Not Found"
+      order: 3
+      kind: reply
+    - from: server
+      to: client
+      label: "503 Error"
+      order: 4
+      kind: reply
+  fragments:
+    - kind: alt
+      label: "[success]"
+      from_order: 2
+      to_order: 4
+      sections:
+        - guard: "[success]"
+          fromOrder: 2
+          toOrder: 2
+        - guard: "[not found]"
+          fromOrder: 3
+          toOrder: 3
+        - guard: "[else]"
+          fromOrder: 4
+          toOrder: 4

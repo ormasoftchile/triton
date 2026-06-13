@@ -532,3 +532,77 @@ describe('Flow Grammar — gallery PNG emit', () => {
     console.log('[flow] flow-rag-pipeline.png →', outPath);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 8. Crossing minimization
+// ---------------------------------------------------------------------------
+
+describe('Flow Grammar — crossing minimization', () => {
+  it('crossing-min is deterministic: same input → same sceneHash twice', () => {
+    const doc = loadFixture();
+    const h1 = sceneHash(buildFlowScene(doc));
+    const h2 = sceneHash(buildFlowScene(doc));
+    expect(h1).toBe(h2);
+  });
+
+  it('crossing-min reorders a branching layer (direct before rank in RAG pipeline)', () => {
+    // After crossing-min, layer 2 in the RAG pipeline should have 'direct'
+    // before 'rank' (lexicographic tie-breaking since both connect only to 'retrieve').
+    const doc = loadFixture();
+    const scene = buildFlowScene(doc);
+    // Find the two node rects for 'direct' and 'rank' by their label texts.
+    // After crossing-min, 'direct' should be at a lower y than 'rank' (top of column).
+    const texts = scene.primitives
+      .filter((p) => p.kind === 'text')
+      .map((p) => p as { text: string; x: number; y: number });
+    const directText = texts.find((t) => t.text === 'Direct Match');
+    const rankText = texts.find((t) => t.text === 'Re-rank');
+    expect(directText).toBeDefined();
+    expect(rankText).toBeDefined();
+    // Direct Match (id: 'direct') should appear above Re-rank (id: 'rank') after crossing-min
+    expect(directText!.y).toBeLessThan(rankText!.y);
+  });
+
+  it('no-op for linear chains (single node per layer, order unchanged)', () => {
+    const doc: FlowDocument = {
+      version: '1.0',
+      metadata: {},
+      flow: {
+        nodes: [
+          { id: 'a', label: 'A' },
+          { id: 'b', label: 'B' },
+          { id: 'c', label: 'C' },
+        ],
+        edges: [
+          { from: 'a', to: 'b' },
+          { from: 'b', to: 'c' },
+        ],
+      },
+    };
+    const h1 = sceneHash(buildFlowScene(doc));
+    const h2 = sceneHash(buildFlowScene(doc));
+    expect(h1).toBe(h2);
+  });
+
+  it('crossing-min fixture still has no overlapping node rects', () => {
+    const doc = loadFixture();
+    const scene = buildFlowScene(doc);
+    const rects = (
+      scene.primitives.filter((p) => p.kind === 'rect') as Array<{
+        x: number; y: number; width: number; height: number; fill: string;
+      }>
+    ).filter((r) => r.fill !== '#ffffff');
+    for (let i = 0; i < rects.length; i++) {
+      for (let j = i + 1; j < rects.length; j++) {
+        const a = rects[i]!;
+        const b = rects[j]!;
+        const noOverlap =
+          a.x + a.width <= b.x ||
+          b.x + b.width <= a.x ||
+          a.y + a.height <= b.y ||
+          b.y + b.height <= a.y;
+        expect(noOverlap).toBe(true);
+      }
+    }
+  });
+});

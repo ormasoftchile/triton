@@ -155,6 +155,8 @@ export interface SequenceTheme {
   fragTabFill: string;
   fragTabTextColor: string;
   fragLabelColor: string;
+  /** Dash pattern for dashed dividers between alt sub-compartments. */
+  fragDividerDash: string;
 
   // ── Step number badges ────────────────────────────────────────────────────
   /** When true, a numbered circle badge is drawn on each message arrow. */
@@ -250,6 +252,7 @@ export const defaultSequenceTheme: SequenceTheme = {
   fragTabFill: '#5c6bc0',
   fragTabTextColor: '#ffffff',
   fragLabelColor: '#3949ab',
+  fragDividerDash: '6,4',
 
   showStepNumbers: false,
   stepBadgeRadius: 10,

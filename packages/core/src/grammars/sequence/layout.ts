@@ -559,12 +559,17 @@ function renderFragments(
       dominantBaseline: 'middle',
     });
 
-    if (frag.label) {
+    // Guard label (section 0 or legacy single label)
+    const section0Guard = frag.sections && frag.sections.length > 0
+      ? frag.sections[0]!.guard
+      : frag.label;
+
+    if (section0Guard) {
       primitives.push({
         kind: 'text',
         x: rhuInt(fragX + tabW + 8),
         y: rhuInt(fragYTop + tabH / 2),
-        text: frag.label,
+        text: section0Guard,
         fontFamily: tk.fontFamily,
         fontSize: tk.fragLabelFontSize,
         fontWeight: tk.fragLabelFontWeight,
@@ -572,6 +577,40 @@ function renderFragments(
         textAnchor: 'start',
         dominantBaseline: 'middle',
       });
+    }
+
+    // Multi-section dividers (only for fragments with sections.length >= 2)
+    if (frag.sections && frag.sections.length >= 2) {
+      for (let si = 1; si < frag.sections.length; si++) {
+        const sec = frag.sections[si]!;
+        const divY = rhuInt((orderToRowY.get(sec.fromOrder) ?? firstRowY) - tk.fragPadY / 2);
+        // Dashed horizontal divider line spanning the full fragment width
+        primitives.push({
+          kind: 'line',
+          x1: fragX,
+          y1: divY,
+          x2: fragXRight,
+          y2: divY,
+          stroke: tk.fragStroke,
+          strokeWidth: tk.fragStrokeWidth,
+          dashArray: tk.fragDividerDash,
+        });
+        // Guard label at top-left of this compartment
+        if (sec.guard) {
+          primitives.push({
+            kind: 'text',
+            x: rhuInt(fragX + tk.fragTabPadX),
+            y: rhuInt(divY + tk.fragTabPadY + tk.fragLabelFontSize * 0.8),
+            text: sec.guard,
+            fontFamily: tk.fontFamily,
+            fontSize: tk.fragLabelFontSize,
+            fontWeight: tk.fragLabelFontWeight,
+            fill: tk.fragLabelColor,
+            textAnchor: 'start',
+            dominantBaseline: 'alphabetic',
+          });
+        }
+      }
     }
   }
 }

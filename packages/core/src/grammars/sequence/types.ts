@@ -113,9 +113,23 @@ export interface Activation {
  *  - Horizontally: across the involved participants' x-extent (all by default).
  *  - Upper-left tab contains the `kind` keyword; guard `label` appears next to it.
  *
- * Increment-2 scope: single guard label per fragment.
- * Deferred: alt sub-compartment dividers (multiple guard conditions).
+ * Legacy fragments use a single guard label via `label`.
+ * `alt` fragments may additionally define ordered `sections` for
+ * multi-guard sub-compartments.
  */
+/**
+ * One compartment inside a multi-section `alt` fragment.
+ * Only used when `Fragment.sections` is present.
+ */
+export interface FragmentSection {
+  /** Guard condition text for this compartment (e.g. "[success]"). */
+  guard?: string;
+  /** First message order in this compartment (must be ≤ toOrder). */
+  fromOrder: number;
+  /** Last message order in this compartment. */
+  toOrder: number;
+}
+
 export interface Fragment {
   /** Fragment operator keyword. */
   kind: 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'break';
@@ -127,6 +141,16 @@ export interface Fragment {
   to_order: number;
   /** Subset of participant ids the fragment spans. Default: all participants. */
   participants?: string[];
+  /**
+   * Optional ordered list of sub-compartments for `alt` fragments.
+   * When present, renders dashed horizontal dividers between compartments
+   * and displays each compartment's `guard` at its top-left.
+   * If absent (or length < 2), the fragment renders as a single compartment
+   * (byte-identical to the existing behaviour).
+   * `sections[0].fromOrder` should equal `from_order`;
+   * `sections[last].toOrder` should equal `to_order`.
+   */
+  sections?: FragmentSection[];
 }
 
 // ---------------------------------------------------------------------------

@@ -72,12 +72,19 @@ const activationSchema = z.object({
 // Fragment (increment-2; accepted but not enforced deeply)
 // ---------------------------------------------------------------------------
 
+const fragmentSectionSchema = z.object({
+  guard: z.string().optional(),
+  fromOrder: z.number().int().min(0),
+  toOrder: z.number().int().min(0),
+});
+
 const fragmentSchema = z.object({
   kind: z.enum(['loop', 'alt', 'opt', 'par', 'critical', 'break']),
   label: z.string().min(1),
   from_order: z.number().int().min(0),
   to_order: z.number().int().min(0),
   participants: z.array(z.string()).optional(),
+  sections: z.array(fragmentSectionSchema).optional(),
 });
 
 // ---------------------------------------------------------------------------
