@@ -150,6 +150,13 @@ export interface PathPrimitive {
   stroke?: string;
   strokeWidth?: number;
   strokeLinecap?: 'butt' | 'round' | 'square';
+  /**
+   * CSS stroke-dasharray value (e.g. '6,4' for dashes, '2,4' for dots).
+   * When set, the path is stroked with a dash pattern.
+   * Optional and backward-compatible: existing paths without this field
+   * are unaffected (undefined is omitted from serialisation and hash).
+   */
+  dashArray?: string;
   opacity?: number;
   fillRule?: 'nonzero' | 'evenodd';
   /** Optional SVG transform attribute (e.g. for icon scaling/translation). */

@@ -201,6 +201,7 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
         'fill-rule':  p.fillRule,
         opacity:      p.opacity,
         stroke:       strokeRef,
+        'stroke-dasharray': p.dashArray,
         'stroke-linecap': p.strokeLinecap,
         'stroke-width': p.strokeWidth,
         transform:    p.transform,

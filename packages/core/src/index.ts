@@ -105,3 +105,26 @@ export type {
   TreeEdgeStyle,
   TreeOrientation,
 } from './grammars/tree/index.js';
+
+// Flow grammar (third multi-grammar architecture entry point — layered DAG layout)
+export {
+  buildFlowScene,
+  renderFlowDocument,
+  flowDocumentSchema,
+  defaultFlowTheme,
+  resolveFlowTheme,
+  FLOW_THEME_REGISTRY,
+} from './grammars/flow/index.js';
+export type {
+  FlowDocument,
+  FlowNode,
+  FlowEdge,
+  FlowDefinition,
+  FlowMetadata,
+  FlowDocumentInput,
+  FlowRenderOptions,
+  FlowRenderResult,
+  FlowTheme,
+  FlowOrientation,
+  FlowEdgeStyle,
+} from './grammars/flow/index.js';
