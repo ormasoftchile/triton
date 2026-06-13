@@ -60,3 +60,20 @@ export { sceneToSvg } from './render/svg.js';
 // Layout-quality linter
 export { lintScene } from './lint.js';
 export type { QualityIssue } from './lint.js';
+
+// Sequence grammar (first multi-grammar architecture entry point)
+export {
+  buildSequenceScene,
+  renderSequenceDocument,
+  sequenceDocumentSchema,
+} from './grammars/sequence/index.js';
+export type {
+  SequenceDocument,
+  SequenceDocumentInput,
+  SequenceRenderOptions,
+  SequenceRenderResult,
+  Participant,
+  Message,
+  Activation,
+  Fragment,
+} from './grammars/sequence/index.js';

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="420" version="1.1" viewBox="0 0 400 420" width="400" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#ffffff" height="420" width="400" x="0" y="0"/>
+  <rect fill="#e8f0fe" height="76" rx="4" stroke="#4a6cf7" stroke-width="1.5" width="120" x="40" y="20"/>
+  <path d="M 100 32 A 7 7 0 1 1 99.9 32 Z M 100 46 L 100 59 M 91 50 L 109 50 M 100 59 L 92 72 M 100 59 L 108 72" fill="none" stroke="#4a6cf7" stroke-width="1.5"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans" font-size="13" font-weight="700" text-anchor="middle" x="100" y="83">Client</text>
+  <line stroke="#9aa3b2" stroke-dasharray="6,4" stroke-width="1" x1="100" x2="100" y1="96" y2="380"/>
+  <rect fill="#e8f0fe" height="36" rx="4" stroke="#4a6cf7" stroke-width="1.5" width="120" x="240" y="20"/>
+  <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="13" font-weight="700" text-anchor="middle" x="300" y="38">Auth Server</text>
+  <line stroke="#9aa3b2" stroke-dasharray="6,4" stroke-width="1" x1="300" x2="300" y1="96" y2="380"/>
+  <line stroke="#2c3e50" stroke-width="1.5" x1="100" x2="292" y1="126" y2="126"/>
+  <path d="M 300 126 L 292 122 L 292 130 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="120">POST /auth/token (credentials)</text>
+  <line stroke="#2c3e50" stroke-dasharray="6,4" stroke-width="1.5" x1="300" x2="108" y1="182" y2="182"/>
+  <path d="M 108 178 L 100 182 L 108 186" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="176">200 OK { token: 'jwt...' }</text>
+  <line stroke="#2c3e50" stroke-width="1.5" x1="100" x2="292" y1="238" y2="238"/>
+  <path d="M 300 238 L 292 234 L 292 242 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="232">GET /api/data (Authorization: Bearer jwt...)</text>
+  <line stroke="#2c3e50" stroke-dasharray="6,4" stroke-width="1.5" x1="300" x2="108" y1="294" y2="294"/>
+  <path d="M 108 290 L 100 294 L 108 298" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="288">200 OK { data: [...] }</text>
+</svg>

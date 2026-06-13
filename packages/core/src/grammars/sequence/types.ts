@@ -1,0 +1,142 @@
+/**
+ * @file grammars/sequence/types.ts — Sequence Grammar Domain IR.
+ *
+ * The Sequence Grammar is the first "de-risked" grammar: its layout is
+ * deterministic-by-construction (declared participant order → x-position;
+ * declared message order → y-position). No graph layout algorithm is needed.
+ *
+ * This IR represents increment-1 of the grammar: Participants + Messages.
+ * Activation and Fragment types are defined here for forward-compatibility
+ * but are deferred to increment 2.
+ *
+ * LOWERING: SequenceDocument → layoutSequence() → Scene (shared kernel IR)
+ * The Scene is then consumed by sceneToSvg / sceneToPngSkia unchanged.
+ */
+
+// ---------------------------------------------------------------------------
+// Participant
+// ---------------------------------------------------------------------------
+
+/**
+ * A named entity with a vertical lifeline in the sequence diagram.
+ * Participants are laid out left-to-right in declared order.
+ */
+export interface Participant {
+  /** Document-unique identifier (kebab-case). */
+  id: string;
+  /** Display text shown in the participant header box. */
+  label: string;
+  /**
+   * Visual stereotype. Affects header rendering only — NOT layout.
+   * Default: 'object' (rectangular box).
+   * Increment-1: 'actor' (stick-figure above label) and 'object' are rendered.
+   * Others fall back to 'object' styling.
+   */
+  kind?: 'actor' | 'object' | 'boundary' | 'control' | 'entity' | 'database';
+  /** Optional tooltip / secondary text (not rendered in increment-1). */
+  description?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Message
+// ---------------------------------------------------------------------------
+
+/**
+ * A directed communication between two participants.
+ * Sorted by `order` (ascending) before layout; ties broken by list position.
+ */
+export interface Message {
+  /** Optional document-unique message identifier. */
+  id?: string;
+  /** Source participant id. */
+  from: string;
+  /** Target participant id. */
+  to: string;
+  /** Label text shown above the arrow. */
+  label: string;
+  /**
+   * Explicit sequence index (≥ 0). Determines y-position.
+   * Total order: lower order → higher on diagram.
+   * Tie-breaking: list position (stable sort).
+   */
+  order: number;
+  /**
+   * Message kind controls arrowhead and line style.
+   * - sync:  solid line + filled triangular arrowhead
+   * - async: solid line + open (V-shape) arrowhead
+   * - reply: dashed line + open (V-shape) arrowhead
+   * Default: 'sync'.
+   */
+  kind?: 'sync' | 'async' | 'reply';
+}
+
+// ---------------------------------------------------------------------------
+// Activation (increment-2; defined for forward-compatibility)
+// ---------------------------------------------------------------------------
+
+/**
+ * A processing span on a participant's lifeline.
+ * Rendered as a thin filled rectangle centered on the lifeline.
+ * Deferred to increment 2 — schema allows it, layout ignores it with a warning.
+ */
+export interface Activation {
+  /** The lifeline on which the activation appears. */
+  participant: string;
+  /** Message order at which activation begins. */
+  from_order: number;
+  /** Message order at which activation ends. */
+  to_order: number;
+}
+
+// ---------------------------------------------------------------------------
+// Fragment (increment-2; defined for forward-compatibility)
+// ---------------------------------------------------------------------------
+
+/**
+ * A labeled combined fragment (loop, alt, opt, etc.) spanning a range of messages.
+ * Deferred to increment 2 — schema allows it, layout ignores it with a warning.
+ */
+export interface Fragment {
+  /** Fragment operator keyword. */
+  kind: 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'break';
+  /** Guard condition or description text. */
+  label: string;
+  /** First message order in the span. */
+  from_order: number;
+  /** Last message order in the span. */
+  to_order: number;
+  /** Subset of participant ids the fragment spans. Default: all participants. */
+  participants?: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Document root
+// ---------------------------------------------------------------------------
+
+export interface SequenceMetadata {
+  /** Diagram title. */
+  title?: string;
+  /** Optional subtitle. */
+  subtitle?: string;
+  /** Theme name. Default: 'default-sequence'. */
+  theme?: string;
+}
+
+export interface SequenceDefinition {
+  /** Participants in left-to-right declared order (min 1). */
+  participants: Participant[];
+  /** Messages (may be empty). */
+  messages: Message[];
+  /** Activation spans (increment-2; currently ignored in layout). */
+  activations?: Activation[];
+  /** Combined fragments (increment-2; currently ignored in layout). */
+  fragments?: Fragment[];
+}
+
+/** Root document for the Sequence Grammar IR. */
+export interface SequenceDocument {
+  /** Spec version (semver string, e.g. "1.0"). */
+  version: string;
+  metadata: SequenceMetadata;
+  sequence: SequenceDefinition;
+}
