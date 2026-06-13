@@ -28,7 +28,7 @@
  */
 
 import type { Scene, ScenePrimitive } from '../scene.js';
-import { embedSceneInRect } from '../scene-transform.js';
+import { translateAndScale } from '../scene-transform.js';
 import { measureText } from '../fonts/metrics.js';
 
 import { buildFlowScene }     from '../grammars/flow/index.js';
@@ -472,13 +472,32 @@ export function layoutComposition(
     const embedH = cellH - 2 * chromePad - titleBarH;
 
     if (embedW > 0 && embedH > 0 && pc.subScene.primitives.length > 0) {
-      const embedded = embedSceneInRect(pc.subScene, {
-        x: embedX,
-        y: embedY,
-        width: embedW,
-        height: embedH,
-      });
-      allPrimitives.push(...embedded);
+      const sub = pc.subScene;
+      if (sub.width > 0 && sub.height > 0) {
+        const scaleW = embedW / sub.width;
+        const scaleH = embedH / sub.height;
+        const scale = Math.min(scaleW, scaleH, 1.0);
+        const scaledW = sub.width * scale;
+        const scaledH = sub.height * scale;
+
+        // Horizontal alignment
+        const alignDx =
+          theme.cellHAlign === 'center'
+            ? embedX + (embedW - scaledW) / 2
+            : embedX; // 'left'
+
+        // Vertical alignment
+        const alignDy =
+          theme.cellVAlign === 'top'
+            ? embedY
+            : embedY + (embedH - scaledH) / 2; // 'center' or 'fill'
+
+        allPrimitives.push(
+          ...sub.primitives.map((prim) =>
+            translateAndScale(prim, alignDx, alignDy, scale),
+          ),
+        );
+      }
     }
   }
 

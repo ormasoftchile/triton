@@ -87,6 +87,27 @@ export interface CompositionTheme {
     color: string;
   };
 
+  // ── Cell content alignment ────────────────────────────────────────────────
+  /**
+   * Vertical alignment of the sub-scene within the available cell embed area.
+   *
+   * - 'top'    : sub-scene is anchored at the top of the embed area; excess
+   *              vertical space accumulates at the bottom.  Best for mixed
+   *              tall/short panels (avoids wide-short diagrams floating in the
+   *              middle of a tall row).
+   * - 'center' : sub-scene is vertically centered in the embed area.
+   * - 'fill'   : treated the same as 'center' (reserved for future stretch mode).
+   */
+  cellVAlign: 'top' | 'center' | 'fill';
+
+  /**
+   * Horizontal alignment of the sub-scene within the available cell embed area.
+   *
+   * - 'center' : sub-scene is horizontally centered (default).
+   * - 'left'   : sub-scene is left-aligned.
+   */
+  cellHAlign: 'left' | 'center';
+
   // ── Text / title cells ────────────────────────────────────────────────────
   /** Font for text cells. */
   textFont: {
@@ -127,6 +148,9 @@ export const defaultCompositionTheme: CompositionTheme = {
 
   statValueFont: { family: 'Inter, sans-serif', size: 48, weight: 700, color: '#38bdf8' },
   statLabelFont: { family: 'Inter, sans-serif', size: 13, weight: 400, color: '#94a3b8' },
+
+  cellVAlign: 'top',
+  cellHAlign: 'center',
 
   textFont: { family: 'Inter, sans-serif', size: 14, weight: 400, color: '#cbd5e1' },
   titleFont: { family: 'Inter, sans-serif', size: 20, weight: 700, color: '#f1f5f9' },

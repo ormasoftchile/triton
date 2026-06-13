@@ -163,13 +163,15 @@
     Twelve timeline IR documents rendered with the <strong>Horizontal layout</strong>
     family, plus four <strong>Sequence Grammar</strong> examples (UML default and ByteByteGo themes),
     one <strong>Flow Grammar</strong> example (RAG pipeline, layered L→R layout),
-    and three <strong>Tree Grammar</strong> examples (default light theme and dark-teal theme — same IR,
-    two themes). Most timeline renders use the <strong>Consulting (Tier-1)</strong> theme, with a
-    feature-rich <strong>Product</strong> showcase. Each example exercises a distinct
-    combination of axis unit, track density, activity statuses, milestones, and edge-case
-    behaviours. Use this contact sheet to bulk-check Phase 1–4 visual output.
+    three <strong>Tree Grammar</strong> examples (default light theme and dark-teal theme — same IR,
+    two themes), and one <strong>Composition Layer</strong> example (multi-panel poster assembling
+    flow, tree, sequence, and stat grammars into a single infographic). Most timeline renders use
+    the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong>
+    showcase. Each example exercises a distinct combination of axis unit, track density, activity
+    statuses, milestones, and edge-case behaviours. Use this contact sheet to bulk-check
+    Phase 1–5 visual output.
   </p>
-  <span class="badge">Phase 1–4 Gallery · Horizontal + Sequence + Flow + Tree</span>
+  <span class="badge">Phase 1–5 Gallery · Horizontal + Sequence + Flow + Tree + Composition</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -625,6 +627,32 @@
     <div class="card-footer">
       <a href="tree-document-dark.svg">SVG</a>
       <a href="tree-document.tree.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 20. poster-rag-architecture — Composition Layer, multi-panel poster -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 20 · poster-rag-architecture</div>
+      <div class="card-title">RAG Architecture Deep Dive — Composition Layer</div>
+      <div class="card-desc">
+        A multi-panel infographic poster built with the <strong>Composition Layer</strong>:
+        four grammars assembled into a single 2×2 grid canvas.
+        Top-left: <strong>Flow</strong> — 7-node RAG retrieval pipeline.
+        Top-right: <strong>Tree</strong> — knowledge base taxonomy (3 chapters, 6 sections).
+        Bottom-left: <strong>Sequence</strong> — retrieval request/response (4 participants, 6 messages).
+        Bottom-right: <strong>Stat</strong> — 98.7% retrieval accuracy callout.
+        Demonstrates <code>cellVAlign: top</code> and <code>cellHAlign: center</code> alignment
+        tokens that anchor short panels near the top, eliminating floating whitespace in mixed
+        tall/short rows.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="poster-rag-architecture.png" alt="poster-rag-architecture render">
+    </div>
+    <div class="card-footer">
+      <a href="poster-rag-architecture.svg">SVG</a>
+      <a href="poster-rag-architecture.composition.yaml">Source YAML</a>
     </div>
   </div>
 
