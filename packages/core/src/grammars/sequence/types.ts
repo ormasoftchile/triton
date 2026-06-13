@@ -33,6 +33,18 @@ export interface Participant {
    * Others fall back to 'object' styling.
    */
   kind?: 'actor' | 'object' | 'boundary' | 'control' | 'entity' | 'database';
+  /**
+   * Optional icon name (looked up from the built-in icon registry).
+   * Used by card-mode themes to display a glyph inside the participant card.
+   * Ignored by box-mode themes.
+   */
+  icon?: string;
+  /**
+   * Optional per-participant color override.
+   * - box mode: overrides participantBoxFill for this participant only.
+   * - card mode: overrides the card fill color from cardKindColors.
+   */
+  color?: string;
   /** Optional tooltip / secondary text (not rendered in increment-1). */
   description?: string;
 }

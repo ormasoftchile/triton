@@ -37,6 +37,8 @@ const participantSchema = z.object({
   kind: z
     .enum(['actor', 'object', 'boundary', 'control', 'entity', 'database'])
     .optional(),
+  icon: z.string().optional(),
+  color: z.string().optional(),
   description: z.string().optional(),
 });
 

@@ -486,3 +486,78 @@ describe('Sequence Grammar — agent-loop gallery emit', () => {
     console.log('[sequence] sequence-agent-loop.png →', outPath);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 9. Gallery emit — ByteByteGo theme
+// ---------------------------------------------------------------------------
+
+describe('Sequence Grammar — ByteByteGo theme gallery emit', () => {
+  it('emits sequence-rest-auth-bytebytego.svg to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const raw = readFileSync(
+      join(GALLERY_DIR, 'sequence-rest-auth-bytebytego.sequence.yaml'),
+      'utf-8',
+    );
+    const doc = parseYaml(raw) as SequenceDocument;
+    const result = renderSequenceDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('Client');
+    expect(svg).toContain('Auth Server');
+    // ByteByteGo theme: dark background, card fills, step numbers
+    expect(svg).toContain('#111827'); // dark bg
+    const outPath = join(GALLERY_DIR, 'sequence-rest-auth-bytebytego.svg');
+    writeFileSync(outPath, svg, 'utf-8');
+    console.log('[sequence] sequence-rest-auth-bytebytego.svg →', outPath);
+  });
+
+  it('emits sequence-rest-auth-bytebytego.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const raw = readFileSync(
+      join(GALLERY_DIR, 'sequence-rest-auth-bytebytego.sequence.yaml'),
+      'utf-8',
+    );
+    const doc = parseYaml(raw) as SequenceDocument;
+    const result = renderSequenceDocument(doc, { format: 'png' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89); // PNG signature byte
+    const outPath = join(GALLERY_DIR, 'sequence-rest-auth-bytebytego.png');
+    writeFileSync(outPath, png);
+    console.log('[sequence] sequence-rest-auth-bytebytego.png →', outPath);
+  });
+
+  it('ByteByteGo scene has dark background and no lifelines', () => {
+    const raw = readFileSync(
+      join(GALLERY_DIR, 'sequence-rest-auth-bytebytego.sequence.yaml'),
+      'utf-8',
+    );
+    const doc = parseYaml(raw) as SequenceDocument;
+    const scene = buildSequenceScene(doc);
+    expect(scene.background).toBe('#111827');
+    // No dashed lines (lifelines suppressed in ByteByteGo theme)
+    const lifelines = scene.primitives.filter(
+      (p) =>
+        p.kind === 'line' &&
+        (p as { dashArray?: string }).dashArray != null &&
+        (p as { x1: number; x2: number }).x1 === (p as { x1: number; x2: number }).x2,
+    );
+    expect(lifelines.length).toBe(0);
+    // Has circle primitives (step badges)
+    const circles = scene.primitives.filter((p) => p.kind === 'circle');
+    expect(circles.length).toBeGreaterThan(0);
+  });
+
+  it('ByteByteGo scene is deterministic', () => {
+    const raw = readFileSync(
+      join(GALLERY_DIR, 'sequence-rest-auth-bytebytego.sequence.yaml'),
+      'utf-8',
+    );
+    const doc = parseYaml(raw) as SequenceDocument;
+    const h1 = sceneHash(buildSequenceScene(doc));
+    const h2 = sceneHash(buildSequenceScene(doc));
+    expect(h1).toBe(h2);
+  });
+});

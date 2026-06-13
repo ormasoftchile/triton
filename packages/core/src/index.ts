@@ -66,6 +66,10 @@ export {
   buildSequenceScene,
   renderSequenceDocument,
   sequenceDocumentSchema,
+  defaultSequenceTheme,
+  sequenceByteByteGoTheme,
+  resolveSequenceTheme,
+  SEQUENCE_THEME_REGISTRY,
 } from './grammars/sequence/index.js';
 export type {
   SequenceDocument,
@@ -76,4 +80,6 @@ export type {
   Message,
   Activation,
   Fragment,
+  SequenceTheme,
+  CardKindStyle,
 } from './grammars/sequence/index.js';

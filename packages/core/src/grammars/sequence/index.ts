@@ -18,12 +18,15 @@ import { svgToPng }       from '../../render/png.js';
 import { sceneToPngSkia } from '../../render/skia.js';
 
 import type { SequenceDocument }  from './types.js';
+import type { SequenceTheme } from './theme.js';
 import { sequenceDocumentSchema } from './schema.js';
 import { layoutSequence }         from './layout.js';
 
 export type { SequenceDocument, Participant, Message, Activation, Fragment, SequenceMetadata, SequenceDefinition } from './types.js';
 export { sequenceDocumentSchema } from './schema.js';
 export type { SequenceDocumentInput } from './schema.js';
+export type { SequenceTheme, CardKindStyle } from './theme.js';
+export { defaultSequenceTheme, sequenceByteByteGoTheme, resolveSequenceTheme, SEQUENCE_THEME_REGISTRY } from './theme.js';
 
 // ---------------------------------------------------------------------------
 // buildSequenceScene
@@ -35,10 +38,9 @@ export type { SequenceDocumentInput } from './schema.js';
  *
  * Throws a ZodError if the document is structurally invalid.
  */
-export function buildSequenceScene(doc: SequenceDocument): Scene {
-  // Parse (validate + coerce) through Zod schema
+export function buildSequenceScene(doc: SequenceDocument, themeOverride?: SequenceTheme): Scene {
   sequenceDocumentSchema.parse(doc);
-  return layoutSequence(doc);
+  return layoutSequence(doc, themeOverride);
 }
 
 // ---------------------------------------------------------------------------
@@ -74,8 +76,9 @@ export interface SequenceRenderResult {
 export function renderSequenceDocument(
   doc: SequenceDocument,
   options: SequenceRenderOptions,
+  themeOverride?: SequenceTheme,
 ): SequenceRenderResult | Promise<SequenceRenderResult> {
-  const scene = buildSequenceScene(doc);
+  const scene = buildSequenceScene(doc, themeOverride);
   const hash = sceneHash(scene);
   const base = { scene, sceneHash: hash };
 
