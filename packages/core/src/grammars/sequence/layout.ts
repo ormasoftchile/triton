@@ -10,12 +10,15 @@
  * Emits a Scene (shared kernel IR) using only existing primitives:
  *   rect / text / line / path
  *
- * No new Scene IR primitives are added; the kernel is untouched.
- * Activations and Fragments from the IR are deferred to increment-2.
+ * Increment-2 additions (fully implemented):
+ *  - Self-messages: 3-segment rectangular loop with proper dash support.
+ *  - Activation bars: thin filled rects centered on lifelines, with message
+ *    endpoints attached to bar edges.
+ *  - Fragments: labeled rounded rects behind messages, with keyword tab.
  */
 
 import type { Scene, ScenePrimitive, LinePrimitive } from '../../scene.js';
-import type { SequenceDocument, Participant, Message } from './types.js';
+import type { SequenceDocument, Participant, Message, Activation, Fragment } from './types.js';
 import { measureText } from '../../fonts/metrics.js';
 
 // ---------------------------------------------------------------------------
@@ -51,8 +54,14 @@ interface SequenceThemeTokens {
   rowHeight: number;
   /** Height of the stick-figure icon for 'actor' participants. */
   actorIconHeight: number;
-  /** Half-width of the activation bar rect (increment-2). */
+  /** Half-width of the activation bar rect. */
   activationBarHalfW: number;
+  /** Fill color for activation bars. */
+  activationBarFill: string;
+  /** Stroke color for activation bars. */
+  activationBarStroke: string;
+  /** Minimum height for activation bar (when from_order == to_order). */
+  activationBarMinH: number;
   /** Label font size in pixels. */
   labelFontSize: number;
   /** Message label font size in pixels. */
@@ -62,6 +71,32 @@ interface SequenceThemeTokens {
   /** Self-message loop extent (rightward offset and descent). */
   selfMsgLoopW: number;
   selfMsgLoopH: number;
+
+  // Fragment geometry
+  /** Horizontal padding outside the participant extents for fragment box. */
+  fragPadX: number;
+  /** Vertical padding above/below message rows for fragment box. */
+  fragPadY: number;
+  /** Fragment rounded-corner radius. */
+  fragRx: number;
+  /** Fragment border color. */
+  fragStroke: string;
+  /** Fragment fill color (light background). */
+  fragFill: string;
+  /** Font size for the fragment kind keyword tab. */
+  fragKeyFontSize: number;
+  /** Horizontal padding inside keyword tab. */
+  fragTabPadX: number;
+  /** Vertical padding inside keyword tab. */
+  fragTabPadY: number;
+  /** Keyword tab fill color. */
+  fragTabFill: string;
+  /** Keyword tab text color. */
+  fragTabTextColor: string;
+  /** Guard label font size. */
+  fragLabelFontSize: number;
+  /** Guard label text color. */
+  fragLabelColor: string;
 
   // Colors
   background: string;
@@ -88,11 +123,26 @@ const DEFAULTS: SequenceThemeTokens = {
   rowHeight: 56,
   actorIconHeight: 40,
   activationBarHalfW: 5,
+  activationBarFill: '#c5cae9',
+  activationBarStroke: '#5c6bc0',
+  activationBarMinH: 20,
   labelFontSize: 13,
   msgFontSize: 12,
   arrowHeadSize: 8,
   selfMsgLoopW: 36,
   selfMsgLoopH: 24,
+  fragPadX: 12,
+  fragPadY: 14,
+  fragRx: 6,
+  fragStroke: '#7986cb',
+  fragFill: '#eff1fb',
+  fragKeyFontSize: 11,
+  fragTabPadX: 6,
+  fragTabPadY: 4,
+  fragTabFill: '#5c6bc0',
+  fragTabTextColor: '#ffffff',
+  fragLabelFontSize: 11,
+  fragLabelColor: '#3949ab',
   background: '#ffffff',
   participantBoxFill: '#e8f0fe',
   participantBoxStroke: '#4a6cf7',
@@ -268,6 +318,14 @@ function openArrowHead(
 // Message rendering
 // ---------------------------------------------------------------------------
 
+/**
+ * Render one message into `primitives`.
+ *
+ * @param fromBarOffset  horizontal offset added to `fromCx` for activation-bar
+ *                       edge attachment (positive = right, negative = left; 0
+ *                       when participant has no active bar at this row).
+ * @param toBarOffset    same idea for the destination participant.
+ */
 function renderMessage(
   msg: Message,
   rowY: number,
@@ -275,6 +333,8 @@ function renderMessage(
   toCx: number,
   tk: SequenceThemeTokens,
   primitives: ScenePrimitive[],
+  fromBarOffset: number,
+  toBarOffset: number,
 ): void {
   const isSelf = fromCx === toCx;
   const isDashed = msg.kind === 'reply';
@@ -282,48 +342,33 @@ function renderMessage(
   const sz = tk.arrowHeadSize;
   const stroke = tk.messageLineStroke;
   const sw = 1.5;
-  const dash = isDashed ? '6,4' : undefined;
+  const dash = isDashed ? tk.lifelineDash : undefined;
 
   if (isSelf) {
-    // Self-message: exit right, descend, return left
-    const loopX = rhuInt(fromCx + tk.selfMsgLoopW);
+    // Self-message: exit right, descend, return left.
+    // Exit from the activation-bar right edge when the participant is active.
+    const loopStartX = rhuInt(fromCx + fromBarOffset);
+    const loopX = rhuInt(loopStartX + tk.selfMsgLoopW);
     const loopYBot = rhuInt(rowY + tk.selfMsgLoopH);
-    const d = [
-      `M ${fromCx} ${rowY}`,
-      `L ${loopX} ${rowY}`,
-      `L ${loopX} ${loopYBot}`,
-      `L ${fromCx} ${loopYBot}`,
-    ].join(' ');
-    primitives.push({
-      kind: 'path',
-      d,
-      fill: 'none',
-      stroke,
-      strokeWidth: sw,
-      ...(dash ? { strokeLinecap: 'round' } : {}),
-      ...(dash ? {} : {}),
-    } as ScenePrimitive);
-    if (isDashed) {
-      // Re-emit as dashed line by using dashArray via a separate path
-      primitives.pop();
-      primitives.push({
-        kind: 'path',
-        d,
-        fill: 'none',
-        stroke,
-        strokeWidth: sw,
-        strokeLinecap: 'round',
-      } as ScenePrimitive);
-    }
+
+    // Three separate line segments so each can carry dashArray independently.
+    const segAttrs = { stroke, strokeWidth: sw, ...(dash ? { dashArray: dash } : {}) };
+    // horizontal right
+    primitives.push({ kind: 'line', x1: loopStartX, y1: rowY, x2: loopX, y2: rowY, ...segAttrs });
+    // vertical down
+    primitives.push({ kind: 'line', x1: loopX, y1: rowY, x2: loopX, y2: loopYBot, ...segAttrs });
+    // horizontal left (return to bar edge / lifeline)
+    primitives.push({ kind: 'line', x1: loopX, y1: loopYBot, x2: loopStartX, y2: loopYBot, ...segAttrs });
+
     // Arrowhead pointing left at return point
     const ah = isSync
-      ? filledArrowHead(fromCx, loopYBot, -1, sz, tk)
-      : openArrowHead(fromCx, loopYBot, -1, sz, tk);
+      ? filledArrowHead(loopStartX, loopYBot, -1, sz, tk)
+      : openArrowHead(loopStartX, loopYBot, -1, sz, tk);
     primitives.push(ah);
 
-    // Label above the exit segment
-    const labelX = rhuInt(fromCx + tk.selfMsgLoopW / 2);
-    const labelY = rhuInt(rowY - 5);
+    // Label to the right of the loop, vertically centered on the loop.
+    const labelX = rhuInt(loopX + 6);
+    const labelY = rhuInt((rowY + loopYBot) / 2);
     primitives.push({
       kind: 'text',
       x: labelX,
@@ -333,22 +378,23 @@ function renderMessage(
       fontSize: tk.msgFontSize,
       fontWeight: 400,
       fill: tk.messageLabelColor,
-      textAnchor: 'middle',
-      dominantBaseline: 'alphabetic',
+      textAnchor: 'start',
+      dominantBaseline: 'middle',
     });
     return;
   }
 
   const goesRight = toCx > fromCx;
   const dir: 1 | -1 = goesRight ? 1 : -1;
+  const effectiveFromX = rhuInt(fromCx + fromBarOffset);
+  const effectiveToX = rhuInt(toCx + toBarOffset);
   // Leave space for arrowhead at target
-  const arrowTipX = toCx;
-  const lineEndX = rhuInt(arrowTipX - dir * sz);
+  const lineEndX = rhuInt(effectiveToX - dir * sz);
 
   // Connector line
   const lineBase: LinePrimitive = {
     kind: 'line',
-    x1: fromCx,
+    x1: effectiveFromX,
     y1: rowY,
     x2: lineEndX,
     y2: rowY,
@@ -360,12 +406,12 @@ function renderMessage(
 
   // Arrowhead at target
   const ah = isSync
-    ? filledArrowHead(arrowTipX, rowY, dir, sz, tk)
-    : openArrowHead(arrowTipX, rowY, dir, sz, tk);
+    ? filledArrowHead(effectiveToX, rowY, dir, sz, tk)
+    : openArrowHead(effectiveToX, rowY, dir, sz, tk);
   primitives.push(ah);
 
   // Label centered above the connector midpoint
-  const midX = rhuInt((fromCx + toCx) / 2);
+  const midX = rhuInt((effectiveFromX + effectiveToX) / 2);
   const labelY = rhuInt(rowY - 6);
   primitives.push({
     kind: 'text',
@@ -382,6 +428,205 @@ function renderMessage(
 }
 
 // ---------------------------------------------------------------------------
+// Activation-bar rendering
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a map from message-order value to its row Y coordinate.
+ * Only the first occurrence of each order value is stored.
+ */
+function buildOrderToRowY(
+  sorted: Array<{ msg: Message; listIdx: number }>,
+  headerBottom: number,
+  tk: SequenceThemeTokens,
+): Map<number, number> {
+  const map = new Map<number, number>();
+  for (let rank = 0; rank < sorted.length; rank++) {
+    const entry = sorted[rank]!;
+    const rowY = rhuInt(headerBottom + tk.firstMsgGap + rank * tk.rowHeight);
+    if (!map.has(entry.msg.order)) {
+      map.set(entry.msg.order, rowY);
+    }
+  }
+  return map;
+}
+
+/**
+ * Returns true when `participantId` has at least one activation covering `msgOrder`.
+ */
+function isActiveAt(activations: Activation[], participantId: string, msgOrder: number): boolean {
+  return activations.some(
+    (a) => a.participant === participantId && a.from_order <= msgOrder && msgOrder <= a.to_order,
+  );
+}
+
+/**
+ * Render all activation bars into `primitives`.
+ * Bars are emitted after lifelines so they visually overlay the dashed lines.
+ */
+function renderActivationBars(
+  activations: Activation[],
+  pIndexById: Map<string, number>,
+  pLayouts: ParticipantLayout[],
+  orderToRowY: Map<number, number>,
+  lastRowY: number,
+  tk: SequenceThemeTokens,
+  primitives: ScenePrimitive[],
+): void {
+  const barHW = tk.activationBarHalfW;
+  for (const act of activations) {
+    const idx = pIndexById.get(act.participant);
+    if (idx === undefined) continue;
+    const pl = pLayouts[idx];
+    if (!pl) continue;
+
+    const yTop = orderToRowY.get(act.from_order) ?? lastRowY;
+    const yBot = orderToRowY.get(act.to_order) ?? lastRowY;
+    const rawH = yBot - yTop;
+    const barH = Math.max(rawH, tk.activationBarMinH);
+    const barY = yTop - rhuInt((barH - rawH) / 2); // center if clamped to minimum
+
+    primitives.push({
+      kind: 'rect',
+      x: rhuInt(pl.cx - barHW),
+      y: barY,
+      width: 2 * barHW,
+      height: barH,
+      fill: tk.activationBarFill,
+      stroke: tk.activationBarStroke,
+      strokeWidth: 1.5,
+      rx: 2,
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Fragment rendering
+// ---------------------------------------------------------------------------
+
+/**
+ * Render all combined fragments (loop/alt/opt/par) into `primitives`.
+ * Fragments are emitted BEFORE participant headers/messages so they render
+ * behind the rest of the diagram (painter's algorithm).
+ *
+ * Outer fragments (larger order span) are rendered first so inner fragments
+ * appear on top.
+ */
+function renderFragments(
+  fragments: Fragment[],
+  pIndexById: Map<string, number>,
+  pLayouts: ParticipantLayout[],
+  participants: Participant[],
+  orderToRowY: Map<number, number>,
+  firstRowY: number,
+  lastRowY: number,
+  canvasW: number,
+  tk: SequenceThemeTokens,
+  primitives: ScenePrimitive[],
+): void {
+  // Sort: larger span (outer) renders first so inner fragments paint over them.
+  const sorted = [...fragments].sort(
+    (a, b) => b.to_order - b.from_order - (a.to_order - a.from_order),
+  );
+
+  const allLeft = pLayouts[0]!.boxX;
+  const lastPL = pLayouts[pLayouts.length - 1]!;
+  const allRight = lastPL.boxX + lastPL.boxW;
+
+  for (const frag of sorted) {
+    // Horizontal extent: subset of participants or all participants
+    let fragLeft = allLeft;
+    let fragRight = allRight;
+    if (frag.participants && frag.participants.length > 0) {
+      let minX = Infinity;
+      let maxX = -Infinity;
+      for (const pid of frag.participants) {
+        const idx = pIndexById.get(pid);
+        if (idx === undefined) continue;
+        const pl = pLayouts[idx];
+        if (!pl) continue;
+        if (pl.boxX < minX) minX = pl.boxX;
+        const right = pl.boxX + pl.boxW;
+        if (right > maxX) maxX = right;
+      }
+      if (isFinite(minX)) {
+        fragLeft = minX;
+        fragRight = maxX;
+      }
+    }
+
+    const fragX = Math.max(rhuInt(fragLeft - tk.fragPadX), 0);
+    const fragXRight = Math.min(rhuInt(fragRight + tk.fragPadX), canvasW);
+    const fragW = fragXRight - fragX;
+
+    const yTop = orderToRowY.get(frag.from_order) ?? firstRowY;
+    const yBot = orderToRowY.get(frag.to_order) ?? lastRowY;
+    const fragYTop = rhuInt(yTop - tk.fragPadY);
+    const fragYBot = rhuInt(yBot + tk.fragPadY);
+    const fragH = fragYBot - fragYTop;
+    if (fragW <= 0 || fragH <= 0) continue;
+
+    // Main fragment rectangle (light fill, visible border)
+    primitives.push({
+      kind: 'rect',
+      x: fragX,
+      y: fragYTop,
+      width: fragW,
+      height: fragH,
+      fill: tk.fragFill,
+      stroke: tk.fragStroke,
+      strokeWidth: 1.5,
+      rx: tk.fragRx,
+    });
+
+    // Keyword tab (small filled rect in upper-left corner)
+    const tabTextW = rhuInt(measureText(frag.kind, tk.fragKeyFontSize).width);
+    const tabW = rhuInt(tabTextW + 2 * tk.fragTabPadX);
+    const tabH = rhuInt(tk.fragKeyFontSize * 1.4 + 2 * tk.fragTabPadY);
+
+    primitives.push({
+      kind: 'rect',
+      x: fragX,
+      y: fragYTop,
+      width: tabW,
+      height: tabH,
+      fill: tk.fragTabFill,
+      rx: tk.fragRx,
+    });
+
+    // Kind keyword text inside tab
+    primitives.push({
+      kind: 'text',
+      x: rhuInt(fragX + tabW / 2),
+      y: rhuInt(fragYTop + tabH / 2),
+      text: frag.kind,
+      fontFamily: tk.fontFamily,
+      fontSize: tk.fragKeyFontSize,
+      fontWeight: 700,
+      fill: tk.fragTabTextColor,
+      textAnchor: 'middle',
+      dominantBaseline: 'middle',
+    });
+
+    // Guard label text after the tab (if present)
+    if (frag.label) {
+      primitives.push({
+        kind: 'text',
+        x: rhuInt(fragX + tabW + 8),
+        y: rhuInt(fragYTop + tabH / 2),
+        text: frag.label,
+        fontFamily: tk.fontFamily,
+        fontSize: tk.fragLabelFontSize,
+        fontWeight: 400,
+        fill: tk.fragLabelColor,
+        textAnchor: 'start',
+        dominantBaseline: 'middle',
+      });
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main layout function
 // ---------------------------------------------------------------------------
 
@@ -393,7 +638,7 @@ function renderMessage(
  */
 export function layoutSequence(doc: SequenceDocument): Scene {
   const tk = { ...DEFAULTS };
-  const { participants, messages } = doc.sequence;
+  const { participants, messages, activations = [], fragments = [] } = doc.sequence;
 
   // ------------------------------------------------------------------
   // 1. Participant layout (x-axis)
@@ -431,10 +676,20 @@ export function layoutSequence(doc: SequenceDocument): Scene {
   const lastPL = pLayouts[pLayouts.length - 1]!;
   const canvasW = rhuInt(lastPL.boxX + lastPL.boxW + tk.marginH);
 
+  // ------------------------------------------------------------------
+  // 4. Build order→rowY lookup (for activations and fragments)
+  // ------------------------------------------------------------------
+  const orderToRowY = buildOrderToRowY(sorted, headerBottom, tk);
+  const firstRowY = rhuInt(headerBottom + tk.firstMsgGap);
+  const lastRowY =
+    msgCount > 0
+      ? rhuInt(headerBottom + tk.firstMsgGap + (msgCount - 1) * tk.rowHeight)
+      : firstRowY;
+
   const primitives: ScenePrimitive[] = [];
 
   // ------------------------------------------------------------------
-  // 4. Background
+  // 5. Background
   // ------------------------------------------------------------------
   primitives.push({
     kind: 'rect',
@@ -446,7 +701,25 @@ export function layoutSequence(doc: SequenceDocument): Scene {
   });
 
   // ------------------------------------------------------------------
-  // 5. Participant headers + lifelines
+  // 6. Fragments — rendered FIRST (behind everything)
+  // ------------------------------------------------------------------
+  if (fragments.length > 0) {
+    renderFragments(
+      fragments,
+      pIndexById,
+      pLayouts,
+      participants,
+      orderToRowY,
+      firstRowY,
+      lastRowY,
+      canvasW,
+      tk,
+      primitives,
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // 7. Participant headers + lifelines
   // ------------------------------------------------------------------
   for (let i = 0; i < participants.length; i++) {
     const p = participants[i]!;
@@ -504,8 +777,24 @@ export function layoutSequence(doc: SequenceDocument): Scene {
   }
 
   // ------------------------------------------------------------------
-  // 6. Messages
+  // 8. Activation bars — rendered after lifelines, before messages
   // ------------------------------------------------------------------
+  if (activations.length > 0) {
+    renderActivationBars(
+      activations,
+      pIndexById,
+      pLayouts,
+      orderToRowY,
+      lastRowY,
+      tk,
+      primitives,
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // 9. Messages — with activation-bar edge attachment
+  // ------------------------------------------------------------------
+  const barHW = tk.activationBarHalfW;
   for (let rank = 0; rank < sorted.length; rank++) {
     const entry = sorted[rank]!;
     const { msg } = entry;
@@ -516,7 +805,27 @@ export function layoutSequence(doc: SequenceDocument): Scene {
     const fromCx = (pLayouts[fromIdx] ?? pLayouts[0]!).cx;
     const toCx = (pLayouts[toIdx] ?? pLayouts[0]!).cx;
 
-    renderMessage(msg, rowY, fromCx, toCx, tk, primitives);
+    const isSelf = fromCx === toCx;
+    const goesRight = toCx > fromCx;
+
+    const fromActive = activations.length > 0 && isActiveAt(activations, msg.from, msg.order);
+    const toActive = activations.length > 0 && isActiveAt(activations, msg.to, msg.order);
+
+    let fromBarOffset: number;
+    let toBarOffset: number;
+
+    if (isSelf) {
+      fromBarOffset = fromActive ? barHW : 0;
+      toBarOffset = fromActive ? barHW : 0;
+    } else if (goesRight) {
+      fromBarOffset = fromActive ? barHW : 0;
+      toBarOffset = toActive ? -barHW : 0;
+    } else {
+      fromBarOffset = fromActive ? -barHW : 0;
+      toBarOffset = toActive ? barHW : 0;
+    }
+
+    renderMessage(msg, rowY, fromCx, toCx, tk, primitives, fromBarOffset, toBarOffset);
   }
 
   return {

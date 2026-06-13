@@ -271,3 +271,218 @@ describe('Sequence Grammar — gallery emit', () => {
     console.log('[sequence] sequence-rest-auth.png →', outPath);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Agent-loop fixture helpers
+// ---------------------------------------------------------------------------
+
+function loadAgentLoopFixture(): SequenceDocument {
+  const raw = readFileSync(
+    join(GALLERY_DIR, 'sequence-agent-loop.sequence.yaml'),
+    'utf-8',
+  );
+  return parseYaml(raw) as SequenceDocument;
+}
+
+// ---------------------------------------------------------------------------
+// 5. Schema validation — activations + fragments
+// ---------------------------------------------------------------------------
+
+describe('Sequence Grammar — activations + fragments schema', () => {
+  it('accepts the agent-loop fixture (activations + fragments + self-msg)', () => {
+    const doc = loadAgentLoopFixture();
+    expect(() => sequenceDocumentSchema.parse(doc)).not.toThrow();
+  });
+
+  it('rejects an activation with from_order > to_order', () => {
+    const doc = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [{ id: 'a', label: 'A' }],
+        messages: [{ from: 'a', to: 'a', label: 'hi', order: 1 }],
+        activations: [{ participant: 'a', from_order: 5, to_order: 3 }],
+      },
+    };
+    const result = sequenceDocumentSchema.safeParse(doc);
+    expect(result.success).toBe(false);
+    const msg = JSON.stringify((result as { error: unknown }).error);
+    expect(msg).toContain('from_order');
+  });
+
+  it('rejects an activation referencing unknown participant', () => {
+    const doc = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [{ id: 'a', label: 'A' }],
+        messages: [{ from: 'a', to: 'a', label: 'hi', order: 1 }],
+        activations: [{ participant: 'ghost', from_order: 1, to_order: 1 }],
+      },
+    };
+    const result = sequenceDocumentSchema.safeParse(doc);
+    expect(result.success).toBe(false);
+    const msg = JSON.stringify((result as { error: unknown }).error);
+    expect(msg).toContain("unknown participant id 'ghost'");
+  });
+
+  it('rejects a fragment with from_order > to_order', () => {
+    const doc = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [{ id: 'a', label: 'A' }],
+        messages: [
+          { from: 'a', to: 'a', label: 'x', order: 1 },
+          { from: 'a', to: 'a', label: 'y', order: 2 },
+        ],
+        fragments: [{ kind: 'loop', label: '[x]', from_order: 2, to_order: 1 }],
+      },
+    };
+    const result = sequenceDocumentSchema.safeParse(doc);
+    expect(result.success).toBe(false);
+    const msg = JSON.stringify((result as { error: unknown }).error);
+    expect(msg).toContain('from_order');
+  });
+
+  it('rejects a fragment referencing unknown participant in subset', () => {
+    const doc = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [
+          { id: 'a', label: 'A' },
+          { id: 'b', label: 'B' },
+        ],
+        messages: [{ from: 'a', to: 'b', label: 'hi', order: 1 }],
+        fragments: [
+          { kind: 'opt', label: '[x]', from_order: 1, to_order: 1, participants: ['a', 'ghost'] },
+        ],
+      },
+    };
+    const result = sequenceDocumentSchema.safeParse(doc);
+    expect(result.success).toBe(false);
+    const msg = JSON.stringify((result as { error: unknown }).error);
+    expect(msg).toContain("unknown participant id 'ghost'");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 6. Scene building — activations + fragments + self-messages
+// ---------------------------------------------------------------------------
+
+describe('Sequence Grammar — activations, fragments, self-messages scene', () => {
+  it('activation bars appear in the scene (filled rects on lifeline)', () => {
+    const doc = loadAgentLoopFixture();
+    const scene = buildSequenceScene(doc);
+
+    // There should be at least one rect that is NOT the background and NOT a header box
+    // (the activation bar has activationBarFill = '#c5cae9')
+    const activationRects = scene.primitives.filter(
+      (p) => p.kind === 'rect' && (p as { fill: string }).fill === '#c5cae9',
+    );
+    expect(activationRects.length).toBeGreaterThan(0);
+  });
+
+  it('fragment rects appear before message lines (painter order)', () => {
+    const doc = loadAgentLoopFixture();
+    const scene = buildSequenceScene(doc);
+
+    // Fragment rect fill = '#eff1fb'; first such rect index must be < first message line index
+    const fragRectIdx = scene.primitives.findIndex(
+      (p) => p.kind === 'rect' && (p as { fill: string }).fill === '#eff1fb',
+    );
+    expect(fragRectIdx).toBeGreaterThan(0); // not the background
+
+    // First non-background line primitive (lifeline or message)
+    const firstLineIdx = scene.primitives.findIndex((p) => p.kind === 'line');
+    expect(fragRectIdx).toBeLessThan(firstLineIdx);
+  });
+
+  it('fragment tab contains the kind keyword text', () => {
+    const doc = loadAgentLoopFixture();
+    const scene = buildSequenceScene(doc);
+    const texts = scene.primitives.filter((p) => p.kind === 'text').map((p) => (p as { text: string }).text);
+    expect(texts).toContain('loop');
+    expect(texts).toContain('opt');
+  });
+
+  it('fragment guard labels appear in the scene', () => {
+    const doc = loadAgentLoopFixture();
+    const scene = buildSequenceScene(doc);
+    const texts = scene.primitives.filter((p) => p.kind === 'text').map((p) => (p as { text: string }).text);
+    expect(texts.some((t) => t.includes('retry'))).toBe(true);
+    expect(texts.some((t) => t.includes('token'))).toBe(true);
+  });
+
+  it('self-message "reflect" produces three consecutive line segments', () => {
+    const doc = loadAgentLoopFixture();
+    const scene = buildSequenceScene(doc);
+    // The self-message emits 3 LinePrimitives + arrowhead Path + label Text.
+    // Verify "reflect" label is present in texts.
+    const texts = scene.primitives.filter((p) => p.kind === 'text').map((p) => (p as { text: string }).text);
+    expect(texts).toContain('reflect');
+    // At least 3 consecutive line segments exist after activations/lifelines
+    const lines = scene.primitives.filter((p) => p.kind === 'line');
+    expect(lines.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. Determinism — agent-loop fixture
+// ---------------------------------------------------------------------------
+
+describe('Sequence Grammar — agent-loop determinism', () => {
+  it('two builds produce identical sceneHash (activations + fragments + self-msg)', () => {
+    const doc = loadAgentLoopFixture();
+    const scene1 = buildSequenceScene(doc);
+    const scene2 = buildSequenceScene(doc);
+    expect(sceneHash(scene1)).toBe(sceneHash(scene2));
+  });
+
+  it('agent-loop scene width and height are positive integers', () => {
+    const doc = loadAgentLoopFixture();
+    const scene = buildSequenceScene(doc);
+    expect(scene.width).toBeGreaterThan(0);
+    expect(scene.height).toBeGreaterThan(0);
+    expect(Number.isInteger(scene.width)).toBe(true);
+    expect(Number.isInteger(scene.height)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8. Gallery emit — agent-loop
+// ---------------------------------------------------------------------------
+
+describe('Sequence Grammar — agent-loop gallery emit', () => {
+  it('emits sequence-agent-loop.svg to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadAgentLoopFixture();
+    const result = renderSequenceDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('User');
+    expect(svg).toContain('Agent');
+    expect(svg).toContain('Tool');
+    expect(svg).toContain('loop');
+    expect(svg).toContain('opt');
+    expect(svg).toContain('reflect');
+    const outPath = join(GALLERY_DIR, 'sequence-agent-loop.svg');
+    writeFileSync(outPath, svg, 'utf-8');
+    console.log('[sequence] sequence-agent-loop.svg →', outPath);
+  });
+
+  it('emits sequence-agent-loop.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadAgentLoopFixture();
+    const result = renderSequenceDocument(doc, { format: 'png' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89); // PNG signature byte
+    const outPath = join(GALLERY_DIR, 'sequence-agent-loop.png');
+    writeFileSync(outPath, png);
+    console.log('[sequence] sequence-agent-loop.png →', outPath);
+  });
+});

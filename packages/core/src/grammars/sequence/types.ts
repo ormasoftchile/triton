@@ -71,37 +71,45 @@ export interface Message {
 }
 
 // ---------------------------------------------------------------------------
-// Activation (increment-2; defined for forward-compatibility)
+// Activation (increment-2; fully implemented)
 // ---------------------------------------------------------------------------
 
 /**
  * A processing span on a participant's lifeline.
- * Rendered as a thin filled rectangle centered on the lifeline.
- * Deferred to increment 2 — schema allows it, layout ignores it with a warning.
+ * Rendered as a thin filled rectangle centered on the lifeline, spanning
+ * from the y-position of `from_order` to the y-position of `to_order`.
+ * Messages arriving/leaving an active participant visually attach to the
+ * activation bar's edge rather than the bare lifeline center.
  */
 export interface Activation {
   /** The lifeline on which the activation appears. */
   participant: string;
-  /** Message order at which activation begins. */
+  /** Message order at which activation begins (must be ≤ to_order). */
   from_order: number;
   /** Message order at which activation ends. */
   to_order: number;
 }
 
 // ---------------------------------------------------------------------------
-// Fragment (increment-2; defined for forward-compatibility)
+// Fragment (increment-2; fully implemented)
 // ---------------------------------------------------------------------------
 
 /**
  * A labeled combined fragment (loop, alt, opt, etc.) spanning a range of messages.
- * Deferred to increment 2 — schema allows it, layout ignores it with a warning.
+ * Rendered as a labeled rounded rect behind the messages:
+ *  - Vertically: from just above `from_order`'s row to just below `to_order`'s row.
+ *  - Horizontally: across the involved participants' x-extent (all by default).
+ *  - Upper-left tab contains the `kind` keyword; guard `label` appears next to it.
+ *
+ * Increment-2 scope: single guard label per fragment.
+ * Deferred: alt sub-compartment dividers (multiple guard conditions).
  */
 export interface Fragment {
   /** Fragment operator keyword. */
   kind: 'loop' | 'alt' | 'opt' | 'par' | 'critical' | 'break';
   /** Guard condition or description text. */
   label: string;
-  /** First message order in the span. */
+  /** First message order in the span (must be ≤ to_order). */
   from_order: number;
   /** Last message order in the span. */
   to_order: number;

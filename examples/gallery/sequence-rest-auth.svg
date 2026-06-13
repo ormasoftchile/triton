@@ -8,16 +8,18 @@
   <rect fill="#e8f0fe" height="36" rx="4" stroke="#4a6cf7" stroke-width="1.5" width="120" x="240" y="20"/>
   <text dominant-baseline="middle" fill="#1a1a2e" font-family="DejaVu Sans" font-size="13" font-weight="700" text-anchor="middle" x="300" y="38">Auth Server</text>
   <line stroke="#9aa3b2" stroke-dasharray="6,4" stroke-width="1" x1="300" x2="300" y1="96" y2="380"/>
-  <line stroke="#2c3e50" stroke-width="1.5" x1="100" x2="292" y1="126" y2="126"/>
-  <path d="M 300 126 L 292 122 L 292 130 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="120">POST /auth/token (credentials)</text>
-  <line stroke="#2c3e50" stroke-dasharray="6,4" stroke-width="1.5" x1="300" x2="108" y1="182" y2="182"/>
+  <rect fill="#c5cae9" height="56" rx="2" stroke="#5c6bc0" stroke-width="1.5" width="10" x="295" y="126"/>
+  <rect fill="#c5cae9" height="56" rx="2" stroke="#5c6bc0" stroke-width="1.5" width="10" x="295" y="238"/>
+  <line stroke="#2c3e50" stroke-width="1.5" x1="100" x2="287" y1="126" y2="126"/>
+  <path d="M 295 126 L 287 122 L 287 130 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="198" y="120">POST /auth/token (credentials)</text>
+  <line stroke="#2c3e50" stroke-dasharray="6,4" stroke-width="1.5" x1="295" x2="108" y1="182" y2="182"/>
   <path d="M 108 178 L 100 182 L 108 186" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.5"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="176">200 OK { token: 'jwt...' }</text>
-  <line stroke="#2c3e50" stroke-width="1.5" x1="100" x2="292" y1="238" y2="238"/>
-  <path d="M 300 238 L 292 234 L 292 242 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="232">GET /api/data (Authorization: Bearer jwt...)</text>
-  <line stroke="#2c3e50" stroke-dasharray="6,4" stroke-width="1.5" x1="300" x2="108" y1="294" y2="294"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="198" y="176">200 OK { token: 'jwt...' }</text>
+  <line stroke="#2c3e50" stroke-width="1.5" x1="100" x2="287" y1="238" y2="238"/>
+  <path d="M 295 238 L 287 234 L 287 242 Z" fill="#2c3e50" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="198" y="232">GET /api/data (Authorization: Bearer jwt...)</text>
+  <line stroke="#2c3e50" stroke-dasharray="6,4" stroke-width="1.5" x1="295" x2="108" y1="294" y2="294"/>
   <path d="M 108 290 L 100 294 L 108 298" fill="none" stroke="#2c3e50" stroke-linecap="round" stroke-width="1.5"/>
-  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="200" y="288">200 OK { data: [...] }</text>
+  <text dominant-baseline="alphabetic" fill="#2c3e50" font-family="DejaVu Sans" font-size="12" font-weight="400" text-anchor="middle" x="198" y="288">200 OK { data: [...] }</text>
 </svg>

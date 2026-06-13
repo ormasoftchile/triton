@@ -145,6 +145,24 @@ const sequenceDefinitionSchema = z
         });
       }
     }
+
+    // Fragment validation
+    for (const frag of def.fragments ?? []) {
+      if (frag.from_order > frag.to_order) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Fragment '${frag.kind}' has from_order (${frag.from_order}) > to_order (${frag.to_order})`,
+        });
+      }
+      for (const pid of frag.participants ?? []) {
+        if (!ids.has(pid)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Fragment '${frag.kind}' references unknown participant id '${pid}'`,
+          });
+        }
+      }
+    }
   });
 
 // ---------------------------------------------------------------------------
