@@ -193,11 +193,79 @@ export const defaultTreeTheme: TreeTheme = {
 };
 
 // ---------------------------------------------------------------------------
+// treeDarkTheme — dark canvas, teal accents, straight edges
+// ---------------------------------------------------------------------------
+
+/**
+ * Dark tree theme: dark navy canvas, teal accent nodes, straight connectors.
+ *
+ * Uses the SAME TreeTheme token surface as defaultTreeTheme — only color,
+ * corner radius, and edge-style values differ.  The IR is unchanged; any
+ * tree-document rendered with this theme will produce an entirely different
+ * visual presentation while carrying the same structural semantics.
+ *
+ * Demonstrates: grammar = semantics / theme = style (same IR, two looks).
+ */
+export const treeDarkTheme: TreeTheme = {
+  background: '#111827',
+  fontFamily: 'DejaVu Sans, sans-serif',
+  orientation: 'top-down',
+
+  marginLeft: 40,
+  marginRight: 40,
+  marginTop: 40,
+  marginBottom: 40,
+
+  nodePadX: 18,
+  nodePadY: 10,
+  minNodeWidth: 100,
+
+  levelGap: 70,
+  siblingGap: 20,
+  subtreeGap: 30,
+
+  nodeFill: '#1e293b',
+  nodeStroke: '#2dd4bf',
+  nodeStrokeWidth: 1.5,
+  nodeRx: 8,
+  nodeTextColor: '#f1f5f9',
+
+  kindFills: {
+    root:    '#0d9488',
+    chapter: '#0f766e',
+    section: '#134e4a',
+  },
+  kindTextColors: {
+    root:    '#ffffff',
+    chapter: '#f1f5f9',
+    section: '#e2e8f0',
+  },
+
+  nodeFontSize: 13,
+  nodeFontWeight: 600,
+
+  edgeStyle: 'straight',
+  edgeStroke: '#2dd4bf',
+  edgeStrokeWidth: 1.5,
+  elbowMidFraction: 0.5,
+
+  showIcons: false,
+  iconSize: 16,
+  iconLabelGap: 6,
+
+  showCollapsedIndicator: true,
+  collapsedIndicatorRadius: 8,
+  collapsedIndicatorFill: '#0d9488',
+  collapsedIndicatorTextColor: '#ffffff',
+};
+
+// ---------------------------------------------------------------------------
 // Theme registry
 // ---------------------------------------------------------------------------
 
 export const TREE_THEME_REGISTRY: Record<string, TreeTheme> = {
   'default-tree': defaultTreeTheme,
+  'dark-tree': treeDarkTheme,
 };
 
 /**

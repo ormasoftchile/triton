@@ -161,11 +161,15 @@
   <h1>Timeline Compiler — Example Gallery</h1>
   <p>
     Twelve timeline IR documents rendered with the <strong>Horizontal layout</strong>
-    family, plus four <strong>Sequence Grammar</strong> examples (UML default and ByteByteGo themes). Most timeline renders use the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong> showcase. Each example exercises a distinct
+    family, plus four <strong>Sequence Grammar</strong> examples (UML default and ByteByteGo themes),
+    one <strong>Flow Grammar</strong> example (RAG pipeline, layered L→R layout),
+    and three <strong>Tree Grammar</strong> examples (default light theme and dark-teal theme — same IR,
+    two themes). Most timeline renders use the <strong>Consulting (Tier-1)</strong> theme, with a
+    feature-rich <strong>Product</strong> showcase. Each example exercises a distinct
     combination of axis unit, track density, activity statuses, milestones, and edge-case
-    behaviours. Use this contact sheet to bulk-check Phase 1 visual output.
+    behaviours. Use this contact sheet to bulk-check Phase 1–4 visual output.
   </p>
-  <span class="badge">Phase 1 MVP · Horizontal gallery + Sequence Grammar</span>
+  <span class="badge">Phase 1–4 Gallery · Horizontal + Sequence + Flow + Tree</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -555,9 +559,76 @@
     </div>
   </div>
 
-</div>
+  <!-- 17. flow-rag-pipeline — Flow Grammar, layered L→R pipeline -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 17 · flow-rag-pipeline</div>
+      <div class="card-title">RAG Pipeline — Flow Grammar</div>
+      <div class="card-desc">
+        Seven-node retrieval-augmented generation pipeline rendered with the
+        <strong>Flow Grammar</strong> (node-link, layered left→right layout).
+        Nodes: question input → retrieve → re-rank / direct-match (branch, column 2) →
+        augment → LLM → answer. Exercises: cycle detection, animated dashed edges,
+        status fills (success/active), branch stacking, and the
+        <strong>defaultFlowTheme</strong> blue palette.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="flow-rag-pipeline.png" alt="flow-rag-pipeline render">
+    </div>
+    <div class="card-footer">
+      <a href="flow-rag-pipeline.svg">SVG</a>
+      <a href="flow-rag-pipeline.flow.yaml">Source YAML</a>
+    </div>
+  </div>
 
-<footer>
+  <!-- 18. tree-document — Tree Grammar, default light theme -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 18 · tree-document</div>
+      <div class="card-title">Document Structure — Tree Grammar (Default)</div>
+      <div class="card-desc">
+        Ten-node document hierarchy (root + 3 chapters + 6 sections) rendered with the
+        <strong>Tree Grammar</strong> using the <strong>default-tree theme</strong> —
+        white canvas, indigo node palette, elbow connectors, BJ+L tidy-tree layout.
+        Demonstrates the <strong>grammar&nbsp;=&nbsp;semantics</strong> half:
+        the document captures only structure and sibling order.
+        Compare with Example 19 (same IR, dark theme).
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="tree-document.png" alt="tree-document default render">
+    </div>
+    <div class="card-footer">
+      <a href="tree-document.svg">SVG</a>
+      <a href="tree-document.tree.yaml">Source YAML</a>
+    </div>
+  </div>
+
+  <!-- 19. tree-document-dark — same Tree IR, dark-tree theme -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 19 · tree-document-dark</div>
+      <div class="card-title">Document Structure — Tree Grammar (Dark)</div>
+      <div class="card-desc">
+        <strong>Identical IR</strong> to Example 18, rendered with the
+        <strong>dark-tree theme</strong> — dark navy canvas (#111827), teal accent
+        node fills (#0d9488 root / #0f766e chapters / #134e4a sections), bright cyan
+        edges (#2dd4bf), straight connectors instead of elbow. Demonstrates the
+        <strong>theme&nbsp;=&nbsp;style</strong> half: the same tree semantics produce
+        an entirely different visual presentation without touching the source document.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="tree-document-dark.png" alt="tree-document dark render">
+    </div>
+    <div class="card-footer">
+      <a href="tree-document-dark.svg">SVG</a>
+      <a href="tree-document.tree.yaml">Source YAML</a>
+    </div>
+  </div>
+
+</div>
   Timeline Compiler · Phase 1–4 Gallery · Horizontal &amp; vertical-spine layout families.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>
   · See <a href="README.md" style="color:#999">README.md</a> for full commands.

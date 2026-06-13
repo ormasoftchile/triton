@@ -27,6 +27,7 @@ export type { TreeDocumentInput } from './schema.js';
 export type { TreeTheme, TreeEdgeStyle, TreeOrientation } from './theme.js';
 export {
   defaultTreeTheme,
+  treeDarkTheme,
   resolveTreeTheme,
   TREE_THEME_REGISTRY,
 } from './theme.js';

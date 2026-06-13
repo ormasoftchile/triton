@@ -18,6 +18,7 @@ import {
   buildTreeScene,
   renderTreeDocument,
   treeDocumentSchema,
+  treeDarkTheme,
 } from '../src/grammars/tree/index.js';
 import { sceneHash } from '../src/scene.js';
 import type { TreeDocument } from '../src/grammars/tree/index.js';
@@ -311,5 +312,83 @@ describe('Tree Grammar — gallery PNG emit', () => {
     const outPath = join(GALLERY_DIR, 'tree-document.png');
     writeFileSync(outPath, png);
     console.log('[tree] tree-document.png →', outPath);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. Dark theme — determinism
+// ---------------------------------------------------------------------------
+
+describe('Tree Grammar — dark theme determinism', () => {
+  it('two dark-theme builds of the same document produce identical sceneHash', () => {
+    const doc = loadFixture();
+    const h1 = sceneHash(buildTreeScene(doc, treeDarkTheme));
+    const h2 = sceneHash(buildTreeScene(doc, treeDarkTheme));
+    expect(h1).toBe(h2);
+  });
+
+  it('dark-theme hash differs from default-theme hash (same IR, different look)', () => {
+    const doc = loadFixture();
+    const hDefault = sceneHash(buildTreeScene(doc));
+    const hDark    = sceneHash(buildTreeScene(doc, treeDarkTheme));
+    expect(hDefault).not.toBe(hDark);
+  });
+
+  it('dark theme applies dark canvas background', () => {
+    const doc = loadFixture();
+    const scene = buildTreeScene(doc, treeDarkTheme);
+    expect(scene.background).toBe('#111827');
+  });
+
+  it('dark theme uses straight edge style (SVG output has L commands, not M…V…H)', () => {
+    const doc = loadFixture();
+    const result = renderTreeDocument(doc, { format: 'svg' }, treeDarkTheme);
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    // Straight edges emit path "M … L …"; elbow paths emit M … V … H …
+    // Both use 'L' moves but elbow uses vertical + horizontal segments (V/H).
+    // Straight edges go directly from parent bottom to child top with one L.
+    expect(svg).toContain('#111827'); // dark bg in SVG
+    expect(svg).toContain('#0d9488'); // root kind fill
+    expect(svg).toContain('#2dd4bf'); // edge stroke teal
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8. Dark theme gallery emit — SVG
+// ---------------------------------------------------------------------------
+
+describe('Tree Grammar — dark theme gallery SVG emit', () => {
+  it('emits tree-document-dark.svg to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadFixture();
+    const result = renderTreeDocument(doc, { format: 'svg' }, treeDarkTheme);
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const svg = result.svg!;
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('Document');
+    expect(svg).toContain('#111827'); // dark background
+    const outPath = join(GALLERY_DIR, 'tree-document-dark.svg');
+    writeFileSync(outPath, svg, 'utf-8');
+    console.log('[tree] tree-document-dark.svg →', outPath);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 9. Dark theme gallery emit — PNG
+// ---------------------------------------------------------------------------
+
+describe('Tree Grammar — dark theme gallery PNG emit', () => {
+  it('emits tree-document-dark.png to examples/gallery/', () => {
+    if (!existsSync(GALLERY_DIR)) mkdirSync(GALLERY_DIR, { recursive: true });
+    const doc = loadFixture();
+    const result = renderTreeDocument(doc, { format: 'png' }, treeDarkTheme);
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    const png = result.png!;
+    expect(png).toBeInstanceOf(Uint8Array);
+    expect(png[0]).toBe(0x89); // PNG signature byte
+    const outPath = join(GALLERY_DIR, 'tree-document-dark.png');
+    writeFileSync(outPath, png);
+    console.log('[tree] tree-document-dark.png →', outPath);
   });
 });
