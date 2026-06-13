@@ -1,11 +1,3 @@
-# Barbara History Archive — Detailed Session Logs
-
-## Batch 2026-06-11 — T4 Serpentine and Gradient Improvements
-
-Archived from history.md: Detailed technical documentation of T4 serpentine layout implementation, Skia stroke-only path glow fix, and smooth gradient palette derivation. These sections are complete and archived for reference but no longer active work.
-
----
-
 # Barbara — Semantics & Rendering Specialist
 
 **Owner:** ormasoftchile  
@@ -14,384 +6,237 @@ Archived from history.md: Detailed technical documentation of T4 serpentine layo
 
 ---
 
-## 2026-06-11 Session — T4 Serpentine Layout & Skia Stroke Fix (FINAL SESSION)
+## Recent Work Summary
 
-**Status:** ✅ ALL FIVE TARGETS NOW CLOSED
+### 2026-06-12 — `axis_breaks` Discontinuous Axis + Phase Pills (Multi-Pass)
 
-### Session Overview
+**Status:** Rendering ADOPTED; schema validation deferred to Mark
 
-Implemented the final target: **serpentine** (boustrophedon) layout family as the third layout family, achieving full closure of all five design targets (T1–T5). Additionally, fixed a critical Skia backend bug where stroke-only paths with glow effects rendered as filled slabs.
+#### Pass 1: IR Field + Piecewise-Linear Layout
+- Added `AxisBreak { from: IRDate; to: IRDate }` interface to `types.ts`
+- Added `axis_breaks?: AxisBreak[]` to `Metadata` (optional; absent → ZERO behaviour change)
+- Schema validation open questions flagged for Mark (from<to, bounds, non-overlap)
+- Piecewise-linear `dateX` approach: effective time = `teOrd − tsOrd − Σ(break durations)`, draw width = `wDraw − nBreaks × 24px`
+- Break gap = exactly 24px per break (calendar-independent)
+- "//" marker: two forward-diagonal line primitives per break
+- Activity description rendering: 2-line wrap for `barHeight ≥ 28`
+- New `roadmap` theme: `barHeight: 36`, `barRadius: 8`
 
----
+#### Pass 2: Milestone Label Robustness
+- Milestone label left-edge clamp: `labelClampX = Math.max(blockW/2 + 8, Math.min(W − blockW/2 − 8, xCenter))`
+- New `labelWrap?: boolean` theme token: 2-line wrap with dynamic `blockH` expansion
+- Only `roadmap` activates `labelWrap: true`; all other themes byte-identical
 
-## T4 Serpentine Layout Family
+#### Pass 3: Roadmap Margin + Edge Clipping Fix
+- Root cause: `canvas.margin.left: 0` → first pill at `x=0` (clipped)
+- Fix A: `canvas.margin.left: 0 → 48` (symmetric `right: 48`)
+- Fix B: `LABEL_EDGE_PAD = 8` in clamp formula
+- Confirmed: first pill at `x="48"`, first milestone label `x≈59.02` (8px from edge)
 
-### Path Geometry: Boustrophedon
+**Test Results:** 577/577 pass; 564 existing goldens byte-identical; 3 new fixture outputs (timeline-goals SVG, PNG, Skia)
 
-**Canvas:** 1200px wide. Path rows run left↔right with rounded U-turns (radius 80px default).
+**Determinism:** All paths use `Math.floor(x + 0.5)` round-half-up; no floating non-determinism
 
-- Row 0 (even): Left→Right from (90, pathStartY) with right turn
-- Row 1 (odd): Right→Left from (1110, y_1) with left turn
-- Row 2 (even): Left→Right again
-- etc.
-
-**Arc-length parameterization:**
-- L_row = 1020px (rowWidth), L_turn = π*r = 251.3px
-- Nodes placed at centred intervals t_i = (i+0.5)/n
-- Prevents NODE_OVERLAP at path endpoints (t=0, t=1 reserved for start/end badges)
-
-**Canvas height auto-computed:** `headerH + TOP_PAD + (nRows−1)*rowSpacing + BOTTOM_PAD`
-Formula: `nRows = max(2, ceil(n / NODES_PER_ROW))` where NODES_PER_ROW=3. For 9 entries: 3 rows.
-
-### Gradient Approach: Segmented Path
-
-Used 64 short straight-line `PathPrimitive` sub-segments, each with solid colour interpolated between `gradientFrom` (#86EFAC light green) and `gradientTo` (#15803D dark green) via linear RGB interpolation.
-
-**Why:** Works in all backends (SVG, Skia, PNG/resvg) without path-gradient shaders. Slight polygonal approximation invisible at 14px strokeWidth.
-
-**Glow layer:** One additional `PathPrimitive` with full boustrophedon SVG path (with arc commands), rendered BEFORE gradient segments. Wider stroke (+4px), opacity 0.6, SceneEffect `{ kind:'glow', color, radius }`.
-- SVG backend: silently omits effects
-- Skia backend: renders soft green glow halo
-
-### Start/End Icon Badges
-
-Rendered at `pathPointAtS(0, geo)` (start) and `pathPointAtS(totalLength, geo)` (end).
-- CirclePrimitive: r=22, dark green fill
-- Icon PathPrimitive: single-translate form `translate(cx − 12*s, cy − 12*s) scale(s)`
-- Default icons: startIcon='play', endIcon='target' (configurable via theme.serpentine.startIcon/endIcon)
-
-### Labels
-
-TextPrimitive offset 14+nodeRadius px from node center.
-- Even rows → label BELOW (dominantBaseline:'hanging')
-- Odd rows → label ABOVE (dominantBaseline:'alphabetic')
-- Truncated at 16 chars with '…'
-
-### Linter Compatibility
-
-Linter's `pathBBox` returns null for paths with curves (arc commands) → gradient segments and glow path are not bounds-checked. No false OUT_OF_BOUNDS errors. Node circles (r=10) are checked; all within [0,W]×[0,H] with ≥10px margin. NODE_OVERLAP prevented by centred-interval placement (~333px arc-length gap vs. 20px combined diameter).
-
-### Theme: `serpentine`
-
-**File:** packages/core/src/themes/serpentine.ts
-- Tier 3, light canvas (#F7FBF7), Skia glow enabled
-- Gradient: #86EFAC (light green) → #15803D (dark green)
-- Glow: #4ADE80, radius 18
-- Path stroke: 14px
-- Turn radius: 80px, rowSpacing: 160px
-- Nodes: r=10, white fill, dark green stroke
-- Badges: r=22, dark green fill
-- Labels: 9pt, gray (#374151)
-
-### Fixture: `serpentine-journey`
-
-9 milestones (Kickoff → V4 Milestone) spread 2020–2024, all with icons.
-3 rows of 3 nodes each. No legend.
-
-### Goldens Generated
-
-- `examples/gallery/showcase/serpentine-journey-skia.png` (1200×556 px)
-- `examples/gallery/showcase/serpentine-journey.svg` (11KB)
-
-### Files Touched (T4)
-
-**New:**
-- `packages/core/src/layout/serpentine.ts`
-- `packages/core/src/themes/serpentine.ts`
-- `examples/showcase/serpentine-journey.timeline.yaml`
-- Goldens: serpentine-journey-skia.png, serpentine-journey.svg
-
-**Modified:**
-- `packages/core/src/themes/types.ts` — SerpentineLayoutTheme added
-- `packages/core/src/themes/index.ts` — serpentine theme registered
-- `packages/core/src/layout/index.ts` — 'serpentine' dispatcher
-- `packages/core/src/types.ts` — 'serpentine' in RenderOptions.layout union
-- `packages/core/src/render/index.ts` — layout dispatcher
-- `packages/cli/src/index.ts` — --layout serpentine option
-- `packages/core/test/skia.test.ts` — 6 T4 tests
-
-### T4 Fidelity Assessment
-
-| Feature | Target | Achieved |
-|---------|--------|----------|
-| Light background | ✅ | ✅ |
-| Winding 3-row path | ✅ | ✅ |
-| Thick rounded stroke | ✅ | ✅ |
-| Soft green glow (Skia) | ✅ | ✅ |
-| Light→dark gradient | ✅ | ✅ (segmented) |
-| Evenly-spaced nodes | ✅ | ✅ |
-| Start/end badges | ✅ | ✅ (play/target) |
-| Optional labels | ✅ | ✅ |
-| No axis | ✅ | ✅ |
-
-**Status: ✅ CLOSED.** 567/567 tests pass.
+#### Files Changed
+- `types.ts`: `labelWrap?: boolean` to `MilestoneTheme`
+- `roadmap.ts`: new theme with fixed margins + `labelWrap: true`
+- `horizontal.ts`: piecewise scale + label clamp + 2-line render loop
+- `timeline-goals.yaml`: `axis_breaks[0].from: 2025-12-01 → 2026-01-15`
+- `quality.test.ts`, `skia.test.ts`: new gallery tests
 
 ---
 
-## Skia Stroke-Only Path Glow Fix
+## Architecture Notes
 
-### Root Cause
+**Scene IR as Kernel:** Scene IR (Rect, Line, Circle, Text, Path, Group) is the universal rendering contract shared by all future grammars (Timeline, Flow, Graph, etc.). Backend diversity (SVG/PNG/Skia/PDF) all consume Scene IR.
 
-The serpentine path renders with `fill: 'none'` and `effects: [{ kind: 'glow', ... }]`.
-
-Original `renderPath` in `skia.ts` routed ALL paths through `renderWithEffects`, which:
-1. Creates `glowPaint` with `PaintStyle.Fill`
-2. Calls `drawFn` with glowPaint as `overridePaint`
-3. Since `overridePaint !== null`, the Fill paint was used
-
-When drawing a filled closed SVG path from open geometry (implicit closure), this produced:
-- A filled green slab across the row area (the glowPaint's Fill)
-- A diagonal "closing" band from path end back to start
-
-Main draw pass rendered transparent (invisible), so the glow fill was visible but masked the stroke.
-
-### Fix: Detect `fill === 'none'` in renderPath (skia.ts)
-
-Added stroke-only detection at top of `renderPath`:
-
-```typescript
-const strokeOnly = p.fill === 'none'
-
-if (strokeOnly) {
-  // Skip renderWithEffects entirely
-  // For each glow effect: create PaintStyle.Stroke paint with blur ImageFilter
-  // Main stroke pass: normal PaintStyle.Stroke paint
-} else {
-  // Original code path for filled paths (unchanged)
-}
-```
-
-When `!strokeOnly`: existing code path unchanged — `renderWithEffects` fills, then separate stroke pass.
-
-### Corrected Result
-
-**Before:** Filled green slab + diagonal closing bands (Skia only; SVG was correct)
-**After:** Thin winding green stroke with soft glow halo (Skia ≡ design target)
-
-- Glow path: 18px wide stroke with 0.6 opacity + green blur → soft halo
-- Gradient segments: 14px stroke, round caps, light→dark green → seamless
-- Matches design target: slim glowing line, no slab
-
-### Cascade Impact
-
-Fixed serpentine AND improved 4 existing showcase goldens:
-- feature-rich-skia.png (glow now correct)
-- gitline-skia.png (glow now correct)
-- journey-skia.png (glow now correct)
-- subject-timeline-skia.png (glow now correct)
-
-Horizontal golden guard (our-timeline-skia.png) byte-identical.
+**Theme Tokens for Layout:** Features like `axis.nodeWrap` and `labelWrap` demonstrate that layout modifications can be expressed as opt-in theme tokens (not embedded in domain IR).
 
 ---
 
-## Session Results
+## Open Work (Flagged for Handoff)
 
-- **T4 Implementation:** Complete serpentine layout family with boustrophedon path, arc-length nodes, segmented gradient, glow, badges, labels
-- **Skia Fix:** Stroke-only path glow now renders correctly; improves 4 existing goldens
-- **Test Coverage:** 567/567 tests pass (551 core + 13 schema + 3 cli)
-- **All Five Targets:** CLOSED (T1 horizontal, T2 vertical-spine dark, T3 vertical-spine dense, T4 serpentine, T5 vertical-spine cards)
+### Schema Validation — Mark (2026-06-12)
 
-**Milestone Achieved:** All design targets fully renderable from IR to byte-deterministic output.
+Deferred rules for `axis_breaks` IR field:
 
----
+1. **`from < to` enforcement** — Emit `BREAK_FROM_AFTER_TO` at parse time
+2. **Breaks within `time_range` bounds** — Emit `BREAK_OUT_OF_RANGE` warning
+3. **Non-overlapping, sorted** — Validate; emit `BREAKS_OVERLAP` / `BREAKS_UNSORTED`
+4. **Max breaks upper limit** — Warn if N excessive (e.g., > 20) or draw width < 100px
 
-## 2026-06-11 Session — Smooth Gradient & Palette-Derived Serpentine
-
-### Improvement 1 — True Smooth Stroke Gradient
-
-**StrokeGradient Scene Primitive Extension:**
-- Added `StrokeGradient` interface and optional `strokeGradient?` field to `PathPrimitive` in `packages/core/src/scene.ts`.
-- Shape: `{ from: string; to: string; x1: number; y1: number; x2: number; y2: number }` — endpoint colors + scene-space coordinates.
-- When present, the path is stroked with a linear gradient instead of a flat solid `stroke`.
-- Purely additive/opt-in: all existing PathPrimitives without the field are unaffected (canonicalJSON omits undefined values → sceneHash stable for existing scenes).
-
-**SVG Backend (`render/svg.ts`):**
-- Added `strokeGradientId(sg)` — content-based deterministic ID: `sg-{x1}-{y1}-{x2}-{y2}-{fromHex}-{toHex}` (period replaced with 'd' for XML safety).
-- Added `collectGradientDefs(primitives)` — walks scene tree, deduplicates by ID, emits `<linearGradient gradientUnits="userSpaceOnUse" id="sg-..." x1="..." ...><stop offset="0%".../><stop offset="100%".../>` in `<defs>`.
-- Path rendering: `stroke="url(#sg-...)"` when `strokeGradient` present.
-- Defs block: merges clip-path defs (images) + gradient defs into one `<defs>` block.
-
-**Skia Backend (`render/skia.ts`):**
-- In `renderPath` strokeOnly branch: condition extended to `(p.stroke || p.strokeGradient) && strokeWidth > 0`.
-- When `strokeGradient` present: builds `CK.Shader.MakeLinearGradient([x1,y1],[x2,y2], [parseColor(from,opacity), parseColor(to,opacity)], null, CK.TileMode.Clamp)`, applies shader to stroke Paint — true smooth gradient, no faceting.
-- When absent: existing solid `parseColor(p.stroke)` path unchanged.
-
-**Linter fix (`lint.ts`):**
-- `pathBBox` now skips paths containing arc/curve SVG commands (`A, Q, C, S, T, a, q, c, s, t`).
-- Previously, the single boustrophedon path (with A commands) had 4 M/L vertices that passed the 3–7 polygon check, producing a huge scene-spanning bbox that flagged all circles as NODE_OVERLAP. The curve-exclusion filter correctly identifies milestone diamond/triangle shapes (M/L/Z only).
-
-**Serpentine Layout (`layout/serpentine.ts`):**
-- Replaced 64-chord polyline (`GRADIENT_SEGS` loop) with ONE `PathPrimitive` carrying `strokeGradient`.
-- `pathStart = pathPointAtS(0, geo)` and `pathEnd = pathPointAtS(totalLength, geo)` computed once, used for both the gradient endpoints and the badge positions.
-- The full arc-command boustrophedon `buildPathD(geo)` path is reused for both the glow layer and the gradient stroke.
-- SVG path count: 66 → 4 (glow + gradient + 2 icon paths). Gradient ID: `sg-90-164-1110-484-86efac-15803d` for the standard serpentine fixture.
-
-### Improvement 2 — Palette-Derived Serpentine Fallback
-
-**Fallback in `layout/serpentine.ts`:**
-- When `theme.serpentine` is absent, the fallback is now palette-derived using `theme.statusMap['in-progress'].fill` as the accent base.
-- `gradientFrom = lightenHex(accent, 0.35)` — blend toward white by 35%.
-- `gradientTo = darkenHex(accent, 0.15)` — blend toward black by 15%.
-- `glowColor = accent` (the raw in-progress color).
-- `nodeFill = theme.canvas.backgroundColor` — nodes "hollow" against the path.
-- `nodeStroke = accent`.
-- `badgeFill = darkenHex(accent, 0.2)`.
-- `badgeIconColor = contrastColor(badgeFill)` — white for dark fills, `#1F2937` for light fills (average RGB < 128 threshold).
-- `labelColor = theme.milestone.titleLabelColor`.
-- Added helpers: `lightenHex(hex, factor)`, `darkenHex(hex, factor)`, `contrastColor(hex)`.
-- Explicit `theme.serpentine` block (e.g. the serpentine theme itself) still takes full precedence.
-
-**Theme palette derivations verified:**
-- Consulting (NAVY `#1F497D` in-progress): gradient `#6D89AB` → `#1A3E6A` (lighter/darker navy).
-- Executive (CYAN `#00B4D8` in-progress): gradient `#59CEE6` → `#0099B8` (lighter/darker teal).
-- Both distinctly non-green, matching each theme's identity.
-
-### New Multi-Theme Goldens
-
-| Golden | Theme | Dims | Notes |
-|--------|-------|------|-------|
-| `serpentine-journey-skia.png` | serpentine | 1200×556 | Regenerated with smooth gradient |
-| `serpentine-journey.svg` | serpentine | 1200×556 | 4 paths + `<linearGradient>` in `<defs>` |
-| `serpentine-journey-consulting-skia.png` | consulting | 1200×556 | Navy palette-derived NEW |
-| `serpentine-journey-executive-skia.png` | executive | 1200×556 | Teal palette-derived NEW |
-
-### Existing Goldens Unchanged
-
-All non-serpentine goldens byte-identical (`our-timeline-skia.png` guard confirmed). The `strokeGradient` field is opt-in and no existing layout uses it.
-
-### Files Touched
-
-**Modified:**
-- `packages/core/src/scene.ts` — `StrokeGradient` interface + `strokeGradient?` on `PathPrimitive`
-- `packages/core/src/render/svg.ts` — `strokeGradientId`, `collectGradientDefs`, gradient defs in `<defs>`, path stroke ref
-- `packages/core/src/render/skia.ts` — gradient shader in `renderPath` strokeOnly branch
-- `packages/core/src/layout/serpentine.ts` — single gradient path, palette-derived fallback, `lightenHex`/`darkenHex`/`contrastColor` helpers, updated file comment
-- `packages/core/src/lint.ts` — `pathBBox` skips curved paths (A/Q/C commands)
-- `packages/core/test/skia.test.ts` — 3 new tests (consulting golden, executive golden, SVG determinism)
-
-**Goldens Updated:**
-- `serpentine-journey-skia.png` (53740→56376 bytes), `serpentine-journey.svg` (SVG reduced from ~66 paths to 4)
-
-**Goldens Added:**
-- `serpentine-journey-consulting-skia.png` (58125 bytes)
-- `serpentine-journey-executive-skia.png` (55855 bytes)
-
-### Test Results
-
-**570/570 tests pass** (554 core + 13 schema + 3 cli). 3 new tests added. `pnpm -r typecheck` and `pnpm -r lint` clean.
+**Files to update:** `schema.ts` (Zod), `types.ts` (TypeScript), `validate.ts` (invariants)
 
 ---
 
 ## Learnings
 
-- Serpentine layout (T4) now appears in examples/gallery/showcase.html for direct browsing alongside other showcase entries. Fixture placement (examples/showcase/serpentine-journey.timeline.yaml) confirmed consistent with other showcase fixtures.
-- `PathPrimitive.strokeGradient` enables true smooth gradient strokes on curved paths; the SVG backend uses `<linearGradient gradientUnits="userSpaceOnUse">` with a content-based deterministic ID; the Skia backend uses `CK.Shader.MakeLinearGradient`.
-- The linter's `pathBBox` must exclude curved SVG paths (A/Q/C commands) to avoid false NODE_OVERLAP from the serpentine's wide-spanning boustrophedon geometry.
-- Palette derivation for serpentine fallback: `lightenHex(accent, 0.35)` → `darkenHex(accent, 0.15)` creates a coherent light-to-dark gradient from any theme's in-progress status color.
-- Serpentine is now showcased in the theme matrix (examples/gallery/themes.html) as Example E across all 5 themes (consulting=navy, executive=teal, minimal=grey, product=blue, release=indigo). The per-theme renders at `examples/gallery/themes/{theme}/serpentine-journey.{svg,png}` are generated by the "Theme-matrix gallery emit — serpentine-journey" describe block added to `packages/core/test/quality.test.ts` (10 new tests). Count badge updated to "5 themes · 5 examples · 50 renders".
+### 2026-06-12 — Label Collision De-collision (`labelWrap`-gated tier gap)
+
+**Defect:** Two milestone callouts ("MSI Installer / Install Path" at x≈632 and "80% adoption + queue signoff" at x≈741) were both assigned to tier 0 (y≈227.4) because the greedy tier packer used a `+2` horizontal gap which was too small to catch the visual overlap, compounded by `measureText` underestimating rendered text widths.
+
+**Fix (determinism-safe, gated behind `ms.labelWrap`):**
+- `LABEL_TIER_HGAP = ms.labelWrap ? 16 : 2` — replaces the hardcoded `+2` in both the above-side and below-side greedy tier loops.
+- `LABEL_COLLISION_PAD = ms.labelWrap ? 12 : 0` — inflates the collision footprint (`bL/bR`) for tier-packing purposes only; the actual rendered label x/width is unchanged.
+- When `labelWrap` is false (all existing themes), both constants collapse to the original values → all goldens byte-identical.
+- When `labelWrap` is true (roadmap theme), near-adjacent labels are pushed to separate tiers. Result: 3 above-axis tiers for timeline-goals (tier 0 y≈279, tier 1 y≈227, tier 2 y≈176); MSI and 80% adoption now on different tiers with no visual overlap.
+
+**Principle:** The `aboveZoneH` reservation already scales with `maxAboveTier`, so adding tiers automatically grows the top margin — no extra code needed.
+
+**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `timeline-goals-skia.png` only.
 
 ---
 
-# Barbara History Archive
+### 2026-06-12 — Today-Marker `labelChip` Token (Readability over Phase Pills)
 
-Older sessions summarized for reference. See history.md for current 2026-06-11 sessions.
+**Defect:** The "Today" label (red #EF4444) was positioned at `y = todayY1 + 4 + todayFontPx` where `todayY1` is the top of the draw band — which is exactly where the first activity pill row begins. In the `timeline-goals` roadmap slide, "Today" sat inside the Evangelization teal (#0F766E) pill band: red-on-teal, low contrast, partially occluded by the pill's own label text.
 
-## 2026-06-11 Early Sessions (Archived)
+**Fix (determinism-safe, gated behind `theme.axis.todayMarker.labelChip`):**
+- Added `labelChip?: boolean` to the `todayMarker` block in `AxisTheme` (`types.ts`). Default absent/false — all existing themes unaffected, byte-identical.
+- Set `labelChip: true` in `roadmap.ts` only.
+- In `horizontal.ts` today-marker block: when `labelChip` is true, measure the label text width with `measureText`, then emit a `kind: 'rect'` chip (fill: canvas backgroundColor, rx: 3, opacity: 0.9, padX: 4px, padY: 3px) **before** the text primitive. The chip sits under the red "Today" text, masking the teal pill behind it.
+- When `labelChip` is false (all other themes), the chip block is skipped entirely → zero primitive delta → byte-identical goldens for all non-roadmap fixtures.
 
-- **T1-3 ImagePrimitive & Logo:** Implemented ImagePrimitive scene primitive (data URI embedding, asset-loader.ts). SVG native support; Skia via MakeImageFromEncoded; PNG/resvg pass-through. Header integration with top-left logo positioning. BuildSceneOptions.baseDir for portable asset resolution. Tests added.
+**Coordinates (timeline-goals.svg):** Chip at rect x=570, y=321.83, width=37.72, height=16.67 (rx=3). Text at x=574, y=335.5. Activity pill band at y=330.83–366.83. Chip creates white backdrop that spans the pill overlap zone, making red text clearly legible.
 
-- **T1 Close:** Horizontal numbered timeline (01/02/03). Alternating labels pre-existing. Centered title formalized with `titleAlign?: 'left'|'center'` token. Filled vs outlined via `ordinalColorContrast?: boolean` token + theme statusMap. New `our-timeline` theme (Tier 1, light). 545 tests pass.
+**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `examples/gallery/showcase/timeline-goals-skia.png` only. All 577 tests pass; 574 existing goldens byte-identical.
 
-- **T5 Gitline Cards:** CTA button rendering with `cardCtaLabel`, `cardCtaFill`, `cardCtaTextColor`, `cardCtaBorderColor`, `cardCtaBorderWidth`, `cardCtaRadius` tokens. Inline date icon with `cardDateIcon` token. Dark navy `gitline` theme (Tier 2). Demo page HTML/CSS chrome.
+**Pattern:** Follows the same opt-in theme-token gating pattern as `labelWrap` (milestone tier gap) and `nodeWrap` (spine routing) — new visual behaviour is isolated to the roadmap theme via a boolean token, never leaking into other themes.
 
-- **Vertical-Spine Gap Compression:** Auto-compress sparse timelines (1967–2024 span: 8732px → 990px). `spineSpacing: 'time'|'even'` option for gap compression (avg spacing >400px/entry triggers compression; cap gaps at 200px).
-
-- **Gitline Demo Page:** Self-contained HTML demo (examples/gallery/gitline-demo.html) wrapping rendered SVG. Browser chrome (header, tabs, pagination) in pure HTML/CSS. SVG chosen for universal browser scaling.
-
-- **T2 Close (Multi-Block Entries):** Five opt-in theme tokens (spineSegmentColor, badgePlacement:'edge', spineNodeArrow, yearLabelUsesEntryColor, spineNodeFillOverride). Multi-block ContentBlock rendering via `blocks?: { heading?: string; text: string }[]` field. Four geometric domain icons (hardhat, wrench, truck, building). New `subject-timeline` theme (Tier 2, dark infographic). 561 tests pass.
-
-- **T2 Badge Fix:** Edge-badge clipped at canvas border; moved from margin-relative to canvas-relative positioning. Icon off-center in Skia; collapsed compound transform to single equivalent form. 561 tests pass; subject-timeline-skia.png regenerated.
-
-- **T3 Gaps Closed:** Activity.color field (mirrors Milestone.color). Gradient background via SceneBackground primitive. Year label sizing + color via `fontSizeYearLabel` token. Dense infographic palette in new `ai-timeline` theme (Tier 2). Gap compression auto-compresses sparse timelines. 567 tests pass.
+**⚠️ CORRECTION (2026-06-12):** The white chip alone was INSUFFICIENT. The chip appeared at SVG lines 24-25 but the activity pill rects were emitted at lines 28, 32, 36 — AFTER the chip — so the pills painted over the entire today marker (line + chip + text) regardless of the chip's opacity. Root cause was **SVG z-order (document order)**, not contrast. See fix below.
 
 ---
 
-## Architecture & Design Notes
+### 2026-06-12 — Today-Marker `onTop` Token (Z-Order Fix)
 
-**Layout Families:**
-- Horizontal: numbered nodes on horizontal axis
-- Vertical-spine: alternating entries left/right of central spine
-- Serpentine: boustrophedon winding path (NEW)
+**Defect (2nd attempt):** Despite the white chip, Cristian still saw the "Today" label buried under the teal Evangelization pill. Root cause confirmed by inspecting `examples/gallery/timeline-goals.svg` paint order: today-marker primitives (line + chip + text) were emitted at SVG lines 24-26, while the three activity phase pills (#6B7280, #0F766E, #1e3a5f) were emitted at lines 28, 32, 36. SVG paints in document order (later = on top), so the pills covered the entire marker. **The chip was never visible — z-order was the real defect.**
 
-**Rendering Determinism Layers:**
-1. Scene geometry: always byte-deterministic (pure function IR + theme)
-2. Per-backend: deterministic given pinned version
-3. Cross-backend: not promised (SVG vs Raster expected to differ)
+**Fix (determinism-safe, gated behind `theme.axis.todayMarker.onTop`):**
+- Added `onTop?: boolean` to the `todayMarker` block in `AxisTheme` (`types.ts`). Default absent/false — all existing themes unaffected, byte-identical.
+- Set `onTop: true` in `roadmap.ts` only (alongside existing `labelChip: true`).
+- In `horizontal.ts` today-marker block: introduced `const deferredTodayPrims: ScenePrimitive[] = []`. When `onTop` is true, all three marker primitives (line, chip, text) are pushed to `deferredTodayPrims` instead of `primitives`. When false, pushed inline as before.
+- At the very end of primitive assembly (before `return`): `if (deferredTodayPrims.length > 0) primitives.push(...deferredTodayPrims)` — appended after activity bars, milestone nodes, legend, all annotations.
+- When `onTop` is false (all other themes), `deferredTodayPrims` stays empty → zero delta → byte-identical for all non-roadmap fixtures.
 
-**Theme Strategy:** Eight built-in base themes + extensible token system (15+ tokens per theme). All new features shipped as opt-in tokens; existing themes byte-identical.
+**Verified SVG order (timeline-goals.svg after fix):**
+- Phase pills: #6B7280 at line 25, #0F766E at line 29, #1e3a5f at line 33
+- Today dashed line: line 85; white chip rect: line 86; "Today" text: line 87
+- Today marker (85–87) > all pill rects (25, 29, 33) ✅ — marker now paints on top.
 
-**Constraint Satisfaction:** Every feature solves a target gap with backward compatibility (opt-in tokens, new fields defaulting to undefined, new layout registered independently).
+**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `timeline-goals-skia.png` only. All 577 tests pass.
+
+**Key Learning:** A chip/backdrop behind the label only works if the chip itself is above the occluding element in z-order. When activities are emitted after the today-marker block, no amount of chip opacity can fix the visibility — the pill paints on top of everything in that block. The fix must be to move the entire marker to after the activity bars. Gate with `onTop` token to avoid moving other fixtures.
+
+---
+
+## Learnings
+
+### 2026-06-12 — Roadmap Layout Family (`layout/roadmap.ts`)
+
+**Status:** INCREMENT 1 shipped; three-zone structure correct; refinements deferred.
+
+#### Architecture
+- Created a new layout family `packages/core/src/layout/roadmap.ts` exporting `layoutRoadmap(ir, theme, baseDir?)`.
+- Wired into `layout/index.ts` dispatcher, `types.ts` union (`'roadmap'`), `schema.ts` Zod enum, `render/index.ts` `BuildSceneOptions`, and the fixture YAML (`metadata.layout: roadmap`).
+- `metadata.layout` in the YAML now acts as a render-option fallback (honoured by `buildScene` via `opts?.layout ?? ir.metadata.layout`).
+
+#### Reused Machinery
+- **dateX / axisState / breakSegs**: Copied verbatim from `horizontal.ts` — same formula, same `BREAK_GAP_PX = 24`, same piecewise-linear scale. Axis-break rendering (axis line segments, "//" marker) is identical.
+- **measureText / ptToPx / rhu / rhuInt**: Shared helpers; no reimplementation.
+- **getIcon**: Used to render white icon glyphs inside the icon badge circles.
+- **wrapText**: Wraps milestone callout labels to ≤2 lines.
+
+#### Three-Zone Geometry (INCREMENT 1)
+1. **HEADER**: title bold top-left, optional subtitle; `calloutTopY = mT + headerH + HEADER_CALLOUT_GAP`.
+2. **CALLOUT ROW**: all milestones at the same `calloutTopY` (shared top baseline). Each has: title lines (bold, centred), date-in-parens (lighter). Leader from `calloutTopY + blockH` → `bandTopY`. Coloured dot at `cy=bandTopY`. Goal milestones get an outlined rounded rect (`fill:'none'`).
+3. **PHASE BAND**: `bandTopY = calloutTopY + maxCalloutH + LEADER_GAP`. Each activity pill at that y, height=56px. Icon badge = circle at `darkenHex(fill, 0.65)` with `getIcon` glyph in white. Label + description at upper/lower thirds of pill.
+4. **DATE AXIS**: line below band with "//" break marker; date labels at each milestone's `dateX` position.
+
+#### Known Roughness (for later passes)
+- Middle callouts (Jun 30 / Jul 2026) visually overlap — de-collision not yet implemented for the roadmap layout.
+- 24px break gap shows as white space in the phase band (activities end/start at break boundaries).
+- Pill gap between Evangelization (xRight=738) and Physical SAW (xLeft=741) = 3px due to rounding on adjacent days.
+- No `axis_unit` tick labels on the band (roadmap only shows milestone-date labels on axis).
+
+**Test Results:** 577/577 pass; all existing goldens byte-identical. `timeline-goals.svg/png/skia.png` regenerated with roadmap layout.
 
 
 ---
 
-## 2026-06-11 — Strategic Alignment: Product Reframe to Diagram Compiler (Barbara)
+## Learnings
 
-📐 **Scene IR as Rendering Kernel Contract**
+### 2026-06-12 — Greedy De-Collision for Roadmap Callouts (INCREMENT 2)
 
-### Positioning Within Diagram Compiler Strategic Reframe
+**Problem:** Six milestone callouts were rendered at their strict `xTrue = dateX(date)` positions. "MSI Installer (Jun 30)" and "Adoption goal (Jul 1)" differ by only 1 day → ~3px difference in `xTrue` → complete text overlap. The axis date labels "Jun 30" / "Jul 2026" also overlapped. Additionally, callout boxes used edge-clamped `xCenter`, while leader lines and dots used `xTrue` directly — these three elements were never guaranteed to share the same x after clamping.
 
-With Leslie's architectural reframe (Timeline is Grammar #1 of a larger diagram compiler), Barbara's rendering work is repositioned:
+**Fix: Greedy left→right forward pass + backward clamp:**
 
-**Scene IR Becomes Shared Kernel Contract:**
-- Scene IR (Rect, Line, Circle, Text, Path, Group, effects, animation hints) is the **universal rendering contract** shared by ALL future grammars (Timeline, Flow, Graph, Comparison, Stat, etc.)
-- Timeline rendering → produces Scene IR → multiple backends (SVG/PNG/Skia/PDF) all consume Scene IR
-- Backend diversity: SVG (text-deterministic), PNG (resvg WASM), Skia (art effects), PDF (exports)
-- Animation hints on Scene primitives are backend-conditional (SVG honors; raster ignores)
+```typescript
+// Forward pass: push each block right as needed to clear the previous
+for i in 0..n-1:
+  placedCenters[0] = max(canvasMinX, xTrue[0])
+  minNext = placedCenters[i-1] + blockW[i-1]/2 + blockW[i]/2 + GAP   // GAP=12
+  placedCenters[i] = max(xTrue[i], minNext)
 
-### Phase 0→1 Implementation Path
+// Backward clamp: prevent rightmost block from overflowing right canvas edge
+for i in n-1..0:
+  if placedCenters[i] > canvasMaxX → clamp
+  if next block too close → push this block left (bounded by canvasMinX)
+```
 
-In Phase 0, kernel/timeline seam drawn in `packages/core`. Barbara owns Scene IR primitives, rendering backends, and theme system. Future grammars' layout engines will compile domain IRs to Scene IR, reusing Barbara's existing backend infrastructure.
+**Critical: single x per milestone.** ALL four visual components now use `placedCenters[i]`:
+- Callout text block (center)
+- Vertical leader line (x1 = x2)
+- Band-top dot (cx)
+- Axis tick mark + date label (x)
 
-### No Changes to Current Implementation
+Previously the leader and dot used `xTrue` while the box used a different `xCenter`. If edge-clamping kicked in, the leader and box became misaligned (angled/skewed leader). Fix: derive everything from `placedCenters[i]`.
 
-All 5 targets (T1–T5) remain fully renderable. The three layout families (horizontal-swimlane, vertical-spine, serpentine) and five showcase themes (consulting, subject-timeline, ai-timeline, serpentine, gitline) are now positioned as Timeline grammar exemplars, not the whole product.
+**Why GAP=12?** 12px > the widest axis date label (~30px / 2 halfwidth = 15px). Since axis labels also use `placedCenters`, a 12px block-edge gap ensures axis labels also don't overlap.
 
----
+**Pill text truncation:** Added `truncateText(a.label, actLabelPx, textAvailW)` and `truncateText(a.description, actDescPx, textAvailW)` in the Phase Band zone. Prevents overflow when a narrow phase pill's text exceeds its available width. Uses the existing `truncateText` from `text-wrap.ts` — no new utility needed.
 
-## 2026-06-12 — `nodeWrap: 'over-under'` arc-around-node spine (Barbara)
+**CalloutInfo schema change:** Added `y, mo, d` fields to the `CalloutInfo` interface so the axis date label loop can use `calloutInfos[idx]` directly (instead of maintaining a parallel `msWithOrd` iteration), making it trivial to pass `placedCenters[idx]` to both the callout box and the axis tick/label in a single indexed loop.
 
-### Token design
-- Added `nodeWrap?: 'none' | 'over-under'` to `AxisTheme`.
-- Only `our-timeline.ts` sets `'over-under'`; all other themes unchanged → byte-identical.
+**Goldens moved:** `timeline-goals.svg`, `timeline-goals.png`, `examples/gallery/showcase/timeline-goals-skia.png` only. All 577 tests pass; all other goldens byte-identical.
 
-### Arc-path geometry
-- Arc radius: `rhu(ms.size + ARC_CLEARANCE=9)` → 37 px for our-timeline
-- SVG arc command: `A arcR arcR 0 0 sweepFlag exitX spineY`
-- Alternates: sweep=0 (CCW, above) for even nodes; sweep=1 (CW, below) for odd
-- All coordinates via `rhu()` for determinism
-
-### Refinements
-- Arc clearance: `ARC_GAP=3` → `ARC_CLEARANCE=9` (3px was invisible behind node)
-- Track separator suppression: gated by `if (nodeWrap !== 'over-under')` in section 5
-- All 564 tests pass byte-identical
+**Result:** Six callout centers at 103, 553, 700, 840, 971, 1097px. All block edges separated by ≥ 12px. Zero text overlaps anywhere in the render.
 
 ---
 
-## Cross-Agent Flags — David's Research (2026-06-12)
+## Learnings
 
-- **Animated-Arrow Pattern:** ByteByteGo-style flowing data-stream via SVG `stroke-dashoffset` (Scene IR animation hint)
-- **Stress-Majorization Determinism:** Force-directed needs deterministic init (gansnerStressMaj2004) — critical for future Graph grammar
-- **Orthogonal TSM Framework:** Tamassia (1987) for architecture diagrams — polynomial-time deterministic
+### 2026-06-12 — Roadmap Geometry Tokens (`theme.roadmap?: RoadmapTheme`)
 
----
+**Task:** Promote all 17 hardcoded geometry constants in `layout/roadmap.ts` to configurable theme tokens without changing any existing render.
 
-## Open Questions — Flow Grammar (2026-06-12)
+**Token surface added (`RoadmapTheme` in `themes/types.ts`):**
 
-1. **Self-Loop Curve Routing:** Bézier/arc/stepped; deterministic via node size
-2. **Back-Edge Rendering Style:** Dashed/dotted/arc; schema property or auto-detected?
-3. **Multi-Edge Perpendicular Offset:** Fixed px or proportional; determinism via stable sort
-4. **Group Visual Rules:** lane (band), cluster (box+label), outline (border); nesting?
-5. **Edge-Label Collision Avoidance:** Deterministic offset from midpoint or theme-configurable?
+*Padding (5 tokens):*
+- `calloutHPad` (6) — horizontal padding inside callout text block
+- `calloutVPad` (4) — vertical padding inside callout text block
+- `goalBoxPadX` (9) — extra horizontal outward padding on goal-milestone box
+- `goalBoxPadTop` (6) — extra top padding on goal-milestone box
+- `goalBoxPadBottom` (3) — extra bottom padding on goal-milestone box
 
----
+*Gaps / separation (6 tokens):*
+- `headerCalloutGap` (16) — vertical gap header→callout row
+- `leaderGap` (6) — vertical gap callout row→band top
+- `axisBelowGap` (4) — vertical gap band bottom→axis line
+- `axisLabelGap` (3) — vertical gap axis line→date label baseline
+- `milestoneGap` (12) — minimum horizontal gap between adjacent callout edges
+- `titleLineGap` (2) — vertical gap between wrapped callout title lines
+
+*Sizes (6 tokens):*
+- `pillHeight` (56) — height of phase-band pill rects
+- `badgeRadius` (18) — icon badge circle radius inside pills
+- `badgeDarkFrac` (0.65) — multiplier for badge fill darken
+- `dotRadius` (4) — leader-landing dot radius
+- `calloutWrapWidth` (130) — max callout text-block width before wrapping
+- `breakGapPx` (24) — fixed pixel width per axis-break gap
+
+**`breakGapPx` wiring:** Required adding `breakGapPx?: number` to the module-local `AxisState` interface and updating the `dateX` function to use `ax.breakGapPx ?? BREAK_GAP_PX` for the break-offset accumulation. The resolved value is also passed into `axisState` and used in the axis-break precomputation loop (`nbWDraw0`, `xLeft`, `xRight`).
+
+**Byte-identical defaults:** The `roadmapTheme` object sets every token to its current constant value. Since `theme.roadmap?.X ?? CONSTANT` resolves identically to `CONSTANT` when the theme value equals the constant, and all defaults match exactly, the `timeline-goals` SVG/PNG/Skia goldens did not change at all (confirmed: `git diff --stat examples/gallery/` → zero changes, 577/577 tests pass).
+
+**Pattern:** Follows the same opt-in theme-token pattern as `labelWrap`, `labelChip`, `onTop` — new configurability is isolated to the consuming theme; the layout falls back to the old constant when the token is absent.
