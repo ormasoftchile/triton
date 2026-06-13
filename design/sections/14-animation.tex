@@ -3,6 +3,9 @@
 
 Animation is modeled as an \emph{additive}, \emph{declarative}, \emph{backend-conditional} layer on top of the static Scene IR. Backends that support animation (SVG, HTML) honor animation hints; backends that produce static output (PNG, PDF, PPTX) render the resting frame.
 
+\paragraph{Implementation Status.}
+Fully implemented with optional \texttt{animation} field in Scene IR. SVG backend emits SMIL \texttt{<animate>} and \texttt{<animateMotion>} elements; raster backends (PNG, Skia) render the byte-identical resting frame. Flow grammar edges support flowing dashes (\texttt{stroke-dashoffset} animation). All animation attributes deterministic and included in SVG hash verification.
+
 \subsection{Design Philosophy}
 
 \paragraph{Additive, not fundamental.}

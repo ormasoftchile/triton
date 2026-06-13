@@ -5,6 +5,9 @@ The Timeline Grammar is the first grammar implemented in the diagram compiler. T
 
 \textbf{Note:} This section re-homes and re-contextualizes the original Timeline IR specification as ``Grammar \#1'' in the broader diagram compiler architecture. The IR definition is unchanged; only the framing is updated.
 
+\paragraph{Implementation Status.}
+Fully implemented in \texttt{packages/core/src/grammars/timeline/} with all four layout families (horizontal, vertical-spine, serpentine, roadmap). Theme-driven rendering with support for ByteByteGo style, dark variants, and animated arc-spine nodes. No deferrals.
+
 \subsection{Design Principles}
 
 The Timeline Domain IR follows the general grammar design principles (Section~\ref{sec:grammar-concept}), with timeline-specific elaboration:

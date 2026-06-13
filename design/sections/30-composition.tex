@@ -3,6 +3,9 @@
 
 The Composition layer arranges multiple grammar outputs into a single poster or infographic. This is how the multi-section corpus images (10x-coding-playbook, archon-harness-builder, rag-vectorless-explainer) are assembled.
 
+\paragraph{Implementation Status.}
+Fully implemented in \texttt{packages/core/src/composition/} with grid-based layout and \texttt{scene-transform.ts} kernel helper (\texttt{translateAndScale}, \texttt{embedSceneInRect}). Supports content-driven row sizing, multi-cell posters, and inline grammar IR embedding. CompositionTheme with light and dark-poster variants. \textbf{Deferred:} \texttt{ir\_file} external URI references (pkg:, file:, http:); currently inline embedding only.
+
 % =========================================================================
 \subsection{Design Philosophy}
 % =========================================================================

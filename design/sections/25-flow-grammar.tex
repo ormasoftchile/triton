@@ -3,6 +3,9 @@
 
 The Flow Grammar is the second grammar implemented in the diagram compiler and the \textbf{template grammar} for all future grammar additions. Where the Timeline Grammar (Section~\ref{sec:timeline-grammar}) proved the kernel's Scene IR contract with a time-axis-centric vocabulary, the Flow Grammar proves that the kernel is genuinely grammar-agnostic: it supports node-link topologies, pipeline sequences, and process flows---fundamentally different visual semantics---without kernel modifications.
 
+\paragraph{Implementation Status.}
+Fully implemented in \texttt{packages/core/src/grammars/flow/} with Sugiyama four-phase layered layout (cycle detection, longest-path rank assignment, barycenter-based crossing minimization, Brandes--K\H{o}pf coordinate assignment). FlowTheme with light and dark variants. \textbf{Deferred:} general non-layered layouts (force-directed, stress-majorization).
+
 % ============================================================================
 \subsection{Scope \& Intent}
 \label{sec:flow-scope}

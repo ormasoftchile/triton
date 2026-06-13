@@ -3,6 +3,9 @@
 
 The Tree Grammar is the fourth grammar in the diagram compiler and the \textbf{second de-risked grammar}: its layout is the Buchheim--J{\"u}nger--Leipert tidy-tree algorithm~\cite{buchheim2002}---deterministic, $O(n)$, and fully solved. Where the Flow Grammar (Section~\ref{sec:flow-grammar}) requires four-phase Sugiyama layered layout with cycle removal and crossing minimization (Section~\ref{sec:layout-engines}), and the Sequence Grammar (Section~\ref{sec:sequence-grammar}) sidesteps layout entirely via arithmetic placement, the Tree Grammar occupies a middle ground: it \emph{does} require a real layout algorithm, but one that is provably deterministic and linear-time for its constrained input class (rooted trees).
 
+\paragraph{Implementation Status.}
+Fully implemented in \texttt{packages/core/src/grammars/tree/} with the Buchheim--J{\"u}nger--Leipert O(n) tidy-tree layout algorithm. Supports recursive node nesting, custom node shapes, and full tree traversal. TreeTheme with light and dark variants.
+
 % ============================================================================
 \subsection{Scope \& Intent}
 \label{sec:tree-scope}

@@ -3,6 +3,9 @@
 
 The Sequence Grammar is the third grammar implemented in the diagram compiler and the \textbf{first de-risked new grammar}: its layout is deterministic-by-construction---no graph auto-layout algorithm is required. Where the Flow Grammar (Section~\ref{sec:flow-grammar}) requires Sugiyama layered layout~\cite{sugiyama1981} with cycle removal, crossing minimization, and coordinate assignment (Section~\ref{sec:layout-engines}), the Sequence Grammar's placement is fully determined by two ordered lists: participants declared left-to-right, and messages declared top-to-bottom. This makes it the lowest-risk grammar to add after Timeline and Flow.
 
+\paragraph{Implementation Status.}
+Fully implemented in \texttt{packages/core/src/grammars/sequence/} with participant/message/activation/fragment IR compilation. Supports all fragment kinds (alt with multi-guard, loop, opt, par), self-messages with curved paths, and stereotype rendering (actor, boundary, control, entity, database). SequenceTheme with light and ByteByteGo variants.
+
 % ============================================================================
 \subsection{Scope \& Intent}
 \label{sec:sequence-scope}
