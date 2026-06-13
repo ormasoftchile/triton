@@ -269,33 +269,36 @@ Tree grammar IR fully implemented by Barbara with canonical children-list form a
 
 ---
 
-## 2026-06-13 — Composition Layer Schema Intake (Scribe)
+## 2026-06-13 — MILESTONE: Composition Layer Implemented (Barbara) — Composition IR Schema Deferred (Scribe)
 
-**Date:** 2026-06-13T15:53:53Z  
-**Status:** Ready for schema intake; blocking point for composition inc-1
+**Date:** 2026-06-13T12:01:44Z  
+**Status:** SHIPPED (composition layer inc-1); Schema deferred to inc-2
 
-### Composition Schema Finalization Needed
+Barbara delivered the Composition Layer kernel helper + module (commit 9c092cc):
 
-Leslie's composition layer spec is complete and ready for Mark's schema work:
+**What shipped:**
+- `packages/core/src/scene-transform.ts` — `translateAndScale()`, `embedSceneInRect()`, `transformPathD()`, `rhu()`
+- `packages/core/src/composition/` — full module (types/schema/layout/theme/index)
+- Gallery example: `examples/gallery/poster-rag-architecture.composition.yaml` (2×2 RAG poster)
+- Test coverage: 694/694 pass (25 new composition tests)
 
-**Input artifact:** design/sections/30-composition.tex (enriched spec with full IR shape, algorithm, edge cases)
+**Validation & Determinism:**
+- All four shape grammars (timeline, flow, sequence, tree) now feed into Scene kernel ✅
+- Grid layout engine: deterministic-by-construction (max column widths, fit-to-cell scaling capped at 1.0)
+- No RNG, no convergence loops, same input → identical SVG hash
+- 669 prior goldens byte-identical (kernel helper used only by composition)
 
-**Schema deliverables:**
-1. **CompositionDocument JSON Schema** — discriminated union structure for CellContent (grammar/stat/text/title/image)
-2. **ir_file URI schemes** — support for pkg:, file:, http: references (lexical vs. semantic validation)
-3. **Two-pass validation strategy** — composition schema → sub-grammar schema validation flow
+**Schema Impact on Composition IR (Mark intake for inc-2):**
 
-**Composition IR Summary:**
-- CompositionDocument: version, metadata, grid (columns, rows, gap, padding), cells[]
-- Cell: id, row/col, rowSpan/colSpan, title/caption, content
-- CellContent: discriminated union on `kind` field
-- GrammarContent: grammar name + inline ir OR ir_file reference
+| Item | Status | Note |
+|------|--------|------|
+| CompositionDocument JSON Schema | 🚧 Deferred | Discriminated union for CellContent(grammar\|stat\|text\|title\|image) |
+| `ir_file` URI schemes | 🚧 Deferred | pkg:, file:, http: support + security model |
+| Two-pass validation | 🚧 Deferred | Composition schema → sub-grammar schema validation flow |
+| Nested composition cycles | 🚧 Deferred | Depth limit enforcement (≤ 3) |
 
-**Test fixtures available:** RAG Architecture Poster (2×2 example with flow, sequence, tree, stat)
+**Key Decision:** Composition IR schema design is straightforward (grid + cell array + content union). Current spec is complete and unambiguous. Recommend prioritizing `ir_file` URI schemes and two-pass validation for inc-2 (enables external diagram references — critical for real-world posters).
 
-**Estimated effort:** 1–2 hours (straightforward schema; validation strategy well-specified in §30)
-
-**Downstream blocker:** Once schema finalized, Barbara implements kernel helper → composition inc-1 rendering ready
+**Blocks on:** Nothing — composition inc-1 is feature-complete. Future enhancements (ir_file, depth enforcement) are orthogonal to current gallery example.
 
 ---
-

@@ -104,3 +104,63 @@ For detailed context from earlier sessions (Sequence spec, Tree spec refinement,
 1. **Mark:** CompositionDocument schema finalization (expected next turn)
 2. **Barbara:** Kernel helper implementation (estimated 2–3 hours after schema)
 3. **Leslie:** Awaits Mark/Barbara for composition inc-1 implementation kickoff
+
+---
+
+## 2026-06-13 — MILESTONE: Composition Layer Implemented End-to-End (Scribe)
+
+**Date:** 2026-06-13T12:01:44Z  
+**Status:** SHIPPED
+
+### What Shipped
+
+Barbara completed composition layer increment-1 (commit 9c092cc). The implementation validates the entire two-IR-layer architecture:
+
+**Kernel Helper:** `packages/core/src/scene-transform.ts`
+- `translateAndScale()` handles all 8 Scene primitive kinds
+- `transformPathD()` parses/transforms SVG path d-strings (M/L/H/V/C/S/Q/T/A/Z commands)
+- `embedSceneInRect()` fits sub-scenes to grid cells (scale capped at 1.0)
+- Rounding via `rhu(2dp)` matching all existing layout engines
+
+**Composition Module:** `packages/core/src/composition/` (types/schema/layout/theme/index pattern)
+- Grid-based layout: column widths = max(sub-scene widths per column)
+- Cell content compilation: each cell's grammar IR → independent sub-Scene
+- Fit+center embed: uniform scale per cell, capped at 1.0
+- Theme-driven chrome: poster title bar, per-cell title bars, 20px gaps, dark background
+
+**Gallery:** `examples/gallery/poster-rag-architecture.composition.yaml`
+- 2×2 RAG Architecture poster combining flow + tree + sequence + stat callout
+- 1200×1062 px SVG + 67 KB PNG output
+- Validates integration across all four shape grammars
+
+### Architecture Validation
+
+The implementation confirms:
+1. **Domain IR → Scene IR pipeline works** — each cell's grammar IR compiles independently, then merges in painter's order
+2. **Determinism verified** — no RNG in composition layout, same input → identical SVG hash
+3. **Scale policy enforced** — fit policy never upscales, maintaining visual fidelity
+4. **Grammar ≡ Semantics; Theme ≡ Style** — composition layer is styling-free, all chrome is theme-driven
+
+### Test Results
+
+- **694/694 tests pass** (669 prior core + 25 new composition)
+- **All 669 prior goldens byte-identical** (translateAndScale used only by composition)
+- New fixtures: poster-rag-architecture (svg + png)
+
+### Deferred (Increment-2+)
+
+- `ir_file` URI references (pkg:, file:, http:)
+- Named grid tracks (CSS Grid style)
+- Nested composition cycles (depth limit enforcement)
+- Alt grid backends (CSS Grid, canvas native rendering)
+
+### End-to-End Status
+
+| Layer | Grammars | Status |
+|-------|----------|--------|
+| **Shape Grammars** | Timeline (5 themes), Flow (Sugiyama), Sequence (2 themes), Tree (B–J–L) | ✅ |
+| **Scene Kernel** | 8 primitives, 3 backends (SVG/PNG/Skia) | ✅ |
+| **Composition** | Grid-based multi-diagram posters | ✅ |
+| **Determinism** | No RNG, all closed-form layouts | ✅ |
+
+**Vision complete.** The deterministic diagram compiler is now functional end-to-end: all four grammars (timeline, flow, sequence, tree) + shared Scene kernel + theme-driven styling + composition layer for multi-diagram posters.
