@@ -83,3 +83,25 @@ export type {
   SequenceTheme,
   CardKindStyle,
 } from './grammars/sequence/index.js';
+
+// Tree grammar (second multi-grammar architecture entry point — BJ+L tidy-tree)
+export {
+  buildTreeScene,
+  renderTreeDocument,
+  treeDocumentSchema,
+  defaultTreeTheme,
+  resolveTreeTheme,
+  TREE_THEME_REGISTRY,
+} from './grammars/tree/index.js';
+export type {
+  TreeDocument,
+  TreeNode,
+  TreeMetadata,
+  TreeDefinition,
+  TreeDocumentInput,
+  TreeRenderOptions,
+  TreeRenderResult,
+  TreeTheme,
+  TreeEdgeStyle,
+  TreeOrientation,
+} from './grammars/tree/index.js';

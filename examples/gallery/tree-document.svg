@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="294" version="1.1" viewBox="0 0 923 294" width="923" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#ffffff" height="294" width="923" x="0" y="0"/>
+  <path d="M 493 38 L 493 73 L 175 73 L 175 108" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 175 146 L 175 181 L 104 181 L 104 216" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 175 146 L 175 181 L 247 181 L 247 216" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 493 38 L 493 73 L 540 73 L 540 108" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 540 146 L 540 181 L 401 181 L 401 216" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 540 146 L 540 181 L 548 181 L 548 216" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 540 146 L 540 181 L 679 181 L 679 216" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 493 38 L 493 73 L 811 73 L 811 108" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <path d="M 811 146 L 811 181 L 811 181 L 811 216" fill="none" stroke="#9fa8da" stroke-width="1.5"/>
+  <rect fill="#c5cae9" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="127" x="40" y="216"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="104" y="235">1.1 Background</text>
+  <rect fill="#c5cae9" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="119" x="187" y="216"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="247" y="235">1.2 Motivation</text>
+  <rect fill="#5c6bc0" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="171" x="90" y="108"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="175" y="127">Chapter 1: Introduction</text>
+  <rect fill="#c5cae9" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="148" x="327" y="216"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="401" y="235">2.1 Data Collection</text>
+  <rect fill="#c5cae9" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="106" x="495" y="216"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="548" y="235">2.2 Analysis</text>
+  <rect fill="#c5cae9" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="116" x="621" y="216"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="679" y="235">2.3 Validation</text>
+  <rect fill="#5c6bc0" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="152" x="464" y="108"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="540" y="127">Chapter 2: Methods</text>
+  <rect fill="#c5cae9" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="107" x="757" y="216"/>
+  <text dominant-baseline="central" fill="#1a237e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="811" y="235">3.1 Findings</text>
+  <rect fill="#5c6bc0" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="145" x="738" y="108"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="811" y="127">Chapter 3: Results</text>
+  <rect fill="#3949ab" height="38" rx="6" stroke="#5c6bc0" stroke-width="1.5" width="100" x="443" y="0"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="493" y="19">Document</text>
+</svg>
