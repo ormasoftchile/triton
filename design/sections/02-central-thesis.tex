@@ -1,43 +1,60 @@
-\section{Central Thesis: A Deterministic Diagram Compiler}
+\section{Central Thesis: A Mermaid-Superset Diagram Compiler}
 \label{sec:central-thesis}
 
-This document specifies a \emph{deterministic, themeable, agent-authorable diagram compiler}: a system that transforms small declarative intermediate representations into presentation-quality visual output through a layered architecture of grammars, a shared kernel, and pluggable rendering backends.
+This document specifies a \textbf{Mermaid-superset diagram compiler}: a system that accepts
+every valid Mermaid diagram, produces dramatically better-looking output, provides a
+structured IR for agent authoring, and extends Mermaid with composition, rich theming,
+animation, and a dedicated UML/software diagram line.
+
+\subsection{The Positioning}
+
+\begin{quote}
+\textbf{Central thesis:} All of Mermaid's 22 diagram types work out of the box---parsed
+faithfully from Mermaid syntax---but compile through our deterministic Scene IR to produce
+\emph{beautiful, themeable, coherent} output. Differentiation comes from three pillars:
+(1)~explicitly beating Mermaid's aesthetics, (2)~a Tier-1 UML/software diagram line,
+and (3)~an agent-authorable structured IR that enables dual front-end authoring.
+\end{quote}
+
+The strategy is: \textbf{Mermaid-complete first, craft net-new diagrams after.}
 
 \subsection{The Engine-as-Asset Insight}
 
-The strategic insight underlying this specification is a reframe: \textbf{the real asset is not ``a timeline tool.''} It is a \emph{compiler architecture} capable of hosting a family of visual grammars, each small enough to be reliably emitted by an LLM, each compiling down to a shared Scene IR that guarantees determinism and enables theming across all diagram types.
+The strategic insight underlying this specification: \textbf{the real asset is the compiler
+architecture}---a shared deterministic Scene IR kernel that hosts a family of diagram
+grammars, each with a Mermaid-compatible parser and a structured IR API.
 
-Timeline is \emph{grammar \#1}---the first proof of the engine, not the whole product. The architecture generalizes to:
-
-\begin{itemize}
-  \item \textbf{Flow/pipeline diagrams}: ordered icon+label nodes with arrows, loops, and legends
-  \item \textbf{Node-link graphs}: trees, networks, hub-and-spoke, architecture diagrams
-  \item \textbf{Comparison matrices}: N columns with checkmarks, stats, or feature rows
-  \item \textbf{Stat callouts}: big number + caption compositions
-  \item \textbf{Step-card sequences}: numbered ordinal + icon + bullet lists
-  \item \textbf{Multi-panel posters}: compositions that arrange multiple grammars into a single visual
-\end{itemize}
-
-The value proposition is the \emph{compounding payoff}: animation, themes, new backends, and quality-gates added once in the kernel are inherited by every grammar. A new grammar (e.g., flow diagrams) gains determinism, theming, SVG/PNG/PDF output, and validate-before-render for free.
+The compounding payoff: animation, themes, new backends, and quality-gates added once in
+the kernel are inherited by every grammar. A new grammar (e.g., class diagrams) gains
+determinism, theming, SVG/PNG/PDF output, composition support, and validate-before-render
+for free.
 
 \subsection{The Pipeline Model}
 
-Every diagram in the compiler follows the same pipeline:
+Every diagram in the compiler follows the same pipeline, regardless of whether it enters
+as Mermaid text or structured IR:
 
 \begin{figure}[h]
 \centering
 \begin{Verbatim}[frame=single,fontsize=\small]
-  Domain IR (grammar-specific)
-       |
-       v  [Grammar-specific Layout Engine]
-       |
-  Scene IR (universal primitives)
-       |
-       v  [Rendering Backend]
-       |
-  Output (SVG / PNG / PDF / PPTX)
+  Input A: Mermaid-Superset DSL     Input B: Structured IR (JSON/YAML)
+        |                                    |
+        v  [Grammar-specific Parser]         v  [Schema Validation]
+        |                                    |
+        +---------------+--------------------+
+                        |
+                        v
+              Domain IR (grammar-specific)
+                        |
+                        v  [Grammar-specific Layout Engine]
+                        |
+              Scene IR (universal primitives)
+                        |
+                        v  [Rendering Backend]
+                        |
+              Output (SVG / PNG / PDF)
 \end{Verbatim}
-\caption{The universal pipeline: Domain IR → Layout Engine → Scene IR → Backend → Output}
+\caption{The dual-input pipeline: DSL and structured IR converge at Domain IR}
 \label{fig:central-pipeline}
 \end{figure}
 
@@ -52,73 +69,76 @@ The same IR plus the same theme produces byte-identical output across runs, plat
 The term ``compiler'' is precise and intentional:
 
 \begin{description}
-  \item[Structured input, structured output] The system does not accept freeform drawings or WYSIWYG manipulation. It accepts a declarative specification (the IR) and produces a deterministic artifact.
+  \item[Structured input, structured output] The system accepts Mermaid text or structured IR
+        and produces a deterministic artifact. No WYSIWYG, no freeform drawing.
   
-  \item[Separation of concerns] Content (IR), styling (theme), and rendering (backend) are cleanly separated. The IR describes \emph{what} to communicate; the theme describes \emph{how} it looks; the backend describes \emph{where} it goes.
+  \item[Separation of concerns] Content (IR), styling (theme), and rendering (backend) are
+        cleanly separated. The IR describes \emph{what} to communicate; the theme describes
+        \emph{how} it looks; the backend describes \emph{where} it goes.
   
-  \item[Typed intermediate representations] Like a programming-language compiler, this system uses typed IRs at multiple levels (Domain IR, Scene IR) with well-defined transformations between them.
+  \item[Typed intermediate representations] Like a programming-language compiler, this system
+        uses typed IRs at multiple levels (Domain IR, Scene IR) with well-defined
+        transformations between them.
   
-  \item[Determinism by construction] The compiler is a pure function from (IR, theme, backend) to output. No random state, no user interaction, no system clock.
+  \item[Determinism by construction] The compiler is a pure function from
+        (input, theme, backend) to output. No random state, no user interaction, no system clock.
 \end{description}
 
-This is not a design tool (Figma, Canva), not a charting library (D3, Plotly), and not a project-management tool (Jira, MS Project). It is a \emph{rendering compiler} for technical explainer diagrams.
+\subsection{The Five Diagram Families}
 
-\subsection{The Target Niche: Technical Explainer Content}
+The 22 Mermaid types plus our extensions organize into five families
+(Part~\ref{part:families}):
 
-The inspiration corpus (Section~\ref{sec:corpus-taxonomy}) reveals a coherent niche: \emph{AI-engineering / developer technical-explainer infographics}. These artifacts share visual vocabulary (flows, trees, matrices, step-cards, stat callouts) and share an audience (technical practitioners, executives receiving technical briefings).
-
-This niche is defensible:
-
-\begin{itemize}
-  \item \textbf{Small grammars are the feature.} A narrow grammar is both shippable and reliably LLM-emittable. A god-schema that tries to express everything is unmaintainable and hostile to agent generation.
-  
-  \item \textbf{Automatic layout is required.} The author (human or agent) should not hand-place nodes. The grammar must be constrained enough that a deterministic layout algorithm can position elements without ambiguity.
-  
-  \item \textbf{The author is often an LLM.} Every design decision must ask: can an agent emit this reliably? If the answer is ``only with special prompting,'' the design is wrong.
-\end{itemize}
-
-The explicit \emph{non-goal} is competing with general-purpose freeform canvas tools (Canva, Figma, Excalidraw). Those tools optimize for human creativity and manual placement. This compiler optimizes for deterministic, automated, agent-driven generation of \emph{constrained} visual vocabularies.
-
-\subsection{Elevating the Timeline Grammar Thesis}
-
-Section~\ref{sec:grammar-abstraction-old} (now Part~III) established the ``Timeline Grammar vs.\ Task Scheduling Grammar'' distinction. That thesis remains valid but is now a \emph{special case} of a broader principle:
-
-\begin{quote}
-\emph{Every grammar in the compiler adopts a visual-communication abstraction, not an operational/computational abstraction. The IR describes what to show, not what to compute.}
-\end{quote}
-
-For timelines, this means: no dependency scheduling, no resource leveling, no critical-path analysis. For flow diagrams, this means: no execution semantics, no data-flow analysis, no simulation. For graphs, this means: no graph algorithms beyond layout---the IR specifies nodes and edges, not traversal results.
-
-The compiler renders \emph{narratives} about technical concepts. It does not execute those concepts.
+\begin{enumerate}
+  \item \textbf{Node-link / graph}: flowchart, C4, architecture, block, requirement,
+        gitGraph, sankey
+  \item \textbf{UML / software} (Tier-1 priority): sequence, class, state, ER
+  \item \textbf{Charts} (data$\to$geometry): pie, xychart, quadrant, radar
+  \item \textbf{Timeline / project}: gantt, timeline, journey, kanban
+  \item \textbf{Tree / hierarchy}: mindmap, treemap
+\end{enumerate}
 
 \subsection{The Kernel/Grammar/Composition Architecture}
 
-The architecture has three layers (detailed in Part~\ref{part:architecture}):
+The architecture has four layers (detailed in Part~\ref{part:architecture}):
 
 \begin{description}
-  \item[Kernel (Part~\ref{part:kernel})] The shared infrastructure: Scene IR, rendering backends, theme system, determinism contract, icon registry, asset loader, lint/quality-gate framework. The kernel knows nothing about timelines, flows, or graphs---it renders primitives.
-  
-  \item[Grammars (Part~\ref{part:grammars})] Peer modules atop the kernel. Each grammar defines a Domain IR and one or more layout engines that compile Domain IR → Scene IR. Timeline is grammar \#1; future grammars include flow, graph, comparison, stat, step-cards.
-  
-  \item[Composition (Part~\ref{part:composition})] A thin layer that arranges multiple panels into a poster. Each panel references a grammar's Domain IR. This is how the multi-section infographics are assembled.
+  \item[Front-End (Part~\ref{part:frontend})] The dual-input layer: Mermaid-superset parsers
+        and structured IR validation. Converts all inputs to Domain IR.
+
+  \item[Grammars (Part~\ref{part:families})] Peer modules organized into five families.
+        Each grammar defines a Domain IR and layout engine(s) that compile Domain IR to Scene IR.
+
+  \item[Kernel (Part~\ref{part:kernel})] The shared infrastructure: Scene IR, rendering
+        backends, determinism contract, animation. The kernel knows nothing about specific
+        diagram types---it renders primitives.
+
+  \item[Composition (Part~\ref{part:composition})] Arranges multiple diagrams into
+        posters/grids. Each cell references a grammar's output.
 \end{description}
 
-\subsection{Summary of the Strategic Evolution}
+\subsection{Summary of the Strategic Positioning}
 
-This specification captures a major strategic evolution:
+This specification captures the product's positioning:
 
 \begin{enumerate}
-  \item \textbf{From ``timeline tool'' to ``diagram compiler.''} The product is the engine, not the first grammar.
-  
-  \item \textbf{From one IR to two IR layers.} Domain IRs are grammar-specific and small; all compile to the shared Scene IR.
-  
-  \item \textbf{From SVG-first to Scene-first.} SVG is one backend, not the universal root. The Scene IR is the render contract.
-  
-  \item \textbf{From timeline-only to grammar family.} Flows, graphs, comparisons, stats, and compositions are in scope.
-  
-  \item \textbf{From static-only to animation-aware.} Animation is additive, declarative, and backend-conditional.
-  
-  \item \textbf{From monolith to layered kernel.} The kernel is extractable; grammars are thin consumers.
+  \item \textbf{Full Mermaid superset.} All 22 diagram types parse and render.
+        Zero migration cost for existing Mermaid users.
+
+  \item \textbf{Beautiful output as primary differentiator.} Aesthetics is not polish;
+        it is the reason users switch (Part~\ref{part:aesthetics}).
+
+  \item \textbf{Dual front-end.} Humans write Mermaid-superset text; agents emit structured IR.
+        Both converge at the Domain IR.
+
+  \item \textbf{UML/software as Tier-1 priority.} Class, state, ER, C4---the diagrams
+        software teams need daily, rendered with modern aesthetics.
+
+  \item \textbf{Deterministic, composable, animated.} Byte-identical output; multi-diagram
+        posters; declarative animation. No other tool combines all three.
+
+  \item \textbf{Mermaid-complete first, net-new after.} Cover the 22 types before investing
+        in novel diagram kinds.
 \end{enumerate}
 
 The following parts specify each layer in detail.

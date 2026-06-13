@@ -1,0 +1,88 @@
+\section{Positioning: Why a Mermaid Superset}
+\label{sec:comparison}
+
+This compiler is positioned as a \textbf{full Mermaid superset}: every valid Mermaid diagram
+parses and renders correctly, but the output is dramatically better-looking, the architecture
+is deterministic and composable, and agents get a first-class structured IR path alongside the
+text DSL.
+
+\subsection{The Competitive Landscape}
+
+\begin{table}[h]
+\centering\small
+\caption{Positioning matrix: diagram-as-code tools}
+\begin{tabularx}{\textwidth}{lXXXXX}
+\toprule
+\textbf{Axis} & \textbf{Mermaid} & \textbf{PlantUML} & \textbf{D2} & \textbf{Vega-Lite} & \textbf{Ours} \\
+\midrule
+Diagram types      & 22 types & UML-centric & General graph & Charts only & 22+ (superset) \\
+Visual quality     & Documentation-grade & Dated & Modern, limited & Good charts & \textbf{Presentation-grade} \\
+Theming            & Basic color overrides & Skins (limited) & Themes & Spec-level & \textbf{Full theme system} \\
+Determinism        & Mostly & No (Graphviz) & No & Yes & \textbf{Byte-identical} \\
+Agent IR           & Text only & Text only & Text only & JSON spec & \textbf{Structured IR + DSL} \\
+Composition        & None & None & None & Concat/layer & \textbf{Grid posters} \\
+UML/software focus & Partial & Primary & No & No & \textbf{Tier-1 priority} \\
+\bottomrule
+\end{tabularx}
+\label{tab:positioning-matrix}
+\end{table}
+
+\subsection{Why Full Mermaid Compatibility}
+
+Mermaid~\cite{mermaid2023} is the de facto standard for diagrams-as-code.
+It renders natively on GitHub, GitLab, Notion, Obsidian, and hundreds of platforms.
+Over 88{,}000 GitHub stars and a \$7.5M raise confirm its ubiquity.
+But Mermaid has clear limitations:
+
+\begin{itemize}
+  \item \textbf{Ugly output.} Mermaid diagrams look like documentation artifacts, not
+        presentation-grade visuals. Fixed styles, poor typography, no coherent design system.
+  \item \textbf{No structured IR.} Agents must generate raw text DSL; no JSON/YAML path
+        for reliable constrained generation.
+  \item \textbf{No composition.} Cannot combine multiple diagrams into posters or multi-panel layouts.
+  \item \textbf{Non-deterministic edge cases.} Layout can vary across versions and renderers.
+  \item \textbf{Limited theming.} Color overrides only; no typographic or geometric control.
+\end{itemize}
+
+Our strategy: \textbf{parse every Mermaid grammar faithfully}, then differentiate on
+aesthetics, determinism, composition, and the agent IR. Users can drop in existing Mermaid
+files and immediately get better output with zero migration cost.
+
+\subsection{Differentiation Pillars}
+
+\begin{description}
+  \item[Beautiful, coherent output] Explicitly beating Mermaid's visual quality.
+        Professional themes, proper typography, consistent spacing, dark/light modes.
+        Aesthetics is a first-class architectural pillar (Part~\ref{part:aesthetics}).
+
+  \item[UML/software diagram line] Tier-1 investment in class, state, ER, and C4 diagrams---
+        the diagrams software teams use daily. PlantUML owns this niche with dated visuals;
+        we deliver modern, beautiful UML.
+
+  \item[Agent-authorable structured IR] Dual front-end: humans write
+        Mermaid-superset text; agents emit/consume a structured IR (JSON/YAML).
+        Both compile to the same domain IR, then to Scene IR, then to backends
+        (Part~\ref{part:frontend}).
+
+  \item[Deterministic composition] Byte-identical output; multi-diagram posters;
+        cross-diagram references. No other diagram-as-code tool offers this.
+\end{description}
+
+\subsection{vs.\ PlantUML}
+
+PlantUML~\cite{plantuml} is Java-based, GPL-licensed, Graphviz-dependent (non-deterministic),
+and produces visually dated output. Its UML coverage is comprehensive but its rendering is a
+liability in 2026. We capture PlantUML's UML breadth with modern visuals and deterministic output.
+
+\subsection{vs.\ D2}
+
+D2~\cite{d2lang} is a modern diagram language with good aesthetics but no Mermaid compatibility,
+no structured IR for agents, limited diagram types, and non-deterministic layout (ELK/dagre).
+We offer broader coverage, Mermaid migration path, and byte-identical determinism.
+
+\subsection{vs.\ Vega-Lite}
+
+Vega-Lite~\cite{vegalite2017} is the gold standard for declarative statistical charts---but
+it has no concept of node-link graphs, sequence diagrams, or flowcharts. Our chart family
+(Section~\ref{sec:chart-family}) draws on Vega-Lite's grammar-of-graphics principles for the
+quantitative subset, while covering the full diagram-type space Vega-Lite cannot reach.

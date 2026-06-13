@@ -264,17 +264,23 @@ Grammars may extend the theme schema with grammar-specific properties (e.g., \te
 \small
 \begin{tabular}{llll}
 \toprule
-\textbf{Grammar} & \textbf{Domain Entities} & \textbf{Status} & \textbf{Priority} \\
+\textbf{Grammar} & \textbf{Domain Entities} & \textbf{Status} & \textbf{Family} \\
 \midrule
-Timeline & tracks, activities, milestones, sections & Implemented & MVP \\
-Flow/Pipeline & nodes, edges, lanes, legends & Planned & High \\
-Node-Link Graph & vertices, edges, clusters & Planned & Medium \\
-Comparison & columns, rows, cells, indicators & Planned & Medium \\
-Stat Callout & stat, caption, trend & Planned & Low \\
-Step-Cards & ordinal, title, bullets, icon & Planned & Low \\
+Timeline & tracks, activities, milestones, sections & Implemented & Timeline/project \\
+Flow & nodes, edges, lanes, legends & Implemented & Node-link/graph \\
+Sequence & participants, messages, activations, fragments & Implemented & UML/software \\
+Tree & root, children (recursive), labels & Implemented & Tree/hierarchy \\
+\midrule
+Class & classes, relationships, packages & Planned (Tier-1) & UML/software \\
+State & states, transitions, composites & Planned (Tier-1) & UML/software \\
+ER & entities, relationships, cardinalities & Planned (Tier-1) & UML/software \\
+Chart & data, encoding, marks, scales & Planned (Tier-2) & Charts \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+The full 22-type coverage matrix and family taxonomy are detailed in
+Section~\ref{sec:family-taxonomy}.
 
 \subsection{The Compounding Payoff}
 

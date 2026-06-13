@@ -5,8 +5,8 @@ A theme is a \emph{pure styling layer}: it accepts the geometry produced by the 
 model (Section~\ref{sec:rendering}) and assigns colors, typography, shapes, and decorations,
 producing a final visual specification. A theme operates exclusively on signals the renderer
 has already computed---coordinates, status values, categories, progress fractions. It may not
-alter geometry, and it may not require IR fields beyond those defined in
-Section~\ref{sec:ir}~\cite{thinkcell,vegalite2017}.
+alter geometry, and it may not require IR fields beyond those defined in the
+grammar specifications~\cite{thinkcell,vegalite2017}.
 
 \begin{quote}
 \textbf{Theme-engine contract (binding):} A theme MUST accept all valid IR documents. A theme
@@ -26,7 +26,7 @@ Themes are built on four principles:
 \begin{itemize}
   \item \textbf{Data-independent.} A theme knows nothing about the content of the IR. It maps
         semantic signals (status, category) to visual treatments through fixed lookup tables.
-        No IR field other than those defined in Section~\ref{sec:ir} is read.
+        No IR field other than those defined in the grammar specifications is read.
   \item \textbf{Composable.} Themes support single inheritance. A child theme specifies only
         the properties that differ from its parent; all others inherit. This enables branded
         variants (\texttt{acme-consulting} extending \texttt{consulting}) with minimal

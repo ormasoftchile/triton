@@ -83,7 +83,7 @@
 % DOCUMENT METADATA
 % ============================================================================
 
-\title{A Deterministic Diagram Compiler\\[0.5em]\Large Architecture \& Specification\\[0.3em]\normalsize (Timeline as the First Grammar)}
+\title{A Mermaid-Superset Diagram Compiler\\[0.5em]\Large Beautiful, Deterministic, Agent-Authorable\\[0.3em]\normalsize Architecture \& Specification}
 \author{Timeline Compiler Project}
 \date{June 2026}
 
@@ -99,79 +99,99 @@
 \newpage
 
 % ============================================================================
-% PART I — THESIS & ENGINE
+% PART I — THESIS & POSITIONING
 % ============================================================================
 
-\part{Thesis \& Engine}
+\part{Thesis \& Positioning}
 \label{part:thesis}
 
 \input{sections/01-problem}
-\input{sections/02-central-thesis}        % NEW: Engine-as-asset, diagram compiler thesis
-\input{sections/03-principles}            % Renamed from 02-principles
-\input{sections/04-scope}                 % Renamed from 03-scope
+\input{sections/02-central-thesis}
+\input{sections/03-principles}
+\input{sections/04-scope}
+\input{sections/05-comparison}            % Sharpened: Mermaid/PlantUML/D2/Vega positioning
 
 % ============================================================================
-% PART II — THE KERNEL (Shared Infrastructure)
+% PART II — THE FRONT-END (Input)
+% ============================================================================
+
+\part{The Front-End}
+\label{part:frontend}
+
+\input{sections/15-frontend}              % Dual front-end: Mermaid-superset DSL + structured IR
+\input{sections/16-mermaid-compat}        % Full Mermaid compatibility strategy (22 types)
+\input{sections/17-superset-extensions}   % Superset+ extensions beyond Mermaid
+
+% ============================================================================
+% PART III — THE KERNEL
 % ============================================================================
 
 \part{The Kernel}
 \label{part:kernel}
 
-\input{sections/10-scene-ir}              % NEW: Scene IR / render contract (from 07)
-\input{sections/11-backends}              % NEW: Backends (SVG-as-truth, resvg, Skia)
-\input{sections/12-themes}                % Renamed from 06-themes
-\input{sections/13-determinism}           % NEW: Determinism contract (from 05)
-\input{sections/14-animation}             % NEW: Animation (additive, backend-conditional)
+\input{sections/10-scene-ir}
+\input{sections/11-backends}
+\input{sections/13-determinism}
+\input{sections/14-animation}
 
 % ============================================================================
-% PART III — GRAMMARS
+% PART IV — THE DIAGRAM FAMILIES
 % ============================================================================
 
-\part{Grammars}
-\label{part:grammars}
+\part{The Diagram Families}
+\label{part:families}
 
-\input{sections/20-grammar-concept}       % NEW: Two-IR-layer model, grammar concept
-\input{sections/21-timeline-grammar}      % Renamed from 04-ir (recontextualized)
-\input{sections/22-rendering}             % Renamed from 05-rendering (timeline-specific)
-\input{sections/23-corpus-taxonomy}       % NEW: Inspiration corpus analysis
-\input{sections/24-diagram-family}        % NEW: Flow, graph, comparison, stat grammars
-\input{sections/25-flow-grammar}          % NEW: Flow Grammar concrete spec (Grammar #2)
-\input{sections/26-sequence-grammar}      % NEW: Sequence Grammar concrete spec (Grammar #3, de-risked)
-\input{sections/27-tree-grammar}          % NEW: Tree Grammar concrete spec (Grammar #4, de-risked)
+\input{sections/20-grammar-concept}       % Two-IR-layer model; grammar interface
+\input{sections/28-family-taxonomy}       % 5 families, 22-type coverage matrix
+\input{sections/21-timeline-grammar}      % Timeline/project family (built)
+\input{sections/22-rendering}             % Timeline rendering specifics
+\input{sections/25-flow-grammar}          % Node-link family: Flow (built)
+\input{sections/26-sequence-grammar}      % UML/software family: Sequence (built)
+\input{sections/27-tree-grammar}          % Tree/hierarchy family: Tree (built)
+\input{sections/29-chart-family}          % Charts family: grammar-of-graphics layer (NEW)
 
 % ============================================================================
-% PART IV — COMPOSITION
+% PART V — AESTHETICS & THEMING
+% ============================================================================
+
+\part{Aesthetics \& Theming}
+\label{part:aesthetics}
+
+\input{sections/12-themes}                % Theme architecture + schema
+\input{sections/18-aesthetics}            % The aesthetic bar; beating Mermaid visually
+
+% ============================================================================
+% PART VI — COMPOSITION
 % ============================================================================
 
 \part{Composition}
 \label{part:composition}
 
-\input{sections/30-composition}           % NEW: Multi-panel poster/composition IR
+\input{sections/30-composition}
 
 % ============================================================================
-% PART V — ARCHITECTURE & PACKAGING
+% PART VII — ARCHITECTURE & PACKAGING
 % ============================================================================
 
 \part{Architecture \& Packaging}
 \label{part:architecture}
 
-\input{sections/40-architecture}          % NEW: Layered architecture, kernel/grammar seam
-\input{sections/41-packaging}             % NEW: Monorepo strategy, incremental path
-\input{sections/42-layout-engines}        % NEW: Graph auto-layout, risk analysis
+\input{sections/40-architecture}
+\input{sections/41-packaging}
+\input{sections/42-layout-engines}
+\input{sections/50-agent-integration}     % Agent surface: MCP/SDK/CLI
 
 % ============================================================================
-% PART VI — ECOSYSTEM
+% PART VIII — ROADMAP & MVP
 % ============================================================================
 
-\part{Ecosystem}
-\label{part:ecosystem}
+\part{Roadmap \& MVP}
+\label{part:roadmap}
 
-\input{sections/50-agent-integration}     % Renamed from 09-agent-integration
-\input{sections/51-distribution}          % Renamed from 08-distribution
-\input{sections/52-comparison}            % Renamed from 10-comparison (enriched)
-\input{sections/53-oss-strategy}          % Renamed from 12-oss-strategy
-\input{sections/54-mvp}                   % Renamed from 11-mvp (enriched)
-\input{sections/55-target-outputs}        % Renamed from 14-target-outputs
+\input{sections/60-roadmap}               % Tier 0-3 coverage roadmap
+\input{sections/51-distribution}
+\input{sections/53-oss-strategy}
+\input{sections/55-target-outputs}
 
 % ----------------------------------------------------------------------------
 % BIBLIOGRAPHY

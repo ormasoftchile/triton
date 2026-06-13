@@ -1,0 +1,97 @@
+\section{Dual Front-End Architecture}
+\label{sec:frontend}
+
+The compiler exposes two input paths that converge on the same internal pipeline.
+This dual front-end is the architectural key to serving both human authors
+(who prefer text DSLs) and AI agents (who prefer structured data).
+
+\subsection{The Two Input Paths}
+
+\begin{figure}[h]
+\centering
+\begin{Verbatim}[frame=single,fontsize=\small]
+  Path A: Mermaid-Superset DSL        Path B: Structured IR (JSON/YAML)
+  (human-authored text)                (agent-emitted structured data)
+        |                                      |
+        v                                      v
+  [Parser: PEG/Nearley]               [Schema Validation]
+        |                                      |
+        +----------------+---------------------+
+                         |
+                         v
+              Domain IR (grammar-specific)
+                         |
+                         v
+              [Layout Engine + Theme]
+                         |
+                         v
+                      Scene IR
+                         |
+                         v
+              [Backends: SVG / PNG / PDF]
+\end{Verbatim}
+\caption{Dual front-end: text DSL and structured IR converge at the Domain IR layer}
+\label{fig:dual-frontend}
+\end{figure}
+
+\paragraph{Path A: Mermaid-Superset DSL.}
+Human authors write diagrams in Mermaid syntax (or our extensions).
+A parser converts the text to the grammar's Domain IR.
+This path preserves the ``diagrams-as-code'' ergonomics that made Mermaid popular.
+
+\paragraph{Path B: Structured IR.}
+Agents emit JSON or YAML conforming to the Domain IR's JSON Schema.
+No parsing step is needed---only schema validation.
+This path enables grammar-constrained generation, round-trip editing, and tool integration.
+
+\subsection{Convergence at Domain IR}
+
+Both paths produce the same Domain IR. From that point forward, the pipeline is identical:
+Domain IR $\to$ Layout Engine $\to$ Scene IR $\to$ Backend $\to$ Output.
+
+This convergence guarantees:
+\begin{itemize}
+  \item A Mermaid file and its equivalent YAML produce \textbf{byte-identical output}.
+  \item Agents can consume human-authored diagrams (parse DSL $\to$ IR $\to$ emit structured).
+  \item Humans can inspect agent-generated diagrams (structured IR $\to$ pretty-print DSL).
+  \item Tooling (validation, linting, diffing) works on the common Domain IR regardless of input path.
+\end{itemize}
+
+\subsection{The Agent IR as First-Class API}
+
+The structured IR is not a secondary or internal representation---it is a \textbf{first-class
+public API}. Design commitments:
+
+\begin{description}
+  \item[Published JSON Schema] Every grammar's Domain IR has a versioned JSON Schema,
+        suitable for OpenAI Structured Outputs, XGrammar~\cite{dong2024xgrammar},
+        or llama.cpp GBNF constrained generation.
+  \item[Stable contract] The IR schema follows semver. Breaking changes require a major version bump.
+  \item[Round-trip fidelity] DSL $\to$ IR $\to$ DSL preserves semantics (formatting may differ).
+  \item[Diff-friendly] Changes to one entity do not cascade to unrelated IR fields.
+  \item[Small schemas] Each grammar's schema fits comfortably in an LLM context window
+        (typically under 200 lines of JSON Schema).
+\end{description}
+
+\subsection{Parser Architecture}
+
+The DSL parser is grammar-specific. Each grammar defines:
+\begin{itemize}
+  \item A PEG or Nearley grammar specification for its Mermaid-compatible syntax
+  \item A CST-to-Domain-IR lowering pass
+  \item Extension hooks for superset syntax (new keywords, extended directives)
+\end{itemize}
+
+The parser layer is the \textbf{new architectural component} introduced by the Mermaid-superset
+positioning. It sits above the existing Domain IR / Layout Engine / Scene IR pipeline and does
+not affect the proven kernel or grammar internals.
+
+\subsection{Implementation Status}
+
+\textbf{Built:} The structured IR path (Path B) is fully implemented for all four shipped
+grammars (timeline, flow, sequence, tree). Schema validation, layout, and rendering work
+end-to-end.
+
+\textbf{Planned:} The Mermaid-superset DSL parsers (Path A) are the primary Tier-0 deliverable.
+Parsers for flowchart, sequence, gantt/timeline, and mindmap syntax will wire the existing
+Domain IRs to Mermaid text input.

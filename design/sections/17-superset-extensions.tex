@@ -1,0 +1,137 @@
+\section{Superset Extensions Beyond Mermaid}
+\label{sec:superset-extensions}
+
+The compiler is not merely Mermaid-compatible---it is a \textbf{superset} that extends
+Mermaid's capabilities through well-defined extension mechanisms. Extensions use Mermaid's
+own frontmatter/directive hooks plus new top-level keywords, ensuring that the base Mermaid
+grammar remains parseable by standard Mermaid renderers (with graceful degradation of
+extended features).
+
+\subsection{Extension Mechanisms}
+
+\begin{description}
+  \item[Frontmatter extensions] The YAML frontmatter block (\texttt{---}$\ldots$\texttt{---})
+        carries our theme selection, animation directives, and composition metadata.
+        Standard Mermaid renderers ignore unknown frontmatter fields.
+
+  \item[Init directive extensions] The \texttt{\%\%\{init: \{...\}\}\%\%} block accepts
+        grammar-specific configuration that maps to our theme extensions.
+
+  \item[New top-level keywords] For capabilities with no Mermaid equivalent
+        (e.g., \texttt{poster}, \texttt{compose}), we introduce new diagram-type keywords.
+        These are clearly outside Mermaid's grammar and signal superset-only features.
+
+  \item[Inline annotations] Extended comment syntax (\texttt{\%\% @directive}) for
+        per-element hints (animation targets, cross-diagram references).
+\end{description}
+
+\subsection{Composition / Posters}
+
+A new \texttt{poster} keyword enables multi-diagram compositions directly in the DSL:
+
+\begin{lstlisting}[language=yaml,caption={Poster composition in superset DSL}]
+---
+theme: professional-dark
+layout: grid 2x2
+---
+poster "RAG Architecture"
+  cell [0,0]: flowchart LR
+    A[Query] --> B[Retriever] --> C[Generator]
+  cell [0,1]: sequence
+    User->>API: request
+    API->>DB: lookup
+  cell [1,0]: mindmap
+    root(Components)
+      Retriever
+      Generator
+      Router
+  cell [1,1]: stat
+    value: 99.2%
+    label: Accuracy
+\end{lstlisting}
+
+This maps to the Composition IR (Section~\ref{sec:composition}) and produces grid-based
+multi-panel posters.
+
+\subsection{Rich Theming}
+
+Superset theming goes beyond Mermaid's color overrides:
+
+\begin{lstlisting}[language=yaml,caption={Rich theme configuration via frontmatter}]
+---
+theme: corporate-blue
+themeVariables:
+  fontFamily: "Inter, system-ui"
+  fontSize: 14
+  borderRadius: 8
+  nodePadding: 16
+  lineWidth: 2
+darkMode: true
+---
+\end{lstlisting}
+
+Our theme system (Section~\ref{sec:themes}) provides full typographic, geometric, and
+chromatic control---not just color token overrides.
+
+\subsection{Animation}
+
+Declarative animation hints attached to elements:
+
+\begin{lstlisting}[language=yaml,caption={Animation extension}]
+---
+animate:
+  edges: dashflow
+  duration: 2s
+---
+flowchart LR
+    A --> B --> C
+\end{lstlisting}
+
+Animation compiles to SVG SMIL (Section~\ref{sec:animation}) with raster backends
+rendering static resting frames.
+
+\subsection{Cross-Diagram References}
+
+Elements in one diagram can reference elements in another within the same poster:
+
+\begin{lstlisting}[language=yaml,caption={Cross-diagram reference annotation}]
+---
+refs:
+  - from: flow.nodeC
+    to: sequence.participant.API
+    style: dashed-arrow
+---
+\end{lstlisting}
+
+References resolve at the composition layer and render as overlay connectors.
+
+\subsection{Icons and Images in Nodes}
+
+Nodes can embed icons from a registry or external images:
+
+\begin{lstlisting}[language=yaml,caption={Icon extension in flowchart}]
+flowchart LR
+    A["{icon:aws-lambda}" Lambda] --> B["{icon:database}" Store]
+\end{lstlisting}
+
+The icon registry is part of the kernel; themes control icon styling (color, size).
+
+\subsection{The Structured IR as Agent API}
+
+The superset's most significant extension is invisible in the DSL: the structured IR path.
+Agents bypass the text parser entirely and emit Domain IR directly as JSON/YAML.
+This is not an ``export format''---it is a first-class input API
+(Section~\ref{sec:frontend}).
+
+\subsection{Graceful Degradation}
+
+When a superset file is rendered by a standard Mermaid renderer:
+\begin{itemize}
+  \item Frontmatter extensions are silently ignored (Mermaid skips unknown fields).
+  \item New keywords (\texttt{poster}, etc.) produce a parse error---clearly signaling
+        that the file requires our renderer.
+  \item Inline annotations in comments (\texttt{\%\% @...}) are ignored as comments.
+\end{itemize}
+
+This ensures that the base diagram content remains portable; only superset features
+require our compiler.

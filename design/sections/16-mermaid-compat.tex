@@ -1,0 +1,119 @@
+\section{Full Mermaid Compatibility}
+\label{sec:mermaid-compat}
+
+The compiler targets \textbf{complete compatibility with all 22 Mermaid diagram types}.
+Every valid Mermaid file must parse, validate, and render---producing output that is
+semantically equivalent to Mermaid's but visually superior.
+
+\subsection{The 22 Diagram Types}
+
+Mermaid supports 22 diagram types as of 2026. We organize them into five families
+(Section~\ref{sec:family-taxonomy}) and assign coverage tiers:
+
+\begin{table}[h]
+\centering\small
+\caption{Mermaid diagram types: families and coverage tiers}
+\begin{tabular}{llll}
+\toprule
+\textbf{Mermaid Type} & \textbf{Family} & \textbf{Tier} & \textbf{Status} \\
+\midrule
+flowchart       & Node-link / graph     & 0 & Built (Flow grammar) \\
+sequence        & UML / software        & 0 & Built (Sequence grammar) \\
+gantt           & Timeline / project    & 0 & Built (Timeline grammar) \\
+timeline        & Timeline / project    & 0 & Built (Timeline grammar) \\
+mindmap         & Tree / hierarchy      & 0 & Built (Tree grammar) \\
+\midrule
+class           & UML / software        & 1 & Planned \\
+state           & UML / software        & 1 & Planned \\
+erDiagram       & UML / software        & 1 & Planned \\
+C4Context       & Node-link / graph     & 1 & Planned \\
+C4Container     & Node-link / graph     & 1 & Planned \\
+C4Component     & Node-link / graph     & 1 & Planned \\
+C4Dynamic       & Node-link / graph     & 1 & Planned \\
+\midrule
+pie             & Charts                & 2 & Planned \\
+xychart-beta    & Charts                & 2 & Planned \\
+quadrantChart   & Charts                & 2 & Planned \\
+radar           & Charts                & 2 & Planned \\
+\midrule
+sankey-beta     & Node-link / graph     & 3 & Planned \\
+requirement     & Node-link / graph     & 3 & Planned \\
+gitGraph        & Node-link / graph     & 3 & Planned \\
+block-beta      & Node-link / graph     & 3 & Planned \\
+architecture    & Node-link / graph     & 3 & Planned \\
+treemap         & Tree / hierarchy      & 3 & Planned \\
+kanban          & Timeline / project    & 3 & Planned \\
+journey         & Timeline / project    & 3 & Planned \\
+packet          & Node-link / graph     & 3 & Planned \\
+\bottomrule
+\end{tabular}
+\label{tab:mermaid-coverage}
+\end{table}
+
+\subsection{Compatibility Strategy}
+
+\subsubsection{Syntax Fidelity}
+
+Each Mermaid grammar is parsed faithfully. Our parsers accept the exact syntax documented at
+\texttt{mermaid.js.org}~\cite{mermaiddocs2024}, including:
+
+\begin{itemize}
+  \item Indentation-sensitive formats (timeline, mindmap, gantt)
+  \item Arrow syntax variants (\texttt{-->}, \texttt{-.->}, \texttt{==>}, etc.\ in flowchart)
+  \item Section/participant declarations
+  \item Frontmatter (\texttt{---}$\ldots$\texttt{---}) and init directives (\texttt{\%\%\{init\}\%\%})
+  \item All node shape syntaxes (round, diamond, hexagon, etc.)
+\end{itemize}
+
+\subsubsection{Semantic Mapping}
+
+Mermaid's syntax maps to our Domain IRs via grammar-specific lowering rules:
+
+\begin{description}
+  \item[flowchart $\to$ Flow IR] Nodes become Flow nodes; edges become Flow edges;
+        subgraphs become lanes/clusters.
+  \item[sequence $\to$ Sequence IR] Participants, messages, activations, and fragments
+        map directly.
+  \item[gantt/timeline $\to$ Timeline IR] Sections become tracks; tasks become activities;
+        milestones map directly.
+  \item[mindmap $\to$ Tree IR] Indentation hierarchy becomes parent-child tree structure.
+\end{description}
+
+\subsubsection{Directive and Frontmatter Hooks}
+
+Mermaid's configuration mechanisms become our extension points:
+
+\begin{lstlisting}[language=yaml,caption={Mermaid frontmatter as theme/extension hook}]
+---
+title: Architecture Overview
+theme: professional-dark
+config:
+  flowchart:
+    nodeSpacing: 60
+    rankSpacing: 80
+---
+flowchart LR
+    A[Client] --> B[API Gateway]
+    B --> C[Service Mesh]
+\end{lstlisting}
+
+The \texttt{theme} field selects our theme system. The \texttt{config} block maps to
+grammar-specific theme extensions. Init directives (\texttt{\%\%\{init: \{...\}\}\%\%})
+provide inline configuration.
+
+\subsection{Reuse of Existing Kernels}
+
+Most new diagram types reuse existing layout kernels:
+
+\begin{description}
+  \item[Node-link kernel] (Sugiyama/layered layout) serves: flowchart, C4 variants,
+        architecture, block, requirement, gitGraph, sankey.
+  \item[Tree kernel] (Buchheim--J\"unger--Leipert) serves: mindmap, treemap.
+  \item[Timeline kernel] (track-based layout) serves: gantt, timeline, journey, kanban.
+  \item[Sequence kernel] (order-deterministic columns) serves: sequence diagrams.
+  \item[Chart kernel] (NEW grammar-of-graphics layer) serves: pie, xychart, quadrant, radar.
+\end{description}
+
+The chart family is the only genuinely new kernel required (Section~\ref{sec:chart-family}).
+All other new types are primarily new \emph{parsers} wiring Mermaid syntax to existing
+Domain IR shapes and layout engines.

@@ -1,0 +1,117 @@
+\section{The Aesthetic Bar: Beating Mermaid Visually}
+\label{sec:aesthetics}
+
+Aesthetics is not a finishing coat applied after architecture---it is a \textbf{first-class
+pillar} of the product. The explicit goal: every diagram produced by this compiler must look
+demonstrably better than its Mermaid equivalent. ``Pro,'' ``neat,'' ``coherent'' are
+requirements, not aspirations.
+
+\subsection{Why Aesthetics Is Architecture}
+
+Mermaid is ubiquitous because of its ecosystem integration, not its visual quality.
+Users accept its output because it's free and frictionless---not because it looks good.
+The aesthetic gap is the primary differentiation lever:
+
+\begin{description}
+  \item[Mermaid] Documentation-grade. Fixed styles. Poor typography. No design system.
+        Functional but never beautiful.
+  \item[This compiler] Presentation-grade. Themeable. Proper typography. Coherent design
+        language. Output you'd put in a board deck or technical blog.
+\end{description}
+
+This is not subjective polish---it is the \textbf{primary reason users choose this tool
+over Mermaid}. If the output doesn't look materially better, there is no product.
+
+\subsection{The Design System}
+
+Every diagram shares a coherent visual language:
+
+\begin{description}
+  \item[Typography] System-level font stack with proper weight hierarchy
+        (title/heading/body/label/caption). Consistent sizing ratios across all diagram types.
+        No all-caps labels. No tiny illegible text.
+
+  \item[Spacing and rhythm] Consistent padding, margins, and gaps derived from a base unit.
+        Generous whitespace. Visual breathing room. The ``no clutter'' principle
+        (Section~\ref{principle:minimal-clutter}) is enforced structurally.
+
+  \item[Color palette] Curated palettes with proper contrast ratios (WCAG AA minimum).
+        Semantic color mapping: status colors, category colors, emphasis colors.
+        Dark and light modes as first-class variants, not afterthoughts.
+
+  \item[Shape language] Rounded corners, consistent border weights, soft shadows where
+        appropriate. No harsh black-on-white wireframe aesthetic.
+
+  \item[Edge/connector style] Smooth curves, proper arrowheads, consistent stroke widths.
+        Routing that avoids overlaps where the layout algorithm permits.
+\end{description}
+
+\subsection{Default Theme Craft}
+
+The default theme must be beautiful \emph{out of the box}. Users who never configure a theme
+should still produce output that surpasses Mermaid. Design commitments:
+
+\begin{itemize}
+  \item Modern, clean aesthetic inspired by technical publications (not wireframes)
+  \item Light theme: warm grays, blue accent, Inter/system-ui stack
+  \item Dark theme: deep navy/charcoal, blue-teal accent, proper contrast
+  \item Professional appearance suitable for slides, blog posts, documentation
+  \item No garish colors, no 1990s UML aesthetic, no pixelated edges
+\end{itemize}
+
+\subsection{Brand Themes and Coherence}
+
+The theme system enables organization-specific brand themes:
+
+\begin{itemize}
+  \item Themes can define complete visual identities (colors, fonts, shapes, spacing)
+  \item Single inheritance: branded themes extend base themes, overriding selectively
+  \item Cross-diagram coherence: a theme applied to a poster produces visually unified
+        output across all constituent diagram types
+  \item Built-in exemplars: \texttt{professional-light}, \texttt{professional-dark},
+        \texttt{bytebytego} (inspired by the popular technical illustration style)
+\end{itemize}
+
+\subsection{Grammar = Semantics; Theme = Style}
+
+The architectural discipline that enables aesthetic excellence:
+
+\begin{quote}
+\emph{The Domain IR carries what to communicate. The theme carries how it looks.
+Never mix them. A theme change cannot alter diagram meaning. A content change
+cannot alter diagram style.}
+\end{quote}
+
+This separation means:
+\begin{itemize}
+  \item The same diagram looks professional in \texttt{professional-light} and playful
+        in a hypothetical \texttt{sketch} theme---without any IR changes.
+  \item Agents author content without making aesthetic decisions.
+  \item Designers craft themes without understanding grammar semantics.
+  \item New grammars inherit the full theme system and look coherent from day one.
+\end{itemize}
+
+\subsection{Aesthetic Verification}
+
+Beauty is hard to test, but we enforce baselines:
+
+\begin{itemize}
+  \item \textbf{Golden-image regression}: visual output is diffed against known-good
+        baselines. Any change to rendering requires explicit approval.
+  \item \textbf{Contrast ratio checks}: automated WCAG AA verification for all
+        text-on-background combinations in built-in themes.
+  \item \textbf{Gallery examples}: every grammar ships with gallery outputs demonstrating
+        the aesthetic bar. These serve as both documentation and regression targets.
+  \item \textbf{Side-by-side comparisons}: marketing/documentation includes Mermaid vs.\
+        ours comparisons for every supported diagram type.
+\end{itemize}
+
+\subsection{Implementation Status}
+
+\textbf{Built:} The theme system is fully implemented. Five timeline themes (including dark
+and ByteByteGo variants), two flow themes, two sequence themes, two tree themes, and two
+composition themes are shipped. All enforce the grammar=semantics/theme=style discipline.
+
+\textbf{In progress:} Expanding the aesthetic standard to the new diagram types as they
+ship. The UML/software line (Tier-1) will establish the ``modern UML'' visual standard
+that differentiates from PlantUML's dated look.
