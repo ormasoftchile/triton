@@ -6,17 +6,18 @@
  *   Mermaid DSL text
  *     → detect diagram type
  *     → dispatch to grammar parser          (Path A)
- *     → Domain IR (FlowDocument / SequenceDocument / IRDocument / TreeDocument)
+ *     → Domain IR (FlowDocument / SequenceDocument / IRDocument / TreeDocument / ClassDocument)
  *     → buildXxxScene + themeOverride
  *     → Scene IR
  *     → sceneToSvg / svgToPng              (existing kernel, unchanged)
  *
- * Tier-0 coverage (COMPLETE):
+ * Tier-0 / Tier-1 coverage:
  *   ✅  flowchart / graph     (FlowDocument,     dark-flow gallery)
  *   ✅  sequenceDiagram       (SequenceDocument, bytebytego-sequence gallery)
  *   ✅  gantt                 (IRDocument,       roadmap theme)
  *   ✅  timeline              (IRDocument,       consulting theme, vertical-spine)
  *   ✅  mindmap               (TreeDocument,     dark-tree theme)
+ *   ✅  classDiagram          (ClassDocument,    UML compartment layout)
  *
  * PUBLIC EXPORTS (re-exported from packages/core/src/index.ts):
  *   detectDiagramType, parseMermaid, renderMermaid
@@ -32,6 +33,13 @@ import {
   resolveFlowTheme,
 } from '../../grammars/flow/index.js';
 import type { FlowDocument, FlowTheme } from '../../grammars/flow/index.js';
+
+import {
+  buildClassScene,
+  renderClassDocument,
+  resolveClassTheme,
+} from '../../grammars/class/index.js';
+import type { ClassDocument } from '../../grammars/class/index.js';
 
 import {
   buildSequenceScene,
@@ -56,6 +64,7 @@ import { parseSequenceInternal } from './sequence.js';
 import { parseGanttInternal } from './gantt.js';
 import { parseTimelineInternal } from './timeline.js';
 import { parseMindmapInternal } from './mindmap.js';
+import { parseClassDiagramInternal } from './class.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -71,6 +80,7 @@ export type DiagramKind =
   | 'gantt'
   | 'timeline'
   | 'mindmap'
+  | 'classDiagram'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -97,6 +107,7 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^gantt\s*$/i.test(trimmed)) return 'gantt';
     if (/^timeline\s*$/i.test(trimmed)) return 'timeline';
     if (/^mindmap\s*$/i.test(trimmed)) return 'mindmap';
+    if (/^classdiagram\b/i.test(trimmed)) return 'classDiagram';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -117,10 +128,11 @@ export function detectDiagramType(text: string): DiagramKind {
  *   'gantt'     → IRDocument
  *   'timeline'  → IRDocument
  *   'mindmap'   → TreeDocument
+ *   'classDiagram' → ClassDocument
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -131,7 +143,7 @@ export interface MermaidParseResult {
 /**
  * Parse Mermaid text and return the appropriate grammar's Domain IR.
  *
- * Dispatches to the five Tier-0 parsers. All types are now supported.
+ * Dispatches to the Mermaid grammar parsers. All supported types are handled.
  * `unknown` diagram types throw with a clear error.
  *
  * @throws {Error} for unrecognised diagram type.
@@ -164,9 +176,14 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'classDiagram') {
+    const { doc, warnings } = parseClassDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
-      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap.`,
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram.`,
   );
 }
 
@@ -196,7 +213,7 @@ export interface MermaidRenderOptions {
 export interface MermaidRenderResult {
   kind: DiagramKind;
   /** The Domain IR document (grammar-specific). */
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -215,7 +232,7 @@ export interface MermaidRenderResult {
  * Theme precedence (highest wins):
  *   options.theme > frontmatter `theme:` field > %%{init: {"theme":…}}%% > grammar default
  *
- * Tier-0: all five Mermaid types are implemented.
+ * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, and classDiagram.
  *
  * @throws {Error} for unrecognised diagram types.
  */
@@ -389,9 +406,24 @@ export function renderMermaid(
     };
   }
 
+  // ── classDiagram ───────────────────────────────────────────────────────
+  if (kind === 'classDiagram') {
+    const { doc, warnings, frontmatter } = parseClassDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-class';
+    const classTheme = resolveClassTheme(themeName);
+    const finalDoc: ClassDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildClassScene(finalDoc, classTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderClassDocument(finalDoc, { format }, classTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for classDiagram.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
   // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
-      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap.`,
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram.`,
   );
 }

@@ -129,10 +129,32 @@ export type {
   FlowEdgeStyle,
 } from './grammars/flow/index.js';
 
+// Class grammar (fourth multi-grammar architecture entry point — UML class compartments)
+export {
+  buildClassScene,
+  renderClassDocument,
+  classDocumentSchema,
+  defaultClassTheme,
+  darkClassTheme,
+  resolveClassTheme,
+  CLASS_THEME_REGISTRY,
+} from './grammars/class/index.js';
+export type {
+  ClassDocument,
+  ClassMetadata,
+  ClassDef,
+  ClassMember,
+  ClassRelationship,
+  ClassDocumentInput,
+  ClassRenderOptions,
+  ClassRenderResult,
+  ClassTheme,
+} from './grammars/class/index.js';
+
 // Scene-transform kernel helper (used by composition layer)
 export { translateAndScale, embedSceneInRect, transformPathD } from './scene-transform.js';
 
-// Composition grammar (fourth entry point — multi-panel poster layout)
+// Composition grammar (fifth entry point — multi-panel poster layout)
 export {
   buildCompositionScene,
   renderCompositionDocument,
@@ -172,3 +194,4 @@ export type {
   MermaidRenderResult,
 } from './frontend/mermaid/index.js';
 export { parseFlowchart } from './frontend/mermaid/flowchart.js';
+export { parseClassDiagram } from './frontend/mermaid/class.js';

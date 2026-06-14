@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="984" version="1.1" viewBox="0 0 552 984" width="552" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#334155" stroke-width="1.5" x1="138" x2="138" y1="234" y2="270"/>
+  <line stroke="#334155" stroke-width="1.5" x1="138" x2="138" y1="492" y2="536"/>
+  <line stroke="#334155" stroke-width="1.5" x1="138" x2="138" y1="682" y2="758"/>
+  <line stroke="#334155" stroke-dasharray="6,4" stroke-width="1.5" x1="414" x2="414" y1="292" y2="234"/>
+  <line stroke="#334155" stroke-width="1.5" x1="228" x2="322" y1="141" y2="597"/>
+  <line stroke="#334155" stroke-width="1.5" x1="324" x2="233" y1="609" y2="386"/>
+  <rect fill="#f8fafc" height="186" rx="10" stroke="#cbd5e1" stroke-width="1.2" width="180" x="48" y="48"/>
+  <rect fill="#dbeafe" height="46" rx="10" stroke="#3b82f6" stroke-width="1.5" width="180" x="48" y="48"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="48" x2="228" y1="94" y2="94"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="48" x2="228" y1="174" y2="174"/>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="138" y="73">Customer</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="115">+id: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="135">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="155">+email: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="195">+register()</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="215">+login(): bool</text>
+  <rect fill="#f8fafc" height="186" rx="10" stroke="#cbd5e1" stroke-width="1.2" width="180" x="48" y="282"/>
+  <rect fill="#dbeafe" height="46" rx="10" stroke="#3b82f6" stroke-width="1.5" width="180" x="48" y="282"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="48" x2="228" y1="328" y2="328"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="48" x2="228" y1="408" y2="408"/>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="138" y="307">Order</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="349">+orderId: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="369">+createdAt: Date</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="389">+total: float</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="429">+submit()</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="449">+cancel(): bool</text>
+  <rect fill="#f8fafc" height="146" rx="10" stroke="#cbd5e1" stroke-width="1.2" width="180" x="48" y="536"/>
+  <rect fill="#dbeafe" height="46" rx="10" stroke="#3b82f6" stroke-width="1.5" width="180" x="48" y="536"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="48" x2="228" y1="582" y2="582"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="48" x2="228" y1="642" y2="642"/>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="138" y="561">OrderItem</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="603">+quantity: int</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="623">+unitPrice: float</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="663">+subtotal(): float</text>
+  <rect fill="#f8fafc" height="146" rx="10" stroke="#cbd5e1" stroke-width="1.2" width="180" x="48" y="770"/>
+  <rect fill="#dbeafe" height="46" rx="10" stroke="#3b82f6" stroke-width="1.5" width="180" x="48" y="770"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="48" x2="228" y1="816" y2="816"/>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="138" y="795">Product</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="837">+sku: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="857">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="877">+price: float</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="62" y="897">+stock: int</text>
+  <rect fill="#f8fafc" height="162" rx="10" stroke="#cbd5e1" stroke-width="1.2" width="180" x="324" y="60"/>
+  <rect fill="#dbeafe" height="62" rx="10" stroke="#3b82f6" stroke-width="1.5" width="180" x="324" y="60"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="324" x2="504" y1="122" y2="122"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="324" x2="504" y1="162" y2="162"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="500" text-anchor="middle" x="414" y="80">&lt;&lt;interface&gt;&gt;</text>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="414" y="100">Payment</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="143">+amount: float</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="183">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="203">+refund(): bool</text>
+  <rect fill="#f8fafc" height="166" rx="10" stroke="#cbd5e1" stroke-width="1.2" width="180" x="324" y="292"/>
+  <rect fill="#dbeafe" height="46" rx="10" stroke="#3b82f6" stroke-width="1.5" width="180" x="324" y="292"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="324" x2="504" y1="338" y2="338"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="324" x2="504" y1="398" y2="398"/>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="414" y="317">CreditCardPayment</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="359">+cardNumber: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="379">+expiry: String</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="419">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="439">+refund(): bool</text>
+  <rect fill="#f8fafc" height="126" rx="10" stroke="#cbd5e1" stroke-width="1.2" width="180" x="324" y="546"/>
+  <rect fill="#dbeafe" height="46" rx="10" stroke="#3b82f6" stroke-width="1.5" width="180" x="324" y="546"/>
+  <line stroke="#94a3b8" stroke-width="1.2" x1="324" x2="504" y1="592" y2="592"/>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="414" y="571">ShoppingCart</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="613">+addItem(Product p)</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="633">+removeItem(String sku)</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="338" y="653">+checkout(): Order</text>
+  <path d="M 131 270 L 138 282 L 145 270" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 138 468 L 131 480 L 138 492 L 145 480 Z" fill="#334155" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 131 758 L 138 770 L 145 758" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 414 222 L 421 234 L 407 234 Z" fill="#ffffff" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 315 599 L 324 609 L 329 596" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 239 383 L 228 375 L 226 389" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="130" y="246">1</text>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="130" y="270">*</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="148" y="258">places</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="148" y="502">contains</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="148" y="726">references</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="286" y="373">has</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="267" y="496">creates</text>
+</svg>
