@@ -156,3 +156,19 @@ export type {
   CompositionRenderResult,
   CompositionTheme,
 } from './composition/index.js';
+
+// Mermaid front-end (Tier-0 Inc-1): text → Domain IR → Scene → backends
+// Path A of the dual front-end architecture (§15 frontend.tex).
+export {
+  detectDiagramType,
+  parseMermaid,
+  renderMermaid,
+} from './frontend/mermaid/index.js';
+export type {
+  DiagramKind,
+  MermaidParseResult,
+  MermaidRenderOptions,
+  MermaidRenderFormat,
+  MermaidRenderResult,
+} from './frontend/mermaid/index.js';
+export { parseFlowchart } from './frontend/mermaid/flowchart.js';
