@@ -235,3 +235,11 @@ Rendered gallery example (CI/CD pipeline) visibly cleaner than Mermaid default o
 
 
 **Tier 0 COMPLETE (2025-01-01):** Even-spacing horizontal timeline (9233px→792px, collisions resolved) finalized. Tier 0 integration complete.
+
+
+## 2026-06-13 — Tier 1 Kickoff: classDiagram Rendering via Scene Paths (Bjarne)
+
+**Date:** 2026-06-13T22:59:00Z  
+**Status:** SHIPPED
+
+Class grammar (UML software line) shipped with deterministic 2-column layout. All 6 UML relationships rendered as Scene path primitives (inheritance, realization, composition, aggregation, association, dependency) to preserve SVG/PNG/Skia backend compatibility. Class compartments (attributes, methods) sized via measureText(). Light+dark themes supported. Next: state, ER, C4 grammar rendering.

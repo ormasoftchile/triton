@@ -40,6 +40,41 @@
 
 ---
 
+# Decision: Tier 1 STARTED — classDiagram Shipped as First UML/Software-Line Grammar
+
+**Agent:** Bjarne (Ingestion Design)  
+**Date:** 2026-06-13T22:59:00Z  
+**Status:** ADOPTED
+
+## Summary
+
+Tier 1 kickoff complete. The full `classDiagram` grammar shipped end-to-end: new `class` domain IR (packages/core/src/grammars/class/{types,schema,layout,theme,index}.ts), Mermaid parser frontend (packages/core/src/frontend/mermaid/class.ts), integrated into the pipeline. All 6 UML relationships (inheritance/realization/composition/aggregation/association/dependency) rendered as Scene path primitives. Real-crawl hardened with 56 corpus tests, light+dark themes, gallery example mermaid-class.{mmd,svg,png} (552x984) + card 29. Full suite: 1139 passing, goldens byte-identical. Determinism preserved.
+
+## Design Decisions
+
+- **Semantic IR only:** packages/core/src/grammars/class/ with Zod validation and theme registry; deterministic layout engine.
+- **Simple stable layout:** Declaration-order 2-column grid; left column filled first; per-class compartment sizing from `measureText`; `rhuInt()` for all coordinates.
+- **UML markers as Scene paths:** Six relationship kinds as `path` primitives, preserving SVG/PNG/Skia backend compatibility.
+- **Graceful degradation:** direction TB/LR parsed and warned (layout remains 2-column grid); generics normalized to base class name; unsupported constructs emit warnings.
+- **Parser fidelity:** Auto-creates referenced classes, flattens namespace wrappers, supports block and member-declaration syntax, collects warnings for deferred constructs.
+
+## Verification
+
+- Build: `pnpm -C packages/core build` ✓
+- Typecheck: `pnpm -C packages/core typecheck` ✓
+- Tests: `pnpm -C packages/core test` → **1139 passing**
+- Gallery: mermaid-class.{mmd,svg,png} + card 29 verified byte-identical
+
+## Committed
+
+- Commit: **f4b945e** "feat(mermaid): Tier 1 kickoff — classDiagram (UML/software line)"
+
+## Next: Remaining Tier 1
+
+Ready to begin: stateDiagram, erDiagram, C4 parsers + layouts.
+
+---
+
 # Decision: Mermaid Flowchart Parser Hardening — Real-Mermaid Crawl Fidelity
 
 **Agent:** Bjarne (Ingestion Design)  
@@ -429,45 +464,3 @@ For full design details on grammars, themes, animation, schema hardening, and pr
   - Animation (dashflow SMIL)
   - Schema validation invariants
   - Design document sync status
-# Decision: Tier 0 COMPLETE — All 5 Grammar-Backed Mermaid Types Parse
-
-**Status:** ADOPTED  
-**Date:** 2025-01-01T00:00:00Z (session close)  
-**Agents:** Bjarne (gantt/timeline/mindmap), Barbara (even-spacing), Coordinator (commit a7f543b)
-
-## Summary
-
-**Tier 0 is COMPLETE.** All five grammar-backed Mermaid diagram types now parse and render through our engine with deterministic output and cleaner aesthetics than Mermaid's native renderer:
-
-| Type | Parser | Tests (Δ) | Layout | Status |
-|------|--------|-----------|--------|--------|
-| flowchart | flowchart.ts | +62 | LR flow | ✅ |
-| sequence | sequence.ts | +57 | UML lanes | ✅ |
-| gantt | gantt.ts | +35 | horizontal | ✅ |
-| timeline | timeline.ts | +38 | vertical-spine (even-spaced) | ✅ |
-| mindmap | mindmap.ts | +39 | top-down tree | ✅ |
-
-**Total: 1083 tests pass (+112 vs pre-Tier-0). Regressions: 0. Existing goldens: byte-identical.**
-
-## Key Deliverable: Horizontal Timeline + Even-Spacing Mode
-
-Mermaid's `timeline` diagram (e.g., "History of Programming Languages") placed in horizontal layout was rendering at **9233px tall** with dense label collisions. Barbara implemented `theme.spineSpacing === 'even'` to mirror vertical-spine even-spacing: milestones now occupy evenly-spaced columns (Mermaid-columnar fidelity) rather than time-proportional positions.
-
-**Result:** Compact 792px height, no collisions, deterministic output.
-
-**Files:** packages/core/src/layout/horizontal.ts, themes/types.ts, frontend/mermaid/index.ts. Gallery re-emitted: examples/gallery/mermaid-timeline.{svg,png} (1296×792).
-
-## Technical Highlights
-
-1. **Fidelity Bar:** All three new parsers (gantt, timeline, mindmap) follow the established tokenizer bar: real-data crawls, whitespace-independent parsing, graceful degradation with warnings, clean label extraction.
-2. **Determinism:** All theme/layout wiring already in place; no new IR types needed. Commit a7f543b reflects full integration.
-3. **Deferred Items:** Dense-event label collision in even-spacing horizontal timelines still occurs on *within*-milestone activities (e.g., multiple events in the same period). A true Mermaid-columnar timeline UI (period column header + stacked event cards) is deferred per user priority (would require new IR type and layout engine rewrite).
-
-## Committed
-
-- Commit: **a7f543b** "feat(mermaid): complete Tier 0 with gantt, timeline, mindmap parsers"
-- Full suite: **1083 tests pass**, goldens **byte-identical**
-
-## Next: Tier 1 — UML Line
-
-Ready to begin: class, state, ER, C4 parsers + new IRs + layout engines.

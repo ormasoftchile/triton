@@ -5085,3 +5085,46 @@ sceneHash differs from consulting, gallery emit (SVG + PNG), default unchanged.
 | `examples/gallery/feature-rich-bytebytego.{svg,png}` | NEW — bytebytego demo |
 
 **Test Coverage:** 725 → 735 tests pass (all pass, no regressions).
+# Decision: Tier 0 COMPLETE — All 5 Grammar-Backed Mermaid Types Parse
+
+**Status:** ADOPTED  
+**Date:** 2025-01-01T00:00:00Z (session close)  
+**Agents:** Bjarne (gantt/timeline/mindmap), Barbara (even-spacing), Coordinator (commit a7f543b)
+
+## Summary
+
+**Tier 0 is COMPLETE.** All five grammar-backed Mermaid diagram types now parse and render through our engine with deterministic output and cleaner aesthetics than Mermaid's native renderer:
+
+| Type | Parser | Tests (Δ) | Layout | Status |
+|------|--------|-----------|--------|--------|
+| flowchart | flowchart.ts | +62 | LR flow | ✅ |
+| sequence | sequence.ts | +57 | UML lanes | ✅ |
+| gantt | gantt.ts | +35 | horizontal | ✅ |
+| timeline | timeline.ts | +38 | vertical-spine (even-spaced) | ✅ |
+| mindmap | mindmap.ts | +39 | top-down tree | ✅ |
+
+**Total: 1083 tests pass (+112 vs pre-Tier-0). Regressions: 0. Existing goldens: byte-identical.**
+
+## Key Deliverable: Horizontal Timeline + Even-Spacing Mode
+
+Mermaid's `timeline` diagram (e.g., "History of Programming Languages") placed in horizontal layout was rendering at **9233px tall** with dense label collisions. Barbara implemented `theme.spineSpacing === 'even'` to mirror vertical-spine even-spacing: milestones now occupy evenly-spaced columns (Mermaid-columnar fidelity) rather than time-proportional positions.
+
+**Result:** Compact 792px height, no collisions, deterministic output.
+
+**Files:** packages/core/src/layout/horizontal.ts, themes/types.ts, frontend/mermaid/index.ts. Gallery re-emitted: examples/gallery/mermaid-timeline.{svg,png} (1296×792).
+
+## Technical Highlights
+
+1. **Fidelity Bar:** All three new parsers (gantt, timeline, mindmap) follow the established tokenizer bar: real-data crawls, whitespace-independent parsing, graceful degradation with warnings, clean label extraction.
+2. **Determinism:** All theme/layout wiring already in place; no new IR types needed. Commit a7f543b reflects full integration.
+3. **Deferred Items:** Dense-event label collision in even-spacing horizontal timelines still occurs on *within*-milestone activities (e.g., multiple events in the same period). A true Mermaid-columnar timeline UI (period column header + stacked event cards) is deferred per user priority (would require new IR type and layout engine rewrite).
+
+## Committed
+
+- Commit: **a7f543b** "feat(mermaid): complete Tier 0 with gantt, timeline, mindmap parsers"
+- Full suite: **1083 tests pass**, goldens **byte-identical**
+
+## Next: Tier 1 — UML Line
+
+Ready to begin: class, state, ER, C4 parsers + new IRs + layout engines.
+

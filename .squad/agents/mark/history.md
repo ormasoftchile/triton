@@ -116,3 +116,10 @@ Bjarne's Mermaid flowchart parser (Tier 0 Inc 1) now targets the grammar IRs.
 Mermaid DSL → preprocessed flowchart text → `parseFlowchart()` → FlowDocument IR → existing `buildFlowScene()` path.
 
 **Implication for Mark:** Future parsers (sequence, timeline, mindmap) need their respective IR coverage. Sequence parser → SequenceDocument; timeline parser → TimelineDocument; mindmap parser → TreeDocument (existing structure sufficient). Architecture decision: Mermaid IDs sanitized to kebab-case at parse time; IR remains schema-consistent.
+
+## 2026-06-13 — Tier 1 Kickoff: classDiagram IR Architecture (Bjarne)
+
+**Date:** 2026-06-13T22:59:00Z  
+**Status:** SHIPPED
+
+Class domain IR (packages/core/src/grammars/class/) introduces new UML relationship types (inheritance/realization/composition/aggregation/association/dependency). Semantic-only IR independent of rendering; shape compartment sizing via measureText() follows established pattern. Barbara will render via Scene path primitives. Mark: class IR schema includes 6 relationship union types; future state/ER/C4 IRs will extend this pattern.
