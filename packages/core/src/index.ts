@@ -336,3 +336,25 @@ export { parsePieDiagram } from './frontend/mermaid/pie.js';
 export { parseXYChartDiagram } from './frontend/mermaid/xychart.js';
 export { parseJourneyDiagram } from './frontend/mermaid/journey.js';
 export { parseGitGraphDiagram } from './frontend/mermaid/gitgraph.js';
+export { parseSankeyDiagram } from './frontend/mermaid/sankey.js';
+
+// Sankey grammar (Tier 3 — proportional-flow diagrams)
+export {
+  buildSankeyScene,
+  renderSankeyDocument,
+  sankeyDocumentSchema,
+  defaultSankeyTheme,
+  darkSankeyTheme,
+  resolveSankeyTheme,
+  SANKEY_THEME_REGISTRY,
+} from './grammars/sankey/index.js';
+export type {
+  SankeyDocument,
+  SankeyNode,
+  SankeyLink,
+  SankeyMetadata,
+  SankeyDocumentInput,
+  SankeyRenderOptions,
+  SankeyRenderResult,
+  SankeyTheme,
+} from './grammars/sankey/index.js';

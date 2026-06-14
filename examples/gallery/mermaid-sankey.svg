@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="544" version="1.1" viewBox="0 0 964 544" width="964" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 194 41 C 254 41 314 172 374 172 L 374 238 C 314 238 254 107 194 107 Z" fill="#6366f1" opacity="0.45" stroke="#6366f1" stroke-width="0.5"/>
+  <path d="M 194 164 C 254 164 314 238 374 238 L 374 287 C 314 287 254 213 194 213 Z" fill="#10b981" opacity="0.45" stroke="#10b981" stroke-width="0.5"/>
+  <path d="M 194 287 C 254 287 314 287 374 287 L 374 329 C 314 329 254 329 194 329 Z" fill="#ef4444" opacity="0.45" stroke="#ef4444" stroke-width="0.5"/>
+  <path d="M 194 341 C 254 341 314 329 374 329 L 374 389 C 314 389 254 401 194 401 Z" fill="#3b82f6" opacity="0.45" stroke="#3b82f6" stroke-width="0.5"/>
+  <path d="M 194 107 C 320 107 446 113 572 113 L 572 159 C 446 159 320 153 194 153 Z" fill="#6366f1" opacity="0.45" stroke="#6366f1" stroke-width="0.5"/>
+  <path d="M 194 213 C 320 213 446 159 572 159 L 572 192 C 446 192 320 246 194 246 Z" fill="#10b981" opacity="0.45" stroke="#10b981" stroke-width="0.5"/>
+  <path d="M 194 419 C 320 419 446 260 572 260 L 572 360 C 446 360 320 519 194 519 Z" fill="#14b8a6" opacity="0.45" stroke="#14b8a6" stroke-width="0.5"/>
+  <path d="M 194 246 C 320 246 446 377 572 377 L 572 407 C 446 407 320 276 194 276 Z" fill="#10b981" opacity="0.45" stroke="#10b981" stroke-width="0.5"/>
+  <path d="M 194 401 C 320 401 446 407 572 407 L 572 414 C 446 414 320 408 194 408 Z" fill="#3b82f6" opacity="0.45" stroke="#3b82f6" stroke-width="0.5"/>
+  <path d="M 392 172 C 452 172 512 192 572 192 L 572 249 C 512 249 452 229 392 229 Z" fill="#f59e0b" opacity="0.45" stroke="#f59e0b" stroke-width="0.5"/>
+  <path d="M 392 229 C 452 229 512 414 572 414 L 572 449 C 512 449 452 264 392 264 Z" fill="#f59e0b" opacity="0.45" stroke="#f59e0b" stroke-width="0.5"/>
+  <path d="M 392 264 C 452 264 512 360 572 360 L 572 365 C 512 365 452 269 392 269 Z" fill="#f59e0b" opacity="0.45" stroke="#f59e0b" stroke-width="0.5"/>
+  <path d="M 590 113 C 650 113 710 204 770 204 L 770 221 C 710 221 650 130 590 130 Z" fill="#a855f7" opacity="0.45" stroke="#a855f7" stroke-width="0.5"/>
+  <path d="M 590 377 C 650 377 710 221 770 221 L 770 229 C 710 229 650 385 590 385 Z" fill="#84cc16" opacity="0.45" stroke="#84cc16" stroke-width="0.5"/>
+  <path d="M 392 269 C 518 269 644 229 770 229 L 770 312 C 644 312 518 352 392 352 Z" fill="#f59e0b" opacity="0.45" stroke="#f59e0b" stroke-width="0.5"/>
+  <path d="M 590 260 C 650 260 710 312 770 312 L 770 356 C 710 356 650 304 590 304 Z" fill="#f97316" opacity="0.45" stroke="#f97316" stroke-width="0.5"/>
+  <rect fill="#6366f1" height="111" opacity="1" rx="3" width="18" x="176" y="41"/>
+  <rect fill="#10b981" height="111" opacity="1" rx="3" width="18" x="176" y="164"/>
+  <rect fill="#ef4444" height="42" opacity="1" rx="3" width="18" x="176" y="287"/>
+  <rect fill="#3b82f6" height="66" opacity="1" rx="3" width="18" x="176" y="341"/>
+  <rect fill="#14b8a6" height="100" opacity="1" rx="3" width="18" x="176" y="419"/>
+  <rect fill="#f59e0b" height="217" opacity="1" rx="3" width="18" x="374" y="172"/>
+  <rect fill="#a855f7" height="135" opacity="1" rx="3" width="18" x="572" y="113"/>
+  <rect fill="#f97316" height="105" opacity="1" rx="3" width="18" x="572" y="260"/>
+  <rect fill="#84cc16" height="71" opacity="1" rx="3" width="18" x="572" y="377"/>
+  <rect fill="#ec4899" height="152" opacity="1" rx="3" width="18" x="770" y="204"/>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="168" y="97">Coal</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="168" y="220">Natural Gas</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="168" y="308">Nuclear</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="168" y="374">Renewables</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="168" y="469">Oil</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="400" y="281">Electricity Generation</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="598" y="181">Industry</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="598" y="313">Transport</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="598" y="413">Buildings</text>
+  <text dominant-baseline="middle" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="796" y="280">Heat Losses</text>
+</svg>
