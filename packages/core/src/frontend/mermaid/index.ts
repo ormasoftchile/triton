@@ -67,6 +67,20 @@ import {
 import type { C4Document } from '../../grammars/c4/index.js';
 
 import {
+  buildJourneyScene,
+  renderJourneyDocument,
+  resolveJourneyTheme,
+} from '../../grammars/journey/index.js';
+import type { JourneyDocument } from '../../grammars/journey/index.js';
+
+import {
+  buildGitGraphScene,
+  renderGitGraphDocument,
+  resolveGitGraphTheme,
+} from '../../grammars/gitgraph/index.js';
+import type { GitGraphDocument } from '../../grammars/gitgraph/index.js';
+
+import {
   buildChartScene,
   renderChartDocument,
   resolveChartTheme,
@@ -100,6 +114,8 @@ import { parseClassDiagramInternal } from './class.js';
 import { parseStateDiagramInternal } from './state.js';
 import { parseErDiagramInternal } from './er.js';
 import { parseC4DiagramInternal } from './c4.js';
+import { parseJourneyDiagramInternal } from './journey.js';
+import { parseGitGraphDiagramInternal } from './gitgraph.js';
 import { parsePieDiagramInternal } from './pie.js';
 import { parseQuadrantDiagramInternal } from './quadrant.js';
 import { parseRadarDiagramInternal } from './radar.js';
@@ -131,6 +147,8 @@ export type DiagramKind =
   | 'xychart'
   | 'quadrantChart'
   | 'radar'
+  | 'journey'
+  | 'gitGraph'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -170,6 +188,8 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^quadrantchart\b/i.test(trimmed)) return 'quadrantChart';
     if (/^radar-beta\b/i.test(trimmed)) return 'radar';
     if (/^radar\b/i.test(trimmed)) return 'radar';
+    if (/^journey\s*$/i.test(trimmed)) return 'journey';
+    if (/^gitgraph\b/i.test(trimmed)) return 'gitGraph';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -197,7 +217,7 @@ export function detectDiagramType(text: string): DiagramKind {
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -281,10 +301,20 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'journey') {
+    const { doc, warnings } = parseJourneyDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
+  if (kind === 'gitGraph') {
+    const { doc, warnings } = parseGitGraphDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph.`,
   );
 }
 
@@ -314,7 +344,7 @@ export interface MermaidRenderOptions {
 export interface MermaidRenderResult {
   kind: DiagramKind;
   /** The Domain IR document (grammar-specific). */
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -622,10 +652,38 @@ export function renderMermaid(
     return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
   }
 
+  if (kind === 'journey') {
+    const { doc, warnings, frontmatter } = parseJourneyDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-journey';
+    const journeyTheme = resolveJourneyTheme(themeName);
+    const finalDoc: JourneyDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildJourneyScene(finalDoc, journeyTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderJourneyDocument(finalDoc, { format }, journeyTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for journey.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
+  if (kind === 'gitGraph') {
+    const { doc, warnings, frontmatter } = parseGitGraphDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-gitgraph';
+    const gitGraphTheme = resolveGitGraphTheme(themeName);
+    const finalDoc: GitGraphDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildGitGraphScene(finalDoc, gitGraphTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderGitGraphDocument(finalDoc, { format }, gitGraphTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for gitGraph.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
   // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph.`,
   );
 }

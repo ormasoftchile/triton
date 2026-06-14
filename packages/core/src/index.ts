@@ -221,6 +221,50 @@ export type {
   C4Theme,
 } from './grammars/c4/index.js';
 
+// Journey grammar (Tier 3 Mermaid user journeys)
+export {
+  buildJourneyScene,
+  renderJourneyDocument,
+  journeyDocumentSchema,
+  defaultJourneyTheme,
+  darkJourneyTheme,
+  resolveJourneyTheme,
+  JOURNEY_THEME_REGISTRY,
+} from './grammars/journey/index.js';
+export type {
+  JourneyDocument,
+  JourneyMetadata,
+  JourneySection,
+  JourneyTask,
+  JourneyDocumentInput,
+  JourneyRenderOptions,
+  JourneyRenderResult,
+  JourneyTheme,
+} from './grammars/journey/index.js';
+
+// GitGraph grammar (Tier 3 Mermaid commit graphs)
+export {
+  buildGitGraphScene,
+  renderGitGraphDocument,
+  gitGraphDocumentSchema,
+  defaultGitGraphTheme,
+  darkGitGraphTheme,
+  resolveGitGraphTheme,
+  GITGRAPH_THEME_REGISTRY,
+} from './grammars/gitgraph/index.js';
+export type {
+  GitBranch,
+  GitCommit,
+  GitCommitType,
+  GitGraphDocument,
+  GitGraphMetadata,
+  GitGraphOrientation,
+  GitGraphDocumentInput,
+  GitGraphRenderOptions,
+  GitGraphRenderResult,
+  GitGraphTheme,
+} from './grammars/gitgraph/index.js';
+
 // Scene-transform kernel helper (used by composition layer)
 export { translateAndScale, embedSceneInRect, transformPathD } from './scene-transform.js';
 
@@ -290,3 +334,5 @@ export { parseErDiagram } from './frontend/mermaid/er.js';
 export { parseC4Diagram } from './frontend/mermaid/c4.js';
 export { parsePieDiagram } from './frontend/mermaid/pie.js';
 export { parseXYChartDiagram } from './frontend/mermaid/xychart.js';
+export { parseJourneyDiagram } from './frontend/mermaid/journey.js';
+export { parseGitGraphDiagram } from './frontend/mermaid/gitgraph.js';

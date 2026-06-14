@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="432" version="1.1" viewBox="0 0 1152 432" width="1152" xmlns="http://www.w3.org/2000/svg">
+  <line opacity="0.6" stroke="#4a6cf7" stroke-width="3" x1="184" x2="1104" y1="90" y2="90"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="700" text-anchor="end" x="172" y="90">main</text>
+  <line opacity="0.6" stroke="#f97316" stroke-width="3" x1="184" x2="1104" y1="174" y2="174"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="700" text-anchor="end" x="172" y="174">develop</text>
+  <line opacity="0.6" stroke="#22c55e" stroke-width="3" x1="184" x2="1104" y1="258" y2="258"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="700" text-anchor="end" x="172" y="258">feature/auth</text>
+  <line opacity="0.6" stroke="#a855f7" stroke-width="3" x1="184" x2="1104" y1="342" y2="342"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="700" text-anchor="end" x="172" y="342">feature/payments</text>
+  <path d="M 598 258 Q 644 258 690 174" fill="none" opacity="0.9" stroke="#22c55e" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 782 342 Q 828 342 874 174" fill="none" opacity="0.9" stroke="#a855f7" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 874 174 Q 920 174 966 90" fill="none" opacity="0.9" stroke="#f97316" stroke-linecap="round" stroke-width="2"/>
+  <circle cx="230" cy="90" fill="#4a6cf7" r="10" stroke="#4a6cf7" stroke-width="2"/>
+  <circle cx="322" cy="174" fill="#f97316" r="10" stroke="#f97316" stroke-width="2"/>
+  <circle cx="414" cy="174" fill="#f97316" r="10" stroke="#f97316" stroke-width="2"/>
+  <circle cx="506" cy="258" fill="#22c55e" r="10" stroke="#22c55e" stroke-width="2"/>
+  <circle cx="598" cy="258" fill="#22c55e" r="10" stroke="#22c55e" stroke-width="2"/>
+  <circle cx="690" cy="174" fill="#f97316" r="10" stroke="#f97316" stroke-width="2"/>
+  <circle cx="782" cy="342" fill="#a855f7" r="10" stroke="#a855f7" stroke-width="2"/>
+  <circle cx="874" cy="174" fill="#f97316" r="10" stroke="#f97316" stroke-width="2"/>
+  <circle cx="966" cy="90" fill="#4a6cf7" r="10" stroke="#4a6cf7" stroke-width="2"/>
+  <circle cx="1058" cy="90" fill="#fde047" r="10" stroke="#4a6cf7" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="230" y="114">initial</text>
+  <rect fill="#fef3c7" height="18" rx="8" stroke="#f59e0b" stroke-width="1" width="35" x="213" y="59"/>
+  <text dominant-baseline="middle" fill="#92400e" font-family="DejaVu Sans, sans-serif" font-size="10" font-weight="700" text-anchor="middle" x="230" y="69">v0.1</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="322" y="198">setup-ci</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="414" y="198">add-tests</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="506" y="282">auth-model</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="598" y="282">auth-api</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="690" y="198">merge-auth</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="782" y="366">payment-model</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="874" y="198">merge-payments</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="966" y="114">release-1.0</text>
+  <rect fill="#fef3c7" height="18" rx="8" stroke="#f59e0b" stroke-width="1" width="35" x="949" y="59"/>
+  <text dominant-baseline="middle" fill="#92400e" font-family="DejaVu Sans, sans-serif" font-size="10" font-weight="700" text-anchor="middle" x="966" y="69">v1.0</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1058" y="114">hotfix-typo</text>
+</svg>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="454" version="1.1" viewBox="0 0 1752 454" width="1752" xmlns="http://www.w3.org/2000/svg">
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="20" font-weight="700" text-anchor="middle" x="876" y="68">E-commerce Customer Journey 2026</text>
+  <rect fill="#f8fafc" height="232" rx="12" stroke="none" width="384" x="48" y="86"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="240" y="104">Discovery</text>
+  <rect fill="#eef2ff" height="232" rx="12" stroke="none" width="504" x="432" y="86"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="684" y="104">Purchase</text>
+  <rect fill="#f8fafc" height="232" rx="12" stroke="none" width="384" x="936" y="86"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="1128" y="104">Fulfillment</text>
+  <rect fill="#eef2ff" height="232" rx="12" stroke="none" width="384" x="1320" y="86"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="1512" y="104">Post-purchase</text>
+  <line stroke="#64748b" stroke-width="3" x1="48" x2="1704" y1="178" y2="178"/>
+  <circle cx="120" cy="178" fill="#84cc16" r="20" stroke="#4d7c0f" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="120" y="220">Search online</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="76" y="244"/>
+  <rect fill="#84cc16" height="6" rx="3" stroke="none" width="70" x="76" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="88" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="120" y="269">Customer</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="61" x="90" y="283"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="121" y="294">Analytics</text>
+  <circle cx="240" cy="178" fill="#eab308" r="20" stroke="#a16207" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="240" y="220">Read reviews</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="196" y="244"/>
+  <rect fill="#eab308" height="6" rx="3" stroke="none" width="53" x="196" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="208" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="240" y="269">Customer</text>
+  <circle cx="360" cy="178" fill="#eab308" r="20" stroke="#a16207" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="360" y="220">Compare prices</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="316" y="244"/>
+  <rect fill="#eab308" height="6" rx="3" stroke="none" width="53" x="316" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="328" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="360" y="269">Customer</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="61" x="330" y="283"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="361" y="294">Analytics</text>
+  <circle cx="504" cy="178" fill="#84cc16" r="20" stroke="#4d7c0f" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="504" y="220">Add to cart</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="460" y="244"/>
+  <rect fill="#84cc16" height="6" rx="3" stroke="none" width="70" x="460" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="472" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="504" y="269">Customer</text>
+  <circle cx="624" cy="178" fill="#f97316" r="20" stroke="#c2410c" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="624" y="220">Apply coupon</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="580" y="244"/>
+  <rect fill="#f97316" height="6" rx="3" stroke="none" width="35" x="580" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="592" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="624" y="269">Customer</text>
+  <circle cx="744" cy="178" fill="#22c55e" r="20" stroke="#15803d" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="744" y="220">Checkout</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="700" y="244"/>
+  <rect fill="#22c55e" height="6" rx="3" stroke="none" width="88" x="700" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="712" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="744" y="269">Customer</text>
+  <circle cx="864" cy="178" fill="#84cc16" r="20" stroke="#4d7c0f" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="864" y="220">Payment</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="820" y="244"/>
+  <rect fill="#84cc16" height="6" rx="3" stroke="none" width="70" x="820" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="832" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="864" y="269">Customer</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="99" x="815" y="283"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="865" y="294">Payment Service</text>
+  <circle cx="1008" cy="178" fill="#22c55e" r="20" stroke="#15803d" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1008" y="220">Order confirmed</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="964" y="244"/>
+  <rect fill="#22c55e" height="6" rx="3" stroke="none" width="88" x="964" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="976" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1008" y="269">Customer</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="53" x="982" y="283"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1009" y="294">System</text>
+  <circle cx="1128" cy="178" fill="#84cc16" r="20" stroke="#4d7c0f" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1128" y="220">Package shipped</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="1084" y="244"/>
+  <rect fill="#84cc16" height="6" rx="3" stroke="none" width="70" x="1084" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="1096" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1128" y="269">Customer</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="72" x="1092" y="283"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1128" y="294">Warehouse</text>
+  <circle cx="1248" cy="178" fill="#22c55e" r="20" stroke="#15803d" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1248" y="220">Delivered</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="1204" y="244"/>
+  <rect fill="#22c55e" height="6" rx="3" stroke="none" width="88" x="1204" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="1216" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1248" y="269">Customer</text>
+  <circle cx="1392" cy="178" fill="#eab308" r="20" stroke="#a16207" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1392" y="220">Leave review</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="1348" y="244"/>
+  <rect fill="#eab308" height="6" rx="3" stroke="none" width="53" x="1348" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="1360" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1392" y="269">Customer</text>
+  <circle cx="1512" cy="178" fill="#ef4444" r="20" stroke="#b91c1c" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1512" y="220">Return item</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="1468" y="244"/>
+  <rect fill="#ef4444" height="6" rx="3" stroke="none" width="18" x="1468" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="1480" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1512" y="269">Customer</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="55" x="1485" y="283"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1513" y="294">Support</text>
+  <circle cx="1632" cy="178" fill="#22c55e" r="20" stroke="#15803d" stroke-width="2"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1632" y="220">Repurchase</text>
+  <rect fill="#e2e8f0" height="6" opacity="0.55" rx="3" stroke="none" width="88" x="1588" y="244"/>
+  <rect fill="#22c55e" height="6" rx="3" stroke="none" width="88" x="1588" y="244"/>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="1600" y="258"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1632" y="269">Customer</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="start" x="1409" y="352">Actors</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="64" x="1409" y="362"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1441" y="373">Customer</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="61" x="1479" y="362"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1510" y="373">Analytics</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="99" x="1546" y="362"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1596" y="373">Payment Service</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="53" x="1651" y="362"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1678" y="373">System</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="72" x="1409" y="387"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1445" y="398">Warehouse</text>
+  <rect fill="#e2e8f0" height="19" rx="10" stroke="none" width="55" x="1487" y="387"/>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="1515" y="398">Support</text>
+</svg>

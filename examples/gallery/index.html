@@ -165,16 +165,17 @@
     one <strong>Flow Grammar</strong> example (RAG pipeline, layered L→R layout),
     three <strong>Tree Grammar</strong> examples (default light theme and dark-teal theme — same IR,
     two themes), one <strong>Composition Layer</strong> example (multi-panel poster assembling
-    flow, tree, sequence, and stat grammars into a single infographic), and nine
+    flow, tree, sequence, and stat grammars into a single infographic), and eleven
     <strong>Mermaid</strong> examples (gantt → roadmap theme, timeline → consulting vertical-spine,
     mindmap → dark-tree, classDiagram → UML compartments, stateDiagram → pseudostate state layout,
-    erDiagram → crow's-foot entity layout, C4Context → software architecture layout — all rendered via our engine from real Mermaid source). Most timeline renders use
+    erDiagram → crow's-foot entity layout, C4Context → software architecture layout, journey → user journey spine,
+    gitGraph → development branch lanes — all rendered via our engine from real Mermaid source). Most timeline renders use
     the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong>
     showcase. Each example exercises a distinct combination of axis unit, track density, activity
     statuses, milestones, and edge-case behaviours. Use this contact sheet to bulk-check
     Phase 1–5 visual output.
   </p>
-  <span class="badge">Phase 1–5 Gallery · 36 Examples · Horizontal + Sequence + Flow + Tree + Composition + Mermaid Tier-0/Tier-2</span>
+  <span class="badge">Phase 1–5 Gallery · 38 Examples · Horizontal + Sequence + Flow + Tree + Composition + Mermaid Tier-0/Tier-3</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -1047,6 +1048,55 @@
     <div class="card-footer">
       <a href="mermaid-radar.svg">SVG</a>
       <a href="mermaid-radar.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+
+  <!-- 37. mermaid-journey — Tier 3 grammar, journey → JourneyDocument → horizontal journey layout -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 37 · mermaid-journey</div>
+      <div class="card-title">Mermaid User Journey — E-commerce Customer Journey 2026 (Tier 3)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">journey</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>journey</code> diagram parsed into the Journey Grammar IR: ordered sections
+        as labeled horizontal bands, tasks as score-colored circles on a spine, score→color ramp
+        (red=poor, green=excellent), actor chips below each task, and an overall actor legend.
+        Theme: <code>default-journey</code>.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-journey.png" alt="mermaid journey diagram rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-journey.svg">SVG</a>
+      <a href="mermaid-journey.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 38. mermaid-gitgraph — Tier 3 grammar, gitGraph → GitGraphDocument → lane layout -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 38 · mermaid-gitgraph</div>
+      <div class="card-title">Mermaid Git Graph — Development Branching Model (Tier 3)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">gitGraph</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>gitGraph</code> rendered through the Tier 3 grammar: branch lanes as
+        horizontal rows, commits as colored dots in chronological order, merge curves as Bézier arcs
+        between lanes, tags as labeled chips above commits, HIGHLIGHT/REVERSE commit type glyphs,
+        and a branch-name legend on the left. Theme: <code>default-gitgraph</code>.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-gitgraph.png" alt="mermaid gitgraph rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-gitgraph.svg">SVG</a>
+      <a href="mermaid-gitgraph.mmd">Mermaid Source</a>
     </div>
   </div>
 
