@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="214" version="1.1" viewBox="0 0 984 214" width="984" xmlns="http://www.w3.org/2000/svg">
+  <text dominant-baseline="alphabetic" fill="#1e293b" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="492" y="44">TCP Segment Header</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="32" y="73">0</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="147" y="73">4</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="320" y="73">10</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="348" y="73">11</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="377" y="73">12</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="406" y="73">13</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="435" y="73">14</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="463" y="73">15</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="492" y="73">16</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="end" x="952" y="73">31</text>
+  <rect fill="#dae8fc" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="115" x="32" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="90" y="106">Data Offset</text>
+  <rect fill="#d5e8d4" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="173" x="147" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="234" y="106">Reserved</text>
+  <rect fill="#dae8fc" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="29" x="320" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="9" font-weight="600" text-anchor="middle" x="335" y="105">URG</text>
+  <rect fill="#d5e8d4" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="29" x="348" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="10" font-weight="600" text-anchor="middle" x="363" y="105">ACK</text>
+  <rect fill="#dae8fc" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="29" x="377" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="10" font-weight="600" text-anchor="middle" x="392" y="105">PSH</text>
+  <rect fill="#d5e8d4" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="29" x="406" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="10" font-weight="600" text-anchor="middle" x="421" y="105">RST</text>
+  <rect fill="#dae8fc" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="29" x="435" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="10" font-weight="600" text-anchor="middle" x="450" y="105">SYN</text>
+  <rect fill="#d5e8d4" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="29" x="463" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="478" y="106">FIN</text>
+  <rect fill="#dae8fc" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="460" x="492" y="82"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="722" y="106">Window Size</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="32" y="137">32</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="492" y="137">48</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="end" x="952" y="137">63</text>
+  <rect fill="#dae8fc" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="460" x="32" y="146"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="262" y="170">Checksum</text>
+  <rect fill="#d5e8d4" height="40" rx="0" stroke="#6c8ebf" stroke-width="1" width="460" x="492" y="146"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="722" y="170">Urgent Pointer</text>
+</svg>

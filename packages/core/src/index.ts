@@ -360,6 +360,8 @@ export type {
 } from './grammars/sankey/index.js';
 export { parseRequirementDiagram } from './frontend/mermaid/requirement.js';
 export { parseKanbanDiagram } from './frontend/mermaid/kanban.js';
+export { parseBlockDiagram } from './frontend/mermaid/block.js';
+export { parsePacketDiagram } from './frontend/mermaid/packet.js';
 
 // Requirement grammar (Tier 3 — SysML/UML requirement boxes + relationships)
 export {
@@ -408,3 +410,46 @@ export type {
   KanbanRenderResult,
   KanbanTheme,
 } from './grammars/kanban/index.js';
+
+// Block grammar (Tier 3 — grid block diagrams with spans, groups, and arrows)
+export {
+  buildBlockScene,
+  renderBlockDocument,
+  blockDocumentSchema,
+  defaultBlockTheme,
+  darkBlockTheme,
+  resolveBlockTheme,
+  BLOCK_THEME_REGISTRY,
+} from './grammars/block/index.js';
+export type {
+  BlockDocument,
+  BlockMetadata,
+  BlockItem,
+  BlockGroup,
+  BlockArrow,
+  BlockShape,
+  BlockDocumentInput,
+  BlockRenderOptions,
+  BlockRenderResult,
+  BlockTheme,
+} from './grammars/block/index.js';
+
+// Packet grammar (Tier 3 — packet header field layouts)
+export {
+  buildPacketScene,
+  renderPacketDocument,
+  packetDocumentSchema,
+  defaultPacketTheme,
+  darkPacketTheme,
+  resolvePacketTheme,
+  PACKET_THEME_REGISTRY,
+} from './grammars/packet/index.js';
+export type {
+  PacketDocument,
+  PacketMetadata,
+  PacketField,
+  PacketDocumentInput,
+  PacketRenderOptions,
+  PacketRenderResult,
+  PacketTheme,
+} from './grammars/packet/index.js';

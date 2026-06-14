@@ -144,6 +144,20 @@ import {
   resolveKanbanTheme,
 } from '../../grammars/kanban/index.js';
 import type { KanbanDocument } from '../../grammars/kanban/index.js';
+import {
+  buildBlockScene,
+  renderBlockDocument,
+  resolveBlockTheme,
+} from '../../grammars/block/index.js';
+import type { BlockDocument } from '../../grammars/block/index.js';
+import {
+  buildPacketScene,
+  renderPacketDocument,
+  resolvePacketTheme,
+} from '../../grammars/packet/index.js';
+import type { PacketDocument } from '../../grammars/packet/index.js';
+import { parseBlockDiagramInternal } from './block.js';
+import { parsePacketDiagramInternal } from './packet.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -176,6 +190,8 @@ export type DiagramKind =
   | 'sankey'
   | 'requirementDiagram'
   | 'kanban'
+  | 'block'
+  | 'packet'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -220,6 +236,8 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^sankey(?:-beta)?\s*$/i.test(trimmed)) return 'sankey';
     if (/^requirementdiagram\b/i.test(trimmed)) return 'requirementDiagram';
     if (/^kanban\b/i.test(trimmed)) return 'kanban';
+    if (/^block-beta\b/i.test(trimmed)) return 'block';
+    if (/^packet-beta\b/i.test(trimmed)) return 'packet';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -247,7 +265,7 @@ export function detectDiagramType(text: string): DiagramKind {
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument | BlockDocument | PacketDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -356,10 +374,20 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'block') {
+    const { doc, warnings } = parseBlockDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
+  if (kind === 'packet') {
+    const { doc, warnings } = parsePacketDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph, sankey-beta, requirementDiagram, kanban.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph, sankey-beta, requirementDiagram, kanban, block-beta, packet-beta.`,
   );
 }
 
@@ -389,7 +417,7 @@ export interface MermaidRenderOptions {
 export interface MermaidRenderResult {
   kind: DiagramKind;
   /** The Domain IR document (grammar-specific). */
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument | BlockDocument | PacketDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -763,10 +791,40 @@ export function renderMermaid(
     return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
   }
 
+  // ── block-beta ──────────────────────────────────────────────────────────
+  if (kind === 'block') {
+    const { doc, warnings, frontmatter } = parseBlockDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-block';
+    const blockTheme = resolveBlockTheme(themeName);
+    const finalDoc: BlockDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildBlockScene(finalDoc, blockTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderBlockDocument(finalDoc, { format }, blockTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for block-beta.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
+  // ── packet-beta ─────────────────────────────────────────────────────────
+  if (kind === 'packet') {
+    const { doc, warnings, frontmatter } = parsePacketDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-packet';
+    const packetTheme = resolvePacketTheme(themeName);
+    const finalDoc: PacketDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildPacketScene(finalDoc, packetTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderPacketDocument(finalDoc, { format }, packetTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for packet-beta.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
   // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph, sankey-beta, requirementDiagram, kanban.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph, sankey-beta, requirementDiagram, kanban, block-beta, packet-beta.`,
   );
 }
