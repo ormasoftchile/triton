@@ -107,6 +107,53 @@ Tier 2 grammar-of-graphics chart foundation shipped: scales (LinearScale, BandSc
 
 Tier 2 complete (pie/xychart/quadrant/radar). Quadrant + radar implemented on shared foundation. Quadrant: tinted regions, edge-aware non-clipping labels (defects fixed). Radar: radial scale, dual-syntax parser (Mermaid radar-beta + doc form). 1425/1425 tests ✓. Commits 5b709cf (foundation+pie+xy), ecfc418 (quadrant+radar).
 
+## Learnings (journey: score→vertical-position emotional curve — 2026-06-14)
+
+**Problem fixed:** The original journey layout plotted all task circles at the same
+Y (the spine), encoding score only through fill color. This discarded the DEFINING
+semantic of a user-journey diagram.
+
+**Score → vertical position formula:**
+```
+faceY = absoluteSpineY + minDrop + (5 − score) × (maxDrop − minDrop) / 4
+```
+`minDrop = 16` (score 5 is 16 px below spine); `maxDrop = 140` (score 1 is 140 px below).
+The face circles carry the same `scoreFills[scoreIndex]` as before (keeps existing tests).
+
+**Droplines:** a dashed `line` primitive from `(centerX, absoluteSpineY)` to
+`(centerX, faceY − taskRadius)`. Color = `droplineStroke`; dashArray = `'4,4'`.
+
+**Emotion curve:** Catmull-Rom spline (→ cubic Bézier via `cp = p[i] ± (p[i+1] − p[i-1])/6`)
+threaded through all face-circle centres in left-to-right order. Emitted as a single
+`path` primitive BEFORE the circles so the curve appears behind the markers.
+
+**Face expressions:** separate `path` primitive per task encodes score via mouth shape:
+- score ≥ 4: happy (Q-bezier curving upward)
+- score = 3: neutral (horizontal L)
+- score ≤ 2: unhappy (Q-bezier curving downward)
+Eye circles use `r = ceil(taskRadius / 8)` so they scale if `taskRadius` changes.
+
+**Actor color assignment:** `allActors` (in order of first appearance, preamble first)
+are mapped to `actorPalette[i % len]`. Applies consistently in task-box indicator dots
+and the bottom legend. The `actorColorMap` is a `Map<string, string>`.
+
+**Task boxes above spine:** white rounded rects (`taskBoxFill`, `taskBoxStroke`).
+`boxBottom = absoluteSpineY − 6`; `boxTop = boxBottom − taskBoxH`.
+`taskBoxH` is computed dynamically from the maximum label-line count across all tasks
+plus the actor-dot row height, ensuring visual uniformity.
+
+**File paths:**
+- `packages/core/src/grammars/journey/layout.ts` — full layout rewrite
+- `packages/core/src/grammars/journey/theme.ts` — 10 new theme fields; spineY default 92→152
+
+**Test compat invariant:** face circles at `faceY` must have `r === tk.taskRadius` and
+`fill === tk.scoreFills[scoreIndex(score)]` to satisfy the two score-ramp corpus tests
+and the 10-plus-task count test.
+
+**Gallery dimensions:** 1752×538 (width unchanged; height grew 84 px for the curve area).
+
+**Decision note:** `.squad/decisions/inbox/bjarne-journey-curve-fix.md`
+
 ## Learnings (Tier 3 · journey + gitGraph — 2026-06-14)
 
 - Added two new Tier 3 Mermaid verticals with dedicated IRs, schemas, themes, layouts, parsers, dispatch wiring, corpus suites, and gallery assets: `journey` → `JourneyDocument`, `gitGraph` → `GitGraphDocument`.
@@ -114,3 +161,27 @@ Tier 2 complete (pie/xychart/quadrant/radar). Quadrant + radar implemented on sh
 - `gitGraph` starts on implicit `main`, tracks branch/checkout/merge/cherry-pick state with stable auto IDs (`commit-0`, `commit-1`, ...), and lays out commits in chronological LR columns with branch-colored lanes, merge/cherry-pick curves, tag chips, and HIGHLIGHT/REVERSE commit glyphs.
 - Determinism stayed additive: all coordinates use `rhuInt()`, existing goldens remained byte-identical, and the new gallery renders emitted successfully at `mermaid-journey` 1752×454 and `mermaid-gitgraph` 1152×432.
 - Verification: `pnpm -C packages/core build` ✓, `pnpm -C packages/core typecheck` ✓, `pnpm -C packages/core test` ✓ → **1503/1503 passing**.
+
+## Learnings (Sankey value-in-label + gradient ribbons — 2026-06-14)
+
+**Node value labels:**
+- Added `showNodeValues: boolean` to `SankeyTheme` (default `true` to match Mermaid).
+- Format helper `formatNodeValue(v)`: integers display without decimals; fractions keep up to 3 dp with trailing zeros stripped.
+- Label composed as `"${node.label} ${formatNodeValue(throughput)}"` where throughput = `max(inFlow, outFlow)`.
+- Updated corpus tests 8 and 25 to check `texts.some(t => t === name || t.startsWith(name + ' '))`.
+
+**Gradient ribbons:**
+- Added `fillGradient?: StrokeGradient` to `PathPrimitive` in `scene.ts` (reuses existing `StrokeGradient` interface — same `from/to/x1/y1/x2/y2` fields).
+- Updated `svg.ts`: refactored `collectGradientDefs()` to handle both stroke and fill gradients; fill uses `fg-` ID prefix. `primitiveToSvg` for `path` uses `url(#fg-...)` when `fillGradient` is set.
+- Updated `skia.ts`: `renderPath()` for filled paths checks `p.fillGradient` and builds `CK.Shader.MakeLinearGradient` shader instead of flat colour.
+- In `layout.ts`: each ribbon gets `fillGradient: { from: srcColor, to: tgtColor, x1, y1: srcMidY, x2, y2: tgtMidY }` for a left-to-right horizontal gradient. `fill` field retained as backend fallback.
+
+**File paths:**
+- `packages/core/src/scene.ts` — added `fillGradient?: StrokeGradient` to `PathPrimitive`
+- `packages/core/src/render/svg.ts` — `collectGradientDefs` now handles both stroke + fill; `primitiveToSvg` path case uses `fillGradientId()`
+- `packages/core/src/render/skia.ts` — `renderPath()` handles `fillGradient` via `MakeLinearGradient` shader
+- `packages/core/src/grammars/sankey/theme.ts` — added `showNodeValues: boolean` (default `true`)
+- `packages/core/src/grammars/sankey/layout.ts` — `formatNodeValue()`, label composition with value, `StrokeGradient` import, gradient ribbon generation
+- `packages/core/test/mermaid-sankey-corpus.test.ts` — updated tests 8 and 25 for value-in-label
+
+**Suite:** 1540/1540 passing. All pre-existing non-sankey goldens byte-identical. Gallery: `mermaid-sankey.{svg,png}` at 964×544 (canvas dims unchanged).

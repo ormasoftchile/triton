@@ -237,3 +237,5 @@ Tier 2 complete (pie/xychart/quadrant/radar). Quadrant + radar implemented on sh
 ## 2026-06-14 — Tier 3 Started
 
 Tier 3 started (journey/gitGraph). journey: horizontal score-ramp with section bands + actor legend. gitGraph: per-branch lanes with merge curves, tags, commit types. 1503/1503 tests ✓. Commit a2a1b37. Remaining Tier 3: sankey (in progress), then breadth.
+
+**2026-06-14:** Real-Mermaid fidelity pass: 6 diagram types fixed & A/B-verified (gitGraph, journey, mindmap, sankey, gantt, timeline).

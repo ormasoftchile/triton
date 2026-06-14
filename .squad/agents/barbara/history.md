@@ -1,134 +1,137 @@
-# Barbara — Layout Specialist
+## 2026-06-14 — Faithful Gantt Layout
 
-**Owner:** Barbara (Layout & Rendering Lead)  
-**Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-14T19:24:39Z
+### Summary
 
----
+Replaced the roadmap-style gantt render (which reused `layoutRoadmap` and produced rounded pills, no section labels, circle milestones) with a **dedicated, Mermaid-faithful `layoutGantt`** engine, gated behind `layout: 'gantt'`. Real-Mermaid A/B confirmed full structural parity.
 
-## Current Status
+### Gallery: `examples/gallery/mermaid-gantt.{svg,png}` — viewBox `0 0 1400 510`
 
-**Tier 2 Foundation Complete:** Grammar-of-graphics chart layer shipped. Scales (LinearScale, BandScale), axes, marks, deterministic layout engine with priority-based label collision avoidance. First two chart types operational: pie + xychart-beta (bar+line). 1361 tests passing, all pre-existing regressions zero.
+### Gantt Layout: section bands + labels (2026-06-14)
 
-**Gallery:** mermaid-pie.png + mermaid-xychart.png (920×560), cards 33+34.
+- **Section label column:** 120px fixed-width column on the LEFT, right-aligned text, vertically centred per section band. This is the most prominent gap vs. the roadmap look — section labels were completely absent before.
+- **Section bands:** Alternating fills (`#EEF2FF` periwinkle / `#FAFAFA` near-white). Full chart-area width (excluding the label column). Drawn before gridlines.
+- **One row per declared task** (declaration index = row number). Real Mermaid puts each declared task in its own horizontal lane; greedy interval packing is wrong here. This gives the characteristic staircase pattern for sequential tasks.
+- **Vertical gridlines drawn AFTER section bands** so they're visible on top. Soft `#AAAACC` at 50% opacity — readable without dominating.
 
-**Commit:** 5b709cf "feat(mermaid): Tier 2 kickoff — grammar-of-graphics + pie + xychart"
+### Gantt Layout: date axis / grid (2026-06-14)
 
----
+- **Bottom axis position** (not top — Mermaid puts dates at the bottom). Axis baseline: a horizontal line at `contentBottomY`.
+- **Tick labels: `YYYY-MM-DD` format** (e.g., `2025-02-01`). Deterministic: no locale. Crowding-skip algorithm prevents overlapping labels using measured text widths + `MIN_TICK_LABEL_GAP`.
+- **`GanttAxisState`** — simple struct `{ tsOrd, teOrd, xLeft, xRight }`. dateX = linear mapping from ordinal to pixel range. No break-segment logic needed (gantt doesn't use axis breaks).
+- **Axis unit auto-selected** based on range: <60d→day, <365d→month, <1095d→quarter.
 
-## Key Capabilities
+### Gantt Layout: status colors (2026-06-14)
 
-- **Deterministic Rendering:** All geometry from direct arithmetic, `rhuInt()` rounding, no iterative solvers
-- **Theme-Driven Architecture:** Grammar IR independent of rendering; external style via theme tokens
-- **Two-IR-Layer Model:** Domain IR → Scene IR (universal kernel)
-- **Shared Foundation Pattern:** Grammars reuse scale/axis/mark infrastructure
+- `done` → `fill: #C0C7D4`, `stroke: #8E9AAF` (muted gray-blue)
+- `in-progress` (active) → `fill: #7B9FE0`, `stroke: #3B5FC0` (cornflower blue)
+- `planned` → `fill: #C8D9F5`, `stroke: #7B9FE0` (light blue)
+- `critical` category (overrides status) → `fill: #FF8080`, `stroke: #E53E3E` (red)
+- Milestone diamonds: same color families; crit → bright red `#E53E3E`
 
----
+### Gantt Layout: milestone diamonds (2026-06-14)
 
-## Shipped Grammars
+- **Diamond = 4-point path** `M cx t L r cy L cx b L l cy Z` where `t/r/b/l` are top/right/bottom/left vertices at ±DIAMOND_SIZE (8px half-diagonal) from center.
+- Placed at the milestone's date ordinal → x, in the row AFTER the last activity row in the section.
+- **Label flip:** label renders to the RIGHT of the diamond by default. If `labelX + labelWidth > chartRight - 4`, flips to the LEFT (`textAnchor: 'end'`). This correctly handles "Public GA" at the right edge.
 
-| Grammar | Status | Tests |
-|---------|--------|-------|
-| Timeline | SHIPPED | 551+ |
-| Sequence | SHIPPED | 611+ |
-| Tree | SHIPPED | 630+ |
-| Flow | SHIPPED | 741+ |
-| Composition | SHIPPED | 735+ |
-| **Chart** | **SHIPPED (Tier 2)** | **1361 total** |
-| Class (UML) | SHIPPED | 1281 |
-| State (UML) | SHIPPED | 1281 |
-| ER (UML) | SHIPPED | 1281 |
-| C4 (UML) | SHIPPED | 1281 |
+### Opt-in / determinism architecture (2026-06-14)
 
----
+- New layout module: `packages/core/src/layout/gantt.ts` (pure function, zero imports from other layout modules)
+- `layout/index.ts`: `if (family === 'gantt') return layoutGantt(ir, theme, baseDir);` — single dispatch guard.
+- `types.ts` + `render/index.ts`: union extended with `| 'gantt'` in two places.
+- `frontend/mermaid/gantt.ts` (parser): sets `layout: 'gantt'` in IRDocument metadata.
+- `frontend/mermaid/index.ts` (renderer): hardcodes `layout: 'gantt'` in the render branch.
+- All pre-existing goldens byte-identical. `git status --porcelain examples/gallery/*.svg` → only `mermaid-gantt.svg`.
 
-## Tier 2 — Chart Foundation Architecture
+### File paths
 
-### ChartDocument (Domain IR)
+- `packages/core/src/layout/gantt.ts` — NEW gantt layout engine
+- `packages/core/src/layout/index.ts` — register gantt dispatcher
+- `packages/core/src/types.ts` — add `'gantt'` to layout unions
+- `packages/core/src/render/index.ts` — add `'gantt'` to BuildSceneOptions
+- `packages/core/src/frontend/mermaid/gantt.ts` — set `layout: 'gantt'` in parser
+- `packages/core/src/frontend/mermaid/index.ts` — force `layout: 'gantt'` in render branch
+- `examples/gallery/mermaid-gantt.{svg,png}` — re-emitted
+- `.squad/decisions/inbox/barbara-gantt-faithful.md` — decision note
 
-Semantic chart intent: data rows, field encodings, lightweight config. Maps Mermaid syntax into unified structure for all chart families.
+### Test result: 1540/1540 ✓ (only mermaid-gantt.svg changed)
 
-### Scales
-
-- **LinearScale:** continuous numeric domain → pixel range, nicening for axis ticks
-- **BandScale:** categorical domain → pixel bands with padding
-
-### Layout Engine
-
-- **Priority-based label placement:** largest slices first, inside when roomy, outside for small/conflicting, leader lines for spillover
-- **Tick-label crowding:** deterministic skipping based on measured label width vs available space
-- **No iterative solvers:** all geometry derives from direct arithmetic
-
-### Scene IR Output
-
-Existing primitives only: `rect`, `line`, `circle`, `text`, `path`. Serializers unchanged.
 
 ---
 
-## Recent Milestones
+## Learnings — timeline-columns layout (Mermaid `timeline` fidelity) (2026-06-14)
 
-### Tier 1 Complete (2026-06-14)
+**Supersedes:** the previous even-spine fix for the Mermaid timeline path (that path used
+`layout: 'horizontal', spineSpacing: 'even'` which produced arc-around-node style — wrong).
 
-All four UML/Software-line types shipped: classDiagram, stateDiagram, erDiagram, C4. 1281 tests, determinism verified, gallery outputs finalized.
+### Layout architecture
 
-**Key layouts:**
-- Class: 2-column deterministic grid
-- State: rank-based skip-transition side routing + adjacent-label placement (skip-labels in left margin)
-- ER: degree-sort + interleaved grid placement
-- C4: top-level grid + boundary nesting, orthogonal edge routing with port distribution, edge labels clear of boxes
+The Mermaid `timeline` type requires a **section-column** grid layout, not a horizontal spine:
 
-### Tier 2 Started (2026-06-14)
+| Zone | What it is |
+|------|------------|
+| Top band | Colored section header rectangles (one per section, spanning its periods) |
+| Middle | Period column header boxes (darker tint, one per period) |
+| Axis | Horizontal arrow line separating period headers from events |
+| Bottom | Event boxes stacked vertically per period (light pastel tint) |
 
-Chart grammar-of-graphics foundation + pie + xychart-beta. Foundation ready for quadrant + radar (only dispatch branch per type).
+### Data reconstruction (NO parser changes needed)
 
----
+The Mermaid timeline parser already stores all grouping info in the IRDocument:
+- **Sections** → `doc.sections` (or fallback `doc.tracks`)
+- **Periods** → `doc.milestones` with `milestone.track === sectionId`
+- **Events** → `doc.activities` with `activity.track === sectionId` AND `(activity.span || activity.start) === period.date`
 
-## Deferred / Known Limitations
+Sorting periods within a section: lexicographic on the IRDate string (works correctly for
+year-only "1954", YYYY-MM, and YYYY-MM-DD forms — all sort chronologically as strings).
 
-- Quadrant + radar chart types (reuse foundation)
-- Flow Inc-3+: Force-directed layout, stress-majorization
-- Tree Inc-2+: Forest support, shape variation
-- Composition Inc-2+: Scale policy modes, advanced URI schemes
-- ER follow-up: Same-column side-routing for edge labels
+### Column width formula
 
----
+```
+minCanvasW = totalPeriods * MIN_COL_W + MARGIN_LR * 2
+colW = floor((max(theme.canvas.width, minCanvasW) - MARGIN_LR * 2) / totalPeriods + 0.5)
+canvasW = colW * totalPeriods + MARGIN_LR * 2
+```
 
-## Archive
+Even spacing is enforced: all columns same width regardless of time gaps between periods.
+`MIN_COL_W = 100` ensures labels are readable at `EVENT_FONT_PX = 11` (fixed px, not pt).
 
-For detailed learnings from earlier work (2025 timeline polish, grammar-of-graphics, Tier 1 polish), see archived history files.
+### Font size lesson
 
----
+Event labels must use a **fixed small px size** (11px), NOT `ptToPx(theme.fontSizeBase)`.
+The consulting theme's `fontSizeBase = 11pt = 14.67px` is too large for ~91px-wide event boxes.
+At 14.67px, even "FORTRAN" (7 chars) was being truncated. At 11px, all single-word labels
+fit comfortably; multi-word labels wrap gracefully to 2 lines.
 
-## Tier 2 Complete — quadrantChart + radar/radar-beta (2026-06-14)
+### 8-color section palette
 
-Completed the remaining Tier 2 chart types on the shared chart grammar foundation.
+Defined inline in `timeline-columns.ts` — each entry has `{ header, period, event, headerText, eventText, eventBorder }`.
+Section headers use saturated colors; period boxes use slightly darker shade; event boxes
+use a very light pastel. All 8 colors are distinct; cycling handles timelines with >8 sections.
 
-### Shipped
-- `quadrantChart`: normalized `[0,1] × [0,1]` plot with tinted quadrants, semantic Low/High axis endpoints, quadrant region labels, and deterministic point-label collision handling.
-- `radar` / `radar-beta`: explicit spoke axes, concentric polygon graticules, normalized radial scaling via closed-form `RadialScale`, multi-series filled/stroked polygons, and internal legend.
+### Opt-in / determinism architecture (same pattern as gantt)
 
-### Parser learnings
-- `radar` needs syntax auto-detection: if `axes:` is absent but `axis`/`curve` markers appear, treat it as beta-style content rather than simple syntax.
-- Beta curves can appear before axis declarations; preserve indexed values temporarily (`_axisN`) and backfill once axis names arrive.
+- New layout module: `packages/core/src/layout/timeline-columns.ts` (pure function)
+- `layout/index.ts`: `if (family === 'timeline-columns') return layoutTimelineColumns(ir, theme, baseDir);`
+- `types.ts` + `render/index.ts`: union extended with `| 'timeline-columns'` in two places
+- `frontend/mermaid/index.ts`: hardcodes `layout: 'timeline-columns'` in the timeline render branch
+  (replaces the old `layout: finalDoc.metadata.layout, spineSpacing: 'even'` approach)
+- All pre-existing goldens byte-identical. Only `mermaid-timeline.svg` changed.
 
-### Rendering learnings
-- Current `PathPrimitive` lacks separate `fillOpacity` and `strokeLinejoin`; the stable pattern is **two paths per radar polygon**: one translucent fill-only path and one stroke-only path.
-- Quadrant labels and point annotations can reuse the existing pie label-box helpers for deterministic overlap avoidance without introducing a new solver.
+### Output dimensions
 
-### Verification
-- `pnpm -C packages/core build` ✅
-- `pnpm -C packages/core typecheck` ✅
-- `pnpm -C packages/core test` ✅
-- Gallery outputs generated: `examples/gallery/mermaid-quadrant.{mmd,svg,png}` and `examples/gallery/mermaid-radar.{mmd,svg,png}`
+- viewBox: `0 0 1380 346` — 1380×346 px (13 periods × 100px + 80px margins)
+- Canvas height = MARGIN_TOP + titleH + SECTION_HDR_H + PERIOD_HDR_H + eventAreaH + MARGIN_BOTTOM
+- maxEvents = 3 (period 1995 has Java + "Write once, run anywhere" + "JVM ecosystem")
 
----
+### File paths
 
-## Learnings
+- `packages/core/src/layout/timeline-columns.ts` — **NEW** timeline-columns layout engine
+- `packages/core/src/layout/index.ts` — register dispatcher + export
+- `packages/core/src/types.ts` — add `'timeline-columns'` to layout unions
+- `packages/core/src/render/index.ts` — add `'timeline-columns'` to `BuildSceneOptions.layout`
+- `packages/core/src/frontend/mermaid/index.ts` — switch timeline render branch to `'timeline-columns'`
+- `examples/gallery/mermaid-timeline.{svg,png}` — re-emitted
+- `.squad/decisions/inbox/barbara-timeline-columns.md` — decision note
 
-### Quadrant margin / edge-aware label placement (2026-06-14)
-
-- **Y-axis end labels need ≥ 110 px left reserve.** With 12 px DejaVu Sans, a 15-char label like "High Engagement" measures ≈ 97 px wide. The label is anchored at `plotX − 8` with `textAnchor="end"`, so left clearance = `plotX − 8 − labelWidth`. Anything under ~113 px for `plotX` clips the left edge of the canvas.
-- **Priority placement must check plot-boundary proximity, not just mutual label overlap.** An item at x ≈ 0.81 in a 378 px plot (px ≈ 448) lands within 6 px of the plot's right edge when the first right-side candidate is selected. Adding `EDGE_MARGIN = 6` to the boundary check and skipping candidates that would land within that margin of either horizontal plot edge prevents subtle clips that the mutual-overlap test alone cannot catch. Fallback path must mirror this: prefer the left-side anchor when the right-side placement would exceed `plotRight − EDGE_MARGIN`.
-## 2026-06-14 — Tier 3 Started
-
-Tier 3 started (journey/gitGraph). journey: horizontal score-ramp with section bands + actor legend. gitGraph: per-branch lanes with merge curves, tags, commit types. 1503/1503 tests ✓. Commit a2a1b37. Remaining Tier 3: sankey (in progress), then breadth.
+### Test result: 1540/1540 ✓ (only mermaid-timeline.svg changed)

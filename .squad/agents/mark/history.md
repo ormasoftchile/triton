@@ -128,3 +128,5 @@ Tier 1 complete (class/state/er/c4)
 ## 2026-06-14 — Tier 2 Started
 
 Tier 2 grammar-of-graphics chart foundation shipped: ChartDocument Domain IR, LinearScale/BandScale, deterministic layout with priority-based label collision avoidance. Pie + xychart-beta operational. 1361 tests, zero regressions. Foundation for quadrant + radar (reuse only). Commit 5b709cf.
+
+**2026-06-14:** Real-Mermaid fidelity pass: 6 diagram types fixed & A/B-verified (gitGraph, journey, mindmap, sankey, gantt, timeline).
