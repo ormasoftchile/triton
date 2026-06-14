@@ -2,7 +2,7 @@
 
 **Owner:** Barbara (Semantics & Rendering Lead)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-13T21:43:20Z
+**Updated:** 2026-06-14T04:41:53Z
 
 ---
 
@@ -92,154 +92,133 @@ Render domain IRs to Scene IR primitives with deterministic, themeable output. I
 
 ---
 
-## Archive
-
-For detailed implementation notes from increments 1–4 (June 10–13), including full Sequence/Tree/Flow/Composition implementation logs, see `barbara/history-archive.md`.
-
----
-
 ## Metrics Summary
 
-- **Test Coverage:** 790 total (all pass; 55 new validation in Increment-2 closeout)
+- **Test Coverage:** 1235 total (1083 baseline + 152 new for Tier 1 class/state/ER polish; all pass)
 - **Byte-Safety:** All pre-existing goldens byte-identical; new gallery outputs deterministic
 - **Kernel Stability:** No breaking changes; all extensions backward-compatible
-- **Code Quality:** Theme-driven architecture verified across all 5 grammars + composition layer
-
-
----
-
-## Learnings — 2026-06-13T17:43:20-04:00 Composition ir_file Ref Resolution
-
-### ir_file ref resolution as a separate pure-preserving step
-
-Added `kind: 'ref'` variant to `CellContent` and `timeline` inline variant. The core insight is that file I/O is isolated in a single module (`resolve.ts`) that produces a fully-inlined `CompositionDocument` BEFORE the layout pipeline runs. `buildCompositionScene` / `layoutComposition` remain pure (no I/O) — they never see `kind:'ref'` cells.
-
-**Files changed:**
-- `composition/types.ts` — Added `TimelineCellContent` and `RefCellContent` to `CellContent` union
-- `composition/schema.ts` — Added `timelineCellContentSchema`, `refCellContentSchema` to discriminated union; imported `irDocumentSchema`
-- `composition/layout.ts` — Added `case 'timeline'` (calls `buildScene` from render/index); added guard for `case 'ref'` (throws if unresolved ref reaches layout)
-- `composition/resolve.ts` — New file: `resolveCompositionRefs(doc, baseDir)` — the only file-I/O in the composition pipeline
-- `composition/index.ts` — Exported new types + `resolveCompositionRefs`; added `renderCompositionDocumentFromRefs(doc, baseDir, opts)` convenience wrapper
-
-**Architecture pattern:** This mirrors how grammar docs are loaded by the CLI/tests, not by the layout. The resolver reads → parses (YAML/JSON) → validates via grammar schema → returns inline CellContent. The layout stays pure.
-
-**Test additions (E1–E5):**
-- E1: `resolveCompositionRefs` inlines ref cells, preserves inline cells, does not mutate original
-- E2: Missing file throws clear error matching `/cannot read ir_file/`
-- E3: Resolved poster is deterministic (sceneHash stable)
-- E4: Resolved poster hash ≡ equivalent inline poster hash (byte-identical)
-- E5: Gallery emit → `examples/gallery/poster-refs.{svg,png}`
-
-**Example created:** `examples/gallery/poster-refs/` — composition YAML referencing `pipeline.flow.yaml` + `taxonomy.tree.yaml`; rendered outputs at `examples/gallery/poster-refs.{svg,png}`.
-
-**All 795 tests pass; all existing goldens byte-identical.**
+- **Code Quality:** Theme-driven architecture verified across all 5 grammars + composition layer + UML Tier 1 polish
 
 ---
 
-## 2026-06-13 — STRATEGIC PIVOT: Mermaid-Superset Positioning (Scribe Update)
+## Archive
 
-**Status:** LOCKED — MAJOR DIRECTION CHANGE
-
-Product repositioned as **full Mermaid superset** (all 22 types) compiling to shared deterministic Scene IR.
-
-### Positioning & Differentiators
-
-1. **Aesthetics is a headline pillar** (explicit competitive advantage)
-   - Beat Mermaid's look-and-feel out of the box
-   - Barbara work: Theme system for all 5 families; typography, color harmony, layout polish
-   - Scoped deliverables: 5-family theme families; dark/light variants + domain-specific (ByteByteGo, corporate, academic)
-
-2. **Chart Family (New Grammar-of-Graphics Kernel)**
-   - Grammar-of-graphics layer for pie, xychart, quadrant, radar
-   - Barbara work: Design ChartScene IR; implement Mark's ChartData specs → geometries
-   - Downstream: Tier-2 coverage roadmap
-
-3. **UML/Software Diagram Line (Tier-1)**
-   - class, state, ER, C4 as architectural/UML story
-   - Barbara work: Class diagram rendering (boxes, inheritance, composition, abstract); state diagram (state circles, transitions, guards); ER (entity/attribute/relationship); C4 (system/container/component/code views)
-   - Blocking: Mark's UML domain IRs must be designed first
-
-4. **Five Families (Taxonomy)**
-   1. Node-Link/Graph (Sugiyama kernel) — flowchart, C4, architecture, block, requirement, gitGraph, sankey
-   2. UML/Software — sequence, class, state, ER
-   3. Charts (grammar-of-graphics) — pie, xychart, quadrant, radar
-   4. Timeline/Project (track-based) — gantt, timeline, journey, kanban
-   5. Tree/Hierarchy (Buchheim–Jünger–Leipert) — mindmap, treemap
-
-### Current State
-- 4 grammars shipped (timeline, sequence, tree, flow) + composition
-- Theme-driven architecture verified; 790/790 tests pass
-- All pre-existing goldens byte-identical; dark theme closures stable
-
-### Next Build Phase
-- **T0 wiring:** Mermaid → existing grammars (Mark: parser; Barbara: theme coverage)
-- **T1 UML:** Class/state/ER/C4 rendering (Barbara: increment-2 work; blocks on Mark's IRs)
-- **T2 charts:** Grammar-of-graphics rendering (Barbara: increment-3; blocks on Mark's ChartData IR)
-- **Aesthetics:** Complete 5-family theme set; establish design system (Barbara: parallel priority)
-
+For detailed implementation notes from earlier work (2025 even-horizontal timeline, Tier 1 kickoff, detailed learnings), see `barbara/history-archive.md`.
 
 ---
 
-## 2025 — Even-Horizontal Layout Mode (Barbara)
+## Learnings (Tier 1 · classDiagram)
 
-**Date:** 2025  
-**Status:** SHIPPED
+Class grammar (UML software line) shipped with deterministic 2-column layout. All 6 UML relationships rendered as Scene path primitives (inheritance, realization, composition, aggregation, association, dependency) to preserve SVG/PNG/Skia backend compatibility. Class compartments (attributes, methods) sized via measureText(). Light+dark themes supported.
 
-### Problem Solved
+## Milestone: Tier 1 Layout Polish — State + ER (2026-06-14T04:41:53Z)
 
-Mermaid `timeline` diagrams (e.g., "History of Programming Languages" — 13 periods 1954–2014) rendered in horizontal layout with time-proportional spacing produced label collisions: 1954/1958/1960 are clustered within 6 years out of a 60-year span, so their milestone circles and label blocks overlapped. Real Mermaid uses **evenly-spaced columns** (Mermaid-columnar), not proportional time.
+**Date:** 2026-06-14T04:41:53Z  
+**Status:** COMPLETE  
+**Commit:** 9c2d9b3 "feat(mermaid): Tier 1 — stateDiagram + erDiagram"  
+**Previous work:** Bjarne's stateDiagram + erDiagram grammars passed initial render but coordinator visual review flagged three state collision classes and two ER routing defects.
 
-### Approach: Even-Spacing Mode for Horizontal Layout
+### State Diagram: Rank-Based Skip-Transition Side Routing + Adjacent-Label Placement
 
-Mirrored the existing `isEvenSpacing` pattern from `vertical-spine.ts` (lines ~418–560). Key changes in `packages/core/src/layout/horizontal.ts`:
+**Problem 1:** Skip transitions (source and target 2+ ranks apart) placed labels at geometric midpoint, which falls inside intermediate state boxes → text-on-text overlap.
 
-1. **`W` and `wDraw` changed from `const` to `let`** — enables canvas expansion when N milestones × MIN_COL_W exceeds the theme's default width.
-2. **`evenXPositions` array** — precomputed after `msWithOrd.sort(...)`. Each milestone gets `offset + ms.size + i * evenColW` (with `ms.size` padding on each side so node circles stay within canvas bounds). If `(N-1) * evenColW + 2*ms.size > wDraw`, the canvas expands.
-3. **`evenDateX(ord)`** — interpolates x for activities and section bands between adjacent milestone ordinals (mirrors `evenDateY` from vertical-spine).
-4. **`effectiveDateX(ord)`** — returns `evenDateX(ord)` in even mode, `dateX(ord, axisState)` in time mode. Applied to all activity x-coords, section band x-coords, today-marker, annotations, callouts.
-5. **Axis tick suppression** — in even mode the time-proportional ruler is suppressed (`if (!isEvenSpacing)`) because tick positions would not correspond to the evenly-spaced columns. Milestone label blocks carry the actual period dates.
-6. **Section bands** — in even mode, derived from track-member milestone positions padded by `evenColW/2`, clamped to `[offset, offset+wDraw]`. This creates clean flush column bands.
+**Solution:** Compute `rank` (0-based position in column) for every top-level state, propagated to composite children. For `|rank_diff| > 1`, emit **L-shaped side-route path** exiting left to `sideTrackX = marginLeft/3 ≈ 19 px`, traveling vertically, re-entering target horizontally. Labels placed at `(sideTrackX+6, midY_vertical)` with white background rectangles — always in left margin, unreachable by any state box.
 
-### Key Constants
+**Problem 2:** Adjacent transitions placed labels at 50% midpoint, near target-box top edge → visual crowding.
 
-- `EVEN_MIN_COL_W = 100` px (minimum column width to prevent label collisions)
-- Padding = `ms.size` (milestone node radius) on each side
+**Solution:** Move label placement to `t=0.34` (34% from source), keeping label in source-node half of gap.
 
-### Determinism Contract
+**Problem 3:** Composite state children cramped inside container, arrowheads crowding borders.
 
-The even path is gated on `theme.spineSpacing === 'even'`. All existing themes that don't set this token are completely unaffected — their golden outputs are byte-identical. Verified: 1083/1083 tests pass.
+**Solution:** Dedicated `compositeBodyPadX: 22`, `compositeBodyPadY: 14` theme tokens (separate from global state padding).
 
-### Output: mermaid-timeline.svg
+**Files:** `packages/core/src/grammars/state/layout.ts` (rank propagation, side-route dispatcher, label placement), `packages/core/src/grammars/state/theme.ts` (padding tokens).
 
-- **ViewBox:** 1296×791.86 (expanded from 1200×792 default; 1256px draw width for 13 milestones × 100px columns)
-- **13 milestones** evenly spaced at cx = 28, 128, 228, ..., 1228 (100px apart, 28px padding on edges)
-- **4 section bands** correctly partitioned: Foundations [0,278], Systems Era (odd, transparent), Scripting Wave [578,878], Modern Languages (odd, transparent)
-- No label collisions; all period labels visible and separated
+**Result:** mermaid-state.svg 670×942 px; all skip-labels in margin, adjacent-labels in gaps, composite children breathe.
 
-### Key Files
+### ER Diagram: Degree-Sort + Interleaved Grid + Wider Gaps
 
-- `packages/core/src/layout/horizontal.ts` — Even-horizontal mode implementation
-- `packages/core/src/themes/types.ts` — Updated `spineSpacing` doc comment (now applies to horizontal too)
-- `packages/core/src/frontend/mermaid/index.ts` — Already passes `spineSpacing: 'even'` for timeline kind (line ~345)
-- `packages/core/src/render/index.ts` — `buildScene` already threads `spineSpacing` into theme (line ~70)
-- `examples/gallery/mermaid-timeline.svg` — Regenerated (1296×791.86)
-- `examples/gallery/mermaid-timeline.png` — Regenerated (~98KB)
+**Problem 1:** Long diagonal routing (PRODUCT↔LINE_ITEM 511 px) crossing multiple entity boxes.
 
-**Date:** 2026-06-14T00:10:54Z  
-**Status:** LIVE
+**Root cause:** Declaration-order column-first grid fill (PRODUCT col=1 row=0, LINE_ITEM col=0 row=2 — maximally far, diagonally opposite).
 
-Mermaid flowchart parser (Tier 0 Inc 1) now renders via existing dark-flow theme.
-Rendered gallery example (CI/CD pipeline) visibly cleaner than Mermaid default output — achieved explicit project pitch criterion ("prettier than Mermaid").
+**Solution:** **Degree-sort + interleaved placement:** Sort entities by relationship count (descending), tie-break on name. Assign to 2-column grid with `col = index % 2`, `row = floor(index / 2)`. High-degree entities (PRODUCT deg=3, CUSTOMER/LINE_ITEM/ORDER deg=2) land in adjacent grid cells. All relationships become axis-aligned.
 
-**Theme coverage:** flowchart + sequence + tree + timeline all support dark themes; composition layer resolves per-cell theme inheritance. Next: UML family themes (class, state, ER, C4).
+**Result:** PRODUCT↔LINE_ITEM long diagonal collapses to 4 px vertical segment.
 
+**Problem 2:** Crow's-foot glyphs on same-row horizontal edges appear cramped (43 px actual line).
 
-**Tier 0 COMPLETE (2025-01-01):** Even-spacing horizontal timeline (9233px→792px, collisions resolved) finalized. Tier 0 integration complete.
+**Solution:** Increase `entityGapX: 96→120`, `entityGapY: 48→56`. Result: 68 px horizontal clearance.
 
+**Files:** `packages/core/src/grammars/er/layout.ts` (degree computation, interleaved placement), `packages/core/src/grammars/er/theme.ts` (gap increases).
 
-## 2026-06-13 — Tier 1 Kickoff: classDiagram Rendering via Scene Paths (Bjarne)
+**Result:** mermaid-er.svg 656×706 px; CUSTOMER↔PRODUCT wishlist line spacious, PRODUCT↔LINE_ITEM vertical segment clean.
 
-**Date:** 2026-06-13T22:59:00Z  
-**Status:** SHIPPED
+### Known Limitation Deferred
 
-Class grammar (UML software line) shipped with deterministic 2-column layout. All 6 UML relationships rendered as Scene path primitives (inheritance, realization, composition, aggregation, association, dependency) to preserve SVG/PNG/Skia backend compatibility. Class compartments (attributes, methods) sized via measureText(). Light+dark themes supported. Next: state, ER, C4 grammar rendering.
+**CATEGORY↔PRODUCT label placement:** Same-column skip edge (2-row gap) label midpoint lands at y≈368 inside LINE_ITEM box. Label shifted 12 px perpendicular. Full fix requires same-column side-routing for ER (like state) — deferred to future increment.
+
+### Verification
+
+- Build & typecheck: ✓
+- Test suite: 1235 / 1235 passing (baseline unchanged, all goldens byte-identical)
+- Gallery outputs verified
+
+**No regressions. All layout improvements deterministic.**
+
+---
+
+## Milestone: Tier 1 Layout Polish — State + ER (2026-06-14T04:41:53Z)
+
+**Date:** 2026-06-14T04:41:53Z  
+**Status:** COMPLETE  
+**Commit:** 9c2d9b3 "feat(mermaid): Tier 1 — stateDiagram + erDiagram"  
+**Previous work:** Bjarne's stateDiagram + erDiagram grammars passed initial render but coordinator visual review flagged three state collision classes and two ER routing defects.
+
+### State Diagram: Rank-Based Skip-Transition Side Routing + Adjacent-Label Placement
+
+**Problem 1:** Skip transitions (source and target 2+ ranks apart) placed labels at geometric midpoint, which falls inside intermediate state boxes → text-on-text overlap.
+
+**Solution:** Compute `rank` (0-based position in column) for every top-level state, propagated to composite children. For `|rank_diff| > 1`, emit **L-shaped side-route path** exiting left to `sideTrackX = marginLeft/3 ≈ 19 px`, traveling vertically, re-entering target horizontally. Labels placed at `(sideTrackX+6, midY_vertical)` with white background rectangles — always in left margin, unreachable by any state box.
+
+**Problem 2:** Adjacent transitions placed labels at 50% midpoint, near target-box top edge → visual crowding.
+
+**Solution:** Move label placement to `t=0.34` (34% from source), keeping label in source-node half of gap.
+
+**Problem 3:** Composite state children cramped inside container, arrowheads crowding borders.
+
+**Solution:** Dedicated `compositeBodyPadX: 22`, `compositeBodyPadY: 14` theme tokens (separate from global state padding).
+
+**Files:** `packages/core/src/grammars/state/layout.ts` (rank propagation, side-route dispatcher, label placement), `packages/core/src/grammars/state/theme.ts` (padding tokens).
+
+**Result:** mermaid-state.svg 670×942 px; all skip-labels in margin, adjacent-labels in gaps, composite children breathe.
+
+### ER Diagram: Degree-Sort + Interleaved Grid + Wider Gaps
+
+**Problem 1:** Long diagonal routing (PRODUCT↔LINE_ITEM 511 px) crossing multiple entity boxes.
+
+**Root cause:** Declaration-order column-first grid fill (PRODUCT col=1 row=0, LINE_ITEM col=0 row=2 — maximally far, diagonally opposite).
+
+**Solution:** **Degree-sort + interleaved placement:** Sort entities by relationship count (descending), tie-break on name. Assign to 2-column grid with `col = index % 2`, `row = floor(index / 2)`. High-degree entities (PRODUCT deg=3, CUSTOMER/LINE_ITEM/ORDER deg=2) land in adjacent grid cells. All relationships become axis-aligned.
+
+**Result:** PRODUCT↔LINE_ITEM long diagonal collapses to 4 px vertical segment.
+
+**Problem 2:** Crow's-foot glyphs on same-row horizontal edges appear cramped (43 px actual line).
+
+**Solution:** Increase `entityGapX: 96→120`, `entityGapY: 48→56`. Result: 68 px horizontal clearance.
+
+**Files:** `packages/core/src/grammars/er/layout.ts` (degree computation, interleaved placement), `packages/core/src/grammars/er/theme.ts` (gap increases).
+
+**Result:** mermaid-er.svg 656×706 px; CUSTOMER↔PRODUCT wishlist line spacious, PRODUCT↔LINE_ITEM vertical segment clean.
+
+### Known Limitation Deferred
+
+**CATEGORY↔PRODUCT label placement:** Same-column skip edge (2-row gap) label midpoint lands at y≈368 inside LINE_ITEM box. Label shifted 12 px perpendicular. Full fix requires same-column side-routing for ER (like state) — deferred to future increment.
+
+### Verification
+
+- Build & typecheck: ✓
+- Test suite: 1235 / 1235 passing (baseline unchanged, all goldens byte-identical)
+- Gallery outputs verified
+
+**No regressions. All layout improvements deterministic.**

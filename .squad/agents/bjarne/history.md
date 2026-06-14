@@ -55,3 +55,24 @@ For archived history, see history-archive.md.
 - Parser strategy mirrors Tier 0: preprocess frontmatter/comments, flatten namespaces, auto-create referenced classes, and warn on deferred/unknown syntax instead of throwing.
 - Current deliberate degradations: `direction` is accepted but does not affect layout yet; generic class names like `List~T~` are stripped to the base name for stable IDs/display.
 - Verification: `pnpm -C packages/core build`, `typecheck`, and full `test` all passed; suite is now 1139/1139 green, and `examples/gallery/mermaid-class.{svg,png}` emit correctly.
+
+## Learnings (Tier 1 · stateDiagram + erDiagram)
+
+- Added two new Mermaid Tier 1 verticals without touching the shared renderer kernel: `stateDiagram` and `erDiagram` now lower through dedicated Domain IRs into the existing Scene pipeline.
+- `stateDiagram` uses a deterministic vertical state-machine layout with additive pseudostates (start/end circles, fork/join bars, choice diamonds), scoped composite-state children, note attachments, and warning-driven parsing for cosmetic-only `direction` lines.
+- `erDiagram` uses a deterministic compartment-style entity layout plus crow's-foot endpoints built entirely from Scene `path` primitives, so cardinality glyphs work in both SVG and PNG backends with no backend branching.
+- Parser policy matches the rest of Mermaid Tier 0/Tier 1: auto-create referenced nodes/entities on first mention, enrich them later when explicit declarations appear, and never crash on malformed lines when a warning is sufficient.
+- Verification: `pnpm -C packages/core build`, `pnpm -C packages/core typecheck`, and full `pnpm -C packages/core test` all passed; the suite is now 1235/1235 green, and `examples/gallery/mermaid-state.{svg,png}` plus `examples/gallery/mermaid-er.{svg,png}` emit correctly.
+
+## Milestone: Tier 1 PROGRESS — stateDiagram + erDiagram Shipped (2026-06-14T04:41:53Z)
+
+**Status:** COMPLETE, layout-polished by Barbara  
+**Commit:** 9c2d9b3 "feat(mermaid): Tier 1 — stateDiagram + erDiagram"  
+**Coverage:** 3 of 4 Tier 1 UML/Software types done (class, state, ER; remaining C4)
+
+- Both grammars real-crawl hardened, 96 corpus tests, 1235 full suite passing
+- Deterministic layout engines with zero regression (goldens byte-identical)
+- Gallery: mermaid-state 670×942, mermaid-er 656×706
+- Left-margin skip-transition routing in state (see Barbara history for polish details)
+- Degree-sort + interleaved ER grid placement eliminating long-diagonal routing
+- Ready for C4 implementation next

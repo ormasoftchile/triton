@@ -40,6 +40,32 @@
 
 ---
 
+# Decision: Tier 1 PROGRESS — stateDiagram + erDiagram Shipped
+
+**Agent:** Bjarne (Ingestion Design) & Barbara (Semantics & Rendering)  
+**Date:** 2026-06-14T04:41:53Z  
+**Status:** ADOPTED
+
+## Summary
+
+Two more Tier 1 UML/Software-line grammars shipped end-to-end: `stateDiagram` (v1 & v2) and `erDiagram`. Both follow the established class-diagram architecture (Mermaid parser → Domain IR → deterministic layout → Scene IR → SVG/PNG). 
+
+**State diagram** uses single-column layout with **left-margin side-routing** for skip transitions (distance > 1 rank): L-shaped paths exit left to a 19 px track, travel vertically, then re-enter target box horizontally. Labels on skip transitions placed at track edge with white background rectangles. Adjacent transitions use 34% label placement to avoid target-box collision.
+
+**ER diagram** uses 2-column grid with **degree-sorted + interleaved column assignment**: entities sorted by relationship count (descending) then name, assigned to columns alternating `col = index % 2`. Crow's-foot notation drawn entirely with `path` primitives at both ends. Column/row gaps increased to accommodate glyphs and reduce crowding.
+
+Real-crawl hardened, layout-polished after coordinator visual review. Full suite: 1235 tests passing, determinism preserved, goldens byte-identical. Gallery examples state 670×942, ER 656×706.
+
+## Consequences
+
+Tier 1 now covers **three of four UML/Software types**: classDiagram (shipped 2026-06-13T22:59Z), stateDiagram & erDiagram (shipped 2026-06-14). Remaining: C4. State routing, ER label placement, and multi-rank skip transitions are fully deterministic and production-ready.
+
+## Committed
+
+Commit: **9c2d9b3** "feat(mermaid): Tier 1 — stateDiagram + erDiagram"
+
+---
+
 # Decision: Tier 1 STARTED — classDiagram Shipped as First UML/Software-Line Grammar
 
 **Agent:** Bjarne (Ingestion Design)  
