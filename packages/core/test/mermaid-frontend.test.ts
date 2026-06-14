@@ -346,17 +346,22 @@ describe('parseMermaid — dispatch', () => {
     expect(seqDoc.sequence.messages).toHaveLength(1);
   });
 
-  it('throws a clear error for gantt', () => {
-    expect(() => parseMermaid('gantt\n    title Plan')).toThrow(/Tier 0/);
-    expect(() => parseMermaid('gantt\n    title Plan')).toThrow(/gantt/);
+  it('dispatches gantt → IRDocument (kind=gantt, doc.version="1.0")', () => {
+    const result = parseMermaid('gantt\n    title Plan\n    dateFormat YYYY-MM-DD');
+    expect(result.kind).toBe('gantt');
+    expect((result.doc as import('../src/types.js').IRDocument).version).toBe('1.0');
   });
 
-  it('throws a clear error for timeline', () => {
-    expect(() => parseMermaid('timeline\n    title History')).toThrow(/Tier 0/);
+  it('dispatches timeline → IRDocument (kind=timeline, doc.version="1.0")', () => {
+    const result = parseMermaid('timeline\n    title History\n    2024 : Launch');
+    expect(result.kind).toBe('timeline');
+    expect((result.doc as import('../src/types.js').IRDocument).version).toBe('1.0');
   });
 
-  it('throws a clear error for mindmap', () => {
-    expect(() => parseMermaid('mindmap\n    root((Root))')).toThrow(/Tier 0/);
+  it('dispatches mindmap → TreeDocument (kind=mindmap, doc.version="1.0")', () => {
+    const result = parseMermaid('mindmap\n  root((Root))\n    A\n    B');
+    expect(result.kind).toBe('mindmap');
+    expect((result.doc as import('../src/grammars/tree/types.js').TreeDocument).version).toBe('1.0');
   });
 
   it('throws a clear error for unknown diagram type', () => {

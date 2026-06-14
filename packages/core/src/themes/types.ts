@@ -391,13 +391,18 @@ export interface ResolvedTheme {
    *             only O(20) entries: avoids the giant dead-space problem that arises when
    *             pixelsPerDay hits its 0.4 floor on a 57-year sparse range.
    *
-   *   In 'even' mode, duration bands (fixed start→end spans) are still rendered on the
-   *   spine, but their end y-coordinate is determined by linear interpolation between
-   *   the two adjacent entry positions that bracket the end ordinal.
+   *   In 'even' mode for vertical-spine, duration bands (fixed start→end spans) are
+   *   still rendered on the spine, but their end y-coordinate is determined by linear
+   *   interpolation between the two adjacent entry positions that bracket the end ordinal.
    *
-   * Has NO effect on horizontal layout output. Defaults to 'time' when not set.
-   * Existing themes that do not set this token are completely unaffected — their
-   * golden outputs do NOT change.
+   *   In 'even' mode for horizontal layout, milestones are placed at uniform x-intervals
+   *   (Mermaid-columnar style). Axis tick marks are suppressed (they would be misleading
+   *   at non-proportional positions); milestone label blocks carry the actual dates.
+   *   The canvas width expands automatically if the default width is too narrow for the
+   *   minimum column spacing. Section bands are derived from milestone track membership.
+   *
+   * Defaults to 'time' when not set. Existing themes that do not set this token are
+   * completely unaffected — their golden outputs do NOT change.
    */
   spineSpacing?: 'time' | 'even';
 

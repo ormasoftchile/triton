@@ -1,0 +1,28 @@
+---
+title: Platform Modernisation Roadmap 2025
+theme: roadmap
+---
+gantt
+    title Platform Modernisation Roadmap 2025
+    dateFormat YYYY-MM-DD
+
+    section Infrastructure
+        Containerise services   :done, inf1, 2025-01-06, 30d
+        Kubernetes migration    :done, inf2, after inf1, 45d
+        CI/CD pipeline upgrade  :active, inf3, after inf2, 20d
+        Monitoring & alerting   :inf4, after inf3, 25d
+
+    section Backend
+        API gateway v2          :done, be1, 2025-01-06, 25d
+        Auth service refactor   :done, be2, after be1, 20d
+        Event streaming setup   :active, be3, after be2, 30d
+        GraphQL layer           :be4, after be3, 25d
+
+    section Frontend
+        Design system v2        :done, fe1, 2025-02-01, 40d
+        Component migration     :active, fe2, after fe1, 35d
+        Performance audit       :fe3, after fe2, 15d
+
+    section Release
+        Beta launch             :crit, milestone, 2025-05-15, 0d
+        Public GA               :crit, milestone, 2025-07-01, 0d

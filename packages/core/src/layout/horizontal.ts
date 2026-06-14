@@ -213,7 +213,10 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   });
 
   // 1c. Canvas geometry
-  const W     = cv.width;
+  // NOTE: W and wDraw are `let` so even-spacing mode can expand the canvas when
+  // milestones need more horizontal room than the theme's default width provides.
+  // In time mode (default) they are never reassigned → byte-identical output.
+  let W     = cv.width;
   // Suppress the header gutter when no track has a meaningful (non-empty) label.
   const hasTrackLabels = sortedTracks.some((t) => !!t.label && t.label.trim().length > 0);
   const Hhdr  = hasTrackLabels ? tk.headerWidth : 0;
@@ -221,7 +224,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   const mL    = m.left;
   const mR    = m.right;
   const mT    = m.top;
-  const wDraw = W - mL - mR - Hhdr;
+  let wDraw = W - mL - mR - Hhdr;
   const offset = Hhdr + mL;
 
   // ── Shared font-family string ─────────────────────────────────────────────
@@ -380,30 +383,112 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     a.ord !== b.ord ? a.ord - b.ord : a.m.id.localeCompare(b.m.id),
   );
 
+  // ── Even-spacing (horizontal) ─────────────────────────────────────────────
+  //
+  // When theme.spineSpacing === 'even', milestones are placed at uniform
+  // x-intervals (Mermaid-columnar style) rather than time-proportionally.
+  // This is the SAME opt-in token as vertical-spine's even-spacing mode.
+  //
+  // DETERMINISM: this block is unreachable when spineSpacing is unset or 'time'.
+  // All existing goldens use themes that do not set spineSpacing → byte-identical.
+  const isEvenSpacing = theme.spineSpacing === 'even';
+  const nMs = msWithOrd.length;
+
+  // Minimum px distance between adjacent milestone centres in even mode.
+  // Sized so that typical period labels (~80–100 px wide) do not collide.
+  const EVEN_MIN_COL_W = 100;
+
+  // evenXPositions[i]: x coordinate for milestone i in even mode (undefined in time mode).
+  let evenXPositions: number[] | undefined;
+  // evenColW: the actual column width used (for section-band boundaries).
+  let evenColW = 0;
+
+  if (isEvenSpacing && nMs > 0) {
+    // Reserve ms.size px on each side so the first/last milestone circles sit
+    // entirely within the draw area rather than overflowing the canvas edge.
+    const pad = ms.size;
+    const usableW = wDraw - 2 * pad;
+    const idealColW = nMs > 1 ? usableW / (nMs - 1) : usableW;
+    evenColW = Math.max(EVEN_MIN_COL_W, Math.ceil(idealColW));
+    // Expand canvas if milestones need more room than the theme's default width.
+    const wNeeded = nMs > 1 ? (nMs - 1) * evenColW + 2 * pad : 2 * pad;
+    if (wNeeded > wDraw) {
+      wDraw = wNeeded;
+      W     = wNeeded + mL + mR + Hhdr;
+    }
+    const firstX = offset + pad;
+    evenXPositions = msWithOrd.map((_, i) =>
+      nMs === 1
+        ? rhu(offset + wDraw / 2)
+        : rhu(firstX + i * evenColW),
+    );
+  }
+
+  /**
+   * Interpolate a day ordinal to an x coordinate using milestone positions as
+   * anchors (even-spacing mode only).  Mirrors evenDateY from vertical-spine.
+   * Ordinals before/after the milestone span clamp to the first/last x.
+   */
+  function evenDateX(ord: number): number {
+    if (!evenXPositions || nMs === 0) return offset;
+    if (nMs === 1) return evenXPositions[0]!;
+    if (ord <= msWithOrd[0]!.ord) return evenXPositions[0]!;
+    if (ord >= msWithOrd[nMs - 1]!.ord) return evenXPositions[nMs - 1]!;
+    for (let i = 0; i < nMs - 1; i++) {
+      const aOrd = msWithOrd[i]!.ord;
+      const bOrd = msWithOrd[i + 1]!.ord;
+      if (ord >= aOrd && ord <= bOrd) {
+        const span = bOrd - aOrd;
+        const t = span === 0 ? 0 : (ord - aOrd) / span;
+        return rhu(evenXPositions[i]! + t * (evenXPositions[i + 1]! - evenXPositions[i]!));
+      }
+    }
+    return evenXPositions[nMs - 1]!;
+  }
+
+  /**
+   * Effective date → x mapper.
+   *   even mode : milestone-anchored interpolation (no time-proportional distortion).
+   *   time mode : time-proportional via dateX (original formula, byte-identical).
+   */
+  function effectiveDateX(ord: number): number {
+    return isEvenSpacing && evenXPositions ? evenDateX(ord) : dateX(ord, axisState);
+  }
+
   // Compute trueX (date-accurate) and placedX (decluttered) for each milestone
   const trueXArr: number[]   = [];
   const placedXArr: number[] = [];
-  {
-    // Right-edge clamp: node must fit within canvas AND its label must not overflow.
-    // Use the larger of the node radius and the label half-width as the right guard.
-    const labelHalfW = rhu((ms.labelMaxWidth + 4) / 2);
-    const rightLimit  = rhu(offset + wDraw - Math.max(ms.size, labelHalfW));
-    let lastPlacedX = -Infinity;
-    for (const { ord } of msWithOrd) {
-      const tx = rhu(dateX(ord, axisState));
-      trueXArr.push(tx);
-      const rawPx =
-        lastPlacedX === -Infinity ? tx : Math.max(tx, lastPlacedX + minNodeGap_eff);
-      // Clamp so node + label stay within canvas
-      const px = rhu(Math.min(rawPx, rightLimit));
-      placedXArr.push(px);
-      lastPlacedX = px;
+  if (isEvenSpacing && evenXPositions) {
+    // Even mode: precomputed evenly-spaced positions — no decluttering needed.
+    for (const x of evenXPositions) {
+      trueXArr.push(x);
+      placedXArr.push(x);
     }
-    // Backward pass: right-edge clamping can collapse multiple nodes to the same x.
-    // Walk right-to-left ensuring each node is at least minNodeGap_eff from its right neighbour.
-    for (let i = placedXArr.length - 2; i >= 0; i--) {
-      const want = placedXArr[i + 1]! - minNodeGap_eff;
-      if (placedXArr[i]! > want) placedXArr[i] = rhu(want);
+  } else {
+    // Time-proportional mode: original decluttering logic.
+    // BYTE-IDENTICAL for all existing fixtures (determinism contract).
+    {
+      // Right-edge clamp: node must fit within canvas AND its label must not overflow.
+      // Use the larger of the node radius and the label half-width as the right guard.
+      const labelHalfW = rhu((ms.labelMaxWidth + 4) / 2);
+      const rightLimit  = rhu(offset + wDraw - Math.max(ms.size, labelHalfW));
+      let lastPlacedX = -Infinity;
+      for (const { ord } of msWithOrd) {
+        const tx = rhu(dateX(ord, axisState));
+        trueXArr.push(tx);
+        const rawPx =
+          lastPlacedX === -Infinity ? tx : Math.max(tx, lastPlacedX + minNodeGap_eff);
+        // Clamp so node + label stay within canvas
+        const px = rhu(Math.min(rawPx, rightLimit));
+        placedXArr.push(px);
+        lastPlacedX = px;
+      }
+      // Backward pass: right-edge clamping can collapse multiple nodes to the same x.
+      // Walk right-to-left ensuring each node is at least minNodeGap_eff from its right neighbour.
+      for (let i = placedXArr.length - 2; i >= 0; i--) {
+        const want = placedXArr[i + 1]! - minNodeGap_eff;
+        if (placedXArr[i]! > want) placedXArr[i] = rhu(want);
+      }
     }
   }
 
@@ -562,14 +647,14 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     let nLanes = 1;
 
     for (const { a, startOrd } of acts) {
-      const xLeft = dateX(startOrd, axisState);
+      const xLeft = effectiveDateX(startOrd);
       let xRight: number;
       let endKind: 'fixed' | 'ongoing' | 'tbd';
 
       // NOTE: span check must precede !a.end — span activities have a.end === undefined,
       // which would otherwise be incorrectly treated as 'ongoing'.
       if (a.span) {
-        xRight  = dateX(parseAndCoerceRight(a.span), axisState);
+        xRight  = effectiveDateX(parseAndCoerceRight(a.span));
         endKind = 'fixed';
       } else if (!a.end || a.end === 'ongoing') {
         xRight  = offset + wDraw;
@@ -579,7 +664,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
         xRight  = offset + wDraw;
         endKind = 'tbd';
       } else {
-        xRight  = dateX(parseAndCoerceRight(a.end), axisState);
+        xRight  = effectiveDateX(parseAndCoerceRight(a.end));
         endKind = 'fixed';
       }
 
@@ -761,16 +846,41 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   // SECTIONS: background bands (back → front, before all content)
   if (sections.length > 0) {
     sections.forEach((sec, si) => {
-      const sStart = sec.time_range?.start ?? trStart;
-      const sEnd   = sec.time_range?.end ?? trEnd;
       let xBandLeft: number;
       let xBandRight: number;
-      try {
-        xBandLeft  = rhu(dateX(parseAndCoerceLeft(sStart), axisState));
-        xBandRight = rhu(dateX(parseAndCoerceRight(sEnd), axisState));
-      } catch {
-        return;
+
+      if (isEvenSpacing && evenXPositions && nMs > 0) {
+        // Even mode: derive section band extent from the milestone positions
+        // belonging to this section's track, padded by half a column width so
+        // adjacent bands meet flush without overlap.
+        const secMsIndices = msWithOrd
+          .map(({ m: mil }, i) => ({ mil, i }))
+          .filter(({ mil }) => mil.track === sec.id)
+          .map(({ i }) => i);
+
+        if (secMsIndices.length > 0) {
+          const firstIdx = secMsIndices[0]!;
+          const lastIdx  = secMsIndices[secMsIndices.length - 1]!;
+          const halfCol  = evenColW / 2;
+          // Clamp to canvas draw area so the first/last bands don't bleed off-edge.
+          xBandLeft  = rhu(Math.max(offset, evenXPositions[firstIdx]! - halfCol));
+          xBandRight = rhu(Math.min(offset + wDraw, evenXPositions[lastIdx]!  + halfCol));
+        } else {
+          // Section has no milestones in range — skip band.
+          return;
+        }
+      } else {
+        // Time-proportional mode: original formula (byte-identical).
+        const sStart = sec.time_range?.start ?? trStart;
+        const sEnd   = sec.time_range?.end ?? trEnd;
+        try {
+          xBandLeft  = rhu(dateX(parseAndCoerceLeft(sStart), axisState));
+          xBandRight = rhu(dateX(parseAndCoerceRight(sEnd), axisState));
+        } catch {
+          return;
+        }
       }
+
       const bw = Math.max(0, xBandRight - xBandLeft);
       if (bw <= 0) return;
 
@@ -1072,6 +1182,10 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
   }
 
   // 4. Tick marks
+  // In even-spacing mode the time-proportional ruler is suppressed: tick positions
+  // would not correspond to the evenly-spaced milestone columns and would be
+  // misleading. The milestone label blocks already carry the actual period dates.
+  if (!isEvenSpacing) {
   for (let i = 0; i < ticks.length; i++) {
     const tick = ticks[i]!;
     // Suppress ticks (mark + label + gridline) whose ordinal falls strictly
@@ -1124,6 +1238,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
       });
     }
   }
+  } // end !isEvenSpacing tick block
 
   // TODAY MARKER annotation (if present, or if metadata.today is set + axis.todayMarker.enabled)
   const todayDate = todayMarkerAnnotation?.date ?? ir.metadata.today;
@@ -1138,7 +1253,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     try {
       const todayOrd = parseAndCoerceLeft(todayDate);
       if (todayOrd >= tsOrd && todayOrd <= teOrd) {
-        const xToday = rhu(dateX(todayOrd, axisState));
+        const xToday = rhu(effectiveDateX(todayOrd));
         const todayY1 = rhu(mT_eff + Haxis + aboveZoneH);
         const todayY2 = rhu(mT_eff + Haxis + aboveZoneH + hDraw);
         const todayTarget = theme.axis.todayMarker.onTop ? deferredTodayPrims : primitives;
@@ -1202,8 +1317,8 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     const aEnd   = ann.end ?? ann.date;
     if (!aStart || !aEnd) continue;
     try {
-      const xL = rhu(dateX(parseAndCoerceLeft(aStart), axisState));
-      const xR = rhu(dateX(parseAndCoerceRight(aEnd), axisState));
+      const xL = rhu(effectiveDateX(parseAndCoerceLeft(aStart)));
+      const xR = rhu(effectiveDateX(parseAndCoerceRight(aEnd)));
       if (xR <= xL) continue;
       const bracketY = rhu(mT_eff + Haxis + aboveZoneH + hDraw + 12);
       const bracketColor = theme.axis.todayMarker.color;
@@ -1703,7 +1818,7 @@ export function layoutHorizontal(ir: IRDocument, theme: ResolvedTheme, baseDir?:
     try {
       const annOrd = parseAndCoerceLeft(aDate);
       if (annOrd < tsOrd || annOrd > teOrd) continue;
-      const xAnn = rhu(dateX(annOrd, axisState));
+      const xAnn = rhu(effectiveDateX(annOrd));
       const targetActivity = ann.target ? activityLayouts.find((al) => al.activity.id === ann.target) : undefined;
       const targetMilestone = ann.target ? milestoneLayouts.find((ml) => ml.milestone.id === ann.target) : undefined;
       const anchorY = targetActivity

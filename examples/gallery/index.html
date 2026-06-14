@@ -164,14 +164,16 @@
     family, plus four <strong>Sequence Grammar</strong> examples (UML default and ByteByteGo themes),
     one <strong>Flow Grammar</strong> example (RAG pipeline, layered L→R layout),
     three <strong>Tree Grammar</strong> examples (default light theme and dark-teal theme — same IR,
-    two themes), and one <strong>Composition Layer</strong> example (multi-panel poster assembling
-    flow, tree, sequence, and stat grammars into a single infographic). Most timeline renders use
+    two themes), one <strong>Composition Layer</strong> example (multi-panel poster assembling
+    flow, tree, sequence, and stat grammars into a single infographic), and three
+    <strong>Mermaid Tier-0</strong> examples (gantt → roadmap theme, timeline → consulting vertical-spine,
+    mindmap → dark-tree — all rendered via our engine from real Mermaid source). Most timeline renders use
     the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong>
     showcase. Each example exercises a distinct combination of axis unit, track density, activity
     statuses, milestones, and edge-case behaviours. Use this contact sheet to bulk-check
     Phase 1–5 visual output.
   </p>
-  <span class="badge">Phase 1–5 Gallery · Horizontal + Sequence + Flow + Tree + Composition</span>
+  <span class="badge">Phase 1–5 Gallery · 28 Examples · Horizontal + Sequence + Flow + Tree + Composition + Mermaid Tier-0</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -774,6 +776,80 @@
     <div class="card-footer">
       <a href="mermaid-sequence.svg">SVG</a>
       <a href="mermaid-sequence.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 26. mermaid-gantt — Mermaid front-end (Tier 0), gantt → timeline IR → roadmap theme -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 26 · mermaid-gantt</div>
+      <div class="card-title">Mermaid Gantt — Roadmap Theme (Tier 0)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">gantt</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>gantt</code> (Platform Modernisation Roadmap) parsed by our
+        front-end into the timeline IR and rendered in the <code>roadmap</code> theme:
+        four sections (Infrastructure, Backend, Frontend, Release), <code>done</code>/<code>active</code>
+        status bars, <code>after</code> dependency chains, and <code>crit milestone</code> markers —
+        all from Mermaid source, far cleaner than Mermaid's default Gantt output.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-gantt.png" alt="mermaid gantt rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-gantt.svg">SVG</a>
+      <a href="mermaid-gantt.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 27. mermaid-timeline — Mermaid front-end (Tier 0), timeline → IR → vertical-spine -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 27 · mermaid-timeline</div>
+      <div class="card-title">Mermaid Timeline — Vertical Spine (Tier 0)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-ongoing">timeline</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>timeline</code> (History of Programming Languages) parsed by our
+        front-end into the timeline IR and rendered in the <code>our-timeline</code> theme with
+        <code>vertical-spine</code> layout: named sections (Foundations, Systems Era, Modern),
+        year-labelled period milestones, and one activity bar per event — all from Mermaid source.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-timeline.png" alt="mermaid timeline rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-timeline.svg">SVG</a>
+      <a href="mermaid-timeline.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 28. mermaid-mindmap — Mermaid front-end (Tier 0), mindmap → tree IR → dark-tree theme -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 28 · mermaid-mindmap</div>
+      <div class="card-title">Mermaid Mindmap — Dark Tree Theme (Tier 0)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">mindmap</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>mindmap</code> (Distributed Systems Concepts) parsed by our
+        front-end via indentation-based hierarchy into the Tree IR and rendered in the
+        <code>dark-tree</code> theme: 4 branches (Consensus, Communication, Storage, Observability),
+        multi-level nesting, <code>::icon()</code> directives — all from Mermaid source,
+        using the Buchheim–Jünger–Leipert tidy-tree layout engine.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-mindmap.png" alt="mermaid mindmap rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-mindmap.svg">SVG</a>
+      <a href="mermaid-mindmap.mmd">Mermaid Source</a>
     </div>
   </div>
 

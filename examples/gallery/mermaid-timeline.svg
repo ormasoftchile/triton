@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="791.86" version="1.1" viewBox="0 0 1296 791.86" width="1296" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="791.86" width="1296" x="0" y="0"/>
+  <rect fill="#1F497D" height="518" opacity="0.04" width="278" x="0" y="201.93"/>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.7" text-anchor="start" x="4" y="217.93">Foundations</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.7" text-anchor="start" x="282" y="217.93">Systems Era</text>
+  <rect fill="#1F497D" height="518" opacity="0.04" width="300" x="578" y="201.93"/>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.7" text-anchor="start" x="582" y="217.93">Scripting Wave</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" opacity="0.7" text-anchor="start" x="882" y="217.93">Modern Languages</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="29.33" font-weight="700" text-anchor="middle" x="648" y="89.33">History of Programming Languages</text>
+  <line opacity="0.35" stroke="#333333" stroke-width="0.5" x1="0" x2="1256" y1="107" y2="107"/>
+  <path d="M 0 256.93 L -9 256.93 A 37 37 0 0 0 65 256.93 L 91 256.93 A 37 37 0 0 1 165 256.93 L 191 256.93 A 37 37 0 0 0 265 256.93 L 291 382.93 A 37 37 0 0 1 365 382.93 L 391 382.93 A 37 37 0 0 0 465 382.93 L 491 382.93 A 37 37 0 0 1 565 382.93 L 591 523.93 A 37 37 0 0 0 665 523.93 L 691 523.93 A 37 37 0 0 1 765 523.93 L 791 523.93 A 37 37 0 0 0 865 523.93 L 891 664.93 A 37 37 0 0 1 965 664.93 L 991 664.93 A 37 37 0 0 0 1065 664.93 L 1091 664.93 A 37 37 0 0 1 1165 664.93 L 1191 664.93 A 37 37 0 0 0 1265 664.93 L 1256 256.93" fill="none" stroke="#333333" stroke-width="1"/>
+  <circle cx="28" cy="219.93" fill="#1F497D" r="3"/>
+  <circle cx="128" cy="293.93" fill="#1F497D" r="3"/>
+  <circle cx="228" cy="219.93" fill="#1F497D" r="3"/>
+  <circle cx="328" cy="419.93" fill="#1F497D" r="3"/>
+  <circle cx="428" cy="345.93" fill="#1F497D" r="3"/>
+  <circle cx="528" cy="419.93" fill="#1F497D" r="3"/>
+  <circle cx="628" cy="486.93" fill="#1F497D" r="3"/>
+  <circle cx="728" cy="560.93" fill="#1F497D" r="3"/>
+  <circle cx="828" cy="486.93" fill="#1F497D" r="3"/>
+  <circle cx="928" cy="701.93" fill="#1F497D" r="3"/>
+  <circle cx="1028" cy="627.93" fill="#1F497D" r="3"/>
+  <circle cx="1128" cy="701.93" fill="#1F497D" r="3"/>
+  <circle cx="1228" cy="627.93" fill="#1F497D" r="3"/>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="28" y="213.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="56.91" y="225.93">First high-level compiled language</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="28" y="243.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="56.91" y="255.93">FORTRAN</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="49.86" x="128" y="213.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="132" y="225.93">Funct…</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="49.86" x="128" y="243.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="132" y="255.93">LISP</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="11.1" x="228" y="213.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="243.1" y="225.93">Business data processing</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="11.1" x="228" y="243.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="243.1" y="255.93">COBOL</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="33.24" x="328" y="339.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="332" y="351.93">C</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="33.24" x="328" y="369.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="365.24" y="381.93">Systems programming revolution</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="9.08" x="428" y="339.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="441.08" y="351.93">Object-oriented concepts</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="9.08" x="428" y="369.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="441.08" y="381.93">Smalltalk</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="528" y="339.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="556.91" y="351.93">C++</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="528" y="369.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="556.91" y="381.93">OOP meets systems programming</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="628" y="465.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="656.91" y="477.93">Perl</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="628" y="495.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="656.91" y="507.93">Text processing &amp; web CGI</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="728" y="465.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="756.91" y="477.93">Python</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="728" y="495.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="756.91" y="507.93">Readable &amp; general-purpose</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="12.46" x="828" y="465.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="844.46" y="477.93">Java</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="12.46" x="828" y="495.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="844.46" y="507.93">JVM ecosystem</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="12.46" x="828" y="525.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="844.46" y="537.93">Write once, run anywhere</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="16.61" x="928" y="621.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="948.61" y="633.93">Functional + OOP on JVM</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="16.61" x="928" y="651.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="948.61" y="663.93">Scala</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="99.73" x="1028" y="621.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="1032" y="633.93">Go</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="99.73" x="1028" y="651.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="1032" y="663.93">Systems + co…</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="1128" y="621.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="1156.91" y="633.93">Memory safet…</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="24.91" x="1128" y="651.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="1156.91" y="663.93">Rust</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="4" x="1226" y="621.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="end" x="1222" y="633.93">Apple platform modernisation</text>
+  <rect fill="#FFFFFF" height="24" opacity="1" rx="0" stroke="#1F497D" stroke-width="0.5" width="4" x="1226" y="651.93"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="end" x="1222" y="663.93">Swift</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="28" x2="28" y1="284.93" y2="292.93"/>
+  <circle cx="28" cy="256.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="28" y="256.93">01</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="46.45" y="307.66">1954</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="46.45" y="324.46">January 1954</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="128" x2="128" y1="195.93" y2="228.93"/>
+  <circle cx="128" cy="256.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="128" y="256.93">02</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="128" y="173.73">1958</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="128" y="190.53">January 1958</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="228" x2="228" y1="284.93" y2="292.93"/>
+  <circle cx="228" cy="256.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="228" y="256.93">03</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="228" y="307.66">1960</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="228" y="324.46">January 1960</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="328" x2="328" y1="195.93" y2="354.93"/>
+  <circle cx="328" cy="382.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="328" y="382.93">04</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="328" y="173.73">1969</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="328" y="190.53">January 1969</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="428" x2="428" y1="410.93" y2="418.93"/>
+  <circle cx="428" cy="382.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="428" y="382.93">05</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="428" y="433.66">1972</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="428" y="450.46">January 1972</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="528" x2="528" y1="195.93" y2="354.93"/>
+  <circle cx="528" cy="382.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="528" y="382.93">06</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="528" y="173.73">1983</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="528" y="190.53">January 1983</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="628" x2="628" y1="551.93" y2="559.93"/>
+  <circle cx="628" cy="523.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="628" y="523.93">07</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="628" y="574.66">1987</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="628" y="591.46">January 1987</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="728" x2="728" y1="195.93" y2="495.93"/>
+  <circle cx="728" cy="523.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="728" y="523.93">08</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="728" y="173.73">1991</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="728" y="190.53">January 1991</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="828" x2="828" y1="551.93" y2="559.93"/>
+  <circle cx="828" cy="523.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="828" y="523.93">09</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="828" y="574.66">1995</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="828" y="591.46">January 1995</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="928" x2="928" y1="195.93" y2="636.93"/>
+  <circle cx="928" cy="664.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="928" y="664.93">10</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="928" y="173.73">2003</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="928" y="190.53">January 2003</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="1028" x2="1028" y1="692.93" y2="700.93"/>
+  <circle cx="1028" cy="664.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="1028" y="664.93">11</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1028" y="715.66">2009</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1028" y="732.46">January 2009</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="1128" x2="1128" y1="195.93" y2="636.93"/>
+  <circle cx="1128" cy="664.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="1128" y="664.93">12</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1128" y="173.73">2010</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1128" y="190.53">January 2010</text>
+  <line opacity="0.45" stroke="#888888" stroke-width="0.75" x1="1228" x2="1228" y1="692.93" y2="700.93"/>
+  <circle cx="1228" cy="664.93" fill="#FFFFFF" r="28" stroke="#1F497D" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="18.67" font-weight="700" text-anchor="middle" x="1228" y="664.93">13</text>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1228" y="715.66">2014</text>
+  <text dominant-baseline="alphabetic" fill="#555555" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1228" y="732.46">January 2014</text>
+</svg>

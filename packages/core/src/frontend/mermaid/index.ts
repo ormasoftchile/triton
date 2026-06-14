@@ -6,17 +6,17 @@
  *   Mermaid DSL text
  *     → detect diagram type
  *     → dispatch to grammar parser          (Path A)
- *     → Domain IR (FlowDocument / SequenceDocument / …)
+ *     → Domain IR (FlowDocument / SequenceDocument / IRDocument / TreeDocument)
  *     → buildXxxScene + themeOverride
  *     → Scene IR
  *     → sceneToSvg / svgToPng              (existing kernel, unchanged)
  *
- * Tier-0 coverage:
- *   ✅  flowchart / graph     (full parser, FlowDocument, dark-flow gallery)
- *   ✅  sequenceDiagram       (full parser, SequenceDocument, bytebytego-sequence gallery)
- *   🔜  gantt                 (throws "not yet supported")
- *   🔜  timeline              (throws "not yet supported")
- *   🔜  mindmap               (throws "not yet supported")
+ * Tier-0 coverage (COMPLETE):
+ *   ✅  flowchart / graph     (FlowDocument,     dark-flow gallery)
+ *   ✅  sequenceDiagram       (SequenceDocument, bytebytego-sequence gallery)
+ *   ✅  gantt                 (IRDocument,       roadmap theme)
+ *   ✅  timeline              (IRDocument,       consulting theme, vertical-spine)
+ *   ✅  mindmap               (TreeDocument,     dark-tree theme)
  *
  * PUBLIC EXPORTS (re-exported from packages/core/src/index.ts):
  *   detectDiagramType, parseMermaid, renderMermaid
@@ -40,9 +40,22 @@ import {
 } from '../../grammars/sequence/index.js';
 import type { SequenceDocument } from '../../grammars/sequence/index.js';
 
+import {
+  buildTreeScene,
+  renderTreeDocument,
+  resolveTreeTheme,
+} from '../../grammars/tree/index.js';
+import type { TreeDocument } from '../../grammars/tree/index.js';
+
+import { buildScene, renderDocument } from '../../render/index.js';
+import type { IRDocument } from '../../types.js';
+
 import { preprocessMermaid } from './utils.js';
 import { parseFlowchartInternal } from './flowchart.js';
 import { parseSequenceInternal } from './sequence.js';
+import { parseGanttInternal } from './gantt.js';
+import { parseTimelineInternal } from './timeline.js';
+import { parseMindmapInternal } from './mindmap.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -70,15 +83,7 @@ export type DiagramKind =
  * Algorithm:
  *   1. Strip frontmatter (--- … ---) and directive/comment lines.
  *   2. Scan lines from top; first non-empty, non-comment line is the header.
- *   3. Match the header's leading keyword:
- *        flowchart | graph  → 'flowchart'
- *        sequenceDiagram    → 'sequence'
- *        gantt              → 'gantt'
- *        timeline           → 'timeline'
- *        mindmap            → 'mindmap'
- *        anything else      → 'unknown'
- *
- * Case-insensitive. Handles diagrams with or without frontmatter.
+ *   3. Match the header's leading keyword (case-insensitive).
  */
 export function detectDiagramType(text: string): DiagramKind {
   const { body } = preprocessMermaid(text);
@@ -106,18 +111,16 @@ export function detectDiagramType(text: string): DiagramKind {
 
 /**
  * Parse result returned by `parseMermaid`.
- * The `doc` field holds the grammar-specific Domain IR document — either a
- * FlowDocument (flowchart) or a SequenceDocument (sequence).
- * Narrow by `kind` to get the concrete type.
+ * Narrow by `kind` to get the concrete doc type:
+ *   'flowchart' → FlowDocument
+ *   'sequence'  → SequenceDocument
+ *   'gantt'     → IRDocument
+ *   'timeline'  → IRDocument
+ *   'mindmap'   → TreeDocument
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  /**
-   * The grammar-specific Domain IR document.
-   * - kind === 'flowchart' → FlowDocument
-   * - kind === 'sequence'  → SequenceDocument
-   */
-  doc: FlowDocument | SequenceDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -128,13 +131,10 @@ export interface MermaidParseResult {
 /**
  * Parse Mermaid text and return the appropriate grammar's Domain IR.
  *
- * Dispatches to:
- *   - parseFlowchartInternal  for 'flowchart' / 'graph'
- *   - parseSequenceInternal   for 'sequenceDiagram'
+ * Dispatches to the five Tier-0 parsers. All types are now supported.
+ * `unknown` diagram types throw with a clear error.
  *
- * All other diagram types throw a clear error.
- *
- * @throws {Error} for unsupported diagram types (gantt, timeline, mindmap, unknown).
+ * @throws {Error} for unrecognised diagram type.
  */
 export function parseMermaid(text: string): MermaidParseResult {
   const kind = detectDiagramType(text);
@@ -149,11 +149,24 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
-  const label = kind === 'unknown' ? 'unrecognised diagram type' : `"${kind}"`;
+  if (kind === 'gantt') {
+    const { doc, warnings } = parseGanttInternal(text);
+    return { kind, doc, warnings };
+  }
+
+  if (kind === 'timeline') {
+    const { doc, warnings } = parseTimelineInternal(text);
+    return { kind, doc, warnings };
+  }
+
+  if (kind === 'mindmap') {
+    const { doc, warnings } = parseMindmapInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
-    `[Tier 0] ${label} is not yet supported by the Mermaid front-end. ` +
-      `"flowchart" / "graph" and "sequenceDiagram" are implemented. ` +
-      `Support for ${kind === 'unknown' ? 'additional diagram types' : `"${kind}"`} is planned for later increments.`,
+    `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap.`,
   );
 }
 
@@ -175,7 +188,6 @@ export interface MermaidRenderOptions {
   format?: MermaidRenderFormat;
   /**
    * Theme name override. Supersedes any theme in frontmatter or %%{init}%%.
-   * Must be a registered Flow theme name (e.g. 'default-flow', 'dark-flow').
    */
   theme?: string;
 }
@@ -183,8 +195,8 @@ export interface MermaidRenderOptions {
 /** Result object returned by renderMermaid. */
 export interface MermaidRenderResult {
   kind: DiagramKind;
-  /** The Domain IR document (FlowDocument for flowchart, SequenceDocument for sequence). */
-  doc: FlowDocument | SequenceDocument;
+  /** The Domain IR document (grammar-specific). */
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -200,16 +212,12 @@ export interface MermaidRenderResult {
 /**
  * Parse Mermaid text, lay out the diagram, and serialise to SVG or PNG.
  *
- * Dispatches:
- *   flowchart  → parseFlowchartInternal → buildFlowScene → renderFlowDocument
- *   sequence   → parseSequenceInternal  → buildSequenceScene → renderSequenceDocument
- *
  * Theme precedence (highest wins):
  *   options.theme > frontmatter `theme:` field > %%{init: {"theme":…}}%% > grammar default
  *
- * Tier-0: flowchart and sequenceDiagram are implemented. Other types throw.
+ * Tier-0: all five Mermaid types are implemented.
  *
- * @throws {Error} for unsupported diagram types.
+ * @throws {Error} for unrecognised diagram types.
  */
 export function renderMermaid(
   text: string,
@@ -221,9 +229,9 @@ export function renderMermaid(
   if (kind === 'sequence') {
     const { doc, warnings, frontmatter } = parseSequenceInternal(text);
 
-    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const fmTheme  = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
-    const seqTheme = resolveSequenceTheme(themeName);
+    const seqTheme  = resolveSequenceTheme(themeName);
 
     const finalDoc: SequenceDocument = {
       ...doc,
@@ -233,25 +241,23 @@ export function renderMermaid(
       },
     };
 
-    const scene = buildSequenceScene(finalDoc, seqTheme);
-    const hash = computeSceneHash(scene);
+    const scene  = buildSequenceScene(finalDoc, seqTheme);
+    const hash   = computeSceneHash(scene);
     const format = options.format ?? 'svg';
 
     const renderResult = renderSequenceDocument(finalDoc, { format }, seqTheme);
     if (renderResult instanceof Promise) {
-      throw new Error(
-        '[renderMermaid] Async render result is not supported. Use format="svg" or format="png".',
-      );
+      throw new Error('[renderMermaid] Async render result is not supported.');
     }
 
     return {
       kind,
-      doc: finalDoc,
+      doc:       finalDoc,
       scene,
       sceneHash: hash,
       warnings,
-      svg: renderResult.svg,
-      png: renderResult.png,
+      svg:       renderResult.svg,
+      png:       renderResult.png,
     };
   }
 
@@ -259,7 +265,7 @@ export function renderMermaid(
   if (kind === 'flowchart') {
     const { doc, direction, warnings, frontmatter } = parseFlowchartInternal(text);
 
-    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
     const baseTheme = resolveFlowTheme(themeName);
 
@@ -275,33 +281,117 @@ export function renderMermaid(
       },
     };
 
-    const scene = buildFlowScene(finalDoc, themeOverride);
-    const hash = computeSceneHash(scene);
+    const scene  = buildFlowScene(finalDoc, themeOverride);
+    const hash   = computeSceneHash(scene);
     const format = options.format ?? 'svg';
     const renderResult = renderFlowDocument(finalDoc, { format }, themeOverride);
 
     if (renderResult instanceof Promise) {
-      throw new Error(
-        '[renderMermaid] Async render result is not supported in Tier-0. ' +
-          'Use format="svg" or format="png" (resvg backend).',
-      );
+      throw new Error('[renderMermaid] Async render result is not supported.');
     }
 
     return {
       kind,
-      doc: finalDoc,
+      doc:       finalDoc,
       scene,
       sceneHash: hash,
       warnings,
-      svg: renderResult.svg,
-      png: renderResult.png,
+      svg:       renderResult.svg,
+      png:       renderResult.png,
     };
   }
 
-  // ── Unsupported ────────────────────────────────────────────────────────
-  const label = kind === 'unknown' ? 'unrecognised diagram type' : `"${kind}"`;
+  // ── gantt ──────────────────────────────────────────────────────────────
+  if (kind === 'gantt') {
+    const { doc, warnings, frontmatter } = parseGanttInternal(text);
+
+    const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'roadmap';
+
+    const finalDoc: IRDocument = {
+      ...doc,
+      metadata: { ...doc.metadata, theme: themeName },
+    };
+
+    const format = options.format ?? 'svg';
+    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: finalDoc.metadata.layout });
+    const scene = buildScene(finalDoc, { theme: themeName, layout: finalDoc.metadata.layout });
+    const hash  = computeSceneHash(scene);
+
+    return {
+      kind,
+      doc:       finalDoc,
+      scene,
+      sceneHash: hash,
+      warnings,
+      svg:       renderResult.svg,
+      png:       renderResult.png,
+    };
+  }
+
+  // ── timeline ───────────────────────────────────────────────────────────
+  if (kind === 'timeline') {
+    const { doc, warnings, frontmatter } = parseTimelineInternal(text);
+
+    const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'consulting';
+
+    const finalDoc: IRDocument = {
+      ...doc,
+      metadata: { ...doc.metadata, theme: themeName },
+    };
+
+    const format = options.format ?? 'svg';
+    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: finalDoc.metadata.layout, spineSpacing: 'even' });
+    const scene = buildScene(finalDoc, { theme: themeName, layout: finalDoc.metadata.layout, spineSpacing: 'even' });
+    const hash  = computeSceneHash(scene);
+
+    return {
+      kind,
+      doc:       finalDoc,
+      scene,
+      sceneHash: hash,
+      warnings,
+      svg:       renderResult.svg,
+      png:       renderResult.png,
+    };
+  }
+
+  // ── mindmap ────────────────────────────────────────────────────────────
+  if (kind === 'mindmap') {
+    const { doc, warnings, frontmatter } = parseMindmapInternal(text);
+
+    const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'dark-tree';
+    const treeTheme = resolveTreeTheme(themeName);
+
+    const finalDoc: TreeDocument = {
+      ...doc,
+      metadata: { ...doc.metadata, theme: themeName },
+    };
+
+    const format = options.format ?? 'svg';
+    const renderResult = renderTreeDocument(finalDoc, { format }, treeTheme);
+    if (renderResult instanceof Promise) {
+      throw new Error('[renderMermaid] Async render result is not supported for mindmap.');
+    }
+    const scene = buildTreeScene(finalDoc, treeTheme);
+    const hash  = computeSceneHash(scene);
+
+    return {
+      kind,
+      doc:       finalDoc,
+      scene,
+      sceneHash: hash,
+      warnings,
+      svg:       renderResult.svg,
+      png:       renderResult.png,
+    };
+  }
+
+  // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
-    `[Tier 0] ${label} is not yet supported by the Mermaid front-end. ` +
-      `"flowchart" / "graph" and "sequenceDiagram" are implemented.`,
+    `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap.`,
   );
 }
