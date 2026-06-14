@@ -6,14 +6,14 @@
  *   Mermaid DSL text
  *     → detect diagram type
  *     → dispatch to grammar parser          (Path A)
- *     → Domain IR (FlowDocument / …)
+ *     → Domain IR (FlowDocument / SequenceDocument / …)
  *     → buildXxxScene + themeOverride
  *     → Scene IR
  *     → sceneToSvg / svgToPng              (existing kernel, unchanged)
  *
- * Tier-0 Increment-1 coverage:
+ * Tier-0 coverage:
  *   ✅  flowchart / graph     (full parser, FlowDocument, dark-flow gallery)
- *   🔜  sequenceDiagram       (throws "not yet supported" with clear message)
+ *   ✅  sequenceDiagram       (full parser, SequenceDocument, bytebytego-sequence gallery)
  *   🔜  gantt                 (throws "not yet supported")
  *   🔜  timeline              (throws "not yet supported")
  *   🔜  mindmap               (throws "not yet supported")
@@ -33,8 +33,16 @@ import {
 } from '../../grammars/flow/index.js';
 import type { FlowDocument, FlowTheme } from '../../grammars/flow/index.js';
 
+import {
+  buildSequenceScene,
+  renderSequenceDocument,
+  resolveSequenceTheme,
+} from '../../grammars/sequence/index.js';
+import type { SequenceDocument } from '../../grammars/sequence/index.js';
+
 import { preprocessMermaid } from './utils.js';
 import { parseFlowchartInternal } from './flowchart.js';
+import { parseSequenceInternal } from './sequence.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -98,17 +106,18 @@ export function detectDiagramType(text: string): DiagramKind {
 
 /**
  * Parse result returned by `parseMermaid`.
- * The `doc` field is currently typed as `FlowDocument`; it will become a
- * grammar-specific union type as sequence / gantt / timeline / mindmap parsers
- * are added in later increments.
+ * The `doc` field holds the grammar-specific Domain IR document — either a
+ * FlowDocument (flowchart) or a SequenceDocument (sequence).
+ * Narrow by `kind` to get the concrete type.
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
   /**
    * The grammar-specific Domain IR document.
-   * Tier-0 Inc-1: always FlowDocument (only flowchart is implemented).
+   * - kind === 'flowchart' → FlowDocument
+   * - kind === 'sequence'  → SequenceDocument
    */
-  doc: FlowDocument;
+  doc: FlowDocument | SequenceDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -119,12 +128,13 @@ export interface MermaidParseResult {
 /**
  * Parse Mermaid text and return the appropriate grammar's Domain IR.
  *
- * Tier-0 Inc-1: only `flowchart` diagrams are supported. All other diagram
- * types throw a clear error with the unsupported type name, so callers can
- * implement graceful fallback or surfacing to the user.
+ * Dispatches to:
+ *   - parseFlowchartInternal  for 'flowchart' / 'graph'
+ *   - parseSequenceInternal   for 'sequenceDiagram'
  *
- * @throws {Error} for any diagram type other than 'flowchart' (clearly labeled
- *                 "Tier 0 Inc 1 — not yet supported").
+ * All other diagram types throw a clear error.
+ *
+ * @throws {Error} for unsupported diagram types (gantt, timeline, mindmap, unknown).
  */
 export function parseMermaid(text: string): MermaidParseResult {
   const kind = detectDiagramType(text);
@@ -134,10 +144,15 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'sequence') {
+    const { doc, warnings } = parseSequenceInternal(text);
+    return { kind, doc, warnings };
+  }
+
   const label = kind === 'unknown' ? 'unrecognised diagram type' : `"${kind}"`;
   throw new Error(
-    `[Tier 0 Inc 1] ${label} is not yet supported by the Mermaid front-end. ` +
-      `Only "flowchart" / "graph" is implemented in Tier-0 Increment-1. ` +
+    `[Tier 0] ${label} is not yet supported by the Mermaid front-end. ` +
+      `"flowchart" / "graph" and "sequenceDiagram" are implemented. ` +
       `Support for ${kind === 'unknown' ? 'additional diagram types' : `"${kind}"`} is planned for later increments.`,
   );
 }
@@ -168,8 +183,8 @@ export interface MermaidRenderOptions {
 /** Result object returned by renderMermaid. */
 export interface MermaidRenderResult {
   kind: DiagramKind;
-  /** The Domain IR document (FlowDocument for flowchart). */
-  doc: FlowDocument;
+  /** The Domain IR document (FlowDocument for flowchart, SequenceDocument for sequence). */
+  doc: FlowDocument | SequenceDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -185,23 +200,15 @@ export interface MermaidRenderResult {
 /**
  * Parse Mermaid text, lay out the diagram, and serialise to SVG or PNG.
  *
- * Pipeline:
- *   text → preprocessMermaid → parseFlowchartInternal → FlowDocument
- *        → theme resolution (options.theme > frontmatter > directive > default)
- *        → direction → FlowTheme.orientation patch
- *        → buildFlowScene(doc, themeOverride)
- *        → sceneToSvg / svgToPng
+ * Dispatches:
+ *   flowchart  → parseFlowchartInternal → buildFlowScene → renderFlowDocument
+ *   sequence   → parseSequenceInternal  → buildSequenceScene → renderSequenceDocument
  *
  * Theme precedence (highest wins):
- *   options.theme > frontmatter `theme:` field > %%{init: {"theme":…}}%% > 'default-flow'
+ *   options.theme > frontmatter `theme:` field > %%{init: {"theme":…}}%% > grammar default
  *
- * Direction:
- *   LR / RL → FlowTheme.orientation = 'LR' (RL reverse not yet rendered; deferred)
- *   TD / TB / BT → FlowTheme.orientation = 'TB' (deferred in layout; renders as LR)
+ * Tier-0: flowchart and sequenceDiagram are implemented. Other types throw.
  *
- * Tier-0 Inc-1: only flowchart is supported. Other types throw as in parseMermaid.
- *
- * @returns MermaidRenderResult (sync for svg + resvg-png; async currently unused).
  * @throws {Error} for unsupported diagram types.
  */
 export function renderMermaid(
@@ -210,62 +217,91 @@ export function renderMermaid(
 ): MermaidRenderResult {
   const kind = detectDiagramType(text);
 
-  if (kind !== 'flowchart') {
-    const label = kind === 'unknown' ? 'unrecognised diagram type' : `"${kind}"`;
-    throw new Error(
-      `[Tier 0 Inc 1] ${label} is not yet supported by the Mermaid front-end. ` +
-        `Only "flowchart" / "graph" is implemented in Tier-0 Increment-1.`,
-    );
+  // ── sequenceDiagram ────────────────────────────────────────────────────
+  if (kind === 'sequence') {
+    const { doc, warnings, frontmatter } = parseSequenceInternal(text);
+
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
+    const seqTheme = resolveSequenceTheme(themeName);
+
+    const finalDoc: SequenceDocument = {
+      ...doc,
+      metadata: {
+        ...doc.metadata,
+        ...(themeName !== undefined ? { theme: themeName } : {}),
+      },
+    };
+
+    const scene = buildSequenceScene(finalDoc, seqTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+
+    const renderResult = renderSequenceDocument(finalDoc, { format }, seqTheme);
+    if (renderResult instanceof Promise) {
+      throw new Error(
+        '[renderMermaid] Async render result is not supported. Use format="svg" or format="png".',
+      );
+    }
+
+    return {
+      kind,
+      doc: finalDoc,
+      scene,
+      sceneHash: hash,
+      warnings,
+      svg: renderResult.svg,
+      png: renderResult.png,
+    };
   }
 
-  // ── Parse ──────────────────────────────────────────────────────────────
-  const { doc, direction, warnings, frontmatter } = parseFlowchartInternal(text);
+  // ── flowchart ──────────────────────────────────────────────────────────
+  if (kind === 'flowchart') {
+    const { doc, direction, warnings, frontmatter } = parseFlowchartInternal(text);
 
-  // ── Theme resolution ───────────────────────────────────────────────────
-  const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
-  const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
-  const baseTheme = resolveFlowTheme(themeName);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
+    const baseTheme = resolveFlowTheme(themeName);
 
-  // Apply direction to theme orientation.
-  // TD/TB/BT: set orientation='TB'. Layout engine defers TB; renders as LR.
-  const orientation: FlowTheme['orientation'] =
-    direction === 'TD' || direction === 'TB' || direction === 'BT' ? 'TB' : 'LR';
+    const orientation: FlowTheme['orientation'] =
+      direction === 'TD' || direction === 'TB' || direction === 'BT' ? 'TB' : 'LR';
+    const themeOverride: FlowTheme = { ...baseTheme, orientation };
 
-  const themeOverride: FlowTheme = { ...baseTheme, orientation };
+    const finalDoc: FlowDocument = {
+      ...doc,
+      metadata: {
+        ...doc.metadata,
+        ...(themeName !== undefined ? { theme: themeName } : {}),
+      },
+    };
 
-  // Apply resolved theme name to doc metadata for schema compliance
-  const finalDoc: FlowDocument = {
-    ...doc,
-    metadata: {
-      ...doc.metadata,
-      ...(themeName !== undefined ? { theme: themeName } : {}),
-    },
-  };
+    const scene = buildFlowScene(finalDoc, themeOverride);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderFlowDocument(finalDoc, { format }, themeOverride);
 
-  // ── Build scene ────────────────────────────────────────────────────────
-  const scene = buildFlowScene(finalDoc, themeOverride);
-  const hash = computeSceneHash(scene);
+    if (renderResult instanceof Promise) {
+      throw new Error(
+        '[renderMermaid] Async render result is not supported in Tier-0. ' +
+          'Use format="svg" or format="png" (resvg backend).',
+      );
+    }
 
-  // ── Serialise ──────────────────────────────────────────────────────────
-  const format = options.format ?? 'svg';
-  const renderResult = renderFlowDocument(finalDoc, { format }, themeOverride);
-
-  if (renderResult instanceof Promise) {
-    // Currently only Skia backend returns a Promise; we don't use it here.
-    // This branch is unreachable for format='svg'|'png' with default resvg backend.
-    throw new Error(
-      '[renderMermaid] Async render result is not supported in Tier-0 Inc-1. ' +
-        'Use format="svg" or format="png" (resvg backend).',
-    );
+    return {
+      kind,
+      doc: finalDoc,
+      scene,
+      sceneHash: hash,
+      warnings,
+      svg: renderResult.svg,
+      png: renderResult.png,
+    };
   }
 
-  return {
-    kind,
-    doc: finalDoc,
-    scene,
-    sceneHash: hash,
-    warnings,
-    svg: renderResult.svg,
-    png: renderResult.png,
-  };
+  // ── Unsupported ────────────────────────────────────────────────────────
+  const label = kind === 'unknown' ? 'unrecognised diagram type' : `"${kind}"`;
+  throw new Error(
+    `[Tier 0] ${label} is not yet supported by the Mermaid front-end. ` +
+      `"flowchart" / "graph" and "sequenceDiagram" are implemented.`,
+  );
 }

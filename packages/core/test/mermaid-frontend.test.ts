@@ -337,30 +337,30 @@ describe('parseMermaid — dispatch', () => {
     expect(result.doc.flow.nodes).toHaveLength(2);
   });
 
-  it('throws a clear error for sequenceDiagram', () => {
-    expect(() => parseMermaid('sequenceDiagram\n    A->>B: msg')).toThrow(
-      /Tier 0 Inc 1/,
-    );
-    expect(() => parseMermaid('sequenceDiagram\n    A->>B: msg')).toThrow(
-      /sequence/,
-    );
+  it('dispatches sequenceDiagram to parseSequence (now implemented)', () => {
+    const result = parseMermaid('sequenceDiagram\n    A->>B: msg');
+    expect(result.kind).toBe('sequence');
+    // doc is SequenceDocument — participants and messages present
+    const seqDoc = result.doc as import('../src/grammars/sequence/types.js').SequenceDocument;
+    expect(seqDoc.sequence.participants.length).toBeGreaterThanOrEqual(2);
+    expect(seqDoc.sequence.messages).toHaveLength(1);
   });
 
   it('throws a clear error for gantt', () => {
-    expect(() => parseMermaid('gantt\n    title Plan')).toThrow(/Tier 0 Inc 1/);
+    expect(() => parseMermaid('gantt\n    title Plan')).toThrow(/Tier 0/);
     expect(() => parseMermaid('gantt\n    title Plan')).toThrow(/gantt/);
   });
 
   it('throws a clear error for timeline', () => {
-    expect(() => parseMermaid('timeline\n    title History')).toThrow(/Tier 0 Inc 1/);
+    expect(() => parseMermaid('timeline\n    title History')).toThrow(/Tier 0/);
   });
 
   it('throws a clear error for mindmap', () => {
-    expect(() => parseMermaid('mindmap\n    root((Root))')).toThrow(/Tier 0 Inc 1/);
+    expect(() => parseMermaid('mindmap\n    root((Root))')).toThrow(/Tier 0/);
   });
 
   it('throws a clear error for unknown diagram type', () => {
-    expect(() => parseMermaid('some random text')).toThrow(/Tier 0 Inc 1/);
+    expect(() => parseMermaid('some random text')).toThrow(/Tier 0/);
   });
 });
 
@@ -436,10 +436,10 @@ flowchart LR
     expect(result.warnings.some((w) => /DEFERRED/.test(w))).toBe(true);
   });
 
-  it('throws for unsupported diagram type', () => {
-    expect(() => renderMermaid('sequenceDiagram\n    A->>B: msg')).toThrow(
-      /Tier 0 Inc 1/,
-    );
+  it('renders sequenceDiagram to SVG (now implemented)', () => {
+    const result = renderMermaid('sequenceDiagram\n    A->>B: Hello', { format: 'svg' });
+    expect(result.kind).toBe('sequence');
+    expect(result.svg).toContain('<svg');
   });
 });
 
