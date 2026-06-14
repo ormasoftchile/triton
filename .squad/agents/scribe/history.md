@@ -71,3 +71,15 @@ Processed Bjarne's Mermaid front-end decision (flowchart parser, Tier 0 Inc 1).
 - **Cross-Agent Updates:** mark/history.md + barbara/history.md appended with IR and rendering integration notes
 - **History Files:** All under 15,360-byte summarization threshold ✓
 - **Manifest Summary:** Mermaid front-end (Bjarne) delivers flowchart parser, 6 node shapes, 4 edge types, 57 new tests (852 total pass), dark-flow gallery visibly cleaner than Mermaid default, 10 deferred features explicit, sequence/gantt/timeline/mindmap unsupported (next increments)
+
+### 2026-06-14 — Mermaid Sequence Parser Inbox Merge (Scribe)
+
+Processed Bjarne's Mermaid sequenceDiagram parser decision (Tier 0 Inc 2).
+
+- **Decisions:** Merged bjarne-mermaid-sequence.md into decisions.md (20,479 bytes; under 51,200 gate) ✓
+- **Orchestration Log:** 2026-06-14T01:28:36Z-mermaid-sequence.md (1,092 bytes)
+- **Session Log:** 2026-06-14T01:28:36Z-mermaid-sequence.md (225 bytes)
+- **Inbox:** 1 file → 0 files (deleted after merge) ✓
+- **History Files:** All under 15,360-byte summarization threshold ✓
+- **Tier-0 Status:** flowchart ✅ + sequence ✅ complete; gantt/timeline/mindmap next
+- **Manifest Summary:** Mermaid sequenceDiagram parser (Bjarne) delivers 8 arrow operators, fragment sections (loop/opt/alt/par + critical/break), activations (explicit + shorthand +/-), graceful degradation, 57 new tests (971 total pass), bytebytego-sequence gallery (JWT auth example), Tier-0 baseline achieved

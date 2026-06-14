@@ -117,6 +117,139 @@ This decision establishes the tokenizer fidelity bar for all remaining Mermaid p
 
 ---
 
+# Decision: Mermaid sequenceDiagram Parser — Real-Mermaid Fidelity
+
+**Agent:** Bjarne (Ingestion Design)  
+**Date:** 2026-06-13T20:45:28-04:00  
+**Status:** ADOPTED
+
+## Summary
+
+Implemented `packages/core/src/frontend/mermaid/sequence.ts` — a full Mermaid `sequenceDiagram` parser that produces `SequenceDocument` IR. Follows the tokenizer fidelity bar established by the flowchart.ts hardening: whitespace-independent, all 8 arrow operators, explicit/shorthand activations, loop/alt/opt/par fragments with sections, graceful degradation with public warnings. Wired into `index.ts` so `parseMermaid` + `renderMermaid` dispatch to sequence. 971 tests pass (+57); all existing goldens byte-identical. Gallery: `mermaid-sequence.{svg,png}` emitted with bytebytego-sequence theme.
+
+## Arrow → Kind Mapping
+
+| Mermaid Arrow | Line style | Arrowhead | IR `kind` |
+|---------------|-----------|-----------|-----------|
+| `->>` | solid | filled triangle | `sync` |
+| `-->>` | dashed | open V | `reply` |
+| `->` | solid | open/none | `sync` |
+| `-->` | dashed | open/none | `reply` |
+| `-)` | solid | open circle | `async` |
+| `--)` | dashed | open circle | `async` |
+| `-x` | solid | cross | `async` |
+| `--x` | dashed | cross | `async` |
+
+All 8 parsed whitespace-independently via a single `SEQ_MSG_RE` regex with most-specific-first alternation (`-->>` before `-->` before `->`, etc.).
+
+## Activation Shorthand Semantics
+
+**`A->>+B: msg`** → activate B, `from_order = order of this message`.  
+**`B-->>-A: msg`** → deactivate B (FROM, not TO), `to_order = order of this message`.
+
+The `-` modifier on the TO participant position semantically deactivates the FROM participant. This matches the canonical Mermaid docs example. A per-participant stack of `from_order` values supports stacked activations (`+/+` then `-/-`).
+
+**Explicit `activate A`** → `from_order = lastMessageOrder` (the last parsed message's order).  
+**Explicit `deactivate A`** → `to_order = lastMessageOrder`.
+
+## Fragment Sections
+
+| Mermaid keyword | IR kind | Multi-section |
+|----------------|---------|---------------|
+| `loop` | `loop` | No |
+| `opt` | `opt` | No |
+| `alt … else … end` | `alt` | Yes (sections[]) |
+| `par … and … end` | `par` | Yes (sections[]) |
+| `critical` | `critical` | No (+ DEFERRED warning) |
+| `break` | `break` | No (+ DEFERRED warning) |
+
+`alt` and `par` produce `FragmentSection[]` when there are ≥ 2 compartments. The first section's `guard` equals the fragment's main label. `else`/`and` create new sections. A fragment with no messages is discarded with a warning (`from_order > lastOrder`).
+
+## Graceful Degradation
+
+| Construct | Behavior |
+|-----------|----------|
+| `autonumber` | Warning: DEFERRED (no IR flag for step numbering) |
+| `Note left/right of A: …` | Warning: DEFERRED (no Note IR type — Mark's domain) |
+| `Note over A,B: …` | Warning: DEFERRED (same) |
+| `critical` / `break` | Warning: DEFERRED, fragment still produced with correct kind |
+| Unrecognised line | Warning: SKIP |
+| `deactivate A` without prior activate | Warning, no crash |
+| Unclosed fragment at EOF | Warning, partial close attempted |
+| Empty label on message | Warning, placeholder `(message)` used |
+| No participants at all | Warning, synthetic `participant` placeholder added |
+
+Warnings surface via `MermaidParseResult.warnings: string[]` (same as flowchart).
+
+## Auto-Registration
+
+Participants auto-register on first use in a message (`kind: 'object'`, label = raw ID). Explicit `participant`/`actor` declarations update label and kind in-place without changing insertion order. This preserves left-to-right layout order by first appearance.
+
+## ID Sanitization
+
+Same algorithm as `flowchart.ts`: camelCase→kebab, uppercase→lowercase, underscores→hyphens, strip non-[a-z0-9-], collapse hyphens, prefix 'n' if starts with digit. Per-session `idMap` ensures stability.
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `packages/core/src/frontend/mermaid/sequence.ts` | **NEW** — full sequenceDiagram parser |
+| `packages/core/src/frontend/mermaid/index.ts` | Wire sequence into parseMermaid + renderMermaid; update MermaidParseResult.doc and MermaidRenderResult.doc to union types |
+| `packages/core/test/mermaid-frontend.test.ts` | Update 2 tests that expected sequence to throw (now dispatches correctly) |
+| `packages/core/test/mermaid-sequence-corpus.test.ts` | **NEW** — 57 corpus tests (AC1–AC10 + 10 complete patterns) |
+| `examples/gallery/mermaid-sequence.mmd` | **NEW** — real Mermaid sequence gallery example |
+| `examples/gallery/mermaid-sequence.svg` | **NEW** — rendered gallery SVG (bytebytego-sequence) |
+| `examples/gallery/mermaid-sequence.png` | **NEW** — rendered gallery PNG (848×1010, dark theme) |
+
+## Test Impact
+
+- **Before:** 914 tests  
+- **After:** 971 tests (+57)  
+- **Regressions:** 0  
+- **All existing goldens:** byte-identical (flowchart gallery unchanged)
+
+## Self-Crawl Results (10 real patterns)
+
+1. Basic two-party: P=2 M=2 kinds=[sync,reply] ✓  
+2. All 8 arrows in one diagram: P=2 M=8 all correct ✓  
+3. Actor + participant with alias: P=3 M=3 kinds=[sync,sync,reply] ✓  
+4. Activation shorthand +/-: A=1 {from_order:0, to_order:1} ✓  
+5. Alt with else: F=1(alt, 2 sections) ✓  
+6. Self-message: from===to ✓  
+7. Notes degrade: 2 note-warns, messages intact ✓  
+8. autonumber degrade: 1 warn, messages intact ✓  
+9. loop+par combined: F=2 [loop,par] ✓  
+10. Frontmatter/theme + ID sanitization: AuthService→auth-service ✓  
+
+## Gallery Self-Check
+
+The rendered PNG (848×1010, bytebytego-sequence theme) shows:
+- Dark navy background
+- 4 participants: User (actor, blue card with stick figure), Web Client, Auth Service, Database (colored cards with icons)
+- Numbered step badges (0–11) from `autonumber`
+- Activation bars on Auth Service and Database
+- `alt` fragment: "Valid credentials" / "Invalid credentials" with dashed divider
+- `loop` fragment: "Token refresh (every 15 min)"
+- `opt` fragment: "Access protected resource"
+- All fragment boxes clean with no overlaps
+- Visibly superior to Mermaid's default white-background UML output
+
+## Deferred Items
+
+1. `Note` construct → no IR type (Mark's call; DEFERRED per decisions.md)
+2. `autonumber` display → no IR flag (theme/rendering concern; DEFERRED)
+3. Quoted participant IDs in messages (`"Alice Smith"->>Bob: msg`) — rare; SKIP + warn
+4. `links` / `color` attributes — warn + skip
+
+---
+
+## Tier-0 Milestone: flowchart + sequence now complete
+
+**Status:** flowchart ✅ + sequence ✅ = Tier-0 baseline achieved  
+**Next:** gantt + timeline + mindmap (Tier-0 completion)
+
+---
+
 ## ALL PENDING ITEMS NOW CLOSED (2026-06-13)
 
 | Item | Tracking | Status | Closed Date |
@@ -126,6 +259,7 @@ This decision establishes the tokenizer fidelity bar for all remaining Mermaid p
 | Flow diamond shape | #flow | ✅ CLOSED | 2026-06-13 |
 | Stale comment cleanup | #maintenance | ✅ CLOSED | 2026-06-13 |
 | Design doc status sync | #documentation | ✅ CLOSED | 2026-06-13 |
+| Mermaid sequenceDiagram parser | #sequence | ✅ CLOSED | 2026-06-13 |
 
 ---
 
