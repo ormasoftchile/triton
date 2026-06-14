@@ -46,8 +46,8 @@ export const defaultGitGraphTheme: GitGraphTheme = {
   marginBottom: 48,
 
   branchColors: ['#4a6cf7', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#06b6d4', '#eab308', '#ec4899'],
-  branchStrokeWidth: 3,
-  branchLaneSize: 84,
+  branchStrokeWidth: 4,
+  branchLaneSize: 88,
   branchLabelFontSize: 13,
   branchLabelFontWeight: 700,
   branchLabelColor: '#334155',

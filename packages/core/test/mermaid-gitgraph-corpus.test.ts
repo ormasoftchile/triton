@@ -116,7 +116,8 @@ const GITGRAPH_CASES: GitGraphCase[] = [
     assert: (doc, _warnings, rendered) => {
       expect(doc.commits[0]!.tag).toBe('v1.0');
       const theme = resolveGitGraphTheme('default-gitgraph');
-      expect(rendered.scene.primitives.some((primitive) => primitive.kind === 'rect' && primitive.fill === theme.tagFill)).toBe(true);
+      // Tags are now rendered as path callouts (rounded-rect + triangle pointer).
+      expect(rendered.scene.primitives.some((primitive) => primitive.kind === 'path' && primitive.fill === theme.tagFill)).toBe(true);
     },
   },
   {
@@ -132,7 +133,8 @@ const GITGRAPH_CASES: GitGraphCase[] = [
     assert: (doc, _warnings, rendered) => {
       expect(doc.commits[0]!.type).toBe('HIGHLIGHT');
       const theme = resolveGitGraphTheme('default-gitgraph');
-      expect(rendered.scene.primitives.some((primitive) => primitive.kind === 'circle' && primitive.fill === theme.highlightFill)).toBe(true);
+      // HIGHLIGHT commits are now rendered as filled squares (rect), not circles.
+      expect(rendered.scene.primitives.some((primitive) => primitive.kind === 'rect' && primitive.fill === theme.highlightFill)).toBe(true);
     },
   },
   {
