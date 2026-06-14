@@ -196,10 +196,35 @@ export type {
   ErTheme,
 } from './grammars/er/index.js';
 
+// C4 grammar (seventh multi-grammar architecture entry point — software architecture diagrams)
+export {
+  buildC4Scene,
+  renderC4Document,
+  c4DocumentSchema,
+  defaultC4Theme,
+  darkC4Theme,
+  resolveC4Theme,
+  C4_THEME_REGISTRY,
+} from './grammars/c4/index.js';
+export type {
+  C4Document,
+  C4Metadata,
+  C4Element,
+  C4ElementKind,
+  C4Boundary,
+  C4Rel,
+  C4RelKind,
+  C4DiagramKind,
+  C4DocumentInput,
+  C4RenderOptions,
+  C4RenderResult,
+  C4Theme,
+} from './grammars/c4/index.js';
+
 // Scene-transform kernel helper (used by composition layer)
 export { translateAndScale, embedSceneInRect, transformPathD } from './scene-transform.js';
 
-// Composition grammar (seventh entry point — multi-panel poster layout)
+// Composition grammar (eighth entry point — multi-panel poster layout)
 export {
   buildCompositionScene,
   renderCompositionDocument,
@@ -242,3 +267,4 @@ export { parseFlowchart } from './frontend/mermaid/flowchart.js';
 export { parseClassDiagram } from './frontend/mermaid/class.js';
 export { parseStateDiagram } from './frontend/mermaid/state.js';
 export { parseErDiagram } from './frontend/mermaid/er.js';
+export { parseC4Diagram } from './frontend/mermaid/c4.js';

@@ -20,6 +20,8 @@
  *   ✅  classDiagram          (ClassDocument,    UML compartment layout)
  *   ✅  stateDiagram          (StateDocument,    pseudostate state-machine layout)
  *   ✅  erDiagram             (ErDocument,       crow's-foot entity layout)
+ *   ✅  C4Context / C4Container / C4Component / C4Dynamic / C4Deployment
+ *                            (C4Document,       software architecture layout)
  *
  * PUBLIC EXPORTS (re-exported from packages/core/src/index.ts):
  *   detectDiagramType, parseMermaid, renderMermaid
@@ -58,6 +60,13 @@ import {
 import type { ErDocument } from '../../grammars/er/index.js';
 
 import {
+  buildC4Scene,
+  renderC4Document,
+  resolveC4Theme,
+} from '../../grammars/c4/index.js';
+import type { C4Document } from '../../grammars/c4/index.js';
+
+import {
   buildSequenceScene,
   renderSequenceDocument,
   resolveSequenceTheme,
@@ -83,6 +92,7 @@ import { parseMindmapInternal } from './mindmap.js';
 import { parseClassDiagramInternal } from './class.js';
 import { parseStateDiagramInternal } from './state.js';
 import { parseErDiagramInternal } from './er.js';
+import { parseC4DiagramInternal } from './c4.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -101,6 +111,11 @@ export type DiagramKind =
   | 'classDiagram'
   | 'stateDiagram'
   | 'erDiagram'
+  | 'c4Context'
+  | 'c4Container'
+  | 'c4Component'
+  | 'c4Dynamic'
+  | 'c4Deployment'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -130,6 +145,11 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^classdiagram\b/i.test(trimmed)) return 'classDiagram';
     if (/^statediagram(?:-v2)?\b/i.test(trimmed)) return 'stateDiagram';
     if (/^erdiagram\b/i.test(trimmed)) return 'erDiagram';
+    if (/^c4context\b/i.test(trimmed)) return 'c4Context';
+    if (/^c4container\b/i.test(trimmed)) return 'c4Container';
+    if (/^c4component\b/i.test(trimmed)) return 'c4Component';
+    if (/^c4dynamic\b/i.test(trimmed)) return 'c4Dynamic';
+    if (/^c4deployment\b/i.test(trimmed)) return 'c4Deployment';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -153,10 +173,11 @@ export function detectDiagramType(text: string): DiagramKind {
  *   'classDiagram' → ClassDocument
  *   'stateDiagram' → StateDocument
  *   'erDiagram'    → ErDocument
+ *   'c4Context' / 'c4Container' / 'c4Component' / 'c4Dynamic' / 'c4Deployment' → C4Document
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -215,9 +236,15 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'c4Context' || kind === 'c4Container' || kind === 'c4Component' || kind === 'c4Dynamic' || kind === 'c4Deployment') {
+    const { doc, warnings } = parseC4DiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
-      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram.`,
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment.`,
   );
 }
 
@@ -247,7 +274,7 @@ export interface MermaidRenderOptions {
 export interface MermaidRenderResult {
   kind: DiagramKind;
   /** The Domain IR document (grammar-specific). */
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -266,7 +293,7 @@ export interface MermaidRenderResult {
  * Theme precedence (highest wins):
  *   options.theme > frontmatter `theme:` field > %%{init: {"theme":…}}%% > grammar default
  *
- * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, and erDiagram.
+ * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, and the C4 family.
  *
  * @throws {Error} for unrecognised diagram types.
  */
@@ -485,9 +512,24 @@ export function renderMermaid(
     return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
   }
 
+  if (kind === 'c4Context' || kind === 'c4Container' || kind === 'c4Component' || kind === 'c4Dynamic' || kind === 'c4Deployment') {
+    const { doc, warnings, frontmatter } = parseC4DiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-c4';
+    const c4Theme = resolveC4Theme(themeName);
+    const finalDoc: C4Document = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildC4Scene(finalDoc, c4Theme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderC4Document(finalDoc, { format }, c4Theme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for C4 diagrams.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
   // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
-      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram.`,
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment.`,
   );
 }
