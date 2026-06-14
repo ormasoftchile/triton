@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="942" version="1.1" viewBox="0 0 670 942" width="670" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#334155" stroke-width="1.5" x1="336" x2="335" y1="71" y2="93"/>
+  <line stroke="#334155" stroke-width="1.5" x1="335" x2="335" y1="149" y2="171"/>
+  <line stroke="#334155" stroke-width="1.5" x1="335" x2="335" y1="303" y2="325"/>
+  <path d="M 56 243 L 19 243 L 19 437 L 233 437" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 245 437 L 19 437 L 19 883 L 312 883" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#334155" stroke-width="1.5" x1="101" x2="125" y1="253" y2="253"/>
+  <line stroke="#334155" stroke-width="1.5" x1="317" x2="341" y1="253" y2="253"/>
+  <line stroke="#334155" stroke-width="1.5" x1="533" x2="557" y1="253" y2="253"/>
+  <path d="M 245 359 L 19 359 L 19 509 L 307 509" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#334155" stroke-width="1.5" x1="335" x2="335" y1="525" y2="547"/>
+  <path d="M 319 509 L 19 509 L 19 659 L 233 659" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#334155" stroke-width="1.5" x1="335" x2="335" y1="637" y2="615"/>
+  <path d="M 245 581 L 19 581 L 19 737 L 233 737" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#334155" stroke-width="1.5" x1="335" x2="335" y1="759" y2="781"/>
+  <line stroke="#334155" stroke-width="1.5" x1="335" x2="336" y1="837" y2="859"/>
+  <path d="M 245 581 L 19 581 L 19 883 L 312 883" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 326 60 A 10 10 0 1 0 346 60 A 10 10 0 1 0 326 60 Z" fill="#0f172a" stroke="#0f172a" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="245" y="105"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="335" y="132">Idle</text>
+  <rect fill="#f8fafc" height="120" rx="14" stroke="#3b82f6" stroke-width="1.5" width="558" x="56" y="183"/>
+  <line stroke="#3b82f6" stroke-width="1" x1="56" x2="614" y1="217" y2="217"/>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="start" x="72" y="209">Processing</text>
+  <path d="M 80 253 A 10 10 0 1 0 100 253 A 10 10 0 1 0 80 253 Z" fill="#0f172a" stroke="#0f172a" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="137" y="231"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="227" y="258">Validating</text>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="353" y="231"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="443" y="258">Charging</text>
+  <path d="M 571 253 A 10 10 0 1 0 591 253 A 10 10 0 1 0 571 253 Z" fill="#ffffff" stroke="#0f172a" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 576 253 A 5.5 5.5 0 1 0 587 253 A 5.5 5.5 0 1 0 576 253 Z" fill="#0f172a" stroke="#0f172a" stroke-linecap="round" stroke-width="1"/>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="245" y="337"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="335" y="364">Authorized</text>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="245" y="415"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="335" y="442">Failed</text>
+  <path d="M 335 493 L 351 509 L 335 525 L 319 509 Z" fill="#e2e8f0" stroke="#334155" stroke-linecap="round" stroke-width="1.4"/>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="245" y="559"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="335" y="586">Completed</text>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="245" y="637"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="335" y="664">PartialPay</text>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="245" y="715"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="335" y="742">Refunding</text>
+  <rect fill="#f8fafc" height="44" rx="12" stroke="#64748b" stroke-width="1.4" width="180" x="245" y="793"/>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="335" y="820">Refunded</text>
+  <path d="M 326 883 A 10 10 0 1 0 346 883 A 10 10 0 1 0 326 883 Z" fill="#ffffff" stroke="#0f172a" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 331 883 A 5.5 5.5 0 1 0 342 883 A 5.5 5.5 0 1 0 331 883 Z" fill="#0f172a" stroke="#0f172a" stroke-linecap="round" stroke-width="1"/>
+  <path d="M 328 93 L 335 105 L 343 93" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 328 171 L 335 183 L 342 171" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 328 325 L 335 337 L 342 325" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 233 444 L 245 437 L 233 430" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 312 890 L 324 883 L 312 876" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 125 260 L 137 253 L 125 246" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 341 260 L 353 253 L 341 246" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 557 260 L 569 253 L 557 246" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 307 516 L 319 509 L 307 502" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 328 547 L 335 559 L 342 547" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 233 666 L 245 659 L 233 652" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 342 615 L 335 603 L 328 615" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 233 744 L 245 737 L 233 730" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 328 781 L 335 793 L 342 781" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 328 859 L 336 871 L 343 859" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 312 890 L 324 883 L 312 876" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="323" y="161">order_placed</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="323" y="315">authorize [amount &gt; 0]</text>
+  <rect fill="#ffffff" height="17" rx="2" stroke="none" stroke-width="0" width="124" x="22" y="332"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="25" y="340">authorize [amount &lt;= 0]</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="329" y="265">valid</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="323" y="537">[full payment]</text>
+  <rect fill="#ffffff" height="17" rx="2" stroke="none" stroke-width="0" width="43" x="22" y="576"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="25" y="584">[partial]</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="347" y="625">remaining paid</text>
+  <rect fill="#ffffff" height="17" rx="2" stroke="none" stroke-width="0" width="93" x="22" y="651"/>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="start" x="25" y="659">refund_requested</text>
+  <text dominant-baseline="middle" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="323" y="771">process_refund</text>
+</svg>

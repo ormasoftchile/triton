@@ -165,15 +165,16 @@
     one <strong>Flow Grammar</strong> example (RAG pipeline, layered L→R layout),
     three <strong>Tree Grammar</strong> examples (default light theme and dark-teal theme — same IR,
     two themes), one <strong>Composition Layer</strong> example (multi-panel poster assembling
-    flow, tree, sequence, and stat grammars into a single infographic), and four
+    flow, tree, sequence, and stat grammars into a single infographic), and six
     <strong>Mermaid</strong> examples (gantt → roadmap theme, timeline → consulting vertical-spine,
-    mindmap → dark-tree, classDiagram → UML compartments — all rendered via our engine from real Mermaid source). Most timeline renders use
+    mindmap → dark-tree, classDiagram → UML compartments, stateDiagram → pseudostate state layout,
+    erDiagram → crow's-foot entity layout — all rendered via our engine from real Mermaid source). Most timeline renders use
     the <strong>Consulting (Tier-1)</strong> theme, with a feature-rich <strong>Product</strong>
     showcase. Each example exercises a distinct combination of axis unit, track density, activity
     statuses, milestones, and edge-case behaviours. Use this contact sheet to bulk-check
     Phase 1–5 visual output.
   </p>
-  <span class="badge">Phase 1–5 Gallery · 29 Examples · Horizontal + Sequence + Flow + Tree + Composition + Mermaid Tier-0/Tier-1</span>
+  <span class="badge">Phase 1–5 Gallery · 31 Examples · Horizontal + Sequence + Flow + Tree + Composition + Mermaid Tier-0/Tier-1</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -853,33 +854,82 @@
     </div>
   </div>
 
-    <!-- 29. mermaid-class — Mermaid front-end (Tier 1), classDiagram → class IR → compartment layout -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-num">Example 29 · mermaid-class</div>
-        <div class="card-title">Mermaid Class Diagram — E-Commerce Domain Model (Tier 1)
-          <span class="tag tag-milestones">mermaid</span>
-          <span class="tag tag-sublanes">classDiagram</span>
-        </div>
-        <div class="card-desc">
-          A real Mermaid <code>classDiagram</code> (E-Commerce Domain Model) parsed by our Tier 1
-          front-end into the Class Grammar IR and rendered with UML compartment layout:
-          name/attributes/methods compartments, 6 UML relationship types (inheritance, realization,
-          composition, aggregation, association, dependency) with correct arrowhead markers drawn as
-          path primitives. Theme: <code>default-class</code>.
-        </div>
+  <!-- 29. mermaid-class — Mermaid front-end (Tier 1), classDiagram → class IR → compartment layout -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 29 · mermaid-class</div>
+      <div class="card-title">Mermaid Class Diagram — E-Commerce Domain Model (Tier 1)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">classDiagram</span>
       </div>
-      <div class="card-img">
-        <img src="mermaid-class.png" alt="mermaid class diagram rendered through our engine">
-      </div>
-      <div class="card-footer">
-        <a href="mermaid-class.svg">SVG</a>
-        <a href="mermaid-class.mmd">Mermaid Source</a>
+      <div class="card-desc">
+        A real Mermaid <code>classDiagram</code> (E-Commerce Domain Model) parsed by our Tier 1
+        front-end into the Class Grammar IR and rendered with UML compartment layout:
+        name/attributes/methods compartments, 6 UML relationship types (inheritance, realization,
+        composition, aggregation, association, dependency) with correct arrowhead markers drawn as
+        path primitives. Theme: <code>default-class</code>.
       </div>
     </div>
+    <div class="card-img">
+      <img src="mermaid-class.png" alt="mermaid class diagram rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-class.svg">SVG</a>
+      <a href="mermaid-class.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 30. mermaid-state — Mermaid front-end (Tier 1), stateDiagram → state IR → pseudostate layout -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 30 · mermaid-state</div>
+      <div class="card-title">Mermaid State Diagram — Order Payment Lifecycle (Tier 1)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">stateDiagram</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>stateDiagram-v2</code> (Order &amp; Payment Lifecycle) parsed by our
+        Tier 1 front-end into the State Grammar IR: rounded-rect states, pseudostates (filled
+        start circle, bullseye end, fork bar, choice diamond), labeled transitions as open-arrowhead
+        paths, and one composite state. Theme: <code>default-state</code>.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-state.png" alt="mermaid state diagram rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-state.svg">SVG</a>
+      <a href="mermaid-state.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 31. mermaid-er — Mermaid front-end (Tier 1), erDiagram → er IR → crow's-foot layout -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 31 · mermaid-er</div>
+      <div class="card-title">Mermaid ER Diagram — E-Commerce Schema (Tier 1)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">erDiagram</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>erDiagram</code> (Customer/Order/LineItem/Product schema) parsed by
+        our Tier 1 front-end into the ER Grammar IR: entity boxes with type|name|key attribute
+        compartments, crow's-foot cardinality endpoints (zero-or-one, exactly-one, zero-or-many,
+        one-or-many) as path primitives, identifying vs non-identifying relationship lines.
+        Theme: <code>default-er</code>.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-er.png" alt="mermaid er diagram rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-er.svg">SVG</a>
+      <a href="mermaid-er.mmd">Mermaid Source</a>
+    </div>
+  </div>
 
 </div>
-  Timeline Compiler · Phase 1–4 Gallery · Horizontal &amp; vertical-spine layout families.
+  Timeline Compiler · Phase 1–5 Gallery · Horizontal &amp; vertical-spine layout families.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>
   · See <a href="README.md" style="color:#999">README.md</a> for full commands.
   · <strong><a href="showcase.html" style="color:#00D4FF">✦ Showcase Gallery (Phase 4 · Skia backend)</a></strong>

@@ -151,10 +151,55 @@ export type {
   ClassTheme,
 } from './grammars/class/index.js';
 
+// State grammar (fifth multi-grammar architecture entry point — UML state machines)
+export {
+  buildStateScene,
+  renderStateDocument,
+  stateDocumentSchema,
+  defaultStateTheme,
+  darkStateTheme,
+  resolveStateTheme,
+  STATE_THEME_REGISTRY,
+} from './grammars/state/index.js';
+export type {
+  StateDocument,
+  StateMetadata,
+  StateNode,
+  StateTransition,
+  PseudostateKind,
+  StateDocumentInput,
+  StateRenderOptions,
+  StateRenderResult,
+  StateTheme,
+} from './grammars/state/index.js';
+
+// ER grammar (sixth multi-grammar architecture entry point — crow's-foot entities)
+export {
+  buildErScene,
+  renderErDocument,
+  erDocumentSchema,
+  defaultErTheme,
+  darkErTheme,
+  resolveErTheme,
+  ER_THEME_REGISTRY,
+} from './grammars/er/index.js';
+export type {
+  ErDocument,
+  ErMetadata,
+  ErEntity,
+  ErAttribute,
+  ErRelationship,
+  ErCardinality,
+  ErDocumentInput,
+  ErRenderOptions,
+  ErRenderResult,
+  ErTheme,
+} from './grammars/er/index.js';
+
 // Scene-transform kernel helper (used by composition layer)
 export { translateAndScale, embedSceneInRect, transformPathD } from './scene-transform.js';
 
-// Composition grammar (fifth entry point — multi-panel poster layout)
+// Composition grammar (seventh entry point — multi-panel poster layout)
 export {
   buildCompositionScene,
   renderCompositionDocument,
@@ -195,3 +240,5 @@ export type {
 } from './frontend/mermaid/index.js';
 export { parseFlowchart } from './frontend/mermaid/flowchart.js';
 export { parseClassDiagram } from './frontend/mermaid/class.js';
+export { parseStateDiagram } from './frontend/mermaid/state.js';
+export { parseErDiagram } from './frontend/mermaid/er.js';

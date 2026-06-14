@@ -6,7 +6,7 @@
  *   Mermaid DSL text
  *     → detect diagram type
  *     → dispatch to grammar parser          (Path A)
- *     → Domain IR (FlowDocument / SequenceDocument / IRDocument / TreeDocument / ClassDocument)
+ *     → Domain IR (FlowDocument / SequenceDocument / IRDocument / TreeDocument / ClassDocument / StateDocument / ErDocument)
  *     → buildXxxScene + themeOverride
  *     → Scene IR
  *     → sceneToSvg / svgToPng              (existing kernel, unchanged)
@@ -18,6 +18,8 @@
  *   ✅  timeline              (IRDocument,       consulting theme, vertical-spine)
  *   ✅  mindmap               (TreeDocument,     dark-tree theme)
  *   ✅  classDiagram          (ClassDocument,    UML compartment layout)
+ *   ✅  stateDiagram          (StateDocument,    pseudostate state-machine layout)
+ *   ✅  erDiagram             (ErDocument,       crow's-foot entity layout)
  *
  * PUBLIC EXPORTS (re-exported from packages/core/src/index.ts):
  *   detectDiagramType, parseMermaid, renderMermaid
@@ -40,6 +42,20 @@ import {
   resolveClassTheme,
 } from '../../grammars/class/index.js';
 import type { ClassDocument } from '../../grammars/class/index.js';
+
+import {
+  buildStateScene,
+  renderStateDocument,
+  resolveStateTheme,
+} from '../../grammars/state/index.js';
+import type { StateDocument } from '../../grammars/state/index.js';
+
+import {
+  buildErScene,
+  renderErDocument,
+  resolveErTheme,
+} from '../../grammars/er/index.js';
+import type { ErDocument } from '../../grammars/er/index.js';
 
 import {
   buildSequenceScene,
@@ -65,6 +81,8 @@ import { parseGanttInternal } from './gantt.js';
 import { parseTimelineInternal } from './timeline.js';
 import { parseMindmapInternal } from './mindmap.js';
 import { parseClassDiagramInternal } from './class.js';
+import { parseStateDiagramInternal } from './state.js';
+import { parseErDiagramInternal } from './er.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -81,6 +99,8 @@ export type DiagramKind =
   | 'timeline'
   | 'mindmap'
   | 'classDiagram'
+  | 'stateDiagram'
+  | 'erDiagram'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -108,6 +128,8 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^timeline\s*$/i.test(trimmed)) return 'timeline';
     if (/^mindmap\s*$/i.test(trimmed)) return 'mindmap';
     if (/^classdiagram\b/i.test(trimmed)) return 'classDiagram';
+    if (/^statediagram(?:-v2)?\b/i.test(trimmed)) return 'stateDiagram';
+    if (/^erdiagram\b/i.test(trimmed)) return 'erDiagram';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -127,12 +149,14 @@ export function detectDiagramType(text: string): DiagramKind {
  *   'sequence'  → SequenceDocument
  *   'gantt'     → IRDocument
  *   'timeline'  → IRDocument
- *   'mindmap'   → TreeDocument
+ *   'mindmap'      → TreeDocument
  *   'classDiagram' → ClassDocument
+ *   'stateDiagram' → StateDocument
+ *   'erDiagram'    → ErDocument
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -181,9 +205,19 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'stateDiagram') {
+    const { doc, warnings } = parseStateDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
+  if (kind === 'erDiagram') {
+    const { doc, warnings } = parseErDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
-      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram.`,
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram.`,
   );
 }
 
@@ -213,7 +247,7 @@ export interface MermaidRenderOptions {
 export interface MermaidRenderResult {
   kind: DiagramKind;
   /** The Domain IR document (grammar-specific). */
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -232,7 +266,7 @@ export interface MermaidRenderResult {
  * Theme precedence (highest wins):
  *   options.theme > frontmatter `theme:` field > %%{init: {"theme":…}}%% > grammar default
  *
- * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, and classDiagram.
+ * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, and erDiagram.
  *
  * @throws {Error} for unrecognised diagram types.
  */
@@ -421,9 +455,39 @@ export function renderMermaid(
     return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
   }
 
+  // ── stateDiagram ───────────────────────────────────────────────────────
+  if (kind === 'stateDiagram') {
+    const { doc, warnings, frontmatter } = parseStateDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-state';
+    const stateTheme = resolveStateTheme(themeName);
+    const finalDoc: StateDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildStateScene(finalDoc, stateTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderStateDocument(finalDoc, { format }, stateTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for stateDiagram.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
+  // ── erDiagram ──────────────────────────────────────────────────────────
+  if (kind === 'erDiagram') {
+    const { doc, warnings, frontmatter } = parseErDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-er';
+    const erTheme = resolveErTheme(themeName);
+    const finalDoc: ErDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
+    const scene = buildErScene(finalDoc, erTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderErDocument(finalDoc, { format }, erTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for erDiagram.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
   // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
-      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram.`,
+      `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram.`,
   );
 }
