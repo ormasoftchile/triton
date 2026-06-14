@@ -1,77 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="701.42" version="1.1" viewBox="0 0 1200 701.42" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="701.42" width="1200" x="0" y="0"/>
-  <rect fill="#3B82F6" height="324" opacity="0.04" width="1104" x="48" y="193.61"/>
-  <text dominant-baseline="alphabetic" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" opacity="0.7" text-anchor="start" x="52" y="208.28">Infrastructure</text>
-  <rect fill="#8B5CF6" height="324" opacity="0.02" width="1104" x="48" y="193.61"/>
-  <text dominant-baseline="alphabetic" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" opacity="0.7" text-anchor="start" x="52" y="208.28">Backend</text>
-  <rect fill="#3B82F6" height="324" opacity="0.04" width="1104" x="48" y="193.61"/>
-  <text dominant-baseline="alphabetic" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" opacity="0.7" text-anchor="start" x="52" y="208.28">Frontend</text>
-  <rect fill="#8B5CF6" height="324" opacity="0.02" width="1104" x="48" y="193.61"/>
-  <text dominant-baseline="alphabetic" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="700" opacity="0.7" text-anchor="start" x="52" y="208.28">Release</text>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="start" x="56" y="80">Platform Modernisation Roadmap 2025</text>
-  <line opacity="0.35" stroke="#374151" stroke-width="0.5" x1="48" x2="1152" y1="96" y2="96"/>
-  <line stroke="#374151" stroke-width="1" x1="48" x2="1152" y1="130" y2="130"/>
-  <line stroke="#374151" stroke-width="1" x1="211" x2="211" y1="125" y2="130"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="211" x2="211" y1="130" y2="517.61"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="211" y="118.4">2025</text>
-  <line stroke="#374151" stroke-width="1" x1="387" x2="387" y1="125" y2="130"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="387" x2="387" y1="130" y2="517.61"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="387" y="118.4">Mar</text>
-  <line stroke="#374151" stroke-width="1" x1="581" x2="581" y1="125" y2="130"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="581" x2="581" y1="130" y2="517.61"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="581" y="118.4">Apr</text>
-  <line stroke="#374151" stroke-width="1" x1="769" x2="769" y1="125" y2="130"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="769" x2="769" y1="130" y2="517.61"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="769" y="118.4">May</text>
-  <line stroke="#374151" stroke-width="1" x1="964" x2="964" y1="125" y2="130"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="964" x2="964" y1="130" y2="517.61"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="964" y="118.4">Jun</text>
-  <line stroke="#374151" stroke-width="1" x1="1152" x2="1152" y1="125" y2="130"/>
-  <line opacity="0.9" stroke="#E5E7EB" stroke-width="0.75" x1="1152" x2="1152" y1="130" y2="517.61"/>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1152" y="118.4">Jul</text>
-  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="265.61" y2="265.61"/>
-  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="349.61" y2="349.61"/>
-  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="433.61" y2="433.61"/>
-  <line opacity="0.3" stroke="#D1D5DB" stroke-width="1" x1="48" x2="1152" y1="517.61" y2="517.61"/>
-  <rect fill="#4ADE80" height="36" opacity="0.85" rx="8" stroke="#22C55E" stroke-width="0.5" width="188" x="48" y="203.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="52" y="221.61">Containerise services</text>
-  <rect fill="#4ADE80" height="36" opacity="0.85" rx="8" stroke="#22C55E" stroke-width="0.5" width="282" x="236" y="203.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="240" y="221.61">Kubernetes migration</text>
-  <rect fill="#3B82F6" height="36" opacity="1" rx="8" stroke="#2563EB" stroke-width="0.5" width="126" x="518" y="203.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="522" y="221.61">CI/CD pipeline up…</text>
-  <rect fill="#93C5FD" height="36" opacity="0.9" rx="8" stroke="#60A5FA" stroke-width="0.5" width="157" x="644" y="203.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="648" y="221.61">Monitoring &amp; alerting</text>
-  <rect fill="#4ADE80" height="36" opacity="0.85" rx="8" stroke="#22C55E" stroke-width="0.5" width="157" x="48" y="287.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="52" y="305.61">API gateway v2</text>
-  <rect fill="#4ADE80" height="36" opacity="0.85" rx="8" stroke="#22C55E" stroke-width="0.5" width="125" x="205" y="287.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="209" y="305.61">Auth service refac…</text>
-  <rect fill="#3B82F6" height="36" opacity="1" rx="8" stroke="#2563EB" stroke-width="0.5" width="188" x="330" y="287.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="334" y="305.61">Event streaming setup</text>
-  <rect fill="#93C5FD" height="36" opacity="0.9" rx="8" stroke="#60A5FA" stroke-width="0.5" width="157" x="518" y="287.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="522" y="305.61">GraphQL layer</text>
-  <rect fill="#4ADE80" height="36" opacity="0.85" rx="8" stroke="#22C55E" stroke-width="0.5" width="251" x="211" y="371.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="215" y="389.61">Design system v2</text>
-  <rect fill="#3B82F6" height="36" opacity="1" rx="8" stroke="#2563EB" stroke-width="0.5" width="220" x="462" y="371.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="466" y="389.61">Component migration</text>
-  <rect fill="#93C5FD" height="36" opacity="0.9" rx="8" stroke="#60A5FA" stroke-width="0.5" width="94" x="682" y="371.61"/>
-  <text dominant-baseline="middle" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="600" text-anchor="start" x="686" y="389.61">Performance…</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="857" x2="857" y1="491.61" y2="497.61"/>
-  <circle cx="857" cy="481.61" fill="#93C5FD" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="857" y="509.4">Beta launch</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="857" y="524.55">May 2025</text>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="1152" x2="1152" y1="125" y2="134"/>
-  <line opacity="0.25" stroke="#6B7280" stroke-dasharray="2,3" stroke-width="0.75" x1="1152" x2="1090" y1="130" y2="130"/>
-  <line opacity="0.45" stroke="#6B7280" stroke-width="0.75" x1="1090" x2="1090" y1="187.61" y2="471.61"/>
-  <circle cx="1090" cy="481.61" fill="#93C5FD" r="10" stroke="#FFFFFF" stroke-width="2"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="600" text-anchor="middle" x="1090" y="151.79">Public GA</text>
-  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="middle" x="1090" y="166.94">July 2025</text>
-  <rect fill="#FFFFFF" height="92.2" opacity="0.95" rx="4" stroke="#E5E7EB" stroke-width="1" width="160" x="976" y="565.22"/>
-  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="700" text-anchor="start" x="986" y="587.22">Legend</text>
-  <rect fill="#4ADE80" height="12" rx="3" width="12" x="986" y="597.42"/>
-  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1006" y="603.42">done</text>
-  <rect fill="#3B82F6" height="12" rx="3" width="12" x="986" y="616.22"/>
-  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1006" y="622.22">in-progress</text>
-  <rect fill="#93C5FD" height="12" rx="3" width="12" x="986" y="635.02"/>
-  <text dominant-baseline="middle" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="10.67" font-weight="400" text-anchor="start" x="1006" y="641.02">planned</text>
+<svg height="510" version="1.1" viewBox="0 0 1400 510" width="1400" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="510" width="1400" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#111111" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="middle" x="700" y="45">Platform Modernisation Roadmap 2025</text>
+  <rect fill="#EEF2FF" height="124" opacity="1" width="1256" x="120" y="70"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="112" y="132">Infrastructure</text>
+  <rect fill="#FAFAFA" height="124" opacity="1" width="1256" x="120" y="194"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="112" y="256">Backend</text>
+  <rect fill="#EEF2FF" height="96" opacity="1" width="1256" x="120" y="318"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="112" y="366">Frontend</text>
+  <rect fill="#FAFAFA" height="40" opacity="1" width="1256" x="120" y="414"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="13.33" font-weight="400" text-anchor="end" x="112" y="434">Release</text>
+  <line opacity="0.5" stroke="#AAAACC" stroke-width="0.75" x1="306" x2="306" y1="70" y2="454"/>
+  <line opacity="0.5" stroke="#AAAACC" stroke-width="0.75" x1="505" x2="505" y1="70" y2="454"/>
+  <line opacity="0.5" stroke="#AAAACC" stroke-width="0.75" x1="727" x2="727" y1="70" y2="454"/>
+  <line opacity="0.5" stroke="#AAAACC" stroke-width="0.75" x1="941" x2="941" y1="70" y2="454"/>
+  <line opacity="0.5" stroke="#AAAACC" stroke-width="0.75" x1="1162" x2="1162" y1="70" y2="454"/>
+  <line opacity="0.5" stroke="#AAAACC" stroke-width="0.75" x1="1376" x2="1376" y1="70" y2="454"/>
+  <line opacity="0.5" stroke="#9999BB" stroke-width="1" x1="120" x2="120" y1="70" y2="454"/>
+  <rect fill="#C0C7D4" height="20" rx="3" stroke="#8E9AAF" stroke-width="0.5" width="214" x="120" y="80"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="124" y="90">Containerise services</text>
+  <rect fill="#C0C7D4" height="20" rx="3" stroke="#8E9AAF" stroke-width="0.5" width="321" x="334" y="108"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="338" y="118">Kubernetes migration</text>
+  <rect fill="#7B9FE0" height="20" rx="3" stroke="#3B5FC0" stroke-width="0.5" width="143" x="655" y="136"/>
+  <text dominant-baseline="middle" fill="#0E2F68" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="659" y="146">CI/CD pipeline upgrade</text>
+  <rect fill="#C8D9F5" height="20" rx="3" stroke="#7B9FE0" stroke-width="0.5" width="178" x="798" y="164"/>
+  <text dominant-baseline="middle" fill="#1E3A6E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="802" y="174">Monitoring &amp; alerting</text>
+  <rect fill="#C0C7D4" height="20" rx="3" stroke="#8E9AAF" stroke-width="0.5" width="178" x="120" y="204"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="124" y="214">API gateway v2</text>
+  <rect fill="#C0C7D4" height="20" rx="3" stroke="#8E9AAF" stroke-width="0.5" width="143" x="298" y="232"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="302" y="242">Auth service refactor</text>
+  <rect fill="#7B9FE0" height="20" rx="3" stroke="#3B5FC0" stroke-width="0.5" width="214" x="441" y="260"/>
+  <text dominant-baseline="middle" fill="#0E2F68" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="445" y="270">Event streaming setup</text>
+  <rect fill="#C8D9F5" height="20" rx="3" stroke="#7B9FE0" stroke-width="0.5" width="179" x="655" y="288"/>
+  <text dominant-baseline="middle" fill="#1E3A6E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="659" y="298">GraphQL layer</text>
+  <rect fill="#C0C7D4" height="20" rx="3" stroke="#8E9AAF" stroke-width="0.5" width="285" x="306" y="328"/>
+  <text dominant-baseline="middle" fill="#374151" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="310" y="338">Design system v2</text>
+  <rect fill="#7B9FE0" height="20" rx="3" stroke="#3B5FC0" stroke-width="0.5" width="250" x="591" y="356"/>
+  <text dominant-baseline="middle" fill="#0E2F68" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="595" y="366">Component migration</text>
+  <rect fill="#C8D9F5" height="20" rx="3" stroke="#7B9FE0" stroke-width="0.5" width="107" x="841" y="384"/>
+  <text dominant-baseline="middle" fill="#1E3A6E" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="845" y="394">Performance audit</text>
+  <path d="M 1041 426 L 1049 434 L 1041 442 L 1033 434 Z" fill="#E53E3E" stroke="#9B2C2C" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#1A0000" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="start" x="1057" y="434">Beta launch</text>
+  <path d="M 1376 426 L 1384 434 L 1376 442 L 1368 434 Z" fill="#E53E3E" stroke="#9B2C2C" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#1A0000" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="11.33" font-weight="600" text-anchor="end" x="1360" y="434">Public GA</text>
+  <line stroke="#374151" stroke-width="1" x1="120" x2="1376" y1="454" y2="454"/>
+  <line stroke="#374151" stroke-width="1" x1="306" x2="306" y1="454" y2="459"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="306" y="473">2025-02-01</text>
+  <line stroke="#374151" stroke-width="1" x1="505" x2="505" y1="454" y2="459"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="505" y="473">2025-03-01</text>
+  <line stroke="#374151" stroke-width="1" x1="727" x2="727" y1="454" y2="459"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="727" y="473">2025-04-01</text>
+  <line stroke="#374151" stroke-width="1" x1="941" x2="941" y1="454" y2="459"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="941" y="473">2025-05-01</text>
+  <line stroke="#374151" stroke-width="1" x1="1162" x2="1162" y1="454" y2="459"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1162" y="473">2025-06-01</text>
+  <line stroke="#374151" stroke-width="1" x1="1376" x2="1376" y1="454" y2="459"/>
+  <text dominant-baseline="alphabetic" fill="#6B7280" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="1376" y="473">2025-07-01</text>
 </svg>

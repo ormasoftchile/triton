@@ -41,7 +41,7 @@ import { sceneHash }       from '../scene.js';
  */
 export interface BuildSceneOptions {
   theme?: string;
-  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap';
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'gantt';
   spineSpacing?: 'time' | 'even';
   /**
    * Base directory for resolving relative asset paths in `metadata.logo.src`

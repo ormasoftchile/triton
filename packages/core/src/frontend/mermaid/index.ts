@@ -467,16 +467,16 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseGanttInternal(text);
 
     const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
-    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'roadmap';
+    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'consulting';
 
     const finalDoc: IRDocument = {
       ...doc,
-      metadata: { ...doc.metadata, theme: themeName },
+      metadata: { ...doc.metadata, theme: themeName, layout: 'gantt' },
     };
 
     const format = options.format ?? 'svg';
-    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: finalDoc.metadata.layout });
-    const scene = buildScene(finalDoc, { theme: themeName, layout: finalDoc.metadata.layout });
+    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: 'gantt' });
+    const scene = buildScene(finalDoc, { theme: themeName, layout: 'gantt' });
     const hash  = computeSceneHash(scene);
 
     return {

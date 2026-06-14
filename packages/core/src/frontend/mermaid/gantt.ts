@@ -463,7 +463,7 @@ export function parseGanttInternal(text: string): GanttParseResult {
       title,
       time_range:  { start: timeStart, end: timeEnd },
       axis_unit,
-      layout:      'horizontal',
+      layout:      'gantt',
       theme,
       ...(typeof frontmatter['subtitle'] === 'string' ? { subtitle: frontmatter['subtitle'] } : {}),
     },

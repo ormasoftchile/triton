@@ -19,11 +19,13 @@ import { layoutHorizontal }    from './horizontal.js';
 import { layoutSerpentine }    from './serpentine.js';
 import { layoutVerticalSpine } from './vertical-spine.js';
 import { layoutRoadmap }       from './roadmap.js';
+import { layoutGantt }         from './gantt.js';
 
 export { layoutHorizontal }    from './horizontal.js';
 export { layoutSerpentine }    from './serpentine.js';
 export { layoutVerticalSpine } from './vertical-spine.js';
 export { layoutRoadmap }       from './roadmap.js';
+export { layoutGantt }         from './gantt.js';
 
 /**
  * Dispatch to the correct layout family.
@@ -37,7 +39,7 @@ export { layoutRoadmap }       from './roadmap.js';
 export function layout(
   ir:      IRDocument,
   theme:   ResolvedTheme,
-  family?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap',
+  family?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'gantt',
   baseDir?: string,
 ): Scene {
   if (family === 'vertical-spine') {
@@ -48,6 +50,9 @@ export function layout(
   }
   if (family === 'roadmap') {
     return layoutRoadmap(ir, theme, baseDir);
+  }
+  if (family === 'gantt') {
+    return layoutGantt(ir, theme, baseDir);
   }
   return layoutHorizontal(ir, theme, baseDir);
 }

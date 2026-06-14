@@ -135,7 +135,7 @@ export interface Metadata {
   /** Theme identifier resolved by the renderer. */
   theme?: string;
   /** Layout family override.  When present, takes precedence over the render-option default. */
-  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap';
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'gantt';
   /** BCP-47 locale for date formatting. */
   locale?: string;
   /** Reference date for `now` and relative dates.  Renderers must NOT use system clock. */
@@ -343,8 +343,10 @@ export interface RenderOptions {
    *   'horizontal'     — time axis left→right, track rows, T2/T4/T6 targets.
    *   'vertical-spine' — central vertical spine, alternating L/R entries, T1/T3/T5 targets.
    *   'serpentine'     — boustrophedon winding path, T4 journey-path target.
+   *   'gantt'          — faithful Mermaid gantt: left section labels, bottom date axis,
+   *                      date-positioned task bars with status colors, milestone diamonds.
    */
-  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap';
+  layout?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'gantt';
   /**
    * Rendering backend.  Defaults to 'svg'.
    *   'svg'  — deterministic SVG → resvg PNG (default; SVG golden stays byte-identical).
