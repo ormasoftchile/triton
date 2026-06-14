@@ -9,7 +9,7 @@ import type { ChartTheme } from './theme.js';
 import { defaultChartTheme } from './theme.js';
 import { generateGridlines, generateXAxis, generateYAxis, type PlotArea } from './axes.js';
 import { arcMarks, barMarks, lineMarks, pointMarks, type XYMarkDatum } from './marks.js';
-import { BandScale, LinearScale, type ScaleValue } from './scales.js';
+import { BandScale, LinearScale, RadialScale, type ScaleValue } from './scales.js';
 
 function rhuInt(value: number): number {
   return Math.floor(value + 0.5);
@@ -46,6 +46,10 @@ function boxFromAnchor(text: string, fontSize: number, x: number, y: number, anc
 
 function formatValue(value: number): string {
   return Number(value.toFixed(2)).toString().replace(/\.0+$/, '').replace(/(\.\d)0$/, '$1');
+}
+
+function formatNumber(n: number): string {
+  return Number(n.toFixed(2)).toString().replace(/\.0+$/, '').replace(/(\.\d)0$/, '$1');
 }
 
 function legendPrimitives(
@@ -313,6 +317,451 @@ function layoutXY(doc: ChartDocument, basePlotArea: PlotArea, theme: ChartTheme)
   return primitives;
 }
 
+
+function layoutQuadrant(doc: ChartDocument, basePlotArea: PlotArea, theme: ChartTheme): ScenePrimitive[] {
+  const primitives: ScenePrimitive[] = [];
+  // 110 px reserved on the left for y-axis end labels (e.g. "High Engagement" ≈ 97 px wide at 12 px).
+  // 20 px reserved on the right keeps x-axis "High" label clear of the canvas edge.
+  const yLabelReserve = 110;
+  const side = Math.min(basePlotArea.width - (yLabelReserve + 20), basePlotArea.height - 80);
+  const plotX = basePlotArea.x + yLabelReserve;
+  const plotY = basePlotArea.y + 20;
+  const plotSide = Math.max(200, side);
+  const xScale = new LinearScale([0, 1], [plotX, plotX + plotSide]);
+  const yScale = new LinearScale([0, 1], [plotY + plotSide, plotY]);
+  const cx = plotX + plotSide / 2;
+  const cy = plotY + plotSide / 2;
+  const quadrantColors = ['#f0f9ff', '#f0fdf4', '#fefce8', '#fff7ed'];
+
+  primitives.push({ kind: 'rect', x: plotX, y: plotY, width: cx - plotX, height: cy - plotY, fill: quadrantColors[1]!, stroke: 'none' });
+  primitives.push({ kind: 'rect', x: cx, y: plotY, width: plotX + plotSide - cx, height: cy - plotY, fill: quadrantColors[0]!, stroke: 'none' });
+  primitives.push({ kind: 'rect', x: plotX, y: cy, width: cx - plotX, height: plotY + plotSide - cy, fill: quadrantColors[2]!, stroke: 'none' });
+  primitives.push({ kind: 'rect', x: cx, y: cy, width: plotX + plotSide - cx, height: plotY + plotSide - cy, fill: quadrantColors[3]!, stroke: 'none' });
+
+  primitives.push({
+    kind: 'rect',
+    x: plotX,
+    y: plotY,
+    width: plotSide,
+    height: plotSide,
+    fill: 'none',
+    stroke: theme.axisColor,
+    strokeWidth: 1.5,
+  });
+  primitives.push({
+    kind: 'line',
+    x1: cx,
+    y1: plotY,
+    x2: cx,
+    y2: plotY + plotSide,
+    stroke: theme.axisColor,
+    strokeWidth: 1.5,
+    dashArray: '6,3',
+  });
+  primitives.push({
+    kind: 'line',
+    x1: plotX,
+    y1: cy,
+    x2: plotX + plotSide,
+    y2: cy,
+    stroke: theme.axisColor,
+    strokeWidth: 1.5,
+    dashArray: '6,3',
+  });
+
+  const quadLabelFontSize = 11;
+  const quadrantLabelConfig = doc.config?.quadrantLabels ?? ['', '', '', ''];
+  const qLabelPad = 14;
+
+  if (quadrantLabelConfig[0]) {
+    primitives.push({
+      kind: 'text',
+      x: plotX + plotSide - qLabelPad,
+      y: plotY + qLabelPad,
+      text: quadrantLabelConfig[0],
+      fontFamily: theme.fontFamily,
+      fontSize: quadLabelFontSize,
+      fontWeight: 600,
+      fill: '#475569',
+      textAnchor: 'end',
+      dominantBaseline: 'hanging',
+      opacity: 0.75,
+    });
+  }
+  if (quadrantLabelConfig[1]) {
+    primitives.push({
+      kind: 'text',
+      x: plotX + qLabelPad,
+      y: plotY + qLabelPad,
+      text: quadrantLabelConfig[1],
+      fontFamily: theme.fontFamily,
+      fontSize: quadLabelFontSize,
+      fontWeight: 600,
+      fill: '#475569',
+      textAnchor: 'start',
+      dominantBaseline: 'hanging',
+      opacity: 0.75,
+    });
+  }
+  if (quadrantLabelConfig[2]) {
+    primitives.push({
+      kind: 'text',
+      x: plotX + qLabelPad,
+      y: plotY + plotSide - qLabelPad,
+      text: quadrantLabelConfig[2],
+      fontFamily: theme.fontFamily,
+      fontSize: quadLabelFontSize,
+      fontWeight: 600,
+      fill: '#475569',
+      textAnchor: 'start',
+      dominantBaseline: 'auto',
+      opacity: 0.75,
+    });
+  }
+  if (quadrantLabelConfig[3]) {
+    primitives.push({
+      kind: 'text',
+      x: plotX + plotSide - qLabelPad,
+      y: plotY + plotSide - qLabelPad,
+      text: quadrantLabelConfig[3],
+      fontFamily: theme.fontFamily,
+      fontSize: quadLabelFontSize,
+      fontWeight: 600,
+      fill: '#475569',
+      textAnchor: 'end',
+      dominantBaseline: 'auto',
+      opacity: 0.75,
+    });
+  }
+
+  const xLow = doc.config?.xAxisLow ?? 'Low';
+  const xHigh = doc.config?.xAxisHigh ?? 'High';
+  const yLow = doc.config?.yAxisLow ?? 'Low';
+  const yHigh = doc.config?.yAxisHigh ?? 'High';
+
+  primitives.push({ kind: 'line', x1: plotX, y1: plotY + plotSide, x2: plotX + plotSide, y2: plotY + plotSide, stroke: theme.axisColor, strokeWidth: 1.5 });
+  primitives.push({
+    kind: 'text',
+    x: plotX,
+    y: plotY + plotSide + 18,
+    text: xLow,
+    fontFamily: theme.fontFamily,
+    fontSize: theme.tickLabelFontSize,
+    fontWeight: 400,
+    fill: theme.tickLabelColor,
+    textAnchor: 'start',
+    dominantBaseline: 'hanging',
+  });
+  primitives.push({
+    kind: 'text',
+    x: plotX + plotSide,
+    y: plotY + plotSide + 18,
+    text: xHigh,
+    fontFamily: theme.fontFamily,
+    fontSize: theme.tickLabelFontSize,
+    fontWeight: 400,
+    fill: theme.tickLabelColor,
+    textAnchor: 'end',
+    dominantBaseline: 'hanging',
+  });
+  primitives.push({ kind: 'line', x1: plotX, y1: plotY + plotSide + 9, x2: plotX + plotSide, y2: plotY + plotSide + 9, stroke: theme.axisColor, strokeWidth: 1 });
+
+  primitives.push({ kind: 'line', x1: plotX, y1: plotY, x2: plotX, y2: plotY + plotSide, stroke: theme.axisColor, strokeWidth: 1.5 });
+  primitives.push({
+    kind: 'text',
+    x: plotX - 8,
+    y: plotY + plotSide,
+    text: yLow,
+    fontFamily: theme.fontFamily,
+    fontSize: theme.tickLabelFontSize,
+    fontWeight: 400,
+    fill: theme.tickLabelColor,
+    textAnchor: 'end',
+    dominantBaseline: 'auto',
+  });
+  primitives.push({
+    kind: 'text',
+    x: plotX - 8,
+    y: plotY,
+    text: yHigh,
+    fontFamily: theme.fontFamily,
+    fontSize: theme.tickLabelFontSize,
+    fontWeight: 400,
+    fill: theme.tickLabelColor,
+    textAnchor: 'end',
+    dominantBaseline: 'hanging',
+  });
+  primitives.push({ kind: 'line', x1: plotX - 4, y1: plotY, x2: plotX - 4, y2: plotY + plotSide, stroke: theme.axisColor, strokeWidth: 1 });
+
+  const rows = doc.data.values;
+  const pointRadius = 7;
+  const itemFontSize = 11;
+  const placed: LabelBox[] = [];
+  const offsetCandidates: Array<[number, number, 'start' | 'middle' | 'end']> = [
+    [pointRadius + 6, 0, 'start'],
+    [pointRadius + 6, -pointRadius - 4, 'start'],
+    [pointRadius + 6, pointRadius + 4, 'start'],
+    [-(pointRadius + 6), 0, 'end'],
+    [-(pointRadius + 6), -pointRadius - 4, 'end'],
+    [-(pointRadius + 6), pointRadius + 4, 'end'],
+    [0, -(pointRadius + 10), 'middle'],
+    [0, pointRadius + 14, 'middle'],
+  ];
+
+  rows.forEach((row, index) => {
+    const x = Number(row['x'] ?? 0.5);
+    const y = Number(row['y'] ?? 0.5);
+    const label = String(row['label'] ?? `Item ${index + 1}`);
+    const px = xScale.scale(x);
+    const py = yScale.scale(y);
+    const color = theme.piePalette[index % theme.piePalette.length]!;
+
+    primitives.push({ kind: 'circle', cx: px, cy: py, r: pointRadius, fill: color, stroke: '#ffffff', strokeWidth: 2 });
+
+    let chosenX = px + pointRadius + 6;
+    let chosenY = py;
+    let chosenAnchor: 'start' | 'middle' | 'end' = 'start';
+    let found = false;
+
+    // Safety margin so labels don't render flush against the plot border line.
+    const EDGE_MARGIN = 6;
+    const plotRight = plotX + plotSide;
+
+    for (const [dx, dy, anchor] of offsetCandidates) {
+      const lx = px + dx;
+      const ly = py + dy;
+      const box = boxFromAnchor(label, itemFontSize, lx, ly, anchor);
+      // Skip positions whose bounding box would overflow the plot's horizontal bounds.
+      if (box.x - EDGE_MARGIN < plotX || box.x + box.w + EDGE_MARGIN > plotRight) continue;
+      if (!placed.some((existing) => overlaps(existing, box))) {
+        chosenX = lx;
+        chosenY = ly;
+        chosenAnchor = anchor;
+        placed.push(box);
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      // Prefer right side; fall back to left when right would overflow the plot.
+      const rX = px + pointRadius + 6;
+      const rBox = boxFromAnchor(label, itemFontSize, rX, py, 'start');
+      const useLeft = rBox.x + rBox.w + EDGE_MARGIN > plotRight;
+      chosenX = useLeft ? px - pointRadius - 6 : rX;
+      chosenAnchor = useLeft ? 'end' : 'start';
+      const fallbackY = py - placed.filter((b) => Math.abs(b.x - chosenX) < 60).length * 14;
+      chosenY = fallbackY;
+      placed.push(boxFromAnchor(label, itemFontSize, chosenX, chosenY, chosenAnchor));
+    }
+
+    primitives.push({
+      kind: 'text',
+      x: chosenX,
+      y: chosenY,
+      text: label,
+      fontFamily: theme.fontFamily,
+      fontSize: itemFontSize,
+      fontWeight: 600,
+      fill: theme.tickLabelColor,
+      textAnchor: chosenAnchor,
+      dominantBaseline: 'middle',
+    });
+  });
+
+  return primitives;
+}
+
+function layoutRadar(doc: ChartDocument, basePlotArea: PlotArea, theme: ChartTheme): ScenePrimitive[] {
+  const primitives: ScenePrimitive[] = [];
+  const radarAxes = doc.config?.radarAxes ?? [];
+  const axisCount = radarAxes.length;
+
+  if (axisCount < 3) {
+    primitives.push({
+      kind: 'text',
+      x: basePlotArea.x + basePlotArea.width / 2,
+      y: basePlotArea.y + basePlotArea.height / 2,
+      text: 'Radar requires at least 3 axes',
+      fontFamily: theme.fontFamily,
+      fontSize: 14,
+      fontWeight: 500,
+      fill: theme.tickLabelColor,
+      textAnchor: 'middle',
+      dominantBaseline: 'middle',
+    });
+    return primitives;
+  }
+
+  const rows = doc.data.values;
+  const graticule = Math.max(1, doc.config?.radarGraticule ?? 4);
+  const allValues = rows.flatMap((row) => radarAxes.map((axis) => Number(row[axis] ?? 0)).filter((value) => Number.isFinite(value)));
+  const configuredMin = doc.config?.radarMin ?? 0;
+  const configuredMax = doc.config?.radarMax ?? (allValues.length > 0 ? Math.max(...allValues) : 5);
+  const domainMin = Math.min(configuredMin, configuredMax);
+  const domainMax = Math.max(configuredMin, configuredMax);
+  const radialScale = new RadialScale([domainMin, domainMax], [0, 1]);
+
+  const labelMargin = 50;
+  const legendWidth = rows.length > 1 ? 120 : 0;
+  const cx = basePlotArea.x + (basePlotArea.width - legendWidth) / 2;
+  const cy = basePlotArea.y + basePlotArea.height / 2;
+  const outerRadius = Math.max(40, Math.min(
+    (basePlotArea.width - legendWidth - 2 * labelMargin) / 2,
+    (basePlotArea.height - 2 * labelMargin) / 2,
+  ));
+  const angles = radarAxes.map((_, index) => (index / axisCount) * Math.PI * 2 - Math.PI / 2);
+  const spokePoint = (angleIdx: number, normRadius: number) => {
+    const angle = angles[angleIdx]!;
+    const radius = normRadius * outerRadius;
+    return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+  };
+
+  for (let ring = 1; ring <= graticule; ring++) {
+    const normRadius = ring / graticule;
+    const d = angles.map((_, index) => {
+      const point = spokePoint(index, normRadius);
+      return `${index === 0 ? 'M' : 'L'} ${formatNumber(point.x)} ${formatNumber(point.y)}`;
+    }).join(' ') + ' Z';
+    primitives.push({
+      kind: 'path',
+      d,
+      fill: 'none',
+      stroke: theme.gridlineColor,
+      strokeWidth: 1,
+      dashArray: theme.gridlineDash,
+    });
+  }
+
+  for (let index = 0; index < axisCount; index++) {
+    const point = spokePoint(index, 1);
+    primitives.push({
+      kind: 'line',
+      x1: cx,
+      y1: cy,
+      x2: point.x,
+      y2: point.y,
+      stroke: theme.axisColor,
+      strokeWidth: 1,
+      opacity: 0.6,
+    });
+  }
+
+  for (let ring = 1; ring <= graticule; ring++) {
+    const normRadius = ring / graticule;
+    const tickValue = domainMin + (domainMax - domainMin) * normRadius;
+    const point = spokePoint(0, normRadius);
+    primitives.push({
+      kind: 'text',
+      x: point.x + 4,
+      y: point.y - 4,
+      text: formatValue(tickValue),
+      fontFamily: theme.fontFamily,
+      fontSize: 9,
+      fontWeight: 400,
+      fill: theme.tickLabelColor,
+      textAnchor: 'start',
+      dominantBaseline: 'auto',
+      opacity: 0.85,
+    });
+  }
+
+  rows.forEach((row, seriesIndex) => {
+    const color = theme.piePalette[seriesIndex % theme.piePalette.length]!;
+    const points = radarAxes.map((axis, axisIndex) => {
+      const value = Number(row[axis] ?? domainMin);
+      const normRadius = radialScale.clampedScale(value);
+      return spokePoint(axisIndex, normRadius);
+    });
+
+    if (points.length === 0) return;
+
+    const d = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${formatNumber(point.x)} ${formatNumber(point.y)}`).join(' ') + ' Z';
+    primitives.push({
+      kind: 'path',
+      d,
+      fill: color,
+      stroke: 'none',
+      opacity: 0.18,
+    });
+    primitives.push({
+      kind: 'path',
+      d,
+      fill: 'none',
+      stroke: color,
+      strokeWidth: 2,
+      strokeLinecap: 'round',
+    });
+    points.forEach((point) => {
+      primitives.push({ kind: 'circle', cx: point.x, cy: point.y, r: 3, fill: color, stroke: '#ffffff', strokeWidth: 1 });
+    });
+  });
+
+  for (let index = 0; index < axisCount; index++) {
+    const axis = radarAxes[index]!;
+    const angle = angles[index]!;
+    const labelRadius = outerRadius + 22;
+    const lx = cx + labelRadius * Math.cos(angle);
+    const ly = cy + labelRadius * Math.sin(angle);
+    const cosAngle = Math.cos(angle);
+    const sinAngle = Math.sin(angle);
+    let anchor: 'start' | 'middle' | 'end' = 'middle';
+    let baseline: 'auto' | 'middle' | 'hanging' = 'middle';
+    if (cosAngle > 0.25) anchor = 'start';
+    else if (cosAngle < -0.25) anchor = 'end';
+    if (sinAngle < -0.5) baseline = 'auto';
+    else if (sinAngle > 0.5) baseline = 'hanging';
+
+    primitives.push({
+      kind: 'text',
+      x: lx,
+      y: ly,
+      text: axis,
+      fontFamily: theme.fontFamily,
+      fontSize: 12,
+      fontWeight: 600,
+      fill: theme.axisTitleColor,
+      textAnchor: anchor,
+      dominantBaseline: baseline,
+    });
+  }
+
+  if (rows.length > 1) {
+    const legendX = basePlotArea.x + basePlotArea.width - legendWidth + 10;
+    const legendY = basePlotArea.y + 20;
+    rows.forEach((row, index) => {
+      const color = theme.piePalette[index % theme.piePalette.length]!;
+      const name = String(row['_name'] ?? `Series ${index + 1}`);
+      const rowY = legendY + index * (theme.legendSwatchSize + theme.legendGap + 2);
+      primitives.push({
+        kind: 'rect',
+        x: legendX,
+        y: rowY,
+        width: theme.legendSwatchSize,
+        height: theme.legendSwatchSize,
+        fill: color,
+        stroke: theme.background,
+        strokeWidth: 1,
+        rx: 2,
+      });
+      primitives.push({
+        kind: 'text',
+        x: legendX + theme.legendSwatchSize + 6,
+        y: rowY + theme.legendSwatchSize / 2 + 1,
+        text: name,
+        fontFamily: theme.fontFamily,
+        fontSize: theme.legendFontSize,
+        fontWeight: 400,
+        fill: theme.tickLabelColor,
+        textAnchor: 'start',
+        dominantBaseline: 'middle',
+      });
+    });
+  }
+
+  return primitives;
+}
+
 export function layoutChart(doc: ChartDocument, themeOverride?: ChartTheme): Scene {
   const resolvedTheme = themeOverride ?? defaultChartTheme;
   const titleBand = doc.title ? resolvedTheme.titleFontSize + 24 : 0;
@@ -355,6 +804,10 @@ export function layoutChart(doc: ChartDocument, themeOverride?: ChartTheme): Sce
     primitives.push(...layoutPie(doc, plotArea, plotArea.x + plotArea.width + 28, resolvedTheme));
   } else if (doc.chartType === 'xy') {
     primitives.push(...layoutXY(doc, plotArea, resolvedTheme));
+  } else if (doc.chartType === 'quadrant') {
+    primitives.push(...layoutQuadrant(doc, plotArea, resolvedTheme));
+  } else if (doc.chartType === 'radar') {
+    primitives.push(...layoutRadar(doc, plotArea, resolvedTheme));
   } else {
     primitives.push({
       kind: 'text',

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="560" version="1.1" viewBox="0 0 920 560" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#ffffff" height="560" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" text-anchor="middle" x="460" y="50">Developer Profile Comparison</text>
+  <path d="M 400 258.25 L 438.75 280.63 L 438.75 325.38 L 400 347.75 L 361.25 325.38 L 361.25 280.63 Z" fill="none" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1"/>
+  <path d="M 400 213.5 L 477.51 258.25 L 477.51 347.75 L 400 392.5 L 322.49 347.75 L 322.49 258.25 Z" fill="none" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1"/>
+  <path d="M 400 168.75 L 516.26 235.88 L 516.26 370.13 L 400 437.25 L 283.74 370.13 L 283.74 235.88 Z" fill="none" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1"/>
+  <path d="M 400 124 L 555.02 213.5 L 555.02 392.5 L 400 482 L 244.98 392.5 L 244.98 213.5 Z" fill="none" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1"/>
+  <line opacity="0.6" stroke="#334155" stroke-width="1" x1="400" x2="400" y1="303" y2="124"/>
+  <line opacity="0.6" stroke="#334155" stroke-width="1" x1="400" x2="555.02" y1="303" y2="213.5"/>
+  <line opacity="0.6" stroke="#334155" stroke-width="1" x1="400" x2="555.02" y1="303" y2="392.5"/>
+  <line opacity="0.6" stroke="#334155" stroke-width="1" x1="400" x2="400" y1="303" y2="482"/>
+  <line opacity="0.6" stroke="#334155" stroke-width="1" x1="400" x2="244.98" y1="303" y2="392.5"/>
+  <line opacity="0.6" stroke="#334155" stroke-width="1" x1="400" x2="244.98" y1="303" y2="213.5"/>
+  <text dominant-baseline="auto" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="404" y="254.25">2.5</text>
+  <text dominant-baseline="auto" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="404" y="209.5">5</text>
+  <text dominant-baseline="auto" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="404" y="164.75">7.5</text>
+  <text dominant-baseline="auto" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="404" y="120">10</text>
+  <path d="M 400 141.9 L 524.01 231.4 L 508.51 365.65 L 400 446.2 L 260.48 383.55 L 306.99 249.3 Z" fill="#4C72B0" opacity="0.18" stroke="none"/>
+  <path d="M 400 141.9 L 524.01 231.4 L 508.51 365.65 L 400 446.2 L 260.48 383.55 L 306.99 249.3 Z" fill="none" stroke="#4C72B0" stroke-linecap="round" stroke-width="2"/>
+  <circle cx="400" cy="141.9" fill="#4C72B0" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="524.01" cy="231.4" fill="#4C72B0" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="508.51" cy="365.65" fill="#4C72B0" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="400" cy="446.2" fill="#4C72B0" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="260.48" cy="383.55" fill="#4C72B0" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="306.99" cy="249.3" fill="#4C72B0" r="3" stroke="#ffffff" stroke-width="1"/>
+  <path d="M 400 195.6 L 477.51 258.25 L 477.51 347.75 L 400 356.7 L 306.99 356.7 L 337.99 267.2 Z" fill="#DD8452" opacity="0.18" stroke="none"/>
+  <path d="M 400 195.6 L 477.51 258.25 L 477.51 347.75 L 400 356.7 L 306.99 356.7 L 337.99 267.2 Z" fill="none" stroke="#DD8452" stroke-linecap="round" stroke-width="2"/>
+  <circle cx="400" cy="195.6" fill="#DD8452" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="477.51" cy="258.25" fill="#DD8452" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="477.51" cy="347.75" fill="#DD8452" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="400" cy="356.7" fill="#DD8452" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="306.99" cy="356.7" fill="#DD8452" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="337.99" cy="267.2" fill="#DD8452" r="3" stroke="#ffffff" stroke-width="1"/>
+  <text dominant-baseline="auto" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="400" y="102">Speed</text>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="start" x="574.07" y="202.5">Reliability</text>
+  <text dominant-baseline="middle" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="start" x="574.07" y="403.5">Communication</text>
+  <text dominant-baseline="hanging" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="400" y="504">Leadership</text>
+  <text dominant-baseline="hanging" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="end" x="225.93" y="403.5">Debugging</text>
+  <text dominant-baseline="auto" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="end" x="225.93" y="202.5">Documentation</text>
+  <rect fill="#4C72B0" height="12" rx="2" stroke="#ffffff" stroke-width="1" width="12" x="778" y="94"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="796" y="101">Senior Dev</text>
+  <rect fill="#DD8452" height="12" rx="2" stroke="#ffffff" stroke-width="1" width="12" x="778" y="118"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="796" y="125">Junior Dev</text>
+</svg>

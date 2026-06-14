@@ -140,12 +140,21 @@ export class RadialScale {
   readonly range: [number, number];
 
   constructor(domain: [number, number], range: [number, number]) {
-    this.domain = domain;
+    this.domain = domain[0] <= domain[1] ? [domain[0], domain[1]] : [domain[1], domain[0]];
     this.range = range;
   }
 
   scale(value: number): number {
-    const linear = new LinearScale(this.domain, this.range);
-    return linear.scale(value);
+    const [d0, d1] = this.domain;
+    const [r0, r1] = this.range;
+    if (d0 === d1) return (r0 + r1) / 2;
+    const t = (value - d0) / (d1 - d0);
+    return r0 + t * (r1 - r0);
+  }
+
+  clampedScale(value: number): number {
+    const [d0, d1] = this.domain;
+    const clamped = Math.max(d0, Math.min(d1, value));
+    return this.scale(clamped);
   }
 }

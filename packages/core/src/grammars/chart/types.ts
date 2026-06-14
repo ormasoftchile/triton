@@ -45,4 +45,13 @@ export interface ChartConfig {
   yTitle?: string;
   yMin?: number;
   yMax?: number;
+  quadrantLabels?: [string, string, string, string];
+  xAxisLow?: string;
+  xAxisHigh?: string;
+  yAxisLow?: string;
+  yAxisHigh?: string;
+  radarAxes?: string[];
+  radarMin?: number;
+  radarMax?: number;
+  radarGraticule?: number;
 }

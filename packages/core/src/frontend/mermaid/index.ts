@@ -101,6 +101,8 @@ import { parseStateDiagramInternal } from './state.js';
 import { parseErDiagramInternal } from './er.js';
 import { parseC4DiagramInternal } from './c4.js';
 import { parsePieDiagramInternal } from './pie.js';
+import { parseQuadrantDiagramInternal } from './quadrant.js';
+import { parseRadarDiagramInternal } from './radar.js';
 import { parseXYChartDiagramInternal } from './xychart.js';
 
 // ---------------------------------------------------------------------------
@@ -127,6 +129,8 @@ export type DiagramKind =
   | 'c4Deployment'
   | 'pie'
   | 'xychart'
+  | 'quadrantChart'
+  | 'radar'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -163,6 +167,9 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^c4deployment\b/i.test(trimmed)) return 'c4Deployment';
     if (/^pie\b/i.test(trimmed)) return 'pie';
     if (/^xychart-beta\b/i.test(trimmed)) return 'xychart';
+    if (/^quadrantchart\b/i.test(trimmed)) return 'quadrantChart';
+    if (/^radar-beta\b/i.test(trimmed)) return 'radar';
+    if (/^radar\b/i.test(trimmed)) return 'radar';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -264,10 +271,20 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'quadrantChart') {
+    const { doc, warnings } = parseQuadrantDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
+  if (kind === 'radar') {
+    const { doc, warnings } = parseRadarDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta.`,
   );
 }
 
@@ -577,10 +594,38 @@ export function renderMermaid(
     return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
   }
 
+  if (kind === 'quadrantChart') {
+    const { doc, warnings, frontmatter } = parseQuadrantDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? 'default-chart';
+    const chartTheme = resolveChartTheme(themeName);
+    const finalDoc: ChartDocument = doc;
+    const scene = buildChartScene(finalDoc, chartTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderChartDocument(finalDoc, { format }, chartTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for quadrantChart.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
+  if (kind === 'radar') {
+    const { doc, warnings, frontmatter } = parseRadarDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? 'default-chart';
+    const chartTheme = resolveChartTheme(themeName);
+    const finalDoc: ChartDocument = doc;
+    const scene = buildChartScene(finalDoc, chartTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderChartDocument(finalDoc, { format }, chartTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for radar.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
   // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta.`,
   );
 }

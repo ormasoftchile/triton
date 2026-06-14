@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="560" version="1.1" viewBox="0 0 920 560" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#ffffff" height="560" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" text-anchor="middle" x="460" y="50">Campaign Reach vs Engagement Analysis</text>
+  <rect fill="#f0fdf4" height="189" stroke="none" width="189" x="142" y="94"/>
+  <rect fill="#f0f9ff" height="189" stroke="none" width="189" x="331" y="94"/>
+  <rect fill="#fefce8" height="189" stroke="none" width="189" x="142" y="283"/>
+  <rect fill="#fff7ed" height="189" stroke="none" width="189" x="331" y="283"/>
+  <rect fill="none" height="378" stroke="#334155" stroke-width="1.5" width="378" x="142" y="94"/>
+  <line stroke="#334155" stroke-dasharray="6,3" stroke-width="1.5" x1="331" x2="331" y1="94" y2="472"/>
+  <line stroke="#334155" stroke-dasharray="6,3" stroke-width="1.5" x1="142" x2="520" y1="283" y2="283"/>
+  <text dominant-baseline="hanging" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="end" x="506" y="108">Expand &amp; Scale</text>
+  <text dominant-baseline="hanging" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="start" x="156" y="108">Promote More</text>
+  <text dominant-baseline="auto" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="start" x="156" y="458">Re-evaluate</text>
+  <text dominant-baseline="auto" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="end" x="506" y="458">Needs Attention</text>
+  <line stroke="#334155" stroke-width="1.5" x1="142" x2="520" y1="472" y2="472"/>
+  <text dominant-baseline="hanging" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="142" y="490">Low Reach</text>
+  <text dominant-baseline="hanging" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="520" y="490">High Reach</text>
+  <line stroke="#334155" stroke-width="1" x1="142" x2="520" y1="481" y2="481"/>
+  <line stroke="#334155" stroke-width="1.5" x1="142" x2="142" y1="94" y2="472"/>
+  <text dominant-baseline="auto" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="134" y="472">Low Engagement</text>
+  <text dominant-baseline="hanging" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="134" y="94">High Engagement</text>
+  <line stroke="#334155" stroke-width="1" x1="138" x2="138" y1="94" y2="472"/>
+  <circle cx="448.18" cy="143.14" fill="#4C72B0" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="end" x="435.18" y="143.14">Viral Video</text>
+  <circle cx="232.72" cy="214.96" fill="#DD8452" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="245.72" y="214.96">Blog Post</text>
+  <circle cx="357.46" cy="275.44" fill="#55A868" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="370.46" y="275.44">Email Campaign</text>
+  <circle cx="417.94" cy="328.36" fill="#C44E52" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="430.94" y="328.36">Paid Social</text>
+  <circle cx="376.36" cy="203.62" fill="#8172B3" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="389.36" y="203.62">Organic Search</text>
+  <circle cx="266.74" cy="313.24" fill="#937860" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="279.74" y="313.24">Podcast Ad</text>
+  <circle cx="323.44" cy="173.38" fill="#DA8BC3" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="336.44" y="173.38">Influencer</text>
+  <circle cx="210.04" cy="388.84" fill="#8C8C8C" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="223.04" y="388.84">Cold Outreach</text>
+  <circle cx="349.9" cy="233.86" fill="#4C72B0" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="362.9" y="233.86">Webinar</text>
+  <circle cx="293.2" cy="358.6" fill="#DD8452" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="600" text-anchor="start" x="306.2" y="358.6">Trade Show</text>
+</svg>
