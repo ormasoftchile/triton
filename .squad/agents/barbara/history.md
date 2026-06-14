@@ -129,3 +129,6 @@ Completed the remaining Tier 2 chart types on the shared chart grammar foundatio
 
 - **Y-axis end labels need ≥ 110 px left reserve.** With 12 px DejaVu Sans, a 15-char label like "High Engagement" measures ≈ 97 px wide. The label is anchored at `plotX − 8` with `textAnchor="end"`, so left clearance = `plotX − 8 − labelWidth`. Anything under ~113 px for `plotX` clips the left edge of the canvas.
 - **Priority placement must check plot-boundary proximity, not just mutual label overlap.** An item at x ≈ 0.81 in a 378 px plot (px ≈ 448) lands within 6 px of the plot's right edge when the first right-side candidate is selected. Adding `EDGE_MARGIN = 6` to the boundary check and skipping candidates that would land within that margin of either horizontal plot edge prevents subtle clips that the mutual-overlap test alone cannot catch. Fallback path must mirror this: prefer the left-side anchor when the right-side placement would exceed `plotRight − EDGE_MARGIN`.
+## 2026-06-14 — Tier 3 Started
+
+Tier 3 started (journey/gitGraph). journey: horizontal score-ramp with section bands + actor legend. gitGraph: per-branch lanes with merge curves, tags, commit types. 1503/1503 tests ✓. Commit a2a1b37. Remaining Tier 3: sankey (in progress), then breadth.

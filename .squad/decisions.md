@@ -2,6 +2,70 @@
 
 ---
 
+## 🎊 TIER 3 STARTED — userJourney + gitGraph Shipped (2026-06-14)
+
+**Status:** CONFIRMED COMMITTED  
+**Commit:** a2a1b37  
+**Test Status:** 1503/1503 tests passing, determinism preserved
+
+Tier 3 kickoff ships two high-value long-tail Mermaid chart types on the shared foundation:
+- **userJourney:** Horizontal score-ramp journey with section bands + actor legend. Tasks scored 1–5 with color ramp, actor chips, deterministic layout. 33 corpus tests.
+- **gitGraph:** Per-branch lanes with merge curves, tags, commit types. Chronological commit ordering, Bézier merge edges, LR default (TB deferred). 45 corpus tests.
+
+Gallery: `mermaid-journey.{mmd,svg,png}` (1752×454) + `mermaid-gitgraph.{mmd,svg,png}` (1152×432); gallery cards 37–38.
+
+**Compiler Coverage:** With Tiers 0+1+2+3 (partial) complete, the compiler now covers 15 Mermaid types: flowchart, sequence, gantt, timeline, mindmap, class, state, ER, C4, pie, xychart, quadrant, radar, journey, gitGraph.
+
+**Next:** Tier 3 breadth = remaining types (sankey in progress, requirement, block, packet, kanban, etc.).
+
+---
+
+# Decision: TIER 3 STARTED — userJourney + gitGraph Shipped
+
+**Agent:** Bjarne (Grammar Specialist); Coordinator (Integration)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+## Summary
+
+Tier 3 launched with journey and gitGraph implementations on the shared grammar-of-graphics foundation. Both charts deliver deterministic layouts and pass comprehensive test suites. No polish pass required; renders clean on first build.
+
+## userJourney Chart
+
+### Semantics
+- **Sections:** Named horizontal bands (e.g., "Identify Need", "Research", "Purchase")
+- **Tasks:** Scored 1–5 on a horizontal spine; each task carries score + actor array
+- **Actors:** Legend rendered as labeled chips below the journey spine
+- **Color Ramp:** Score→color mapping (1=red, ..., 5=green) via theme `scoreFills: string[]`
+
+### Layout
+- Single-pass left→right: sections contiguous, tasks at fixed `taskGapX` centers
+- Actor chips: small rounded rectangles below task label
+- Determinism: all coordinates via `rhuInt()` (round-half-up)
+
+## gitGraph Chart
+
+### Semantics
+- **Branches:** Horizontal lanes; creation order (or explicit `order:` field) determines Y-position
+- **Commits:** Chronological sequence carrying branch + parents[] + type + isMerge + isCherryPick
+- **Merge Edges:** Stored as commit parents; rendered as Bézier arcs in layout
+- **Tags:** Optional commit metadata, rendered as chips above commit dots
+
+### Layout
+- **Default (LR):** Branches = horizontal lanes, commits = dots in column order
+- **TB Deferred:** Warns and falls back to LR
+- **Merge Curves:** Quadratic Bézier from source branch tip to merge commit target lane
+- **Determinism:** Pure function over (doc, theme); commit IDs auto-generated as "commit-0", "commit-1", ... if not provided
+
+## Test Coverage & Determinism
+
+- **journey:** 33 corpus tests ✓
+- **gitGraph:** 45 corpus tests ✓
+- **Full suite:** 1503/1503 ✓
+- **Determinism:** All geometry from direct arithmetic; no randomness
+
+---
+
 ## 🎊 TIER 2 COMPLETE — All 4 Chart Types Shipped (2026-06-14)
 
 **Status:** CONFIRMED COMMITTED  

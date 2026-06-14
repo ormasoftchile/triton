@@ -106,3 +106,11 @@ Tier 2 grammar-of-graphics chart foundation shipped: scales (LinearScale, BandSc
 ## 2026-06-14 — Tier 2 Complete
 
 Tier 2 complete (pie/xychart/quadrant/radar). Quadrant + radar implemented on shared foundation. Quadrant: tinted regions, edge-aware non-clipping labels (defects fixed). Radar: radial scale, dual-syntax parser (Mermaid radar-beta + doc form). 1425/1425 tests ✓. Commits 5b709cf (foundation+pie+xy), ecfc418 (quadrant+radar).
+
+## Learnings (Tier 3 · journey + gitGraph — 2026-06-14)
+
+- Added two new Tier 3 Mermaid verticals with dedicated IRs, schemas, themes, layouts, parsers, dispatch wiring, corpus suites, and gallery assets: `journey` → `JourneyDocument`, `gitGraph` → `GitGraphDocument`.
+- `journey` preserves `preambleTasks` before the first `section`, rounds/clamps scores into the 1–5 ramp, renders alternating section bands over a horizontal spine, and emits actor chips plus a bottom-right actor legend entirely with existing Scene primitives.
+- `gitGraph` starts on implicit `main`, tracks branch/checkout/merge/cherry-pick state with stable auto IDs (`commit-0`, `commit-1`, ...), and lays out commits in chronological LR columns with branch-colored lanes, merge/cherry-pick curves, tag chips, and HIGHLIGHT/REVERSE commit glyphs.
+- Determinism stayed additive: all coordinates use `rhuInt()`, existing goldens remained byte-identical, and the new gallery renders emitted successfully at `mermaid-journey` 1752×454 and `mermaid-gitgraph` 1152×432.
+- Verification: `pnpm -C packages/core build` ✓, `pnpm -C packages/core typecheck` ✓, `pnpm -C packages/core test` ✓ → **1503/1503 passing**.
