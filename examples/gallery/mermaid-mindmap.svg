@@ -1,87 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="402" version="1.1" viewBox="0 0 1932 402" width="1932" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#111827" height="402" width="1932" x="0" y="0"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="935" x2="210" y1="38" y2="108"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="210" x2="90" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="210" x2="210" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="210" x2="330" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="935" x2="570" y1="38" y2="108"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="570" x2="450" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="450" x2="390" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="450" x2="510" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="570" x2="690" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="690" x2="630" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="690" x2="750" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="935" x2="1085" y1="38" y2="108"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1085" x2="935" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="935" x2="873" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="935" x2="996" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1085" x2="1236" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1236" x2="1116" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1236" x2="1236" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1236" x2="1356" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="935" x2="1661" y1="38" y2="108"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1661" x2="1479" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1479" x2="1479" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1661" x2="1662" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1662" x2="1602" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1662" x2="1722" y1="254" y2="324"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1661" x2="1842" y1="146" y2="216"/>
-  <line stroke="#2dd4bf" stroke-width="1.5" x1="1842" x2="1842" y1="254" y2="324"/>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="40" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="90" y="235">Raft</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="160" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="210" y="235">Paxos</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="280" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="330" y="235">ZAB</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="101" x="160" y="108"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="210" y="127">Consensus</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="340" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="390" y="343">gRPC</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="460" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="510" y="343">REST</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="400" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="450" y="235">RPC</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="580" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="630" y="343">Kafka</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="700" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="750" y="343">RabbitMQ</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="640" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="690" y="235">Messaging</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="127" x="507" y="108"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="570" y="127">Communication</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="106" x="820" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="873" y="343">PostgreSQL</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="946" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="996" y="343">MySQL</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="885" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="935" y="235">Relational</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1066" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1116" y="343">MongoDB</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1186" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1236" y="343">Cassandra</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1306" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1356" y="343">Redis</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1186" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1236" y="235">NoSQL</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1035" y="108"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1085" y="127">Storage</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="106" x="1426" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1479" y="343">Prometheus</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1429" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1479" y="235">Metrics</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1552" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1602" y="343">Jaeger</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1672" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1722" y="343">Zipkin</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1612" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1662" y="235">Tracing</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1792" y="324"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1842" y="343">ELK Stack</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="100" x="1792" y="216"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1842" y="235">Logging</text>
-  <rect fill="#1e293b" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="112" x="1605" y="108"/>
-  <text dominant-baseline="central" fill="#f1f5f9" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="1661" y="127">Observability</text>
-  <rect fill="#0d9488" height="38" rx="8" stroke="#2dd4bf" stroke-width="1.5" width="153" x="859" y="0"/>
-  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="935" y="19">Distributed Systems</text>
+<svg height="1000" version="1.1" viewBox="0 0 1400 1000" width="1400" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#ffffff" height="1000" width="1400" x="0" y="0"/>
+  <path d="M 700 500 C 742 542 794 594 820 620" fill="none" stroke="#c8a000" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 820 620 C 912 712 864 544 990 578" fill="none" stroke="#c8a000" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 820 620 C 912 712 820 620 912 712" fill="none" stroke="#c8a000" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 820 620 C 912 712 744 664 778 790" fill="none" stroke="#c8a000" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 700 500 C 658 542 606 594 580 620" fill="none" stroke="#64a808" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 580 620 C 488 712 635 657 585 777" fill="none" stroke="#64a808" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 585 777 C 535 897 641 794 616 922" fill="none" stroke="#64a808" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 585 777 C 535 897 533 749 461 858" fill="none" stroke="#64a808" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 580 620 C 488 712 543 565 423 615" fill="none" stroke="#64a808" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 423 615 C 303 665 451 667 342 739" fill="none" stroke="#64a808" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 423 615 C 303 665 406 559 278 584" fill="none" stroke="#64a808" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 700 500 C 658 458 606 406 580 380" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 580 380 C 488 288 538 447 415 407" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 415 407 C 291 367 404 453 275 433" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 415 407 C 291 367 433 364 317 305" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 580 380 C 488 288 623 349 564 233" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 564 233 C 505 117 488 288 396 196" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 564 233 C 505 117 564 233 505 117" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 564 233 C 505 117 653 204 633 75" fill="none" stroke="#8450cc" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 700 500 C 742 458 794 406 820 380" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 820 380 C 912 288 733 333 759 206" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 759 206 C 784 78 759 206 784 78" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 820 380 C 912 288 820 380 912 288" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 912 288 C 1004 196 867 251 939 142" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 912 288 C 1004 196 949 333 1058 261" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 820 380 C 912 288 867 467 994 441" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 994 441 C 1122 416 994 441 1122 416" fill="none" stroke="#c84882" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#ffe066" height="34" rx="8" stroke="#d4ac10" stroke-width="1" width="68" x="956" y="561"/>
+  <text dominant-baseline="central" fill="#3d3000" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="990" y="578">Raft</text>
+  <rect fill="#ffe066" height="34" rx="8" stroke="#d4ac10" stroke-width="1" width="68" x="878" y="695"/>
+  <text dominant-baseline="central" fill="#3d3000" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="912" y="712">Paxos</text>
+  <rect fill="#ffe066" height="34" rx="8" stroke="#d4ac10" stroke-width="1" width="68" x="744" y="773"/>
+  <text dominant-baseline="central" fill="#3d3000" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="778" y="790">ZAB</text>
+  <rect fill="#ffe066" height="37" rx="10" stroke="#d4ac10" stroke-width="1" width="100" x="770" y="602"/>
+  <text dominant-baseline="central" fill="#3d3000" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="820" y="620">Consensus</text>
+  <rect fill="#b8e868" height="30" rx="7" stroke="#70b010" stroke-width="1" width="58" x="587" y="907"/>
+  <text dominant-baseline="central" fill="#1e3400" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="616" y="922">gRPC</text>
+  <rect fill="#b8e868" height="30" rx="7" stroke="#70b010" stroke-width="1" width="58" x="432" y="843"/>
+  <text dominant-baseline="central" fill="#1e3400" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="461" y="858">REST</text>
+  <rect fill="#b8e868" height="34" rx="8" stroke="#70b010" stroke-width="1" width="68" x="551" y="760"/>
+  <text dominant-baseline="central" fill="#1e3400" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="585" y="777">RPC</text>
+  <rect fill="#b8e868" height="30" rx="7" stroke="#70b010" stroke-width="1" width="58" x="313" y="724"/>
+  <text dominant-baseline="central" fill="#1e3400" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="342" y="739">Kafka</text>
+  <rect fill="#b8e868" height="30" rx="7" stroke="#70b010" stroke-width="1" width="75" x="241" y="569"/>
+  <text dominant-baseline="central" fill="#1e3400" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="278" y="584">RabbitMQ</text>
+  <rect fill="#b8e868" height="34" rx="8" stroke="#70b010" stroke-width="1" width="87" x="380" y="598"/>
+  <text dominant-baseline="central" fill="#1e3400" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="423" y="615">Messaging</text>
+  <rect fill="#b8e868" height="37" rx="10" stroke="#70b010" stroke-width="1" width="128" x="516" y="602"/>
+  <text dominant-baseline="central" fill="#1e3400" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="580" y="620">Communication</text>
+  <rect fill="#cca8f0" height="30" rx="7" stroke="#9060d8" stroke-width="1" width="85" x="233" y="418"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="275" y="433">PostgreSQL</text>
+  <rect fill="#cca8f0" height="30" rx="7" stroke="#9060d8" stroke-width="1" width="59" x="288" y="290"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="317" y="305">MySQL</text>
+  <rect fill="#cca8f0" height="34" rx="8" stroke="#9060d8" stroke-width="1" width="83" x="374" y="390"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="415" y="407">Relational</text>
+  <rect fill="#cca8f0" height="30" rx="7" stroke="#9060d8" stroke-width="1" width="74" x="359" y="181"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="396" y="196">MongoDB</text>
+  <rect fill="#cca8f0" height="30" rx="7" stroke="#9060d8" stroke-width="1" width="78" x="466" y="102"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="505" y="117">Cassandra</text>
+  <rect fill="#cca8f0" height="30" rx="7" stroke="#9060d8" stroke-width="1" width="58" x="604" y="60"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="633" y="75">Redis</text>
+  <rect fill="#cca8f0" height="34" rx="8" stroke="#9060d8" stroke-width="1" width="68" x="530" y="216"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="564" y="233">NoSQL</text>
+  <rect fill="#cca8f0" height="37" rx="10" stroke="#9060d8" stroke-width="1" width="80" x="540" y="362"/>
+  <text dominant-baseline="central" fill="#280058" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="580" y="380">Storage</text>
+  <rect fill="#f4a0cc" height="30" rx="7" stroke="#d4588e" stroke-width="1" width="85" x="742" y="63"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="784" y="78">Prometheus</text>
+  <rect fill="#f4a0cc" height="34" rx="8" stroke="#d4588e" stroke-width="1" width="68" x="725" y="189"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="759" y="206">Metrics</text>
+  <rect fill="#f4a0cc" height="30" rx="7" stroke="#d4588e" stroke-width="1" width="58" x="910" y="127"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="939" y="142">Jaeger</text>
+  <rect fill="#f4a0cc" height="30" rx="7" stroke="#d4588e" stroke-width="1" width="58" x="1029" y="246"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1058" y="261">Zipkin</text>
+  <rect fill="#f4a0cc" height="34" rx="8" stroke="#d4588e" stroke-width="1" width="68" x="878" y="271"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="912" y="288">Tracing</text>
+  <rect fill="#f4a0cc" height="30" rx="7" stroke="#d4588e" stroke-width="1" width="76" x="1084" y="401"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1122" y="416">ELK Stack</text>
+  <rect fill="#f4a0cc" height="34" rx="8" stroke="#d4588e" stroke-width="1" width="70" x="959" y="424"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="middle" x="994" y="441">Logging</text>
+  <rect fill="#f4a0cc" height="37" rx="10" stroke="#d4588e" stroke-width="1" width="112" x="764" y="362"/>
+  <text dominant-baseline="central" fill="#480030" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="820" y="380">Observability</text>
+  <circle cx="700" cy="500" fill="#1a23e0" r="77"/>
+  <text dominant-baseline="central" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="700" text-anchor="middle" x="700" y="500">Distributed Systems</text>
 </svg>

@@ -530,14 +530,27 @@ function renderPath(CK: any, canvas: any, p: PathPrimitive): void {
       sp.delete();
     }
   } else {
-    // Filled path: original fill+effects behaviour unchanged.
+    // Filled path: use fill gradient shader if present, otherwise flat colour.
     renderWithEffects(CK, canvas, p.effects, (dx, dy, overridePaint) => {
       const paint = overridePaint ?? new CK.Paint();
       try {
         if (!overridePaint) {
-          paint.setColor(parseColor(CK, p.fill, opacity));
           paint.setStyle(CK.PaintStyle.Fill);
           if (p.fillRule === 'evenodd') paint.setFillType(CK.FillType.EvenOdd);
+          if (p.fillGradient) {
+            const fg = p.fillGradient;
+            const shader = CK.Shader.MakeLinearGradient(
+              [fg.x1, fg.y1],
+              [fg.x2, fg.y2],
+              [parseColor(CK, fg.from, opacity), parseColor(CK, fg.to, opacity)],
+              null,
+              CK.TileMode.Clamp,
+            );
+            paint.setShader(shader);
+            shader.delete();
+          } else {
+            paint.setColor(parseColor(CK, p.fill, opacity));
+          }
         }
         canvas.save();
         applyTransform();

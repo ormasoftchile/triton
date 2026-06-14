@@ -20,6 +20,7 @@ import type { TreeDocument }   from './types.js';
 import type { TreeTheme }      from './theme.js';
 import { treeDocumentSchema }  from './schema.js';
 import { layoutTree }          from './layout.js';
+import { layoutTreeRadial }    from './layoutRadial.js';
 
 export type { TreeDocument, TreeNode, TreeMetadata, TreeDefinition } from './types.js';
 export { treeDocumentSchema }   from './schema.js';
@@ -31,6 +32,7 @@ export {
   resolveTreeTheme,
   TREE_THEME_REGISTRY,
 } from './theme.js';
+export { layoutTreeRadial } from './layoutRadial.js';
 
 // ---------------------------------------------------------------------------
 // buildTreeScene
@@ -99,4 +101,35 @@ export function renderTreeDocument(
   const svg = sceneToSvg(scene);
   const png = svgToPng(svg);
   return { ...base, png };
+}
+
+// ---------------------------------------------------------------------------
+// renderTreeDocumentRadial — synchronous radial mindmap rendering
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a radial mindmap scene from `doc` and serialise to the requested format.
+ *
+ * Always synchronous (resvg only). This is the render entry point for the
+ * mindmap grammar path in `frontend/mermaid/index.ts`.
+ *
+ * ADDITIVE — the default `renderTreeDocument` is unaffected.
+ */
+export function renderTreeDocumentRadial(
+  doc: TreeDocument,
+  options: Pick<TreeRenderOptions, 'format'>,
+): TreeRenderResult {
+  treeDocumentSchema.parse(doc);
+  const scene = layoutTreeRadial(doc);
+  const hash  = sceneHash(scene);
+  const base  = { scene, sceneHash: hash };
+
+  if (options.format === 'svg') {
+    return { ...base, svg: sceneToSvg(scene) };
+  }
+
+  // PNG via resvg (synchronous)
+  const svg = sceneToSvg(scene);
+  const png = svgToPng(svg);
+  return { ...base, svg, png };
 }

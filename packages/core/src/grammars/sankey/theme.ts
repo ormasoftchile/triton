@@ -42,6 +42,13 @@ export interface SankeyTheme {
   ribbonStrokeWidth: number;
 
   /**
+   * When true (default), node labels include the node's total throughput value
+   * formatted as an integer or compact decimal — matching Mermaid's default.
+   * Set to false to show only the node name.
+   */
+  showNodeValues: boolean;
+
+  /**
    * Node color palette — one color per node, cycling.
    * The ribbon for a link uses its source node's color.
    */
@@ -71,6 +78,8 @@ export const defaultSankeyTheme: SankeyTheme = {
 
   ribbonOpacity: 0.45,
   ribbonStrokeWidth: 0.5,
+
+  showNodeValues: true,
 
   nodePalette: [
     '#6366f1', // indigo

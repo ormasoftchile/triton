@@ -96,7 +96,7 @@ function dashflowAnimate(
 }
 
 // ---------------------------------------------------------------------------
-// Stroke-gradient helpers (for PathPrimitive.strokeGradient)
+// Stroke-gradient and fill-gradient helpers (for PathPrimitive)
 // ---------------------------------------------------------------------------
 
 /**
@@ -112,34 +112,46 @@ function strokeGradientId(sg: StrokeGradient): string {
   return `sg-${c(sg.x1)}-${c(sg.y1)}-${c(sg.x2)}-${c(sg.y2)}-${col(sg.from)}-${col(sg.to)}`;
 }
 
+/** Derive a deterministic SVG ID for a fill gradient (prefix `fg-`). */
+function fillGradientId(sg: StrokeGradient): string {
+  const c = (v: number) => fmt(v).replace('.', 'd');
+  const col = (s: string) => s.replace('#', '').toLowerCase();
+  return `fg-${c(sg.x1)}-${c(sg.y1)}-${c(sg.x2)}-${c(sg.y2)}-${col(sg.from)}-${col(sg.to)}`;
+}
+
 /**
  * Recursively collect `<linearGradient>` defs needed for PathPrimitives
- * that carry a `strokeGradient`.  Deduplicates by ID so that identical
- * gradients appearing in multiple paths emit only one def element.
+ * that carry a `strokeGradient` or `fillGradient`.  Deduplicates by ID so
+ * that identical gradients appearing in multiple paths emit only one def.
  */
 function collectGradientDefs(primitives: ScenePrimitive[]): string[] {
   const seen = new Set<string>();
   const defs: string[] = [];
 
+  function emitGradient(sg: StrokeGradient, id: string): void {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const lgAttrs: AttrMap = {
+      gradientUnits: 'userSpaceOnUse',
+      id,
+      x1: sg.x1,
+      x2: sg.x2,
+      y1: sg.y1,
+      y2: sg.y2,
+    };
+    const stop0 = `    <stop offset="0%" stop-color="${esc(sg.from)}"/>`;
+    const stop1 = `    <stop offset="100%" stop-color="${esc(sg.to)}"/>`;
+    defs.push(`  <linearGradient${attrs(lgAttrs)}>
+${stop0}
+${stop1}
+  </linearGradient>`);
+  }
+
   function walk(prims: ScenePrimitive[]): void {
     for (const p of prims) {
-      if (p.kind === 'path' && p.strokeGradient) {
-        const sg = p.strokeGradient;
-        const id = strokeGradientId(sg);
-        if (!seen.has(id)) {
-          seen.add(id);
-          const lgAttrs: AttrMap = {
-            gradientUnits: 'userSpaceOnUse',
-            id,
-            x1: sg.x1,
-            x2: sg.x2,
-            y1: sg.y1,
-            y2: sg.y2,
-          };
-          const stop0 = `    <stop offset="0%" stop-color="${esc(sg.from)}"/>`;
-          const stop1 = `    <stop offset="100%" stop-color="${esc(sg.to)}"/>`;
-          defs.push(`  <linearGradient${attrs(lgAttrs)}>\n${stop0}\n${stop1}\n  </linearGradient>`);
-        }
+      if (p.kind === 'path') {
+        if (p.strokeGradient) emitGradient(p.strokeGradient, strokeGradientId(p.strokeGradient));
+        if (p.fillGradient)   emitGradient(p.fillGradient,   fillGradientId(p.fillGradient));
       }
       if (p.kind === 'group') walk(p.primitives);
     }
@@ -245,11 +257,12 @@ function primitiveToSvg(p: ScenePrimitive, depth: number): string {
     }
 
     case 'path': {
-      // strokeGradient takes precedence over a solid stroke colour.
+      // fillGradient / strokeGradient take precedence over flat solid colours.
+      const fillRef   = p.fillGradient   ? `url(#${fillGradientId(p.fillGradient)})`     : p.fill;
       const strokeRef = p.strokeGradient ? `url(#${strokeGradientId(p.strokeGradient)})` : p.stroke;
       const a: AttrMap = {
         d:            p.d,
-        fill:         p.fill,
+        fill:         fillRef,
         'fill-rule':  p.fillRule,
         opacity:      p.opacity,
         stroke:       strokeRef,

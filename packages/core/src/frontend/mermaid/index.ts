@@ -102,9 +102,7 @@ import {
 import type { SequenceDocument } from '../../grammars/sequence/index.js';
 
 import {
-  buildTreeScene,
-  renderTreeDocument,
-  resolveTreeTheme,
+  renderTreeDocumentRadial,
 } from '../../grammars/tree/index.js';
 import type { TreeDocument } from '../../grammars/tree/index.js';
 
@@ -522,30 +520,21 @@ export function renderMermaid(
 
   // ── mindmap ────────────────────────────────────────────────────────────
   if (kind === 'mindmap') {
-    const { doc, warnings, frontmatter } = parseMindmapInternal(text);
-
-    const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
-    const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'dark-tree';
-    const treeTheme = resolveTreeTheme(themeName);
+    const { doc, warnings } = parseMindmapInternal(text);
 
     const finalDoc: TreeDocument = {
       ...doc,
-      metadata: { ...doc.metadata, theme: themeName },
+      metadata: { ...doc.metadata, theme: 'mindmap-radial' },
     };
 
-    const format = options.format ?? 'svg';
-    const renderResult = renderTreeDocument(finalDoc, { format }, treeTheme);
-    if (renderResult instanceof Promise) {
-      throw new Error('[renderMermaid] Async render result is not supported for mindmap.');
-    }
-    const scene = buildTreeScene(finalDoc, treeTheme);
-    const hash  = computeSceneHash(scene);
+    const format       = options.format ?? 'svg';
+    const renderResult = renderTreeDocumentRadial(finalDoc, { format });
 
     return {
       kind,
       doc:       finalDoc,
-      scene,
-      sceneHash: hash,
+      scene:     renderResult.scene,
+      sceneHash: renderResult.sceneHash,
       warnings,
       svg:       renderResult.svg,
       png:       renderResult.png,

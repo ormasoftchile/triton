@@ -163,8 +163,9 @@ C,D,100`,
       expect(countPaths(rendered)).toBe(3);
       // All 4 node labels present
       const texts = sceneTexts(rendered);
+      // Labels now include the node value, e.g. "A 100" — match by prefix
       for (const name of ['A', 'B', 'C', 'D']) {
-        expect(texts).toContain(name);
+        expect(texts.some((t) => t === name || t.startsWith(name + ' '))).toBe(true);
       }
     },
   },
@@ -379,9 +380,10 @@ Alpha,Beta,10
 Beta,Gamma,10`,
     assert: (_doc, _w, rendered) => {
       const texts = sceneTexts(rendered);
-      expect(texts).toContain('Alpha');
-      expect(texts).toContain('Beta');
-      expect(texts).toContain('Gamma');
+      // Labels now include the node value, e.g. "Alpha 10" — match by prefix
+      expect(texts.some((t) => t === 'Alpha' || t.startsWith('Alpha '))).toBe(true);
+      expect(texts.some((t) => t === 'Beta'  || t.startsWith('Beta '))).toBe(true);
+      expect(texts.some((t) => t === 'Gamma' || t.startsWith('Gamma '))).toBe(true);
     },
   },
 

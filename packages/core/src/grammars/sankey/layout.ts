@@ -35,7 +35,7 @@
  *    the other side.  Labels are vertically centered on the bar midpoint.
  */
 
-import type { PathPrimitive, RectPrimitive, Scene, ScenePrimitive, TextPrimitive } from '../../scene.js';
+import type { PathPrimitive, RectPrimitive, Scene, ScenePrimitive, StrokeGradient, TextPrimitive } from '../../scene.js';
 import { measureText } from '../../fonts/metrics.js';
 
 import type { SankeyDocument, SankeyLink, SankeyNode } from './types.js';
@@ -48,6 +48,19 @@ import { resolveSankeyTheme } from './theme.js';
 
 function rhuInt(v: number): number {
   return Math.floor(v + 0.5);
+}
+
+/**
+ * Format a node throughput value for display in the label.
+ * Integers are shown without decimals; fractions are shown with up to 3
+ * significant decimal places, trailing zeros stripped.
+ */
+function formatNodeValue(v: number): string {
+  if (v === 0) return '0';
+  if (Number.isInteger(v)) return String(v);
+  // Round to 3 decimal places and strip trailing zeros
+  const s = v.toFixed(3).replace(/\.?0+$/, '');
+  return s;
 }
 
 // ---------------------------------------------------------------------------
@@ -396,10 +409,24 @@ export function layoutSankey(doc: SankeyDocument, themeOverride?: SankeyTheme): 
       'Z',
     ].join(' ');
 
+    // Build a source→target fill gradient along the horizontal ribbon direction.
+    const tgtColor = tgt.color;
+    const gradMidY1 = rhuInt(y1Top + ribbonHeight / 2);
+    const gradMidY2 = rhuInt(y2Top + ribbonHeight / 2);
+    const fillGradient: StrokeGradient = {
+      from: srcColor,
+      to: tgtColor,
+      x1,
+      y1: gradMidY1,
+      x2,
+      y2: gradMidY2,
+    };
+
     const ribbon: PathPrimitive = {
       kind: 'path',
       d,
-      fill: srcColor,
+      fill: srcColor,          // fallback for backends without fillGradient support
+      fillGradient,
       stroke: srcColor,
       strokeWidth: tk.ribbonStrokeWidth,
       opacity: tk.ribbonOpacity,
@@ -426,7 +453,11 @@ export function layoutSankey(doc: SankeyDocument, themeOverride?: SankeyTheme): 
   // ── Labels ─────────────────────────────────────────────────────────────
 
   for (const ln of layoutNodes.values()) {
-    const label = ln.node.label;
+    // Compose label: "Node Name" or "Node Name 12345" depending on showNodeValues.
+    const throughput = Math.max(inFlow.get(ln.node.id) ?? 0, outFlow.get(ln.node.id) ?? 0);
+    const label = tk.showNodeValues && throughput > 0
+      ? `${ln.node.label} ${formatNodeValue(throughput)}`
+      : ln.node.label;
     const labelW = rhuInt(measureText(label, tk.labelFontSize).width);
     const isLeftmost = ln.col === 0;
     const isRightmost = ln.col === maxRank;

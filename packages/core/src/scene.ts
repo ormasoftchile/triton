@@ -209,6 +209,13 @@ export interface PathPrimitive {
    */
   strokeGradient?: StrokeGradient;
   /**
+   * Optional fill gradient. When set, the path is filled with a linear
+   * gradient flowing from (x1,y1)→(x2,y2) in scene coordinates.
+   * The `fill` field serves as a fallback for backends that don't support
+   * gradient fills. Additive and opt-in — existing paths are unaffected.
+   */
+  fillGradient?: StrokeGradient;
+  /**
    * Optional animation hint. Only honoured by animated backends (SVG).
    * Raster backends (PNG/Skia) IGNORE this and render the resting frame
    * (stroke-dashoffset=0 default). Absent by default → no change to
