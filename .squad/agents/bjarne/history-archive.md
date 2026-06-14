@@ -1,328 +1,207 @@
-# Project Context
+# Bjarne — Ingestion Design
+
+## Current Status (2025-01-01)
 
-- **Owner:** ormasoftchile
-- **Project:** timeline — a spec/design effort for a timeline creation tool. From data plus a natural-language prompt, produce an IR (intermediate representation) of a timeline for later rendering. This work is about the *process, the IR, and the design* — not implementation, not yet. Research is a primary focus.
-- **Stack:** LaTeX for the design document (main.tex + sections/, Makefile, .latexmkrc, references.bib for the bibliography). No code implementation at this stage.
-- **Created:** 2026-06-10
+**Tier 0 COMPLETE**: All five mermaid parsers finalized (flowchart, sequence, gantt, timeline, mindmap).
+- Suite: **1083 tests** (+112 corpus), 0 regressions
+- All existing goldens byte-identical
+- Commit: a7f543b "feat(mermaid): complete Tier 0 with gantt, timeline, mindmap parsers"
+- Gallery: 3 new renders (mermaid-gantt, mermaid-timeline, mermaid-mindmap)
 
-## Learnings
+**Even-spacing horizontal timeline** (Barbara): 9233px → 792px, no collisions.
 
-<!-- Append new learnings below. Each entry is something lasting about the project. -->
-- Design is authored in LaTeX with a bibliography (references.bib) where research papers and references are collected.
-- The architecture separates three layers: ingestion (data + prompt -> IR), the IR itself, and rendering semantics (IR -> render).
+## Recent Work (2026-06-13)
 
-## 2026-06-09 — Section 09 Agent Integration
+Three new parsers implemented (gantt.ts, timeline.ts, mindmap.ts), all following tokenizer fidelity bar:
+- Real-data crawl validation (AC1–AC9 corpus tests per parser)
+- Whitespace-independent parsing (compact and spaced syntax)
+- Graceful degradation + warnings (never silent-drop)
+- Clean label extraction (shape delimiters stripped)
 
-### Ingestion Flows Designed
+**gantt** (35 tests):
+- `title` → metadata, `section` → tracks + sections, task lines → activities/milestones
+- Status flags: done, active, planned, critical; dependencies (after X); durations (Nd/Nw/Nm/Ny/Nh)
+- Deferred: axisFormat, excludes, todayMarker, click, href, until
 
-Four end-to-end ingestion workflows designed for §9:
+**timeline** (38 tests):
+- Period lines → IRDate (year/year-month/ISO) + milestone + activities
+- Events → activity with span or start+end
+- Deferred: disableMulticolor, accTitle, accDescr
+- Layout: vertical-spine (natural for historical/product timelines)
 
-1. **ADO Work Items → IR**: ADO fields map to IR as follows — `System.Title` → `label`, `System.State` → `status` (via state-to-enum table), `System.WorkItemType` → `category` or entity promotion (Milestone type → IR milestone), `System.IterationPath` → `span` (e.g. `Platform\2026\Q2` → `span: 2026-Q2`), `System.AreaPath` → track. The prompt controls what work item types are included, which time window is used, and how AreaPath segments become tracks. Bugs/tasks are rejected when the prompt says so — not imported as noise.
+**mindmap** (39 tests):
+- Indentation → tree structure via pop-stack
+- Shapes: ((…)), [[…]], […], (…), {{…}}, ))..(( , >..]  → kind + clean label
+- Icon extraction: ::icon(fa fa-x) → stripped to base name
+- Deferred: :::className, multiple roots (warning + attach), FontAwesome name mismatch (ICON warning)
 
-2. **Natural Language Prose → IR**: Free text is parsed for temporal mentions (H1, Q3, specific dates), named teams/phases, and event types. Uncertain dates use `tbd`/`ongoing` explicitly rather than null or a guessed date. The prompt provides the track structure that the prose lacks.
+**Gallery self-check:**
+- gantt: 1200×324px (horizontal roadmap)
+- timeline: 1200×9233px → 1296×792px (even-spacing fixed)
+- mindmap: 1932×402px (top-down tree)
 
-3. **GitHub Projects → IR**: ProjectV2 ITERATION custom fields map to `span`; DATE fields map to `start`/`milestone.date`; status select fields map to IR enum. GitHub does not have a work item type concept — filtering requires label/custom field conventions specified in the prompt.
+## Next: Tier 1
 
-4. **Mermaid Timeline → IR**: `title` → `metadata.title`, `section` → `sections[]`, events → activities on a default single track. Mermaid has no swimlane concept; multi-track structure requires prompt instruction.
+Ready: class, state, ER, C4 parsers + new IRs + layout engines.
 
-### Ingestion Contract
+---
 
-Established the four-category ingestion contract (Assumed / Inferred / Defaulted / Rejected) as the formal boundary for what ingestion may do. The prompt is always a first-class input that must be read before the source data is touched. Key prohibitions: must not compute dates, must not import the whole backlog, must not generate non-stable sequential IDs.
+For archived history, see history-archive.md.
 
-### Validation / Error-Repair Loop Design
+## Learnings (Tier 1 · classDiagram)
 
-Five-layer validation pipeline:
-- Layer 1: Syntactic YAML/JSON parse
-- Layer 2: JSON Schema conformance (required fields, types, enums, ID regex, oneOf for start/span)
-- Layer 3: Well-formedness invariants from Mark's contract (referential integrity, ID uniqueness, date ordering, progress bounds, group acyclicity)
-- Layer 4: Render-readiness (delegated to Barbara §5 — referenced, not duplicated)
-- Layer 5: Semantic advisory (degenerate documents, out-of-range items — warnings only)
+- Added a dedicated `ClassDocument` IR + schema + theme + deterministic 2-column compartment layout for Mermaid `classDiagram`.
+- Endpoint markers are emitted as Scene `path` primitives (hollow triangle, filled/hollow diamond, open arrow), so SVG/PNG backends stayed unchanged.
+- Parser strategy mirrors Tier 0: preprocess frontmatter/comments, flatten namespaces, auto-create referenced classes, and warn on deferred/unknown syntax instead of throwing.
+- Current deliberate degradations: `direction` is accepted but does not affect layout yet; generic class names like `List~T~` are stripped to the base name for stable IDs/display.
+- Verification: `pnpm -C packages/core build`, `typecheck`, and full `test` all passed; suite is now 1139/1139 green, and `examples/gallery/mermaid-class.{svg,png}` emit correctly.
 
-Error messages are path-anchored with three components: path (e.g. `activities[2].track`), machine-readable code (e.g. `UNRESOLVED_REF`), and a suggested fix. The agent repair cycle is: Generate → Validate → Report errors → Agent applies surgical patches → Re-validate → Render.
+## Learnings (Tier 1 · stateDiagram + erDiagram)
 
-### MCP Tool Surface
+- Added two new Mermaid Tier 1 verticals without touching the shared renderer kernel: `stateDiagram` and `erDiagram` now lower through dedicated Domain IRs into the existing Scene pipeline.
+- `stateDiagram` uses a deterministic vertical state-machine layout with additive pseudostates (start/end circles, fork/join bars, choice diamonds), scoped composite-state children, note attachments, and warning-driven parsing for cosmetic-only `direction` lines.
+- `erDiagram` uses a deterministic compartment-style entity layout plus crow's-foot endpoints built entirely from Scene `path` primitives, so cardinality glyphs work in both SVG and PNG backends with no backend branching.
+- Parser policy matches the rest of Mermaid Tier 0/Tier 1: auto-create referenced nodes/entities on first mention, enrich them later when explicit declarations appear, and never crash on malformed lines when a warning is sufficient.
+- Verification: `pnpm -C packages/core build`, `pnpm -C packages/core typecheck`, and full `pnpm -C packages/core test` all passed; the suite is now 1235/1235 green, and `examples/gallery/mermaid-state.{svg,png}` plus `examples/gallery/mermaid-er.{svg,png}` emit correctly.
 
-Four tools defined:
-- `validate_timeline`: input IR (object or string), output structured errors/warnings with path anchors
-- `render_timeline`: input IR + format + theme, output base64-encoded bytes + mime type
-- `describe_schema`: input optional version/entity, output JSON Schema + per-field docs
-- `suggest_time_range`: input list of date hints, output recommended time_range + axis_unit + rationale
+## Learnings (Tier 1 · C4 diagram — 2026-06-14)
 
-Two deployment modes: local subprocess (CLI `timeline mcp-server`) and hosted cloud endpoint.
+- Added `grammars/c4/{types,schema,layout,theme,index}.ts` and `frontend/mermaid/c4.ts` — the final Tier 1 UML/Software grammar. Five C4 sub-kinds wired into detect/parse/render pipeline: C4Context, C4Container, C4Component, C4Dynamic, C4Deployment.
+- **Element kind model**: 20 constructors in 4 categories (Person, System, Container, Component), each with optional `_Ext` (external/muted gray), `Db` (cylinder arc hint), `Queue` (shape deferred). `technology` field appears in the `«stereotype: tech»` line.
+- **Boundary-as-container reuse**: Recursive `C4Boundary` (modelled after state composite containers) — `z.lazy()` in Zod schema for recursive nesting; `measureBoundary()` → `placeBoundary()` recursive layout functions. Dashed border via `path` `d` with rounded rect SVG path (not `rect` + `strokeDasharray`, which required workaround). Header label above interior padding.
+- **External styling**: `_Ext` suffix → theme `extFill`/`extStroke`/`extTextColor` (gray/muted). Internal elements get category-based fills (Person/System=blue, Container=medium-blue, Component=light-blue). Theme resolves per-element style via `resolveElementStyle(kind, tk)` helper.
+- **Parser arg-tokenizing**: `tokenizeArgs(argStr)` handles quoted strings with commas inside, strips `$named` args, unquotes tokens. Boundary block nesting uses an explicit `Array<C4Boundary | C4Document>` scope stack — clean and depth-independent.
+- **C4Dynamic numbered rels**: First arg integer → `rel.order`; label prefixed `"N: label"` in layout. Rel_Back parsed as swapped from/to. Rel_U/D/L/R → plain Rel + layout-hint warning (spatial grid ignores directional hints).
+- **Real-crawl findings**: Canonical Internet Banking System corpus exposed `Rel_Ext` (non-standard, parsed as `Rel` + warning), `<br/>` in description strings (kept as-is, renders harmlessly), empty-alias boundaries (alias required, warn + skip). Real examples confirmed technology arg order varies per element kind.
+- **Spacing deliberateness**: elementGapX=80, elementGapY=60, boundaryPadX=24, boundaryPadY=20, boundaryHeaderHeight=36. Edge labels placed at midpoint with white background rect. Some crowding persists in dense nested diagrams — acceptable for MVP; Barbara may polish spacing in a follow-up pass.
+- **Deferred**: Rel_U/D/L/R spatial placement; C4Deployment full Node semantics; Person circle icon; Queue shape icon; `$tags`/`$link` named args (silently ignored).
+- **Verification**: `pnpm -C packages/core build` ✓, `pnpm -C packages/core typecheck` ✓, `pnpm -C packages/core test` → **1281/1281 passing** (46 new C4 corpus tests). Gallery: `mermaid-c4.{mmd,svg,png}` at **1445×728** px. Gallery card 32 added to `examples/gallery/index.html`. All 1235 pre-existing tests byte-identical (zero regressions).
 
-### Round-Trip / Provenance Approach
+## Milestone: Tier 1 COMPLETE — C4 Shipped (2026-06-14)
 
-Provenance stored in `metadata` block per entity: `source`, `ado_id`/`github_issue`, `ado_revision`, `ingested_at`. Re-sync uses source ID (not IR id) as stable foreign key. Only source-mapped fields are overwritten on re-sync; human-edited fields (label, description, color, progress) are preserved. IR id slugs are frozen after first ingestion — never regenerated. YAML serialisation uses canonical field order and consistent quoting to minimise spurious git diffs.
+**Status:** COMPLETE
+**Coverage:** All 4 Tier 1 UML/Software types done (classDiagram, stateDiagram, erDiagram, C4)
+**Suite:** 1281/1281 green (46 new C4 tests), zero regressions
+**Gallery:** mermaid-c4 1445×728px (Internet Banking System C4Context)
+**Decision note:** .squad/decisions/inbox/bjarne-tier1-c4.md
 
-### IR Gaps Flagged (for Leslie + Mark)
+---
 
-1. **`today` field missing from metadata** — `now` symbolic date is non-deterministic without an explicit `today: date?` in metadata. Leslie's scope spec requires explicit input for determinism but Mark's contract does not include this field.
-2. **`index` vs `order` naming discrepancy** — Mark's binding contract (invariant 14) uses `track.index`; the 04-ir.tex spec uses `track.order`. Need canonical name.
-3. **`span` + `start` co-presence undefined** — No rule for what happens if both `span` and `start`/`end` are present on the same activity. Suggested fix: treat as schema error.
+## Milestone: Tier 1 PROGRESS — stateDiagram + erDiagram Shipped (2026-06-14T04:41:53Z)
 
-## 2026-06-10 — Team Update: Design Spec & Agent Integration Design Complete
+**Status:** COMPLETE, layout-polished by Barbara  
+**Commit:** 9c2d9b3 "feat(mermaid): Tier 1 — stateDiagram + erDiagram"  
+**Coverage:** 3 of 4 Tier 1 UML/Software types done (class, state, ER; remaining C4)
 
-✓ **Design Spec Section Published (Wave 1)**
-- §9 Agent Integration (validation pipeline, MCP tools, ingestion contract)
-
-✓ **IR Gaps Flagged & Resolved (Wave 2)**
-Your gap reports (Gap A, Gap B, Gap C) were essential for IR contract refinement:
-- metadata.today field (date anchor for deterministic now/relative dates)
-- track.index vs track.order naming (consensus on field name)
-- span/start co-presence exclusivity (Invariant #12: SPAN_START_CONFLICT)
-
-Mark's reconciliation resolved all gaps — no changes needed to agent generation contract.
-
-**Design Spec Location:** `design/` (LaTeX, ready to compile)  
-**MCP Tools (normative):**
-- `validate_timeline` — 5-layer pipeline
-- `render_timeline` — Deterministic rendering
-- `describe_schema` — JSON Schema + docs
-- `suggest_time_range` — Infer axis from dates
-
-**Validation Layers:** Syntax → Schema → Invariants → Render-readiness → Advisory
-
-Five built-in themes ready; error contract with path-anchored codes and suggested fixes enables Generate → Validate → Repair cycle.
-
-## 2026-06-13 — Tier 0 Inc 1: Mermaid Front-End Architecture + Flowchart Parser
-
-### Learnings
-
-**Front-end architecture (detect → parse → build → serialize):**
-The Mermaid front-end implements §15 Path A of the dual front-end architecture. The pipeline is:
-1. `preprocessMermaid(text)` — strips YAML frontmatter (`--- … ---`), extracts `%%{init}%%` directive fields (theme/title), drops `%% comment` lines. Returns cleaned body + structured metadata. Implemented in `utils.ts` as a shared utility.
-2. `detectDiagramType(text)` — after preprocessing, reads the first content line's leading keyword: `flowchart`/`graph` → 'flowchart', `sequenceDiagram` → 'sequence', `gantt`/`timeline`/`mindmap` → respective kinds. Case-insensitive.
-3. `parseFlowchart(text)` — grammar-specific parser. Strips frontmatter, finds header, scans body lines. Returns `FlowDocument`. Internal `parseFlowchartInternal` also returns direction + warnings + frontmatter for use by `renderMermaid`.
-4. `buildFlowScene(doc, themeOverride)` — existing Flow grammar kernel, unchanged. The theme override applies direction (LR/TB) and any resolved theme name.
-5. `sceneToSvg` / `svgToPng` — existing kernel serializers, unchanged.
-
-**Flowchart-parsing subset implemented:**
-- Header: `flowchart`/`graph` + direction (LR/TB/TD/RL/BT). LR fully supported; TB/TD/RL/BT deferred (layout engine is LR-only in Inc 1).
-- Node shapes: `[rect]`, `(rounded-rect)`, `((circle))`, `{diamond}`, `([stadium])`, `[[subroutine→rect]]`. Default bare-ID → `rounded-rect`.
-- Edges: `-->` (sync/solid), `---` (undirected→sync/solid), `-.->` (async/dotted), `==>` (thick→sync/solid). Labels via `-->|label|` or `-- label -->` (normalized to pipe form before scanning).
-- Chains: `A --> B --> C` → edges (A,B) and (B,C). Multi-statement lines via `;`.
-- Implicit node creation: any node seen in an edge and not yet declared is auto-created (label = raw ID, shape = rounded-rect). Later explicit declaration updates label+shape.
-
-**Deferrals (explicit TODO list in flowchart.ts):**
-Subgraphs, classDef/style/class, click/href, link curve styles, markdown-string labels, `&` multi-node edges, extended shapes (hexagon/trapezoid/asymmetric), thick-edge labels, RL/BT layout flip.
-
-**ID sanitization:**
-FlowDocument schema requires `^[a-z][a-z0-9-]*$` IDs. Mermaid IDs are arbitrary tokens. The sanitizer (per-session `idMap`) applies: camelCase→kebab, uppercase→lowercase, underscore/space→hyphen, strip non-[a-z0-9-], collapse hyphens, prefix 'n' if starts with digit. Collision resolution appends `-2`, `-3`, etc.
-
-**Frontmatter/directive handling:**
-The `preprocessMermaid` utility handles both frontmatter (parsed via the `yaml` package) and `%%{init}%%` directives (JSON/single-quote extraction with regex fallback). Theme precedence in `renderMermaid`: `options.theme` > frontmatter `theme:` > `%%{init}%%` directive > default.
-
-**Error policy:**
-Unrecognized lines → skip with collected warning. Never throws on syntax errors. `parseMermaid`/`renderMermaid` throw with a clear `[Tier 0 Inc 1]` label for unsupported diagram types (sequence/gantt/timeline/mindmap/unknown).
-
-**Test results:**
-57 new tests in `mermaid-frontend.test.ts`. All 852 tests pass (57 new + 795 existing). All existing goldens byte-identical. Gallery: `mermaid-flowchart.svg` + `mermaid-flowchart.png` emitted with dark-flow theme. The rendered PNG is visibly superior to Mermaid's default output: dark navy background, teal/violet/emerald accent fills per shape kind, clean curved edges, all shapes/labels correct.
-
-## 2026-06-13 — Tier 0 Inc 1 Hardening: Real-Mermaid Crawl Fidelity
-
-### Learnings
-
-**Root cause of whitespace-independent edge failures:**
-The node ID scanner used `[a-zA-Z_][a-zA-Z0-9_-]*` — hyphen was included in the character class. For `A-->B`, the scanner greedily consumed `A--` (stopping only at `>`), leaving `>B` which didn't match any edge operator. Fix: removed `-` from the ID char class (→ `[a-zA-Z_][a-zA-Z0-9_]*`). This is correct per Mermaid's actual grammar (identifiers use `\w+`, no hyphens in bare IDs). One-char change, maximum impact.
-
-**Tokenizer rewrite scope:**
-The fix was surgical — the existing tokenizer design (scanNodeToken / scanEdgeToken / parseChain) was architecturally sound. Changes:
-1. **ID charset** — removed `-` from `scanNodeToken` regex. Fixes `A-->B`, `A-->|x|B`, `A==>B`, `A--xB`, `A---B`, `A-.->B` (all compact forms).
-2. **Extended edge operators** — added all missing Mermaid operators to `scanEdgeToken` (labeled + unlabeled, most-specific first): `<-.->`, `-.-`, `<==>`, `===`, `<-->`, `o--o`, `--x`, `--o` plus their `|label|` variants.
-3. **Inline label normalization** — extended `normalizeLabeledEdges` to handle `== text ==>` → `==>|text|` and `-. text .->` → `-.->|text|`.
-4. **Extended shapes** — added to `scanNodeToken`: `{{...}}` hexagon→diamond, `[(...)` cylinder→rect, `[/.../ ]` parallelogram-right→rect, `[\...\]` parallelogram-left→rect, `>...]` asymmetric→rect. Regex capture groups extract CLEAN labels without shape delimiters.
-5. **Shape degradation warnings** — `ScanNodeResult` now carries optional `shapeWarning?` field; `parseChain` collects these into the warnings array.
-6. **Chain unrecognized-content warning** — when the edge scanner returns null with non-whitespace remaining in a chain, a warning is pushed (previously silent).
-7. **Direction TD warning** — the `direction === 'TB'` layout-deferred warning was missing 'TD'; fixed to `direction === 'TB' || direction === 'TD'`.
-
-**Public warnings on parseMermaid:**
-`MermaidParseResult` now includes `warnings: string[]`. `parseMermaid` delegates to `parseFlowchartInternal` (previously called the simpler `parseFlowchart` which discarded warnings). Callers can inspect what was skipped, deferred, or degraded.
-
-**Corpus test approach:**
-Added `test/mermaid-flowchart-corpus.test.ts` — 61 new tests organized by the 7 acceptance criteria. Covers: compact/spaced edges, all edge operator families, extended shapes with label cleanliness assertions, graceful degradation, public warning surface, all direction keywords, and all deferral categories. Also includes 9 "complete pattern" corpus tests (CI pipeline, decision flow, async pipeline, thick approval, mixed operators, all shapes, all inline labels, official Mermaid docs Christmas example, frontmatter+compact).
-
-**Test results after hardening:**
-914 tests pass (61 new corpus + 57 existing mermaid + 796 other). All existing goldens byte-identical. `mermaid-flowchart.svg` + `.png` unchanged (demo uses spaced syntax — was already correct). Build clean (TypeScript strict mode, 0 errors).
-
-## Context: Fidelity Bar for Remaining Mermaid Parsers (Seq/Gantt/Timeline/Mindmap)
-
-This flowchart parser hardening establishes the tokenizer and fidelity bar for all remaining Mermaid parsers. Future Inc implementations (Sequence, Gantt, Timeline, Mindmap) should follow this approach:
-
-1. **Real-data crawl validation** — Seed acceptance criteria with a crawl of real Mermaid syntax in the wild. Validate each parser against the crawl corpus (aim: 50+ diverse patterns).
-
-2. **Whitespace-independent parsing** — Parse both compact (`A-->B`) and spaced (`A --> B`) syntax identically. The tokenizer (scanNodeToken / scanEdgeToken) must be whitespace-agnostic; normalization happens downstream.
-
-3. **All documented operators** — Enumerate the parser's operators from Mermaid's documentation and implement all of them (including inline label variants `|label|`). Identify and implement all shape types / styling constructs that aren't deferred.
-
-4. **Clean label extraction** — Use regex capture groups to extract labels without shape delimiters, quotes, or parser-internal syntax. Test that `[/Para/]`, `{{Hex}}`, and other extended shapes produce clean labels in the output.
-
-5. **Graceful degradation with warnings** — Never silently drop or mangle unsupported syntax. Return a valid (possibly partial) document and emit warnings that callers can inspect. `parseMermaidX` should return a public `warnings: string[]` field for all diagram types.
-
-6. **Explicit deferral list** — Document all limitations (subgraphs, directives, etc.) in the parser file. Link to Inc 2+ tasks for each deferral. Callers must know what is not yet implemented.
-
-This establishes consistency across all Mermaid diagram types and ensures user feedback is clear (warnings, not silent failures).
-
-## 2026-06-13 — Tier 0: Mermaid sequenceDiagram Parser
-
-### Learnings
-
-**Arrow → kind mapping (8 operators):**
-The Mermaid sequence diagram has 8 arrow operators that map to 3 IR kinds:
-- `->>` (solid arrowhead) → `sync`; `-->>` (dashed arrowhead) → `reply`
-- `->` (solid open) → `sync`; `-->` (dashed open) → `reply`
-- `-)` (solid open circle) → `async`; `--)` (dashed open circle) → `async`
-- `-x` (solid cross) → `async`; `--x` (dashed cross) → `async`
-
-All eight are handled whitespace-independently using a single regex with alternation ordered most-specific-first (4-char `-->>` before 3-char `-->` before 2-char `->`).
-
-**Activation shorthand `+/-` semantics:**
-The `+` prefix on the TO participant activates the TO participant; the `-` prefix on the TO participant DEACTIVATES THE FROM participant (the sender who was previously activated). This is the key insight from the Mermaid docs example `Alice->>+John: Hello` / `John-->>-Alice: Great` — the `-` on Alice's position deactivates John (the FROM). The parser tracks per-participant stacks of `from_order` values; `+` pushes, `-` pops and finalizes an `Activation` entry.
-
-**Explicit activate/deactivate timing:**
-`activate A` appearing after message at order N uses `from_order = N` (the last message, which triggered A's activity). `deactivate A` appearing after message at order M uses `to_order = M`. This produces `Activation { from_order: N, to_order: M }` which is schema-valid as long as `N ≤ M`.
-
-**Fragment sections (alt/par):**
-`alt <label>` opens a multi-section fragment and simultaneously starts the first section with `guard = label`. Each `else <label>` closes the current section and opens a new one. `end` closes the last section and finalizes the fragment. The `Fragment.label` = the first alt/par label. Sections are collected as `FragmentSection[]` on the IR only when there are ≥ 2 sections (single-compartment fragments use no sections, preserving byte-identity with the existing IR format). `critical`/`break` are in the Fragment.kind enum — they pass through with a DEFERRED compat warning.
-
-**Notes deferral:**
-`Note left of A`, `Note right of A`, `Note over A,B` produce a warning and are skipped entirely. The IR has no Note construct — this is Mark's domain decision (deferred). The warning text says "not in sequence IR yet (Mark's decision)."
-
-**autonumber deferral:**
-`autonumber` is a theme/rendering concern (step numbering). The IR has no flag for it. Emits DEFERRED warning, document is not corrupted.
-
-**Auto-registration order:**
-Participants auto-registered from messages use `Map` insertion order for left-to-right layout consistency. Explicit `participant`/`actor` declarations that appear before any message are inserted first. If a participant is first used in a message and later explicitly declared, the Map key already exists — the label and kind are updated in-place (preserving insertion-order position).
-
-**ID sanitization (shared algorithm):**
-Same camelCase→kebab-case, uppercase→lowercase, underscore→hyphen algorithm as flowchart.ts. Correctly handles `AuthService` → `auth-service`, `UserDB` → `user-db`, etc. The idMap is stable within a parse session.
-
-**Test results:**
-971 tests pass (57 new corpus + 914 existing; all existing goldens byte-identical). Gallery: `mermaid-sequence.svg` + `mermaid-sequence.png` emitted with bytebytego-sequence theme. The PNG (848×1010) shows dark navy background, colored ByteByteGo cards with icons for all 4 participants (User actor, Web Client, Auth Service, Database), numbered step badges 0–11, activation bars on Auth and DB, alt/loop/opt fragment boxes all correctly positioned. Looks significantly better than Mermaid's default white-background UML output.
- inspect what was skipped, deferred, or degraded.
-
-**Corpus test approach:**
-Added `test/mermaid-flowchart-corpus.test.ts` — 61 new tests organized by the 7 acceptance criteria. Covers: compact/spaced edges, all edge operator families, extended shapes with label cleanliness assertions, graceful degradation, public warning surface, all direction keywords, and all deferral categories. Also includes 9 "complete pattern" corpus tests (CI pipeline, decision flow, async pipeline, thick approval, mixed operators, all shapes, all inline labels, official Mermaid docs Christmas example, frontmatter+compact).
-
-**Test results after hardening:**
-914 tests pass (61 new corpus + 57 existing mermaid + 796 other). All existing goldens byte-identical. `mermaid-flowchart.svg` + `.png` unchanged (demo uses spaced syntax — was already correct). Build clean (TypeScript strict mode, 0 errors).
-
-## Context: Fidelity Bar for Remaining Mermaid Parsers (Seq/Gantt/Timeline/Mindmap)
-
-This flowchart parser hardening establishes the tokenizer and fidelity bar for all remaining Mermaid parsers. Future Inc implementations (Sequence, Gantt, Timeline, Mindmap) should follow this approach:
-
-1. **Real-data crawl validation** — Seed acceptance criteria with a crawl of real Mermaid syntax in the wild. Validate each parser against the crawl corpus (aim: 50+ diverse patterns).
-
-2. **Whitespace-independent parsing** — Parse both compact (`A-->B`) and spaced (`A --> B`) syntax identically. The tokenizer (scanNodeToken / scanEdgeToken) must be whitespace-agnostic; normalization happens downstream.
-
-3. **All documented operators** — Enumerate the parser's operators from Mermaid's documentation and implement all of them (including inline label variants `|label|`). Identify and implement all shape types / styling constructs that aren't deferred.
-
-4. **Clean label extraction** — Use regex capture groups to extract labels without shape delimiters, quotes, or parser-internal syntax. Test that `[/Para/]`, `{{Hex}}`, and other extended shapes produce clean labels in the output.
-
-5. **Graceful degradation with warnings** — Never silently drop or mangle unsupported syntax. Return a valid (possibly partial) document and emit warnings that callers can inspect. `parseMermaidX` should return a public `warnings: string[]` field for all diagram types.
-
-6. **Explicit deferral list** — Document all limitations (subgraphs, directives, etc.) in the parser file. Link to Inc 2+ tasks for each deferral. Callers must know what is not yet implemented.
-
-This establishes consistency across all Mermaid diagram types and ensures user feedback is clear (warnings, not silent failures).
-
-## 2026-06-13 — Tier 0: Mermaid sequenceDiagram Parser
-
-### Learnings
-
-**Arrow → kind mapping (8 operators):**
-The Mermaid sequence diagram has 8 arrow operators that map to 3 IR kinds:
-- `->>` (solid arrowhead) → `sync`; `-->>` (dashed arrowhead) → `reply`
-- `->` (solid open) → `sync`; `-->` (dashed open) → `reply`
-- `-)` (solid open circle) → `async`; `--)` (dashed open circle) → `async`
-- `-x` (solid cross) → `async`; `--x` (dashed cross) → `async`
-
-All eight are handled whitespace-independently using a single regex with alternation ordered most-specific-first (4-char `-->>` before 3-char `-->` before 2-char `->`).
-
-**Activation shorthand `+/-` semantics:**
-The `+` prefix on the TO participant activates the TO participant; the `-` prefix on the TO participant DEACTIVATES THE FROM participant (the sender who was previously activated). This is the key insight from the Mermaid docs example `Alice->>+John: Hello` / `John-->>-Alice: Great` — the `-` on Alice's position deactivates John (the FROM). The parser tracks per-participant stacks of `from_order` values; `+` pushes, `-` pops and finalizes an `Activation` entry.
-
-**Explicit activate/deactivate timing:**
-`activate A` appearing after message at order N uses `from_order = N` (the last message, which triggered A's activity). `deactivate A` appearing after message at order M uses `to_order = M`. This produces `Activation { from_order: N, to_order: M }` which is schema-valid as long as `N ≤ M`.
-
-**Fragment sections (alt/par):**
-`alt <label>` opens a multi-section fragment and simultaneously starts the first section with `guard = label`. Each `else <label>` closes the current section and opens a new one. `end` closes the last section and finalizes the fragment. The `Fragment.label` = the first alt/par label. Sections are collected as `FragmentSection[]` on the IR only when there are ≥ 2 sections (single-compartment fragments use no sections, preserving byte-identity with the existing IR format). `critical`/`break` are in the Fragment.kind enum — they pass through with a DEFERRED compat warning.
-
-**Notes deferral:**
-`Note left of A`, `Note right of A`, `Note over A,B` produce a warning and are skipped entirely. The IR has no Note construct — this is Mark's domain decision (deferred). The warning text says "not in sequence IR yet (Mark's decision)."
-
-**autonumber deferral:**
-`autonumber` is a theme/rendering concern (step numbering). The IR has no flag for it. Emits DEFERRED warning, document is not corrupted.
-
-**Auto-registration order:**
-Participants auto-registered from messages use `Map` insertion order for left-to-right layout consistency. Explicit `participant`/`actor` declarations that appear before any message are inserted first. If a participant is first used in a message and later explicitly declared, the Map key already exists — the label and kind are updated in-place (preserving insertion-order position).
-
-**ID sanitization (shared algorithm):**
-Same camelCase→kebab-case, uppercase→lowercase, underscore→hyphen algorithm as flowchart.ts. Correctly handles `AuthService` → `auth-service`, `UserDB` → `user-db`, etc. The idMap is stable within a parse session.
-
-**Test results:**
-971 tests pass (57 new corpus + 914 existing; all existing goldens byte-identical). Gallery: `mermaid-sequence.svg` + `mermaid-sequence.png` emitted with bytebytego-sequence theme. The PNG (848×1010) shows dark navy background, colored ByteByteGo cards with icons for all 4 participants (User actor, Web Client, Auth Service, Database), numbered step badges 0–11, activation bars on Auth and DB, alt/loop/opt fragment boxes all correctly positioned. Looks significantly better than Mermaid's default white-background UML output.
-
-**Self-crawl results (6 real snippets):**
-1. Basic two-party: P=2 M=2 kinds=[sync,reply] ✓
-2. All 8 arrows: P=2 M=8 kinds=[sync,reply,sync,reply,async,async,async,async] ✓
-3. Actor + participant with alias: P=3 M=3 kinds=[sync,sync,reply] ✓
-4. Activation shorthand +/-: P=2 M=2 A=1 from_order=0 to_order=1 ✓
-5. Alt with else: P=3 M=2 F=1(alt, 2 sections) ✓
-6. Self-message: P=1 M=1 from===to ✓
-7. Notes degrade: 2 note-warns, 1 message intact ✓
-8. autonumber degrade: 1 warn, message intact ✓
-9. loop+par: M=3 F=2 kinds=[loop,par] ✓
-10. Frontmatter/theme: title+theme correct, AuthService→auth-service ✓
-
-
-## 2026-06-13 — Tier 0 Complete: gantt + timeline + mindmap parsers
-
-### Learnings
-
-**gantt → IRDocument mapping:**
-- Mermaid gantt task args parsed as comma-separated tokens: status keywords (`done`/`active`/`crit`/`milestone`) first, then optional raw task ID (first non-status, non-date, non-duration token), then start date, then end date or duration.
-- Duration units: `d` (days), `w` (weeks × 7), `m` (calendar months), `y` (fiscal years), `h` (hours). All computed via `Date.setUTC*()` methods for determinism.
-- `after <id>` dependency resolution uses two tracking maps: `taskEndByRawMermaidId` (raw Mermaid IDs → ISO end) and `sectionCursor` (section ID → last task end). Forward dependencies (not yet seen) fall back to cursor with warning.
-- Sections → IR tracks + sections. Tasks without sections go to a default "Tasks" track. `done/active` → IR status; `crit` → `category: 'critical'`; `milestone` flag → IR `Milestone` not `Activity`.
-- `axisFormat`, `excludes`, `todayMarker`, `click/href`, `until` → DEFERRED with warnings.
-- Gallery uses `roadmap` theme, horizontal layout. IR axis_unit auto-selected from date range.
-
-**timeline → IRDocument mapping:**
-- Period lines: `<period> : <event1> : <event2>`. Continuation lines: `: <event>` (period unchanged).
-- Period label → IRDate: 4-digit year → `"YYYY"` span; year-month `YYYY-MM` → span; ISO date → start+end; leading 4-digit → extract year; otherwise sequential month `2024-01`, `2024-02`, etc.
-- Events → IR activities with `span: periodDate` (for year/year-month periods) or `start+end` (for ISO date periods). Period anchors → IR milestones with `label = periodLabel`.
-- Sections → IR tracks (one per section). Single default track "Events" if no sections.
-- Layout: `vertical-spine` (natural for a historical timeline). Theme: `consulting` default.
-- `disableMulticolor` / `accTitle` / `accDescr` → DEFERRED with warnings.
-
-**mindmap → TreeDocument indentation parsing:**
-- Indentation algorithm: count leading spaces (tabs = 2 spaces). Stack tracks `{ node, indent }` pairs. Pop stack while `stack.top.indent >= current.indent`. Empty stack = root level; otherwise add to stack.top.
-- Root node: first non-directive node parsed, always gets `kind: 'root'` regardless of shape (shape is cosmetic).
-- `::icon(fa fa-x)` directive: strip `"fa fa-"`, `"fas fa-"`, `"far fa-"`, `"fa-"` prefix. Assign to `lastNode.icon`. Emits ICON warning (FontAwesome names may not match built-in registry).
-- Node label extraction: matched in priority order: `id((label))` > `id[[label]]` > `id[label]` > `id(label)` > `id{{label}}` > `id))label((` > `id>label]` > pure shapes > `"quoted"` > bare text. HTML `<br/>` → space.
-- Kind from shape: `((..))` → `'circle'`, `[[..]]` → `'database'`, `[..]` → `'rect'`, `(..)` → `'rounded'`, `{{..}}` → `'hexagon'`, `))..(( ` → `'bang'`, `>..]` → `'asymm'`. Root node always overridden to `'root'`.
-- `:::className` class directives → SKIP + warning. Multiple root-level nodes → warning + attach as child.
-- Gallery uses `dark-tree` theme, Buchheim–Jünger–Leipert tidy-tree layout engine.
-
-**What degrades gracefully (all three parsers):**
-- gantt: `axisFormat`, `excludes`, `todayMarker`, `click`, `until`, exotic `dateFormat` variants → DEFERRED warning.
-- timeline: `disableMulticolor`, `accTitle`, `accDescr`, non-parseable period labels (sequential fallback) → warned or silently handled.
-- mindmap: `:::className` → SKIP warning. `::icon()` on unrecognised names → ICON warning. Multiple roots → warning + attach as child. All parsers: unrecognised lines → SKIP warning.
-
-**Test results:**
-1083 tests pass (112 new corpus tests: 35 gantt + 38 timeline + 39 mindmap, plus 3 dispatch updates).
-All 971 existing goldens byte-identical. Gallery: `mermaid-gantt.{svg,png}`, `mermaid-timeline.{svg,png}`, `mermaid-mindmap.{svg,png}` emitted. Build clean (TypeScript strict mode, 0 errors).
-
-**Self-crawl results:**
-1. gantt G1: 2 sections → 2 tracks, 4 activities with correct statuses, 1 milestone at 2014-01-25 ✓
-2. gantt G2: after-dependency chain resolved correctly (des2.end→des3.start, des3.end→des4.start) ✓
-3. timeline T1: 6 events across 4 year periods, all with correct span dates ✓
-4. timeline T2: 2 sections → 2 tracks, events on correct tracks ✓
-5. mindmap M1: root="mindmap", 3 children, icon "book" on "Long history" ✓
-6. mindmap M2: shape kinds correctly extracted: rect, rounded, circle; React label clean ✓
-
-**Gallery self-check (SVG inspection):**
-- gantt: 1200×324px, 30 text elements, 20 rects — correct horizontal gantt layout
-- timeline: 1200×9233px, 146 text elements — tall vertical-spine (14 programming language periods)
-- mindmap: 1932×402px, 28 text elements, 29 rects — top-down tree with 4 main branches
-
-**Tier 0 COMPLETE (2025-01-01):** All five mermaid parsers (flowchart, sequence, gantt, timeline, mindmap) integrate and render. Suite: 1083 tests (+112), 0 regressions. Commit a7f543b.
+- Both grammars real-crawl hardened, 96 corpus tests, 1235 full suite passing
+- Deterministic layout engines with zero regression (goldens byte-identical)
+- Gallery: mermaid-state 670×942, mermaid-er 656×706
+- Left-margin skip-transition routing in state (see Barbara history for polish details)
+- Degree-sort + interleaved ER grid placement eliminating long-diagonal routing
+- Ready for C4 implementation next
+
+## 2026-06-14 — Tier 2 Started
+
+Tier 2 grammar-of-graphics chart foundation shipped: scales (LinearScale, BandScale), axes, marks, deterministic layout engine. First two chart types operational: pie + xychart-beta (bar+line). 1361 tests, all prior regressions zero. Foundation reusable for quadrant + radar (dispatch branch per type). Commit 5b709cf.
+## 2026-06-14 — Tier 2 Complete
+
+Tier 2 complete (pie/xychart/quadrant/radar). Quadrant + radar implemented on shared foundation. Quadrant: tinted regions, edge-aware non-clipping labels (defects fixed). Radar: radial scale, dual-syntax parser (Mermaid radar-beta + doc form). 1425/1425 tests ✓. Commits 5b709cf (foundation+pie+xy), ecfc418 (quadrant+radar).
+
+## Learnings (journey: score→vertical-position emotional curve — 2026-06-14)
+
+**Problem fixed:** The original journey layout plotted all task circles at the same
+Y (the spine), encoding score only through fill color. This discarded the DEFINING
+semantic of a user-journey diagram.
+
+**Score → vertical position formula:**
+```
+faceY = absoluteSpineY + minDrop + (5 − score) × (maxDrop − minDrop) / 4
+```
+`minDrop = 16` (score 5 is 16 px below spine); `maxDrop = 140` (score 1 is 140 px below).
+The face circles carry the same `scoreFills[scoreIndex]` as before (keeps existing tests).
+
+**Droplines:** a dashed `line` primitive from `(centerX, absoluteSpineY)` to
+`(centerX, faceY − taskRadius)`. Color = `droplineStroke`; dashArray = `'4,4'`.
+
+**Emotion curve:** Catmull-Rom spline (→ cubic Bézier via `cp = p[i] ± (p[i+1] − p[i-1])/6`)
+threaded through all face-circle centres in left-to-right order. Emitted as a single
+`path` primitive BEFORE the circles so the curve appears behind the markers.
+
+**Face expressions:** separate `path` primitive per task encodes score via mouth shape:
+- score ≥ 4: happy (Q-bezier curving upward)
+- score = 3: neutral (horizontal L)
+- score ≤ 2: unhappy (Q-bezier curving downward)
+Eye circles use `r = ceil(taskRadius / 8)` so they scale if `taskRadius` changes.
+
+**Actor color assignment:** `allActors` (in order of first appearance, preamble first)
+are mapped to `actorPalette[i % len]`. Applies consistently in task-box indicator dots
+and the bottom legend. The `actorColorMap` is a `Map<string, string>`.
+
+**Task boxes above spine:** white rounded rects (`taskBoxFill`, `taskBoxStroke`).
+`boxBottom = absoluteSpineY − 6`; `boxTop = boxBottom − taskBoxH`.
+`taskBoxH` is computed dynamically from the maximum label-line count across all tasks
+plus the actor-dot row height, ensuring visual uniformity.
+
+**File paths:**
+- `packages/core/src/grammars/journey/layout.ts` — full layout rewrite
+- `packages/core/src/grammars/journey/theme.ts` — 10 new theme fields; spineY default 92→152
+
+**Test compat invariant:** face circles at `faceY` must have `r === tk.taskRadius` and
+`fill === tk.scoreFills[scoreIndex(score)]` to satisfy the two score-ramp corpus tests
+and the 10-plus-task count test.
+
+**Gallery dimensions:** 1752×538 (width unchanged; height grew 84 px for the curve area).
+
+**Decision note:** `.squad/decisions/inbox/bjarne-journey-curve-fix.md`
+
+## Learnings (Tier 3 · journey + gitGraph — 2026-06-14)
+
+- Added two new Tier 3 Mermaid verticals with dedicated IRs, schemas, themes, layouts, parsers, dispatch wiring, corpus suites, and gallery assets: `journey` → `JourneyDocument`, `gitGraph` → `GitGraphDocument`.
+- `journey` preserves `preambleTasks` before the first `section`, rounds/clamps scores into the 1–5 ramp, renders alternating section bands over a horizontal spine, and emits actor chips plus a bottom-right actor legend entirely with existing Scene primitives.
+- `gitGraph` starts on implicit `main`, tracks branch/checkout/merge/cherry-pick state with stable auto IDs (`commit-0`, `commit-1`, ...), and lays out commits in chronological LR columns with branch-colored lanes, merge/cherry-pick curves, tag chips, and HIGHLIGHT/REVERSE commit glyphs.
+- Determinism stayed additive: all coordinates use `rhuInt()`, existing goldens remained byte-identical, and the new gallery renders emitted successfully at `mermaid-journey` 1752×454 and `mermaid-gitgraph` 1152×432.
+- Verification: `pnpm -C packages/core build` ✓, `pnpm -C packages/core typecheck` ✓, `pnpm -C packages/core test` ✓ → **1503/1503 passing**.
+
+## Learnings (Sankey value-in-label + gradient ribbons — 2026-06-14)
+
+**Node value labels:**
+- Added `showNodeValues: boolean` to `SankeyTheme` (default `true` to match Mermaid).
+- Format helper `formatNodeValue(v)`: integers display without decimals; fractions keep up to 3 dp with trailing zeros stripped.
+- Label composed as `"${node.label} ${formatNodeValue(throughput)}"` where throughput = `max(inFlow, outFlow)`.
+- Updated corpus tests 8 and 25 to check `texts.some(t => t === name || t.startsWith(name + ' '))`.
+
+**Gradient ribbons:**
+- Added `fillGradient?: StrokeGradient` to `PathPrimitive` in `scene.ts` (reuses existing `StrokeGradient` interface — same `from/to/x1/y1/x2/y2` fields).
+- Updated `svg.ts`: refactored `collectGradientDefs()` to handle both stroke and fill gradients; fill uses `fg-` ID prefix. `primitiveToSvg` for `path` uses `url(#fg-...)` when `fillGradient` is set.
+- Updated `skia.ts`: `renderPath()` for filled paths checks `p.fillGradient` and builds `CK.Shader.MakeLinearGradient` shader instead of flat colour.
+- In `layout.ts`: each ribbon gets `fillGradient: { from: srcColor, to: tgtColor, x1, y1: srcMidY, x2, y2: tgtMidY }` for a left-to-right horizontal gradient. `fill` field retained as backend fallback.
+
+**File paths:**
+- `packages/core/src/scene.ts` — added `fillGradient?: StrokeGradient` to `PathPrimitive`
+- `packages/core/src/render/svg.ts` — `collectGradientDefs` now handles both stroke + fill; `primitiveToSvg` path case uses `fillGradientId()`
+- `packages/core/src/render/skia.ts` — `renderPath()` handles `fillGradient` via `MakeLinearGradient` shader
+- `packages/core/src/grammars/sankey/theme.ts` — added `showNodeValues: boolean` (default `true`)
+- `packages/core/src/grammars/sankey/layout.ts` — `formatNodeValue()`, label composition with value, `StrokeGradient` import, gradient ribbon generation
+- `packages/core/test/mermaid-sankey-corpus.test.ts` — updated tests 8 and 25 for value-in-label
+
+**Suite:** 1540/1540 passing. All pre-existing non-sankey goldens byte-identical. Gallery: `mermaid-sankey.{svg,png}` at 964×544 (canvas dims unchanged).
+
+## Learnings (sequence autonumber + notes — 2026-06-14)
+
+- Fixed sequence-diagram step badge fidelity without changing IR semantics: `Message.order` stays zero-based, but rendered autonumber badges now display `msgRank + 1` (1-indexed sequential rank among messages), matching Mermaid. Using rank rather than `order + 1` also keeps YAML fixtures (which use 1-based orders) correct.
+- Added first-class `SequenceNote` support across the sequence stack (`types.ts`, `schema.ts`, Mermaid parser, theme, layout, exports), with `afterOrder` used to interleave notes among messages while preserving message order invariants.
+- Parser now lowers `Note left of`, `Note right of`, and `Note over A[,B]` into IR instead of warning-and-dropping, and `autonumber` now sets `sequence.autonumber = true` while still surfacing a note-level warning.
+- Layout now renders note boxes/text and uses a unified message+note sort, so notes occupy visual rows without affecting message `order` values or fragment / activation semantics.
+- `renderMessage` received a new `stepNumber: number` parameter (1-based rank) so callers control the displayed number; the layout loop tracks `msgRank` separately from the unified item rank.
+- Notes are positioned using `afterOrder + 0.5` as the sort key, placing them after the named message and before the next one in the visual sequence without altering any existing message order values.
+
+**File paths:**
+- `packages/core/src/grammars/sequence/types.ts` — added `SequenceNote`; `autonumber?` + `notes?` in `SequenceDefinition`
+- `packages/core/src/grammars/sequence/schema.ts` — `sequenceNoteSchema`; note participant cross-validation
+- `packages/core/src/grammars/sequence/theme.ts` — 8 new `note*` tokens; defaults + dark overrides
+- `packages/core/src/grammars/sequence/layout.ts` — `renderNote()`; `SortedItem` union type; unified render loop; rank-based `stepNumber`
+- `packages/core/src/grammars/sequence/index.ts` — exported `SequenceNote`
+- `packages/core/src/frontend/mermaid/sequence.ts` — note parsing; `autonumber` flag; notes array
+- `packages/core/test/mermaid-sequence-corpus.test.ts` — updated AC7 + AC9; new fidelity describe block (8 tests)
+
+**Verification:** `pnpm -C packages/core build` ✓, `pnpm -C packages/core typecheck` ✓, `pnpm -C packages/core test` → **1552/1552 passing**; only `mermaid-sequence.{svg,png}` changed in gallery goldens.

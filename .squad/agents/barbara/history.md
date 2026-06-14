@@ -135,3 +135,41 @@ use a very light pastel. All 8 colors are distinct; cycling handles timelines wi
 - `.squad/decisions/inbox/barbara-timeline-columns.md` — decision note
 
 ### Test result: 1540/1540 ✓ (only mermaid-timeline.svg changed)
+
+
+---
+
+## Learnings — Radar `curve id["Label"]{...}` — Mermaid-valid gallery example (2026-06-14)
+
+### What changed
+
+The gallery example `examples/gallery/mermaid-radar.mmd` previously used `curve "Senior Dev"{...}` (no id) which is our superset extension. Real Mermaid `radar-beta` **requires** a bare id before the label:
+
+- ✅ Valid: `curve sd["Senior Dev"]{9, 8, 7, 8, 9, 6}`
+- ❌ Rejected: `curve "Senior Dev"{9, 8, 7, 8, 9, 6}` (no id)
+
+The example now reads `curve sd["Senior Dev"]{9, 8, 7, 8, 9, 6}` and `curve jd["Junior Dev"]{6, 5, 5, 3, 6, 4}`. Both axes (`axis sp["Speed"], rl["Reliability"], ...`) and `max`/`min`/`title` were already Mermaid-valid.
+
+### Parser behaviour (both forms supported)
+
+Our parser (`frontend/mermaid/radar.ts`) already handled the id form via the `labeledId` branch at line 141 — `seriesName = labeledId[2]` takes the quoted label, **not** the id. So the legend always shows "Senior Dev" / "Junior Dev" regardless of whether `sd` / `jd` ids are present.
+
+The no-id superset form `curve "Senior Dev"{...}` is preserved via the `doubleQuoted` branch and continues to work.
+
+### Corpus test added
+
+New test case `'canonical mermaid id-form curves use label not id'` in `test/mermaid-radar-corpus.test.ts` verifies the gallery MMD text with `sd`/`jd` ids parses to `expectedAxes` = 6 axes, `expectedSeries` = 2, `expectedLabelIncludes` = `['Developer Profile Comparison', 'Senior Dev', 'Junior Dev']`.
+
+### A/B result
+
+Both real Mermaid (mmdc) and our renderer produce the correct 6-axis 2-series radar:
+- **Real Mermaid:** smooth bezier-curved polygons, blue/periwinkle + yellow-green fill, grey concentric rings, no ring scale labels.
+- **Ours:** angular straight-line polygons, blue + orange fill (higher contrast), dashed concentric rings WITH scale labels (2.5 / 5 / 7.5 / 10) — more informative.
+
+Both are structurally faithful. Ours is at least as clean, with better series contrast and explicit scale labels. The main visual delta is polygon shape (curved vs straight edges).
+
+### SVG golden note
+
+Because the rendered output only depends on series **labels** (not ids), and the labels "Senior Dev" / "Junior Dev" did not change, the re-emitted `mermaid-radar.svg` is byte-identical to the committed version. All other gallery SVGs are also byte-identical. Only `mermaid-radar.mmd` changed in git.
+
+### Test result: 1541/1541 ✓ (1 new test added)

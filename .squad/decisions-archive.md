@@ -5128,3 +5128,647 @@ Mermaid's `timeline` diagram (e.g., "History of Programming Languages") placed i
 
 Ready to begin: class, state, ER, C4 parsers + new IRs + layout engines.
 
+# Squad Decisions — Recent & Current (2026-06-14)
+
+---
+
+## 🎊 EVALUATION STANDARD — Diagram Fidelity A/B Audited (2026-06-14)
+
+**Status:** STANDING PRINCIPLE  
+**Reference:** Real-Mermaid Fidelity Pass Complete (below)
+
+**The Principle:** Diagram fidelity is judged by rendering the same source in real Mermaid (using the `mmdc` CLI) and comparing the two renders side-by-side. Never self-judge.
+
+**Priority:** Fidelity FIRST (match Mermaid's defining visual semantics), THEN out-polish (e.g., cleaner lines, softer colors, better label placement).
+
+**Audit Setup:** The coordinator installed the mmdc CLI and executed a rigorous A/B audit across all 15 comparable diagram types in the current corpus, rendering each in both systems and comparing side-by-side.
+
+**Result:** Six diagram types had real fidelity gaps vs. real Mermaid. All six were fixed and verified with re-renders. Approximately 10 types were already competitive or better than real Mermaid.
+
+---
+
+## 🎊 REAL-MERMAID FIDELITY PASS COMPLETE — 6 Diagram Types Fixed & A/B-Verified (2026-06-14)
+
+**Status:** COMPLETED & COMMITTED  
+**Commits:** 90f106e (gitGraph+journey), 23a2d79 (mindmap+sankey), 2a74641 (gantt), 675d573 (timeline)  
+**Test Status:** 1540/1540 tests passing; all pre-existing goldens byte-identical (only examples affected)
+
+---
+
+## Summary
+
+Post-Tier-3, the coordinator conducted a rigorous A/B audit of all 15 Mermaid diagram types currently in the compiler's scope, using real Mermaid's `mmdc` CLI as the ground truth. The audit discovered six types with visual fidelity gaps compared to real Mermaid:
+
+1. **gitGraph** — Branch-off and merge curve topology (Barbara)
+2. **journey** — Satisfaction curve score→vertical-height encoding (Bjarne)
+3. **mindmap** — Radial layout support (Barbara)
+4. **sankey** — Value-in-labels and gradient ribbons (Bjarne)
+5. **gantt** — Section labels, date grid, status bars, milestone diamonds (Barbara)
+6. **timeline** — Section-column layout (Barbara)
+
+All six fixes are now complete, re-verified against real Mermaid renders, and committed. The remaining ~10 types (flowchart, class, sequence, state, ER, pie, xychart, quadrant, radar, and others) were already competitive or better than real Mermaid and required no changes.
+
+---
+
+## Fixes by Type
+
+### 1. gitGraph Topology Fix (Barbara, Commit 90f106e)
+- **Issue:** Branch-off and merge curves did not follow real Mermaid's routing (curved merge edges, branch-off detachment, hollow merge dots).
+- **Fix:** Re-routed merge edges as quadratic Bézier curves; added hollow circle rendering for merge commits; aligned branch-off positioning to Mermaid semantics.
+- **A/B Status:** ✅ Renders now match real Mermaid.
+- **Test:** 45 corpus tests, byte-identical goldens (except mermaid-gitgraph.svg/png).
+
+### 2. Journey Satisfaction-Curve Fix (Bjarne, Commit 90f106e)
+- **Issue:** Score values (1–5) were displayed as text labels, not encoded as vertical height (emotional curve).
+- **Fix:** Added vertical offset encoding: score→height mapping, with curve interpolation per actor track. Task labels now visually ride the satisfaction curve.
+- **A/B Status:** ✅ Satisfaction curve now matches real Mermaid.
+- **Test:** 33 corpus tests, byte-identical goldens (except mermaid-journey.svg/png).
+
+### 3. Mindmap Radial Layout (Barbara, Commit 23a2d79)
+- **Issue:** Mindmap only supported tree layout; real Mermaid supports radial mode.
+- **Fix:** Added `layoutRadial.ts` opt-in path in `grammars/tree/`. Radial mode is enabled via `layout: 'radial'` or diagram config.
+- **A/B Status:** ✅ Radial option matches real Mermaid semantics.
+- **Test:** 12 radial mindmap corpus tests, byte-identical goldens (new gallery card).
+
+### 4. Sankey Value-in-Labels + Gradient Ribbons (Bjarne, Commit 23a2d79)
+- **Issue:** Sankey ribbons were solid colors; value labels were missing. Real Mermaid shows flow values in node labels and uses gradient fill across ribbon width.
+- **Fix:** Added `additive fillGradient` support to Scene kernel (`scene.ts/svg.ts/skia.ts`). Sankey now emits gradient fills and embeds values in node/link labels.
+- **A/B Status:** ✅ Gradient ribbons and value labels match real Mermaid.
+- **Test:** 18 sankey corpus tests, byte-identical goldens (except mermaid-sankey.svg/png).
+
+### 5. Gantt Faithful Layout (Barbara, Commit 2a74641)
+- **Issue:** Gantt render was roadmap-style (rounded pill bars, no section labels, wrong milestone rendering). Real Mermaid gantt has section labels, vertical gridlines, alternating section bands, and diamond milestones.
+- **Fix:** New `src/layout/gantt.ts` engine: section-label column (120px left), alternating bands, vertical gridlines, diamond milestones, date axis (YYYY-MM-DD format).
+- **A/B Status:** ✅ All gantt layout features now match real Mermaid (render is slightly cleaner).
+- **Test:** 22 gantt corpus tests, byte-identical goldens (except mermaid-gantt.svg/png).
+
+### 6. Timeline Section-Column Layout (Barbara, Commit 675d573)
+- **Issue:** Timeline used a generic horizontal layout. Real Mermaid timeline has section columns (one column per section, events stacked vertically within each).
+- **Fix:** New `src/layout/timeline-columns.ts` engine: column-per-section layout, vertical event stacking, per-section color bands.
+- **A/B Status:** ✅ Section-column layout now matches real Mermaid.
+- **Test:** 16 timeline corpus tests, byte-identical goldens (except mermaid-timeline.svg/png).
+
+---
+
+## Optionality & Determinism
+
+All six fixes are **opt-in, separate code paths**; no existing layout families are modified:
+- gitGraph, journey, sankey: Always use their new rendering (no fallback needed; diagrams are new Tier 3 additions).
+- gantt: New `layout: 'gantt'` family; existing `roadmap`/`horizontal`/`vertical-spine`/`serpentine` unchanged.
+- timeline: New `layout: 'timeline-columns'` family; existing `horizontal` layout unchanged.
+- mindmap: New `layout: 'radial'` option; existing `layout: 'tree'` unchanged.
+
+**Determinism Preserved:** All coordinates are derived from direct arithmetic; no randomness or iterative solvers. Pre-existing non-modified golden SVG files remain byte-identical.
+
+---
+
+## Remaining Minor Items
+
+(Not blocking; logged for future sprints)
+
+1. **Sequence Diagram Numbering:** Current impl uses 0-indexed sequence numbers; real Mermaid uses 1-indexed. Correctable with minor IR tweaks.
+2. **Sequence Note Drop:** Rare edge case where notes may clip at extreme offsets; requires minor collision-avoidance tuning.
+3. **Radar Syntax Compatibility:** One example uses Mermaid's legacy doc-form syntax (not yet in real Mermaid radar-beta); marked as "design-doc form" in inline comments.
+
+---
+
+## Test Status & Quality Gates
+
+- **Full Suite:** 1540/1540 ✓
+- **Determinism:** All geometry from direct computation; no randomness.
+- **Non-Modified Goldens:** Byte-identical (verified by `git status --porcelain examples/gallery/*.svg` after each commit).
+- **Gallery:** Six new/re-rendered example cards: mermaid-gitgraph.{svg,png}, mermaid-journey.{svg,png}, mermaid-sankey.{svg,png}, mermaid-gantt.{svg,png}, mermaid-timeline.{svg,png}, mermaid-mindmap-radial.{svg,png}.
+
+---
+
+---
+
+# Squad Decisions — Recent & Current (2026-06-14)
+
+---
+
+## 🎊 TIER 3 STARTED — userJourney + gitGraph Shipped (2026-06-14)
+
+**Status:** CONFIRMED COMMITTED  
+**Commit:** a2a1b37  
+**Test Status:** 1503/1503 tests passing, determinism preserved
+
+Tier 3 kickoff ships two high-value long-tail Mermaid chart types on the shared foundation:
+- **userJourney:** Horizontal score-ramp journey with section bands + actor legend. Tasks scored 1–5 with color ramp, actor chips, deterministic layout. 33 corpus tests.
+- **gitGraph:** Per-branch lanes with merge curves, tags, commit types. Chronological commit ordering, Bézier merge edges, LR default (TB deferred). 45 corpus tests.
+
+Gallery: `mermaid-journey.{mmd,svg,png}` (1752×454) + `mermaid-gitgraph.{mmd,svg,png}` (1152×432); gallery cards 37–38.
+
+**Compiler Coverage:** With Tiers 0+1+2+3 (partial) complete, the compiler now covers 15 Mermaid types: flowchart, sequence, gantt, timeline, mindmap, class, state, ER, C4, pie, xychart, quadrant, radar, journey, gitGraph.
+
+**Next:** Tier 3 breadth = remaining types (sankey in progress, requirement, block, packet, kanban, etc.).
+
+---
+
+# Decision: TIER 3 STARTED — userJourney + gitGraph Shipped
+
+**Agent:** Bjarne (Grammar Specialist); Coordinator (Integration)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+## Summary
+
+Tier 3 launched with journey and gitGraph implementations on the shared grammar-of-graphics foundation. Both charts deliver deterministic layouts and pass comprehensive test suites. No polish pass required; renders clean on first build.
+
+## userJourney Chart
+
+### Semantics
+- **Sections:** Named horizontal bands (e.g., "Identify Need", "Research", "Purchase")
+- **Tasks:** Scored 1–5 on a horizontal spine; each task carries score + actor array
+- **Actors:** Legend rendered as labeled chips below the journey spine
+- **Color Ramp:** Score→color mapping (1=red, ..., 5=green) via theme `scoreFills: string[]`
+
+### Layout
+- Single-pass left→right: sections contiguous, tasks at fixed `taskGapX` centers
+- Actor chips: small rounded rectangles below task label
+- Determinism: all coordinates via `rhuInt()` (round-half-up)
+
+## gitGraph Chart
+
+### Semantics
+- **Branches:** Horizontal lanes; creation order (or explicit `order:` field) determines Y-position
+- **Commits:** Chronological sequence carrying branch + parents[] + type + isMerge + isCherryPick
+- **Merge Edges:** Stored as commit parents; rendered as Bézier arcs in layout
+- **Tags:** Optional commit metadata, rendered as chips above commit dots
+
+### Layout
+- **Default (LR):** Branches = horizontal lanes, commits = dots in column order
+- **TB Deferred:** Warns and falls back to LR
+- **Merge Curves:** Quadratic Bézier from source branch tip to merge commit target lane
+- **Determinism:** Pure function over (doc, theme); commit IDs auto-generated as "commit-0", "commit-1", ... if not provided
+
+## Test Coverage & Determinism
+
+- **journey:** 33 corpus tests ✓
+- **gitGraph:** 45 corpus tests ✓
+- **Full suite:** 1503/1503 ✓
+- **Determinism:** All geometry from direct arithmetic; no randomness
+
+---
+
+## 🎊 TIER 2 COMPLETE — All 4 Chart Types Shipped (2026-06-14)
+
+**Status:** CONFIRMED COMMITTED  
+**Commits:** 5b709cf (foundation+pie+xy), ecfc418 (quadrant+radar)  
+**Test Status:** 1425/1425 tests passing, determinism preserved
+
+All four Mermaid chart types shipped on the shared grammar-of-graphics foundation:
+- **Pie Chart:** Theta encoding, arc sectors, priority-based label placement, deterministic legend.
+- **XY Chart:** Bar + line, nominal/quantitative scales, gridlines, deterministic tick-label crowding resolution.
+- **Quadrant Chart:** Tinted regions, x/y in [0,1], edge-aware non-clipping labels (fixed defects in left margin + right-edge detection).
+- **Radar Chart:** Radial scale, spokes/rings, translucent series polygons, dual-syntax parser (Mermaid radar-beta + design-doc form).
+
+Gallery: `mermaid-{pie,xychart,quadrant,radar}.{mmd,svg,png}` at 920×560 px (gallery cards 33–36).
+
+**Compiler Coverage:** With Tiers 0+1+2 complete, the compiler now covers 13 Mermaid types: flowchart, sequence, gantt, timeline, mindmap, class, state, ER, C4, pie, xychart, quadrant, radar.
+
+**Next:** Tier 3 = remaining Mermaid types (journey, gitGraph, requirement, sankey, block, packet, kanban, etc.).
+
+---
+
+# Decision: TIER 2 COMPLETE — All 4 Chart Types Shipped
+
+**Agent:** Barbara (Layout Specialist); Coordinator (Integration)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+---
+
+## Summary
+
+Tier 2 of the grammar-of-graphics roadmap fully shipped. Quadrant + radar implemented on the foundation established by pie + xychart. Shared `ChartDocument` Domain IR accommodates all four; layout dispatch is per-kind only. Full test suite: 1425/1425 ✓. All goldens deterministic and byte-identical.
+
+---
+
+## Quadrant Chart
+
+### Semantics
+- Fixed domain: x, y ∈ [0, 1], center split at (0.5, 0.5).
+- Quadrant labels: [Q1 top-right, Q2 top-left, Q3 bottom-left, Q4 bottom-right].
+- Item labels use deterministic collision-avoidance candidates around each point.
+- Axis endpoints carry meaning (`Low`/`High` defaults, overrideable).
+
+### Defect Fixes
+- **Y-axis label left-edge clip:** Left plot offset increased from 60 px → 110 px (`yLabelReserve`). "High Engagement" now renders at x ≈ 37 px instead of clipping at x ≈ −13 px.
+- **Item label right-edge clip ("Viral Video"):** Added `EDGE_MARGIN = 6` boundary check in priority-based placement. Fallback logic now routes labels inward when less than 6 px clearance exists at plot borders.
+
+---
+
+## Radar Chart
+
+### Semantics
+- Axes are explicit categorical spokes in declared order.
+- Radial domain from `radarMin`/`radarMax` when present; else inferred from data.
+- `RadialScale` is closed-form and clampable; normalized radius is later multiplied by pixel radius.
+- Multi-series radar uses two path layers per polygon: low-opacity fill + full-opacity stroke (within current Scene primitive capabilities).
+- Layout degrades to placeholder message if fewer than 3 axes exist.
+
+### Parser Contract
+Supports both:
+1. **Mermaid `radar-beta`** axis/curve syntax
+2. **Design-doc `axes: [...]` / `"Series": [...]`** syntax
+
+Auto-detection: when `axis`/`curve` lines appear without `axes:`, radar-beta semantics apply. Curves parsed before axes are backfilled once axes arrive.
+
+---
+
+## Test Coverage & Determinism
+
+- Full suite: **1425/1425 ✓**
+- Non-quadrant/radar SVG goldens: **byte-identical ✓**
+- Parser coverage: syntax variants, layout edge cases, gallery rendering.
+- Determinism: all geometry from direct arithmetic; no iterative solvers or randomness.
+
+---
+
+---
+
+## 🎊 TIER 2 STARTED — Chart Grammar-of-Graphics Foundation (2026-06-14)
+
+**Status:** CONFIRMED COMMITTED  
+**Commit:** 5b709cf  
+**Test Status:** 1361 tests passing, determinism preserved
+
+Grammar-of-graphics foundation shipped at `packages/core/src/grammars/chart/` (scales, axes, marks, shared layout engine with priority-based label collision avoidance). First two chart types live: **pie** + **xychart-beta** (bar + line). Built to specification by Barbara; first render clean (no polish pass needed).
+
+- **Shared Foundation:** Reusable scale (`LinearScale`, `BandScale`), axis, mark, and theme infrastructure via `ChartDocument` Domain IR → deterministic Scene IR.
+- **Pie Chart:** Theta encoding, arc sectors, priority-based label placement (inside/outside/leader-lines), deterministic legend.
+- **XY Chart:** Nominal/quantitative scale selection, nicened Y-domain, gridlines, deterministic tick-label crowding resolution, bar/line/point primitives.
+- **Determinism:** All geometry from direct arithmetic; no iterative solvers or randomness.
+- **Parser:** Mermaid `pie.ts` and `xychart.ts` parse Mermaid syntax into the shared `ChartDocument`.
+- **Gallery:** Examples `mermaid-pie.{mmd,svg,png}` + `mermaid-xychart.{mmd,svg,png}` (both 920×560), gallery cards 33+34.
+
+**Pattern:** Foundation reusable for quadrant + radar (only a layout dispatch branch needed per chart type).
+
+**Follow-up:** xychart series naming shows generic "bar 0"/"line 0" (Mermaid syntax does not name series).
+
+**Next:** Tier 2 remaining = quadrant + radar chart types (reuse foundation).
+
+---
+
+# Decision: TIER 2 STARTED — Chart Grammar-of-Graphics Foundation
+
+**Agent:** Barbara (Layout Specialist)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+---
+
+## Summary
+
+Dedicated grammar-of-graphics layer at `packages/core/src/grammars/chart/` with the same two-IR-layer architecture as existing grammars. Implements shared scales, axes, marks, theme, and deterministic layout engine. First two chart types (pie + xychart-beta) shipped end-to-end: Domain IR (ChartDocument) → deterministic layout → Scene IR → SVG/PNG.
+
+Gallery: `mermaid-pie.png` + `mermaid-xychart.png` at 920×560 px, gallery cards 33+34.
+
+Full suite: **1361 tests passing**. All pre-existing 1281 tests remain byte-identical.
+
+---
+
+## Design
+
+### ChartDocument (Domain IR)
+
+Semantic chart intent: data rows, field encodings, lightweight config. Maps Mermaid syntax into unified structure for all chart families.
+
+### Layout Engine
+
+Deterministic scales, axes, marks, and label placement:
+- **LinearScale:** continuous numeric domain → pixel range, nicening for axis ticks.
+- **BandScale:** categorical domain → pixel bands with padding.
+- **Priority-based label placement:** largest slices first, inside when roomy, outside for small/conflicting, leader lines for spillover.
+- **Tick-label crowding:** deterministic skipping based on measured label width vs available space.
+- **No iterative solvers:** all geometry derives from direct arithmetic.
+
+### Scene IR Output
+
+Existing primitives only: `rect`, `line`, `circle`, `text`, `path`. Serializers unchanged.
+
+---
+
+## Pie Chart
+
+**Encoding:**
+- Theta encoding maps value totals to sector angles.
+
+**Layout:**
+- Arc sectors emit as SVG `path` primitives.
+- Labels use priority rule: largest slices first, inside when roomy, outside for small/conflicting slices, leader lines for spillover cases.
+- Legend emitted as deterministic swatch + label rows.
+
+---
+
+## XY Chart (Bar + Line)
+
+**Scale Selection:**
+- Nominal X uses `BandScale`; quantitative X uses `LinearScale`.
+- Y uses nicened `LinearScale` domain.
+
+**Marks:**
+- Bars emit as `RectPrimitive`.
+- Lines as `PathPrimitive`.
+- Points as `CirclePrimitive`.
+
+**Layout:**
+- Gridlines render behind marks.
+- Tick-label crowding resolved by deterministic skipping based on measured label width vs band width.
+
+---
+
+## Parser (frontend/mermaid)
+
+**pie.ts:** Parses Mermaid pie syntax into `ChartDocument` (pie kind).
+
+**xychart.ts:** Parses Mermaid xychart syntax (bar + line) into `ChartDocument` (xychart kind).
+
+Both wired into `frontend/mermaid/index.ts` and `src/index.ts` detect/parse/render pipeline.
+
+---
+
+## Test Coverage
+
+- **pie corpora:** 40 tests
+- **xychart corpora:** 40 tests
+- **scale determinism:** 80 unit tests
+
+All existing 1281 tests pass, byte-identical.
+
+---
+
+## Consequences
+
+- New chart grammars can plug into foundation without backend work.
+- Quadrant + radar can reuse layout infrastructure (only a dispatch branch per type).
+- Mermaid `pie` and `xychart-beta` render through our engine end-to-end.
+
+---
+
+## 🎊 TIER 1 COMPLETE — UML/Software-Line Shipped (2026-06-14)
+
+**Status:** CONFIRMED COMMITTED  
+**Commit(s):** f4b945e (class), 9c2d9b3 (state+er), 5b49d8c (c4)  
+**Test Status:** 1281 tests passing, zero golden regressions
+
+All four UML/Software-line diagram types now shipped end-to-end: **classDiagram**, **stateDiagram**, **erDiagram**, **C4**.
+
+- **C4 Support:** Context/Container/Component/Dynamic all operational; Deployment gracefully degrades.
+- **Layout Polish:** Orthogonal edge routing, boundary-aware placement, edge labels clear of all boxes, port distribution for edge fans, collision-avoidant routing around inner boundaries.
+- **Determinism:** All coordinates deterministic via `rhuInt()`, grid layout fixed-column, declaration-order stable.
+- **Gallery:** `mermaid-c4.{svg,png}` at 1189×744 px; Internet Banking System C4Context canonical example.
+
+**Pattern Proven:** Bjarne builds grammar+parser vertical (real-crawl-hardened), Coordinator visually reviews, Barbara polishes layout/routing, Scribe archives decisions, then commit. All 1235 pre-existing tests remain byte-identical across Tier 1 (class/state/er/c4).
+
+**Next:** Tier 2 = Charts family (pie, xychart, quadrant, radar) via grammar-of-graphics layer.
+
+---
+
+# Decision: Tier 1 COMPLETE — C4 Diagram Grammar
+
+**Agent:** Bjarne (Ingestion Design)
+**Date:** 2026-06-14
+**Status:** ADOPTED
+
+---
+
+## Summary
+
+The `C4` grammar is the fourth and final Tier 1 UML/Software-line type. Full vertical shipped end-to-end: Domain IR → deterministic layout → Scene IR → SVG/PNG, wired into the Mermaid front-end detect/parse/render pipeline.
+
+Gallery: `mermaid-c4.png` at **1445×728** px — canonical "Internet Banking System" C4Context with nested Enterprise_Boundary + inner Boundary, Person/Person_Ext/System/System_Ext elements, labeled directed Rels.
+
+Full suite: **1281 tests passing**. Zero golden regressions. All previously passing 1235 tests remain byte-identical.
+
+---
+
+## C4 IR Shape
+
+### `C4Document` (packages/core/src/grammars/c4/types.ts)
+
+```
+C4Document {
+  version: string
+  metadata: { title?, theme?, diagramKind: C4DiagramKind }
+  elements: C4Element[]         // top-level (outside any boundary)
+  boundaries: C4Boundary[]      // top-level dashed container boxes
+  rels: C4Rel[]
+}
+```
+
+### Element kinds (`C4ElementKind`)
+All 20 constructors: Person, Person_Ext, System, System_Ext, SystemDb, SystemDb_Ext, SystemQueue, SystemQueue_Ext, Container, Container_Ext, ContainerDb, ContainerDb_Ext, ContainerQueue, ContainerQueue_Ext, Component, Component_Ext, ComponentDb, ComponentDb_Ext, ComponentQueue, ComponentQueue_Ext.
+
+- `_Ext` suffix → `extFill` (gray/muted) via theme; internal variants → category color (Person/System=blue, Container=medium-blue, Component=light-blue)
+- `Db` variants → `dbArcHeight` hint; layout adds an ellipse-top arc path above the element rect to suggest a cylinder
+- `Queue` variants → same as base kind for MVP (shape hint deferred; warn not emitted since it's non-breaking)
+- `technology` field used in stereotype line: `«Container: Spring Boot»`
+
+### Boundary nesting
+`C4Boundary.children: Array<C4Element | C4Boundary>` — recursive. Zod uses `z.lazy()` for the recursive schema. Layout uses recursive `measureBoundary()` → `placeBoundary()`. Reasonable depth ≤ 4; deeper nesting degrades gracefully (children placed, extra boundary levels collapse) with a warning.
+
+Boundary kinds: `Boundary`, `Enterprise_Boundary`, `System_Boundary`, `Container_Boundary` — all render as dashed titled container box (same visual; label distinguishes the kind semantically).
+
+### Rel handling
+Seven kinds: `Rel`, `BiRel`, `Rel_U`, `Rel_D`, `Rel_L`, `Rel_R`, `Rel_Back`.
+- `BiRel` → arrowheads at both ends in layout.
+- `Rel_Back` → from/to swapped at parse time (alias IDs stored as written; the swap is semantic).
+- `Rel_U/D/L/R` → treated as plain `Rel` with a layout-hint warning (spatial hints deferred; grid layout places elements deterministically regardless).
+- `C4Dynamic` numbered rels → first arg is integer → stored in `rel.order`; label rendered with order prefix `"1: label"`.
+
+---
+
+## Determinism Notes
+
+- All coordinates via `rhuInt(v) = Math.floor(v + 0.5)`.
+- Grid layout: column count = `Math.min(3, Math.ceil(Math.sqrt(N)))` where N = number of top-level items (elements + boundaries).
+- Declaration-order stable — no sorting by name; items placed in the order they appear in the source.
+- Edge geometry is deterministic: straight line from nearest-edge center of `from` box to nearest-edge center of `to` box, arrowhead perpendicular, label at midpoint with white background rect.
+- No randomness anywhere.
+
+---
+
+## Parser Strategy (frontend/mermaid/c4.ts)
+
+- Preprocesses with `preprocessMermaid` (frontmatter/comment stripping, directive extraction).
+- `tokenizeArgs(argStr)` — quoted-string-aware comma splitting; handles `"foo, bar"` as one token; strips `$tag`/`$key=value` named args silently.
+- Boundary `{ }` block nesting via an explicit stack of `C4Boundary | C4Document` scopes.
+- Unknown constructor names → parse warning, skip line.
+- Styling directives (`UpdateElementStyle`, `UpdateRelStyle`, `UpdateLayoutConfig`, `UpdateBoundaryStyle`) → silently ignored (parse-and-drop).
+- `title` line → `doc.metadata.title`.
+- All parser errors are warnings, never throws.
+
+---
+
+## Layout Strategy (grammars/c4/layout.ts)
+
+Two-pass: measure → place.
+
+**Measure pass:**
+- `measureElement(el, tk)` → `{ width, height, stereotypeLine, descLines[] }`; description text is word-wrapped at `tk.descMaxWidth` characters before measuring.
+- `measureBoundary(b, tk)` → recurse children, compute interior grid, add header + padding.
+
+**Place pass:**
+- Top-level items arranged in grid (max 3 columns).
+- Boundaries placed as single grid cells of their measured size.
+- Internal children placed recursively within boundary bounds.
+- `byAlias: Map<string, BBox>` built for all elements (including nested) for edge routing.
+
+**Edge pass:**
+- Straight-line edges. Nearest-face intersection (horizontal or vertical, whichever minimizes Euclidean distance between face midpoints).
+- Arrowhead: open triangle via `path` primitive.
+- Label: `text` primitive at midpoint, white background `rect`.
+- Tech sub-label: `text` primitive 14px below main label, smaller, dimmer.
+
+---
+
+## Sub-kinds Support Status
+
+| Sub-kind       | Status     | Notes |
+|----------------|------------|-------|
+| C4Context      | ✅ Full    | Complete element+boundary+rel support |
+| C4Container    | ✅ Full    | Same vocabulary; `technology` field in stereotype |
+| C4Component    | ✅ Full    | Same vocabulary |
+| C4Dynamic      | ✅ Full    | Numbered rels stored as `order`; prefix in rendered label |
+| C4Deployment   | ⚠️ Degraded | `Node`/`Deployment_Node` parsed as `Boundary`; children parse normally; full nesting support deferred with public warning |
+
+---
+
+## Deferred Items
+
+- `Rel_U/D/L/R` spatial placement (treated as plain Rel + layout-hint warning; grid layout is fixed-column and ignores directional hints)
+- C4Deployment full `Node`/`Deployment_Node` semantic rendering (parses but treated as plain Boundary)
+- Person circle/stick-figure icon (stereotype text «Person» used instead; shape icon deferred)
+- Queue shape (cylinder-side icon deferred; Db cylinder arc implemented)
+- `$tags`, `$link`, `$techn` named args (silently ignored)
+- Accessibility `accTitle`, `accDescr` lines (silently ignored)
+- `click` / `href` interactivity (silently ignored)
+
+---
+
+## Tier 1: COMPLETE
+
+All four UML/Software-line types are now shipped:
+1. `classDiagram` (2026-06-13) — commit f4b945e
+2. `stateDiagram` (2026-06-14) — commit 9c2d9b3
+3. `erDiagram` (2026-06-14) — commit 9c2d9b3
+4. `C4` (2026-06-14) — this commit (coordinator to assign SHA)
+
+Full Mermaid front-end now covers 9 diagram types (5 Tier 0 + 4 Tier 1). Ready for Tier 2 (chart family: pie, xychart, quadrant, radar).
+# Decision: C4 Layout Polish — Tier 1 (2026-06-14)
+
+**Author:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-14  
+**Status:** READY FOR COORDINATOR COMMIT  
+**Scope:** `packages/core/src/grammars/c4/layout.ts` only
+
+---
+
+## Summary
+
+Complete rewrite of the C4 layout engine to fix three visual defects in the Internet Banking System C4Context example: (1) edge label overlapping the Email System element box, (2) long crossing diagonals from Banking Customers B/C/D, (3) edges clipping through boundary containers. All pre-existing goldens stay byte-identical; 1280/1281 tests pass; the 1 failure is a pre-existing Skia flake unrelated to C4.
+
+---
+
+## Defects Fixed
+
+### 1. Edge Label Overlapping a Box
+**Root cause:** Naive geometric midpoint of diagonal `LinePrimitive` edges falls inside element boxes (e.g., "Uses" label at SystemAA→EmailSystem midpoint landed inside EmailSystem's rect).  
+**Fix:** Labels placed on the longest segment of the orthogonal path, offset perpendicularly by 22 px. `adjustLabelAnchor` checks all solid element boxes (boundaries excluded — dashed borders are transparent for routing); if overlap, moves label above the box.
+
+### 2. Long Crossing Diagonals + Edge Fan
+**Root cause:** Top-level grid placed all elements in declaration order regardless of boundary grouping; routing used direct diagonal `LinePrimitive`.  
+**Fixes:**
+- **Element placement:** `computeTopLevelGrid` puts boundaries in row 0 and top-level elements in row 1 (centered). Inside boundaries, `sortBoundaryChildren` ranks Person/Person_Ext first (0), sub-Boundary second (1), other elements last (2). This centers hub systems directly below the persons who connect to them, minimizing long-distance crossings.
+- **Orthogonal routing:** All rels use `PathPrimitive` with HVH or VHV L-shaped paths. `buildOrthogonalPath` searches for a collision-free midX (HVH) or midY (VHV) via a stepped scan.
+- **Port distribution:** Two-pass `computePortPairs` first records per-(alias, side) counts, then assigns distinct port coordinates (spacing 24 px, clamped to box bounds). Multiple edges into the same element fan along the perimeter.
+
+### 3. Boundary/Edge Crossing
+**Root cause:** VHV routes for SystemAA→EmailSystem needed to jump the inner BankBoundary.  
+**Fix:** Only solid element boxes (not boundary boxes) are checked for routing collision. The `collectElementBoxes` function recursively excludes `PlacedBoundary` items. VHV search goes above both elements (goUp=true) to find a midY above the boundary header, entering EmailSystem cleanly from its top.
+
+---
+
+## Additional Bug Found & Fixed: HVH Proximity Grazing
+
+**Problem:** For CustomerA→SystemAA, the initial midX=(sx+ex)/2=537 is blocked by MainframeSystem's x-range at that y. The rightward search finds midX=670, putting the first horizontal segment at y=164 just 3 px from CustomerB's left edge — visually indistinguishable from "CustomerA connects to CustomerB."
+
+**Detection:** After the initial "first H segment" check passes, also check if the VERTICAL at midX is blocked. If blocked (meaning midX will be adjusted rightward into proximity of another box), immediately switch to VHV with `fromSide='bottom', toSide='top'` (since source y < target y).
+
+**Result:** CustomerA→SystemAA routes `M 327 224 V 273 H 737 V 310` — from CustomerA's bottom, across in clear space at y=273, down into SystemAA's top. No visual ambiguity.
+
+---
+
+## Architecture Decisions
+
+### Element-Only Collision Checking
+Boundaries (dashed containers) are excluded from all routing and label collision checks. Only `PlacedElement` rects count as obstacles. Rationale: boundaries are visual groupings, not physical obstacles; routing through them is intentional and readable.
+
+### Forced VHV Direction
+When switching from HVH to VHV due to blocked vertical:
+- `sy < ey` (source above target) → `fromSide='bottom', toSide='top'`  
+- `sy > ey` (source below target) → `fromSide='top', toSide='bottom'`
+
+The existing blocked-horizontal case keeps `fromSide='top', toSide='top'` (routes above the obstacle — correct for SystemAA→EmailSystem jumping above BankBoundary).
+
+### Arrowhead Travel Direction
+Path endpoint is `ep = tip − travelDir × arrowSize`, not `tip − sideNormal × arrowSize`. The outward normal and travel direction differ for entering edges: entering from the right has sideNormal=+x but travel direction=−x. Each routing branch computes `finalEndDirX/Y` independently from the actual last-segment direction.
+
+---
+
+## Files Changed
+
+- `packages/core/src/grammars/c4/layout.ts` — sole modified file (~920 lines, complete rewrite from 730-line original)
+
+## Files NOT Changed
+
+- `packages/core/src/grammars/c4/{types,schema,theme,index}.ts`
+- `packages/core/src/frontend/mermaid/c4.ts`
+- All other grammar files
+- All existing golden images
+
+---
+
+## Verification
+
+- **Typecheck:** `pnpm -C packages/core typecheck` → ✓ zero errors
+- **Build:** `pnpm -C packages/core build` → ✓ success
+- **Tests:** 1280/1281 pass (1 pre-existing Skia showcase-golden flake confirmed unchanged in baseline)
+- **Gallery:** `examples/gallery/mermaid-c4.{svg,png}` regenerated; viewBox 1189×744
+- **Visual check:** No edge label on any element box; no long crossing diagonals; clean orthogonal paths; CustomerA/B/C all enter SystemAA from above with distributed ports; CustomerD→SystemF clean horizontal; Sends e-mails/SMTP label in clear space above boundary
+
+
+---
+
+## 🎯 STRATEGIC PIVOT: FULL MERMAID-SUPERSET POSITIONING (2026-06-13)
+
+**MAJOR DIRECTION CHANGE** — Supersedes earlier "diagram compiler reframe"
+
+### Core Positioning
+- **Full Mermaid Superset:** All 22 Mermaid diagram types parse & render out of the box
+- **Beautiful Output:** Explicitly beat Mermaid's aesthetics (first-class pillar)
+- **UML/Software Line:** Dedicated Tier-1 priority for class, state, ER, C4 diagrams
+- **Agent-Authorable IR:** Dual front-end (humans: Mermaid-superset DSL; agents: structured IR) → shared Domain IR → Scene IR → backends
+
+### Five Diagram Families
+1. **Node-Link/Graph** — flowchart, C4, architecture, block, requirement, gitGraph, sankey (Sugiyama kernel)
+2. **UML/Software** — sequence, class, state, ER (grammar-specific layouts)
+3. **Charts (Grammar-of-Graphics)** — pie, xychart, quadrant, radar (NEW kernel)
+4. **Timeline/Project** — gantt, timeline, journey, kanban (track-based)
+5. **Tree/Hierarchy** — mindmap, treemap (Buchheim–Jünger–Leipert)
+
+### Coverage Roadmap
+- **T0:** Wire existing (flowchart, sequence, gantt, timeline, mindmap) — kernels ready; need parsers
+- **T1:** UML line (class, state, ER, C4) — new IRs + layouts
+- **T2:** Charts (pie, xychart, quadrant, radar) — grammar-of-graphics
+- **T3:** Remaining (sankey, requirement, gitGraph, block, etc.)
+
+### Superset+ Extensions
+- Composition/posters, rich theming, animation, structured IR-as-API, cross-refs, icons
+
+**Design doc** restructured (Leslie) to center Mermaid compatibility, aesthetics pillar, UML line, and dual front-end. PDF builds. PDF structure: 8 parts, 8 new sections (05-comparison, 15-frontend, 16-mermaid-compat, 17-superset-extensions, 18-aesthetics, 28-family-taxonomy, 29-chart-family, 60-roadmap); retired 4 old; rewrote/recontextualized core.
+
+---
+
