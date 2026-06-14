@@ -2,6 +2,83 @@
 
 ---
 
+## 🎊 TIER 2 COMPLETE — All 4 Chart Types Shipped (2026-06-14)
+
+**Status:** CONFIRMED COMMITTED  
+**Commits:** 5b709cf (foundation+pie+xy), ecfc418 (quadrant+radar)  
+**Test Status:** 1425/1425 tests passing, determinism preserved
+
+All four Mermaid chart types shipped on the shared grammar-of-graphics foundation:
+- **Pie Chart:** Theta encoding, arc sectors, priority-based label placement, deterministic legend.
+- **XY Chart:** Bar + line, nominal/quantitative scales, gridlines, deterministic tick-label crowding resolution.
+- **Quadrant Chart:** Tinted regions, x/y in [0,1], edge-aware non-clipping labels (fixed defects in left margin + right-edge detection).
+- **Radar Chart:** Radial scale, spokes/rings, translucent series polygons, dual-syntax parser (Mermaid radar-beta + design-doc form).
+
+Gallery: `mermaid-{pie,xychart,quadrant,radar}.{mmd,svg,png}` at 920×560 px (gallery cards 33–36).
+
+**Compiler Coverage:** With Tiers 0+1+2 complete, the compiler now covers 13 Mermaid types: flowchart, sequence, gantt, timeline, mindmap, class, state, ER, C4, pie, xychart, quadrant, radar.
+
+**Next:** Tier 3 = remaining Mermaid types (journey, gitGraph, requirement, sankey, block, packet, kanban, etc.).
+
+---
+
+# Decision: TIER 2 COMPLETE — All 4 Chart Types Shipped
+
+**Agent:** Barbara (Layout Specialist); Coordinator (Integration)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+---
+
+## Summary
+
+Tier 2 of the grammar-of-graphics roadmap fully shipped. Quadrant + radar implemented on the foundation established by pie + xychart. Shared `ChartDocument` Domain IR accommodates all four; layout dispatch is per-kind only. Full test suite: 1425/1425 ✓. All goldens deterministic and byte-identical.
+
+---
+
+## Quadrant Chart
+
+### Semantics
+- Fixed domain: x, y ∈ [0, 1], center split at (0.5, 0.5).
+- Quadrant labels: [Q1 top-right, Q2 top-left, Q3 bottom-left, Q4 bottom-right].
+- Item labels use deterministic collision-avoidance candidates around each point.
+- Axis endpoints carry meaning (`Low`/`High` defaults, overrideable).
+
+### Defect Fixes
+- **Y-axis label left-edge clip:** Left plot offset increased from 60 px → 110 px (`yLabelReserve`). "High Engagement" now renders at x ≈ 37 px instead of clipping at x ≈ −13 px.
+- **Item label right-edge clip ("Viral Video"):** Added `EDGE_MARGIN = 6` boundary check in priority-based placement. Fallback logic now routes labels inward when less than 6 px clearance exists at plot borders.
+
+---
+
+## Radar Chart
+
+### Semantics
+- Axes are explicit categorical spokes in declared order.
+- Radial domain from `radarMin`/`radarMax` when present; else inferred from data.
+- `RadialScale` is closed-form and clampable; normalized radius is later multiplied by pixel radius.
+- Multi-series radar uses two path layers per polygon: low-opacity fill + full-opacity stroke (within current Scene primitive capabilities).
+- Layout degrades to placeholder message if fewer than 3 axes exist.
+
+### Parser Contract
+Supports both:
+1. **Mermaid `radar-beta`** axis/curve syntax
+2. **Design-doc `axes: [...]` / `"Series": [...]`** syntax
+
+Auto-detection: when `axis`/`curve` lines appear without `axes:`, radar-beta semantics apply. Curves parsed before axes are backfilled once axes arrive.
+
+---
+
+## Test Coverage & Determinism
+
+- Full suite: **1425/1425 ✓**
+- Non-quadrant/radar SVG goldens: **byte-identical ✓**
+- Parser coverage: syntax variants, layout edge cases, gallery rendering.
+- Determinism: all geometry from direct arithmetic; no iterative solvers or randomness.
+
+---
+
+---
+
 ## 🎊 TIER 2 STARTED — Chart Grammar-of-Graphics Foundation (2026-06-14)
 
 **Status:** CONFIRMED COMMITTED  

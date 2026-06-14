@@ -231,3 +231,6 @@ Major restructure of the LaTeX design document around the new product positionin
 4. **Dual front-end is the key new concept:** The parser layer (Mermaid DSL → Domain IR) is the major new architectural component; everything below it (Domain IR → Scene IR → backends) is proven and built.
 5. **Most new types need only parsers:** Of 22 types, the 5 Tier-0 types only need parsers (kernels exist), Tier-1 UML needs new IRs + layouts, and only Tier-2 charts require a genuinely new kernel.
 Tier 1 complete (class/state/er/c4)
+## 2026-06-14 — Tier 2 Complete
+
+Tier 2 complete (pie/xychart/quadrant/radar). Quadrant + radar implemented on shared foundation. Quadrant: tinted regions, edge-aware non-clipping labels (defects fixed). Radar: radial scale, dual-syntax parser (Mermaid radar-beta + doc form). 1425/1425 tests ✓. Commits 5b709cf (foundation+pie+xy), ecfc418 (quadrant+radar).

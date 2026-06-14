@@ -103,3 +103,6 @@ For archived history, see history-archive.md.
 ## 2026-06-14 — Tier 2 Started
 
 Tier 2 grammar-of-graphics chart foundation shipped: scales (LinearScale, BandScale), axes, marks, deterministic layout engine. First two chart types operational: pie + xychart-beta (bar+line). 1361 tests, all prior regressions zero. Foundation reusable for quadrant + radar (dispatch branch per type). Commit 5b709cf.
+## 2026-06-14 — Tier 2 Complete
+
+Tier 2 complete (pie/xychart/quadrant/radar). Quadrant + radar implemented on shared foundation. Quadrant: tinted regions, edge-aware non-clipping labels (defects fixed). Radar: radial scale, dual-syntax parser (Mermaid radar-beta + doc form). 1425/1425 tests ✓. Commits 5b709cf (foundation+pie+xy), ecfc418 (quadrant+radar).

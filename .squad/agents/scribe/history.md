@@ -83,3 +83,6 @@ Processed Bjarne's Mermaid sequenceDiagram parser decision (Tier 0 Inc 2).
 - **History Files:** All under 15,360-byte summarization threshold ✓
 - **Tier-0 Status:** flowchart ✅ + sequence ✅ complete; gantt/timeline/mindmap next
 - **Manifest Summary:** Mermaid sequenceDiagram parser (Bjarne) delivers 8 arrow operators, fragment sections (loop/opt/alt/par + critical/break), activations (explicit + shorthand +/-), graceful degradation, 57 new tests (971 total pass), bytebytego-sequence gallery (JWT auth example), Tier-0 baseline achieved
+## 2026-06-14 — Tier 2 Complete Documentation
+
+Merged tier 2 decision inbox. Recorded top-level decision: 'TIER 2 COMPLETE — all 4 chart types shipped'. Created orchestration logs for barbara and scribe. Wrote session log. Updated cross-agent histories. 1425 tests, determinism preserved. Commits 5b709cf, ecfc418.

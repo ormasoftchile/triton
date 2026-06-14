@@ -96,3 +96,36 @@ Chart grammar-of-graphics foundation + pie + xychart-beta. Foundation ready for 
 ## Archive
 
 For detailed learnings from earlier work (2025 timeline polish, grammar-of-graphics, Tier 1 polish), see archived history files.
+
+---
+
+## Tier 2 Complete — quadrantChart + radar/radar-beta (2026-06-14)
+
+Completed the remaining Tier 2 chart types on the shared chart grammar foundation.
+
+### Shipped
+- `quadrantChart`: normalized `[0,1] × [0,1]` plot with tinted quadrants, semantic Low/High axis endpoints, quadrant region labels, and deterministic point-label collision handling.
+- `radar` / `radar-beta`: explicit spoke axes, concentric polygon graticules, normalized radial scaling via closed-form `RadialScale`, multi-series filled/stroked polygons, and internal legend.
+
+### Parser learnings
+- `radar` needs syntax auto-detection: if `axes:` is absent but `axis`/`curve` markers appear, treat it as beta-style content rather than simple syntax.
+- Beta curves can appear before axis declarations; preserve indexed values temporarily (`_axisN`) and backfill once axis names arrive.
+
+### Rendering learnings
+- Current `PathPrimitive` lacks separate `fillOpacity` and `strokeLinejoin`; the stable pattern is **two paths per radar polygon**: one translucent fill-only path and one stroke-only path.
+- Quadrant labels and point annotations can reuse the existing pie label-box helpers for deterministic overlap avoidance without introducing a new solver.
+
+### Verification
+- `pnpm -C packages/core build` ✅
+- `pnpm -C packages/core typecheck` ✅
+- `pnpm -C packages/core test` ✅
+- Gallery outputs generated: `examples/gallery/mermaid-quadrant.{mmd,svg,png}` and `examples/gallery/mermaid-radar.{mmd,svg,png}`
+
+---
+
+## Learnings
+
+### Quadrant margin / edge-aware label placement (2026-06-14)
+
+- **Y-axis end labels need ≥ 110 px left reserve.** With 12 px DejaVu Sans, a 15-char label like "High Engagement" measures ≈ 97 px wide. The label is anchored at `plotX − 8` with `textAnchor="end"`, so left clearance = `plotX − 8 − labelWidth`. Anything under ~113 px for `plotX` clips the left edge of the canvas.
+- **Priority placement must check plot-boundary proximity, not just mutual label overlap.** An item at x ≈ 0.81 in a 378 px plot (px ≈ 448) lands within 6 px of the plot's right edge when the first right-side candidate is selected. Adding `EDGE_MARGIN = 6` to the boundary check and skipping candidates that would land within that margin of either horizontal plot edge prevents subtle clips that the mutual-overlap test alone cannot catch. Fallback path must mirror this: prefer the left-side anchor when the right-side placement would exceed `plotRight − EDGE_MARGIN`.
