@@ -230,3 +230,4 @@ Major restructure of the LaTeX design document around the new product positionin
 3. **Family taxonomy = roadmap taxonomy:** The 5-family / 4-tier structure serves both the technical architecture (shared kernels) and the product roadmap (prioritization).
 4. **Dual front-end is the key new concept:** The parser layer (Mermaid DSL → Domain IR) is the major new architectural component; everything below it (Domain IR → Scene IR → backends) is proven and built.
 5. **Most new types need only parsers:** Of 22 types, the 5 Tier-0 types only need parsers (kernels exist), Tier-1 UML needs new IRs + layouts, and only Tier-2 charts require a genuinely new kernel.
+Tier 1 complete (class/state/er/c4)
