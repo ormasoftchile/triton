@@ -40,6 +40,83 @@
 
 ---
 
+# Decision: Mermaid Flowchart Parser Hardening — Real-Mermaid Crawl Fidelity
+
+**Agent:** Bjarne (Ingestion Design)  
+**Date:** 2026-06-13T20:26:37-04:00  
+**Status:** ADOPTED
+
+## Summary
+
+Hardened the Mermaid flowchart parser (`packages/core/src/frontend/mermaid/flowchart.ts`) to real-Mermaid fidelity. Root cause: node ID scanner included `-` in char class, breaking compact syntax like `A-->B` (scanned `A--` instead of `A`). Full scope included 13 edge operators, shape extension, clean label extraction, and public warnings. 914 tests pass (+62); gallery byte-identical.
+
+## Root Cause Fixed
+
+**Node ID scanner included `-` in character class** (`[a-zA-Z0-9_-]*`). For `A-->B`, the scanner consumed `A--` (stopped at `>`), leaving `>B` which matched no edge operator. Result: node `A--` created, no edge, node `B` dropped. All compact Mermaid syntax was broken.
+
+**Fix:** Change to `[a-zA-Z0-9_]*` (no hyphen). Correct per Mermaid's own grammar.
+
+## Scope of Changes
+
+### 1. `packages/core/src/frontend/mermaid/flowchart.ts`
+
+| Area | Change |
+|------|--------|
+| `scanNodeToken` — ID regex | Removed `-` from char class |
+| `scanNodeToken` — extended shapes | 5 shapes with clean label capture: `{{…}}` hexagon→diamond, `[(…)]` cylinder→rect, `[/…/]` para→rect, `[\…\]` para→rect, `>…]` asymmetric→rect |
+| `scanEdgeToken` | Added 13 edge operators: `<-.->`, `-.-`, `<==>`, `===`, `<-->`, `o--o`, `--x`, `--o` (with and without `\|label\|`) |
+| `normalizeLabeledEdges` | Extended inline label handling: `== text ==>` → `==> \|label\|`, `-. text .->` → `-.-> \|label\|` |
+| `parseChain` | Collects shape warnings; warns on unrecognized chain content |
+| Direction warning | Fixed TB/TD check |
+
+### 2. `packages/core/src/frontend/mermaid/index.ts`
+
+| Area | Change |
+|------|--------|
+| `MermaidParseResult` | Added `warnings: string[]` field |
+| `parseMermaid` | Now surfaces warnings via new type |
+
+### 3. Test Coverage
+
+61-case real-Mermaid corpus test (`mermaid-flowchart-corpus.test.ts`). Validates 7 acceptance criteria + 9 complete patterns.
+
+## Acceptance Criteria Results
+
+| AC | Description | Before | After |
+|----|-------------|--------|-------|
+| AC1 | `A-->B` compact edges | 0 edges, node "A--" | 4 nodes, 4 edges ✓ |
+| AC2 | `A == yes ==> B` inline thick label | B dropped | 2 nodes, 1 edge labeled "yes" ✓ |
+| AC3 | Shape label clean (hex/para) | `"{Hex"`, `"/Para/"` | `"Hex"`, `"Para"` ✓ |
+| AC4 | Graceful degradation | Silent drop | warn + partial doc ✓ |
+| AC5 | `parseMermaid` exposes warnings | Not present | `warnings: string[]` ✓ |
+| AC6 | Direction TD warns | No warning | TB/TD handled ✓ |
+| AC7 | Subgraph/classDef warn | warn | warn ✓ |
+
+## Design Principles
+
+- **No throws:** Parser returns valid (possibly partial) doc. Callers decide how to surface diagnostics.
+- **Deterministic:** Same input → same output.
+- **Clean labels:** Shape delimiters stripped in capture groups; only quotes to `extractLabel`.
+- **Graceful degradation:** Extended shapes degrade to rect/diamond; warnings emitted.
+
+## Test Impact
+
+- **Before:** 852 tests pass  
+- **After:** 914 tests pass (+62)  
+- **Regressions:** 0  
+- **Gallery:** `mermaid-flowchart.{svg,png}` byte-identical
+
+## Tokenizer / Fidelity Bar Established
+
+This decision establishes the tokenizer fidelity bar for all remaining Mermaid parsers (sequence, gantt, timeline, mindmap). Each parser must:
+1. Use real-data crawls to validate acceptance criteria
+2. Parse whitespace-independently (compact + spaced syntax)
+3. Handle all documented edge/node operators
+4. Extract labels cleanly (no delimiter mangling)
+5. Warn on graceful degradation, never silent-drop
+
+---
+
 ## ALL PENDING ITEMS NOW CLOSED (2026-06-13)
 
 | Item | Tracking | Status | Closed Date |

@@ -83,3 +83,81 @@ Mark's reconciliation resolved all gaps — no changes needed to agent generatio
 **Validation Layers:** Syntax → Schema → Invariants → Render-readiness → Advisory
 
 Five built-in themes ready; error contract with path-anchored codes and suggested fixes enables Generate → Validate → Repair cycle.
+
+## 2026-06-13 — Tier 0 Inc 1: Mermaid Front-End Architecture + Flowchart Parser
+
+### Learnings
+
+**Front-end architecture (detect → parse → build → serialize):**
+The Mermaid front-end implements §15 Path A of the dual front-end architecture. The pipeline is:
+1. `preprocessMermaid(text)` — strips YAML frontmatter (`--- … ---`), extracts `%%{init}%%` directive fields (theme/title), drops `%% comment` lines. Returns cleaned body + structured metadata. Implemented in `utils.ts` as a shared utility.
+2. `detectDiagramType(text)` — after preprocessing, reads the first content line's leading keyword: `flowchart`/`graph` → 'flowchart', `sequenceDiagram` → 'sequence', `gantt`/`timeline`/`mindmap` → respective kinds. Case-insensitive.
+3. `parseFlowchart(text)` — grammar-specific parser. Strips frontmatter, finds header, scans body lines. Returns `FlowDocument`. Internal `parseFlowchartInternal` also returns direction + warnings + frontmatter for use by `renderMermaid`.
+4. `buildFlowScene(doc, themeOverride)` — existing Flow grammar kernel, unchanged. The theme override applies direction (LR/TB) and any resolved theme name.
+5. `sceneToSvg` / `svgToPng` — existing kernel serializers, unchanged.
+
+**Flowchart-parsing subset implemented:**
+- Header: `flowchart`/`graph` + direction (LR/TB/TD/RL/BT). LR fully supported; TB/TD/RL/BT deferred (layout engine is LR-only in Inc 1).
+- Node shapes: `[rect]`, `(rounded-rect)`, `((circle))`, `{diamond}`, `([stadium])`, `[[subroutine→rect]]`. Default bare-ID → `rounded-rect`.
+- Edges: `-->` (sync/solid), `---` (undirected→sync/solid), `-.->` (async/dotted), `==>` (thick→sync/solid). Labels via `-->|label|` or `-- label -->` (normalized to pipe form before scanning).
+- Chains: `A --> B --> C` → edges (A,B) and (B,C). Multi-statement lines via `;`.
+- Implicit node creation: any node seen in an edge and not yet declared is auto-created (label = raw ID, shape = rounded-rect). Later explicit declaration updates label+shape.
+
+**Deferrals (explicit TODO list in flowchart.ts):**
+Subgraphs, classDef/style/class, click/href, link curve styles, markdown-string labels, `&` multi-node edges, extended shapes (hexagon/trapezoid/asymmetric), thick-edge labels, RL/BT layout flip.
+
+**ID sanitization:**
+FlowDocument schema requires `^[a-z][a-z0-9-]*$` IDs. Mermaid IDs are arbitrary tokens. The sanitizer (per-session `idMap`) applies: camelCase→kebab, uppercase→lowercase, underscore/space→hyphen, strip non-[a-z0-9-], collapse hyphens, prefix 'n' if starts with digit. Collision resolution appends `-2`, `-3`, etc.
+
+**Frontmatter/directive handling:**
+The `preprocessMermaid` utility handles both frontmatter (parsed via the `yaml` package) and `%%{init}%%` directives (JSON/single-quote extraction with regex fallback). Theme precedence in `renderMermaid`: `options.theme` > frontmatter `theme:` > `%%{init}%%` directive > default.
+
+**Error policy:**
+Unrecognized lines → skip with collected warning. Never throws on syntax errors. `parseMermaid`/`renderMermaid` throw with a clear `[Tier 0 Inc 1]` label for unsupported diagram types (sequence/gantt/timeline/mindmap/unknown).
+
+**Test results:**
+57 new tests in `mermaid-frontend.test.ts`. All 852 tests pass (57 new + 795 existing). All existing goldens byte-identical. Gallery: `mermaid-flowchart.svg` + `mermaid-flowchart.png` emitted with dark-flow theme. The rendered PNG is visibly superior to Mermaid's default output: dark navy background, teal/violet/emerald accent fills per shape kind, clean curved edges, all shapes/labels correct.
+
+## 2026-06-13 — Tier 0 Inc 1 Hardening: Real-Mermaid Crawl Fidelity
+
+### Learnings
+
+**Root cause of whitespace-independent edge failures:**
+The node ID scanner used `[a-zA-Z_][a-zA-Z0-9_-]*` — hyphen was included in the character class. For `A-->B`, the scanner greedily consumed `A--` (stopping only at `>`), leaving `>B` which didn't match any edge operator. Fix: removed `-` from the ID char class (→ `[a-zA-Z_][a-zA-Z0-9_]*`). This is correct per Mermaid's actual grammar (identifiers use `\w+`, no hyphens in bare IDs). One-char change, maximum impact.
+
+**Tokenizer rewrite scope:**
+The fix was surgical — the existing tokenizer design (scanNodeToken / scanEdgeToken / parseChain) was architecturally sound. Changes:
+1. **ID charset** — removed `-` from `scanNodeToken` regex. Fixes `A-->B`, `A-->|x|B`, `A==>B`, `A--xB`, `A---B`, `A-.->B` (all compact forms).
+2. **Extended edge operators** — added all missing Mermaid operators to `scanEdgeToken` (labeled + unlabeled, most-specific first): `<-.->`, `-.-`, `<==>`, `===`, `<-->`, `o--o`, `--x`, `--o` plus their `|label|` variants.
+3. **Inline label normalization** — extended `normalizeLabeledEdges` to handle `== text ==>` → `==>|text|` and `-. text .->` → `-.->|text|`.
+4. **Extended shapes** — added to `scanNodeToken`: `{{...}}` hexagon→diamond, `[(...)` cylinder→rect, `[/.../ ]` parallelogram-right→rect, `[\...\]` parallelogram-left→rect, `>...]` asymmetric→rect. Regex capture groups extract CLEAN labels without shape delimiters.
+5. **Shape degradation warnings** — `ScanNodeResult` now carries optional `shapeWarning?` field; `parseChain` collects these into the warnings array.
+6. **Chain unrecognized-content warning** — when the edge scanner returns null with non-whitespace remaining in a chain, a warning is pushed (previously silent).
+7. **Direction TD warning** — the `direction === 'TB'` layout-deferred warning was missing 'TD'; fixed to `direction === 'TB' || direction === 'TD'`.
+
+**Public warnings on parseMermaid:**
+`MermaidParseResult` now includes `warnings: string[]`. `parseMermaid` delegates to `parseFlowchartInternal` (previously called the simpler `parseFlowchart` which discarded warnings). Callers can inspect what was skipped, deferred, or degraded.
+
+**Corpus test approach:**
+Added `test/mermaid-flowchart-corpus.test.ts` — 61 new tests organized by the 7 acceptance criteria. Covers: compact/spaced edges, all edge operator families, extended shapes with label cleanliness assertions, graceful degradation, public warning surface, all direction keywords, and all deferral categories. Also includes 9 "complete pattern" corpus tests (CI pipeline, decision flow, async pipeline, thick approval, mixed operators, all shapes, all inline labels, official Mermaid docs Christmas example, frontmatter+compact).
+
+**Test results after hardening:**
+914 tests pass (61 new corpus + 57 existing mermaid + 796 other). All existing goldens byte-identical. `mermaid-flowchart.svg` + `.png` unchanged (demo uses spaced syntax — was already correct). Build clean (TypeScript strict mode, 0 errors).
+
+## Context: Fidelity Bar for Remaining Mermaid Parsers (Seq/Gantt/Timeline/Mindmap)
+
+This flowchart parser hardening establishes the tokenizer and fidelity bar for all remaining Mermaid parsers. Future Inc implementations (Sequence, Gantt, Timeline, Mindmap) should follow this approach:
+
+1. **Real-data crawl validation** — Seed acceptance criteria with a crawl of real Mermaid syntax in the wild. Validate each parser against the crawl corpus (aim: 50+ diverse patterns).
+
+2. **Whitespace-independent parsing** — Parse both compact (`A-->B`) and spaced (`A --> B`) syntax identically. The tokenizer (scanNodeToken / scanEdgeToken) must be whitespace-agnostic; normalization happens downstream.
+
+3. **All documented operators** — Enumerate the parser's operators from Mermaid's documentation and implement all of them (including inline label variants `|label|`). Identify and implement all shape types / styling constructs that aren't deferred.
+
+4. **Clean label extraction** — Use regex capture groups to extract labels without shape delimiters, quotes, or parser-internal syntax. Test that `[/Para/]`, `{{Hex}}`, and other extended shapes produce clean labels in the output.
+
+5. **Graceful degradation with warnings** — Never silently drop or mangle unsupported syntax. Return a valid (possibly partial) document and emit warnings that callers can inspect. `parseMermaidX` should return a public `warnings: string[]` field for all diagram types.
+
+6. **Explicit deferral list** — Document all limitations (subgraphs, directives, etc.) in the parser file. Link to Inc 2+ tasks for each deferral. Callers must know what is not yet implemented.
+
+This establishes consistency across all Mermaid diagram types and ensures user feedback is clear (warnings, not silent failures).
