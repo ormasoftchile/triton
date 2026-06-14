@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="658" version="1.1" viewBox="0 0 1194 658" width="1194" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#334155" stroke-width="1.5" x1="797" x2="567" y1="123" y2="123"/>
+  <line stroke="#334155" stroke-width="1.5" x1="797" x2="520" y1="123" y2="323"/>
+  <line stroke="#334155" stroke-width="1.5" x1="797" x2="485" y1="329" y2="530"/>
+  <line stroke="#334155" stroke-width="1.5" x1="303" x2="303" y1="404" y2="450"/>
+  <rect fill="#f8fafc" height="150" rx="6" stroke="#94a3b8" stroke-width="1.2" width="509" x="48" y="48"/>
+  <rect fill="#dbeafe" height="54" rx="6" stroke="#3b82f6" stroke-width="1.5" width="509" x="48" y="48"/>
+  <line stroke="#94a3b8" stroke-width="1" x1="48" x2="557" y1="102" y2="102"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="303" y="68">«Requirement»</text>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="303" y="87">UserAuthentication</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="62" y="122">ID: REQ-001</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="62" y="141">Text: The system shall authenticate users via username and password with MFA support.</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="62" y="160">Risk: High</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="62" y="179">Verification: Test</text>
+  <rect fill="#f8fafc" height="150" rx="6" stroke="#94a3b8" stroke-width="1.2" width="418" x="94" y="254"/>
+  <rect fill="#dbeafe" height="54" rx="6" stroke="#3b82f6" stroke-width="1.5" width="418" x="94" y="254"/>
+  <line stroke="#94a3b8" stroke-width="1" x1="94" x2="512" y1="308" y2="308"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="303" y="274">«Functional»</text>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="303" y="293">AuditLogging</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="108" y="328">ID: REQ-002</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="108" y="347">Text: All access events shall be logged with timestamp and user identity.</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="108" y="366">Risk: Medium</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="108" y="385">Verification: Analysis</text>
+  <rect fill="#f8fafc" height="150" rx="6" stroke="#94a3b8" stroke-width="1.2" width="348" x="129" y="460"/>
+  <rect fill="#dbeafe" height="54" rx="6" stroke="#3b82f6" stroke-width="1.5" width="348" x="129" y="460"/>
+  <line stroke="#94a3b8" stroke-width="1" x1="129" x2="477" y1="514" y2="514"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="303" y="480">«Design Constraint»</text>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="303" y="499">DataRetention</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="143" y="534">ID: CON-001</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="143" y="553">Text: Audit logs must be retained for a minimum of 90 days.</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="143" y="572">Risk: Low</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="143" y="591">Verification: Inspection</text>
+  <rect fill="#f8fafc" height="112" rx="6" stroke="#94a3b8" stroke-width="1.2" width="190" x="797" y="67"/>
+  <rect fill="#dbeafe" height="54" rx="6" stroke="#3b82f6" stroke-width="1.5" width="190" x="797" y="67"/>
+  <line stroke="#94a3b8" stroke-width="1" x1="797" x2="987" y1="121" y2="121"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="892" y="87">«Element»</text>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="892" y="106">AuthService</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="811" y="141">Type: microservice</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="811" y="160">DocRef: docs/auth-service.md</text>
+  <rect fill="#f8fafc" height="112" rx="6" stroke="#94a3b8" stroke-width="1.2" width="190" x="797" y="273"/>
+  <rect fill="#dbeafe" height="54" rx="6" stroke="#3b82f6" stroke-width="1.5" width="190" x="797" y="273"/>
+  <line stroke="#94a3b8" stroke-width="1" x1="797" x2="987" y1="327" y2="327"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="892" y="293">«Element»</text>
+  <text dominant-baseline="alphabetic" fill="#1e3a8a" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="700" text-anchor="middle" x="892" y="312">AuditDatabase</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="811" y="347">Type: datastore</text>
+  <text dominant-baseline="alphabetic" fill="#0f172a" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="811" y="366">DocRef: docs/audit-db.md</text>
+  <path d="M 567 117 L 557 123 L 567 129" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#ffffff" height="19" rx="8" stroke="#64748b" stroke-width="1" width="69" x="643" y="114"/>
+  <text dominant-baseline="alphabetic" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="677" y="127">«satisfies»</text>
+  <path d="M 517 318 L 512 329 L 524 328" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#ffffff" height="19" rx="8" stroke="#64748b" stroke-width="1" width="70" x="620" y="217"/>
+  <text dominant-baseline="alphabetic" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="655" y="230">«contains»</text>
+  <path d="M 482 525 L 477 535 L 489 535" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#ffffff" height="19" rx="8" stroke="#64748b" stroke-width="1" width="61" x="607" y="423"/>
+  <text dominant-baseline="alphabetic" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="637" y="436">«refines»</text>
+  <path d="M 297 450 L 303 460 L 309 450" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#ffffff" height="19" rx="8" stroke="#64748b" stroke-width="1" width="64" x="271" y="423"/>
+  <text dominant-baseline="alphabetic" fill="#334155" font-family="DejaVu Sans, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="303" y="436">«derives»</text>
+</svg>

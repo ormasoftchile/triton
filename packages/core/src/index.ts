@@ -358,3 +358,53 @@ export type {
   SankeyRenderResult,
   SankeyTheme,
 } from './grammars/sankey/index.js';
+export { parseRequirementDiagram } from './frontend/mermaid/requirement.js';
+export { parseKanbanDiagram } from './frontend/mermaid/kanban.js';
+
+// Requirement grammar (Tier 3 — SysML/UML requirement boxes + relationships)
+export {
+  buildRequirementScene,
+  renderRequirementDocument,
+  requirementDocumentSchema,
+  defaultRequirementTheme,
+  darkRequirementTheme,
+  resolveRequirementTheme,
+  REQUIREMENT_THEME_REGISTRY,
+} from './grammars/requirement/index.js';
+export type {
+  RequirementDocument,
+  RequirementMetadata,
+  RequirementNode,
+  RequirementElement,
+  RequirementRelationship,
+  RequirementKind,
+  RequirementRisk,
+  RequirementVerifyMethod,
+  RequirementRelKind,
+  RequirementDocumentInput,
+  RequirementRenderOptions,
+  RequirementRenderResult,
+  RequirementTheme,
+} from './grammars/requirement/index.js';
+
+// Kanban grammar (Tier 3 — column board with stacked cards)
+export {
+  buildKanbanScene,
+  renderKanbanDocument,
+  kanbanDocumentSchema,
+  defaultKanbanTheme,
+  darkKanbanTheme,
+  resolveKanbanTheme,
+  KANBAN_THEME_REGISTRY,
+} from './grammars/kanban/index.js';
+export type {
+  KanbanDocument,
+  KanbanMetadata,
+  KanbanColumn,
+  KanbanCard,
+  KanbanCardMetadata,
+  KanbanDocumentInput,
+  KanbanRenderOptions,
+  KanbanRenderResult,
+  KanbanTheme,
+} from './grammars/kanban/index.js';
