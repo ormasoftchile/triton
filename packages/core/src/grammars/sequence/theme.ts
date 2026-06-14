@@ -158,6 +158,24 @@ export interface SequenceTheme {
   /** Dash pattern for dashed dividers between alt sub-compartments. */
   fragDividerDash: string;
 
+  // ── Notes ──────────────────────────────────────────────────────────────────
+  /** Note rectangle fill color. Mermaid uses soft yellow. */
+  noteFill: string;
+  /** Note rectangle border color. */
+  noteStroke: string;
+  /** Note rectangle border width. */
+  noteStrokeWidth: number;
+  /** Note text color. */
+  noteTextColor: string;
+  /** Note font size. */
+  noteFontSize: number;
+  /** Horizontal padding inside the note rectangle. */
+  notePadX: number;
+  /** Vertical padding inside the note rectangle. */
+  notePadY: number;
+  /** Width for 'left of' / 'right of' notes (fixed width, px). */
+  noteWidth: number;
+
   // ── Step number badges ────────────────────────────────────────────────────
   /** When true, a numbered circle badge is drawn on each message arrow. */
   showStepNumbers: boolean;
@@ -254,6 +272,15 @@ export const defaultSequenceTheme: SequenceTheme = {
   fragLabelColor: '#3949ab',
   fragDividerDash: '6,4',
 
+  noteFill: '#fff5ad',
+  noteStroke: '#aa9900',
+  noteStrokeWidth: 1.5,
+  noteTextColor: '#333333',
+  noteFontSize: 12,
+  notePadX: 10,
+  notePadY: 8,
+  noteWidth: 160,
+
   showStepNumbers: false,
   stepBadgeRadius: 10,
   stepBadgeFill: '#4a6cf7',
@@ -341,6 +368,11 @@ export const sequenceByteByteGoTheme: SequenceTheme = {
   fragTabFill: '#4b5563',
   fragTabTextColor: '#f3f4f6',
   fragLabelColor: '#9ca3af',
+
+  noteFill: '#1e2433',
+  noteStroke: '#4b5563',
+  noteStrokeWidth: 1.5,
+  noteTextColor: '#e2e8f0',
 };
 
 // ---------------------------------------------------------------------------

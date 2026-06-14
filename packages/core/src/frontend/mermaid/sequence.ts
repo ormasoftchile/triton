@@ -46,10 +46,10 @@
  *     break <label> … end        → DEGRADE to 'opt' + warning
  *
  *   Metadata
- *     autonumber      → warning (DEFERRED — not representable in sequence IR)
+ *     autonumber      → IR flag + warning
  *     Note left of A: text
  *     Note right of A: text
- *     Note over A,B: text  → warning + skip (not in sequence IR — Mark's call)
+ *     Note over A,B: text  → parsed into SequenceNote IR
  *
  *   Frontmatter (--- … ---) and %%{init}%% directives via preprocessMermaid (utils.ts)
  *   Comments (%%) handled by preprocessMermaid
@@ -57,12 +57,10 @@
  * ─────────────────────────────────────────────────────────────────────────
  * DEFERRED
  * ─────────────────────────────────────────────────────────────────────────
- *   1. Note construct       — no IR type yet (Mark's domain); warn + skip
- *   2. autonumber           — no IR flag yet; warn
- *   3. critical / break     — degrade to opt + warn (not in IR kind enum... actually
+ *   1. critical / break     — degrade to opt + warn (not in IR kind enum... actually
  *                             they ARE in Fragment.kind; still emit a compat warning)
- *   4. Quoted participant IDs ("Alice Smith"->>Bob: msg) — very rare; warn + skip
- *   5. Links / click directives, color attributes — warn + skip
+ *   2. Quoted participant IDs ("Alice Smith"->>Bob: msg) — very rare; warn + skip
+ *   3. Links / click directives, color attributes — warn + skip
  *
  * ─────────────────────────────────────────────────────────────────────────
  * ERROR POLICY
@@ -87,6 +85,7 @@ import type {
   Activation,
   Fragment,
   FragmentSection,
+  SequenceNote,
 } from '../../grammars/sequence/types.js';
 import { preprocessMermaid } from './utils.js';
 
@@ -222,7 +221,9 @@ const END_RE      = /^end\s*$/i;
 const ACTIVATE_RE   = /^activate\s+([A-Za-z_]\w*)\s*$/i;
 const DEACTIVATE_RE = /^deactivate\s+([A-Za-z_]\w*)\s*$/i;
 const AUTONUMBER_RE = /^autonumber\s*$/i;
-const NOTE_RE       = /^note\s+(left\s+of|right\s+of|over)\s+.*/i;
+const NOTE_OVER_RE  = /^note\s+over\s+([A-Za-z_]\w*)(?:\s*,\s*([A-Za-z_]\w*))?\s*:\s*(.*)\s*$/i;
+const NOTE_SIDE_RE  = /^note\s+(left\s+of|right\s+of)\s+([A-Za-z_]\w*)\s*:\s*(.*)\s*$/i;
+const NOTE_ANY_RE   = /^note\s+(left\s+of|right\s+of|over)\s+/i;
 
 // ---------------------------------------------------------------------------
 // Internal state types
@@ -315,6 +316,8 @@ export function parseSequenceInternal(text: string): SequenceParseResult {
   const messages: Message[] = [];
   const activations: Activation[] = [];
   const fragments: Fragment[] = [];
+  const notes: SequenceNote[] = [];
+  let autoNumberEnabled = false;
 
   /** Running message order counter (0-based, monotonically increasing). */
   let orderCounter = 0;
@@ -452,19 +455,49 @@ export function parseSequenceInternal(text: string): SequenceParseResult {
 
     // ── autonumber ─────────────────────────────────────────────────────────
     if (AUTONUMBER_RE.test(trimmed)) {
-      warnings.push(
-        'DEFERRED: autonumber is not representable in the sequence IR in Tier-0. ' +
-          'Step numbering display is a theme/rendering concern.',
-      );
+      autoNumberEnabled = true;
+      warnings.push('NOTE: autonumber enabled — step badges will be displayed 1-indexed.');
       continue;
     }
 
-    // ── Note → warn + skip ────────────────────────────────────────────────
-    if (NOTE_RE.test(trimmed)) {
-      warnings.push(
-        `DEFERRED: Note construct has no IR type in the sequence grammar yet ` +
-          `(Mark's decision). Line skipped: "${trimmed}"`,
-      );
+    // ── Note over ──────────────────────────────────────────────────────────
+    const noteOverM = NOTE_OVER_RE.exec(trimmed);
+    if (noteOverM) {
+      const rawA = noteOverM[1] ?? '';
+      const rawB = noteOverM[2];
+      const noteText = (noteOverM[3] ?? '').trim();
+      const idA = ensureParticipant(rawA);
+      const participantIds: string[] = [idA];
+      if (rawB) participantIds.push(ensureParticipant(rawB));
+      notes.push({
+        afterOrder: lastOrder ?? -1,
+        placement: 'over',
+        participants: participantIds,
+        text: noteText.length > 0 ? noteText : '(note)',
+      });
+      continue;
+    }
+
+    // ── Note left of / right of ───────────────────────────────────────────
+    const noteSideM = NOTE_SIDE_RE.exec(trimmed);
+    if (noteSideM) {
+      const side = (noteSideM[1] ?? '').toLowerCase().trim();
+      const rawId = noteSideM[2] ?? '';
+      const noteText = (noteSideM[3] ?? '').trim();
+      const placement: SequenceNote['placement'] = side.startsWith('left') ? 'left' : 'right';
+      const sid = ensureParticipant(rawId);
+      notes.push({
+        afterOrder: lastOrder ?? -1,
+        placement,
+        participants: [sid],
+        text: noteText.length > 0 ? noteText : '(note)',
+      });
+      continue;
+    }
+
+    // ── Unrecognized Note format ───────────────────────────────────────────
+    if (NOTE_ANY_RE.test(trimmed)) {
+      warnings.push(`SKIP: unrecognised note format — skipped: "${trimmed}"`);
       continue;
     }
 
@@ -763,8 +796,10 @@ export function parseSequenceInternal(text: string): SequenceParseResult {
     sequence: {
       participants: Array.from(participantsMap.values()),
       messages,
+      ...(autoNumberEnabled ? { autonumber: true } : {}),
       ...(activations.length > 0 ? { activations } : {}),
       ...(fragments.length > 0 ? { fragments } : {}),
+      ...(notes.length > 0 ? { notes } : {}),
     },
   };
 

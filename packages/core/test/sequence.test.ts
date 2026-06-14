@@ -112,6 +112,39 @@ describe('Sequence Grammar — schema validation', () => {
     const result = sequenceDocumentSchema.safeParse(doc);
     expect(result.success).toBe(false);
   });
+
+  it('accepts notes + autonumber in the sequence definition', () => {
+    const doc = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [
+          { id: 'a', label: 'A' },
+          { id: 'b', label: 'B' },
+        ],
+        messages: [{ from: 'a', to: 'b', label: 'Hi', order: 0, kind: 'sync' }],
+        autonumber: true,
+        notes: [{ afterOrder: 0, placement: 'over', participants: ['a', 'b'], text: 'Heads up' }],
+      },
+    };
+    expect(() => sequenceDocumentSchema.parse(doc)).not.toThrow();
+  });
+
+  it('rejects a note referencing an unknown participant', () => {
+    const doc = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [{ id: 'a', label: 'A' }],
+        messages: [{ from: 'a', to: 'a', label: 'Hi', order: 0, kind: 'sync' }],
+        notes: [{ afterOrder: 0, placement: 'right', participants: ['ghost'], text: 'Oops' }],
+      },
+    };
+    const result = sequenceDocumentSchema.safeParse(doc);
+    expect(result.success).toBe(false);
+    const msg = JSON.stringify((result as { error: unknown }).error);
+    expect(msg).toContain("Note references unknown participant id 'ghost'");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -194,6 +227,27 @@ describe('Sequence Grammar — scene building', () => {
     const scene = buildSequenceScene(doc);
     // Should not throw; produces valid scene
     expect(scene.primitives.length).toBeGreaterThan(0);
+  });
+
+  it('renders notes and autonumber badge text without changing message order IR', () => {
+    const doc: SequenceDocument = {
+      version: '1.0',
+      metadata: {},
+      sequence: {
+        participants: [
+          { id: 'a', label: 'A' },
+          { id: 'b', label: 'B' },
+        ],
+        messages: [{ from: 'a', to: 'b', label: 'First', order: 0, kind: 'sync' }],
+        autonumber: true,
+        notes: [{ afterOrder: 0, placement: 'over', participants: ['a', 'b'], text: 'Important' }],
+      },
+    };
+    const result = renderSequenceDocument(doc, { format: 'svg' });
+    if (result instanceof Promise) throw new Error('Expected sync result');
+    expect(doc.sequence.messages[0]!.order).toBe(0);
+    expect(result.svg).toContain('Important');
+    expect(result.svg).toContain('>1<');
   });
 });
 

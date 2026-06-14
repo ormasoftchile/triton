@@ -22,7 +22,7 @@ import type { SequenceTheme } from './theme.js';
 import { sequenceDocumentSchema } from './schema.js';
 import { layoutSequence }         from './layout.js';
 
-export type { SequenceDocument, Participant, Message, Activation, Fragment, SequenceMetadata, SequenceDefinition } from './types.js';
+export type { SequenceDocument, Participant, Message, Activation, Fragment, SequenceNote, SequenceMetadata, SequenceDefinition } from './types.js';
 export { sequenceDocumentSchema } from './schema.js';
 export type { SequenceDocumentInput } from './schema.js';
 export type { SequenceTheme, CardKindStyle } from './theme.js';

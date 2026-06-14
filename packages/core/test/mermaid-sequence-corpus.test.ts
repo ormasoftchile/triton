@@ -3,7 +3,7 @@
  *
  * Crawl-derived acceptance tests for the Mermaid sequenceDiagram parser.
  * Covers all arrow types, participant/actor declarations, activation shorthand,
- * loop/alt/opt/par fragments, self-messages, autonumber, and note degradation.
+ * loop/alt/opt/par fragments, self-messages, autonumber, and note parsing.
  *
  * Acceptance criteria (fidelity bar mirrors flowchart corpus):
  *   AC1  All eight arrow operators parsed to correct Message.kind
@@ -12,7 +12,7 @@
  *   AC4  Activation shorthand (+/-) and explicit activate/deactivate
  *   AC5  Fragments: loop, opt, alt+else, par+and with sections
  *   AC6  Self-messages (from === to)
- *   AC7  Graceful degradation: autonumber warns; note warns; unknown warns
+ *   AC7  Graceful degradation: autonumber warns; note parsed; unknown warns
  *   AC8  Determinism: parse twice → identical JSON; render twice → identical sceneHash
  *   AC9  Gallery emit: render mermaid-sequence.mmd → .svg and .png files
  *   AC10 Public warnings surface correctly (parseMermaid returns warnings[])
@@ -391,28 +391,35 @@ describe('AC7 — graceful degradation + warnings', () => {
     expect(doc.sequence.messages).toHaveLength(1);
   });
 
-  it('Note left of A → warning, no corruption', () => {
-    const { doc, warnings } = parseSequenceInternal(
+  it('Note left of A → note captured in IR, no message corruption', () => {
+    const { doc } = parseSequenceInternal(
       'sequenceDiagram\n  A->>B: msg\n  Note left of A: annotation',
     );
-    expect(warnings.some((w) => /note/i.test(w))).toBe(true);
     expect(doc.sequence.messages).toHaveLength(1);
+    expect(doc.sequence.notes).toHaveLength(1);
+    expect(doc.sequence.notes![0]!.placement).toBe('left');
+    expect(doc.sequence.notes![0]!.text).toBe('annotation');
   });
 
-  it('Note right of A → warning', () => {
-    const { doc, warnings } = parseSequenceInternal(
+  it('Note right of A → note captured in IR', () => {
+    const { doc } = parseSequenceInternal(
       'sequenceDiagram\n  A->>B: msg\n  Note right of B: hint',
     );
-    expect(warnings.some((w) => /note/i.test(w))).toBe(true);
-    expect(doc.sequence.messages).toHaveLength(1);
+    expect(doc.sequence.notes).toHaveLength(1);
+    expect(doc.sequence.notes![0]!.placement).toBe('right');
+    expect(doc.sequence.notes![0]!.text).toBe('hint');
   });
 
-  it('Note over A,B → warning, messages intact', () => {
-    const { doc, warnings } = parseSequenceInternal(
+  it('Note over A,B → note captured in IR, messages intact', () => {
+    const { doc } = parseSequenceInternal(
       'sequenceDiagram\n  A->>B: msg\n  Note over A,B: overview',
     );
-    expect(warnings.some((w) => /note/i.test(w))).toBe(true);
     expect(doc.sequence.messages).toHaveLength(1);
+    expect(doc.sequence.notes).toHaveLength(1);
+    expect(doc.sequence.notes![0]!.placement).toBe('over');
+    expect(doc.sequence.notes![0]!.participants).toContain('a');
+    expect(doc.sequence.notes![0]!.participants).toContain('b');
+    expect(doc.sequence.notes![0]!.text).toBe('overview');
   });
 
   it('critical → DEFERRED warning, fragment still produced with kind critical', () => {
@@ -545,9 +552,8 @@ describe('AC9 — Gallery emit: mermaid-sequence.mmd', () => {
     writeFileSync(pngPath, pngResult.png!);
     expect(existsSync(pngPath)).toBe(true);
 
-    // Warnings: autonumber + note should both be warned
+    // autonumber keyword produces a NOTE-level warning
     expect(svgResult.warnings.some((w) => /autonumber/i.test(w))).toBe(true);
-    expect(svgResult.warnings.some((w) => /note/i.test(w))).toBe(true);
   });
 
   it('gallery sceneHash is stable (determinism regression guard)', () => {
@@ -573,6 +579,85 @@ describe('Corpus: complete real-world patterns', () => {
     expect(doc.sequence.messages).toHaveLength(2);
     expect(doc.sequence.messages[0]?.kind).toBe('sync');
     expect(doc.sequence.messages[1]?.kind).toBe('reply');
+  });
+
+  // ---------------------------------------------------------------------------
+  // New: autonumber 1-indexed + Note rendering
+  // ---------------------------------------------------------------------------
+
+  describe('Fidelity: autonumber 1-indexed + Note rendering', () => {
+    it('autonumber: first step badge text is "1" not "0"', () => {
+      const text = 'sequenceDiagram\n  autonumber\n  A->>B: first\n  B-->>A: reply';
+      const result = renderMermaid(text, { format: 'svg', theme: 'bytebytego-sequence' });
+      expect(result.svg).toContain('>1<');
+      expect(result.svg).not.toContain('>0<');
+    });
+
+    it('autonumber: sets autonumber=true in IR', () => {
+      const { doc } = parseSequenceInternal('sequenceDiagram\n  autonumber\n  A->>B: msg');
+      expect(doc.sequence.autonumber).toBe(true);
+    });
+
+    it('Note over A,B: renders note rect and text in SVG', () => {
+      const text = `sequenceDiagram
+        participant A
+        participant B
+        A->>B: hello
+        Note over A,B: Important note`;
+      const result = renderMermaid(text, { format: 'svg' });
+      expect(result.svg).toContain('Important note');
+    });
+
+    it('Note over A,B: note appears after message in parsed IR', () => {
+      const { doc } = parseSequenceInternal(`sequenceDiagram
+        participant A
+        participant B
+        A->>B: hello
+        Note over A,B: Multi-span note`);
+      expect(doc.sequence.notes).toHaveLength(1);
+      const note = doc.sequence.notes![0]!;
+      expect(note.placement).toBe('over');
+      expect(note.afterOrder).toBe(0);
+      expect(note.participants.length).toBe(2);
+      expect(note.text).toBe('Multi-span note');
+    });
+
+    it('Note right of A: renders note text in SVG', () => {
+      const text = `sequenceDiagram
+        participant A
+        participant B
+        A->>B: call
+        Note right of A: side note`;
+      const result = renderMermaid(text, { format: 'svg' });
+      expect(result.svg).toContain('side note');
+    });
+
+    it('Note left of B: renders note text in SVG', () => {
+      const text = `sequenceDiagram
+        participant A
+        participant B
+        A->>B: call
+        Note left of B: left note`;
+      const result = renderMermaid(text, { format: 'svg' });
+      expect(result.svg).toContain('left note');
+    });
+
+    it('gallery mermaid-sequence.mmd: note "All DB queries use TLS" appears in SVG', () => {
+      const mmmd = join(GALLERY_DIR, 'mermaid-sequence.mmd');
+      if (!existsSync(mmmd)) return;
+      const text = readFileSync(mmmd, 'utf8');
+      const result = renderMermaid(text, { format: 'svg', theme: 'bytebytego-sequence' });
+      expect(result.svg).toContain('All DB queries use TLS');
+    });
+
+    it('message order is 0-based and monotonically increasing — notes do not affect message orders', () => {
+      const { doc } = parseSequenceInternal(
+        'sequenceDiagram\n  A->>B: first\n  Note over A,B: middle\n  A->>B: second'
+      );
+      const orders = doc.sequence.messages.map((m) => m.order);
+      expect(orders).toEqual([0, 1]);
+      expect(doc.sequence.notes![0]!.afterOrder).toBe(0);
+    });
   });
 
   it('Pattern 2: API call with activation shorthand', () => {

@@ -154,6 +154,24 @@ export interface Fragment {
 }
 
 // ---------------------------------------------------------------------------
+// Note
+// ---------------------------------------------------------------------------
+
+export interface SequenceNote {
+  /**
+   * After which message order this note appears.
+   * Use -1 to indicate "before any message" (at the start).
+   */
+  afterOrder: number;
+  /** Placement type. */
+  placement: 'over' | 'left' | 'right';
+  /** Sanitized participant IDs. For 'over A,B': [idA, idB]. For left/right: [idA]. */
+  participants: string[];
+  /** Note label text. */
+  text: string;
+}
+
+// ---------------------------------------------------------------------------
 // Document root
 // ---------------------------------------------------------------------------
 
@@ -171,6 +189,10 @@ export interface SequenceDefinition {
   participants: Participant[];
   /** Messages (may be empty). */
   messages: Message[];
+  /** Sequence notes (optional). */
+  notes?: SequenceNote[];
+  /** When true (from autonumber keyword), step badges are displayed. */
+  autonumber?: boolean;
   /** Activation spans (increment-2; implemented and rendered). */
   activations?: Activation[];
   /** Combined fragments (increment-2; implemented and rendered). */

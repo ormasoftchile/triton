@@ -94,6 +94,13 @@ const fragmentSchema = z.object({
   sections: z.array(fragmentSectionSchema).optional(),
 });
 
+const sequenceNoteSchema = z.object({
+  afterOrder: z.number().int().min(-1),
+  placement: z.enum(['over', 'left', 'right']),
+  participants: z.array(z.string().min(1)).min(1),
+  text: z.string().min(1),
+});
+
 // ---------------------------------------------------------------------------
 // Metadata
 // ---------------------------------------------------------------------------
@@ -114,6 +121,8 @@ const sequenceDefinitionSchema = z
       .array(participantSchema)
       .min(1, 'Sequence must declare at least one participant'),
     messages: z.array(messageSchema),
+    autonumber: z.boolean().optional(),
+    notes: z.array(sequenceNoteSchema).optional(),
     activations: z.array(activationSchema).optional(),
     fragments: z.array(fragmentSchema).optional(),
   })
@@ -155,6 +164,18 @@ const sequenceDefinitionSchema = z
           code: z.ZodIssueCode.custom,
           message: `Message at order ${msg.order} references unknown participant id '${msg.to}' in field 'to'`,
         });
+      }
+    }
+
+    // Note participant refs must be declared
+    for (const note of def.notes ?? []) {
+      for (const pid of note.participants) {
+        if (!ids.has(pid)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Note references unknown participant id '${pid}'`,
+          });
+        }
       }
     }
 

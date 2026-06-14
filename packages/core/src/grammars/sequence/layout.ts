@@ -15,7 +15,7 @@
  */
 
 import type { Scene, ScenePrimitive, LinePrimitive } from '../../scene.js';
-import type { SequenceDocument, Participant, Message, Activation, Fragment } from './types.js';
+import type { SequenceDocument, Participant, Message, Activation, Fragment, SequenceNote } from './types.js';
 import { measureText } from '../../fonts/metrics.js';
 import type { SequenceTheme } from './theme.js';
 import { defaultSequenceTheme, resolveSequenceTheme, getIcon } from './theme.js';
@@ -261,6 +261,8 @@ function renderMessage(
   toBarOffset: number,
   fromColHalfW: number,
   _toColHalfW: number,
+  /** 1-based step number for this message (rank among messages, not msg.order). */
+  stepNumber: number,
 ): void {
   const isSelf = fromCx === toCx;
   const isSync = !msg.kind || msg.kind === 'sync';
@@ -307,7 +309,7 @@ function renderMessage(
         kind: 'text',
         x: badgeX,
         y: badgeY,
-        text: String(msg.order),
+        text: String(stepNumber),
         fontFamily: tk.fontFamily,
         fontSize: tk.stepBadgeFontSize,
         fontWeight: 700,
@@ -376,7 +378,7 @@ function renderMessage(
       kind: 'text',
       x: badgeX,
       y: rowY,
-      text: String(msg.order),
+      text: String(stepNumber),
       fontFamily: tk.fontFamily,
       fontSize: tk.stepBadgeFontSize,
       fontWeight: 700,
@@ -405,22 +407,6 @@ function renderMessage(
 // ---------------------------------------------------------------------------
 // Activation-bar rendering
 // ---------------------------------------------------------------------------
-
-function buildOrderToRowY(
-  sorted: Array<{ msg: Message; listIdx: number }>,
-  headerBottom: number,
-  tk: SequenceTheme,
-): Map<number, number> {
-  const map = new Map<number, number>();
-  for (let rank = 0; rank < sorted.length; rank++) {
-    const entry = sorted[rank]!;
-    const rowY = rhuInt(headerBottom + tk.firstMsgGap + rank * tk.rowHeight);
-    if (!map.has(entry.msg.order)) {
-      map.set(entry.msg.order, rowY);
-    }
-  }
-  return map;
-}
 
 function isActiveAt(activations: Activation[], participantId: string, msgOrder: number): boolean {
   return activations.some(
@@ -616,6 +602,88 @@ function renderFragments(
 }
 
 // ---------------------------------------------------------------------------
+// Note rendering
+// ---------------------------------------------------------------------------
+
+function renderNote(
+  note: SequenceNote,
+  rowY: number,
+  pIndexById: Map<string, number>,
+  pLayouts: ParticipantLayout[],
+  tk: SequenceTheme,
+  primitives: ScenePrimitive[],
+  canvasW: number,
+): void {
+  const noteH = rhuInt(tk.noteFontSize * 1.5 + 2 * tk.notePadY);
+  const noteY = rhuInt(rowY - noteH / 2);
+
+  let noteX: number;
+  let noteW: number;
+
+  if (note.placement === 'over') {
+    let minIdx = Infinity;
+    let maxIdx = -Infinity;
+    for (const pid of note.participants) {
+      const idx = pIndexById.get(pid);
+      if (idx !== undefined) {
+        if (idx < minIdx) minIdx = idx;
+        if (idx > maxIdx) maxIdx = idx;
+      }
+    }
+    if (!isFinite(minIdx)) return;
+
+    const leftPl = pLayouts[minIdx]!;
+    const rightPl = pLayouts[maxIdx]!;
+    noteX = leftPl.boxX;
+    noteW = rightPl.boxX + rightPl.boxW - leftPl.boxX;
+  } else if (note.placement === 'right') {
+    const pid = note.participants[0];
+    if (!pid) return;
+    const idx = pIndexById.get(pid);
+    if (idx === undefined) return;
+    const pl = pLayouts[idx]!;
+    noteX = rhuInt(pl.boxX + pl.boxW + 4);
+    noteW = Math.min(tk.noteWidth, canvasW - noteX - 4);
+  } else {
+    const pid = note.participants[0];
+    if (!pid) return;
+    const idx = pIndexById.get(pid);
+    if (idx === undefined) return;
+    const pl = pLayouts[idx]!;
+    noteW = tk.noteWidth;
+    noteX = Math.max(4, pl.boxX - noteW - 4);
+    noteW = pl.boxX - noteX - 4;
+  }
+
+  if (noteW <= 4) return;
+
+  primitives.push({
+    kind: 'rect',
+    x: noteX,
+    y: noteY,
+    width: noteW,
+    height: noteH,
+    fill: tk.noteFill,
+    stroke: tk.noteStroke,
+    strokeWidth: tk.noteStrokeWidth,
+    rx: 2,
+  });
+
+  primitives.push({
+    kind: 'text',
+    x: rhuInt(noteX + noteW / 2),
+    y: rhuInt(noteY + noteH / 2),
+    text: note.text,
+    fontFamily: tk.fontFamily,
+    fontSize: tk.noteFontSize,
+    fontWeight: 400,
+    fill: tk.noteTextColor,
+    textAnchor: 'middle',
+    dominantBaseline: 'middle',
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Main layout function
 // ---------------------------------------------------------------------------
 
@@ -630,7 +698,14 @@ function renderFragments(
  */
 export function layoutSequence(doc: SequenceDocument, themeOverride?: SequenceTheme): Scene {
   const tk = themeOverride ?? resolveSequenceTheme(doc.metadata?.theme);
-  const { participants, messages, activations = [], fragments = [] } = doc.sequence;
+  const { participants, messages, activations = [], fragments = [], notes = [], autonumber } = doc.sequence;
+  const effectiveTk = (autonumber && !tk.showStepNumbers)
+    ? { ...tk, showStepNumbers: true }
+    : tk;
+
+  type SortedItem =
+    | { sortKey: number; kind: 'message'; msg: Message; listIdx: number }
+    | { sortKey: number; kind: 'note'; note: SequenceNote; noteIdx: number };
 
   // 1. Participant layout (x-axis)
   const pLayouts = computeParticipantLayouts(participants, tk);
@@ -641,18 +716,27 @@ export function layoutSequence(doc: SequenceDocument, themeOverride?: SequenceTh
     if (pid) pIndexById.set(pid.id, i);
   }
 
-  // 2. Message sort (by order, stable)
-  const sorted = messages
-    .map((m, listIdx) => ({ msg: m, listIdx }))
-    .sort((a, b) => a.msg.order - b.msg.order || a.listIdx - b.listIdx);
-
-  const msgCount = sorted.length;
+  // 2. Build unified sorted sequence (messages + notes interleaved by source position)
+  const msgItems: SortedItem[] = messages.map((m, i) => ({
+    sortKey: m.order,
+    kind: 'message',
+    msg: m,
+    listIdx: i,
+  }));
+  const noteItems: SortedItem[] = notes.map((n, i) => ({
+    sortKey: n.afterOrder + 0.5,
+    kind: 'note',
+    note: n,
+    noteIdx: i,
+  }));
+  const unified: SortedItem[] = [...msgItems, ...noteItems].sort((a, b) => a.sortKey - b.sortKey);
+  const itemCount = unified.length;
 
   // 3. Canvas dimensions
   const headerH = pLayouts.reduce((max, pl) => Math.max(max, pl.boxH), 0);
   const headerBottom = rhuInt(tk.marginTop + headerH);
   const diagramContentH = rhuInt(
-    tk.firstMsgGap + Math.max(msgCount, 1) * tk.rowHeight + tk.firstMsgGap,
+    tk.firstMsgGap + Math.max(itemCount, 1) * tk.rowHeight + tk.firstMsgGap,
   );
   const canvasH = rhuInt(headerBottom + diagramContentH + tk.marginBottom);
 
@@ -660,11 +744,18 @@ export function layoutSequence(doc: SequenceDocument, themeOverride?: SequenceTh
   const canvasW = rhuInt(lastPL.boxX + lastPL.boxW + tk.marginH);
 
   // 4. Order→rowY lookup
-  const orderToRowY = buildOrderToRowY(sorted, headerBottom, tk);
+  const orderToRowY = new Map<number, number>();
+  for (let rank = 0; rank < unified.length; rank++) {
+    const item = unified[rank]!;
+    const rowY = rhuInt(headerBottom + tk.firstMsgGap + rank * tk.rowHeight);
+    if (item.kind === 'message' && !orderToRowY.has(item.msg.order)) {
+      orderToRowY.set(item.msg.order, rowY);
+    }
+  }
   const firstRowY = rhuInt(headerBottom + tk.firstMsgGap);
   const lastRowY =
-    msgCount > 0
-      ? rhuInt(headerBottom + tk.firstMsgGap + (msgCount - 1) * tk.rowHeight)
+    itemCount > 0
+      ? rhuInt(headerBottom + tk.firstMsgGap + (itemCount - 1) * tk.rowHeight)
       : firstRowY;
 
   const primitives: ScenePrimitive[] = [];
@@ -758,12 +849,21 @@ export function layoutSequence(doc: SequenceDocument, themeOverride?: SequenceTh
     renderActivationBars(activations, pIndexById, pLayouts, orderToRowY, lastRowY, tk, primitives);
   }
 
-  // 9. Messages — with activation-bar edge attachment
+  // 9. Messages + Notes — render in unified sequence order
   const barHW = tk.activationBarHalfW;
-  for (let rank = 0; rank < sorted.length; rank++) {
-    const entry = sorted[rank]!;
-    const { msg } = entry;
+  let msgRank = 0; // 0-based rank among messages only (for 1-indexed badge display)
+  for (let rank = 0; rank < unified.length; rank++) {
+    const item = unified[rank]!;
     const rowY = rhuInt(headerBottom + tk.firstMsgGap + rank * tk.rowHeight);
+
+    if (item.kind === 'note') {
+      renderNote(item.note, rowY, pIndexById, pLayouts, effectiveTk, primitives, canvasW);
+      continue;
+    }
+
+    const { msg } = item;
+    const stepNumber = msgRank + 1; // 1-indexed: first message = 1
+    msgRank++;
 
     const fromIdx = pIndexById.get(msg.from) ?? 0;
     const toIdx = pIndexById.get(msg.to) ?? 0;
@@ -793,7 +893,7 @@ export function layoutSequence(doc: SequenceDocument, themeOverride?: SequenceTh
     const fromColHalfW = rhuInt((pLayouts[fromIdx] ?? pLayouts[0]!).colW / 2);
     const toColHalfW = rhuInt((pLayouts[toIdx] ?? pLayouts[0]!).colW / 2);
 
-    renderMessage(msg, rowY, fromCx, toCx, tk, primitives, fromBarOffset, toBarOffset, fromColHalfW, toColHalfW);
+    renderMessage(msg, rowY, fromCx, toCx, effectiveTk, primitives, fromBarOffset, toBarOffset, fromColHalfW, toColHalfW, stepNumber);
   }
 
   return {

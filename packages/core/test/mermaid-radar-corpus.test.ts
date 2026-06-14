@@ -226,6 +226,22 @@ radar-beta
     expectedSyntax: 'radar-beta',
     expectedLabelIncludes: ['Team Comparison', 'Team A', 'Team B', 'Team C'],
   },
+  {
+    // Verifies Mermaid-canonical `curve id["Label"]{...}` form: label is used for the series
+    // name, not the id (sd/jd are structural ids that real Mermaid requires but we ignore).
+    name: 'canonical mermaid id-form curves use label not id',
+    text: `radar-beta
+title Developer Profile Comparison
+axis sp["Speed"], rl["Reliability"], cm["Communication"], lp["Leadership"], dg["Debugging"], dc["Documentation"]
+curve sd["Senior Dev"]{9, 8, 7, 8, 9, 6}
+curve jd["Junior Dev"]{6, 5, 5, 3, 6, 4}
+max 10
+min 0`,
+    expectedAxes: ['Speed', 'Reliability', 'Communication', 'Leadership', 'Debugging', 'Documentation'],
+    expectedSeries: 2,
+    expectedSyntax: 'radar-beta',
+    expectedLabelIncludes: ['Developer Profile Comparison', 'Senior Dev', 'Junior Dev'],
+  },
 ];
 
 function toChartDocument(doc: ReturnType<typeof parseMermaid>['doc']): ChartDocument {
