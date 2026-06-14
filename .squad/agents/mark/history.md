@@ -124,3 +124,7 @@ Mermaid DSL → preprocessed flowchart text → `parseFlowchart()` → FlowDocum
 
 Class domain IR (packages/core/src/grammars/class/) introduces new UML relationship types (inheritance/realization/composition/aggregation/association/dependency). Semantic-only IR independent of rendering; shape compartment sizing via measureText() follows established pattern. Barbara will render via Scene path primitives. Mark: class IR schema includes 6 relationship union types; future state/ER/C4 IRs will extend this pattern.
 Tier 1 complete (class/state/er/c4)
+
+## 2026-06-14 — Tier 2 Started
+
+Tier 2 grammar-of-graphics chart foundation shipped: ChartDocument Domain IR, LinearScale/BandScale, deterministic layout with priority-based label collision avoidance. Pie + xychart-beta operational. 1361 tests, zero regressions. Foundation for quadrant + radar (reuse only). Commit 5b709cf.

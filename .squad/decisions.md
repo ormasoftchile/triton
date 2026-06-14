@@ -1,4 +1,123 @@
-# Squad Decisions — Recent & Current (2026-06-13)
+# Squad Decisions — Recent & Current (2026-06-14)
+
+---
+
+## 🎊 TIER 2 STARTED — Chart Grammar-of-Graphics Foundation (2026-06-14)
+
+**Status:** CONFIRMED COMMITTED  
+**Commit:** 5b709cf  
+**Test Status:** 1361 tests passing, determinism preserved
+
+Grammar-of-graphics foundation shipped at `packages/core/src/grammars/chart/` (scales, axes, marks, shared layout engine with priority-based label collision avoidance). First two chart types live: **pie** + **xychart-beta** (bar + line). Built to specification by Barbara; first render clean (no polish pass needed).
+
+- **Shared Foundation:** Reusable scale (`LinearScale`, `BandScale`), axis, mark, and theme infrastructure via `ChartDocument` Domain IR → deterministic Scene IR.
+- **Pie Chart:** Theta encoding, arc sectors, priority-based label placement (inside/outside/leader-lines), deterministic legend.
+- **XY Chart:** Nominal/quantitative scale selection, nicened Y-domain, gridlines, deterministic tick-label crowding resolution, bar/line/point primitives.
+- **Determinism:** All geometry from direct arithmetic; no iterative solvers or randomness.
+- **Parser:** Mermaid `pie.ts` and `xychart.ts` parse Mermaid syntax into the shared `ChartDocument`.
+- **Gallery:** Examples `mermaid-pie.{mmd,svg,png}` + `mermaid-xychart.{mmd,svg,png}` (both 920×560), gallery cards 33+34.
+
+**Pattern:** Foundation reusable for quadrant + radar (only a layout dispatch branch needed per chart type).
+
+**Follow-up:** xychart series naming shows generic "bar 0"/"line 0" (Mermaid syntax does not name series).
+
+**Next:** Tier 2 remaining = quadrant + radar chart types (reuse foundation).
+
+---
+
+# Decision: TIER 2 STARTED — Chart Grammar-of-Graphics Foundation
+
+**Agent:** Barbara (Layout Specialist)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+---
+
+## Summary
+
+Dedicated grammar-of-graphics layer at `packages/core/src/grammars/chart/` with the same two-IR-layer architecture as existing grammars. Implements shared scales, axes, marks, theme, and deterministic layout engine. First two chart types (pie + xychart-beta) shipped end-to-end: Domain IR (ChartDocument) → deterministic layout → Scene IR → SVG/PNG.
+
+Gallery: `mermaid-pie.png` + `mermaid-xychart.png` at 920×560 px, gallery cards 33+34.
+
+Full suite: **1361 tests passing**. All pre-existing 1281 tests remain byte-identical.
+
+---
+
+## Design
+
+### ChartDocument (Domain IR)
+
+Semantic chart intent: data rows, field encodings, lightweight config. Maps Mermaid syntax into unified structure for all chart families.
+
+### Layout Engine
+
+Deterministic scales, axes, marks, and label placement:
+- **LinearScale:** continuous numeric domain → pixel range, nicening for axis ticks.
+- **BandScale:** categorical domain → pixel bands with padding.
+- **Priority-based label placement:** largest slices first, inside when roomy, outside for small/conflicting, leader lines for spillover.
+- **Tick-label crowding:** deterministic skipping based on measured label width vs available space.
+- **No iterative solvers:** all geometry derives from direct arithmetic.
+
+### Scene IR Output
+
+Existing primitives only: `rect`, `line`, `circle`, `text`, `path`. Serializers unchanged.
+
+---
+
+## Pie Chart
+
+**Encoding:**
+- Theta encoding maps value totals to sector angles.
+
+**Layout:**
+- Arc sectors emit as SVG `path` primitives.
+- Labels use priority rule: largest slices first, inside when roomy, outside for small/conflicting slices, leader lines for spillover cases.
+- Legend emitted as deterministic swatch + label rows.
+
+---
+
+## XY Chart (Bar + Line)
+
+**Scale Selection:**
+- Nominal X uses `BandScale`; quantitative X uses `LinearScale`.
+- Y uses nicened `LinearScale` domain.
+
+**Marks:**
+- Bars emit as `RectPrimitive`.
+- Lines as `PathPrimitive`.
+- Points as `CirclePrimitive`.
+
+**Layout:**
+- Gridlines render behind marks.
+- Tick-label crowding resolved by deterministic skipping based on measured label width vs band width.
+
+---
+
+## Parser (frontend/mermaid)
+
+**pie.ts:** Parses Mermaid pie syntax into `ChartDocument` (pie kind).
+
+**xychart.ts:** Parses Mermaid xychart syntax (bar + line) into `ChartDocument` (xychart kind).
+
+Both wired into `frontend/mermaid/index.ts` and `src/index.ts` detect/parse/render pipeline.
+
+---
+
+## Test Coverage
+
+- **pie corpora:** 40 tests
+- **xychart corpora:** 40 tests
+- **scale determinism:** 80 unit tests
+
+All existing 1281 tests pass, byte-identical.
+
+---
+
+## Consequences
+
+- New chart grammars can plug into foundation without backend work.
+- Quadrant + radar can reuse layout infrastructure (only a dispatch branch per type).
+- Mermaid `pie` and `xychart-beta` render through our engine end-to-end.
 
 ---
 

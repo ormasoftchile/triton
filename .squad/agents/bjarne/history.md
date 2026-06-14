@@ -64,6 +64,29 @@ For archived history, see history-archive.md.
 - Parser policy matches the rest of Mermaid Tier 0/Tier 1: auto-create referenced nodes/entities on first mention, enrich them later when explicit declarations appear, and never crash on malformed lines when a warning is sufficient.
 - Verification: `pnpm -C packages/core build`, `pnpm -C packages/core typecheck`, and full `pnpm -C packages/core test` all passed; the suite is now 1235/1235 green, and `examples/gallery/mermaid-state.{svg,png}` plus `examples/gallery/mermaid-er.{svg,png}` emit correctly.
 
+## Learnings (Tier 1 · C4 diagram — 2026-06-14)
+
+- Added `grammars/c4/{types,schema,layout,theme,index}.ts` and `frontend/mermaid/c4.ts` — the final Tier 1 UML/Software grammar. Five C4 sub-kinds wired into detect/parse/render pipeline: C4Context, C4Container, C4Component, C4Dynamic, C4Deployment.
+- **Element kind model**: 20 constructors in 4 categories (Person, System, Container, Component), each with optional `_Ext` (external/muted gray), `Db` (cylinder arc hint), `Queue` (shape deferred). `technology` field appears in the `«stereotype: tech»` line.
+- **Boundary-as-container reuse**: Recursive `C4Boundary` (modelled after state composite containers) — `z.lazy()` in Zod schema for recursive nesting; `measureBoundary()` → `placeBoundary()` recursive layout functions. Dashed border via `path` `d` with rounded rect SVG path (not `rect` + `strokeDasharray`, which required workaround). Header label above interior padding.
+- **External styling**: `_Ext` suffix → theme `extFill`/`extStroke`/`extTextColor` (gray/muted). Internal elements get category-based fills (Person/System=blue, Container=medium-blue, Component=light-blue). Theme resolves per-element style via `resolveElementStyle(kind, tk)` helper.
+- **Parser arg-tokenizing**: `tokenizeArgs(argStr)` handles quoted strings with commas inside, strips `$named` args, unquotes tokens. Boundary block nesting uses an explicit `Array<C4Boundary | C4Document>` scope stack — clean and depth-independent.
+- **C4Dynamic numbered rels**: First arg integer → `rel.order`; label prefixed `"N: label"` in layout. Rel_Back parsed as swapped from/to. Rel_U/D/L/R → plain Rel + layout-hint warning (spatial grid ignores directional hints).
+- **Real-crawl findings**: Canonical Internet Banking System corpus exposed `Rel_Ext` (non-standard, parsed as `Rel` + warning), `<br/>` in description strings (kept as-is, renders harmlessly), empty-alias boundaries (alias required, warn + skip). Real examples confirmed technology arg order varies per element kind.
+- **Spacing deliberateness**: elementGapX=80, elementGapY=60, boundaryPadX=24, boundaryPadY=20, boundaryHeaderHeight=36. Edge labels placed at midpoint with white background rect. Some crowding persists in dense nested diagrams — acceptable for MVP; Barbara may polish spacing in a follow-up pass.
+- **Deferred**: Rel_U/D/L/R spatial placement; C4Deployment full Node semantics; Person circle icon; Queue shape icon; `$tags`/`$link` named args (silently ignored).
+- **Verification**: `pnpm -C packages/core build` ✓, `pnpm -C packages/core typecheck` ✓, `pnpm -C packages/core test` → **1281/1281 passing** (46 new C4 corpus tests). Gallery: `mermaid-c4.{mmd,svg,png}` at **1445×728** px. Gallery card 32 added to `examples/gallery/index.html`. All 1235 pre-existing tests byte-identical (zero regressions).
+
+## Milestone: Tier 1 COMPLETE — C4 Shipped (2026-06-14)
+
+**Status:** COMPLETE
+**Coverage:** All 4 Tier 1 UML/Software types done (classDiagram, stateDiagram, erDiagram, C4)
+**Suite:** 1281/1281 green (46 new C4 tests), zero regressions
+**Gallery:** mermaid-c4 1445×728px (Internet Banking System C4Context)
+**Decision note:** .squad/decisions/inbox/bjarne-tier1-c4.md
+
+---
+
 ## Milestone: Tier 1 PROGRESS — stateDiagram + erDiagram Shipped (2026-06-14T04:41:53Z)
 
 **Status:** COMPLETE, layout-polished by Barbara  
@@ -76,3 +99,7 @@ For archived history, see history-archive.md.
 - Left-margin skip-transition routing in state (see Barbara history for polish details)
 - Degree-sort + interleaved ER grid placement eliminating long-diagonal routing
 - Ready for C4 implementation next
+
+## 2026-06-14 — Tier 2 Started
+
+Tier 2 grammar-of-graphics chart foundation shipped: scales (LinearScale, BandScale), axes, marks, deterministic layout engine. First two chart types operational: pie + xychart-beta (bar+line). 1361 tests, all prior regressions zero. Foundation reusable for quadrant + radar (dispatch branch per type). Commit 5b709cf.
