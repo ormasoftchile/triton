@@ -165,7 +165,7 @@
     one <strong>Flow Grammar</strong> example (RAG pipeline, layered L→R layout),
     three <strong>Tree Grammar</strong> examples (default light theme and dark-teal theme — same IR,
     two themes), one <strong>Composition Layer</strong> example (multi-panel poster assembling
-    flow, tree, sequence, and stat grammars into a single infographic), and seven
+    flow, tree, sequence, and stat grammars into a single infographic), and nine
     <strong>Mermaid</strong> examples (gantt → roadmap theme, timeline → consulting vertical-spine,
     mindmap → dark-tree, classDiagram → UML compartments, stateDiagram → pseudostate state layout,
     erDiagram → crow's-foot entity layout, C4Context → software architecture layout — all rendered via our engine from real Mermaid source). Most timeline renders use
@@ -174,7 +174,7 @@
     statuses, milestones, and edge-case behaviours. Use this contact sheet to bulk-check
     Phase 1–5 visual output.
   </p>
-  <span class="badge">Phase 1–5 Gallery · 32 Examples · Horizontal + Sequence + Flow + Tree + Composition + Mermaid Tier-0/Tier-1</span>
+  <span class="badge">Phase 1–5 Gallery · 34 Examples · Horizontal + Sequence + Flow + Tree + Composition + Mermaid Tier-0/Tier-2</span>
   <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
     <a href="themes.html" style="font-size:13px;font-weight:700;color:#1F497D;text-decoration:none;padding:5px 12px;border:1px solid #c5d5e8;border-radius:3px;background:#f0f5fb;">
       🎨 Theme Showcase → 5 themes × 3 examples
@@ -952,7 +952,58 @@
     </div>
   </div>
 
+  <!-- 33. mermaid-pie — Tier 2 chart grammar, pie → ChartDocument → arc layout -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 33 · mermaid-pie</div>
+      <div class="card-title">Mermaid Pie Chart — Programming Language Popularity 2026 (Tier 2)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">pie</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>pie</code> chart parsed by our Tier 2 chart grammar front-end into
+        the Chart Grammar IR and rendered with the grammar-of-graphics layout engine: theta scale
+        maps values to sector angles, arc sectors as SVG path primitives, priority-based label
+        collision avoidance (large slices inside, small slices outside with leader lines), and
+        a legend. Theme: <code>default-chart</code>.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-pie.png" alt="mermaid pie chart rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-pie.svg">SVG</a>
+      <a href="mermaid-pie.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 34. mermaid-xychart — Tier 2 chart grammar, xychart-beta → ChartDocument → bar+line layout -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 34 · mermaid-xychart</div>
+      <div class="card-title">Mermaid XY Chart — Monthly Revenue vs Target 2026 (Tier 2)
+        <span class="tag tag-milestones">mermaid</span>
+        <span class="tag tag-sublanes">xychart-beta</span>
+      </div>
+      <div class="card-desc">
+        A real Mermaid <code>xychart-beta</code> chart parsed by our Tier 2 chart grammar front-end:
+        band scale for categorical x-axis, linear scale with nice domain for y-axis, bar marks (Rect
+        primitives) and line marks (Path polyline) overlaid on the same plot, deterministic tick
+        generation with collision avoidance on x-labels, gridlines behind marks.
+        Theme: <code>default-chart</code>.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="mermaid-xychart.png" alt="mermaid xychart rendered through our engine">
+    </div>
+    <div class="card-footer">
+      <a href="mermaid-xychart.svg">SVG</a>
+      <a href="mermaid-xychart.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
 </div>
+<footer>
   Timeline Compiler · Phase 1–5 Gallery · Horizontal &amp; vertical-spine layout families.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>
   · See <a href="README.md" style="color:#999">README.md</a> for full commands.

@@ -249,6 +249,26 @@ export type {
   CompositionTheme,
 } from './composition/index.js';
 
+
+// Chart grammar (ninth multi-grammar architecture entry point — grammar-of-graphics)
+export {
+  buildChartScene,
+  renderChartDocument,
+  defaultChartTheme,
+  darkChartTheme,
+  resolveChartTheme,
+  CHART_THEME_REGISTRY,
+} from './grammars/chart/index.js';
+export type {
+  ChartDocument,
+  ChartEncoding,
+  FieldEncoding,
+  ChartConfig,
+  ChartTheme,
+  ChartRenderOptions,
+  ChartRenderResult,
+} from './grammars/chart/index.js';
+
 // Mermaid front-end (Tier-0 Inc-1): text → Domain IR → Scene → backends
 // Path A of the dual front-end architecture (§15 frontend.tex).
 export {
@@ -268,3 +288,5 @@ export { parseClassDiagram } from './frontend/mermaid/class.js';
 export { parseStateDiagram } from './frontend/mermaid/state.js';
 export { parseErDiagram } from './frontend/mermaid/er.js';
 export { parseC4Diagram } from './frontend/mermaid/c4.js';
+export { parsePieDiagram } from './frontend/mermaid/pie.js';
+export { parseXYChartDiagram } from './frontend/mermaid/xychart.js';

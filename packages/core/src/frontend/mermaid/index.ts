@@ -67,6 +67,13 @@ import {
 import type { C4Document } from '../../grammars/c4/index.js';
 
 import {
+  buildChartScene,
+  renderChartDocument,
+  resolveChartTheme,
+} from '../../grammars/chart/index.js';
+import type { ChartDocument } from '../../grammars/chart/index.js';
+
+import {
   buildSequenceScene,
   renderSequenceDocument,
   resolveSequenceTheme,
@@ -93,6 +100,8 @@ import { parseClassDiagramInternal } from './class.js';
 import { parseStateDiagramInternal } from './state.js';
 import { parseErDiagramInternal } from './er.js';
 import { parseC4DiagramInternal } from './c4.js';
+import { parsePieDiagramInternal } from './pie.js';
+import { parseXYChartDiagramInternal } from './xychart.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -116,6 +125,8 @@ export type DiagramKind =
   | 'c4Component'
   | 'c4Dynamic'
   | 'c4Deployment'
+  | 'pie'
+  | 'xychart'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -150,6 +161,8 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^c4component\b/i.test(trimmed)) return 'c4Component';
     if (/^c4dynamic\b/i.test(trimmed)) return 'c4Dynamic';
     if (/^c4deployment\b/i.test(trimmed)) return 'c4Deployment';
+    if (/^pie\b/i.test(trimmed)) return 'pie';
+    if (/^xychart-beta\b/i.test(trimmed)) return 'xychart';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -177,7 +190,7 @@ export function detectDiagramType(text: string): DiagramKind {
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -241,10 +254,20 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'pie') {
+    const { doc, warnings } = parsePieDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
+  if (kind === 'xychart') {
+    const { doc, warnings } = parseXYChartDiagramInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta.`,
   );
 }
 
@@ -274,7 +297,7 @@ export interface MermaidRenderOptions {
 export interface MermaidRenderResult {
   kind: DiagramKind;
   /** The Domain IR document (grammar-specific). */
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -526,10 +549,38 @@ export function renderMermaid(
     return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
   }
 
+  if (kind === 'pie') {
+    const { doc, warnings, frontmatter } = parsePieDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? 'default-chart';
+    const chartTheme = resolveChartTheme(themeName);
+    const finalDoc: ChartDocument = doc;
+    const scene = buildChartScene(finalDoc, chartTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderChartDocument(finalDoc, { format }, chartTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for pie.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
+  if (kind === 'xychart') {
+    const { doc, warnings, frontmatter } = parseXYChartDiagramInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme ?? 'default-chart';
+    const chartTheme = resolveChartTheme(themeName);
+    const finalDoc: ChartDocument = doc;
+    const scene = buildChartScene(finalDoc, chartTheme);
+    const hash = computeSceneHash(scene);
+    const format = options.format ?? 'svg';
+    const renderResult = renderChartDocument(finalDoc, { format }, chartTheme);
+    if (renderResult instanceof Promise) throw new Error('[renderMermaid] Async not supported for xychart.');
+    return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
+  }
+
   // ── Unknown ────────────────────────────────────────────────────────────
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta.`,
   );
 }

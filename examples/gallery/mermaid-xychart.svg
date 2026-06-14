@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="560" version="1.1" viewBox="0 0 920 560" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#ffffff" height="560" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1a1a2e" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" text-anchor="middle" x="460" y="50">Monthly Revenue vs Target 2026</text>
+  <line opacity="0.9" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="868" y1="460" y2="460"/>
+  <line opacity="0.9" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="868" y1="334.67" y2="334.67"/>
+  <line opacity="0.9" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="868" y1="209.33" y2="209.33"/>
+  <line opacity="0.9" stroke="#e2e8f0" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="868" y1="84" y2="84"/>
+  <rect fill="#4C72B0" height="112.8" rx="3" stroke="#ffffff" stroke-width="1" width="105.51" x="107.58" y="347.2"/>
+  <rect fill="#4C72B0" height="162.93" rx="3" stroke="#ffffff" stroke-width="1" width="105.51" x="236.25" y="297.07"/>
+  <rect fill="#4C72B0" height="213.07" rx="3" stroke="#ffffff" stroke-width="1" width="105.51" x="364.91" y="246.93"/>
+  <rect fill="#4C72B0" height="194.27" rx="3" stroke="#ffffff" stroke-width="1" width="105.51" x="493.58" y="265.73"/>
+  <rect fill="#4C72B0" height="282" rx="3" stroke="#ffffff" stroke-width="1" width="105.51" x="622.25" y="178"/>
+  <rect fill="#4C72B0" height="325.87" rx="3" stroke="#ffffff" stroke-width="1" width="105.51" x="750.91" y="134.13"/>
+  <path d="M 160.33 334.67 L 289 303.33 L 417.67 272 L 546.33 259.47 L 675 209.33 L 803.67 146.67" fill="none" stroke="#DD8452" stroke-linecap="round" stroke-width="3"/>
+  <circle cx="160.33" cy="334.67" fill="#DD8452" r="4" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="289" cy="303.33" fill="#DD8452" r="4" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="417.67" cy="272" fill="#DD8452" r="4" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="546.33" cy="259.47" fill="#DD8452" r="4" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="675" cy="209.33" fill="#DD8452" r="4" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="803.67" cy="146.67" fill="#DD8452" r="4" stroke="#ffffff" stroke-width="1"/>
+  <line stroke="#334155" stroke-width="1.5" x1="96" x2="868" y1="460" y2="460"/>
+  <line stroke="#334155" stroke-width="1.5" x1="160.33" x2="160.33" y1="460" y2="466"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="160.33" y="482">Jan</text>
+  <line stroke="#334155" stroke-width="1.5" x1="289" x2="289" y1="460" y2="466"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="289" y="482">Feb</text>
+  <line stroke="#334155" stroke-width="1.5" x1="417.67" x2="417.67" y1="460" y2="466"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="417.67" y="482">Mar</text>
+  <line stroke="#334155" stroke-width="1.5" x1="546.33" x2="546.33" y1="460" y2="466"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="546.33" y="482">Apr</text>
+  <line stroke="#334155" stroke-width="1.5" x1="675" x2="675" y1="460" y2="466"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="675" y="482">May</text>
+  <line stroke="#334155" stroke-width="1.5" x1="803.67" x2="803.67" y1="460" y2="466"/>
+  <text dominant-baseline="alphabetic" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="middle" x="803.67" y="482">Jun</text>
+  <line stroke="#334155" stroke-width="1.5" x1="96" x2="96" y1="84" y2="460"/>
+  <line stroke="#334155" stroke-width="1.5" x1="90" x2="96" y1="460" y2="460"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="84" y="460">0</text>
+  <line stroke="#334155" stroke-width="1.5" x1="90" x2="96" y1="334.67" y2="334.67"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="84" y="334.67">2000</text>
+  <line stroke="#334155" stroke-width="1.5" x1="90" x2="96" y1="209.33" y2="209.33"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="84" y="209.33">4000</text>
+  <line stroke="#334155" stroke-width="1.5" x1="90" x2="96" y1="84" y2="84"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="end" x="84" y="84">6000</text>
+  <text dominant-baseline="alphabetic" fill="#1f2937" font-family="DejaVu Sans, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="96" y="74">Revenue (USD k)</text>
+  <rect fill="#4C72B0" height="12" rx="2" stroke="#ffffff" stroke-width="1" width="12" x="758" y="94"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="778" y="101">bar 0</text>
+  <rect fill="#DD8452" height="12" rx="2" stroke="#ffffff" stroke-width="1" width="12" x="758" y="118"/>
+  <text dominant-baseline="middle" fill="#475569" font-family="DejaVu Sans, sans-serif" font-size="12" font-weight="400" text-anchor="start" x="778" y="125">line 0</text>
+</svg>
