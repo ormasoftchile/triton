@@ -58,3 +58,16 @@ Processed Barbara's treeDarkTheme addition and gallery curation.
 - **Inbox:** 0 files (clean) ✓
 - **History Files:** All under 15,360-byte summarization threshold ✓
 - **Manifest Note:** treeDarkTheme (dark navy + teal, 'dark-tree'), tree-document-dark.* emitted, gallery cards added for all 4 grammar families, 669 tests pass, commit 045a756
+
+### 2026-06-14 — Mermaid Front-End Tier 0 Inbox Merge (Scribe)
+
+Processed Bjarne's Mermaid front-end decision (flowchart parser, Tier 0 Inc 1).
+
+- **Decisions:** Created `decisions.md` (7,113 bytes); merged bjarne-mermaid-frontend.md
+- **Orchestration Log:** 20260614T001054Z-mermaid-frontend-flowchart.md (1,752 bytes)
+- **Session Log:** 20260614T001054Z-mermaid-frontend.md (925 bytes)
+- **Decisions Archive Gate:** decisions.md 7,113 bytes (under 51,200 gate) ✓
+- **Inbox:** 1 file → 0 files (merged and deleted) ✓
+- **Cross-Agent Updates:** mark/history.md + barbara/history.md appended with IR and rendering integration notes
+- **History Files:** All under 15,360-byte summarization threshold ✓
+- **Manifest Summary:** Mermaid front-end (Bjarne) delivers flowchart parser, 6 node shapes, 4 edge types, 57 new tests (852 total pass), dark-flow gallery visibly cleaner than Mermaid default, 10 deferred features explicit, sequence/gantt/timeline/mindmap unsupported (next increments)

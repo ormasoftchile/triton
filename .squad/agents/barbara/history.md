@@ -177,3 +177,15 @@ Product repositioned as **full Mermaid superset** (all 22 types) compiling to sh
 - **T2 charts:** Grammar-of-graphics rendering (Barbara: increment-3; blocks on Mark's ChartData IR)
 - **Aesthetics:** Complete 5-family theme set; establish design system (Barbara: parallel priority)
 
+---
+
+## 2026-06-14 — Mermaid Front-End Flowchart Rendering Note (Scribe)
+
+**Date:** 2026-06-14T00:10:54Z  
+**Status:** LIVE
+
+Mermaid flowchart parser (Tier 0 Inc 1) now renders via existing dark-flow theme.
+Rendered gallery example (CI/CD pipeline) visibly cleaner than Mermaid default output — achieved explicit project pitch criterion ("prettier than Mermaid").
+
+**Theme coverage:** flowchart + sequence + tree + timeline all support dark themes; composition layer resolves per-cell theme inheritance. Next: UML family themes (class, state, ER, C4).
+

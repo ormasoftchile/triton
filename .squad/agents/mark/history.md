@@ -104,3 +104,15 @@ Product repositioned as **full Mermaid superset** (all 22 types) compiling to sh
 - **T0 wiring:** Mermaid flowchart/sequence/gantt/timeline/mindmap → existing domain IRs
 - **T1 UML:** Define class/state/ER/C4 IRs; pass to Barbara for rendering
 - **T2 charts:** Design ChartData family IR; pass to Barbara
+
+---
+
+## 2026-06-14 — Mermaid Front-End Tier 0 Integration Note (Scribe)
+
+**Date:** 2026-06-14T00:10:54Z  
+**Status:** INTEGRATION IN PROGRESS
+
+Bjarne's Mermaid flowchart parser (Tier 0 Inc 1) now targets the grammar IRs.
+Mermaid DSL → preprocessed flowchart text → `parseFlowchart()` → FlowDocument IR → existing `buildFlowScene()` path.
+
+**Implication for Mark:** Future parsers (sequence, timeline, mindmap) need their respective IR coverage. Sequence parser → SequenceDocument; timeline parser → TimelineDocument; mindmap parser → TreeDocument (existing structure sufficient). Architecture decision: Mermaid IDs sanitized to kebab-case at parse time; IR remains schema-consistent.
