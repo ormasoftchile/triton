@@ -112,6 +112,14 @@ interface NodeToken {
   shape?: string;
 }
 
+/** Result of scanNodeToken — optional degradation warning for unsupported shapes. */
+interface ScanNodeResult {
+  token: NodeToken;
+  end: number;
+  /** Non-fatal warning emitted when a shape is degraded to a supported kind. */
+  shapeWarning?: string;
+}
+
 interface EdgeSpec {
   kind?: FlowEdge['kind'];
   style?: FlowEdge['style'];
@@ -173,7 +181,7 @@ export function parseFlowchartInternal(text: string): FlowchartParseResult {
     }
   }
 
-  if (direction === 'TB') {
+  if (direction === 'TB' || direction === 'TD') {
     warnings.push(
       'DEFERRED: TB/TD top-to-bottom layout is not yet implemented in the layout engine (Inc 2). ' +
         'Rendering in LR orientation.',
@@ -303,6 +311,7 @@ function parseChain(
   }
 
   pos = firstNodeResult.end;
+  if (firstNodeResult.shapeWarning) warnings.push(firstNodeResult.shapeWarning);
   registerNode(firstNodeResult.token, idMap, nodesMap);
   let prevId = resolveId(firstNodeResult.token.rawId, idMap);
 
@@ -312,7 +321,17 @@ function parseChain(
     if (pos >= input.length) break;
 
     const edgeResult = scanEdgeToken(input, pos);
-    if (!edgeResult) break; // end of chain (no more edges)
+    if (!edgeResult) {
+      // Remaining non-whitespace content that doesn't begin with a known edge operator.
+      const remaining = input.slice(pos).trim();
+      if (remaining) {
+        warnings.push(
+          `Unrecognised content in chain (unknown edge operator?): "${remaining}" ` +
+            `(statement: "${input.trim()}")`,
+        );
+      }
+      break;
+    }
 
     pos = edgeResult.end;
     pos = skipWs(input, pos);
@@ -324,6 +343,7 @@ function parseChain(
     }
 
     pos = nextNodeResult.end;
+    if (nextNodeResult.shapeWarning) warnings.push(nextNodeResult.shapeWarning);
     registerNode(nextNodeResult.token, idMap, nodesMap);
     const nextId = resolveId(nextNodeResult.token.rawId, idMap);
 
@@ -350,26 +370,31 @@ function parseChain(
  * Try to match a node token at `pos` in `input`.
  * Returns the parsed token and the position after the match, or null.
  *
- * Node token grammar (applied in precedence order):
- *   ID  ([...])  → stadium
- *   ID  [[...]]  → rect (subroutine)
- *   ID  ((...)  → circle
- *   ID  [...]   → rect
- *   ID  (...)   → rounded-rect
- *   ID  {...}   → diamond
- *   ID          → rounded-rect (bare, default)
+ * Node token grammar (applied in precedence order — multi-char delimiters
+ * always checked before their single-char prefixes):
+ *   ID  ([...])   → stadium
+ *   ID  [[...]]   → rect  (subroutine → rect; no double-line rendering)
+ *   ID  ((...)    → circle
+ *   ID  [(...)    → rect  (cylinder → rect; DEFERRED shape)
+ *   ID  {{...}}   → diamond  (hexagon → diamond; DEFERRED shape)
+ *   ID  [/.../ ]  → rect  (parallelogram → rect; slashes stripped from label)
+ *   ID  [\...\]   → rect  (parallelogram-left → rect; backslashes stripped)
+ *   ID  [...]     → rect
+ *   ID  (...)     → rounded-rect
+ *   ID  {...}     → diamond
+ *   ID  >...]     → rect  (asymmetric → rect; DEFERRED shape)
+ *   ID            → rounded-rect (bare, default)
  *
- * ID = [a-zA-Z_][a-zA-Z0-9_-]*
+ * ID = [a-zA-Z_][a-zA-Z0-9_]*
+ * NOTE: hyphens are intentionally excluded from the ID charset to prevent
+ * greedy consumption of edge operators (e.g. `A-->B` must not scan `A--`).
  */
-function scanNodeToken(
-  input: string,
-  pos: number,
-): { token: NodeToken; end: number } | null {
+function scanNodeToken(input: string, pos: number): ScanNodeResult | null {
   // Skip whitespace
   while (pos < input.length && /\s/.test(input[pos] ?? '')) pos++;
 
-  // Match Mermaid node ID
-  const idMatch = /^[a-zA-Z_][a-zA-Z0-9_-]*/.exec(input.slice(pos));
+  // Match Mermaid node ID — NO hyphen in char class (avoids consuming '-–')
+  const idMatch = /^[a-zA-Z_][a-zA-Z0-9_]*/.exec(input.slice(pos));
   if (!idMatch) return null;
 
   const rawId = idMatch[0]!;
@@ -391,6 +416,7 @@ function scanNodeToken(
     return {
       token: { rawId, label: extractLabel(subroutineM[1] ?? ''), shape: 'rect' },
       end: p + subroutineM[0].length,
+      shapeWarning: `DEFERRED: subroutine [[...]] degraded to rect for node "${rawId}"`,
     };
   }
 
@@ -400,6 +426,46 @@ function scanNodeToken(
     return {
       token: { rawId, label: extractLabel(circleM[1] ?? ''), shape: 'circle' },
       end: p + circleM[0].length,
+    };
+  }
+
+  // Cylinder [(...)  — must check before plain rect [
+  const cylinderM = rest.match(/^\[\(([^)]*)\)\]/);
+  if (cylinderM) {
+    return {
+      token: { rawId, label: extractLabel(cylinderM[1] ?? ''), shape: 'rect' },
+      end: p + cylinderM[0].length,
+      shapeWarning: `DEFERRED: cylinder [(...)] degraded to rect for node "${rawId}"`,
+    };
+  }
+
+  // Hexagon {{...}}  — must check before plain diamond {
+  const hexagonM = rest.match(/^\{\{([^}]*)\}\}/);
+  if (hexagonM) {
+    return {
+      token: { rawId, label: extractLabel(hexagonM[1] ?? ''), shape: 'diamond' },
+      end: p + hexagonM[0].length,
+      shapeWarning: `DEFERRED: hexagon {{...}} degraded to diamond for node "${rawId}"`,
+    };
+  }
+
+  // Parallelogram [/.../ ]  — must check before plain rect [
+  const paraRightM = rest.match(/^\[\/([^\/]*)\/\]/);
+  if (paraRightM) {
+    return {
+      token: { rawId, label: extractLabel(paraRightM[1] ?? ''), shape: 'rect' },
+      end: p + paraRightM[0].length,
+      shapeWarning: `DEFERRED: parallelogram [/.../] degraded to rect for node "${rawId}"`,
+    };
+  }
+
+  // Parallelogram-left [\...\]  — must check before plain rect [
+  const paraLeftM = rest.match(/^\[\\([^\\]*)\\]/);
+  if (paraLeftM) {
+    return {
+      token: { rawId, label: extractLabel(paraLeftM[1] ?? ''), shape: 'rect' },
+      end: p + paraLeftM[0].length,
+      shapeWarning: `DEFERRED: parallelogram [\\...\\] degraded to rect for node "${rawId}"`,
     };
   }
 
@@ -430,6 +496,16 @@ function scanNodeToken(
     };
   }
 
+  // Asymmetric >...]  — starts with > after the ID
+  const asymmetricM = rest.match(/^>([^\]]*)\]/);
+  if (asymmetricM) {
+    return {
+      token: { rawId, label: extractLabel(asymmetricM[1] ?? ''), shape: 'rect' },
+      end: p + asymmetricM[0].length,
+      shapeWarning: `DEFERRED: asymmetric >...] degraded to rect for node "${rawId}"`,
+    };
+  }
+
   // Bare ID — no shape, default 'rounded-rect'
   return { token: { rawId, shape: 'rounded-rect' }, end: p };
 }
@@ -442,14 +518,23 @@ function scanNodeToken(
  * Try to match an edge token at `pos` in `input`.
  * Returns the EdgeSpec and position after the match, or null.
  *
- * Supported patterns (most-specific first):
- *   -.->|label|  async, dotted, labeled
- *   ==>|label|   sync, solid, labeled  (thick→solid)
- *   -->|label|   sync, solid, labeled
- *   -.->         async, dotted
- *   ==>          sync, solid           (thick→solid)
- *   -->          sync, solid
- *   ---          sync, solid           (undirected→directed)
+ * All Mermaid edge operators are supported. Operators without a direct IR
+ * equivalent are mapped to the closest supported (kind, style) pair:
+ *
+ *   Labeled (pipe syntax)                Unlabeled
+ *   ─────────────────────────────────    ──────────────────────────────
+ *   <-.->|label|  async dotted           <-.->   async dotted
+ *   -.->|label|   async dotted           -.->    async dotted
+ *   <==>|label|   sync  solid            -.-     async dotted (undirected dotted)
+ *   ==>|label|    sync  solid            <==>    sync  solid
+ *   <-->|label|   sync  solid            ==>     sync  solid  (thick)
+ *   -->|label|    sync  solid            ===     sync  solid  (thick undirected)
+ *   o--o|label|   sync  solid            <-->    sync  solid  (bidirectional)
+ *   --x|label|    sync  solid (cross)    -->     sync  solid
+ *   --o|label|    sync  solid (circle)   o--o    sync  solid  (circle-circle)
+ *                                        --x     sync  solid  (cross terminus)
+ *                                        --o     sync  solid  (circle terminus)
+ *                                        ---     sync  solid  (undirected)
  */
 function scanEdgeToken(
   input: string,
@@ -457,7 +542,18 @@ function scanEdgeToken(
 ): { spec: EdgeSpec; end: number } | null {
   const s = input.slice(pos);
 
-  // -.->|label|
+  // ── Labeled forms (pipe syntax) — most-specific prefix first ─────────────
+
+  // <-.->|label|  dotted bidirectional labeled
+  const dotBiLabelM = s.match(/^<-\.->[ \t]*\|([^|]*)\|/);
+  if (dotBiLabelM) {
+    return {
+      spec: { kind: 'async', style: 'dotted', label: dotBiLabelM[1]!.trim() },
+      end: pos + dotBiLabelM[0].length,
+    };
+  }
+
+  // -.->|label|  async dotted labeled
   const dottedLabelM = s.match(/^-\.->[ \t]*\|([^|]*)\|/);
   if (dottedLabelM) {
     return {
@@ -466,7 +562,16 @@ function scanEdgeToken(
     };
   }
 
-  // ==>|label|
+  // <==>|label|  thick bidirectional labeled
+  const thickBiLabelM = s.match(/^<==>[ \t]*\|([^|]*)\|/);
+  if (thickBiLabelM) {
+    return {
+      spec: { kind: 'sync', style: 'solid', label: thickBiLabelM[1]!.trim() },
+      end: pos + thickBiLabelM[0].length,
+    };
+  }
+
+  // ==>|label|  thick directed labeled
   const thickLabelM = s.match(/^==>[ \t]*\|([^|]*)\|/);
   if (thickLabelM) {
     return {
@@ -475,7 +580,16 @@ function scanEdgeToken(
     };
   }
 
-  // -->|label|
+  // <-->|label|  bidirectional labeled
+  const biLabelM = s.match(/^<-->[ \t]*\|([^|]*)\|/);
+  if (biLabelM) {
+    return {
+      spec: { kind: 'sync', style: 'solid', label: biLabelM[1]!.trim() },
+      end: pos + biLabelM[0].length,
+    };
+  }
+
+  // -->|label|  directed labeled
   const arrowLabelM = s.match(/^-->[ \t]*\|([^|]*)\|/);
   if (arrowLabelM) {
     return {
@@ -484,25 +598,70 @@ function scanEdgeToken(
     };
   }
 
-  // -.->
-  if (s.startsWith('-.->')) {
-    return { spec: { kind: 'async', style: 'dotted' }, end: pos + 4 };
+  // o--o|label|  circle-circle labeled
+  const circBiLabelM = s.match(/^o--o[ \t]*\|([^|]*)\|/);
+  if (circBiLabelM) {
+    return {
+      spec: { kind: 'sync', style: 'solid', label: circBiLabelM[1]!.trim() },
+      end: pos + circBiLabelM[0].length,
+    };
   }
 
-  // ==>
-  if (s.startsWith('==>')) {
-    return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
+  // --x|label|  cross terminus labeled
+  const crossLabelM = s.match(/^--x[ \t]*\|([^|]*)\|/);
+  if (crossLabelM) {
+    return {
+      spec: { kind: 'sync', style: 'solid', label: crossLabelM[1]!.trim() },
+      end: pos + crossLabelM[0].length,
+    };
   }
 
-  // -->
-  if (s.startsWith('-->')) {
-    return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
+  // --o|label|  circle terminus labeled
+  const circTermLabelM = s.match(/^--o[ \t]*\|([^|]*)\|/);
+  if (circTermLabelM) {
+    return {
+      spec: { kind: 'sync', style: 'solid', label: circTermLabelM[1]!.trim() },
+      end: pos + circTermLabelM[0].length,
+    };
   }
 
-  // ---  (undirected — treat as directed sync/solid)
-  if (s.startsWith('---')) {
-    return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
-  }
+  // ── Unlabeled forms — most-specific prefix first ──────────────────────────
+
+  // <-.->  dotted bidirectional
+  if (s.startsWith('<-.->')) return { spec: { kind: 'async', style: 'dotted' }, end: pos + 5 };
+
+  // -.->  async dotted
+  if (s.startsWith('-.->')) return { spec: { kind: 'async', style: 'dotted' }, end: pos + 4 };
+
+  // -.-  undirected dotted
+  if (s.startsWith('-.-')) return { spec: { kind: 'async', style: 'dotted' }, end: pos + 3 };
+
+  // <==>  thick bidirectional
+  if (s.startsWith('<==>')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 4 };
+
+  // ==>  thick directed
+  if (s.startsWith('==>')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
+
+  // ===  thick undirected
+  if (s.startsWith('===')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
+
+  // <-->  bidirectional
+  if (s.startsWith('<-->')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 4 };
+
+  // -->  directed
+  if (s.startsWith('-->')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
+
+  // o--o  circle-circle bidirectional
+  if (s.startsWith('o--o')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 4 };
+
+  // --x  cross terminus
+  if (s.startsWith('--x')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
+
+  // --o  circle terminus
+  if (s.startsWith('--o')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
+
+  // ---  undirected
+  if (s.startsWith('---')) return { spec: { kind: 'sync', style: 'solid' }, end: pos + 3 };
 
   return null;
 }
@@ -641,17 +800,25 @@ function extractLabel(raw: string): string {
 }
 
 /**
- * Normalise "A -- label --> B" edge syntax to "A -->|label| B".
+ * Normalise inline-label edge syntax to the canonical pipe form `op|label|`.
  *
- * Pattern matched: `--` + one-or-more whitespace + label text + optional
- * whitespace + `-->` or `-.->`.
+ * Handles all three inline-label forms from Mermaid's docs:
+ *   "-- label -->"  →  "-->|label|"
+ *   "== label ==>"  →  "==>|label|"
+ *   "-. label .->"  →  "-.->|label|"
  *
- * The `label` capture is lazy to avoid swallowing the entire rest of the line
- * when multiple edges appear.
+ * Applied before chain parsing so the edge scanner only needs to handle the
+ * canonical pipe form. Global replace handles multi-edge chains on one line.
  *
- * Does NOT match `---` (undirected link — no space follows `--`).
+ * Does NOT match `---` (undirected link without label — no space follows `--`).
  */
 function normalizeLabeledEdges(line: string): string {
-  // "-- label -->" → "-->|label|"
-  return line.replace(/--\s+(.+?)\s*-->/g, '-->|$1|');
+  let result = line;
+  // "== text ==>" → "==>|text|"
+  result = result.replace(/==\s+(.+?)\s*==>/g, '==>|$1|');
+  // "-. text .->" → "-.->|text|"
+  result = result.replace(/-\.\s+(.+?)\s*\.->/g, '-.->|$1|');
+  // "-- text -->" → "-->|text|"
+  result = result.replace(/--\s+(.+?)\s*-->/g, '-->|$1|');
+  return result;
 }

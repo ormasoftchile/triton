@@ -34,7 +34,7 @@ import {
 import type { FlowDocument, FlowTheme } from '../../grammars/flow/index.js';
 
 import { preprocessMermaid } from './utils.js';
-import { parseFlowchart, parseFlowchartInternal } from './flowchart.js';
+import { parseFlowchartInternal } from './flowchart.js';
 
 // ---------------------------------------------------------------------------
 // Diagram kind
@@ -109,6 +109,11 @@ export interface MermaidParseResult {
    * Tier-0 Inc-1: always FlowDocument (only flowchart is implemented).
    */
   doc: FlowDocument;
+  /**
+   * Non-fatal parse warnings — skipped lines, deferred shapes/features,
+   * degradation notices. Always present (empty array when clean).
+   */
+  warnings: string[];
 }
 
 /**
@@ -125,8 +130,8 @@ export function parseMermaid(text: string): MermaidParseResult {
   const kind = detectDiagramType(text);
 
   if (kind === 'flowchart') {
-    const doc = parseFlowchart(text);
-    return { kind, doc };
+    const { doc, warnings } = parseFlowchartInternal(text);
+    return { kind, doc, warnings };
   }
 
   const label = kind === 'unknown' ? 'unrecognised diagram type' : `"${kind}"`;
