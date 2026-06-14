@@ -15,17 +15,19 @@
 import type { IRDocument } from '../types.js';
 import type { Scene } from '../scene.js';
 import type { ResolvedTheme } from '../themes/types.js';
-import { layoutHorizontal }    from './horizontal.js';
-import { layoutSerpentine }    from './serpentine.js';
-import { layoutVerticalSpine } from './vertical-spine.js';
-import { layoutRoadmap }       from './roadmap.js';
-import { layoutGantt }         from './gantt.js';
+import { layoutHorizontal }       from './horizontal.js';
+import { layoutSerpentine }       from './serpentine.js';
+import { layoutVerticalSpine }    from './vertical-spine.js';
+import { layoutRoadmap }          from './roadmap.js';
+import { layoutGantt }            from './gantt.js';
+import { layoutTimelineColumns }  from './timeline-columns.js';
 
-export { layoutHorizontal }    from './horizontal.js';
-export { layoutSerpentine }    from './serpentine.js';
-export { layoutVerticalSpine } from './vertical-spine.js';
-export { layoutRoadmap }       from './roadmap.js';
-export { layoutGantt }         from './gantt.js';
+export { layoutHorizontal }       from './horizontal.js';
+export { layoutSerpentine }       from './serpentine.js';
+export { layoutVerticalSpine }    from './vertical-spine.js';
+export { layoutRoadmap }          from './roadmap.js';
+export { layoutGantt }            from './gantt.js';
+export { layoutTimelineColumns }  from './timeline-columns.js';
 
 /**
  * Dispatch to the correct layout family.
@@ -39,7 +41,7 @@ export { layoutGantt }         from './gantt.js';
 export function layout(
   ir:      IRDocument,
   theme:   ResolvedTheme,
-  family?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'gantt',
+  family?: 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'gantt' | 'timeline-columns',
   baseDir?: string,
 ): Scene {
   if (family === 'vertical-spine') {
@@ -53,6 +55,9 @@ export function layout(
   }
   if (family === 'gantt') {
     return layoutGantt(ir, theme, baseDir);
+  }
+  if (family === 'timeline-columns') {
+    return layoutTimelineColumns(ir, theme, baseDir);
   }
   return layoutHorizontal(ir, theme, baseDir);
 }

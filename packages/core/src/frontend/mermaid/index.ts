@@ -497,14 +497,17 @@ export function renderMermaid(
     const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'consulting';
 
+    // Use the Mermaid-faithful section-column layout for the `timeline` type.
+    // The 'timeline-columns' path is opt-in and separate from all other layouts,
+    // so no existing golden outputs can be affected.
     const finalDoc: IRDocument = {
       ...doc,
-      metadata: { ...doc.metadata, theme: themeName },
+      metadata: { ...doc.metadata, theme: themeName, layout: 'timeline-columns' },
     };
 
     const format = options.format ?? 'svg';
-    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: finalDoc.metadata.layout, spineSpacing: 'even' });
-    const scene = buildScene(finalDoc, { theme: themeName, layout: finalDoc.metadata.layout, spineSpacing: 'even' });
+    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: 'timeline-columns' });
+    const scene = buildScene(finalDoc, { theme: themeName, layout: 'timeline-columns' });
     const hash  = computeSceneHash(scene);
 
     return {
