@@ -102,3 +102,4 @@ Archive maintained in history-archive.md.
 - (2026-06-15T17:04:29Z) **3 named contract themes added; matrix proven** — midnight (dark), blueprint (technical), editorial (warm print); zero per-component changes required; all 21 components light up deterministically; 2206 tests passing (Commit 2325c78)
 - (2026-06-15T19:00:00Z) **Config surface complete** — layout/density/themeOverrides selectable via frontmatter + %%{init}%%; resolveContractTheme helper; 36 new tests; 2428/2428 passing; existing goldens byte-identical
 - (2026-06-15T22:00:00Z) **poster keyword shipped** — §17.2 multi-diagram composition; DSL parser; all 21 grammar types as cells; theme-per-cell coherence; buildCompositionThemeFor for 7 contract themes; 23 new tests; 2451/2451 passing; gallery demos: poster-rag (executive) + poster-rag-midnight; §17.1 extension mechanisms COMPLETE
+- (2026-06-15T15:55:53Z) Dimension guard added; vertical-spine warns on pathological height

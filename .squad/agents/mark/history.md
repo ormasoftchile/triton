@@ -139,3 +139,4 @@ Tier 2 grammar-of-graphics chart foundation shipped: ChartDocument Domain IR, Li
 
 All 21 Mermaid diagram types now adopt the Tier-2 `ThemeContract`. The `executive` contract theme renders all 21 coherently (white surface, Georgia serif, slate ink, navy accent, shared navy-anchored categorical palette). Adoption is opt-in; legacy themes byte-identical. Timeline section fills now theme-driven. Design §12 synced (4 tokens + implementation status). 1976/1976 tests passing; determinism preserved. Commits: bd2ccc4 (spike), 4a943e9 (step1), 8101a00 (node-link), a6a2ff5 (charts+specialized), 703c4cd (timeline fills), 0e8a5fb (doc).
 - (2026-06-15T15:00:00Z) Superset surface complete: config keys + 7 themes + poster keyword (§17.1 extension mechanisms shipped)
+- (2026-06-15T15:55:53Z) Dimension guard added; vertical-spine warns on pathological height

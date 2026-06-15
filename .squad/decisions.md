@@ -2,6 +2,16 @@
 
 ---
 
+# Decision: DIMENSION GUARD ADDED
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-15  
+**Status:** COMPLETE — 2642/2642 tests passing; only config-layout re-emitted
+
+Pathological renders (height > 5000px or aspect > 4:1) are now detected automatically. `gallery-dimensions.test.ts` scans all 190 `examples/gallery/**/*.svg` files, asserting height ≤ 5000px and H/W ≤ 4:1 (legitimate max: 2280px/1.92; pathological: 7357px/6.13). `vertical-spine.ts` emits a render-time warning when a time-proportional spine exceeds these thresholds, suggesting `spineSpacing:'even'` or `layout:'timeline-columns'` for multi-decade spans. `spineSpacing` is now a config-surface key. Root cause: `vertical-spine` is time-proportional and explodes over long spans (same class as the earlier 9233px Mermaid-timeline bug); `config-layout.mmd` previously rendered 7357px→2283px after adding `spineSpacing:even`. Gallery dimension guard: 191 tests (all passing). Render warning: geometry unchanged, goldens identical. Committed f256473.
+
+---
+
 # Decision: SUPERSET SURFACE COMPLETE (do-all batch)
 
 **Agent:** Bjarne (Ingestion Design), Barbara (Semantics & Rendering), Scribe (Coordination)  
