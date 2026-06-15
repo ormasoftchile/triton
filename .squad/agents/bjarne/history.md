@@ -34,3 +34,4 @@
 Archive maintained in history-archive.md.
 
 ---
+- (2026-06-14) Theming architecture decided — general-contract model, §12 rewritten; will implement per-component theme contract

@@ -41,3 +41,4 @@ All semantic elements present. Visual layout more compact/spacious than real Mer
 ## Earlier Work (Archived)
 
 For detailed notes on gantt-faithful layout, timeline-columns refactor, radar curve syntax, see history-2026-06-14-archived.md.
+- (2026-06-14) Theming architecture decided — general-contract model, §12 rewritten; will implement per-component theme contract
