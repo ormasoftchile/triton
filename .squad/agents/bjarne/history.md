@@ -40,3 +40,4 @@ Archive maintained in history-archive.md.
 - (2026-06-15T04:09:23Z) **Migration step 1 done** — contract gained 4 tokens (surfacePanel, inkPanel, markerShape, pattern); doc §12 sync pending
 - (2026-06-15T00:15:00Z) **Migration step 2 done** — node-link family on contract; 12 types coherent under executive
 - (2026-06-15T11:35:00Z) **Theme-contract migration COMPLETE** — all 21 diagram types adopt Tier-2 contract; `executive` theme renders coherently; determinism preserved (1976/1976 tests)
+- (2026-06-15T17:04:29Z) **3 named contract themes added; matrix proven** — midnight (dark), blueprint (technical), editorial (warm print); zero per-component changes required; all 21 components light up deterministically; 2206 tests passing (Commit 2325c78)

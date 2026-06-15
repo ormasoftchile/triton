@@ -126,3 +126,4 @@ For detailed context from earlier sessions (Composition implementation, design d
 - (2026-06-15T04:09:23Z) **Migration step 1 done** — contract gained 4 tokens (surfacePanel, inkPanel, markerShape, pattern); doc §12 sync pending
 - (2026-06-15T00:15:00Z) **Migration step 2 done** — node-link family on contract; 12 types coherent under executive
 - (2026-06-15) Synced §12 with 4 step-1 contract tokens (surfacePanel, inkPanel, markerShape, status-pattern) and added Implementation Status (2026) subsection; PDF clean.
+- (2026-06-15T17:04:29Z) **3 named contract themes added; matrix proven** — midnight (dark), blueprint (technical), editorial (warm print); zero per-component changes required; all 21 components light up deterministically; 2206 tests passing (Commit 2325c78)

@@ -6,6 +6,36 @@ Decisions guide future work. Never deleted; deferred decisions remain visible.
 
 ## Active Decisions
 
+### Decision: NAMED CONTRACT THEMES ADDED (matrix proven) — 3 New Themes: midnight, blueprint, editorial
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-15  
+**Status:** COMPLETE  
+**Commit:** 2325c78
+
+#### Summary
+
+Authored 3 new `ThemeContract` instances as pure theme files (midnight.ts, blueprint.ts, editorial.ts) and registered them in `CONTRACT_THEMES`. The matrix promise held: all 21 diagram components light up with each new theme using ZERO per-component binding changes — only the theme file + registration were required.
+
+#### The 3 Themes
+
+- **midnight**: Dark dev-doc (charcoal `#0F1620`, cyan accent `#00D4FF`, Inter sans, curved connectors, vivid-on-dark data palette)
+- **blueprint**: Architectural/technical (deep blue `#1A2B47`, cyan annotation `#00BFFF`, JetBrains Mono, square corners, orthogonal connectors, precision aesthetic)
+- **editorial**: Warm print/magazine (cream `#FAF6EF`, burgundy accent `#8B2635`, Lora serif, elbow connectors, warm/muted data palette)
+
+#### Proof & Artifacts
+
+- **Test:** `contract-theme-matrix.test.ts` — 4 contract themes × 21 components × 2 assertions = 170 passing cases.
+- **Gallery:** 36 new demo files (midnight/blueprint/editorial × 6 components) — determinism verified; all render identically on re-run.
+- **Coherence:** All 3 themes pass coherence (consistent look across 21 components) AND distinctness (each visually unique from others and from executive).
+- **Additive:** Existing goldens byte-identical; 2206 tests passing.
+
+#### Finding: Advisory — `orthogonal` Connector Falls Through to `elbow`
+
+The `blueprint` theme sets `connectorStyle: 'orthogonal'`. The flow binding maps `'orthogonal'` to `'elbow'` (same implementation). Per Design §12, `connectorStyle` is advisory — each binding maps it to its own implementation. Result is correct. Advisory: document `orthogonal` as an elbow alias for future orthogonal routing extension.
+
+---
+
 ### Decision: THEME-CONTRACT MIGRATION COMPLETE — All 21 Diagram Types Adopted Tier-2 Contract
 
 **Agent:** Barbara (Semantics & Rendering), Leslie (Spec Architect), Scribe  
