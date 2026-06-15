@@ -2748,6 +2748,60 @@
   </div>
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!--  SUPERSET: POSTERS (§17.2) — poster keyword, multi-diagram composition -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<h2 style="max-width:1100px;margin:48px auto 8px;font-size:18px;font-weight:700;color:#1F497D;border-left:4px solid #1F497D;padding-left:16px;">
+  Superset: Posters <span style="font-weight:400;font-size:13px;color:#888;">(§17.2 — new top-level keyword, no Mermaid equivalent)</span>
+</h2>
+<div style="max-width:1100px;margin:0 auto 24px;font-size:13px;color:#555;padding-left:20px;">
+  The <code>poster</code> keyword composes multiple diagram types into a single themed grid — the flagship superset feature. Each <code>cell [row,col]:</code> embeds an independent diagram; all cells share one named theme for a coherent board.
+</div>
+<div class="gallery">
+
+  <!-- poster: executive RAG Architecture -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Superset: Posters · executive</div>
+      <div class="card-title">RAG Architecture — 2×2 poster
+        <span class="tag tag-sublanes">poster</span>
+        <span class="tag">flowchart + sequence + mindmap + xychart</span>
+      </div>
+      <div class="card-desc">
+        4 diagram types in one themed board under <code>theme: executive</code>.
+        Cells: flowchart (pipeline), sequenceDiagram (request flow), mindmap (component tree), xychart-beta (accuracy bars).
+        All share the navy/white/Georgia executive design system — coherent at a glance.
+      </div>
+    </div>
+    <div class="card-img"><img src="poster-rag.png" alt="RAG Architecture poster — executive theme, 4 diagram types"></div>
+    <div class="card-footer">
+      <a href="poster-rag.svg">SVG</a>
+      <a href="poster-rag.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- poster: midnight RAG Architecture (dark board) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Superset: Posters · midnight</div>
+      <div class="card-title">RAG Architecture — Night Mode
+        <span class="tag tag-sublanes">poster</span>
+        <span class="tag">flowchart + sequence + mindmap + xychart</span>
+      </div>
+      <div class="card-desc">
+        Same 4-cell poster, <code>theme: midnight</code> — deep-navy canvas, indigo accents, Inter sans.
+        One frontmatter change re-themes every cell simultaneously. Demonstrates the "one theme, whole board" contract.
+      </div>
+    </div>
+    <div class="card-img"><img src="poster-rag-midnight.png" alt="RAG Architecture poster — midnight theme, 4 diagram types on dark board"></div>
+    <div class="card-footer">
+      <a href="poster-rag-midnight.svg">SVG</a>
+      <a href="poster-rag-midnight.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+</div>
 <footer>
   Timeline Compiler · Phase 1–5 Gallery · Horizontal &amp; vertical-spine layout families.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>

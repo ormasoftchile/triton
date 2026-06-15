@@ -169,6 +169,7 @@ function compileCellContent(content: CellContent, theme: CompositionTheme): Scen
     case 'tree':     return buildTreeScene(content.doc);
     case 'sequence': return buildSequenceScene(content.doc);
     case 'timeline': return buildTimelineScene(content.doc);
+    case 'scene':    return content.scene;
     case 'stat':     return buildStatScene(content.value, content.label, theme);
     case 'text':     return buildTextScene(content.text, theme);
     case 'title':    return buildTitleScene(content.text, theme);

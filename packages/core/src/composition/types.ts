@@ -17,6 +17,7 @@ import type { FlowDocument }     from '../grammars/flow/types.js';
 import type { TreeDocument }     from '../grammars/tree/types.js';
 import type { SequenceDocument } from '../grammars/sequence/types.js';
 import type { IRDocument }       from '../types.js';
+import type { Scene }            from '../scene.js';
 
 // ---------------------------------------------------------------------------
 // CellContent — discriminated union
@@ -83,9 +84,23 @@ export interface TitleCellContent {
 }
 
 /**
+ * A cell whose content is a pre-built Scene IR.
+ * Used by the `poster` DSL front-end: each embedded diagram is rendered
+ * independently (via the grammar's own layout engine) and injected here.
+ * This variant is never serialised to YAML; it is only ever constructed
+ * programmatically by the poster renderer.
+ */
+export interface SceneCellContent {
+  kind: 'scene';
+  /** The pre-built Scene produced by any grammar's layout engine. */
+  scene: Scene;
+}
+
+/**
  * Discriminated union of all supported cell content types.
  * Increment 1 supports inline: flow, tree, sequence, stat, text, title.
  * Increment 2 adds: timeline (inline IRDocument), ref (external ir_file).
+ * Increment 3 adds: scene (pre-built Scene, used by the poster DSL front-end).
  */
 export type CellContent =
   | FlowCellContent
@@ -95,7 +110,8 @@ export type CellContent =
   | RefCellContent
   | StatCellContent
   | TextCellContent
-  | TitleCellContent;
+  | TitleCellContent
+  | SceneCellContent;
 
 // ---------------------------------------------------------------------------
 // Cell

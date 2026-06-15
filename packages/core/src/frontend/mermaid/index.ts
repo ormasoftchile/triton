@@ -24,6 +24,7 @@
  *                            (C4Document,            software architecture layout)
  *   ✅  requirementDiagram    (RequirementDocument,   compartment box + «kind» edge pills)
  *   ✅  kanban                (KanbanDocument,        column board with stacked cards)
+ *   ✅  poster                (PosterDocument,        §17.2 multi-diagram composition — SUPERSET-ONLY)
  *
  * PUBLIC EXPORTS (re-exported from packages/core/src/index.ts):
  *   detectDiagramType, parseMermaid, renderMermaid
@@ -32,6 +33,8 @@
 
 import type { Scene } from '../../scene.js';
 import { sceneHash as computeSceneHash } from '../../scene.js';
+import { sceneToSvg } from '../../render/svg.js';
+import { svgToPng }   from '../../render/png.js';
 
 import { CONTRACT_THEMES, isContractTheme, resolveContractTheme } from '../../theme-contract/index.js';
 import type { Density } from '../../theme-contract/index.js';
@@ -53,6 +56,12 @@ import { bindPacketTheme }       from '../../grammars/packet/contract-binding.js
 import { bindRequirementTheme }  from '../../grammars/requirement/contract-binding.js';
 import { bindBlockTheme }        from '../../grammars/block/contract-binding.js';
 import { bindArchitectureTheme } from '../../grammars/architecture/contract-binding.js';
+
+import { layoutComposition }        from '../../composition/index.js';
+import type { Cell, SceneCellContent } from '../../composition/index.js';
+
+import { parsePosterInternal, buildCompositionThemeFor } from './poster.js';
+import type { PosterDocument } from './poster.js';
 
 import {
   buildFlowScene,
@@ -220,6 +229,7 @@ export type DiagramKind =
   | 'block'
   | 'packet'
   | 'architecture'
+  | 'poster'
   | 'unknown';
 
 // ---------------------------------------------------------------------------
@@ -267,6 +277,7 @@ export function detectDiagramType(text: string): DiagramKind {
     if (/^block-beta\b/i.test(trimmed)) return 'block';
     if (/^packet-beta\b/i.test(trimmed)) return 'packet';
     if (/^architecture(?:-beta)?\b/i.test(trimmed)) return 'architecture';
+    if (/^poster\b/i.test(trimmed)) return 'poster';
 
     // First non-empty line did not match any known keyword
     return 'unknown';
@@ -294,7 +305,7 @@ export function detectDiagramType(text: string): DiagramKind {
  */
 export interface MermaidParseResult {
   kind: DiagramKind;
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument | BlockDocument | PacketDocument | ArchitectureDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument | BlockDocument | PacketDocument | ArchitectureDocument | PosterDocument;
   /**
    * Non-fatal parse warnings — skipped lines, deferred shapes/features,
    * degradation notices. Always present (empty array when clean).
@@ -418,10 +429,15 @@ export function parseMermaid(text: string): MermaidParseResult {
     return { kind, doc, warnings };
   }
 
+  if (kind === 'poster') {
+    const { doc, warnings } = parsePosterInternal(text);
+    return { kind, doc, warnings };
+  }
+
   throw new Error(
     `[Tier 0] Unrecognised diagram type. The Mermaid front-end supports: ` +
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
-      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph, sankey-beta, requirementDiagram, kanban, block-beta, packet-beta, architecture-beta, architecture.`,
+      `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph, sankey-beta, requirementDiagram, kanban, block-beta, packet-beta, architecture-beta, architecture, poster.`,
   );
 }
 
@@ -451,7 +467,7 @@ export interface MermaidRenderOptions {
 export interface MermaidRenderResult {
   kind: DiagramKind;
   /** The Domain IR document (grammar-specific). */
-  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument | BlockDocument | PacketDocument | ArchitectureDocument;
+  doc: FlowDocument | SequenceDocument | IRDocument | TreeDocument | ClassDocument | StateDocument | ErDocument | C4Document | ChartDocument | JourneyDocument | GitGraphDocument | SankeyDocument | RequirementDocument | KanbanDocument | BlockDocument | PacketDocument | ArchitectureDocument | PosterDocument;
   /** The Scene IR produced by the layout engine. */
   scene: Scene;
   /** SHA-256 hash of the Scene for determinism checks. */
@@ -543,6 +559,7 @@ function resolveTimelineLayout(
  *   themeOverrides: object of token patches applied onto the resolved ThemeContract
  *
  * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, and the C4 family.
+ * Superset-only: poster — §17.2 multi-diagram composition.
  *
  * @throws {Error} for unrecognised diagram types.
  */
@@ -551,6 +568,11 @@ export function renderMermaid(
   options: MermaidRenderOptions = {},
 ): MermaidRenderResult {
   const kind = detectDiagramType(text);
+
+  // ── poster (SUPERSET-ONLY §17.2) ─────────────────────────────────────────
+  if (kind === 'poster') {
+    return renderPoster(text, options);
+  }
 
   // Extract directive-level config (%%{init}%%) once.
   // Frontmatter fields come from each grammar's parser return value.
@@ -1110,4 +1132,298 @@ export function renderMermaid(
       `flowchart, graph, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, ` +
       `c4Context, c4Container, c4Component, c4Dynamic, c4Deployment, pie, xychart-beta, quadrantChart, radar, radar-beta, journey, gitGraph, sankey-beta, requirementDiagram, kanban, block-beta, packet-beta, architecture-beta, architecture.`,
   );
+}
+
+// ---------------------------------------------------------------------------
+// renderPoster — poster DSL renderer (§17.2 superset)
+// ---------------------------------------------------------------------------
+
+/**
+ * Render a `poster` DSL document into SVG or PNG.
+ *
+ * Algorithm:
+ *  1. Parse poster DSL → PosterDocument (cells + theme + grid)
+ *  2. For each cell: detect type, build Scene via renderCellScene()
+ *     — unknown types or render failures produce a warning and skip the cell
+ *  3. Assemble a CompositionDocument with SceneCellContent cells
+ *  4. Call layoutComposition() → Scene
+ *  5. Serialise to SVG or PNG
+ *
+ * Theme coherence: every cell is rendered with the same contract theme,
+ * so the whole board shares one design system (navy/white for executive, etc.)
+ */
+function renderPoster(text: string, options: MermaidRenderOptions): MermaidRenderResult {
+  const { doc, warnings } = parsePosterInternal(text);
+
+  const themeName = options.theme ?? doc.theme ?? 'executive';
+  const compositionTheme = buildCompositionThemeFor(themeName);
+
+  const cells: Cell[] = [];
+
+  for (const cellDef of doc.cells) {
+    // Reconstruct the full diagram text the grammar parsers expect
+    const cellText = `${cellDef.typeHeader}\n${cellDef.body}`;
+
+    try {
+      const cellScene = renderCellScene(cellText, themeName);
+      if (cellScene === null) {
+        warnings.push(
+          `[poster] Cell [${cellDef.row},${cellDef.col}] type "${cellDef.typeHeader}" is not supported in poster cells — skipped.`,
+        );
+        continue;
+      }
+
+      const sceneContent: SceneCellContent = { kind: 'scene', scene: cellScene };
+      const cell: Cell = {
+        id: `cell-${cellDef.row}-${cellDef.col}`,
+        row: cellDef.row,
+        col: cellDef.col,
+        content: sceneContent,
+      };
+      cells.push(cell);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      warnings.push(
+        `[poster] Cell [${cellDef.row},${cellDef.col}] "${cellDef.typeHeader}" failed to render — skipped. ${msg}`,
+      );
+    }
+  }
+
+  if (cells.length === 0) {
+    throw new Error('[poster] All cells failed to render — cannot produce a poster.');
+  }
+
+  const compDoc = {
+    version: '1.0',
+    metadata: { title: doc.title, theme: themeName },
+    grid: { columns: doc.columns, rows: doc.rows },
+    cells,
+  };
+
+  const scene = layoutComposition(compDoc, compositionTheme);
+  const hash  = computeSceneHash(scene);
+  const format = options.format ?? 'svg';
+
+  let svg: string | undefined;
+  let png: Uint8Array | undefined;
+
+  if (format === 'svg') {
+    svg = sceneToSvg(scene);
+  } else {
+    const svgStr = sceneToSvg(scene);
+    png = svgToPng(svgStr);
+  }
+
+  return {
+    kind: 'poster',
+    doc,
+    scene,
+    sceneHash: hash,
+    warnings,
+    svg,
+    png,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// renderCellScene — render one embedded diagram cell to a Scene
+// ---------------------------------------------------------------------------
+
+/**
+ * Render a single embedded diagram (identified by its full text — type header
+ * + body) with the given theme and return the resulting Scene.
+ *
+ * Returns `null` for unsupported or self-referential types ('poster', 'unknown').
+ * Throws on parse or render errors so the caller can catch + warn + skip.
+ */
+function renderCellScene(cellText: string, themeName: string): Scene | null {
+  const cellKind = detectDiagramType(cellText);
+
+  switch (cellKind) {
+    case 'flowchart': {
+      const { doc, direction } = parseFlowchartInternal(cellText);
+      const baseTheme = isContractTheme(themeName)
+        ? bindFlowTheme(resolveContractTheme(themeName))
+        : resolveFlowTheme(themeName);
+      const orientation: FlowTheme['orientation'] =
+        direction === 'TD' || direction === 'TB' || direction === 'BT' ? 'TB' : 'LR';
+      return buildFlowScene(doc, { ...baseTheme, orientation });
+    }
+
+    case 'sequence': {
+      const { doc } = parseSequenceInternal(cellText);
+      const seqTheme = isContractTheme(themeName)
+        ? bindSequenceTheme(resolveContractTheme(themeName))
+        : resolveSequenceTheme(themeName);
+      return buildSequenceScene(doc, seqTheme);
+    }
+
+    case 'mindmap': {
+      const { doc } = parseMindmapInternal(cellText);
+      const radialOpts = isContractTheme(themeName)
+        ? bindMindmapTheme(resolveContractTheme(themeName))
+        : undefined;
+      const finalDoc = { ...doc, metadata: { ...doc.metadata, theme: 'mindmap-radial' as const } };
+      const result = renderTreeDocumentRadial(finalDoc, { format: 'svg' }, radialOpts);
+      return result.scene;
+    }
+
+    case 'xychart': {
+      const { doc } = parseXYChartDiagramInternal(cellText);
+      const chartTheme = isContractTheme(themeName)
+        ? bindChartTheme(resolveContractTheme(themeName))
+        : resolveChartTheme(themeName ?? 'default-chart');
+      return buildChartScene(doc, chartTheme);
+    }
+
+    case 'pie': {
+      const { doc } = parsePieDiagramInternal(cellText);
+      const chartTheme = isContractTheme(themeName)
+        ? bindChartTheme(resolveContractTheme(themeName))
+        : resolveChartTheme(themeName ?? 'default-chart');
+      return buildChartScene(doc, chartTheme);
+    }
+
+    case 'quadrantChart': {
+      const { doc } = parseQuadrantDiagramInternal(cellText);
+      const chartTheme = isContractTheme(themeName)
+        ? bindChartTheme(resolveContractTheme(themeName))
+        : resolveChartTheme(themeName ?? 'default-chart');
+      return buildChartScene(doc, chartTheme);
+    }
+
+    case 'radar': {
+      const { doc } = parseRadarDiagramInternal(cellText);
+      const chartTheme = isContractTheme(themeName)
+        ? bindChartTheme(resolveContractTheme(themeName))
+        : resolveChartTheme(themeName ?? 'default-chart');
+      return buildChartScene(doc, chartTheme);
+    }
+
+    case 'gantt': {
+      const { doc } = parseGanttInternal(cellText);
+      const finalDoc = { ...doc, metadata: { ...doc.metadata, layout: 'gantt' as const } };
+      if (isContractTheme(themeName)) {
+        const resolvedTheme = bindTimelineTheme(resolveContractTheme(themeName));
+        return buildScene(finalDoc, { layout: 'gantt', resolvedTheme });
+      }
+      return buildScene(finalDoc, { theme: themeName, layout: 'gantt' });
+    }
+
+    case 'timeline': {
+      const { doc } = parseTimelineInternal(cellText);
+      const finalDoc = { ...doc, metadata: { ...doc.metadata, layout: 'timeline-columns' as const } };
+      if (isContractTheme(themeName)) {
+        const resolvedTheme = bindTimelineTheme(resolveContractTheme(themeName));
+        return buildScene(finalDoc, { layout: 'timeline-columns', resolvedTheme });
+      }
+      return buildScene(finalDoc, { theme: themeName, layout: 'timeline-columns' });
+    }
+
+    case 'classDiagram': {
+      const { doc } = parseClassDiagramInternal(cellText);
+      const classTheme = isContractTheme(themeName)
+        ? bindClassTheme(resolveContractTheme(themeName))
+        : resolveClassTheme(themeName ?? 'default-class');
+      return buildClassScene(doc, classTheme);
+    }
+
+    case 'stateDiagram': {
+      const { doc } = parseStateDiagramInternal(cellText);
+      const stateTheme = isContractTheme(themeName)
+        ? bindStateTheme(resolveContractTheme(themeName))
+        : resolveStateTheme(themeName ?? 'default-state');
+      return buildStateScene(doc, stateTheme);
+    }
+
+    case 'erDiagram': {
+      const { doc } = parseErDiagramInternal(cellText);
+      const erTheme = isContractTheme(themeName)
+        ? bindErTheme(resolveContractTheme(themeName))
+        : resolveErTheme(themeName ?? 'default-er');
+      return buildErScene(doc, erTheme);
+    }
+
+    case 'c4Context':
+    case 'c4Container':
+    case 'c4Component':
+    case 'c4Dynamic':
+    case 'c4Deployment': {
+      const { doc } = parseC4DiagramInternal(cellText);
+      const c4Theme = isContractTheme(themeName)
+        ? bindC4Theme(resolveContractTheme(themeName))
+        : resolveC4Theme(themeName ?? 'default-c4');
+      return buildC4Scene(doc, c4Theme);
+    }
+
+    case 'journey': {
+      const { doc } = parseJourneyDiagramInternal(cellText);
+      const journeyTheme = isContractTheme(themeName)
+        ? bindJourneyTheme(resolveContractTheme(themeName))
+        : resolveJourneyTheme(themeName ?? 'default-journey');
+      return buildJourneyScene(doc, journeyTheme);
+    }
+
+    case 'gitGraph': {
+      const { doc } = parseGitGraphDiagramInternal(cellText);
+      const gitTheme = isContractTheme(themeName)
+        ? bindGitGraphTheme(resolveContractTheme(themeName))
+        : resolveGitGraphTheme(themeName ?? 'default-gitgraph');
+      return buildGitGraphScene(doc, gitTheme);
+    }
+
+    case 'sankey': {
+      const { doc } = parseSankeyDiagramInternal(cellText);
+      const sankeyTheme = isContractTheme(themeName)
+        ? bindSankeyTheme(resolveContractTheme(themeName))
+        : resolveSankeyTheme(themeName ?? 'default-sankey');
+      return buildSankeyScene(doc, sankeyTheme);
+    }
+
+    case 'kanban': {
+      const { doc } = parseKanbanDiagramInternal(cellText);
+      const kanbanTheme = isContractTheme(themeName)
+        ? bindKanbanTheme(resolveContractTheme(themeName))
+        : resolveKanbanTheme(themeName ?? 'default-kanban');
+      return buildKanbanScene(doc, kanbanTheme);
+    }
+
+    case 'requirementDiagram': {
+      const { doc } = parseRequirementDiagramInternal(cellText);
+      const reqTheme = isContractTheme(themeName)
+        ? bindRequirementTheme(resolveContractTheme(themeName))
+        : resolveRequirementTheme(themeName ?? 'default-requirement');
+      return buildRequirementScene(doc, reqTheme);
+    }
+
+    case 'block': {
+      const { doc } = parseBlockDiagramInternal(cellText);
+      const blockTheme = isContractTheme(themeName)
+        ? bindBlockTheme(resolveContractTheme(themeName))
+        : resolveBlockTheme(themeName ?? 'default-block');
+      return buildBlockScene(doc, blockTheme);
+    }
+
+    case 'packet': {
+      const { doc } = parsePacketDiagramInternal(cellText);
+      const packetTheme = isContractTheme(themeName)
+        ? bindPacketTheme(resolveContractTheme(themeName))
+        : resolvePacketTheme(themeName ?? 'default-packet');
+      return buildPacketScene(doc, packetTheme);
+    }
+
+    case 'architecture': {
+      const { doc } = parseArchitectureDiagramInternal(cellText);
+      const archTheme = isContractTheme(themeName)
+        ? bindArchitectureTheme(resolveContractTheme(themeName))
+        : resolveArchitectureTheme(themeName ?? 'default-architecture');
+      return buildArchitectureScene(doc, archTheme);
+    }
+
+    // Nested posters and unknown types are not supported as cell content
+    case 'poster':
+    case 'unknown':
+    default:
+      return null;
+  }
 }

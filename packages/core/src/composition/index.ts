@@ -36,6 +36,7 @@ export type {
   StatCellContent,
   TextCellContent,
   TitleCellContent,
+  SceneCellContent,
 } from './types.js';
 export { compositionDocumentSchema } from './schema.js';
 export type { CompositionDocumentInput } from './schema.js';
@@ -47,6 +48,7 @@ export {
   COMPOSITION_THEME_REGISTRY,
 } from './theme.js';
 export { resolveCompositionRefs } from './resolve.js';
+export { layoutComposition } from './layout.js';
 
 // ---------------------------------------------------------------------------
 // buildCompositionScene
