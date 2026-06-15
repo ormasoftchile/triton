@@ -84,6 +84,41 @@ For detailed context from earlier sessions, see `leslie/history-archive.md`.
 
 ---
 
-## Archive
+## Learnings — 2026-06-14 (Theme vocabulary resolved, §12 finalised)
+
+**Resolved by Cristian (@ormasoftchile). All 5 open questions closed.**
+
+### Q1 — Dual palette system (DECIDED)
+The general contract carries **two distinct palette systems**, both at Tier 2:
+- **Role palette (semantic/structural):** `surface`, `ink`, `accent`, `muted`, `border`, plus status roles `success`, `warning`, `error`, `info`, and IR workflow states `planned/active/done/cancelled/uncertain`. Structural components consume this.
+- **Data palette (quantities/sequences):** An ordered `categorical` sequence (min 6, for pie slices / chart series / kanban columns / branch colours), a `sequential` ramp (low→mid→high, for sankey throughput / heat / radar), and a `diverging` ramp (negative→zero→positive). Chart and data components consume this.
+
+### Q2 — Spacing: advisory, not binding (DECIDED)
+Spacing is expressed as `base unit + named steps` (xxs, xs, sm, md, lg, xl, xxl). Components consult the scale as **advice**; step values are not pixel-identical/binding across components. This preserves each component's layout judgement while sharing a common rhythm.
+
+### Q3 — Density: three discrete levels (DECIDED)
+`compact | normal | comfortable` (not "spacious"; not continuous). Density modulates the spacing scale, padding, and layout thresholds (label truncation length, whether secondary labels show). Changed "spacious" → "comfortable" throughout §12.
+
+### Q4 — Three-tier token architecture (DECIDED — the mechanism)
+- **Tier 1 — Primitives:** raw colour ramps, type families, spacing base unit. Component-agnostic, never referenced directly by components.
+- **Tier 2 — Semantic tokens (the general contract):** role palette, data palette, type scale + weights, spacing steps, density, shape language, effects. The interface every component implements.
+- **Tier 3 — Component tokens:** `components.<name>.<token>` (e.g. `components.serpentine.turnRadius`, `components.sankey.ribbonOpacity`). Derived from Tier 2 by default; a concrete theme MAY override as optional fine-tuning.
+- **Binding invariants:** Tier 2 NEVER references a Tier-3 token. Components reference upward only. A theme may reach downward into `components.<name>` as an optional override only.
+
+### Q5 — Proof set and migration order (DECIDED)
+**Proof set (contract validation spike):** `flowchart` + `sequence` + `xychart`. Together they exercise the entire Tier-2 contract: node/edge routing + shape language (flow), compartment geometry + density (sequence), data palette + axes (xychart). The spike proves one `executive` theme renders all three coherently.
+
+**Migration order (after spike):**
+1. Generalise timeline `ResolvedTheme` (`packages/core/src/themes/types.ts`) upward into Tier-2.
+2. Node-link family: class, state, ER, C4, requirement, block, architecture.
+3. Remaining charts: pie, quadrant, radar.
+4. Timeline-family adoption of the general contract (with Tier-3 overrides retained).
+5. Specialised: sankey, gitGraph, journey, kanban, mindmap, packet.
+
+### Document artefacts
+- `design/sections/12-themes.tex` — open questions replaced with §12 "Three-Tier Token Architecture", §12 "Contract Vocabulary Summary", §12 "Contract Adoption Plan".
+- `design/main.pdf` — clean build (exit 0).
+- Decision note: `.squad/decisions/inbox/leslie-theme-vocabulary-resolved.md`
+
 
 For detailed context from earlier sessions (Composition implementation, design doc restructure, Tier 1/2/3 completions, real-Mermaid fidelity passes), see `leslie/history-archive.md`.

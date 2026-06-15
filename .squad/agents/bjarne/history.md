@@ -35,3 +35,4 @@ Archive maintained in history-archive.md.
 
 ---
 - (2026-06-14) Theming architecture decided — general-contract model, §12 rewritten; will implement per-component theme contract
+- (2026-06-14T23:09:08Z) Theme vocabulary resolved; proof set = flow+sequence+xychart

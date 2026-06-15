@@ -2,6 +2,42 @@
 
 ---
 
+# Decision: THEME VOCABULARY RESOLVED (design §12)
+
+**Agent:** Leslie (Spec Architect), Cristian (@ormasoftchile)  
+**Date:** 2026-06-14  
+**Status:** DECIDED — design/sections/12-themes.tex updated, PDF clean
+
+## Summary
+
+All five open vocabulary questions resolved. General theme contract now complete. Open-questions subsection replaced with Three-Tier Token Architecture, Contract Vocabulary Summary, and Contract Adoption Plan.
+
+## Resolutions
+
+**(1) Dual palette:** semantic/role palette (surface, ink, accent, muted, border, status roles, IR workflow states) + separate data palette (categorical sequence, sequential ramp, diverging ramp).
+
+**(2) Spacing:** advisory base-unit + steps scale (xxs–xxl); not binding across components.
+
+**(3) Density:** three discrete levels: compact | normal | comfortable.
+
+**(4) THREE-TIER TOKEN ARCHITECTURE:**
+| Tier | Name | Contents | Who References |
+|------|------|----------|---|
+| 1 | Primitives | Raw colour ramps, type families, spacing base unit | Themes only |
+| 2 | Semantic tokens | Role palette, data palette, type scale, spacing steps, density, shape, effects | Every component |
+| 3 | Component tokens | `components.<name>.<token>` — defaults from Tier 2, optional theme overrides | Component engines |
+
+**Binding invariants:** Tier 2 NEVER references Tier 3; components reference upward only; themes may override Tier 3 optionally.
+
+**(5) PROOF SET & MIGRATION:** Validate with one `executive` theme across flowchart + sequence + xychart (exercises structural tokens, density+spacing, data palette). After spike: (1) generalise timeline ResolvedTheme upward, (2) node-link family, (3) remaining charts, (4) timeline adoption, (5) specialised. Each step independently shippable.
+
+## Document Artefacts
+
+- `design/sections/12-themes.tex` — §12.1 Three-Tier Token Architecture, §12.2 Contract Vocabulary Summary, §12.3 Contract Adoption Plan
+- `design/main.pdf` — clean build (exit 0, 2026-06-14)
+
+---
+
 # Decision: TIER 3 LONG-TAIL COMPLETE — 21 Mermaid Diagram Types Shipped
 
 **Agent:** Bjarne (Ingestion), Barbara (Semantics & Rendering), Scribe (Coordination)  
