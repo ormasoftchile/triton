@@ -460,11 +460,12 @@ flowchart LR
   });
 
   // ── config-layout ──────────────────────────────────────────────────────
-  it('emits config-layout.svg/.png — executive + vertical-spine layout', () => {
+  it('emits config-layout.svg/.png — executive + vertical-spine + even spacing', () => {
     const src = `---
 title: "Executive Theme — Vertical Spine Layout"
 theme: executive
 layout: vertical-spine
+spineSpacing: even
 ---
 timeline
     title Technology Milestones

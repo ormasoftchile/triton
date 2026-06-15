@@ -557,6 +557,8 @@ function resolveTimelineLayout(
  *   layout:        layout variant for multi-layout components (e.g. timeline)
  *   density:       'compact' | 'normal' | 'comfortable' — overrides contract theme density
  *   themeOverrides: object of token patches applied onto the resolved ThemeContract
+ *   spineSpacing:  'even' | 'time' — vertical-spine spacing mode for timeline diagrams;
+ *                  'even' prevents height explosion over long time spans (multi-decade data)
  *
  * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, and the C4 family.
  * Superset-only: poster — §17.2 multi-diagram composition.
@@ -739,6 +741,13 @@ export function renderMermaid(
       warnings,
     );
 
+    // Config-surface: spineSpacing — 'even' | 'time'.
+    // Prevents pathological height explosion for vertical-spine over long time spans.
+    // Frontmatter value wins over any option passed programmatically.
+    const fmSpineSpacing = frontmatter['spineSpacing'];
+    const spineSpacing: 'even' | 'time' | undefined =
+      fmSpineSpacing === 'even' || fmSpineSpacing === 'time' ? fmSpineSpacing : undefined;
+
     // Config-surface: density + overrides applied via resolvedTheme when contract active
     const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
     const fmOverrides = getValidOverrides(frontmatter['themeOverrides']);
@@ -759,12 +768,12 @@ export function renderMermaid(
     if (hasConfig && isContractTheme(themeName)) {
       // Apply density + overrides via Tier-2 contract binding, bypassing legacy registry.
       const resolvedTheme = bindTimelineTheme(resolveContractTheme(themeName, { density, overrides }));
-      renderResult = renderDocument(finalDoc, { format, layout: timelineLayout, resolvedTheme });
-      scene        = buildScene(finalDoc, { layout: timelineLayout, resolvedTheme });
+      renderResult = renderDocument(finalDoc, { format, layout: timelineLayout, spineSpacing, resolvedTheme });
+      scene        = buildScene(finalDoc, { layout: timelineLayout, spineSpacing, resolvedTheme });
     } else {
       // Standard path: theme name dispatched through resolveTheme (handles legacy + contract names).
-      renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: timelineLayout });
-      scene        = buildScene(finalDoc, { theme: themeName, layout: timelineLayout });
+      renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: timelineLayout, spineSpacing });
+      scene        = buildScene(finalDoc, { theme: themeName, layout: timelineLayout, spineSpacing });
     }
 
     const hash = computeSceneHash(scene);

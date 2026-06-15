@@ -566,6 +566,27 @@ export function layoutVerticalSpine(ir: IRDocument, theme: ResolvedTheme, baseDi
   // Canvas height
   const H = rhu(finalSpineBottomY + 50 + mB);
 
+  // ── Dimension-health guard (warning only — geometry unchanged) ────────────
+  // Fires when vertical-spine produces a pathologically tall render, typically
+  // caused by a sparse multi-decade dataset in time-proportional mode.
+  // The warning is emitted to the runtime console; it does NOT alter the SVG
+  // or the scene hash, so existing goldens are completely unaffected.
+  {
+    const WARN_HEIGHT_PX = 5000;
+    const WARN_HW_RATIO  = 4.0;
+    if (H > WARN_HEIGHT_PX || H / W > WARN_HW_RATIO) {
+      const spanYears = ((teOrd - tsOrd) / 365.25).toFixed(1);
+      const hwRatio   = (H / W).toFixed(2);
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[vertical-spine] Pathological render detected: height=${H}px, H/W=${hwRatio}, ` +
+        `time span=${spanYears} years. ` +
+        `Consider adding spineSpacing:'even' to your frontmatter, or switching to ` +
+        `layout:'timeline-columns' for multi-decade timelines.`,
+      );
+    }
+  }
+
   // ── Axis ticks ─────────────────────────────────────────────────────────────
 
   const vsAxisUnit = ir.metadata.axis_unit ?? inferAxisUnit(teOrd - tsOrd);
