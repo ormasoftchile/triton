@@ -2,29 +2,71 @@
 
 ---
 
-## 🎊 FIDELITY NITS CLOSED — Sequence + Radar Mermaid Compatibility (2026-06-14)
+# Decision: TIER 3 LONG-TAIL COMPLETE — 21 Mermaid Diagram Types Shipped
 
-**Status:** COMPLETED & COMMITTED  
-**Commit:** 01bcc61 "fix(mermaid): sequence autonumber (1-indexed) + Note rendering; radar example Mermaid-valid"  
-**Test Status:** 1552/1552 passing; determinism preserved
+**Agent:** Bjarne (Ingestion), Barbara (Semantics & Rendering), Scribe (Coordination)  
+**Date:** 2026-06-14T19:30:00Z  
+**Status:** ADOPTED & COMMITTED
 
-Closed two final Mermaid fidelity nits on the sequence + radar grammars:
+## Summary
 
-1. **Sequence autonumber now 1-indexed** — Badge labels render sequential 1-based numbers, not zero-based IR order. IR order remains zero-based for determinism.
-2. **Sequence Note parsing** — `Note left of A`, `Note right of A`, `Note over A,B` now parse and render as labeled boxes. Previously skipped entirely.
-3. **Radar gallery example** — Updated `mermaid-radar.mmd` to canonical `curve id["Label"]{...}` syntax (parser already supported both forms; id-form now used to enable real-Mermaid A/B testing).
+Tier 3 long-tail grammar completion shipped this session. All five remaining standard Mermaid diagram types are now production-ready: `requirementDiagram`, `kanban`, `block-beta`, `packet-beta`, `architecture-beta`. This completes the full standard Mermaid set: **21 diagram types total**. 1759 tests passing; determinism preserved; all goldens byte-identical. Commits: 34934b0, f4726f7, 72346d6.
 
-All 1552 tests passing. Determinism preserved. Only `mermaid-sequence.svg` + `mermaid-sequence.png` + `mermaid-radar.mmd` changed in goldens.
+## Details — See Inbox Merges
 
-**Real-Mermaid fidelity pass fully complete.** Remaining items (deferred UI polish) are non-blocking.
+- **requirementDiagram + kanban** (Bjarne): 2-column grid layout, 70 tests. Compartment boxes, «kind» edge pills.
+- **block-beta + packet-beta** (Barbara): N-column grid + 32-bit packet layout. 91 tests. Block spans/groups/arrows; packet fields with boundary wrapping.
+- **architecture-beta** (Barbara): Icon services + dashed groups + port-anchored edges. 41 tests. Cloud/database/server/disk/internet glyphs added to icon registry.
+
+## A/B Fidelity
+
+All structural elements A/B-verified against real Mermaid. Layout positioning differs (ours deterministic, Mermaid uses heuristic solvers), but all semantic features present.
 
 ---
 
-> **Compaction Note (2026-06-13):** Detailed decision sections for all grammars (Timeline T1–T5 variants, Sequence Inc1-2, Tree Inc1, Flow Inc1, Composition Inc1, Animation, Dark themes, Design doc sync, Diamond shape, Schema validation) have been archived to decisions-archive.md. Focusing this file on:
-> - Index of shipped milestones  
-> - Pending items list (now EMPTY — all closed)
-> - Barbara's composition ir_file refs (merged from inbox)
-> - Leslie's Mermaid-superset strategic pivot (merged from inbox)
+# Decision: Tier 3 — requirementDiagram + kanban Grammars Shipped
+
+**Agent:** Bjarne (Ingestion Design)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+Two Tier 3 long-tail grammars shipped end-to-end: `requirementDiagram` and `kanban`. Both follow established two-IR-layer architecture. Parser, schema, layout, theme, and index files created; wired into shared dispatcher; corpus tests and gallery examples emitted. Test suite: 1627/1627 passing. Determinism preserved. All pre-existing goldens byte-identical.
+
+**requirementDiagram:** 2-column grid layout. Each node box: outer body rect, title band rect, horizontal divider, stereotype text, bold name, attribute lines (ID/Text/Risk/Verification). Edges: directed open arrowhead, «kind» pill at midpoint. 5-node gallery (3 requirements + 2 elements), 4 relationships. Scene: 1194×658. A/B: structure & labels ✓; layout uses 2-column grid vs Mermaid's single-column dagre.
+
+**kanban:** Indentation-aware columns. Each column: colored header band (cycling green/purple/pink/blue), stacked card boxes, optional priority badges. 4 columns (Todo/In Progress/Review/Done) × 11 cards. Scene: 860×304. A/B: colors & structure ✓; cards more spacious than Mermaid's compact layout.
+
+---
+
+# Decision: Tier 3 — block-beta + packet-beta Grammars Shipped
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+Implemented two new Mermaid grammar types end-to-end: `block-beta` (N-column grid + spans + arrows + groups), `packet-beta` (32-bit grid with wrapping). Both follow established architecture. Test suite: 1718/1718 passing.
+
+**block-beta:** Fixed-column row-major placement. Per-row max-height packing. Fixed cell width/height for leaf blocks; spans widen tokens deterministically. Groups rendered as background containers. Arrows: straight lines with triangle arrowheads, optional midpoint labels. Gallery: 472×196 viewBox.
+
+**packet-beta:** Fixed 32-bit rows. Fields crossing boundaries split into row segments. Boundary labels render above each segment start. Long labels wrap for wider fields. Gallery: 984×180 viewBox.
+
+All coordinates use `rhuInt()`. Determinism preserved; pre-existing goldens byte-identical. A/B: both structurally faithful; layout more spacious than real Mermaid.
+
+---
+
+# Decision: Tier 3 — architecture-beta Grammar Shipped
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-14  
+**Status:** ADOPTED
+
+Implemented Mermaid `architecture-beta` / `architecture` end-to-end as final Tier 3 standard type. Pipeline shipped: parser → ArchitectureDocument → deterministic grid layout → Scene → SVG/PNG. Icon registry extended with cloud/database/server/disk/internet/cloud glyphs. 41 corpus tests + gallery example (card 44).
+
+**Grammar:** Services, groups, junctions, edges with port anchoring (L/R/T/B sides). Indentation-aware group nesting. Unknown icons warn but don't fail. Lowercase sides normalize to uppercase.
+
+**Layout:** Constraint grid seeded from edge port hints. Connected components placed deterministically. Groups computed bottom-up as dashed containers. Edges route as orthogonal polylines with endpoint arrowheads. A/B: structurally faithful; layout uses deterministic grid vs Mermaid's compact ELK.
+
+---
 
 ---
 

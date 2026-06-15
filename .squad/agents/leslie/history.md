@@ -2,7 +2,7 @@
 
 **Owner:** Leslie (Spec Architect)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-13T15:53:53Z
+**Updated:** 2026-06-14T19:30:00Z (Tier 3 long-tail complete — 21 Mermaid types total)
 
 ---
 

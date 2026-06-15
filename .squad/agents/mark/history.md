@@ -2,7 +2,8 @@
 
 **Owner:** Mark (IR & Schema Lead)  
 **Project:** timeline — deterministic diagram compiler  
-**Created:** 2026-06-10
+**Created:** 2026-06-10  
+**Updated:** 2026-06-14T19:30:00Z (Tier 3 long-tail complete — 21 Mermaid types total)
 
 ---
 
