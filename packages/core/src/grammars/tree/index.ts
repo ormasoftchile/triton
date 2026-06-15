@@ -21,6 +21,7 @@ import type { TreeTheme }      from './theme.js';
 import { treeDocumentSchema }  from './schema.js';
 import { layoutTree }          from './layout.js';
 import { layoutTreeRadial }    from './layoutRadial.js';
+import type { BranchColors, RadialThemeOpts } from './layoutRadial.js';
 
 export type { TreeDocument, TreeNode, TreeMetadata, TreeDefinition } from './types.js';
 export { treeDocumentSchema }   from './schema.js';
@@ -33,6 +34,7 @@ export {
   TREE_THEME_REGISTRY,
 } from './theme.js';
 export { layoutTreeRadial } from './layoutRadial.js';
+export type { RadialThemeOpts, BranchColors } from './layoutRadial.js';
 
 // ---------------------------------------------------------------------------
 // buildTreeScene
@@ -118,9 +120,10 @@ export function renderTreeDocument(
 export function renderTreeDocumentRadial(
   doc: TreeDocument,
   options: Pick<TreeRenderOptions, 'format'>,
+  themeOpts?: RadialThemeOpts,
 ): TreeRenderResult {
   treeDocumentSchema.parse(doc);
-  const scene = layoutTreeRadial(doc);
+  const scene = layoutTreeRadial(doc, themeOpts);
   const hash  = sceneHash(scene);
   const base  = { scene, sceneHash: hash };
 

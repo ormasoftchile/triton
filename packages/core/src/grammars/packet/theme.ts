@@ -15,6 +15,7 @@ export interface PacketTheme {
   bitLabelHeight: number;
   rowGap: number;
   fieldFill: string;
+  altFieldFill?: string;
   fieldStroke: string;
   fieldStrokeWidth: number;
   fieldFontSize: number;

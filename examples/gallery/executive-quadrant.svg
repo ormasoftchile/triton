@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="600" version="1.1" viewBox="0 0 920 600" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="600" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" text-anchor="middle" x="460" y="52">Campaign Reach vs Engagement Analysis</text>
+  <rect fill="#f0fdf4" height="206" stroke="none" width="206" x="158" y="96"/>
+  <rect fill="#f0f9ff" height="206" stroke="none" width="206" x="364" y="96"/>
+  <rect fill="#fefce8" height="206" stroke="none" width="206" x="158" y="302"/>
+  <rect fill="#fff7ed" height="206" stroke="none" width="206" x="364" y="302"/>
+  <rect fill="none" height="412" stroke="#1E293B" stroke-width="1.5" width="412" x="158" y="96"/>
+  <line stroke="#1E293B" stroke-dasharray="6,3" stroke-width="1.5" x1="364" x2="364" y1="96" y2="508"/>
+  <line stroke="#1E293B" stroke-dasharray="6,3" stroke-width="1.5" x1="158" x2="570" y1="302" y2="302"/>
+  <text dominant-baseline="hanging" fill="#475569" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="end" x="556" y="110">Expand &amp; Scale</text>
+  <text dominant-baseline="hanging" fill="#475569" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="start" x="172" y="110">Promote More</text>
+  <text dominant-baseline="auto" fill="#475569" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="start" x="172" y="494">Re-evaluate</text>
+  <text dominant-baseline="auto" fill="#475569" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" opacity="0.75" text-anchor="end" x="556" y="494">Needs Attention</text>
+  <line stroke="#1E293B" stroke-width="1.5" x1="158" x2="570" y1="508" y2="508"/>
+  <text dominant-baseline="hanging" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="158" y="526">Low Reach</text>
+  <text dominant-baseline="hanging" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="end" x="570" y="526">High Reach</text>
+  <line stroke="#1E293B" stroke-width="1" x1="158" x2="570" y1="517" y2="517"/>
+  <line stroke="#1E293B" stroke-width="1.5" x1="158" x2="158" y1="96" y2="508"/>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="end" x="150" y="508">Low Engagement</text>
+  <text dominant-baseline="hanging" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="end" x="150" y="96">High Engagement</text>
+  <line stroke="#1E293B" stroke-width="1" x1="154" x2="154" y1="96" y2="508"/>
+  <circle cx="491.72" cy="149.56" fill="#1F497D" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="504.72" y="149.56">Viral Video</text>
+  <circle cx="256.88" cy="227.84" fill="#2E86AB" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="269.88" y="227.84">Blog Post</text>
+  <circle cx="392.84" cy="293.76" fill="#4CAF82" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="405.84" y="293.76">Email Campaign</text>
+  <circle cx="458.76" cy="351.44" fill="#D97706" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="471.76" y="351.44">Paid Social</text>
+  <circle cx="413.44" cy="215.48" fill="#7C3AED" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="426.44" y="215.48">Organic Search</text>
+  <circle cx="293.96" cy="334.96" fill="#0891B2" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="306.96" y="334.96">Podcast Ad</text>
+  <circle cx="355.76" cy="182.52" fill="#B45309" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="368.76" y="182.52">Influencer</text>
+  <circle cx="232.16" cy="417.36" fill="#0D2B4E" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="245.16" y="417.36">Cold Outreach</text>
+  <circle cx="384.6" cy="248.44" fill="#1F497D" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="397.6" y="248.44">Webinar</text>
+  <circle cx="322.8" cy="384.4" fill="#2E86AB" r="7" stroke="#ffffff" stroke-width="2"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="600" text-anchor="start" x="335.8" y="384.4">Trade Show</text>
+</svg>

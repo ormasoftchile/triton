@@ -118,7 +118,7 @@ export function layoutPacket(doc: PacketDocument, themeOverride?: PacketTheme): 
       const bitSpan = segment.endBit - segment.startBit + 1;
       const x = rhuInt(tk.marginLeft + localStart * bitWidth);
       const widthPx = rhuInt(bitSpan * bitWidth);
-      const fill = idx % 2 === 0 ? tk.fieldFill : '#d5e8d4';
+      const fill = idx % 2 === 0 ? tk.fieldFill : (tk.altFieldFill ?? '#d5e8d4');
 
       primitives.push({
         kind: 'rect',

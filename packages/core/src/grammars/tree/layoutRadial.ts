@@ -103,11 +103,19 @@ function getEdgeWidth(childDepth: number): number {
 // Branch color palette — warm, organic, Mermaid-inspired
 // ---------------------------------------------------------------------------
 
-interface BranchColors {
+export interface BranchColors {
   fill:   string;   // node background fill
   edge:   string;   // connector stroke color
   stroke: string;   // node border (subtle, 1px)
   text:   string;   // node label color
+}
+
+export interface RadialThemeOpts {
+  background: string;
+  fontFamily: string;
+  rootFill: string;
+  rootTextColor: string;
+  branchPalette: BranchColors[];
 }
 
 const BRANCH_PALETTE: BranchColors[] = [
@@ -120,14 +128,6 @@ const BRANCH_PALETTE: BranchColors[] = [
   { fill: '#a4ecc0', edge: '#30a860', stroke: '#40b870', text: '#004028' },  // mint          (idx 6)
   { fill: '#f0a0a0', edge: '#c84040', stroke: '#d85050', text: '#400000' },  // rose          (idx 7)
 ];
-
-function getBranchColors(branchIndex: number): BranchColors {
-  return BRANCH_PALETTE[branchIndex % BRANCH_PALETTE.length] ?? BRANCH_PALETTE[0]!;
-}
-
-// ---------------------------------------------------------------------------
-// Internal layout node
-// ---------------------------------------------------------------------------
 
 interface RadialNode {
   treeNode:    TreeNode;
@@ -236,136 +236,6 @@ function buildRadialNode(
 }
 
 // ---------------------------------------------------------------------------
-// Edge emission — d3-linkRadial cubic Bézier
-// ---------------------------------------------------------------------------
-
-function emitEdge(
-  parent: RadialNode,
-  child:  RadialNode,
-  edges:  ScenePrimitive[],
-): void {
-  const px     = parent.x;
-  const py     = parent.y;
-  const cx     = child.x;
-  const cy     = child.y;
-  const colors = getBranchColors(child.branchIndex);
-  const sw     = getEdgeWidth(child.depth);
-
-  let d: string;
-
-  if (parent.depth === 0) {
-    // Root → L1: cubic Bézier from root center along child's radial direction.
-    // Root circle and L1 node rect cover the endpoints visually.
-    const rc  = depthRadius(child.depth);
-    const cp1x = rhuInt(CENTER_X + Math.cos(child.angle) * rc * 0.35);
-    const cp1y = rhuInt(CENTER_Y + Math.sin(child.angle) * rc * 0.35);
-    const cp2x = rhuInt(CENTER_X + Math.cos(child.angle) * rc * 0.78);
-    const cp2y = rhuInt(CENTER_Y + Math.sin(child.angle) * rc * 0.78);
-    d = `M ${px} ${py} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${cx} ${cy}`;
-  } else {
-    // L1+ → deeper: d3-linkRadial Bézier.
-    // Tangent at start ∥ parent radial direction; tangent at end ∥ child radial direction.
-    // CP1 = project parent-angle direction out to child radius.
-    // CP2 = project child-angle direction in to parent radius.
-    const rp   = depthRadius(parent.depth);
-    const rc   = depthRadius(child.depth);
-    const cp1x = rhuInt(CENTER_X + rc * Math.cos(parent.angle));
-    const cp1y = rhuInt(CENTER_Y + rc * Math.sin(parent.angle));
-    const cp2x = rhuInt(CENTER_X + rp * Math.cos(child.angle));
-    const cp2y = rhuInt(CENTER_Y + rp * Math.sin(child.angle));
-    d = `M ${px} ${py} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${cx} ${cy}`;
-  }
-
-  edges.push({
-    kind: 'path',
-    d,
-    fill: 'none',
-    stroke: colors.edge,
-    strokeWidth: sw,
-    strokeLinecap: 'round',
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Node emission
-// ---------------------------------------------------------------------------
-
-function emitNode(rn: RadialNode, nodes: ScenePrimitive[]): void {
-  if (rn.depth === 0) {
-    // Root: filled circle with centered label
-    nodes.push({
-      kind: 'circle',
-      cx:   rn.x,
-      cy:   rn.y,
-      r:    rn.rootR,
-      fill: ROOT_FILL,
-    });
-    nodes.push({
-      kind:            'text',
-      x:               rn.x,
-      y:               rn.y,
-      text:            rn.treeNode.label,
-      fontFamily:      FONT_FAMILY,
-      fontSize:        ROOT_FONT_SIZE,
-      fontWeight:      ROOT_FONT_WEIGHT,
-      fill:            ROOT_TEXT_COLOR,
-      textAnchor:      'middle',
-      dominantBaseline:'central',
-    });
-    return;
-  }
-
-  const spec   = getSpec(rn.depth);
-  const colors = getBranchColors(rn.branchIndex);
-
-  const boxX = rhuInt(rn.x - rn.w / 2);
-  const boxY = rhuInt(rn.y - rn.h / 2);
-
-  // Branch-colored pill node with crisp 1px border
-  nodes.push({
-    kind:        'rect',
-    x:           boxX,
-    y:           boxY,
-    width:       rn.w,
-    height:      rn.h,
-    fill:        colors.fill,
-    stroke:      colors.stroke,
-    strokeWidth: 1,
-    rx:          spec.rx,
-  });
-
-  // Centered label
-  nodes.push({
-    kind:            'text',
-    x:               rn.x,
-    y:               rn.y,
-    text:            rn.treeNode.label,
-    fontFamily:      FONT_FAMILY,
-    fontSize:        spec.fontSize,
-    fontWeight:      spec.fontWeight,
-    fill:            colors.text,
-    textAnchor:      'middle',
-    dominantBaseline:'central',
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Recursive emit — edges first (behind nodes), then nodes (painter order)
-// ---------------------------------------------------------------------------
-
-function emitAll(
-  root:  RadialNode,
-  edges: ScenePrimitive[],
-  nodes: ScenePrimitive[],
-): void {
-  for (const child of root.children) {
-    emitEdge(root, child, edges);
-    emitAll(child, edges, nodes);
-  }
-  emitNode(root, nodes);
-}
-
-// ---------------------------------------------------------------------------
 // Public entry point
 // ---------------------------------------------------------------------------
 
@@ -378,13 +248,123 @@ function emitAll(
  * @param doc - Validated TreeDocument (produced by parseMindmapInternal).
  * @returns Deterministic Scene ready for sceneToSvg / svgToPng.
  */
-export function layoutTreeRadial(doc: TreeDocument): Scene {
+export function layoutTreeRadial(doc: TreeDocument, opts?: RadialThemeOpts): Scene {
+  const bg         = opts?.background ?? BG_COLOR;
+  const fontFam    = opts?.fontFamily ?? FONT_FAMILY;
+  const rootFill_  = opts?.rootFill ?? ROOT_FILL;
+  const rootText   = opts?.rootTextColor ?? ROOT_TEXT_COLOR;
+  const palette_   = opts?.branchPalette?.length ? opts.branchPalette : BRANCH_PALETTE;
+
+  function getColors(branchIndex: number): BranchColors {
+    return palette_[branchIndex % palette_.length] ?? palette_[0]!;
+  }
+
+  function emitEdge_(parent: RadialNode, child: RadialNode, edges: ScenePrimitive[]): void {
+    const px     = parent.x;
+    const py     = parent.y;
+    const cx     = child.x;
+    const cy     = child.y;
+    const colors = getColors(child.branchIndex);
+    const sw     = getEdgeWidth(child.depth);
+
+    let d: string;
+
+    if (parent.depth === 0) {
+      const rc   = depthRadius(child.depth);
+      const cp1x = rhuInt(CENTER_X + Math.cos(child.angle) * rc * 0.35);
+      const cp1y = rhuInt(CENTER_Y + Math.sin(child.angle) * rc * 0.35);
+      const cp2x = rhuInt(CENTER_X + Math.cos(child.angle) * rc * 0.78);
+      const cp2y = rhuInt(CENTER_Y + Math.sin(child.angle) * rc * 0.78);
+      d = `M ${px} ${py} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${cx} ${cy}`;
+    } else {
+      const rp   = depthRadius(parent.depth);
+      const rc   = depthRadius(child.depth);
+      const cp1x = rhuInt(CENTER_X + rc * Math.cos(parent.angle));
+      const cp1y = rhuInt(CENTER_Y + rc * Math.sin(parent.angle));
+      const cp2x = rhuInt(CENTER_X + rp * Math.cos(child.angle));
+      const cp2y = rhuInt(CENTER_Y + rp * Math.sin(child.angle));
+      d = `M ${px} ${py} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${cx} ${cy}`;
+    }
+
+    edges.push({
+      kind: 'path',
+      d,
+      fill: 'none',
+      stroke: colors.edge,
+      strokeWidth: sw,
+      strokeLinecap: 'round',
+    });
+  }
+
+  function emitNode_(rn: RadialNode, nodes: ScenePrimitive[]): void {
+    if (rn.depth === 0) {
+      nodes.push({
+        kind: 'circle',
+        cx:   rn.x,
+        cy:   rn.y,
+        r:    rn.rootR,
+        fill: rootFill_,
+      });
+      nodes.push({
+        kind:             'text',
+        x:                rn.x,
+        y:                rn.y,
+        text:             rn.treeNode.label,
+        fontFamily:       fontFam,
+        fontSize:         ROOT_FONT_SIZE,
+        fontWeight:       ROOT_FONT_WEIGHT,
+        fill:             rootText,
+        textAnchor:       'middle',
+        dominantBaseline: 'central',
+      });
+      return;
+    }
+
+    const spec   = getSpec(rn.depth);
+    const colors = getColors(rn.branchIndex);
+    const boxX   = rhuInt(rn.x - rn.w / 2);
+    const boxY   = rhuInt(rn.y - rn.h / 2);
+
+    nodes.push({
+      kind:        'rect',
+      x:           boxX,
+      y:           boxY,
+      width:       rn.w,
+      height:      rn.h,
+      fill:        colors.fill,
+      stroke:      colors.stroke,
+      strokeWidth: 1,
+      rx:          spec.rx,
+    });
+
+    nodes.push({
+      kind:             'text',
+      x:                rn.x,
+      y:                rn.y,
+      text:             rn.treeNode.label,
+      fontFamily:       fontFam,
+      fontSize:         spec.fontSize,
+      fontWeight:       spec.fontWeight,
+      fill:             colors.text,
+      textAnchor:       'middle',
+      dominantBaseline: 'central',
+    });
+  }
+
+  function emitAll_(root: RadialNode, edges: ScenePrimitive[], nodes: ScenePrimitive[]): void {
+    for (const child of root.children) {
+      emitEdge_(root, child, edges);
+      emitAll_(child, edges, nodes);
+    }
+    emitNode_(root, nodes);
+  }
+
   // Build radial tree from full-circle sector (0 → 2π)
   const root = buildRadialNode(doc.tree.root, null, 0, -1, 0, 2 * Math.PI);
 
   const edges: ScenePrimitive[] = [];
   const nodes: ScenePrimitive[] = [];
-  emitAll(root, edges, nodes);
+  emitAll_(root, edges, nodes);
 
   const background: ScenePrimitive = {
     kind:   'rect',
@@ -392,13 +372,13 @@ export function layoutTreeRadial(doc: TreeDocument): Scene {
     y:      0,
     width:  CANVAS_W,
     height: CANVAS_H,
-    fill:   BG_COLOR,
+    fill:   bg,
   };
 
   return {
     width:      CANVAS_W,
     height:     CANVAS_H,
-    background: BG_COLOR,
+    background: bg,
     primitives: [background, ...edges, ...nodes],
   };
 }

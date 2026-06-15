@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="238" version="1.1" viewBox="0 0 984 238" width="984" xmlns="http://www.w3.org/2000/svg">
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" text-anchor="middle" x="492" y="42">TCP Segment Header</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="32" y="69">0</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="147" y="69">4</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="320" y="69">10</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="348" y="69">11</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="377" y="69">12</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="406" y="69">13</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="435" y="69">14</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="463" y="69">15</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="492" y="69">16</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="end" x="952" y="69">31</text>
+  <rect fill="#d2dbe5" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="115" x="32" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="90" y="112">Data Offset</text>
+  <rect fill="#d5e7ee" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="173" x="147" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="234" y="112">Reserved</text>
+  <rect fill="#d2dbe5" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="29" x="320" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="600" text-anchor="middle" x="335" y="111">URG</text>
+  <rect fill="#d5e7ee" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="29" x="348" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="363" y="111">ACK</text>
+  <rect fill="#d2dbe5" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="29" x="377" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="392" y="111">PSH</text>
+  <rect fill="#d5e7ee" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="29" x="406" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="421" y="111">RST</text>
+  <rect fill="#d2dbe5" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="29" x="435" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="450" y="111">SYN</text>
+  <rect fill="#d5e7ee" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="29" x="463" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="478" y="112">FIN</text>
+  <rect fill="#d2dbe5" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="460" x="492" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="722" y="112">Window Size</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="32" y="147">32</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="start" x="492" y="147">48</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="500" text-anchor="end" x="952" y="147">63</text>
+  <rect fill="#d2dbe5" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="460" x="32" y="162"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="262" y="190">Checksum</text>
+  <rect fill="#d5e7ee" height="48" rx="0" stroke="#E2E8F0" stroke-width="1" width="460" x="492" y="162"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="722" y="190">Urgent Pointer</text>
+</svg>

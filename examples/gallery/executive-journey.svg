@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="528" version="1.1" viewBox="0 0 1996 528" width="1996" xmlns="http://www.w3.org/2000/svg">
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="18" font-weight="700" text-anchor="middle" x="998" y="50">E-commerce Customer Journey 2026</text>
+  <rect fill="#F1F5F9" height="168" rx="12" stroke="none" width="448" x="32" y="68"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="256" y="88">Discovery</text>
+  <rect fill="#F1F5F9" height="168" rx="12" stroke="none" width="588" x="480" y="68"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="774" y="88">Purchase</text>
+  <rect fill="#F1F5F9" height="168" rx="12" stroke="none" width="448" x="1068" y="68"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="1292" y="88">Fulfillment</text>
+  <rect fill="#F1F5F9" height="168" rx="12" stroke="none" width="448" x="1516" y="68"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="1740" y="88">Post-purchase</text>
+  <line stroke="#94A3B8" stroke-width="2" x1="32" x2="1978" y1="236" y2="236"/>
+  <path d="M 1978 236 L 1968 231 L 1968 241 Z" fill="#94A3B8" stroke="none"/>
+  <path d="M 116 286 C 139 292 209 314 256 320 C 303 326 345 326 396 320 C 447 314 513 280 564 286 C 615 292 657 360 704 354 C 751 348 797 263 844 252 C 891 241 933 286 984 286 C 1035 286 1101 252 1152 252 C 1203 252 1245 286 1292 286 C 1339 286 1381 246 1432 252 C 1483 258 1549 297 1600 320 C 1651 343 1693 399 1740 388 C 1787 377 1857 275 1880 252" fill="none" stroke="#94A3B8" stroke-width="1.5"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="116" x2="116" y1="236" y2="266"/>
+  <circle cx="116" cy="286" fill="#84ad97" r="20" stroke="#638271" stroke-width="2"/>
+  <circle cx="110" cy="280" fill="#638271" r="3" stroke="none"/>
+  <circle cx="122" cy="280" fill="#638271" r="3" stroke="none"/>
+  <path d="M 108 290 Q 116 296 124 290" fill="none" stroke="#638271" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="256" x2="256" y1="236" y2="300"/>
+  <circle cx="256" cy="320" fill="#f1f5f9" r="20" stroke="#b5b8bb" stroke-width="2"/>
+  <circle cx="250" cy="314" fill="#b5b8bb" r="3" stroke="none"/>
+  <circle cx="262" cy="314" fill="#b5b8bb" r="3" stroke="none"/>
+  <path d="M 248 326 L 264 326" fill="none" stroke="#b5b8bb" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="396" x2="396" y1="236" y2="300"/>
+  <circle cx="396" cy="320" fill="#f1f5f9" r="20" stroke="#b5b8bb" stroke-width="2"/>
+  <circle cx="390" cy="314" fill="#b5b8bb" r="3" stroke="none"/>
+  <circle cx="402" cy="314" fill="#b5b8bb" r="3" stroke="none"/>
+  <path d="M 388 326 L 404 326" fill="none" stroke="#b5b8bb" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="564" x2="564" y1="236" y2="266"/>
+  <circle cx="564" cy="286" fill="#84ad97" r="20" stroke="#638271" stroke-width="2"/>
+  <circle cx="558" cy="280" fill="#638271" r="3" stroke="none"/>
+  <circle cx="570" cy="280" fill="#638271" r="3" stroke="none"/>
+  <path d="M 556 290 Q 564 296 572 290" fill="none" stroke="#638271" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="704" x2="704" y1="236" y2="334"/>
+  <circle cx="704" cy="354" fill="#c5888a" r="20" stroke="#946668" stroke-width="2"/>
+  <circle cx="698" cy="348" fill="#946668" r="3" stroke="none"/>
+  <circle cx="710" cy="348" fill="#946668" r="3" stroke="none"/>
+  <path d="M 696 363 Q 704 357 712 363" fill="none" stroke="#946668" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="844" x2="844" y1="236" y2="232"/>
+  <circle cx="844" cy="252" fill="#166534" r="20" stroke="#114c27" stroke-width="2"/>
+  <circle cx="838" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <circle cx="850" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <path d="M 836 256 Q 844 262 852 256" fill="none" stroke="#114c27" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="984" x2="984" y1="236" y2="266"/>
+  <circle cx="984" cy="286" fill="#84ad97" r="20" stroke="#638271" stroke-width="2"/>
+  <circle cx="978" cy="280" fill="#638271" r="3" stroke="none"/>
+  <circle cx="990" cy="280" fill="#638271" r="3" stroke="none"/>
+  <path d="M 976 290 Q 984 296 992 290" fill="none" stroke="#638271" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="1152" x2="1152" y1="236" y2="232"/>
+  <circle cx="1152" cy="252" fill="#166534" r="20" stroke="#114c27" stroke-width="2"/>
+  <circle cx="1146" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <circle cx="1158" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <path d="M 1144 256 Q 1152 262 1160 256" fill="none" stroke="#114c27" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="1292" x2="1292" y1="236" y2="266"/>
+  <circle cx="1292" cy="286" fill="#84ad97" r="20" stroke="#638271" stroke-width="2"/>
+  <circle cx="1286" cy="280" fill="#638271" r="3" stroke="none"/>
+  <circle cx="1298" cy="280" fill="#638271" r="3" stroke="none"/>
+  <path d="M 1284 290 Q 1292 296 1300 290" fill="none" stroke="#638271" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="1432" x2="1432" y1="236" y2="232"/>
+  <circle cx="1432" cy="252" fill="#166534" r="20" stroke="#114c27" stroke-width="2"/>
+  <circle cx="1426" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <circle cx="1438" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <path d="M 1424 256 Q 1432 262 1440 256" fill="none" stroke="#114c27" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="1600" x2="1600" y1="236" y2="300"/>
+  <circle cx="1600" cy="320" fill="#f1f5f9" r="20" stroke="#b5b8bb" stroke-width="2"/>
+  <circle cx="1594" cy="314" fill="#b5b8bb" r="3" stroke="none"/>
+  <circle cx="1606" cy="314" fill="#b5b8bb" r="3" stroke="none"/>
+  <path d="M 1592 326 L 1608 326" fill="none" stroke="#b5b8bb" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="1740" x2="1740" y1="236" y2="368"/>
+  <circle cx="1740" cy="388" fill="#991B1B" r="20" stroke="#731414" stroke-width="2"/>
+  <circle cx="1734" cy="382" fill="#731414" r="3" stroke="none"/>
+  <circle cx="1746" cy="382" fill="#731414" r="3" stroke="none"/>
+  <path d="M 1732 397 Q 1740 391 1748 397" fill="none" stroke="#731414" stroke-linecap="round" stroke-width="2"/>
+  <line stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1" x1="1880" x2="1880" y1="236" y2="232"/>
+  <circle cx="1880" cy="252" fill="#166534" r="20" stroke="#114c27" stroke-width="2"/>
+  <circle cx="1874" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <circle cx="1886" cy="246" fill="#114c27" r="3" stroke="none"/>
+  <path d="M 1872 256 Q 1880 262 1888 256" fill="none" stroke="#114c27" stroke-linecap="round" stroke-width="2"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="52" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="116" y="196">Search online</text>
+  <circle cx="109" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <circle cx="123" cy="215" fill="#2E86AB" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="192" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="256" y="196">Read reviews</text>
+  <circle cx="256" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="332" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="396" y="196">Compare prices</text>
+  <circle cx="389" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <circle cx="403" cy="215" fill="#2E86AB" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="500" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="564" y="196">Add to cart</text>
+  <circle cx="564" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="640" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="704" y="196">Apply coupon</text>
+  <circle cx="704" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="780" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="844" y="196">Checkout</text>
+  <circle cx="844" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="920" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="984" y="196">Payment</text>
+  <circle cx="977" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <circle cx="991" cy="215" fill="#4CAF82" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="1088" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="1152" y="196">Order confirmed</text>
+  <circle cx="1145" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <circle cx="1159" cy="215" fill="#D97706" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="1228" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="1292" y="196">Package shipped</text>
+  <circle cx="1285" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <circle cx="1299" cy="215" fill="#7C3AED" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="1368" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="1432" y="196">Delivered</text>
+  <circle cx="1432" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="1536" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="1600" y="196">Leave review</text>
+  <circle cx="1600" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="1676" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="1740" y="196">Return item</text>
+  <circle cx="1733" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <circle cx="1747" cy="215" fill="#0891B2" r="5" stroke="none"/>
+  <rect fill="#FFFFFF" height="52" rx="4" stroke="#E2E8F0" stroke-width="1" width="128" x="1816" y="178"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="1880" y="196">Repurchase</text>
+  <circle cx="1880" cy="215" fill="#1F497D" r="5" stroke="none"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="start" x="32" y="450">Actors</text>
+  <circle cx="37" cy="469" fill="#1F497D" r="5" stroke="none"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="48" y="470">Customer</text>
+  <circle cx="156" cy="469" fill="#2E86AB" r="5" stroke="none"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="167" y="470">Analytics</text>
+  <circle cx="275" cy="469" fill="#4CAF82" r="5" stroke="none"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="286" y="470">Payment Service</text>
+  <circle cx="394" cy="469" fill="#D97706" r="5" stroke="none"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="405" y="470">System</text>
+  <circle cx="37" cy="487" fill="#7C3AED" r="5" stroke="none"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="48" y="488">Warehouse</text>
+  <circle cx="156" cy="487" fill="#0891B2" r="5" stroke="none"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="167" y="488">Support</text>
+</svg>

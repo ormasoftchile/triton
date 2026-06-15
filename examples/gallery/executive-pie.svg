@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="600" version="1.1" viewBox="0 0 920 600" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="600" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" text-anchor="middle" x="460" y="52">Programming Language Popularity 2026</text>
+  <path d="M 378 322 L 378 96 A 226 226 0 0 1 598.56 371.3 Z" fill="#1F497D" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M 378 322 L 598.56 371.3 A 226 226 0 0 1 366.64 547.71 Z" fill="#2E86AB" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M 378 322 L 366.64 547.71 A 226 226 0 0 1 214.23 477.74 Z" fill="#4CAF82" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M 378 322 L 214.23 477.74 A 226 226 0 0 1 152.75 340.44 Z" fill="#D97706" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M 378 322 L 152.75 340.44 A 226 226 0 0 1 174.12 224.49 Z" fill="#7C3AED" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M 378 322 L 174.12 224.49 A 226 226 0 0 1 226.43 154.37 Z" fill="#0891B2" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M 378 322 L 226.43 154.37 A 226 226 0 0 1 378 96 Z" fill="#B45309" stroke="#FFFFFF" stroke-width="1"/>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="501.46" y="223.09">Python</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="473.78" y="447.91">JavaScript</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="311.99" y="465.77">TypeScript</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="321.15" y="174.37">Other</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="233.61" y="386.65">Java</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="222.42" y="293.33">Rust</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="end" x="159.67" y="166.6">Go</text>
+  <rect fill="#1F497D" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="736" y="96"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="756" y="103">Python</text>
+  <rect fill="#2E86AB" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="736" y="120"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="756" y="127">JavaScript</text>
+  <rect fill="#4CAF82" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="736" y="144"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="756" y="151">TypeScript</text>
+  <rect fill="#D97706" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="736" y="168"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="756" y="175">Java</text>
+  <rect fill="#7C3AED" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="736" y="192"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="756" y="199">Rust</text>
+  <rect fill="#0891B2" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="736" y="216"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="756" y="223">Go</text>
+  <rect fill="#B45309" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="736" y="240"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="756" y="247">Other</text>
+</svg>

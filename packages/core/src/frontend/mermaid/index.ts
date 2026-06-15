@@ -41,6 +41,12 @@ import { bindClassTheme }        from '../../grammars/class/contract-binding.js'
 import { bindStateTheme }        from '../../grammars/state/contract-binding.js';
 import { bindErTheme }           from '../../grammars/er/contract-binding.js';
 import { bindC4Theme }           from '../../grammars/c4/contract-binding.js';
+import { bindSankeyTheme }       from '../../grammars/sankey/contract-binding.js';
+import { bindGitGraphTheme }     from '../../grammars/gitgraph/contract-binding.js';
+import { bindJourneyTheme }      from '../../grammars/journey/contract-binding.js';
+import { bindKanbanTheme }       from '../../grammars/kanban/contract-binding.js';
+import { bindMindmapTheme }      from '../../grammars/tree/contract-binding.js';
+import { bindPacketTheme }       from '../../grammars/packet/contract-binding.js';
 import { bindRequirementTheme }  from '../../grammars/requirement/contract-binding.js';
 import { bindBlockTheme }        from '../../grammars/block/contract-binding.js';
 import { bindArchitectureTheme } from '../../grammars/architecture/contract-binding.js';
@@ -615,15 +621,20 @@ export function renderMermaid(
 
   // ── mindmap ────────────────────────────────────────────────────────────
   if (kind === 'mindmap') {
-    const { doc, warnings } = parseMindmapInternal(text);
+    const { doc, warnings, frontmatter } = parseMindmapInternal(text);
+    const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
+    const themeName = options.theme ?? fmTheme;
 
     const finalDoc: TreeDocument = {
       ...doc,
       metadata: { ...doc.metadata, theme: 'mindmap-radial' },
     };
 
-    const format       = options.format ?? 'svg';
-    const renderResult = renderTreeDocumentRadial(finalDoc, { format });
+    const format = options.format ?? 'svg';
+    const radialOpts = isContractTheme(themeName)
+      ? bindMindmapTheme(CONTRACT_THEMES[themeName]!)
+      : undefined;
+    const renderResult = renderTreeDocumentRadial(finalDoc, { format }, radialOpts);
 
     return {
       kind,
@@ -707,7 +718,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parsePieDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
-    const chartTheme = resolveChartTheme(themeName);
+    const chartTheme = isContractTheme(themeName)
+      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
     const hash = computeSceneHash(scene);
@@ -738,7 +751,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseQuadrantDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
-    const chartTheme = resolveChartTheme(themeName);
+    const chartTheme = isContractTheme(themeName)
+      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
     const hash = computeSceneHash(scene);
@@ -752,7 +767,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseRadarDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
-    const chartTheme = resolveChartTheme(themeName);
+    const chartTheme = isContractTheme(themeName)
+      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
     const hash = computeSceneHash(scene);
@@ -766,7 +783,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseJourneyDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-journey';
-    const journeyTheme = resolveJourneyTheme(themeName);
+    const journeyTheme = isContractTheme(themeName)
+      ? bindJourneyTheme(CONTRACT_THEMES[themeName]!)
+      : resolveJourneyTheme(themeName);
     const finalDoc: JourneyDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildJourneyScene(finalDoc, journeyTheme);
     const hash = computeSceneHash(scene);
@@ -780,7 +799,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseGitGraphDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-gitgraph';
-    const gitGraphTheme = resolveGitGraphTheme(themeName);
+    const gitGraphTheme = isContractTheme(themeName)
+      ? bindGitGraphTheme(CONTRACT_THEMES[themeName]!)
+      : resolveGitGraphTheme(themeName);
     const finalDoc: GitGraphDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildGitGraphScene(finalDoc, gitGraphTheme);
     const hash = computeSceneHash(scene);
@@ -794,7 +815,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseSankeyDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-sankey';
-    const sankeyTheme = resolveSankeyTheme(themeName);
+    const sankeyTheme = isContractTheme(themeName)
+      ? bindSankeyTheme(CONTRACT_THEMES[themeName]!)
+      : resolveSankeyTheme(themeName);
     const finalDoc: SankeyDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildSankeyScene(finalDoc, sankeyTheme);
     const hash = computeSceneHash(scene);
@@ -826,7 +849,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseKanbanDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-kanban';
-    const kanbanTheme = resolveKanbanTheme(themeName);
+    const kanbanTheme = isContractTheme(themeName)
+      ? bindKanbanTheme(CONTRACT_THEMES[themeName]!)
+      : resolveKanbanTheme(themeName);
     const finalDoc: KanbanDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildKanbanScene(finalDoc, kanbanTheme);
     const hash = computeSceneHash(scene);
@@ -858,7 +883,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parsePacketDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-packet';
-    const packetTheme = resolvePacketTheme(themeName);
+    const packetTheme = isContractTheme(themeName)
+      ? bindPacketTheme(CONTRACT_THEMES[themeName]!)
+      : resolvePacketTheme(themeName);
     const finalDoc: PacketDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildPacketScene(finalDoc, packetTheme);
     const hash = computeSceneHash(scene);

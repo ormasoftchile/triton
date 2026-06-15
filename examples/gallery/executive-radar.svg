@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="600" version="1.1" viewBox="0 0 920 600" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="600" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="20" font-weight="700" text-anchor="middle" x="460" y="52">Developer Profile Comparison</text>
+  <path d="M 408 273 L 450.44 297.5 L 450.44 346.5 L 408 371 L 365.56 346.5 L 365.56 297.5 Z" fill="none" stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1"/>
+  <path d="M 408 224 L 492.87 273 L 492.87 371 L 408 420 L 323.13 371 L 323.13 273 Z" fill="none" stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1"/>
+  <path d="M 408 175 L 535.31 248.5 L 535.31 395.5 L 408 469 L 280.69 395.5 L 280.69 248.5 Z" fill="none" stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1"/>
+  <path d="M 408 126 L 577.74 224 L 577.74 420 L 408 518 L 238.26 420 L 238.26 224 Z" fill="none" stroke="#E2E8F0" stroke-dasharray="4,4" stroke-width="1"/>
+  <line opacity="0.6" stroke="#1E293B" stroke-width="1" x1="408" x2="408" y1="322" y2="126"/>
+  <line opacity="0.6" stroke="#1E293B" stroke-width="1" x1="408" x2="577.74" y1="322" y2="224"/>
+  <line opacity="0.6" stroke="#1E293B" stroke-width="1" x1="408" x2="577.74" y1="322" y2="420"/>
+  <line opacity="0.6" stroke="#1E293B" stroke-width="1" x1="408" x2="408" y1="322" y2="518"/>
+  <line opacity="0.6" stroke="#1E293B" stroke-width="1" x1="408" x2="238.26" y1="322" y2="420"/>
+  <line opacity="0.6" stroke="#1E293B" stroke-width="1" x1="408" x2="238.26" y1="322" y2="224"/>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="412" y="269">2.5</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="412" y="220">5</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="412" y="171">7.5</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="400" opacity="0.85" text-anchor="start" x="412" y="122">10</text>
+  <path d="M 408 145.6 L 543.79 243.6 L 526.82 390.6 L 408 478.8 L 255.23 410.2 L 306.16 263.2 Z" fill="#1F497D" opacity="0.18" stroke="none"/>
+  <path d="M 408 145.6 L 543.79 243.6 L 526.82 390.6 L 408 478.8 L 255.23 410.2 L 306.16 263.2 Z" fill="none" stroke="#1F497D" stroke-linecap="round" stroke-width="2"/>
+  <circle cx="408" cy="145.6" fill="#1F497D" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="543.79" cy="243.6" fill="#1F497D" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="526.82" cy="390.6" fill="#1F497D" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="408" cy="478.8" fill="#1F497D" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="255.23" cy="410.2" fill="#1F497D" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="306.16" cy="263.2" fill="#1F497D" r="3" stroke="#ffffff" stroke-width="1"/>
+  <path d="M 408 204.4 L 492.87 273 L 492.87 371 L 408 380.8 L 306.16 380.8 L 340.1 282.8 Z" fill="#2E86AB" opacity="0.18" stroke="none"/>
+  <path d="M 408 204.4 L 492.87 273 L 492.87 371 L 408 380.8 L 306.16 380.8 L 340.1 282.8 Z" fill="none" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
+  <circle cx="408" cy="204.4" fill="#2E86AB" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="492.87" cy="273" fill="#2E86AB" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="492.87" cy="371" fill="#2E86AB" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="408" cy="380.8" fill="#2E86AB" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="306.16" cy="380.8" fill="#2E86AB" r="3" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="340.1" cy="282.8" fill="#2E86AB" r="3" stroke="#ffffff" stroke-width="1"/>
+  <text dominant-baseline="auto" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="408" y="104">Speed</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="596.79" y="213">Reliability</text>
+  <text dominant-baseline="middle" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="596.79" y="431">Communication</text>
+  <text dominant-baseline="hanging" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="408" y="540">Leadership</text>
+  <text dominant-baseline="hanging" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="end" x="219.21" y="431">Debugging</text>
+  <text dominant-baseline="auto" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="end" x="219.21" y="213">Documentation</text>
+  <rect fill="#1F497D" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="778" y="96"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="796" y="103">Senior Dev</text>
+  <rect fill="#2E86AB" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="778" y="120"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="start" x="796" y="127">Junior Dev</text>
+</svg>
