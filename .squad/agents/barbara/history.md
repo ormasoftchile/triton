@@ -2,7 +2,100 @@
 
 **Owner:** Barbara (Semantics & Rendering)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-14T23:15:00Z (Theme Contract Spike complete)
+**Updated:** 2026-06-14T00:20:00Z (Migration Step 1: Timeline binding complete)
+
+---
+
+## 2026-06-14 — Migration Step 1: Timeline ResolvedTheme → Tier-2 Contract
+
+### bindTimelineTheme + contract enrichment + precedence rule (2026-06-14T00:20:00Z)
+
+Completed Migration Step 1: generalized the timeline `ResolvedTheme` into the Tier-2 contract,
+proving the contract vocabulary complete against its hardest consumer.
+
+#### Contract tokens added (additive — no existing bindings broken)
+
+| Token | Interface | Purpose |
+|-------|-----------|---------|
+| `surfacePanel` | `RolePalette` | Panel/lane/card background — between `surface` and `surfaceRaised` |
+| `inkPanel` | `RolePalette` | Text on panel backgrounds (track headers, kanban titles) |
+| `markerShape` | `ShapeLanguage` | Default milestone/marker shape (optional) |
+| `pattern` | `StatusRole` | Visual fill pattern for status indicators (optional) |
+
+All four are additive. All existing bindings (flow/sequence/chart) compile without change.
+
+#### What was built
+
+**`packages/core/src/themes/contract-binding.ts`** (new):
+- `bindTimelineTheme(contract: ThemeContract): ResolvedTheme` — full derivation: canvas, typography, axis, track, activity, milestone, status map, legend, section bands, entryStyle
+- Density tables: compact/normal/comfortable → geometry
+- Convention enforcement: axisLineColor ← ink, gridlineColor ← border, trackSeparator ← border, headerBackground ← surfacePanel
+
+**`packages/core/src/themes/index.ts`** (updated — precedence rule):
+- `resolveTheme()` now: REGISTRY first → contract fallback → consulting default
+- `executive` in REGISTRY → always returns dark-navy legacy theme (NOT contract)
+- Re-exports `bindTimelineTheme`
+
+**`packages/core/src/render/index.ts`** (updated):
+- `resolvedTheme?: ResolvedTheme` added to `BuildSceneOptions` — bypasses resolveTheme() for direct binding calls (used by gallery demo to avoid legacy name collision)
+
+**`packages/core/src/theme-contract/types.ts + executive.ts`** (updated):
+- Four new tokens added to types; executive concrete theme updated accordingly
+
+#### Tests (+65 unit + 16 gallery = +81 new tests)
+
+```
+packages/core/test/timeline-contract-binding.test.ts  — binding validity, determinism, precedence
+packages/core/test/executive-gallery-timeline.test.ts — gallery emit + coherence + precedence guard
+```
+
+Total: 1822 (baseline) + 65 (unit) = 1887 passing. ZERO regressions.
+
+#### Gallery outputs
+
+| File | Derivation |
+|------|-----------|
+| `examples/gallery/executive-timeline.svg/png` | `bindTimelineTheme(CONTRACT_THEMES.executive)`, timeline-columns layout |
+| `examples/gallery/executive-gantt.svg/png` | `bindTimelineTheme(CONTRACT_THEMES.executive)`, gantt layout |
+
+`git status --porcelain examples/gallery/*.svg examples/gallery/*.png` shows ONLY these 4 files as `??`. All 14 legacy timeline theme goldens byte-identical.
+
+#### Learnings from the timeline binding
+
+1. **Contract held up.** Every field in `ResolvedTheme` is expressible from the Tier-2 contract with only 4 additive token additions. Vocabulary is complete enough for the timeline family.
+
+2. **`surfacePanel` + `inkPanel` are genuine general tokens.** Needed for lane/track header backgrounds (timeline + gantt), kanban card backgrounds. Added to contract.
+
+3. **`markerShape` is needed.** `timeline-columns` and horizontal milestones both need a shape token. `shape.markerShape?: 'circle' | 'diamond' | 'square' | 'triangle'` added to ShapeLanguage.
+
+4. **`StatusRole.pattern` bridges the workflow state vocabulary.** The timeline has `diagonal-hatch` (cancelled) and `dashed-border` (tentative) patterns. Adding `pattern?` to `StatusRole` puts the semantic intent in the contract rather than the binding.
+
+5. **PRECEDENCE RULE is enforced in `resolveTheme()`.** The critical invariant: REGISTRY lookup before contract lookup. `executive` name → always dark-navy legacy. All 14 legacy goldens preserved. Contract binding only applies to non-legacy names or direct calls.
+
+6. **`timeline-columns` and `gantt` layouts have hardcoded Mermaid-faithful palettes.** Section band colors and task bar fills use internal hardcoded color tables, NOT the theme accent. Canvas, typography, and axis colors DO come from the contract binding. Full accent-color adoption requires layout-level changes — this is Step 2 work, not Step 1.
+
+7. **Coherence is foundational, not complete.** The 5 executive diagrams now share white canvas + Georgia serif + slate ink. The timeline section bands (indigo/orange/purple Mermaid palette) and gantt task bars (blue/grey/red Mermaid palette) are not yet executive navy. This is the honest state — reported in decision doc.
+
+8. **`resolvedTheme` bypass in BuildSceneOptions** is the right architectural pattern for demo/test scenarios where you want contract-derived rendering without touching the name registry. Used here to render executive-timeline/gantt goldens without colliding with the legacy `executive` name.
+
+#### Files created/modified
+
+```
+packages/core/src/theme-contract/types.ts              (modified — 4 new tokens)
+packages/core/src/theme-contract/executive.ts          (modified — new token values)
+packages/core/src/theme-contract/index.ts              (modified — doc comment update)
+packages/core/src/themes/contract-binding.ts           (NEW — bindTimelineTheme)
+packages/core/src/themes/index.ts                      (modified — precedence rule + re-export)
+packages/core/src/render/index.ts                      (modified — resolvedTheme bypass option)
+packages/core/test/timeline-contract-binding.test.ts   (NEW — 65 tests)
+packages/core/test/executive-gallery-timeline.test.ts  (NEW — 16 tests)
+examples/gallery/executive-timeline.svg                (NEW)
+examples/gallery/executive-timeline.png                (NEW)
+examples/gallery/executive-gantt.svg                   (NEW)
+examples/gallery/executive-gantt.png                   (NEW)
+examples/gallery/index.html                            (modified — added examples 48+49)
+.squad/decisions/inbox/barbara-migration-step1-timeline.md (NEW)
+```
 
 ---
 

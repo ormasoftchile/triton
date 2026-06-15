@@ -6,6 +6,16 @@ Decisions guide future work. Never deleted; deferred decisions remain visible.
 
 ## Active Decisions
 
+### Decision: MIGRATION STEP 1 DONE — Timeline ResolvedTheme → Tier-2 Contract
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-14  
+**Status:** COMPLETE
+
+Timeline `ResolvedTheme` generalized into the Tier-2 `ThemeContract`. Contract enriched (additive) with 4 general tokens: `RolePalette.surfacePanel`, `RolePalette.inkPanel`, `ShapeLanguage.markerShape`, `StatusRole.pattern`. `bindTimelineTheme(contract)` binding added; precedence rule enforced (legacy component theme names ALWAYS win for determinism; 14 timeline goldens byte-identical). `executive-gantt` fully coheres; `executive-timeline` frame coheres but section/event fills still hardcoded in `timeline-columns.ts` (timeline-adoption step planned for Step 4). 1887 tests passing. Committed 4a943e9. Migration order remaining: node-link family → remaining charts → timeline adoption (section-fill→palette) → specialised. **DESIGN DOC §12 needs sync to add surfacePanel, inkPanel, markerShape, pattern.**
+
+---
+
 ### Decision: Mermaid Front-End Architecture — Tier 0 Increment 1
 
 **Agent:** Bjarne (Ingestion Design)

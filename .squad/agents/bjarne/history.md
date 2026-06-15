@@ -37,3 +37,4 @@ Archive maintained in history-archive.md.
 - (2026-06-14) Theming architecture decided — general-contract model, §12 rewritten; will implement per-component theme contract
 - (2026-06-14T23:09:08Z) Theme vocabulary resolved; proof set = flow+sequence+xychart
 - (2026-06-14T23:32:53Z) Theme contract spike succeeded; binding pattern established
+- (2026-06-15T04:09:23Z) **Migration step 1 done** — contract gained 4 tokens (surfacePanel, inkPanel, markerShape, pattern); doc §12 sync pending
