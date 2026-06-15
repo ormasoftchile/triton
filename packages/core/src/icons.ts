@@ -228,6 +228,45 @@ const REGISTRY: Record<string, IconDef> = {
     ],
   },
 
+  // ── server ────────────────────────────────────────────────────────────────
+  // Rack server outline: chassis body, drive bays, and status lights.
+  server: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M 4 4 L 20 4 L 20 10 L 4 10 Z M 4 14 L 20 14 L 20 20 L 4 20 Z M 7 7 L 14 7 M 7 17 L 14 17 M 16.5 7 A 1 1 0 1 0 18.5 7 A 1 1 0 1 0 16.5 7 M 16.5 17 A 1 1 0 1 0 18.5 17 A 1 1 0 1 0 16.5 17',
+        fill: false,
+        stroke: true,
+      },
+    ],
+  },
+
+  // ── disk ──────────────────────────────────────────────────────────────────
+  // Removable disk / drive outline with front slot and platter ring.
+  disk: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M 4 5 L 20 5 L 20 19 L 4 19 Z M 8 12 A 4 4 0 1 0 16 12 A 4 4 0 1 0 8 12 M 10.5 12 A 1.5 1.5 0 1 0 13.5 12 A 1.5 1.5 0 1 0 10.5 12 M 6 16 L 10 16',
+        fill: false,
+        stroke: true,
+      },
+    ],
+  },
+
+  // ── internet ──────────────────────────────────────────────────────────────
+  // Globe outline with latitude and longitude strokes.
+  internet: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M 2 12 A 10 10 0 1 0 22 12 A 10 10 0 1 0 2 12 M 12 2 A 15 10 0 0 1 12 22 A 15 10 0 0 1 12 2 M 4 8 L 20 8 M 4 16 L 20 16 M 12 2 L 12 22',
+        fill: false,
+        stroke: true,
+      },
+    ],
+  },
+
   // ── milestone (diamond) ───────────────────────────────────────────────────
   // Simple axis-aligned diamond, filled.
   milestone: {
@@ -401,6 +440,10 @@ const ALIASES: Record<string, string> = {
   office: 'building',
   venue: 'building',
   surveyor: 'wrench',
+  globe: 'internet',
+  network: 'internet',
+  drive: 'disk',
+  rack: 'server',
 };
 
 // ---------------------------------------------------------------------------

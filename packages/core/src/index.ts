@@ -362,6 +362,7 @@ export { parseRequirementDiagram } from './frontend/mermaid/requirement.js';
 export { parseKanbanDiagram } from './frontend/mermaid/kanban.js';
 export { parseBlockDiagram } from './frontend/mermaid/block.js';
 export { parsePacketDiagram } from './frontend/mermaid/packet.js';
+export { parseArchitectureDiagram } from './frontend/mermaid/architecture.js';
 
 // Requirement grammar (Tier 3 — SysML/UML requirement boxes + relationships)
 export {
@@ -453,3 +454,29 @@ export type {
   PacketRenderResult,
   PacketTheme,
 } from './grammars/packet/index.js';
+
+// Architecture grammar (Tier 3 — Mermaid architecture-beta diagrams)
+export {
+  buildArchitectureScene,
+  renderArchitectureDocument,
+  architectureDocumentSchema,
+  defaultArchitectureTheme,
+  darkArchitectureTheme,
+  resolveArchitectureTheme,
+  ARCHITECTURE_THEME_REGISTRY,
+} from './grammars/architecture/index.js';
+export type {
+  ArchitectureDocument,
+  ArchitectureMetadata,
+  ArchitectureIR,
+  ArchService,
+  ArchGroup,
+  ArchJunction,
+  ArchEdge,
+  ArchitectureDocumentInput,
+  ArchitectureRenderOptions,
+  ArchitectureRenderResult,
+  ArchitectureTheme,
+  PortSide,
+  ArrowType,
+} from './grammars/architecture/index.js';
