@@ -126,37 +126,87 @@ not \emph{demand} tokens not in the contract.
 The vocabulary is organized into six domains; the specific field names are subject to
 refinement but the domain coverage is fixed:
 
-\subsubsection{Palette by Role}
+\subsubsection{Palette}
 \label{sec:contract-palette}
 
-Colours are expressed by \emph{semantic role}, not raw hex. Raw hex values are an
-implementation detail of a specific theme instance; the vocabulary names the roles.
+The general contract carries \textbf{two distinct palette systems}. Structural
+components consume the \emph{role palette}; data and chart components consume the
+\emph{data palette}. Both systems are part of the general contract.
 
-\begin{lstlisting}[language=yaml,caption={General theme contract: palette block (proposed shape)}]
+\paragraph{Role palette (semantic/structural).}
+Structural roles are expressed by name, not raw hex. Raw hex values are an
+implementation detail of a specific theme instance.
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: role palette (decided)}]
 palette:
   # Surface roles
-  surface:       "#FFFFFF"   # primary background
-  surface-raised: "#F8F8F8"  # cards, panels
-  surface-overlay: "#0A0A0A" # dark overlay / inverse background
+  surface:         "#FFFFFF"   # primary background
+  surface-raised:  "#F8F8F8"  # cards, panels
+  surface-overlay: "#0A0A0A"  # dark overlay / inverse background
 
   # Content roles
-  ink:           "#111111"   # primary text
-  ink-muted:     "#666666"   # secondary / de-emphasized text
-  ink-inverse:   "#FFFFFF"   # text on dark backgrounds
+  ink:             "#111111"   # primary text
+  ink-muted:       "#666666"   # secondary / de-emphasized text
+  ink-inverse:     "#FFFFFF"   # text on dark backgrounds
 
   # Brand / accent
-  accent:        "#1F497D"   # primary brand colour
-  accent-muted:  "#6A92BF"   # lighter accent (inactive, planned)
-  accent-strong: "#0D2B4E"   # darker accent (active, in-progress)
+  accent:          "#1F497D"   # primary brand colour
+  accent-muted:    "#6A92BF"   # lighter accent (inactive, planned)
+  accent-strong:   "#0D2B4E"   # darker accent (active, in-progress)
+
+  # Border
+  border:          "#DDDDDD"   # default stroke / divider
+  border-strong:   "#999999"   # emphasized boundary
+
+  # Muted fill (background regions, disabled states)
+  muted:           "#F0F0F0"
+  muted-strong:    "#CCCCCC"
 
   # Semantic status roles (components map these to IR status values)
-  status-planned:     { fill: "#6A92BF", stroke: "#1F497D" }
-  status-active:      { fill: "#1F497D", stroke: "#0D2B4E" }
-  status-done:        { fill: "#888888", stroke: "#555555", opacity: 0.85 }
-  status-warning:     { fill: "#D97706", stroke: "#A35A04" }
-  status-danger:      { fill: "#DC2626", stroke: "#A81919" }
-  status-cancelled:   { fill: "#CCCCCC", stroke: "#999999", opacity: 0.60 }
-  status-uncertain:   { fill: "#CCCCCC", stroke: "#999999", opacity: 0.70 }
+  status-success:  { fill: "#4CAF50", stroke: "#388E3C" }
+  status-warning:  { fill: "#D97706", stroke: "#A35A04" }
+  status-error:    { fill: "#DC2626", stroke: "#A81919" }
+  status-info:     { fill: "#1F497D", stroke: "#0D2B4E" }
+
+  # IR workflow states (super-set of status roles above)
+  status-planned:    { fill: "#6A92BF", stroke: "#1F497D" }
+  status-active:     { fill: "#1F497D", stroke: "#0D2B4E" }
+  status-done:       { fill: "#888888", stroke: "#555555", opacity: 0.85 }
+  status-cancelled:  { fill: "#CCCCCC", stroke: "#999999", opacity: 0.60 }
+  status-uncertain:  { fill: "#CCCCCC", stroke: "#999999", opacity: 0.70 }
+\end{lstlisting}
+
+\paragraph{Data palette (quantities and sequences).}
+Chart and data components (pie, XY chart, kanban, gitGraph, radar, sankey) consume the
+data palette. It provides three sub-systems covering the full range of quantitative
+encodings~\cite{dtcg2024}.
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: data palette (decided)}]
+data-palette:
+  # Categorical sequence — ordered colours for pie slices, chart series,
+  # kanban columns, branch colours. Use by index (0-based); themes may
+  # supply any length >= 6.
+  categorical:
+    - "#1F497D"   # 0 — primary
+    - "#6A92BF"   # 1
+    - "#4CAF50"   # 2
+    - "#D97706"   # 3
+    - "#9C27B0"   # 4
+    - "#00BCD4"   # 5
+
+  # Sequential ramp — for ordered quantitative encodings (sankey
+  # throughput, heat intensity, radar fill). Low → high.
+  sequential:
+    low:  "#EEF4FB"
+    mid:  "#6A92BF"
+    high: "#0D2B4E"
+
+  # Diverging ramp — for values around a meaningful midpoint
+  # (positive/negative, above/below target). Negative → zero → positive.
+  diverging:
+    negative: "#DC2626"
+    zero:     "#F5F5F5"
+    positive: "#4CAF50"
 \end{lstlisting}
 
 \subsubsection{Typography}
@@ -195,13 +245,15 @@ typography:
 \subsubsection{Spacing / Rhythm Scale}
 \label{sec:contract-spacing}
 
-A spacing scale defines the rhythm unit and derived steps. All margins, gaps, and padding
-throughout every component are expressed as multiples of the base unit.
+A spacing scale defines the rhythm unit and derived named steps. Components consult the
+scale as \emph{advice}, not as a binding pixel-identical contract: each component maps
+step names onto its own geometry as it sees fit, preserving layout judgement while sharing
+a common rhythm. The scale is not normalised across components.
 
-\begin{lstlisting}[language=yaml,caption={General theme contract: spacing block (proposed shape)}]
+\begin{lstlisting}[language=yaml,caption={General theme contract: spacing block (advisory)}]
 spacing:
   unit: 8           # px — base rhythm unit
-  # Named steps (component layouts use step names, not raw px)
+  # Named steps (advisory; components map these to their own geometry)
   steps:
     xxs:  2   # 0.25u
     xs:   4   # 0.5u
@@ -215,18 +267,19 @@ spacing:
 \subsubsection{Density}
 \label{sec:contract-density}
 
-Density is a named level that components use to select between compact and spacious
-configurations. The layout engine consults density to choose row heights, inter-element
-gaps, and label truncation thresholds.
+Density is a discrete named level that components use to select between compact and
+comfortable configurations. Three levels are defined---no more, no less. The layout engine
+consults density to choose row heights, inter-element gaps, and label truncation thresholds
+(e.g.\ whether secondary labels are shown at all).
 
-\begin{lstlisting}[language=yaml,caption={General theme contract: density (proposed shape)}]
-density: "normal"   # compact | normal | spacious
+\begin{lstlisting}[language=yaml,caption={General theme contract: density (decided)}]
+density: "normal"   # compact | normal | comfortable
 \end{lstlisting}
 
 A \texttt{compact} theme instructs every component to select its smallest safe row height,
-tightest inter-element gap, and most aggressive label truncation. A \texttt{spacious} theme
-selects the most generous variants. Components map the three density levels to their own
-geometry constants.
+tightest inter-element gap, and most aggressive label truncation. A \texttt{comfortable}
+theme selects the most generous variants. Components map the three density levels to their
+own geometry constants; density is not a continuous scalar.
 
 \subsubsection{Shape Language}
 \label{sec:contract-shape}
@@ -369,7 +422,7 @@ so a user can remain in standard Mermaid syntax while accessing the extended voc
 ---
 theme: executive          # named theme from the registry
 layout: vertical-spine    # layout family for this diagram
-density: compact          # compact | normal | spacious
+density: compact          # compact | normal | comfortable
 tokens:                   # inline token overrides (scoped to this diagram)
   palette.accent: "#8B0000"
   typography.scale.base: 12
@@ -542,7 +595,7 @@ visual interpretation of the same theme tokens~\cite{thinkcell,mermaid2023}.
 
   \item[\texttt{minimal} (Tier 0 — Minimal)] Maximum whitespace, minimum decoration.
         Single grey fill regardless of status; pattern differentiates status. Print-
-        optimised; renders correctly in greyscale. \texttt{density: spacious}.
+        optimised; renders correctly in greyscale. \texttt{density: comfortable}.
 
   \item[\texttt{showcase} (Tier 3 — Showcase)] Premium keynote aesthetic. Gradient fills,
         drop shadows on nodes, optional atmospheric cloud layer. Full fidelity requires
@@ -569,31 +622,195 @@ language, and the same generous whitespace rhythm---because all three consume th
 per-component style co-ordination.
 
 % ──────────────────────────────────────────────────────────────────────────────
-\subsection{Open Design Questions for the General Contract}
-\label{sec:themes-open}
+\subsection{The Three-Tier Token Architecture}
+\label{sec:token-tiers}
 
-The vocabulary proposed in Section~\ref{sec:themes-contract} is subject to refinement.
-The following questions are flagged for resolution before the general contract is finalised:
+Token vocabulary is organized into three tiers following the standard design-token
+pattern~\cite{dtcg2024}. The tier boundaries are firm: references flow
+\emph{upward only}; the general contract is never contaminated by component-specific
+concerns.
+
+\begin{description}
+  \item[Tier~1 — Primitives] Raw, un-themed values: colour ramps (HSL ladders, raw hex
+        families), typeface family names, the spacing base unit. These are the raw
+        material from which Tier-2 tokens are assembled. Components \emph{never} reference
+        Tier-1 tokens directly; themes build Tier-2 values from them.
+
+  \item[Tier~2 — Semantic tokens (the general contract)] Role palette, data palette,
+        type scale and weights, spacing steps, density, shape language (corner radius,
+        node padding, stroke scale, connector style), and effects/fidelity tier.
+        \textbf{This is the interface every component implements against.} The full Tier-2
+        shape is specified in Section~\ref{sec:themes-contract} and illustrated in the
+        listings above.
+
+  \item[Tier~3 — Component tokens] Namespaced \texttt{components.\textit{name}.\textit{token}}
+        (e.g.\ \texttt{components.serpentine.turnRadius},
+        \texttt{components.sankey.ribbonOpacity},
+        \texttt{components.gitgraph.mergeCurveTension}). Each Tier-3 token is
+        \emph{derived} from a Tier-2 token by the component's theme-binding as its default.
+        A concrete theme \emph{may} override any Tier-3 token as an optional fine-tuning
+        step; it is never required to do so.
+\end{description}
+
+\begin{quote}
+\textbf{Binding invariants (tier contract):}
+\begin{itemize}
+  \item The general contract (Tier~2) \textbf{NEVER} references a Tier-3 component token.
+        The contract is component-agnostic by construction.
+  \item Components reference \textbf{upward only}: Tier-3 tokens derive from Tier-2
+        defaults; a component may not require a Tier-2 token that does not exist in the
+        contract.
+  \item A theme \textbf{may} reach downward into a \texttt{components.\textit{name}}
+        namespace as an optional override. This is the escape hatch for per-component
+        fine-tuning; it is never mandatory.
+\end{itemize}
+\end{quote}
+
+\subsubsection{Tier-3 Example: serpentine turn radius}
+
+\begin{lstlisting}[language=yaml,caption={Tier-3 token deriving from Tier-2 with optional theme override}]
+# ── Tier 2 (general contract, theme-authored) ──────────────────────────
+shape:
+  corner-radius: 4       # px — general shape language
+
+# ── Tier 3 (component binding, inside serpentine layout engine) ─────────
+# Default derivation (computed at bind time, not stored in the theme file):
+#   components.serpentine.turnRadius = shape.corner-radius * 6
+#   → 4 * 6 = 24 px (sufficient arc to avoid a sharp hairpin)
+
+# ── Optional Tier-3 override in a concrete theme (e.g. "showcase") ──────
+components:
+  serpentine:
+    turnRadius: 40        # override: generous arc for showcase aesthetic
+  sankey:
+    ribbonOpacity: 0.55   # override: slightly more opaque ribbons
+  gitgraph:
+    mergeCurveTension: 0.4  # override: softer merge-curve
+\end{lstlisting}
+
+The \texttt{components} block is optional in every theme. A theme that omits it entirely
+is valid and fully correct: all Tier-3 tokens resolve to their Tier-2 derivation defaults.
+Only themes with a strong visual rationale for per-component fine-tuning need to supply it.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Contract Vocabulary Summary}
+\label{sec:contract-summary}
+
+The Tier-2 contract in full, showing all six domains together:
+
+\begin{lstlisting}[language=yaml,caption={Full Tier-2 general contract skeleton (decided)}]
+# ── Palette ───────────────────────────────────────────────────────────────────
+palette:            # role palette — structural components
+  surface: …        # see §12.3 for full role list
+  ink: …
+  accent: …
+  border: …
+  muted: …
+  status-success: { fill: …, stroke: … }
+  status-warning: { fill: …, stroke: … }
+  status-error:   { fill: …, stroke: … }
+  status-info:    { fill: …, stroke: … }
+  # workflow states: status-planned, status-active, status-done,
+  #                  status-cancelled, status-uncertain
+
+data-palette:       # data palette — chart/quantity components
+  categorical: [ …, …, …, …, …, … ]   # min 6 entries, ordered
+  sequential:  { low: …, mid: …, high: … }
+  diverging:   { negative: …, zero: …, positive: … }
+
+# ── Typography ────────────────────────────────────────────────────────────────
+typography:
+  family: …
+  fallback: …
+  files: { regular: …, bold: … }
+  scale: { xs: 8, sm: 9, base: 11, md: 13, lg: 18, xl: 24 }   # pt
+  weights: { regular: 400, medium: 500, semibold: 600, bold: 700 }
+
+# ── Spacing (advisory) ────────────────────────────────────────────────────────
+spacing:
+  unit: 8   # px — base rhythm unit
+  steps: { xxs: 2, xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 }
+
+# ── Density ───────────────────────────────────────────────────────────────────
+density: "normal"   # compact | normal | comfortable
+
+# ── Shape language ────────────────────────────────────────────────────────────
+shape:
+  corner-radius: 0
+  node-padding:  8
+  stroke-scale:  1.0
+  connector-style: "elbow"  # straight | elbow | curved | orthogonal
+
+# ── Effects / fidelity ────────────────────────────────────────────────────────
+effects:
+  fidelity: 1   # 0=Minimal | 1=Crisp | 2=Polished | 3=Showcase
+  drop-shadow: { enabled: false }
+  glow:        { enabled: false }
+  motion:      { enabled: false }
+\end{lstlisting}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Contract Adoption Plan}
+\label{sec:contract-adoption}
+
+\subsubsection{Proof Set: Validate the Contract First}
+
+Before migrating any production component, the contract is validated by a spike: implement
+the \texttt{executive} theme against three components chosen to exercise the entire
+contract surface jointly.
+
+\begin{description}
+  \item[\texttt{flowchart}] Node-link boxes, edge routing, orientation. Exercises: role
+        palette, shape language (corner radius, connector style), type scale, density,
+        spacing advisory steps.
+
+  \item[\texttt{sequence}] Text/compartment geometry, activation bars, fragments, lifelines.
+        Exercises: role palette, type scale, density (row heights, secondary label
+        visibility), shape language (node padding, corner radius).
+
+  \item[\texttt{xychart}] Axes, gridlines, series bars/lines, tick labels. Exercises: the
+        \emph{data palette} (categorical sequence + sequential ramp), type scale, spacing
+        rhythm. This is the critical third leg: the other two components do not touch the
+        data palette, so xychart is required to prove the full contract surface.
+\end{description}
+
+The spike succeeds when all three diagrams render coherently under the single
+\texttt{executive} theme token set without any component-specific hacks. A passing spike
+commits the Tier-2 vocabulary as final~\cite{dtcg2024}.
+
+\subsubsection{Migration Order}
+
+After the proof spike, the 16 existing per-component \texttt{theme.ts} files are migrated
+in the following order:
 
 \begin{enumerate}
-  \item \textbf{Status-role completeness.} The seven IR status values
-        (planned, active, done, warning, danger, cancelled, uncertain) are listed.
-        Do chart-family components (pie, radar, XY) use the same status roles, or do
-        they need a separate category-colour vocabulary?
-  \item \textbf{Spacing-scale interpretation.} Each component maps named spacing steps
-        (sm, md, lg) to its own geometry constants. Should the mapping be normalised
-        (every component treats \texttt{spacing.sm} as the row-gap unit) or advisory
-        (components scale the unit to their own geometry)?
-  \item \textbf{Density-level granularity.} Three density levels (compact / normal /
-        spacious) may be insufficient for the full range from kanban cards to architecture
-        diagrams. Should density be a continuous $[0,1]$ scalar, or are additional named
-        levels (e.g., \texttt{ultra-compact}) warranted?
-  \item \textbf{Component-specific extensions.} Some components legitimately need tokens
-        outside the general contract (e.g., serpentine \texttt{turn-radius},
-        roadmap \texttt{milestone-lane-width}). The policy for declaring and namespacing
-        these extensions without polluting the general contract needs to be codified.
-  \item \textbf{Migration order.} The 16 existing per-component \texttt{theme.ts} files
-        should be migrated one at a time to consume the general contract. The order should
-        be: timeline (it is already the deepest and serves as the reference implementation),
-        then flow and sequence (highest traffic), then the remaining grammars.
+  \item \textbf{Generalise the timeline \texttt{ResolvedTheme} upward} into the Tier-2
+        contract (\texttt{packages/core/src/themes/types.ts}). The timeline is the deepest
+        existing layout-driven theme and serves as the reference implementation; all
+        subsequent migrations align to the shape it establishes.
+
+  \item \textbf{Node-link family:} \texttt{class}, \texttt{state}, \texttt{ER}, \texttt{C4},
+        \texttt{requirement}, \texttt{block}, \texttt{architecture}. These share the same
+        fundamental node-edge visual vocabulary and are highest value after the proof set.
+
+  \item \textbf{Remaining charts:} \texttt{pie}, \texttt{quadrant}, \texttt{radar}.
+        These consume the data palette and validate categorical and diverging ramp usage
+        beyond xychart.
+
+  \item \textbf{Timeline-family adoption of the contract.} The timeline component
+        re-consumes the now-general Tier-2 contract, keeping its Tier-3 tokens
+        (\texttt{components.serpentine.*}, \texttt{components.roadmap.*}) as derived
+        overrides.
+
+  \item \textbf{Specialised components:} \texttt{sankey}, \texttt{gitGraph},
+        \texttt{journey}, \texttt{kanban}, \texttt{mindmap}, \texttt{packet}.
+        These have the most Tier-3 component-specific tokens and are migrated last
+        once the Tier-3 override mechanism is proven by earlier steps.
 \end{enumerate}
+
+\begin{quote}
+\textbf{Migration invariant:} Each step is independently shippable. No step requires a
+downstream step to complete. At every point the compiler is in a valid state: un-migrated
+components continue to consume their legacy \texttt{theme.ts}; migrated components consume
+the general contract. Both coexist until Step~5 completes.
+\end{quote}
