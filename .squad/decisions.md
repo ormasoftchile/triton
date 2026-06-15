@@ -2,6 +2,24 @@
 
 ---
 
+# Decision: SUPERSET SURFACE COMPLETE (do-all batch)
+
+**Agent:** Bjarne (Ingestion Design), Barbara (Semantics & Rendering), Scribe (Coordination)  
+**Date:** 2026-06-15  
+**Status:** COMPLETE — 2451/2451 tests passing; existing goldens byte-identical
+
+## Summary
+
+Three-part do-all batch completed: (1) Mermaid config surface — frontmatter + `%%{init}%%` expose `layout`, `density`, `themeOverrides`; new `resolveContractTheme` helper applies density + token overrides to any of 7 named contract themes. (2) Three additional named contract themes — `terminal` (retro CRT: phosphor green on matte black, Courier New, square markers, compact), `pastel` (soft rounded: lavender on warm off-white, Nunito, 12px radius, curved), `mono` (chroma-free: grayscale only, pure white + mid-gray, Helvetica, elbow connectors). Total: 7 contract themes; matrix test (7×21 components) passes; zero per-component binding changes required; 18 new gallery files. (3) `poster` keyword — superset-only multi-diagram composition (new DSL parser `parsePosterInternal` in `packages/core/src/frontend/mermaid/poster.ts`); cells rendered via existing `parseMermaid` under a single poster theme; assembled via the existing composition engine (additive `SceneCellContent` kind). Two poster demos (executive and midnight themes, re-themeable by one frontmatter line).
+
+Completes design §17.1 extension mechanisms (frontmatter + init directive + new top-level keywords). **2451 tests**; existing goldens **byte-identical** throughout.
+
+## Commits
+
+82d8736 (config surface + 3 themes), a39fb17 (poster).
+
+---
+
 # Decision: MIGRATION — NODE-LINK FAMILY ADOPTED THE CONTRACT
 
 **Agent:** Barbara (Semantics & Rendering), Coordinator (VISUALLY VERIFIED)  
