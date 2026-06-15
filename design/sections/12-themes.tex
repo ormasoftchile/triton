@@ -143,11 +143,13 @@ palette:
   surface:         "#FFFFFF"   # primary background
   surface-raised:  "#F8F8F8"  # cards, panels
   surface-overlay: "#0A0A0A"  # dark overlay / inverse background
+  surface-panel:   "#F4F4F4"  # lane / panel / track-header background (distinct from surface)
 
   # Content roles
   ink:             "#111111"   # primary text
   ink-muted:       "#666666"   # secondary / de-emphasized text
   ink-inverse:     "#FFFFFF"   # text on dark backgrounds
+  ink-panel:       "#333333"   # text/ink rendered on panel or lane backgrounds
 
   # Brand / accent
   accent:          "#1F497D"   # primary brand colour
@@ -174,6 +176,9 @@ palette:
   status-done:       { fill: "#888888", stroke: "#555555", opacity: 0.85 }
   status-cancelled:  { fill: "#CCCCCC", stroke: "#999999", opacity: 0.60 }
   status-uncertain:  { fill: "#CCCCCC", stroke: "#999999", opacity: 0.70 }
+
+  # Optional fill pattern applied to workflow-state renders
+  status-pattern: "solid"  # solid | hatch | dashed-border
 \end{lstlisting}
 
 \paragraph{Data palette (quantities and sequences).}
@@ -293,6 +298,7 @@ shape:
   node-padding:   8       # px — internal padding inside node shapes
   stroke-scale:   1.0     # multiplier on all stroke widths (0.5 = hairline; 2.0 = bold)
   connector-style: "elbow" # straight | elbow | curved | orthogonal
+  marker-shape: "circle"  # circle | diamond | square — milestone / marker glyph
 \end{lstlisting}
 
 \subsubsection{Effects and Motion}
@@ -702,7 +708,9 @@ The Tier-2 contract in full, showing all six domains together:
 # ── Palette ───────────────────────────────────────────────────────────────────
 palette:            # role palette — structural components
   surface: …        # see §12.3 for full role list
+  surface-panel: …  # lane / panel / track-header background
   ink: …
+  ink-panel: …      # text rendered on panel backgrounds
   accent: …
   border: …
   muted: …
@@ -712,6 +720,7 @@ palette:            # role palette — structural components
   status-info:    { fill: …, stroke: … }
   # workflow states: status-planned, status-active, status-done,
   #                  status-cancelled, status-uncertain
+  status-pattern: "solid"  # solid | hatch | dashed-border
 
 data-palette:       # data palette — chart/quantity components
   categorical: [ …, …, …, …, …, … ]   # min 6 entries, ordered
@@ -740,6 +749,7 @@ shape:
   node-padding:  8
   stroke-scale:  1.0
   connector-style: "elbow"  # straight | elbow | curved | orthogonal
+  marker-shape: "circle"    # circle | diamond | square
 
 # ── Effects / fidelity ────────────────────────────────────────────────────────
 effects:
@@ -814,3 +824,30 @@ downstream step to complete. At every point the compiler is in a valid state: un
 components continue to consume their legacy \texttt{theme.ts}; migrated components consume
 the general contract. Both coexist until Step~5 completes.
 \end{quote}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Implementation Status (2026)}
+\label{sec:contract-impl-status}
+
+The contract described in this section is fully implemented. The Tier-2
+\texttt{ThemeContract} interface and the \texttt{executive} reference theme reside in
+\texttt{packages/core/src/theme-contract/}. Every one of the 21 diagram components now
+adopts the contract via a per-component binding: for most grammars the binding is
+\texttt{grammars/\textit{<component>}/contract-binding.ts}; the timeline uses
+\texttt{themes/contract-binding.ts}. Adoption is \textbf{opt-in}: a theme name registered
+in \texttt{CONTRACT\_THEMES} resolves via the binding; all legacy per-component named themes
+are unchanged and their rendered output is byte-identical to pre-contract builds. The
+\texttt{executive} theme has been verified to render all 21 diagram types as one coherent
+design system (navy accent, Georgia serif, white surface).
+
+\begin{itemize}
+  \item \textbf{Precedence rule:} Legacy component theme names always win. A contract
+        theme name must not duplicate a name already claimed by a legacy per-component
+        theme; the \texttt{CONTRACT\_THEMES} resolver never overrides a legacy route.
+  \item \textbf{Contract location:}
+        \texttt{packages/core/src/theme-contract/}
+        (\texttt{ThemeContract} Tier-2 interface $+$ \texttt{executive} concrete theme).
+  \item \textbf{Binding pattern:}
+        \texttt{grammars/\textit{<component>}/contract-binding.ts} (20 grammars)
+        and \texttt{themes/contract-binding.ts} (timeline) --- 21 bindings total.
+\end{itemize}
