@@ -1,572 +1,441 @@
 \section{Theme Architecture}
 \label{sec:themes}
 
-A theme is a \emph{pure styling layer}: it accepts the geometry produced by the rendering
-model (Section~\ref{sec:rendering}) and assigns colors, typography, shapes, and decorations,
-producing a final visual specification. A theme operates exclusively on signals the renderer
-has already computed---coordinates, status values, categories, progress fractions. It may not
-alter geometry, and it may not require IR fields beyond those defined in the
-grammar specifications~\cite{thinkcell,vegalite2017}.
+A theme is \emph{one coherent design system}, defined once at a general, component-agnostic
+level. It is \emph{not} an attribute owned separately by each diagram type; it is an
+authority that every component conforms to. Each component---flow, sequence, timeline, tree,
+class diagram, ER diagram, and so on---provides a \emph{specific implementation} of that
+general system: it knows how to realise the theme's tokens in its own geometric terms. The
+theme knows nothing about flowcharts or Gantt bars; the component knows nothing about brand
+palettes or spacing scales. The theme sets the contract; the component fulfils it.
 
 \begin{quote}
-\textbf{Theme-engine contract (binding):} A theme MUST accept all valid IR documents. A theme
-MUST NOT require IR fields beyond the specification. Two valid themes applied to the same IR
-may produce visually different outputs, but their underlying geometries---coordinates, stacking
-order, label positions---must be identical.
+\textbf{Confirmed design principle (binding):} A theme must be a coherent system applicable
+to many (ideally all) components. You cannot conceive of a theme as an attribute of each
+component as a separate system. A theme is defined once in general terms; each component
+provides its own specific implementation of that general definition.
 \end{quote}
 
-This section defines the complete theme schema, describes the five built-in themes, and
-illustrates how the same IR renders visually differently under each.
+Themes also drive \textbf{geometry, layout, and routing}---not just colour. A theme defines
+widths, fonts, weights, spacing rhythms, density levels, and shape language. The layout
+engine consults the theme to make rendering, layout, and routing decisions. The old rule that
+``a theme may not alter geometry'' is explicitly retired: it contradicts both this model and
+the existing code, where the timeline's \texttt{spineSpacing} and \texttt{nodeWrap} tokens
+already drive layout behaviour.
 
-\subsection{Theme Design Philosophy}
-\label{sec:themes-philosophy}
+\paragraph{Implementation status.}
+As of 2026-06-14 the compiler ships 16 grammar-specific \texttt{theme.ts} files (one per
+component: \texttt{FlowTheme}, \texttt{SequenceTheme}, \texttt{ClassTheme},
+\texttt{TreeTheme}, etc.) plus the timeline's \texttt{ResolvedTheme} (which covers 14 named
+timeline themes). These are separate, incompatible vocabularies---the fragmentation this
+section resolves. The migration path is to generalise \texttt{ResolvedTheme} upward into a
+shared general contract, then adapt each per-component file to consume that contract.
 
-Themes are built on four principles:
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Current Reality: Per-Component Fragmentation}
+\label{sec:themes-fragmentation}
+
+Today every grammar family carries an independent styling vocabulary:
 
 \begin{itemize}
-  \item \textbf{Data-independent.} A theme knows nothing about the content of the IR. It maps
-        semantic signals (status, category) to visual treatments through fixed lookup tables.
-        No IR field other than those defined in the grammar specifications is read.
-  \item \textbf{Composable.} Themes support single inheritance. A child theme specifies only
-        the properties that differ from its parent; all others inherit. This enables branded
-        variants (\texttt{acme-consulting} extending \texttt{consulting}) with minimal
-        duplication.
-  \item \textbf{Separable.} Swapping themes requires zero IR changes. The same YAML document
-        renders correctly under any theme. Content and style are fully orthogonal.
-  \item \textbf{Deterministic.} Themes introduce no layout variability. Given the same IR,
-        theme, and rendering algorithm, output is fully determined (see
-        Section~\ref{sec:rendering-determinism}).
+  \item \textbf{Timeline:} \texttt{packages/core/src/themes/types.ts} ---
+        \texttt{ResolvedTheme} with \texttt{canvas}, \texttt{typography},
+        \texttt{axis}, \texttt{track}, \texttt{milestone}, \texttt{serpentine},
+        \texttt{roadmap}, and layout-affecting flags such as
+        \texttt{spineSpacing} and \texttt{nodeWrap}. Fourteen named themes:
+        \texttt{consulting}, \texttt{executive}, \texttt{product}, \texttt{release},
+        \texttt{minimal}, \texttt{showcase}, \texttt{bytebytego}, \texttt{ai-timeline},
+        and others.
+  \item \textbf{Flow:} \texttt{FlowTheme}---orientation, edge routing style, node
+        geometry, font sizes.
+  \item \textbf{Sequence:} \texttt{SequenceTheme}---participant render mode (box vs.\
+        card), row heights, activation bar widths, fragment styling.
+  \item \textbf{Sixteen further grammars} (class, ER, state, tree, C4, chart,
+        gitGraph, journey, sankey, kanban, requirement, block, packet, architecture)
+        each with their own isolated token structs.
 \end{itemize}
 
-\subsection{Theme Schema}
-\label{sec:themes-schema}
+No named theme (``consulting'', ``executive'') spans more than one grammar today. There is no
+shared vocabulary for palette roles, type scale, or spacing rhythm across components.
+This is the problem the new model resolves.
 
-The theme schema defines all visual properties a theme may configure. Properties not set by a
-theme are inherited from its \texttt{extends} parent, defaulting to the built-in
-\texttt{default} theme if no parent is specified. The schema is organized into blocks; all
-property names, types, and defaults apply uniformly across themes.
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{The Themes $\times$ Components Matrix}
+\label{sec:themes-matrix}
 
-\subsubsection{Canvas and Margins}
-\label{sec:schema-canvas}
+The new model is a two-dimensional system:
 
-\begin{lstlisting}[language=yaml,caption={Theme schema: canvas block}]
-canvas:
-  width:            1200  # logical pixels; height is always computed
-  background_color: "#FFFFFF"
-  margin:
-    top:    48            # px above the axis header
-    right:  40            # px right of the last tick
-    bottom: 48            # px below the last track row
-    left:    0            # px left of the track header column
-\end{lstlisting}
-
-The canvas height is computed from track heights and inter-track gaps (\S\ref{sec:rendering-coords})
-and is never specified in a theme.
-
-\subsubsection{Typography}
-\label{sec:schema-typography}
-
-\begin{lstlisting}[language=yaml,caption={Theme schema: typography block}]
-typography:
-  font_family:         "Helvetica Neue, Arial, sans-serif"
-  # Embedded font files required for deterministic metric computation:
-  font_files:
-    regular: "fonts/HelveticaNeue-Regular.woff2"
-    bold:    "fonts/HelveticaNeue-Bold.woff2"
-  font_size_base:    11  # pt; body text and activity labels
-  font_size_axis:    10  # pt; axis tick labels
-  font_size_title:   18  # pt; document title in canvas header
-  font_size_subtitle: 13 # pt
-  font_size_track:   11  # pt; track header labels
-  font_weight_label:  600
-  font_weight_axis:   400
-  font_weight_header: 700
-  locale_aware:      true # use metadata.locale for date label formatting
-\end{lstlisting}
-
-\paragraph{Font embedding requirement.}
-Themes must specify embedded font files (WOFF2 or equivalent) for all families used in
-layout-critical computations (label width, line height, character advance widths). System
-fonts are permitted only for decorative text---e.g., HTML tooltip overlays---where exact
-cross-platform metric agreement is not required. The renderer ships the embedded metrics
-tables at build time.
-
-\subsubsection{Axis Styling}
-\label{sec:schema-axis}
-
-\begin{lstlisting}[language=yaml,caption={Theme schema: axis block}]
-axis:
-  height:                40  # px; height of the time-axis header band
-  tick_height:            6  # px; length of tick marks
-  tick_label_offset:      4  # px; gap between tick mark base and label top
-  gridline_color:    "#E0E0E0"
-  gridline_width:       0.5  # px
-  gridline_opacity:     0.8
-  gridline_style:    "solid" # solid | dashed | none
-  section_band_alpha:   0.04 # alternating column shading opacity (0 = off)
-  today_marker:
-    enabled:           false
-    color:        "#CC2222"
-    width:             1.5  # px
-    style:           "solid" # solid | dashed
-    label:           "Today"
-    label_visible:    true
-\end{lstlisting}
-
-\subsubsection{Track Styling}
-\label{sec:schema-track}
-
-\begin{lstlisting}[language=yaml,caption={Theme schema: track block}]
-track:
-  header_width:         160  # px; fixed left column for track label text
-  row_height:            48  # px; single-lane track height (no sub-lanes)
-  sub_lane_height:       24  # px; height added per additional overlap lane
-  max_sub_lanes:          8  # hard cap; excess activities go to last lane
-  row_gap:                8  # px; vertical gap between consecutive tracks
-  header_font_size:      11  # pt
-  header_font_weight:   600
-  header_color:    "#111111"
-  header_background:   null  # null = transparent
-  header_align:    "right"   # right | left | center
-  separator_color: "#CCCCCC"
-  separator_width:       0.5
-  group_bracket_width:    4  # px; left-edge bracket for grouped tracks
-  group_label_size:      10  # pt; group label above bracket
-\end{lstlisting}
-
-\subsubsection{Activity Styling}
-\label{sec:schema-activity}
-
-\begin{lstlisting}[language=yaml,caption={Theme schema: activity block}]
-activity:
-  bar_height:            24  # px; height within a single lane
-  bar_radius:             2  # px; corner radius
-  bar_top_margin:        12  # px; from lane top to bar top (centres bar in lane)
-  min_width:              4  # px; minimum rendered bar width (see edge cases)
-  tbd_extension_px:    null  # null = 2 * mean tick spacing in pixels
-  approx_fade_px:         8  # px; gradient fade width for approximate-date edges
-  label_inside_min_width: 40 # px; bar must be >= this to place label inside
-  label_font_size:       10  # pt
-  label_color_inside: "#FFFFFF"
-  label_color_outside: "#111111"
-  label_truncate_chars:  32  # max chars before ellipsis truncation
-  progress_bar_height:    4  # px; filled strip at bar bottom for progress value
-  progress_bar_alpha:    0.35
-  progress_label_visible: false
-\end{lstlisting}
-
-\subsubsection{Milestone Styling}
-\label{sec:schema-milestone}
-
-\begin{lstlisting}[language=yaml,caption={Theme schema: milestone block}]
-milestone:
-  diamond_size:          14  # px; half-diagonal of the diamond polygon
-  diamond_stroke_width: 1.5  # px
-  cross_track_label_scale: 1.2  # label font size multiplier for cross-track
-  label_offset_x:         8  # px; gap from diamond right vertex to label left
-  label_font_size:        9  # pt
-  label_max_width:       80  # px; truncate label if wider
-  label_stack_offset:    14  # px; y-shift per collision pass (Phase 6)
-  stack_offset_y:        20  # px; y-offset per stacking slot (Phase 4)
-\end{lstlisting}
-
-\subsubsection{Annotation and Legend Styling}
-\label{sec:schema-annotation}
-
-\begin{lstlisting}[language=yaml,caption={Theme schema: annotation and legend blocks}]
-annotation:
-  font_size:             9   # pt
-  background_color: "#FFFFF0"
-  background_alpha:      0.9
-  border_color:    "#CCCC88"
-  border_width:          0.5
-  padding:               6   # px; all sides
-  connector_style: "elbow"   # elbow | straight | none
-
-legend:
-  position:         "bottom" # bottom | right | top | none
-  item_height:          14   # px
-  item_gap:              8   # px
-  font_size:             9   # pt
-  swatch_size:          10   # px square
-  column_spacing:       16   # px between columns
-\end{lstlisting}
-
-\subsubsection{Status-to-Style Map}
-\label{sec:status-style-map}
-
-Every theme must define a complete \texttt{status\_map} covering all seven IR status values.
-The map is a lookup table: \texttt{status} $\to$ \{\,fill, stroke, opacity, pattern\,\}.
+\begin{description}
+  \item[Theme (the row)] A general design language. It defines palette by role, type
+        scale, spacing rhythm, density, and shape language---nothing component-specific.
+        Adding a new theme adds a new row.
+  \item[Component (the column)] A diagram grammar. It knows how to realise the general
+        theme in its own geometric terms. Adding a new component adds a new column.
+  \item[Intersection ($T \times C$)] How theme $T$ renders component $C$. This is
+        computed by $C$'s implementation consuming $T$'s general tokens; it is not
+        stored as a separate artefact.
+\end{description}
 
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{llllp{3.8cm}}
+\begin{tabularx}{\textwidth}{l|XXXXXX}
 \toprule
-\textbf{Status} & \textbf{Fill role} & \textbf{Opacity} & \textbf{Pattern} & \textbf{Visual intent} \\
+\textbf{Theme $\downarrow$ / Component $\rightarrow$} &
+  \textbf{Timeline} & \textbf{Flow} & \textbf{Sequence} &
+  \textbf{Tree} & \textbf{Class} & \textbf{\ldots} \\
 \midrule
-\texttt{planned}     & Accent-light  & 1.0  & \texttt{solid}          & Default; not yet started \\
-\texttt{in-progress} & Accent-dark   & 1.0  & \texttt{solid}          & Active; full saturation \\
-\texttt{done}        & Grey-mid      & 0.85 & \texttt{solid}          & Muted; completed \\
-\texttt{at-risk}     & Amber         & 1.0  & \texttt{solid}          & Warning; attention needed \\
-\texttt{blocked}     & Red           & 1.0  & \texttt{solid}          & Danger; cannot proceed \\
-\texttt{cancelled}   & Grey-light    & 0.60 & \texttt{diagonal-hatch} & De-emphasized; struck through \\
-\texttt{tentative}   & Grey-light    & 0.70 & \texttt{dashed-border}  & Uncertain; may not happen \\
-\bottomrule
-\end{tabular}
-\caption{Status-to-style map structure (colour roles; each theme supplies hex values)}
-\label{tab:status-style}
-\end{table}
-
-\paragraph{Pattern vocabulary.}
-Patterns are defined as named SVG \texttt{<pattern>} elements in the theme's \texttt{<defs>}
-block. All themes must use the same pattern geometry so that cross-theme pattern rendering
-is consistent:
-\begin{itemize}
-  \item \texttt{solid} --- no pattern; fill and stroke colours only.
-  \item \texttt{diagonal-hatch} --- 45° lines at 4~px spacing, 0.5~px stroke width,
-        stroke colour = \texttt{status.stroke}, fill = \texttt{status.fill} at 30\% opacity.
-  \item \texttt{dashed-border} --- solid fill at \texttt{status.fill}; border rendered as a
-        dashed stroke (4~px on, 4~px off) at \texttt{status.stroke}.
-\end{itemize}
-
-\paragraph{Status-map completeness.}
-A theme with a missing status entry is malformed. The renderer must detect and report this
-at theme load time, not at render time.
-
-\subsubsection{Category-to-Style Map}
-\label{sec:category-style-map}
-
-Categories are arbitrary strings defined by IR authors. Themes provide an optional
-\texttt{category\_map} that overrides colour for activities carrying a matching
-\texttt{category} value:
-
-\begin{lstlisting}[language=yaml,caption={Category map example}]
-category_map:
-  infrastructure: { fill: "#2D6A8F", stroke: "#1A4A6A" }
-  security:       { fill: "#8B0000", stroke: "#5A0000" }
-  ux:             { fill: "#4A7C59", stroke: "#2A5C39" }
-\end{lstlisting}
-
-Category styling overrides \emph{only} the \texttt{fill} and \texttt{stroke} of the status
-entry. Opacity and pattern are always drawn from the status map. This preserves the semantic
-visual signal of status (done $=$ muted, cancelled $=$ hatched) while allowing brand-aligned
-colour coding per initiative type.
-
-If an activity's category is absent from \texttt{category\_map}, status-only styling applies
-without error or warning.
-
-\subsubsection{Fidelity Tier and Effect Knobs}
-\label{sec:schema-fidelity}
-
-A theme declares its intended \emph{fidelity tier} and the effect classes it requests. The
-rendering backend uses the tier to determine which capability profile to activate; themes
-degrade gracefully when targeting a backend with lower capability
-(Section~\ref{sec:fidelity-tiers}).
-
-\begin{lstlisting}[language=yaml,caption={Theme schema: fidelity block}]
-fidelity:
-  tier: 1        # 0=Minimal | 1=Crisp | 2=Polished | 3=Showcase
-  effects:
-    drop_shadow:
-      enabled:          false
-      color:            "#000000"
-      opacity:          0.25
-      offset_x:         2          # px
-      offset_y:         2          # px
-      blur_radius:      4          # px
-      fallback_policy:  "approximate"  # approximate|omit|embed-raster
-    glow:
-      enabled:          false
-      color:            "#FFFFFF"
-      radius_px:        6
-      intensity:        0.6
-      fallback_policy:  "omit"
-    cloud_layer:
-      enabled:          false
-      opacity:          0.12
-      scale:            1.0
-      color_stops:
-        - { offset: 0.0, color: "#FFFFFF" }
-        - { offset: 1.0, color: "#A0C8FF" }
-      fallback_policy:  "embed-raster"
-    noise_texture:
-      enabled:          false
-      opacity:          0.05
-      scale:            0.8
-      turbulence_type:  "fractalNoise"
-      fallback_policy:  "omit"
-\end{lstlisting}
-
-Effect blocks not declared in a theme default to \texttt{enabled: false}. A Tier-0 or
-Tier-1 theme SHOULD leave all effect knobs disabled; the renderer emits a warning if a
-low-tier theme requests an effect that requires Tier-2 or above.
-
-\subsection{Built-in Themes}
-\label{sec:builtin-themes}
-
-Five built-in themes address the primary use cases identified in David's research. Each is a
-complete, self-contained style specification; none requires IR changes or additional IR
-fields.
-
-\subsubsection{Consulting Theme}
-\label{sec:theme-consulting}
-
-\textbf{Fidelity tier: Tier~1 (Crisp).}
-
-\textbf{Visual identity.}
-McKinsey/BCG-style executive roadmap. Black, white, and a single accent colour (default
-navy \texttt{\#1F497D}). Heavy typography, generous whitespace, no decorative chrome.
-Optimised for A4/Letter printing and A3 poster output. Visual language matches consulting
-deliverables that non-technical executives expect~\cite{thinkcell}.
-
-\begin{itemize}
-  \item \textbf{Font:} Helvetica Neue (Arial fallback); weights 400/600/700. Embedded for
-        metric determinism.
-  \item \textbf{Canvas:} 1200~px wide; 48~px top/bottom margins; track header width 180~px.
-  \item \textbf{Axis:} No gridlines. Tick marks only. Quarter labels in bold uppercase
-        (e.g., \textbf{Q1\,2026}). Today marker disabled by default.
-  \item \textbf{Tracks:} Wide headers (180~px). Thick separator (1~px, \texttt{\#333333}).
-        No row background colour alternation.
-  \item \textbf{Activities:} Square corners (\texttt{bar\_radius: 0}). Two status colours:
-        navy for planned/in-progress, mid-grey for done. Cancelled activities are rendered
-        at 0\% opacity with diagonal hatching at 20\% opacity (structural presence without
-        visual weight). No progress bar by default.
-  \item \textbf{Milestones:} Solid black diamonds, 14~px half-diagonal. Label right, bold,
-        9~pt.
-  \item \textbf{Legend:} Suppressed (\texttt{position: none}). Status is communicated by
-        colour; a legend would clutter the clean aesthetic.
-\end{itemize}
-
-\textbf{Use case:} Programme timelines, transformation roadmaps, board presentations. The
-deliberate sparseness focuses attention on the strategic narrative rather than operational
-detail.
-
-\subsubsection{Executive Theme}
-\label{sec:theme-executive}
-
-\textbf{Fidelity tier: Tier~2 (Polished).}
-
-\textbf{Visual identity.}
-Corporate boardroom aesthetic. Navy/slate palette on white, with subtle alternating quarter
-column shading and a gentle border radius on bars. Status is communicated by both colour and
-a small status icon at the left of each bar. Designed for 16:9 slide dimensions.
-
-\begin{itemize}
-  \item \textbf{Font:} Georgia or Garamond (serif headings); Helvetica Neue (body). Both
-        embedded.
-  \item \textbf{Canvas:} 1600~px wide (16:9 target); 40~px margins; header width 160~px.
-  \item \textbf{Axis:} Light grey gridlines (0.5~px). Month abbreviation labels. Alternating
-        quarter shading (\texttt{section\_band\_alpha: 0.04}). Today marker enabled
-        (red dashed line, ``Today'' label).
-  \item \textbf{Tracks:} Medium headers (150~px). Alternating row background: white /
-        \texttt{\#F8F8F8}. Thin separator (0.5~px, \texttt{\#DDDDDD}).
-  \item \textbf{Activities:} Rounded corners (\texttt{bar\_radius: 4}). Full status palette:
-        navy (planned), royal blue (in-progress), silver (done), amber (at-risk), coral
-        (blocked), grey hatched (cancelled), grey dashed-border (tentative). Status icon
-        (8~pt glyph) at bar left edge; icon colour is white on dark fills.
-  \item \textbf{Milestones:} Navy diamonds with a white centre dot (4~px radius inset fill).
-        Label right, 9~pt.
-  \item \textbf{Legend:} Right-aligned, full status legend.
-\end{itemize}
-
-\textbf{Use case:} Quarterly business reviews, investor roadmaps, product strategy
-presentations. Polished without being sparse; the status palette lets executives absorb
-delivery health at a glance.
-
-\subsubsection{Product Theme}
-\label{sec:theme-product}
-
-\textbf{Fidelity tier: Tier~2 (Polished).}
-
-\textbf{Visual identity.}
-Developer-friendly; information-dense. Per-track colour coding from the \texttt{color} hint
-field. Category colours take visual precedence over status colours; status is communicated
-by a small icon rather than fill. Progress bars always visible when set.
-
-\begin{itemize}
-  \item \textbf{Font:} Inter or Roboto (system-friendly sans-serif), 10~pt base. Compact
-        sizing for high information density.
-  \item \textbf{Canvas:} 1400~px wide; tighter margins (32~px top/bottom); header 140~px.
-  \item \textbf{Axis:} Dashed monthly gridlines. Today marker always visible and prominent.
-        Week numbers as secondary axis labels when \texttt{axis\_unit = week}.
-  \item \textbf{Tracks:} Color-coded header backgrounds when \texttt{track.color} hint is
-        set. Compact rows (36~px). Sub-lanes shown without track-height expansion cue ---
-        the density is expected.
-  \item \textbf{Activities:} Slightly rounded bars (\texttt{bar\_radius: 3}). Category
-        colours override status fill; status glyph icon at bar left edge. Progress bar
-        always rendered (even if thin) when \texttt{progress} is set.
-  \item \textbf{Milestones:} Smaller diamonds (10~px half-diagonal). Label \emph{below}
-        diamond, 8~pt. Stacks horizontally when space permits.
-  \item \textbf{Legend:} Bottom; full category $+$ status legend in two rows.
-\end{itemize}
-
-\textbf{Use case:} Product roadmaps for engineering and product-management audiences.
-Dense information; appropriate for teams who need per-track status at a glance.
-
-\subsubsection{Release Theme}
-\label{sec:theme-release}
-
-\textbf{Fidelity tier: Tier~1 (Crisp).}
-
-\textbf{Visual identity.}
-Engineering release calendar. Traffic-light status palette (green/amber/red). Monochrome
-headers. Today marker is the most prominent element. Optimised for CI/CD dashboard display
-and dense sprint/release schedules.
-
-\begin{itemize}
-  \item \textbf{Font:} JetBrains Mono or Courier New (monospace). Consistent character
-        widths simplify label truncation computations.
-  \item \textbf{Canvas:} 1200~px wide; tight margins (24~px top/bottom); header 120~px.
-  \item \textbf{Axis:} Solid weekly gridlines (1~px, \texttt{\#CCCCCC}). Today marker:
-        bold red solid line (2~px), ``TODAY'' label in uppercase red above axis.
-  \item \textbf{Tracks:} No separator lines; alternating row backgrounds (\texttt{\#FFFFFF}
-        / \texttt{\#F4F4F4}) imply boundaries. Minimal header (dark text on light bg).
-  \item \textbf{Activities:} No border radius (\texttt{bar\_radius: 0}). Traffic-light fill:
-        \texttt{\#2E7D32} (done), \texttt{\#1565C0} (in-progress), \texttt{\#757575}
-        (planned), \texttt{\#F57F17} (at-risk), \texttt{\#C62828} (blocked); diagonal
-        hatching for cancelled; dashed border for tentative. No status icon; colour is
-        the sole status signal.
-  \item \textbf{Milestones:} Upward-pointing triangle (shape: \texttt{triangle-up}),
-        12~px height, filled with status colour. This is a theme-level shape override;
-        the IR still uses the Milestone entity type.
-  \item \textbf{Legend:} Top-right; compact icon $+$ one-word label per status.
-\end{itemize}
-
-\textbf{Use case:} Software release schedules, deployment windows, sprint calendars.
-Engineers over executives; clarity of status over aesthetic refinement.
-
-\subsubsection{Minimal Theme}
-\label{sec:theme-minimal}
-
-\textbf{Fidelity tier: Tier~0 (Minimal).}
-
-\textbf{Visual identity.}
-Maximum whitespace, minimum decoration. All bars are a single dark grey regardless of status;
-status is communicated by pattern alone (hatching for cancelled, dashed border for tentative).
-Print-optimised; renders correctly in greyscale. Designed to blend into reports and LaTeX
-documents without visual dominance.
-
-\begin{itemize}
-  \item \textbf{Font:} Times New Roman or Latin Modern (LaTeX-compatible serif). 10~pt base.
-  \item \textbf{Canvas:} 900~px wide; narrow margins (24~px top/bottom); header 140~px.
-  \item \textbf{Axis:} No gridlines. No tick marks. Period labels only (year or quarter),
-        in 9~pt regular weight. No today marker.
-  \item \textbf{Tracks:} No header background. Single thin separator (0.5~px,
-        \texttt{\#AAAAAA}). No row alternation.
-  \item \textbf{Activities:} No border radius. All bars \texttt{\#333333} fill, regardless
-        of status. Pattern differentiates cancelled (diagonal-hatch) and tentative
-        (dashed-border). No progress bar. No icons. Done activities rendered at 65\% opacity.
-  \item \textbf{Milestones:} Open diamonds (stroke only, no fill), 1~px stroke. Label right,
-        9~pt regular.
-  \item \textbf{Legend:} None (\texttt{position: none}).
-\end{itemize}
-
-\textbf{Use case:} Academic papers, internal reports, LaTeX-embedded timelines, any context
-where the diagram must be subordinate to surrounding text.
-
-\subsubsection{Showcase / Keynote Theme}
-\label{sec:theme-showcase}
-
-\textbf{Fidelity tier: Tier~3 (Showcase).}
-
-\textbf{Visual identity.}
-Premium presentation aesthetic with rich art effects. Designed for high-visibility keynotes,
-external investor presentations, and conference material where the timeline is the centrepiece
-of the slide. Requires the Raster backend for full fidelity; degrades gracefully to Polished
-on PPTX (via native PowerPoint effects) and to Crisp on the SVG backend.
-
-\begin{itemize}
-  \item \textbf{Font:} Inter or SF Pro (premium sans-serif), embedded. Bold headings,
-        regular body. 12~pt base for comfortable large-screen reading.
-  \item \textbf{Canvas:} 1920~px wide (full-HD target); 60~px margins; header 180~px.
-        Deep navy (\texttt{\#0A1628}) background variant or crisp white---two palette
-        options, both at Tier~3.
-  \item \textbf{Axis:} Subtle gridlines with soft luminous separation. Soft glow on the
-        today-marker line. Large, premium-weighted quarter labels.
-  \item \textbf{Tracks:} Frosted-glass-style header backgrounds (white at 8\% opacity over
-        the deep background). Thin separator with a faint glow ring.
-  \item \textbf{Activities:} Generously rounded bars (\texttt{bar\_radius: 8}). Gradient
-        fill from accent-light to accent-dark per status. Drop shadow on each bar
-        (\texttt{offset\_x/y: 2~px}, \texttt{blur\_radius: 6~px},
-        \texttt{fallback\_policy: approximate}). The Raster backend renders per-pixel;
-        the SVG backend emits \texttt{feDropShadow} with a determinism caveat; the PPTX
-        backend applies native \texttt{a:outerShdw}.
-  \item \textbf{Cloud layer:} A subtle atmospheric gradient overlay across the full canvas
-        at 10\% opacity via the \texttt{cloud\_layer} effect
-        (\texttt{fallback\_policy: embed-raster}). Requires Raster backend; falls back to
-        \texttt{omit} on SVG-only targets with no impact on geometry.
-  \item \textbf{Milestones:} Large filled diamonds (18~px half-diagonal) with a soft glow
-        ring (\texttt{radius\_px: 6}, \texttt{intensity: 0.6}, white,
-        \texttt{fallback\_policy: approximate}). Glow maps to native \texttt{a:glow} on
-        PPTX; to per-pixel compositing on Raster; to SVG \texttt{feGaussianBlur} with
-        caveat on SVG backend.
-  \item \textbf{Today marker:} Bold dashed line with a bloom halo effect
-        (\texttt{radius\_px: 8}, \texttt{threshold: 0.8},
-        \texttt{fallback\_policy: omit}). Falls back to bold solid line on SVG/PPTX with
-        no geometry change.
-  \item \textbf{Legend:} Bottom; white text on a dark translucent background.
-\end{itemize}
-
-\textbf{Use case:} External investor roadmaps, conference keynote slides, and marketing
-material where the timeline must make an impact. The PPTX hybrid backend provides an
-editable version with native effects for Tier-2 elements (drop shadows, glow on
-milestones) and an embedded raster overlay for the cloud layer; the Raster backend
-produces the full-fidelity PNG or PDF for print and screen.
-
-\subsection{Cross-Theme Visual Comparison}
-\label{sec:theme-comparison}
-
-To illustrate data-independence, consider a single IR with three tracks (Platform, Mobile,
-Data), six activities across statuses planned / in-progress / done / at-risk / cancelled /
-tentative, and two milestones (Beta, GA), spanning 2026-Q1 through 2026-Q4.
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabularx}{\textwidth}{lXXXXXX}
-\toprule
-\textbf{Property} & \textbf{Consulting} & \textbf{Executive} & \textbf{Product} & \textbf{Release} & \textbf{Minimal} & \textbf{Showcase} \\
-\midrule
-Fidelity tier    & Tier~1 Crisp  & Tier~2 Polished  & Tier~2 Polished & Tier~1 Crisp    & Tier~0 Minimal & Tier~3 Showcase \\
-Background       & White         & White            & White           & White           & White          & Deep navy/white \\
-Axis labels      & Bold Q labels & Small-caps months & Week numbers   & Week dates      & Year only      & Large Q labels \\
-Gridlines        & None          & Light quarterly  & Dashed monthly  & Solid weekly    & None           & Soft glow lines \\
-Track header     & 180~px bold   & 150~px serif     & 140~px colored  & 120~px mono     & 140~px serif   & 180~px frosted \\
-Bar corners      & Square        & Rounded 4~px     & Rounded 3~px    & Square          & Square         & Rounded 8~px \\
-Bar effects      & None          & None             & None            & None            & None           & Drop shadow \\
-Status signal    & Colour only   & Colour $+$ icon  & Icon $+$ colour & Colour only     & Pattern only   & Colour $+$ glow \\
-Milestones       & Filled black  & Navy $+$ dot     & Small, below    & Triangle        & Open diamond   & Large $+$ glow ring \\
-Today marker     & Off           & Red dashed       & Red solid       & Bold red        & None           & Bloom halo \\
-Cloud layer      & None          & None             & None            & None            & None           & 10\% opacity \\
-Legend           & None          & Right, full      & Bottom, full    & Top-right       & None           & Bottom, white \\
+Consulting  & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \ldots \\
+Executive   & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \ldots \\
+ByteByteGo  & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \ldots \\
+Minimal     & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \ldots \\
+\textit{New theme}  & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \ldots \\
 \bottomrule
 \end{tabularx}
-\caption{Visual comparison: same IR rendered under six themes; Showcase requires Raster backend for full fidelity}
-\label{tab:theme-comparison}
+\caption{Themes $\times$ Components matrix. A theme is the row authority; a component is the
+column implementer. A \checkmark\ means the component's implementation consumes that theme's
+tokens. Add a theme once---every component renders it. Add a component once (implement the
+contract)---it inherits every existing theme for free.}
+\label{tab:themes-matrix}
 \end{table}
 
-\paragraph{Geometric invariant.}
-All six renderings share \emph{identical} geometry: the same bar widths, milestone
-$x$-positions, track heights, and label coordinate values. Only style and effects differ.
-This invariant can be verified by asserting coordinate equality across all outputs before
-applying theme styling and effect layers.
+This is the inverse of the fragmented model. In the fragmented model each component owns its
+theme, so adding a new theme requires editing every component; adding a new component
+requires writing a new, isolated theme. In the matrix model each direction is O(1) in
+authoring work: a new theme is one new general-contract file; a new component is one new
+implementation that automatically supports all existing themes.
 
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{The General Theme Contract}
+\label{sec:themes-contract}
+
+The general theme contract is the primary design artefact of the theming system. It is an
+abstract, component-agnostic token vocabulary expressive enough to drive any component's
+geometry, routing, and look---with zero component-specific fields. Every component's
+implementation consumes this vocabulary; nothing outside it may be required for a correct
+rendering~\cite{dtcg2024}.
+
+\begin{quote}
+\textbf{General-contract rule (binding):} The general theme vocabulary MUST be rich enough
+that a component's layout engine can ask the theme for spacing, density, routing style, and
+palette roles and receive a deterministic answer. No component-specific token may leak into
+the general contract. Components may \emph{interpret} tokens in their own context; they may
+not \emph{demand} tokens not in the contract.
+\end{quote}
+
+The vocabulary is organized into six domains; the specific field names are subject to
+refinement but the domain coverage is fixed:
+
+\subsubsection{Palette by Role}
+\label{sec:contract-palette}
+
+Colours are expressed by \emph{semantic role}, not raw hex. Raw hex values are an
+implementation detail of a specific theme instance; the vocabulary names the roles.
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: palette block (proposed shape)}]
+palette:
+  # Surface roles
+  surface:       "#FFFFFF"   # primary background
+  surface-raised: "#F8F8F8"  # cards, panels
+  surface-overlay: "#0A0A0A" # dark overlay / inverse background
+
+  # Content roles
+  ink:           "#111111"   # primary text
+  ink-muted:     "#666666"   # secondary / de-emphasized text
+  ink-inverse:   "#FFFFFF"   # text on dark backgrounds
+
+  # Brand / accent
+  accent:        "#1F497D"   # primary brand colour
+  accent-muted:  "#6A92BF"   # lighter accent (inactive, planned)
+  accent-strong: "#0D2B4E"   # darker accent (active, in-progress)
+
+  # Semantic status roles (components map these to IR status values)
+  status-planned:     { fill: "#6A92BF", stroke: "#1F497D" }
+  status-active:      { fill: "#1F497D", stroke: "#0D2B4E" }
+  status-done:        { fill: "#888888", stroke: "#555555", opacity: 0.85 }
+  status-warning:     { fill: "#D97706", stroke: "#A35A04" }
+  status-danger:      { fill: "#DC2626", stroke: "#A81919" }
+  status-cancelled:   { fill: "#CCCCCC", stroke: "#999999", opacity: 0.60 }
+  status-uncertain:   { fill: "#CCCCCC", stroke: "#999999", opacity: 0.70 }
+\end{lstlisting}
+
+\subsubsection{Typography}
+\label{sec:contract-typography}
+
+Typography specifies family and fallback, a \emph{type scale} (not a list of fixed sizes),
+and a weight set. Components consume the scale by step name, not by pixel value.
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: typography block (proposed shape)}]
+typography:
+  family:    "Helvetica Neue"
+  fallback:  "Arial, Helvetica, sans-serif"
+  # Embedded font files for deterministic metric computation.
+  files:
+    regular: "fonts/HelveticaNeue-Regular.woff2"
+    bold:    "fonts/HelveticaNeue-Bold.woff2"
+
+  # Type scale: step names → point sizes.
+  # Components reference steps by name, not by pt value.
+  scale:
+    xs:   8    # pt — axis ticks, dense labels
+    sm:   9    # pt — captions, secondary labels
+    base: 11   # pt — body text, activity labels
+    md:   13   # pt — subtitles, section headers
+    lg:   18   # pt — document title
+    xl:   24   # pt — hero / keynote headline
+
+  # Weight palette
+  weights:
+    regular: 400
+    medium:  500
+    semibold: 600
+    bold:    700
+\end{lstlisting}
+
+\subsubsection{Spacing / Rhythm Scale}
+\label{sec:contract-spacing}
+
+A spacing scale defines the rhythm unit and derived steps. All margins, gaps, and padding
+throughout every component are expressed as multiples of the base unit.
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: spacing block (proposed shape)}]
+spacing:
+  unit: 8           # px — base rhythm unit
+  # Named steps (component layouts use step names, not raw px)
+  steps:
+    xxs:  2   # 0.25u
+    xs:   4   # 0.5u
+    sm:   8   # 1u
+    md:  16   # 2u
+    lg:  24   # 3u
+    xl:  32   # 4u
+    xxl: 48   # 6u
+\end{lstlisting}
+
+\subsubsection{Density}
+\label{sec:contract-density}
+
+Density is a named level that components use to select between compact and spacious
+configurations. The layout engine consults density to choose row heights, inter-element
+gaps, and label truncation thresholds.
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: density (proposed shape)}]
+density: "normal"   # compact | normal | spacious
+\end{lstlisting}
+
+A \texttt{compact} theme instructs every component to select its smallest safe row height,
+tightest inter-element gap, and most aggressive label truncation. A \texttt{spacious} theme
+selects the most generous variants. Components map the three density levels to their own
+geometry constants.
+
+\subsubsection{Shape Language}
+\label{sec:contract-shape}
+
+Shape language defines how geometric objects feel. Components use these tokens when
+deciding corner radius, node padding, stroke scale, and connector style.
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: shape block (proposed shape)}]
+shape:
+  corner-radius:  0       # px — 0 = square; >0 = rounded
+  node-padding:   8       # px — internal padding inside node shapes
+  stroke-scale:   1.0     # multiplier on all stroke widths (0.5 = hairline; 2.0 = bold)
+  connector-style: "elbow" # straight | elbow | curved | orthogonal
+\end{lstlisting}
+
+\subsubsection{Effects and Motion}
+\label{sec:contract-effects}
+
+Effects declare the fidelity tier and optional art-effect tokens. These gate which rendering
+backend capability profile is required (see Section~\ref{sec:fidelity-tiers}).
+
+\begin{lstlisting}[language=yaml,caption={General theme contract: effects block (proposed shape)}]
+effects:
+  fidelity: 1        # 0=Minimal | 1=Crisp | 2=Polished | 3=Showcase
+  drop-shadow:  { enabled: false }
+  glow:         { enabled: false }
+  motion:       { enabled: false }   # SMIL animation opt-in (Section~14)
+\end{lstlisting}
+
+\subsubsection{The Timeline ResolvedTheme as the Generalisation Seed}
+\label{sec:contract-seed}
+
+The timeline's \texttt{ResolvedTheme}
+(\texttt{packages/core/src/themes/types.ts}) is the closest existing artefact to the
+general contract. It already covers canvas, typography (with weights), axis geometry, track
+geometry, and layout-affecting flags
+(\texttt{spineSpacing}, \texttt{nodeWrap}, \texttt{maxSubLanes}). It demonstrates that a
+theme can---and must---drive layout decisions, not merely colour.
+
+The migration plan is to \emph{generalise upward}: extract the conceptual domains (palette
+roles, type scale, spacing rhythm, density, shape language) from \texttt{ResolvedTheme}
+into the shared general contract, then recast the timeline-specific fields (axis height,
+track header width, serpentine row spacing) as the timeline component's interpretation of
+those general tokens~\cite{vegalite2017}.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Theme Drives Geometry, Layout, and Routing}
+\label{sec:themes-drives-layout}
+
+Themes are not a post-processing colour filter. The layout engine queries the theme
+\emph{during} layout computation. Representative examples from the existing codebase:
+
+\begin{itemize}
+  \item \textbf{\texttt{spineSpacing: 'time'} vs.\ \texttt{'even'}} --- controls whether
+        vertical-spine milestone nodes are placed proportionally to elapsed time or at
+        uniform y-intervals. This changes node $y$-coordinates, not just colour.
+  \item \textbf{\texttt{nodeWrap: 'over-under'}} --- routes the horizontal timeline spine
+        around each on-axis node as a semicircular arc (alternating above / below),
+        producing entirely different path geometry compared to the default straight line.
+  \item \textbf{\texttt{density}} --- compact density reduces \texttt{row\_height} and
+        \texttt{sub\_lane\_height}, shrinking the canvas and shifting all track and
+        milestone $y$-coordinates.
+  \item \textbf{\texttt{shape.corner-radius}} --- a flow diagram component may use this
+        token to choose between rectangular and rounded node shapes, which affects label
+        area computation and thus label wrap point.
+  \item \textbf{\texttt{connector-style: 'orthogonal'}} --- instructs the flow / sequence
+        layout engine to use orthogonal edge routing rather than diagonal or curved,
+        changing every edge path.
+\end{itemize}
+
+\begin{quote}
+\textbf{Layout-engine rule (binding):} A layout engine MUST consult the active theme for
+any geometry decision that varies across themes. It MUST NOT hard-code values that the
+general contract expresses. Theme-driven geometry is still \emph{closed-form}: the theme
+supplies constants; the engine computes coordinates deterministically from those constants.
+No iterative solver or random sampling is introduced.
+\end{quote}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Reach: Theme, Layout, and New Components}
+\label{sec:themes-reach}
+
+Drawing the right boundary between theme, layout argument, and new grammar is the
+architectural decision that keeps the system from proliferating components unnecessarily.
+The rule is stated at the IR boundary:
+
+\begin{description}
+  \item[\emph{New component (grammar)}] Only when the diagram requires \emph{new semantic
+        data} that the existing IR cannot carry. A new grammar is a last resort.
+  \item[\emph{Layout argument}] When the same data can be positioned differently without
+        needing new IR fields. A layout mode is a named argument passed at render time,
+        not a new grammar.
+  \item[\emph{Theme tokens}] Look-and-feel within a layout: colour, typography, spacing,
+        shape, effects. A theme produces a visually distinct output from the same IR +
+        same layout.
+\end{description}
+
+\paragraph{Worked example: the timeline as six diagrams.}
+
+The timeline IR is one grammar. A single set of entries---each with a date, label, status,
+and optional icon---can be rendered six ways that look and behave radically differently,
+purely via \texttt{\{layout: $L$, theme: $T$\}}:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Layout argument} & \textbf{Theme} & \textbf{Visual result} \\
+\midrule
+\texttt{vertical-spine}  & consulting   & Spine-and-card with navy accent, tidy whitespace \\
+\texttt{horizontal-arc}  & executive    & Arc path with serif labels, subtle quarter shading \\
+\texttt{roadmap}         & product      & Horizontal Gantt-style bars, dense information \\
+\texttt{serpentine}      & showcase     & Gradient boustrophedon path, premium glow effects \\
+\texttt{gantt}           & release      & Traffic-light Gantt, monospace labels, weekly grid \\
+\texttt{timeline-columns}& minimal      & Column-per-period grid, greyscale, LaTeX-safe \\
+\bottomrule
+\end{tabularx}
+\caption{One timeline IR; six visual outputs via \{layout, theme\} arguments. No new grammar
+is required for any of these. Same data, radically different look and behaviour.}
+\label{tab:reach-example}
+\end{table}
+
+The rule of thumb: if the data the IR already carries is sufficient to drive the new visual,
+use a layout argument and/or theme tokens. Only introduce a new grammar when the IR would
+need to grow new fields to support it (e.g., swimlane headers, dependency arrows, resource
+calendars---these are genuinely new semantic data, not layout variations).
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Mermaid Configuration Surface}
+\label{sec:themes-mermaid-surface}
+
+All user-facing surface is Mermaid or Mermaid-like. Theme selection, token overrides,
+layout selection, and density are expressed via Mermaid-native configuration mechanisms,
+so a user can remain in standard Mermaid syntax while accessing the extended vocabulary.
+
+\paragraph{Frontmatter (\texttt{---}~\ldots~\texttt{---}).}
+
+\begin{lstlisting}[language=yaml,caption={Theme and layout selection via Mermaid YAML frontmatter}]
+---
+theme: executive          # named theme from the registry
+layout: vertical-spine    # layout family for this diagram
+density: compact          # compact | normal | spacious
+tokens:                   # inline token overrides (scoped to this diagram)
+  palette.accent: "#8B0000"
+  typography.scale.base: 12
+---
+timeline
+  2026-Q1 : Project kick-off
+  2026-Q2 : Beta release
+  2026-Q3 : GA
+\end{lstlisting}
+
+\paragraph{Init directive (\texttt{\%\%\{init:\ \ldots\}\%\%}).}
+
+For compatibility with tools that strip frontmatter, the same surface is available via
+Mermaid's existing init directive hook:
+
+\begin{lstlisting}[language=yaml,caption={Theme selection via Mermaid init directive}]
+%%{init: {"theme": "executive", "layout": "vertical-spine", "density": "compact"}}%%
+timeline
+  2026-Q1 : Project kick-off
+\end{lstlisting}
+
+\paragraph{Surface contract.}
+Mermaid is the floor: any standard Mermaid document is valid input, and the compiler
+respects Mermaid's built-in theme names (\texttt{default}, \texttt{dark}, \texttt{neutral},
+\texttt{forest}, \texttt{base}) as aliases to our nearest equivalent. Our named themes and
+token overrides are the ceiling---available but never required. A document with no theming
+directives renders under the default theme~\cite{mermaiddocs2024}.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Determinism Under Theme-Driven Layout}
+\label{sec:themes-determinism}
+
+Theme-driven geometry does not compromise determinism. The constraint is:
+
+\begin{quote}
+\textbf{Determinism rule (binding):} Themes supply \emph{constants}; engines compute
+coordinates \emph{closed-form} from those constants. Same IR + same theme + same layout
+argument $\to$ byte-identical output. Themes may change \emph{which} constants are
+supplied; they may not introduce randomness, iteration-count sensitivity, or
+non-deterministic solver state~\cite{vegalite2017}.
+\end{quote}
+
+This is already the case for the existing layout-driving tokens: \texttt{spineSpacing} and
+\texttt{nodeWrap} are constants supplied to the layout engine; the engine's coordinate
+computation is a closed-form function of those constants. Extending this discipline to the
+general contract requires only that every new token be a scalar, enumerated value, or
+named step---not a runtime-computed value.
+
+Effect tokens (\texttt{drop-shadow}, \texttt{glow}) degrade gracefully per backend; the
+\emph{geometry} under any effect is always identical (see Section~\ref{sec:fidelity-tiers}).
+
+% ──────────────────────────────────────────────────────────────────────────────
 \subsection{Fidelity Tiers and Backend Effect Profiles}
 \label{sec:fidelity-tiers}
 
 Fidelity tiers define what class of visual richness a theme requests and therefore which
 rendering backend is sufficient to honour it fully. A backend that cannot satisfy the
 requested tier applies the fallback policies declared in each effect's
-\texttt{fallback\_policy} field and degrades gracefully; \emph{the geometry is never
-affected}.
+\texttt{fallback-policy} field and degrades gracefully; \emph{geometry is never affected}.
 
 \begin{table}[h]
 \centering
 \small
 \begin{tabularx}{\textwidth}{lXXXX}
 \toprule
-\textbf{Tier} & \textbf{Name} & \textbf{Effect classes} & \textbf{Min.\ backend} & \textbf{Themes} \\
+\textbf{Tier} & \textbf{Name} & \textbf{Effect classes} & \textbf{Min.\ backend} & \textbf{Examples} \\
 \midrule
 0 & Minimal &
   No effects; solid fills, patterns, and opacity only &
@@ -583,118 +452,148 @@ affected}.
 3 & Showcase &
   Bloom, cloud/atmosphere layers, noise textures, gradient meshes, volumetric compositing &
   Raster backend required &
-  Showcase \\
+  Showcase, ByteByteGo \\
 \bottomrule
 \end{tabularx}
-\caption{Fidelity tier definitions, effect classes, minimum required backend, and theme assignments}
+\caption{Fidelity tier definitions, effect classes, minimum required backend, and example themes}
 \label{tab:fidelity-tiers}
 \end{table}
 
-\paragraph{Same Scene, three backends.}
-Consider a Tier-2 (Polished) theme with drop shadows and a subtle glow on milestone
-diamonds applied to an identical Scene:
-
-\begin{itemize}
-  \item \textbf{SVG backend:} Emits \texttt{feDropShadow} and
-        \texttt{feGaussianBlur+feComposite} filters. Includes a determinism caveat
-        comment. Output is slightly renderer-dependent but fully inspectable as vector
-        geometry with live text.
-  \item \textbf{Raster backend:} Renders glow and shadows pixel-perfectly via Skia or
-        Canvas compositing. Fully deterministic given a pinned backend version. PNG at
-        requested DPI.
-  \item \textbf{PPTX backend:} Maps glow to native PowerPoint \texttt{a:glow} property
-        and shadow to \texttt{a:outerShdw}. No embedded raster layers needed for Tier-2.
-        All bars, diamonds, and labels remain fully editable MSO shapes.
-\end{itemize}
-
-\paragraph{Degradation policy example.}
-A Tier-3 (Showcase) cloud-layer effect targets the SVG backend (e.g., the raster
-plugin is not installed):
+\paragraph{Degradation policy.}
+A Tier-3 cloud-layer effect targeting the SVG backend:
 \begin{enumerate}
-  \item The SVG backend checks its capability against \texttt{CloudLayer}: ``not available.''
-  \item It reads the effect's \texttt{fallback\_policy}: \texttt{embed-raster}.
+  \item The SVG backend checks capability against \texttt{cloud-layer}: ``not available.''
+  \item It reads the effect's \texttt{fallback-policy}: \texttt{embed-raster}.
   \item It invokes the Raster backend for the cloud-layer group only, receives a PNG, and
-        embeds it as a \texttt{<image>} element. The rest of the timeline remains clean
+        embeds it as a \texttt{<image>} element. The rest of the diagram remains clean
         vector.
-  \item If the Raster backend is also unavailable, the policy chain falls back to
-        \texttt{omit}: the cloud layer is silently dropped; no geometry is changed.
+  \item If the Raster backend is also unavailable, the policy chain falls to
+        \texttt{omit}: the cloud layer is silently dropped; no geometry changes.
 \end{enumerate}
 
 \paragraph{Geometry invariant under degradation.}
 Fallback decisions never alter coordinates, dimensions, or label positions. The Scene
 geometry is the invariant shared across all backends and all fidelity levels.
 
+% ──────────────────────────────────────────────────────────────────────────────
 \subsection{Theme Inheritance and Extension}
 \label{sec:theme-inheritance}
 
-Themes support single-level inheritance via the \texttt{extends} key:
+Themes support single-level inheritance via the \texttt{extends} key. A child theme
+specifies only the tokens that differ from its parent; all others inherit. This enables
+branded variants (\texttt{acme-consulting} extending \texttt{consulting}) with minimal
+duplication.
 
-\begin{lstlisting}[language=yaml,caption={Custom theme extending Consulting}]
-theme_id:     "acme-corp"
-display_name: "ACME Corporate"
-extends:      "consulting"
+\begin{lstlisting}[language=yaml,caption={Custom theme extending Consulting (general-contract form)}]
+theme-id:      "acme-corp"
+display-name:  "ACME Corporate"
+extends:       "consulting"
 
-canvas:
-  background_color: "#F5F5F0"   # warm paper white
+palette:
+  accent:       "#8B0000"   # ACME brand red replaces navy
+  accent-strong: "#5A0000"
 
 typography:
-  font_family: "Futura, Century Gothic, sans-serif"
-  font_files:
+  family:   "Futura"
+  fallback: "Century Gothic, sans-serif"
+  files:
     regular: "fonts/Futura-Book.woff2"
     bold:    "fonts/Futura-Bold.woff2"
-
-status_map:
-  planned:
-    fill:   "#005A8E"   # ACME primary brand blue
-    stroke: "#003A5E"
-  in-progress:
-    fill:   "#003A5E"
-    stroke: "#001A2E"
 \end{lstlisting}
 
 Inheritance rules:
 \begin{enumerate}
   \item Properties not specified in the child are taken from the parent exactly.
-  \item \texttt{status\_map} and \texttt{category\_map} are merged entry-by-entry: a child
-        overrides only the entries it declares; unspecified entries inherit from parent.
-  \item Introducing a new font family requires supplying the corresponding embedded font
-        files. A theme that names a font without providing files is malformed.
-  \item Inheritance depth is exactly one level. Chains (\texttt{A} extends \texttt{B}
-        extends \texttt{C}) are not supported; each theme must be resolvable from its
-        parent alone.
-  \item A theme may \texttt{extend: "default"} explicitly to inherit from the baseline
-        default theme without inheriting any of the five named built-in themes.
+  \item \texttt{palette} and nested maps are merged entry-by-entry: a child overrides
+        only the entries it declares; unspecified entries inherit from parent.
+  \item A font family change requires supplying the corresponding embedded font files.
+        A theme that names a font without providing files is malformed.
+  \item Inheritance depth is exactly one level. Chains
+        (\texttt{A} extends \texttt{B} extends \texttt{C}) are not supported.
+  \item The general contract must be fully satisfiable from the resolved (merged) theme.
+        A child that leaves a required contract field unresolved is malformed.
 \end{enumerate}
 
-\subsection{Theme-Engine Contract (Formal)}
-\label{sec:theme-contract}
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Built-in Named Themes}
+\label{sec:builtin-themes}
 
-A conforming theme engine must satisfy all of the following:
+The compiler ships six built-in named themes that address the primary use cases identified
+across David's research and the existing timeline implementation. Each is a complete
+realisation of the general contract; each component's implementation produces its own
+visual interpretation of the same theme tokens~\cite{thinkcell,mermaid2023}.
+
+\begin{description}
+  \item[\texttt{consulting} (Tier 1 — Crisp)] McKinsey/BCG-style. Black, white, single navy
+        accent. Heavy typography, generous whitespace, square corners, no decorative chrome.
+        \texttt{density: normal}. Optimised for A4/Letter print and A3 poster output.
+
+  \item[\texttt{executive} (Tier 2 — Polished)] Corporate boardroom. Navy/slate on white,
+        subtle quarter shading, 4~px corner radius on bars, serif heading font. Status
+        communicated by colour $+$ icon. \texttt{density: normal}. 16:9 slide target.
+
+  \item[\texttt{product} (Tier 2 — Polished)] Developer-friendly; information-dense. Per-
+        track colour coding. Category colours over status colours; status via small icon.
+        \texttt{density: compact}. 1400~px canvas.
+
+  \item[\texttt{release} (Tier 1 — Crisp)] Engineering release calendar. Traffic-light
+        palette (green/amber/red). Monospace font. Today marker most prominent element.
+        \texttt{density: compact}. Optimised for CI/CD dashboard display.
+
+  \item[\texttt{minimal} (Tier 0 — Minimal)] Maximum whitespace, minimum decoration.
+        Single grey fill regardless of status; pattern differentiates status. Print-
+        optimised; renders correctly in greyscale. \texttt{density: spacious}.
+
+  \item[\texttt{showcase} (Tier 3 — Showcase)] Premium keynote aesthetic. Gradient fills,
+        drop shadows on nodes, optional atmospheric cloud layer. Full fidelity requires
+        Raster backend. \texttt{density: normal}. 1920~px canvas.
+\end{description}
+
+\paragraph{Cross-component example.}
+Consider the \texttt{consulting} theme applied to three component types simultaneously in a
+composition poster:
+\begin{itemize}
+  \item \textbf{Timeline component:} \texttt{spineSpacing: time}, \texttt{accent} drives
+        activity bars, \texttt{corner-radius: 0} produces square bars, \texttt{scale.base}
+        = 11~pt for activity labels.
+  \item \textbf{Flow component:} \texttt{accent} drives node fills, \texttt{ink} drives
+        edge labels, \texttt{corner-radius: 0} produces rectangular nodes, \texttt{scale.sm}
+        = 9~pt for edge labels.
+  \item \textbf{Sequence component:} \texttt{accent} drives participant header fills,
+        \texttt{ink-muted} drives lifeline colour, \texttt{scale.base} = 11~pt for
+        message labels.
+\end{itemize}
+All three diagrams share the same navy accent, the same type scale, the same square shape
+language, and the same generous whitespace rhythm---because all three consume the same
+\texttt{consulting} general-contract tokens. The poster is visually coherent without any
+per-component style co-ordination.
+
+% ──────────────────────────────────────────────────────────────────────────────
+\subsection{Open Design Questions for the General Contract}
+\label{sec:themes-open}
+
+The vocabulary proposed in Section~\ref{sec:themes-contract} is subject to refinement.
+The following questions are flagged for resolution before the general contract is finalised:
 
 \begin{enumerate}
-  \item \textbf{Accept all valid IR.} A theme engine must not reject a well-formed IR
-        document for content-related reasons. An unrecognised \texttt{status} value emits
-        a warning and falls back to \texttt{planned} styling.
-  \item \textbf{Require no additional IR fields.} The theme engine reads only the fields
-        defined in Section~\ref{sec:ir}. It may read hint fields (\texttt{activity.color},
-        \texttt{activity.icon}) as advisory inputs but must not fail if they are absent.
-  \item \textbf{Full status-map coverage.} The theme's \texttt{status\_map} must contain
-        entries for all seven IR status values. A missing entry is a theme authoring error
-        detectable at theme-load time.
-  \item \textbf{Geometry immutability.} The theme engine applies visual treatment only; it
-        may not alter any coordinate computed by the rendering phases in
-        Section~\ref{sec:layout-algorithm}. Style does not affect geometry.
-  \item \textbf{Hint fields are advisory.} The \texttt{activity.color} and
-        \texttt{activity.icon} hint fields may be silently ignored by the theme engine. If
-        honoured, they supplement status styling (colour override only); they do not replace
-        the pattern or opacity components of the status-map entry.
-  \item \textbf{Unknown categories fall back silently.} If an activity's \texttt{category}
-        is absent from the theme's \texttt{category\_map}, status-only styling applies
-        without error or warning. New categories never require theme changes; they are
-        transparent to the theme engine until explicitly mapped.
-  \item \textbf{Effect-tier transparency.} The theme engine declares the fidelity tier and
-        effect knobs; it does not select the rendering backend. Fallback decisions are
-        backend-local: the theme engine is never invoked during fallback resolution; the
-        backend applies the \texttt{fallback\_policy} from the Scene's EffectDefinition
-        directly. This separation ensures themes degrade without requiring theme changes.
+  \item \textbf{Status-role completeness.} The seven IR status values
+        (planned, active, done, warning, danger, cancelled, uncertain) are listed.
+        Do chart-family components (pie, radar, XY) use the same status roles, or do
+        they need a separate category-colour vocabulary?
+  \item \textbf{Spacing-scale interpretation.} Each component maps named spacing steps
+        (sm, md, lg) to its own geometry constants. Should the mapping be normalised
+        (every component treats \texttt{spacing.sm} as the row-gap unit) or advisory
+        (components scale the unit to their own geometry)?
+  \item \textbf{Density-level granularity.} Three density levels (compact / normal /
+        spacious) may be insufficient for the full range from kanban cards to architecture
+        diagrams. Should density be a continuous $[0,1]$ scalar, or are additional named
+        levels (e.g., \texttt{ultra-compact}) warranted?
+  \item \textbf{Component-specific extensions.} Some components legitimately need tokens
+        outside the general contract (e.g., serpentine \texttt{turn-radius},
+        roadmap \texttt{milestone-lane-width}). The policy for declaring and namespacing
+        these extensions without polluting the general contract needs to be codified.
+  \item \textbf{Migration order.} The 16 existing per-component \texttt{theme.ts} files
+        should be migrated one at a time to consume the general contract. The order should
+        be: timeline (it is already the deepest and serves as the reference implementation),
+        then flow and sequence (highest traffic), then the remaining grammars.
 \end{enumerate}
