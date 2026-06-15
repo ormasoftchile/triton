@@ -2,16 +2,76 @@
 
 **Owner:** Barbara (Semantics & Rendering)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-15T12:59:00-04:00 (Named contract themes: midnight, blueprint, editorial)
+**Updated:** 2026-06-15T14:55:00-04:00 (Named contract themes: terminal, pastel, mono)
 
 ---
 
-## 2026-06-15 — Three Named Contract Themes + Matrix Test
+## 2026-06-15 — Three More Named Contract Themes (terminal, pastel, mono)
 
-### Learnings — midnight, blueprint, editorial (2026-06-15T12:59:00-04:00)
+### Learnings — terminal, pastel, mono (2026-06-15T14:55:00-04:00)
 
-Built the aesthetic moat: authored 3 additional `ThemeContract` instances and proved the matrix
-promise — a theme defined once lights up all 21 components with ZERO per-component work.
+Built 3 additional `ThemeContract` instances, bringing the named theme total to 7.
+Matrix promise re-confirmed: zero per-component work. New total: **2392/2392 tests**.
+
+#### Themes authored
+
+| ID | Aesthetic | Surface | Accent | Typography | Density | Fidelity |
+|----|-----------|---------|--------|------------|---------|----------|
+| `terminal` | Retro CRT / hacker | `#0C0C0C` near-black | `#33FF00` phosphor green | Courier New monospace | compact | 1 (zero decoration) |
+| `pastel` | Soft, friendly, approachable | `#FFF8F6` warm off-white | `#8B7ED8` soft lavender | Nunito rounded sans | comfortable | 2 (gentle lavender shadow) |
+| `mono` | Pure grayscale / chroma-free | `#FFFFFF` white | `#595959` mid-gray | Helvetica Neue neutral | normal | 1 (crisp, no effects) |
+
+All three follow the `categorical[0] = accent` convention.
+
+**terminal**: CRT palette — phosphor green primary + amber secondary (HP amber monitor family) + ANSI cyan. Monochromatic at heart; amber and cyan are the two "other" classic CRT phosphor families. Genuinely distinct from `midnight` (modern dark UI: charcoal slate, cyan, Inter, glow, comfortable) and `blueprint` (technical dark blue, cool-only palette, JetBrains Mono). Terminal lives in black-and-green machine-room space; blueprint lives in a technical drawing office.
+
+**pastel**: Every categorical color is tinted with white — no saturated hues appear. Lavender, soft coral, sage, sky, peach, mauve. 12px corner radius is the single largest in the theme set (closest competitor is midnight at 6px) — the rounded pillbox shape is the visual fingerprint. Nunito's rounded terminals amplify this. Genuinely warm and gentle.
+
+**mono**: Zero chroma in the entire theme — palette, accent, categorical, sequential, diverging, all role colors. The graded-gray categorical (8 distinct luminance steps) is the definitive proof that the `DataPalette` contract does not require any hue. All 21 components render deterministically with a chroma-free palette. No per-component special-casing needed.
+
+#### Matrix promise: ZERO per-component binding changes
+
+Adding all 3 themes required changes ONLY to:
+1. `packages/core/src/theme-contract/terminal.ts` (new)
+2. `packages/core/src/theme-contract/pastel.ts` (new)
+3. `packages/core/src/theme-contract/mono.ts` (new)
+4. `packages/core/src/theme-contract/index.ts` (register 3 new themes in `CONTRACT_THEMES`)
+
+Zero changes to any of the 21 component bindings. The matrix now covers **7 themes × 21 components** automatically.
+
+#### Matrix test results
+
+`packages/core/test/contract-theme-matrix.test.ts`: now 7 themes × 21 components × assertions.
+Full suite: **2392/2392 tests pass**.
+
+#### Coherence honest verdict
+
+**terminal**: Coherent across 6 components — all surfaces share `#0C0C0C`, phosphor green appears on every node border and chart bar, amber appears as the second data series line. The CRT palette is legible and distinctive. The Courier New monospace makes labels feel like machine output. Genuinely distinct from midnight and blueprint. Beautiful within its constraint — makes no apology for being monochromatic.
+
+**pastel**: Coherent across 6 components — warm off-white canvas on all 6, soft lavender accent on all node borders and primary bars, the full pastel rainbow appears in the Sankey and gitgraph without any hue fighting another. The 12px radius on the flowchart nodes is the most visually distinctive shape in the entire theme set. Genuinely distinct and attractive — something you'd expect from a modern product documentation site.
+
+**mono**: Coherent across 6 components — pure white surface on all 6, the graded-gray categorical distributes cleanly across the Sankey flows and gitgraph branches. The chroma-free data palette carries categorical distinction through luminance contrast alone. Honest verdict: readable and clean everywhere; the xychart (gray bars + near-black line on white) is the hardest test and still passes the "distinct series" legibility bar. Genuinely distinct: most restrained and neutral theme in the set.
+
+No per-component flagging needed. No special-casing applied.
+
+#### Files created/modified
+
+```
+packages/core/src/theme-contract/terminal.ts                (NEW — terminal theme)
+packages/core/src/theme-contract/pastel.ts                  (NEW — pastel theme)
+packages/core/src/theme-contract/mono.ts                    (NEW — mono theme)
+packages/core/src/theme-contract/index.ts                   (modified — register 3 new themes)
+packages/core/test/terminal-pastel-mono-gallery.test.ts     (NEW — 3 themes × 6 components gallery emit)
+examples/gallery/terminal-{flowchart,class,xychart,sankey,gitgraph,timeline}.{svg,png}  (NEW — 12 files)
+examples/gallery/pastel-{flowchart,class,xychart,sankey,gitgraph,timeline}.{svg,png}    (NEW — 12 files)
+examples/gallery/mono-{flowchart,class,xychart,sankey,gitgraph,timeline}.{svg,png}      (NEW — 12 files)
+examples/gallery/index.html       (modified — 3 new theme gallery sections, ex. 84–101)
+.squad/decisions/inbox/barbara-themes-terminal-pastel-mono.md  (NEW)
+```
+
+---
+
+
 
 #### Themes authored
 
