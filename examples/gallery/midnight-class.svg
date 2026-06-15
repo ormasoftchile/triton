@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="996" version="1.1" viewBox="0 0 552 996" width="552" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#334A66" stroke-width="1.5" x1="138" x2="138" y1="237" y2="273"/>
+  <line stroke="#334A66" stroke-width="1.5" x1="138" x2="138" y1="498" y2="541"/>
+  <line stroke="#334A66" stroke-width="1.5" x1="138" x2="138" y1="692" y2="769"/>
+  <line stroke="#334A66" stroke-dasharray="6,4" stroke-width="1.5" x1="414" x2="414" y1="295" y2="237"/>
+  <line stroke="#334A66" stroke-width="1.5" x1="228" x2="322" y1="143" y2="605"/>
+  <line stroke="#334A66" stroke-width="1.5" x1="324" x2="233" y1="617" y2="391"/>
+  <rect fill="#1A2535" height="189" rx="6" stroke="#1E2D40" stroke-width="1" width="180" x="48" y="48"/>
+  <rect fill="#162030" height="46" rx="6" stroke="#00D4FF" stroke-width="1.5" width="180" x="48" y="48"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="48" x2="228" y1="94" y2="94"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="48" x2="228" y1="175" y2="175"/>
+  <text dominant-baseline="alphabetic" fill="#00A8CC" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="138" y="73">Customer</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="116">+id: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="135">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="154">+email: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="197">+register()</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="216">+login(): bool</text>
+  <rect fill="#1A2535" height="189" rx="6" stroke="#1E2D40" stroke-width="1" width="180" x="48" y="285"/>
+  <rect fill="#162030" height="46" rx="6" stroke="#00D4FF" stroke-width="1.5" width="180" x="48" y="285"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="48" x2="228" y1="331" y2="331"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="48" x2="228" y1="412" y2="412"/>
+  <text dominant-baseline="alphabetic" fill="#00A8CC" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="138" y="310">Order</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="353">+orderId: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="372">+createdAt: Date</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="391">+total: float</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="434">+submit()</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="453">+cancel(): bool</text>
+  <rect fill="#1A2535" height="151" rx="6" stroke="#1E2D40" stroke-width="1" width="180" x="48" y="541"/>
+  <rect fill="#162030" height="46" rx="6" stroke="#00D4FF" stroke-width="1.5" width="180" x="48" y="541"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="48" x2="228" y1="587" y2="587"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="48" x2="228" y1="649" y2="649"/>
+  <text dominant-baseline="alphabetic" fill="#00A8CC" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="138" y="566">OrderItem</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="609">+quantity: int</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="628">+unitPrice: float</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="671">+subtotal(): float</text>
+  <rect fill="#1A2535" height="146" rx="6" stroke="#1E2D40" stroke-width="1" width="180" x="48" y="781"/>
+  <rect fill="#162030" height="46" rx="6" stroke="#00D4FF" stroke-width="1.5" width="180" x="48" y="781"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="48" x2="228" y1="827" y2="827"/>
+  <text dominant-baseline="alphabetic" fill="#00A8CC" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="138" y="806">Product</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="849">+sku: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="868">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="887">+price: float</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="66" y="906">+stock: int</text>
+  <rect fill="#1A2535" height="165" rx="6" stroke="#1E2D40" stroke-width="1" width="180" x="324" y="60"/>
+  <rect fill="#162030" height="60" rx="6" stroke="#00D4FF" stroke-width="1.5" width="180" x="324" y="60"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="324" x2="504" y1="120" y2="120"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="324" x2="504" y1="163" y2="163"/>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="414" y="80">&lt;&lt;interface&gt;&gt;</text>
+  <text dominant-baseline="alphabetic" fill="#00A8CC" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="414" y="98">Payment</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="142">+amount: float</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="185">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="204">+refund(): bool</text>
+  <rect fill="#1A2535" height="170" rx="6" stroke="#1E2D40" stroke-width="1" width="180" x="324" y="295"/>
+  <rect fill="#162030" height="46" rx="6" stroke="#00D4FF" stroke-width="1.5" width="180" x="324" y="295"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="324" x2="504" y1="341" y2="341"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="324" x2="504" y1="403" y2="403"/>
+  <text dominant-baseline="alphabetic" fill="#00A8CC" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="414" y="320">CreditCardPayment</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="363">+cardNumber: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="382">+expiry: String</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="425">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="444">+refund(): bool</text>
+  <rect fill="#1A2535" height="127" rx="6" stroke="#1E2D40" stroke-width="1" width="180" x="324" y="553"/>
+  <rect fill="#162030" height="46" rx="6" stroke="#00D4FF" stroke-width="1.5" width="180" x="324" y="553"/>
+  <line stroke="#1E2D40" stroke-width="1" x1="324" x2="504" y1="599" y2="599"/>
+  <text dominant-baseline="alphabetic" fill="#00A8CC" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="414" y="578">ShoppingCart</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="621">+addItem(Product p)</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="640">+removeItem(String sku)</text>
+  <text dominant-baseline="alphabetic" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" text-anchor="start" x="342" y="659">+checkout(): Order</text>
+  <path d="M 131 273 L 138 285 L 145 273" fill="none" stroke="#334A66" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 138 474 L 131 486 L 138 498 L 145 486 Z" fill="#334A66" stroke="#334A66" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 131 769 L 138 781 L 145 769" fill="none" stroke="#334A66" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 414 225 L 421 237 L 407 237 Z" fill="#0F1620" stroke="#334A66" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 315 607 L 324 617 L 329 604" fill="none" stroke="#334A66" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 239 388 L 228 380 L 226 394" fill="none" stroke="#334A66" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="130" y="249">1</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="130" y="273">*</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="148" y="261">places</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="148" y="508">contains</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="148" y="737">references</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="286" y="378">has</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="267" y="502">creates</text>
+</svg>

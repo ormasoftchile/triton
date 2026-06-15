@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="354" version="1.1" viewBox="0 0 2400 354" width="2400" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FAF6EF" height="354" width="2400" x="0" y="0"/>
+  <path d="M 1647 137 C 1647 193 1349 269 1349 213" fill="none" stroke="#B8A898" stroke-dasharray="5,4" stroke-width="1.4"/>
+  <path d="M 223 158 L 300 158 L 300 158 L 369 158" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 534 158 L 606 158 L 606 226 L 670 226" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 534 158 L 603 158 L 603 89 L 665 89" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 830 226 L 906 226 L 906 89 L 974 89" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 830 226 L 898 226 L 898 226 L 958 226" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 1122 89 L 1181 89 L 1181 158 L 1233 158" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 1458 158 L 1514 158 L 1514 226 L 1563 226" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 1458 158 L 1514 158 L 1514 89 L 1562 89" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 1724 226 L 1799 226 L 1799 158 L 1867 158" fill="none" stroke="#D9CFC0" stroke-dasharray="2,4" stroke-width="1.4"/>
+  <path d="M 2017 158 L 2088 158 L 2088 89 L 2151 89" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <path d="M 2017 158 L 2100 158 L 2100 226 L 2176 226" fill="none" stroke="#D9CFC0" stroke-width="1.4"/>
+  <rect fill="#F3EDE2" height="97" rx="49" stroke="#8B2635" stroke-width="1.4" width="131" x="92" y="109"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="157" y="158">Code Push</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="158" x="376" y="109"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="455" y="158">Lint and Format</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="163" x="672" y="40"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="753" y="89">Notify Lint Failed</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="153" x="677" y="177"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="753" y="226">Run Unit Tests</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="141" x="981" y="40"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="1051" y="89">Docker Build</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="173" x="965" y="177"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="1051" y="226">Notify Tests Failed</text>
+  <path d="M 1349 109 L 1458 158 L 1349 206 L 1240 158 Z" fill="#F3EDE2" stroke="#8B2635" stroke-width="1.4"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="1349" y="158">Security Scan</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="157" x="1569" y="40"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="1647" y="89">Hold for Review</text>
+  <rect fill="#F3EDE2" height="97" rx="49" stroke="#8B2635" stroke-width="1.4" width="154" x="1570" y="177"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="1647" y="226">Deploy Staging</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="143" x="1874" y="109"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="1945" y="158">Smoke Tests</text>
+  <rect fill="#F3EDE2" height="97" rx="49" stroke="#8B2635" stroke-width="1.4" width="171" x="2158" y="40"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="2243" y="89">Deploy Production</text>
+  <rect fill="#F3EDE2" height="97" rx="0" stroke="#8B2635" stroke-width="1.4" width="120" x="2183" y="177"/>
+  <text dominant-baseline="central" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="2243" y="226">Rollback</text>
+  <path d="M 1349 206 L 1345 213 L 1353 213 Z" fill="#B8A898" stroke="none" stroke-width="0"/>
+  <path d="M 376 158 L 369 154 L 369 162 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 677 226 L 670 222 L 670 230 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 672 89 L 665 85 L 665 93 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 981 89 L 974 85 L 974 93 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 965 226 L 958 222 L 958 230 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 1240 158 L 1233 154 L 1233 162 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 1570 226 L 1563 222 L 1563 230 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 1569 89 L 1562 85 L 1562 93 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 1874 158 L 1867 154 L 1867 162 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 2158 89 L 2151 85 L 2151 93 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <path d="M 2183 226 L 2176 222 L 2176 230 Z" fill="#8B7355" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="606" y="184">pass</text>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="603" y="116">fail</text>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="906" y="150">pass</text>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="898" y="218">fail</text>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="1514" y="184">clean</text>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="1514" y="116">issues</text>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="2088" y="116">pass</text>
+  <text dominant-baseline="auto" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="400" text-anchor="middle" x="2100" y="184">fail</text>
+</svg>

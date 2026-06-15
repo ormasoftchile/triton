@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="480" version="1.1" viewBox="0 0 1235 480" width="1235" xmlns="http://www.w3.org/2000/svg">
+  <line opacity="1" stroke="#8B2635" stroke-width="2.7" x1="245" x2="1145" y1="90" y2="90"/>
+  <line opacity="1" stroke="#4A7C59" stroke-width="2.7" x1="345" x2="945" y1="190" y2="190"/>
+  <line opacity="1" stroke="#B87333" stroke-width="2.7" x1="545" x2="645" y1="290" y2="290"/>
+  <line opacity="1" stroke="#4A5A6B" stroke-width="2.7" x1="845" x2="845" y1="390" y2="390"/>
+  <path d="M 245 90 C 245 140 345 140 345 190" fill="none" opacity="1" stroke="#4A7C59" stroke-linecap="round" stroke-width="2.7"/>
+  <path d="M 445 190 C 445 240 545 240 545 290" fill="none" opacity="1" stroke="#B87333" stroke-linecap="round" stroke-width="2.7"/>
+  <path d="M 745 190 C 745 290 845 290 845 390" fill="none" opacity="1" stroke="#4A5A6B" stroke-linecap="round" stroke-width="2.7"/>
+  <path d="M 645 290 C 645 240 745 240 745 190" fill="none" opacity="1" stroke="#B87333" stroke-linecap="round" stroke-width="2.7"/>
+  <path d="M 845 390 C 845 290 945 290 945 190" fill="none" opacity="1" stroke="#4A5A6B" stroke-linecap="round" stroke-width="2.7"/>
+  <path d="M 945 190 C 945 140 1045 140 1045 90" fill="none" opacity="1" stroke="#4A7C59" stroke-linecap="round" stroke-width="2.7"/>
+  <circle cx="245" cy="90" fill="#8B2635" r="7" stroke="#8B2635" stroke-width="1.8"/>
+  <circle cx="345" cy="190" fill="#4A7C59" r="7" stroke="#4A7C59" stroke-width="1.8"/>
+  <circle cx="445" cy="190" fill="#4A7C59" r="7" stroke="#4A7C59" stroke-width="1.8"/>
+  <circle cx="545" cy="290" fill="#B87333" r="7" stroke="#B87333" stroke-width="1.8"/>
+  <circle cx="645" cy="290" fill="#B87333" r="7" stroke="#B87333" stroke-width="1.8"/>
+  <circle cx="745" cy="190" fill="#FAF6EF" r="7" stroke="#4A7C59" stroke-width="3.8"/>
+  <circle cx="845" cy="390" fill="#4A5A6B" r="7" stroke="#4A5A6B" stroke-width="1.8"/>
+  <circle cx="945" cy="190" fill="#FAF6EF" r="7" stroke="#4A7C59" stroke-width="3.8"/>
+  <circle cx="1045" cy="90" fill="#FAF6EF" r="7" stroke="#8B2635" stroke-width="3.8"/>
+  <rect fill="#8B2635" height="16" rx="2" stroke="#8B2635" stroke-width="1.8" width="16" x="1137" y="82"/>
+  <rect fill="#8B2635" height="22" rx="11" width="50" x="93" y="79"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="118" y="90">main</text>
+  <rect fill="#4A7C59" height="22" rx="11" width="66" x="85" y="179"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="118" y="190">develop</text>
+  <rect fill="#B87333" height="22" rx="11" width="90" x="73" y="279"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="118" y="290">feature/auth</text>
+  <rect fill="#4A5A6B" height="22" rx="11" width="119" x="58" y="379"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="118" y="390">feature/payments</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="245" y="118">initial</text>
+  <path d="M 242 58 L 234 58 Q 230 58 230 54 L 230 46 Q 230 42 234 42 L 257 42 Q 261 42 261 46 L 261 54 Q 261 58 257 58 L 248 58 L 245 64 Z" fill="#EDE5D8" stroke="#B8A898" stroke-width="1"/>
+  <text dominant-baseline="middle" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="8" font-weight="700" text-anchor="middle" x="245" y="50">v0.1</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="345" y="218">setup-ci</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="445" y="218">add-tests</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="545" y="318">auth-model</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="645" y="318">auth-api</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="745" y="218">merge-auth</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="845" y="418">payment-model</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="945" y="218">merge-payments</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="1045" y="118">release-1.0</text>
+  <path d="M 1042 58 L 1034 58 Q 1030 58 1030 54 L 1030 46 Q 1030 42 1034 42 L 1057 42 Q 1061 42 1061 46 L 1061 54 Q 1061 58 1057 58 L 1048 58 L 1045 64 Z" fill="#EDE5D8" stroke="#B8A898" stroke-width="1"/>
+  <text dominant-baseline="middle" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="8" font-weight="700" text-anchor="middle" x="1045" y="50">v1.0</text>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="1145" y="118">hotfix-typo</text>
+</svg>

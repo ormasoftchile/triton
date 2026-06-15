@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="290" version="1.1" viewBox="0 0 2016 290" width="2016" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0F1620" height="290" width="2016" x="0" y="0"/>
+  <path d="M 1383 113 C 1383 161 1133 225 1133 177" fill="none" stroke="#334A66" stroke-dasharray="5,4" stroke-width="1.5"/>
+  <path d="M 193 130 C 233 130 272 130 305 130" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 454 130 C 491 130 528 186 558 186" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 454 130 C 489 130 525 73 553 73" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 702 186 C 742 186 781 73 814 73" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 702 186 C 736 186 771 186 798 186" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 946 73 C 977 73 1009 130 1033 130" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 1226 130 C 1255 130 1285 186 1307 186" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 1226 130 C 1255 130 1284 73 1306 73" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 1452 186 C 1491 186 1531 130 1563 130" fill="none" stroke="#1E2D40" stroke-dasharray="2,4" stroke-width="1.5"/>
+  <path d="M 1697 130 C 1733 130 1770 73 1799 73" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 1697 130 C 1739 130 1781 186 1816 186" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <rect fill="#1A2535" height="81" rx="41" stroke="#00D4FF" stroke-width="1.5" width="120" x="73" y="89"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="133" y="130">Code Push</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="142" x="312" y="89"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="383" y="130">Lint and Format</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="147" x="560" y="32"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="633" y="73">Notify Lint Failed</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="137" x="565" y="145"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="633" y="186">Run Unit Tests</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="125" x="821" y="32"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="883" y="73">Docker Build</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="157" x="805" y="145"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="883" y="186">Notify Tests Failed</text>
+  <path d="M 1133 89 L 1226 130 L 1133 170 L 1040 130 Z" fill="#1A2535" stroke="#00D4FF" stroke-width="1.5"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1133" y="130">Security Scan</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="141" x="1313" y="32"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1383" y="73">Hold for Review</text>
+  <rect fill="#1A2535" height="81" rx="41" stroke="#00D4FF" stroke-width="1.5" width="138" x="1314" y="145"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1383" y="186">Deploy Staging</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="127" x="1570" y="89"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1633" y="130">Smoke Tests</text>
+  <rect fill="#1A2535" height="81" rx="41" stroke="#00D4FF" stroke-width="1.5" width="155" x="1806" y="32"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1883" y="73">Deploy Production</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#00D4FF" stroke-width="1.5" width="120" x="1823" y="145"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1883" y="186">Rollback</text>
+  <path d="M 1133 170 L 1129 177 L 1137 177 Z" fill="#334A66" stroke="none" stroke-width="0"/>
+  <path d="M 312 130 L 305 126 L 305 134 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 565 186 L 558 182 L 558 190 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 560 73 L 553 69 L 553 77 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 821 73 L 814 69 L 814 77 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 805 186 L 798 182 L 798 190 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 1040 130 L 1033 126 L 1033 134 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 1314 186 L 1307 182 L 1307 190 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 1313 73 L 1306 69 L 1306 77 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 1570 130 L 1563 126 L 1563 134 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 1806 73 L 1799 69 L 1799 77 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 1823 186 L 1816 182 L 1816 190 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="510" y="150">pass</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="507" y="94">fail</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="762" y="122">pass</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="754" y="178">fail</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="1270" y="150">clean</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="1270" y="94">issues</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="1752" y="94">pass</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="1760" y="150">fail</text>
+</svg>

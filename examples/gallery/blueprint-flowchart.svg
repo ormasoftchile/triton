@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="238" version="1.1" viewBox="0 0 1776 238" width="1776" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#1A2B47" height="238" width="1776" x="0" y="0"/>
+  <path d="M 1218 95 C 1218 143 998 193 998 145" fill="none" stroke="#3A5482" stroke-dasharray="5,4" stroke-width="2.3"/>
+  <path d="M 178 108 L 226 108 L 226 108 L 267 108" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 404 108 L 450 108 L 450 151 L 489 151" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 404 108 L 447 108 L 447 64 L 484 64" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 622 151 L 670 151 L 670 64 L 712 64" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 622 151 L 664 151 L 664 151 L 700 151" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 838 64 L 875 64 L 875 108 L 906 108" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 1084 108 L 1120 108 L 1120 151 L 1149 151" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 1084 108 L 1119 108 L 1119 64 L 1147 64" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 1282 151 L 1330 151 L 1330 108 L 1372 108" fill="none" stroke="#2A3F62" stroke-dasharray="2,4" stroke-width="2.3"/>
+  <path d="M 1498 108 L 1543 108 L 1543 64 L 1581 64" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <path d="M 1498 108 L 1548 108 L 1548 151 L 1592 151" fill="none" stroke="#2A3F62" stroke-width="2.3"/>
+  <rect fill="#243554" height="63" rx="32" stroke="#00BFFF" stroke-width="2.3" width="120" x="58" y="76"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="118" y="108">Code Push</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="131" x="273" y="76"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="338" y="108">Lint and Format</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="136" x="490" y="32"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="558" y="64">Notify Lint Failed</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="127" x="495" y="119"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="558" y="151">Run Unit Tests</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="120" x="718" y="32"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="778" y="64">Docker Build</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="145" x="706" y="119"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="778" y="151">Notify Tests Failed</text>
+  <path d="M 998 76 L 1084 108 L 998 139 L 912 108 Z" fill="#243554" stroke="#00BFFF" stroke-width="2.3"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="998" y="108">Security Scan</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="130" x="1153" y="32"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="1218" y="64">Hold for Review</text>
+  <rect fill="#243554" height="63" rx="32" stroke="#00BFFF" stroke-width="2.3" width="127" x="1155" y="119"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="1218" y="151">Deploy Staging</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="120" x="1378" y="76"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="1438" y="108">Smoke Tests</text>
+  <rect fill="#243554" height="63" rx="32" stroke="#00BFFF" stroke-width="2.3" width="143" x="1587" y="32"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="1658" y="64">Deploy Production</text>
+  <rect fill="#243554" height="63" rx="0" stroke="#00BFFF" stroke-width="2.3" width="120" x="1598" y="119"/>
+  <text dominant-baseline="central" fill="#E8F0FF" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="11" font-weight="600" text-anchor="middle" x="1658" y="151">Rollback</text>
+  <path d="M 998 139 L 994 145 L 1002 145 Z" fill="#3A5482" stroke="none" stroke-width="0"/>
+  <path d="M 273 108 L 267 104 L 267 112 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 495 151 L 489 147 L 489 155 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 490 64 L 484 60 L 484 68 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 718 64 L 712 60 L 712 68 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 706 151 L 700 147 L 700 155 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 912 108 L 906 104 L 906 112 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 1155 151 L 1149 147 L 1149 155 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 1153 64 L 1147 60 L 1147 68 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 1378 108 L 1372 104 L 1372 112 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 1587 64 L 1581 60 L 1581 68 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <path d="M 1598 151 L 1592 147 L 1592 155 Z" fill="#93C5FD" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="450" y="122">pass</text>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="447" y="78">fail</text>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="670" y="100">pass</text>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="664" y="143">fail</text>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="1120" y="122">clean</text>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="1119" y="78">issues</text>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="1543" y="78">pass</text>
+  <text dominant-baseline="auto" fill="#93C5FD" font-family="JetBrains Mono, 'Courier New', 'Lucida Console', monospace" font-size="9" font-weight="400" text-anchor="middle" x="1548" y="122">fail</text>
+</svg>

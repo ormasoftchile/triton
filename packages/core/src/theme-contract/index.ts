@@ -34,17 +34,32 @@ export type {
 } from './types.js';
 
 export { executive } from './executive.js';
+export { midnight }  from './midnight.js';
+export { blueprint } from './blueprint.js';
+export { editorial } from './editorial.js';
 
 import type { ThemeContract } from './types.js';
 import { executive } from './executive.js';
+import { midnight }  from './midnight.js';
+import { blueprint } from './blueprint.js';
+import { editorial } from './editorial.js';
 
 /**
  * Registry of all contract-path named themes.
  * A theme name present in this map routes through the Tier-2 → Tier-3
  * binding path instead of the legacy per-component theme registry.
+ *
+ * Currently registered themes:
+ *   executive — corporate navy/white, Georgia serif, comfortable, fidelity 2
+ *   midnight  — dark charcoal/cyan, Inter sans, comfortable, fidelity 2
+ *   blueprint — deep-blue/cyan, JetBrains Mono, normal density, fidelity 1
+ *   editorial — warm cream/burgundy, Lora serif, comfortable, fidelity 2
  */
 export const CONTRACT_THEMES: Record<string, ThemeContract> = {
   executive,
+  midnight,
+  blueprint,
+  editorial,
 };
 
 /**
