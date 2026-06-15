@@ -33,6 +33,11 @@
 import type { Scene } from '../../scene.js';
 import { sceneHash as computeSceneHash } from '../../scene.js';
 
+import { CONTRACT_THEMES, isContractTheme } from '../../theme-contract/index.js';
+import { bindFlowTheme }     from '../../grammars/flow/contract-binding.js';
+import { bindSequenceTheme } from '../../grammars/sequence/contract-binding.js';
+import { bindChartTheme }    from '../../grammars/chart/contract-binding.js';
+
 import {
   buildFlowScene,
   renderFlowDocument,
@@ -466,7 +471,10 @@ export function renderMermaid(
 
     const fmTheme  = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
-    const seqTheme  = resolveSequenceTheme(themeName);
+    // Contract-binding path: derive SequenceTheme from Tier-2 contract if applicable.
+    const seqTheme = isContractTheme(themeName)
+      ? bindSequenceTheme(CONTRACT_THEMES[themeName]!)
+      : resolveSequenceTheme(themeName);
 
     const finalDoc: SequenceDocument = {
       ...doc,
@@ -502,7 +510,10 @@ export function renderMermaid(
 
     const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
-    const baseTheme = resolveFlowTheme(themeName);
+    // Contract-binding path: derive FlowTheme from Tier-2 contract if applicable.
+    const baseTheme = isContractTheme(themeName)
+      ? bindFlowTheme(CONTRACT_THEMES[themeName]!)
+      : resolveFlowTheme(themeName);
 
     const orientation: FlowTheme['orientation'] =
       direction === 'TD' || direction === 'TB' || direction === 'BT' ? 'TB' : 'LR';
@@ -695,7 +706,10 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseXYChartDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
-    const chartTheme = resolveChartTheme(themeName);
+    // Contract-binding path: derive ChartTheme from Tier-2 contract if applicable.
+    const chartTheme = isContractTheme(themeName)
+      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
     const hash = computeSceneHash(scene);

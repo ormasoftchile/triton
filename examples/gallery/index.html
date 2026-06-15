@@ -1248,6 +1248,100 @@
   </div>
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Theme Contract Spike (executive) — Examples 45–47
+     One executive theme, three component types, one coherent design system.
+     All three share: navy accent #1F497D, Georgia serif, white surface,
+     comfortable density, elbow connectors, 4px corner radius.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="gallery-section-header" style="background:#1F497D;color:#fff;padding:18px 32px;margin:48px 0 0;border-radius:4px 4px 0 0;">
+  <strong>Theme Contract Spike — <code style="color:#6B92BF">executive</code></strong>
+  &nbsp;·&nbsp; Tier-2 General Contract proof set (§12) &nbsp;·&nbsp; 2026-06-14
+  <div style="font-size:13px;margin-top:6px;color:#BDD4EB;">
+    Three diagrams, one theme. Shared palette (navy / slate / white), Georgia serif type scale,
+    comfortable density, 4px corner radius. Proves the ThreeContract drives all three component
+    families as a single coherent design system.
+  </div>
+</div>
+<div class="gallery">
+
+  <!-- 45. executive-flowchart — Tier-2 contract, flowchart binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 45 · executive-flowchart</div>
+      <div class="card-title">Executive Flowchart — CI/CD Pipeline
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">flowchart</span>
+        <span class="tag" style="background:#1F497D;color:#fff;">Tier-2 contract</span>
+      </div>
+      <div class="card-desc">
+        Same source as Example 27 (<code>mermaid-flowchart.mmd</code>), rendered via the
+        Tier-2 <code>executive</code> ThemeContract binding. Navy accent (#1F497D) node borders,
+        Georgia serif labels, elbow connectors, 4px corner radius, comfortable spacing.
+        viewBox: 2016×290.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-flowchart.png" alt="executive theme flowchart — CI/CD pipeline">
+    </div>
+    <div class="card-footer">
+      <a href="executive-flowchart.svg">SVG</a>
+      <a href="mermaid-flowchart.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 46. executive-sequence — Tier-2 contract, sequence binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 46 · executive-sequence</div>
+      <div class="card-title">Executive Sequence — User Authentication Flow
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">sequenceDiagram</span>
+        <span class="tag" style="background:#1F497D;color:#fff;">Tier-2 contract</span>
+      </div>
+      <div class="card-desc">
+        Same source as Example 28 (<code>mermaid-sequence.mmd</code>), theme overridden to
+        <code>executive</code> (source has <code>bytebytego-sequence</code> in frontmatter).
+        Participant boxes: surfaceRaised fill, accent stroke. Lifelines: border-color. Message
+        arrows: ink. Fragment tabs: accent fill, white label. viewBox: 852×1201.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-sequence.png" alt="executive theme sequence diagram — authentication flow">
+    </div>
+    <div class="card-footer">
+      <a href="executive-sequence.svg">SVG</a>
+      <a href="mermaid-sequence.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 47. executive-xychart — Tier-2 contract, chart binding (data palette exercised) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 47 · executive-xychart</div>
+      <div class="card-title">Executive XY Chart — Monthly Revenue vs Target
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">xychart-beta</span>
+        <span class="tag" style="background:#1F497D;color:#fff;">data palette</span>
+      </div>
+      <div class="card-desc">
+        Same source as Example 34 (<code>mermaid-xychart.mmd</code>), rendered via the
+        Tier-2 <code>executive</code> contract's <em>data palette</em> — categorical[0] (#1F497D)
+        drives the bar series; categorical[1] (#2E86AB) drives the line series. Title in Georgia lg
+        (20pt bold); tick labels in Georgia sm (10pt); comfortable margins. viewBox: 920×600.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-xychart.png" alt="executive theme xychart — monthly revenue vs target">
+    </div>
+    <div class="card-footer">
+      <a href="executive-xychart.svg">SVG</a>
+      <a href="mermaid-xychart.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+</div>
 <footer>
   Timeline Compiler · Phase 1–5 Gallery · Horizontal &amp; vertical-spine layout families.
   Regenerate: <code>node packages/cli/dist/index.js render &lt;slug&gt;.timeline.yaml -o &lt;slug&gt;.svg</code>
