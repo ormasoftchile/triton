@@ -1,4 +1,34 @@
-# Squad Decisions — Recent & Current (2026-06-14)
+# Squad Decisions — Recent & Current (2026-06-15)
+
+---
+
+# Decision: MIGRATION — NODE-LINK FAMILY ADOPTED THE CONTRACT
+
+**Agent:** Barbara (Semantics & Rendering), Coordinator (VISUALLY VERIFIED)  
+**Date:** 2026-06-15  
+**Status:** ADOPTED & COMMITTED (8101a00)
+
+## Summary
+
+Node-link family (class, state, ER, C4, requirement, block, architecture) adopted the theme contract via binding. All seven diagram types now render via `grammars/<c>/contract-binding.ts` bindings with opt-in contract theme names. No legacy diagrams affected. 12 diagram types now coherent under `executive` design system (flow, sequence, xychart, gantt + these 7). Determinism preserved: existing goldens byte-identical, only new executive-* demos added. 1936 tests passing. Committed 8101a00.
+
+## What Changed
+
+- **Bindings:** `grammars/{class,state,er,c4,requirement,block,architecture}/contract-binding.ts` — Tier-3 contract bindings added (7 files)
+- **Frontend wiring:** `frontend/mermaid/index.ts` — opt-in; theme names in CONTRACT_THEMES resolve via binding
+- **Gallery demos:** 7 new executive-* demos (executive-class, executive-state, executive-er, executive-c4, executive-requirement, executive-block, executive-architecture)
+- **Tests:** Binding unit tests + gallery emit tests; 1936 all passing
+- **Visual coherence:** Coordinator verified all 12 diagram types render as one executive design system (navy #1F497D accent, Georgia serif, white surface)
+
+## Remaining Migration
+
+1. **Chart family** (pie, quadrant, radar) — reuse chart binding
+2. **Timeline adoption** — section/event fills → categorical palette
+3. **Specialised** (sankey, gitGraph, journey, kanban, mindmap, packet)
+
+## PENDING
+
+**Design doc §12 sync:** 4 contract tokens added in step 1 need documentation (surfacePanel, inkPanel, markerShape, pattern).
 
 ---
 
