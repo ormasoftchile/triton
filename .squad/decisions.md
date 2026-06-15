@@ -2,6 +2,39 @@
 
 ---
 
+# Decision: THEME CONTRACT SPIKE SUCCEEDED
+
+**Agent:** Barbara (Semantics & Rendering), Coordinator (VISUALLY VERIFIED)  
+**Date:** 2026-06-14  
+**Status:** SUCCEEDED — contract proven, vocabulary finalized, vocabulary conventions documented
+
+## Summary
+
+Tier-2 ThemeContract proof spike complete. The `executive` theme was applied to all three proof-set components (flowchart, sequence, xychart), producing three diagrams that read as **one coherent design system** (navy #1F497D accent, Georgia serif, white surface). Determinism preserved: all 1822 tests passing, existing goldens byte-identical.
+
+## What Was Built
+
+- `packages/core/src/theme-contract/` — Tier-2 ThemeContract interface + executive concrete theme
+- `grammars/{flow,sequence,chart}/contract-binding.ts` — Tier-3 contract bindings
+- `frontend/mermaid/index.ts` — opt-in wiring; theme name in CONTRACT_THEMES resolves via binding
+- 3 new gallery examples (executive-flowchart, executive-sequence, executive-xychart)
+- 63 new tests (theme-contract-bindings + executive-gallery-emit)
+
+## Vocabulary Conventions Finalized
+
+1. **categorical[0] SHOULD equal palette.accent** — primary series color = brand accent for chart contracts
+2. **Axis & gridlines:** axis lines use palette.ink, gridlines use palette.border (Tier-3 binding conventions, not contract)
+3. **Density → geometry:** documented as binding guidance for migration
+
+## Status
+
+- All 1822 tests passing
+- Existing goldens byte-identical (only 3 new executive-* files)
+- Coordinator VISUALLY VERIFIED the three diagrams cohere as one design system
+- **NEXT:** migration per decided order — generalise timeline ResolvedTheme → node-link family → remaining charts → timeline adoption → specialised
+
+---
+
 # Decision: THEME VOCABULARY RESOLVED (design §12)
 
 **Agent:** Leslie (Spec Architect), Cristian (@ormasoftchile)  

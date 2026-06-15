@@ -122,3 +122,4 @@ Spacing is expressed as `base unit + named steps` (xxs, xs, sm, md, lg, xl, xxl)
 
 
 For detailed context from earlier sessions (Composition implementation, design doc restructure, Tier 1/2/3 completions, real-Mermaid fidelity passes), see `leslie/history-archive.md`.
+- (2026-06-14T23:32:53Z) Theme contract spike succeeded; binding pattern established
