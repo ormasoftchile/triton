@@ -4,6 +4,20 @@
  * `resolveTheme(id)` is the single entry point for the layout engine to
  * obtain a fully-expanded ResolvedTheme.  It is pure: no I/O, no system
  * calls.
+ *
+ * ## Precedence rule (CRITICAL for determinism)
+ *
+ * 1. REGISTRY lookup — the 14 legacy timeline theme names always win.
+ *    `executive` in the REGISTRY is the dark-navy legacy timeline theme;
+ *    it ALWAYS resolves to that, NOT the contract-derived version.
+ * 2. CONTRACT fallback — if the name is a registered Tier-2 contract theme
+ *    AND not in the legacy REGISTRY, derive a ResolvedTheme via the
+ *    timeline binding (`bindTimelineTheme`).
+ * 3. DEFAULT fallback — unknown names resolve to `consultingTheme`.
+ *
+ * This guarantees ALL 14 legacy timeline goldens remain byte-identical.
+ * Contract themes reach the timeline ONLY via non-legacy names (or when
+ * `bindTimelineTheme()` is called DIRECTLY, bypassing name dispatch).
  */
 
 import { consultingTheme } from './consulting.js';
@@ -19,9 +33,12 @@ import { gitlineTheme } from './gitline.js';
 import { ourTimelineTheme } from './our-timeline.js';
 import { subjectTimelineTheme } from './subject-timeline.js';
 import { bytebyteGoTheme } from './bytebytego.js';
+import { bindTimelineTheme } from './contract-binding.js';
+import { isContractTheme, CONTRACT_THEMES } from '../theme-contract/index.js';
 import type { ResolvedTheme } from './types.js';
 
 export type { ResolvedTheme } from './types.js';
+export { bindTimelineTheme } from './contract-binding.js';
 
 // ---------------------------------------------------------------------------
 // Registry
@@ -47,14 +64,29 @@ const REGISTRY = new Map<string, ResolvedTheme>([
 /**
  * Resolve a theme identifier to a `ResolvedTheme`.
  *
- * Falls back to the 'consulting' theme for any unknown id so that callers
- * never receive null; a warning is the appropriate signal for callers that
- * care.
+ * ## Precedence (see module-level comment for full rationale):
+ *   1. Legacy REGISTRY (14 named timeline themes) — always wins.
+ *      `executive` in the REGISTRY is the dark-navy legacy theme; it is
+ *      served from here, NEVER from the contract binding.
+ *   2. Contract-path fallback — non-legacy contract theme names are derived
+ *      via `bindTimelineTheme`.
+ *   3. Default fallback — unknown names → `consultingTheme`.
  *
  * @param id  Theme identifier (e.g. 'consulting', 'executive').  Case-sensitive.
  */
 export function resolveTheme(id: string): ResolvedTheme {
-  return REGISTRY.get(id) ?? consultingTheme;
+  // Step 1: Legacy REGISTRY — always wins.
+  const legacy = REGISTRY.get(id);
+  if (legacy) return legacy;
+
+  // Step 2: Contract-path fallback — non-legacy contract theme names.
+  // NOTE: `executive` never reaches here because it IS in REGISTRY.
+  if (isContractTheme(id)) {
+    return bindTimelineTheme(CONTRACT_THEMES[id]!);
+  }
+
+  // Step 3: Unknown — fall back to consulting.
+  return consultingTheme;
 }
 
 // ---------------------------------------------------------------------------

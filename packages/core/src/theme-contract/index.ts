@@ -6,6 +6,10 @@
  *   - `executive` theme instance
  *   - `CONTRACT_THEMES` registry (name → ThemeContract)
  *   - `isContractTheme(name)` guard for opt-in wiring
+ *
+ * Note: `bindTimelineTheme` is exported from `themes/index.ts` (not here)
+ * to avoid circular dependencies — the binding imports theme types from
+ * `themes/types.ts` which must not re-import from this module.
  */
 
 export type {

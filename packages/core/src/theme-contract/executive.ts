@@ -20,6 +20,9 @@ export const executive: ThemeContract = {
     surface:        '#FFFFFF',
     surfaceRaised:  '#F8F9FA',
     surfaceOverlay: '#0F172A',
+    // Panel/lane — barely-there off-white for track headers and card panels
+    surfacePanel:   '#F1F5F9',
+    inkPanel:       '#1E293B',
 
     // Content — dark slate ink (warmer than pure black; more professional)
     ink:        '#1E293B',
@@ -49,8 +52,8 @@ export const executive: ThemeContract = {
     statusPlanned:   { fill: '#6B92BF', stroke: '#1F497D' },
     statusActive:    { fill: '#1F497D', stroke: '#0D2B4E' },
     statusDone:      { fill: '#64748B', stroke: '#475569', opacity: 0.85 },
-    statusCancelled: { fill: '#CBD5E1', stroke: '#94A3B8', opacity: 0.60 },
-    statusUncertain: { fill: '#CBD5E1', stroke: '#94A3B8', opacity: 0.70 },
+    statusCancelled: { fill: '#CBD5E1', stroke: '#94A3B8', opacity: 0.60, pattern: 'diagonal-hatch' },
+    statusUncertain: { fill: '#CBD5E1', stroke: '#94A3B8', opacity: 0.70, pattern: 'dashed-border' },
   },
 
   // ── Data palette ────────────────────────────────────────────────────────
@@ -133,11 +136,13 @@ export const executive: ThemeContract = {
   // ── Shape language ──────────────────────────────────────────────────────
   // 4px corner radius: slight softening without losing authority.
   // Elbow connectors: clean, orthogonal — boardroom precision.
+  // Circle markers: standard milestone shape for timeline/chart markers.
   shape: {
     cornerRadius:   4,
     nodePadding:   12,
     strokeScale:    1.0,
     connectorStyle: 'elbow',
+    markerShape:    'circle',
   },
 
   // ── Effects (Tier 2 — Polished) ─────────────────────────────────────────

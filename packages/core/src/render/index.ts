@@ -23,6 +23,7 @@
 
 import type { IRDocument, RenderOptions, RenderResult } from '../types.js';
 import type { Scene } from '../scene.js';
+import type { ResolvedTheme } from '../themes/types.js';
 import { resolveTheme }    from '../themes/index.js';
 import { layout }          from '../layout/index.js';
 import { sceneToSvg }      from './svg.js';
@@ -52,20 +53,43 @@ export interface BuildSceneOptions {
    * of the process working directory.
    */
   baseDir?: string;
+  /**
+   * Pre-resolved theme that bypasses the `resolveTheme(theme)` lookup.
+   *
+   * Use this when you have already called a contract binding function
+   * (e.g. `bindTimelineTheme(executive)`) and want to render directly
+   * without going through the theme name registry.  When present, the
+   * `theme` field is ignored for theme resolution but the legacy REGISTRY
+   * is NOT consulted — this is an explicit bypass.
+   *
+   * Typical use: gallery demo that renders under the contract `executive`
+   * binding for timeline/gantt without colliding with the legacy `executive`
+   * name (which maps to the dark-navy timeline theme).
+   */
+  resolvedTheme?: ResolvedTheme;
 }
 
 /**
  * Compute the Scene (layout IR) for an IRDocument without rendering to any
  * output format.  Consumers (linter, tests, tooling) can inspect geometry
  * without parsing SVG.
+ *
+ * If `options.resolvedTheme` is provided, it is used directly and the
+ * `theme` name field is ignored for resolution (legacy REGISTRY bypassed).
  */
 export function buildScene(
   ir: IRDocument,
   options?: BuildSceneOptions | Pick<RenderOptions, 'theme' | 'layout' | 'spineSpacing'>,
 ): Scene {
   const opts = options as BuildSceneOptions | undefined;
-  const themeId = opts?.theme ?? ir.metadata.theme ?? 'default';
-  let theme = resolveTheme(themeId);
+  let theme: ResolvedTheme;
+  if (opts?.resolvedTheme) {
+    // Direct bypass: pre-resolved theme skips registry and contract lookups.
+    theme = opts.resolvedTheme;
+  } else {
+    const themeId = opts?.theme ?? ir.metadata.theme ?? 'default';
+    theme = resolveTheme(themeId);
+  }
   // Apply render-level overrides that supersede the theme declaration.
   if (opts?.spineSpacing !== undefined) {
     theme = { ...theme, spineSpacing: opts.spineSpacing };
@@ -84,8 +108,8 @@ export function buildScene(
  * Pass `baseDir` (via a `BuildSceneOptions`-extended options object) to
  * control asset path resolution for `metadata.logo.src`.
  */
-export function renderDocument(ir: IRDocument, options: RenderOptions & { baseDir?: string }): RenderResult {
-  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing, baseDir: options.baseDir });
+export function renderDocument(ir: IRDocument, options: RenderOptions & { baseDir?: string; resolvedTheme?: ResolvedTheme }): RenderResult {
+  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing, baseDir: options.baseDir, resolvedTheme: options.resolvedTheme });
   const svg   = sceneToSvg(scene);
   const hash  = sceneHash(scene);
 
@@ -114,8 +138,8 @@ export function renderDocument(ir: IRDocument, options: RenderOptions & { baseDi
  * Use this function in the CLI and in Skia tests.
  * Pass `baseDir` to control asset path resolution for `metadata.logo.src`.
  */
-export async function renderDocumentAsync(ir: IRDocument, options: RenderOptions & { baseDir?: string }): Promise<RenderResult> {
-  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing, baseDir: options.baseDir });
+export async function renderDocumentAsync(ir: IRDocument, options: RenderOptions & { baseDir?: string; resolvedTheme?: ResolvedTheme }): Promise<RenderResult> {
+  const scene = buildScene(ir, { theme: options.theme, layout: options.layout, spineSpacing: options.spineSpacing, baseDir: options.baseDir, resolvedTheme: options.resolvedTheme });
   const svg   = sceneToSvg(scene);
   const hash  = sceneHash(scene);
 

@@ -1251,17 +1251,18 @@
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
      Theme Contract Spike (executive) — Examples 45–47
-     One executive theme, three component types, one coherent design system.
-     All three share: navy accent #1F497D, Georgia serif, white surface,
+     Migration Step 1 (timeline binding) — Examples 48–49
+     One executive theme, five component types, one coherent design system.
+     All five share: navy accent #1F497D, Georgia serif, white surface,
      comfortable density, elbow connectors, 4px corner radius.
      ═══════════════════════════════════════════════════════════════════════════ -->
 <div class="gallery-section-header" style="background:#1F497D;color:#fff;padding:18px 32px;margin:48px 0 0;border-radius:4px 4px 0 0;">
-  <strong>Theme Contract Spike — <code style="color:#6B92BF">executive</code></strong>
-  &nbsp;·&nbsp; Tier-2 General Contract proof set (§12) &nbsp;·&nbsp; 2026-06-14
+  <strong>Theme Contract Spike + Migration Step 1 — <code style="color:#6B92BF">executive</code></strong>
+  &nbsp;·&nbsp; Tier-2 General Contract proof set (§12) + Timeline Binding &nbsp;·&nbsp; 2026-06-14
   <div style="font-size:13px;margin-top:6px;color:#BDD4EB;">
-    Three diagrams, one theme. Shared palette (navy / slate / white), Georgia serif type scale,
-    comfortable density, 4px corner radius. Proves the ThreeContract drives all three component
-    families as a single coherent design system.
+    Five diagrams, one theme. Shared palette (navy / slate / white), Georgia serif type scale,
+    comfortable density, 4px corner radius. Spike (45–47): flow+sequence+xychart. Migration Step 1
+    (48–49): timeline+gantt binding — the deepest, layout-driving consumer proves the contract vocabulary complete.
   </div>
 </div>
 <div class="gallery">
@@ -1338,6 +1339,58 @@
     <div class="card-footer">
       <a href="executive-xychart.svg">SVG</a>
       <a href="mermaid-xychart.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 48. executive-timeline — Tier-2 contract, timeline binding (Migration Step 1) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 48 · executive-timeline</div>
+      <div class="card-title">Executive Timeline — History of Programming Languages
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">timeline</span>
+        <span class="tag" style="background:#1F497D;color:#fff;">Migration Step 1</span>
+      </div>
+      <div class="card-desc">
+        Same source as the mermaid-timeline golden, rendered via
+        <code>bindTimelineTheme(CONTRACT_THEMES.executive)</code> — bypassing the legacy
+        <code>executive</code> name (dark navy). Contract-derived: white canvas, Georgia serif,
+        <code>#1E293B</code> slate title. Section band colors are Mermaid-faithful hardcoded palette
+        (deepest consumer test passed — contract covers canvas + typography + axis + track + milestone).
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-timeline.png" alt="executive contract theme timeline — history of programming languages">
+    </div>
+    <div class="card-footer">
+      <a href="executive-timeline.svg">SVG</a>
+      <a href="mermaid-timeline.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 49. executive-gantt — Tier-2 contract, gantt binding (Migration Step 1) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 49 · executive-gantt</div>
+      <div class="card-title">Executive Gantt — Platform Modernisation Roadmap
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">gantt</span>
+        <span class="tag" style="background:#1F497D;color:#fff;">Migration Step 1</span>
+      </div>
+      <div class="card-desc">
+        Same source as the mermaid-gantt golden, rendered via
+        <code>bindTimelineTheme(CONTRACT_THEMES.executive)</code>. Contract-derived: white canvas
+        (<code>#FFFFFF</code>), Georgia serif, slate tick labels (<code>#64748B</code> inkMuted).
+        Task bar fills are Mermaid-faithful hardcoded palette. Proves the binding drives the full
+        timeline family (gantt + timeline) as one design system foundation.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-gantt.png" alt="executive contract theme gantt — platform modernisation roadmap">
+    </div>
+    <div class="card-footer">
+      <a href="executive-gantt.svg">SVG</a>
+      <a href="mermaid-gantt.mmd">Mermaid Source</a>
     </div>
   </div>
 

@@ -19,9 +19,16 @@
 
 /** A semantic status role: fill + stroke color pair. */
 export interface StatusRole {
-  fill:   string;
-  stroke: string;
+  fill:    string;
+  stroke:  string;
   opacity?: number;
+  /**
+   * Optional fill pattern for status indicators.
+   * Defaults to `'solid'` when absent.
+   * Used by timeline/gantt to communicate cancelled (diagonal-hatch) and
+   * uncertain/tentative (dashed-border) states — but the concept is general.
+   */
+  pattern?: 'solid' | 'diagonal-hatch' | 'dashed-border';
 }
 
 /**
@@ -36,6 +43,18 @@ export interface RolePalette {
   surfaceRaised:   string;
   /** Dark overlay / inverse background. */
   surfaceOverlay:  string;
+  /**
+   * Lane/panel/card background — sits between `surface` and `surfaceRaised`.
+   * Used by: track/lane headers (gantt, timeline), kanban card backgrounds,
+   * table row alternates.  Provides a gentle lift without the full `surfaceRaised`
+   * elevation.
+   */
+  surfacePanel:    string;
+  /**
+   * Text colour for panel/lane header labels (foreground on `surfacePanel`).
+   * Used by: track header text (gantt, timeline), kanban column titles.
+   */
+  inkPanel:        string;
 
   // Content roles
   /** Primary text color. */
@@ -196,6 +215,12 @@ export interface ShapeLanguage {
   strokeScale:     number;
   /** Default connector routing style. */
   connectorStyle:  ConnectorStyle;
+  /**
+   * Default marker/milestone shape.
+   * Used by timeline milestones, chart scatter-point markers, etc.
+   * When absent, each component falls back to its own default.
+   */
+  markerShape?: 'circle' | 'diamond' | 'square' | 'triangle';
 }
 
 // ── Effects ───────────────────────────────────────────────────────────────────
