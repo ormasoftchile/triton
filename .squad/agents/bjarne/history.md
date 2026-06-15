@@ -39,3 +39,4 @@ Archive maintained in history-archive.md.
 - (2026-06-14T23:32:53Z) Theme contract spike succeeded; binding pattern established
 - (2026-06-15T04:09:23Z) **Migration step 1 done** — contract gained 4 tokens (surfacePanel, inkPanel, markerShape, pattern); doc §12 sync pending
 - (2026-06-15T00:15:00Z) **Migration step 2 done** — node-link family on contract; 12 types coherent under executive
+- (2026-06-15T11:35:00Z) **Theme-contract migration COMPLETE** — all 21 diagram types adopt Tier-2 contract; `executive` theme renders coherently; determinism preserved (1976/1976 tests)

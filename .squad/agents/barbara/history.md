@@ -2,7 +2,69 @@
 
 **Owner:** Barbara (Semantics & Rendering)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-14T00:20:00Z (Migration Step 1: Timeline binding complete)
+**Updated:** 2026-06-15T11:42:00-04:00 (Timeline section palette — contract gap closed)
+
+---
+
+## 2026-06-15 — Timeline Section Palette: Contract Gap Closed
+
+### Learnings — sectionPalette fallback-default pattern (2026-06-15T11:42:00-04:00)
+
+Closed the last timeline theme-contract gap: `timeline-columns` section header bands and
+event boxes now consult `theme.sectionPalette` (set from `contract.dataPalette.categorical`
+in `bindTimelineTheme`) instead of a hardcoded Mermaid rainbow.
+
+#### Learnings
+
+1. **`sectionPalette?: string[]` + fallback-default pattern is the right shape for layout-level palette tokens.**
+   Store only the base hex colors in the theme (same format as `dataPalette.categorical`);
+   derive the full per-section color set (header/period/event/text/border) inside the layout
+   using lightweight hex math.  The optional field + unchanged fallback array keeps all legacy
+   themes byte-identical without any conditional branching at the theme-construction layer.
+
+2. **Three deterministic hex helpers are enough for professional palette derivation.**
+   `hexToRgb`, `darkenHex(factor)`, `tintHex(tintFrac)` — no third-party color library needed.
+   Ratios `darken(0.82)` / `tint(0.88)` / `darken(0.45)` / `tint(0.50)` produce section
+   headers (saturated), period sub-headers (dark), event backgrounds (light wash), and text
+   (dark on light) that cohere across all executive categorical hues.
+
+3. **Timeline section fills are now theme-driven.** The executive-timeline section bands now
+   use `categorical[0..7]` from `dataPalette.categorical` — the same hues as executive
+   xychart bars and pie slices.  Visual coherence across all 21 diagram types is complete.
+
+4. **Determinism gate: ONLY executive-timeline.{svg,png} changed.** All 14 legacy timeline
+   theme goldens, all showcase goldens, and all other gallery files are byte-identical because
+   none of them set `sectionPalette`.  Full suite: 1976/1976 tests passing.
+
+#### Files involved
+
+```
+packages/core/src/themes/types.ts              — sectionPalette?: string[] added to ResolvedTheme
+packages/core/src/layout/timeline-columns.ts   — SECTION_PALETTE_DEFAULT fallback + hex derivation helpers
+packages/core/src/themes/contract-binding.ts   — sectionPalette: contract.dataPalette.categorical.slice()
+examples/gallery/executive-timeline.svg/.png   — re-emitted with executive palette
+.squad/decisions/inbox/barbara-timeline-section-palette.md
+```
+
+---
+
+## 2026-06-15 — Charts + Specialized Family Migration Complete
+
+### Learnings from completing the Tier-2 contract migration (2026-06-15T10:35:33-04:00)
+
+Completed the remaining chart-family and specialized-family contract adoption slice: pie, quadrantChart, radar, sankey, gitGraph, journey, kanban, mindmap, and packet now have opt-in executive contract renders.
+
+#### Learnings
+
+1. **Chart-family adoption was pure dispatch work.** `bindChartTheme()` already covered pie, quadrantChart, radar, and xychart; the missing work was only contract-path wiring in `renderMermaid`. This validated the chart grammar as a reusable Tier-3 binding surface.
+
+2. **Specialized grammars only needed thin Tier-3 derivations.** Sankey, gitGraph, journey, kanban, and packet all fit the contract without enriching `ThemeContract`; component geometry stayed local in density tables, while color/type/spacing came from Tier 2.
+
+3. **Mindmap needed a controlled theme seam at the radial layout boundary.** Adding `RadialThemeOpts` to `layoutTreeRadial()` was sufficient to theme canvas/root/branch colors and typography without touching deterministic placement. This is the right pattern for layout-driven diagrams whose geometry is fixed but appearance was previously hardcoded.
+
+4. **Packet needed one backward-compatible token extension.** `PacketTheme.altFieldFill?: string` lets contract themes alternate categorical tints while preserving existing renders via the old `#d5e8d4` fallback. This is a good example of additive Tier-3 evolution that does not require Tier-2 vocabulary growth.
+
+5. **The contract is now proven across all 21 Mermaid families.** No new Tier-2 tokens were needed in this slice. Remaining work is adoption polish (for example timeline section/event palette hardcodes), not contract vocabulary expansion.
 
 ---
 

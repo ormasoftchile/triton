@@ -131,3 +131,10 @@ Tier 1 complete (class/state/er/c4)
 Tier 2 grammar-of-graphics chart foundation shipped: ChartDocument Domain IR, LinearScale/BandScale, deterministic layout with priority-based label collision avoidance. Pie + xychart-beta operational. 1361 tests, zero regressions. Foundation for quadrant + radar (reuse only). Commit 5b709cf.
 
 **2026-06-14:** Real-Mermaid fidelity pass: 6 diagram types fixed & A/B-verified (gitGraph, journey, mindmap, sankey, gantt, timeline).
+
+## 2026-06-15 — Theme-Contract Migration COMPLETE
+
+**Date:** 2026-06-15T11:35:00Z  
+**Status:** SHIPPED
+
+All 21 Mermaid diagram types now adopt the Tier-2 `ThemeContract`. The `executive` contract theme renders all 21 coherently (white surface, Georgia serif, slate ink, navy accent, shared navy-anchored categorical palette). Adoption is opt-in; legacy themes byte-identical. Timeline section fills now theme-driven. Design §12 synced (4 tokens + implementation status). 1976/1976 tests passing; determinism preserved. Commits: bd2ccc4 (spike), 4a943e9 (step1), 8101a00 (node-link), a6a2ff5 (charts+specialized), 703c4cd (timeline fills), 0e8a5fb (doc).

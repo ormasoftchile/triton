@@ -6,6 +6,30 @@ Decisions guide future work. Never deleted; deferred decisions remain visible.
 
 ## Active Decisions
 
+### Decision: THEME-CONTRACT MIGRATION COMPLETE — All 21 Diagram Types Adopted Tier-2 Contract
+
+**Agent:** Barbara (Semantics & Rendering), Leslie (Spec Architect), Scribe  
+**Date:** 2026-06-15  
+**Status:** COMPLETE
+
+#### Summary
+
+The theme-contract migration is now complete. All 21 Mermaid diagram types adopt the Tier-2 `ThemeContract` via per-component bindings (`grammars/<c>/contract-binding.ts` + `themes/contract-binding.ts` for timeline). The `executive` contract theme renders all 21 diagram types coherently: white surface, Georgia serif, slate ink, navy accent, shared navy-anchored categorical data palette. Adoption is opt-in: contract theme names resolve via bindings; all legacy named themes remain byte-identical (legacy-wins precedence). Timeline section fills now consult `theme.sectionPalette` with fallback default preserving legacy behavior. Design §12 synced (4 step-1 tokens + implementation-status subsection). Determinism preserved across the entire migration; 1976/1976 tests passing. Gallery fully re-emitted; all 14 legacy timeline goldens and all showcase goldens byte-identical.
+
+#### Artifacts
+
+- **Commits:** bd2ccc4 (spike), 4a943e9 (step1 timeline), 8101a00 (node-link), a6a2ff5 (charts+specialized), 703c4cd (timeline fills), 0e8a5fb (doc sync).
+- **Files changed:** 21 diagram families (12 core grammar bindings + timeline binding + 3 theme support files + design doc + gallery).
+- **New Tier-2 tokens discovered:** `surfacePanel`, `inkPanel`, `markerShape`, `pattern`.
+
+#### Next Steps (Future)
+
+- Add more named contract themes beyond `executive`.
+- Expose theme/token/layout selection via Mermaid config surface.
+- Explore superset extensions (e.g., data-driven per-diagram palettes).
+
+---
+
 ### Decision: MIGRATION STEP 1 DONE — Timeline ResolvedTheme → Tier-2 Contract
 
 **Agent:** Barbara (Semantics & Rendering)  
