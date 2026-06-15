@@ -338,5 +338,10 @@ export function bindTimelineTheme(contract: ThemeContract): ResolvedTheme {
 
     // Entry cards: enable when fidelity >= 2 and corner radius is set
     entryStyle: (effects.fidelity >= 2 && shape.cornerRadius > 0) ? 'card' : 'plain',
+
+    // Section-column palette: drive timeline-columns section bands from the
+    // contract's categorical data palette instead of the Mermaid rainbow.
+    // The layout derives full per-section SectionColors from each base hex.
+    sectionPalette: contract.dataPalette.categorical.slice(),
   };
 }

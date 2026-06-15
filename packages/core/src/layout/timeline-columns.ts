@@ -74,7 +74,14 @@ interface SectionColors {
   eventBorder: string;
 }
 
-const SECTION_PALETTE: SectionColors[] = [
+/**
+ * Mermaid-faithful fallback palette (8 distinct hues).
+ *
+ * Used verbatim when `theme.sectionPalette` is not set, guaranteeing that
+ * every existing legacy theme produces BYTE-IDENTICAL output after this change.
+ * Do NOT modify this array — it must stay exactly as originally shipped.
+ */
+const SECTION_PALETTE_DEFAULT: SectionColors[] = [
   // Indigo
   {
     header:      '#5368D4',
@@ -148,6 +155,84 @@ const SECTION_PALETTE: SectionColors[] = [
     eventBorder: '#90B8D8',
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Section color derivation from a single base hex color
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a `#RRGGBB` hex color into its R/G/B channel values.
+ * Deterministic (no locale, no Date, no random).
+ */
+function hexToRgb(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return [r, g, b];
+}
+
+/** Encode R/G/B channel values back to `#RRGGBB`. */
+function rgbToHex(r: number, g: number, b: number): string {
+  const clamp = (v: number) => Math.min(255, Math.max(0, Math.round(v)));
+  return '#' + [clamp(r), clamp(g), clamp(b)].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+/** Darken a hex color by multiplying each channel by `factor` (0–1). */
+function darkenHex(hex: string, factor: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  return rgbToHex(r * factor, g * factor, b * factor);
+}
+
+/** Tint a hex color toward white by blending `tintFrac` (0 = original, 1 = white). */
+function tintHex(hex: string, tintFrac: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  return rgbToHex(
+    r + (255 - r) * tintFrac,
+    g + (255 - g) * tintFrac,
+    b + (255 - b) * tintFrac,
+  );
+}
+
+/**
+ * Derive a full SectionColors entry from a single base hex color.
+ *
+ * Derivation ratios are chosen to produce:
+ *   header      — the base color itself (saturated, authoritative band fill)
+ *   period      — darkened 18 % (reads as a sub-header under the section band)
+ *   event       — tinted 88 % toward white (very light wash for legibility)
+ *   headerText  — always #FFFFFF (works for all executive palette entries)
+ *   eventText   — darkened 55 % (dark text, always legible on the light event bg)
+ *   eventBorder — tinted 50 % toward white (medium-saturation outline)
+ */
+function sectionColorsFromBase(base: string): SectionColors {
+  return {
+    header:      base,
+    period:      darkenHex(base, 0.82),
+    event:       tintHex(base, 0.88),
+    headerText:  '#FFFFFF',
+    eventText:   darkenHex(base, 0.45),
+    eventBorder: tintHex(base, 0.50),
+  };
+}
+
+/**
+ * Resolve the section-color entry for index `i` from the theme.
+ *
+ * When `theme.sectionPalette` is set, derive full SectionColors from the
+ * base color at `i % palette.length` — allowing contract themes (executive)
+ * to drive section bands from their data palette.
+ *
+ * When not set, fall back to SECTION_PALETTE_DEFAULT — the unchanged
+ * Mermaid-faithful array, guaranteeing byte-identical output for all
+ * legacy themes that do not supply sectionPalette.
+ */
+function resolveSectionColors(theme: import('../themes/types.js').ResolvedTheme, i: number): SectionColors {
+  if (theme.sectionPalette && theme.sectionPalette.length > 0) {
+    const base = theme.sectionPalette[i % theme.sectionPalette.length]!;
+    return sectionColorsFromBase(base);
+  }
+  return SECTION_PALETTE_DEFAULT[i % SECTION_PALETTE_DEFAULT.length]!;
+}
 
 // ---------------------------------------------------------------------------
 // Geometric constants
@@ -276,8 +361,9 @@ function buildSectionTree(ir: IRDocument): ColumnSection[] {
  * Produce a Scene for the Mermaid-faithful section-column timeline layout.
  *
  * Called exclusively via `layout()` when family === 'timeline-columns'.
- * The `theme` parameter is consumed for typography and canvas defaults only;
- * section colors are provided by the internal SECTION_PALETTE.
+ * Typography and canvas come from the `theme` parameter.  Section colors come
+ * from `theme.sectionPalette` (when set — e.g. executive contract) or from the
+ * built-in Mermaid-faithful SECTION_PALETTE_DEFAULT (all legacy themes).
  */
 export function layoutTimelineColumns(
   ir:       IRDocument,
@@ -369,7 +455,7 @@ export function layoutTimelineColumns(
 
   for (let si = 0; si < sections.length; si++) {
     const section   = sections[si]!;
-    const colors    = SECTION_PALETTE[si % SECTION_PALETTE.length]!;
+    const colors    = resolveSectionColors(theme, si);
     const sectionW  = rhuInt(colW * section.periods.length);
 
     // ── Section header band ───────────────────────────────────────────────

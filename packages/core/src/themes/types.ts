@@ -580,4 +580,25 @@ export interface ResolvedTheme {
    * Has NO effect on horizontal, vertical-spine, or serpentine layouts.
    */
   roadmap?: RoadmapTheme;
+
+  /**
+   * Base color palette for `timeline-columns` section header bands and event boxes.
+   *
+   * Each entry is a hex color string used as the "base" hue for one section.
+   * Colors are applied cyclically: section 0 → [0], section 1 → [1], etc.
+   * The full per-section color set (header fill, period fill, event background,
+   * text colors, borders) is derived from each base color inside the layout engine.
+   *
+   * ## Determinism guarantee
+   * OPTIONAL.  When not set, `timeline-columns` falls back to its built-in
+   * Mermaid-faithful indigo/orange/emerald/purple rainbow palette — keeping all
+   * existing golden outputs BYTE-IDENTICAL.  Only themes that explicitly set this
+   * field (e.g. the `executive` contract binding) will see changed section colors.
+   *
+   * ## Usage
+   * Set from `contract.dataPalette.categorical` in `bindTimelineTheme()` so that
+   * the executive (and any future contract) timeline sections wear the same
+   * data-palette hues as charts and other data-driven diagram types.
+   */
+  sectionPalette?: string[];
 }
