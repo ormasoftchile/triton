@@ -34,9 +34,16 @@ import type { Scene } from '../../scene.js';
 import { sceneHash as computeSceneHash } from '../../scene.js';
 
 import { CONTRACT_THEMES, isContractTheme } from '../../theme-contract/index.js';
-import { bindFlowTheme }     from '../../grammars/flow/contract-binding.js';
-import { bindSequenceTheme } from '../../grammars/sequence/contract-binding.js';
-import { bindChartTheme }    from '../../grammars/chart/contract-binding.js';
+import { bindFlowTheme }         from '../../grammars/flow/contract-binding.js';
+import { bindSequenceTheme }     from '../../grammars/sequence/contract-binding.js';
+import { bindChartTheme }        from '../../grammars/chart/contract-binding.js';
+import { bindClassTheme }        from '../../grammars/class/contract-binding.js';
+import { bindStateTheme }        from '../../grammars/state/contract-binding.js';
+import { bindErTheme }           from '../../grammars/er/contract-binding.js';
+import { bindC4Theme }           from '../../grammars/c4/contract-binding.js';
+import { bindRequirementTheme }  from '../../grammars/requirement/contract-binding.js';
+import { bindBlockTheme }        from '../../grammars/block/contract-binding.js';
+import { bindArchitectureTheme } from '../../grammars/architecture/contract-binding.js';
 
 import {
   buildFlowScene,
@@ -634,7 +641,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseClassDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-class';
-    const classTheme = resolveClassTheme(themeName);
+    const classTheme = isContractTheme(themeName)
+      ? bindClassTheme(CONTRACT_THEMES[themeName]!)
+      : resolveClassTheme(themeName);
     const finalDoc: ClassDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildClassScene(finalDoc, classTheme);
     const hash = computeSceneHash(scene);
@@ -649,7 +658,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseStateDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-state';
-    const stateTheme = resolveStateTheme(themeName);
+    const stateTheme = isContractTheme(themeName)
+      ? bindStateTheme(CONTRACT_THEMES[themeName]!)
+      : resolveStateTheme(themeName);
     const finalDoc: StateDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildStateScene(finalDoc, stateTheme);
     const hash = computeSceneHash(scene);
@@ -664,7 +675,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseErDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-er';
-    const erTheme = resolveErTheme(themeName);
+    const erTheme = isContractTheme(themeName)
+      ? bindErTheme(CONTRACT_THEMES[themeName]!)
+      : resolveErTheme(themeName);
     const finalDoc: ErDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildErScene(finalDoc, erTheme);
     const hash = computeSceneHash(scene);
@@ -678,7 +691,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseC4DiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-c4';
-    const c4Theme = resolveC4Theme(themeName);
+    const c4Theme = isContractTheme(themeName)
+      ? bindC4Theme(CONTRACT_THEMES[themeName]!)
+      : resolveC4Theme(themeName);
     const finalDoc: C4Document = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildC4Scene(finalDoc, c4Theme);
     const hash = computeSceneHash(scene);
@@ -794,7 +809,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseRequirementDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-requirement';
-    const reqTheme = resolveRequirementTheme(themeName);
+    const reqTheme = isContractTheme(themeName)
+      ? bindRequirementTheme(CONTRACT_THEMES[themeName]!)
+      : resolveRequirementTheme(themeName);
     const finalDoc: RequirementDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildRequirementScene(finalDoc, reqTheme);
     const hash = computeSceneHash(scene);
@@ -824,7 +841,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseBlockDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-block';
-    const blockTheme = resolveBlockTheme(themeName);
+    const blockTheme = isContractTheme(themeName)
+      ? bindBlockTheme(CONTRACT_THEMES[themeName]!)
+      : resolveBlockTheme(themeName);
     const finalDoc: BlockDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildBlockScene(finalDoc, blockTheme);
     const hash = computeSceneHash(scene);
@@ -855,7 +874,9 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseArchitectureDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-architecture';
-    const architectureTheme = resolveArchitectureTheme(themeName);
+    const architectureTheme = isContractTheme(themeName)
+      ? bindArchitectureTheme(CONTRACT_THEMES[themeName]!)
+      : resolveArchitectureTheme(themeName);
     const finalDoc: ArchitectureDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildArchitectureScene(finalDoc, architectureTheme);
     const hash = computeSceneHash(scene);

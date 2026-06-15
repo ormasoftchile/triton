@@ -1252,8 +1252,9 @@
 <!-- ═══════════════════════════════════════════════════════════════════════════
      Theme Contract Spike (executive) — Examples 45–47
      Migration Step 1 (timeline binding) — Examples 48–49
-     One executive theme, five component types, one coherent design system.
-     All five share: navy accent #1F497D, Georgia serif, white surface,
+     Node-Link Family Migration — Examples 50–56
+     One executive theme, twelve component types, one coherent design system.
+     All share: navy accent #1F497D, Georgia serif, white surface,
      comfortable density, elbow connectors, 4px corner radius.
      ═══════════════════════════════════════════════════════════════════════════ -->
 <div class="gallery-section-header" style="background:#1F497D;color:#fff;padding:18px 32px;margin:48px 0 0;border-radius:4px 4px 0 0;">
@@ -1391,6 +1392,180 @@
     <div class="card-footer">
       <a href="executive-gantt.svg">SVG</a>
       <a href="mermaid-gantt.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     Node-Link Family Migration — Examples 50–56
+     Class · State · ER · C4 · Requirement · Block · Architecture
+     All 7 adopt the executive contract. One design system, 7 node-link types.
+     Navy #1F497D accent · Georgia serif · white canvas · comfortable density
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="gallery-section-header" style="background:#0D2B4E;color:#fff;padding:18px 32px;margin:48px 0 0;border-radius:4px 4px 0 0;">
+  <strong>Node-Link Family Migration — <code style="color:#6B92BF">executive</code></strong>
+  &nbsp;·&nbsp; 7 components bound to Tier-2 contract (§12) &nbsp;·&nbsp; 2026-06-15
+  <div style="font-size:13px;margin-top:6px;color:#BDD4EB;">
+    Class · State · ER · C4 · Requirement · Block · Architecture — all 7 wear the same
+    navy/slate/white palette, Georgia serif, 4px corner radius, comfortable density.
+  </div>
+</div>
+<div class="gallery">
+
+  <!-- 50. executive-class — Tier-2 contract, class binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 50 · executive-class</div>
+      <div class="card-title">Executive Class — E-Commerce Domain Model
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">classDiagram</span>
+      </div>
+      <div class="card-desc">
+        <code>bindClassTheme(CONTRACT_THEMES.executive)</code>. Georgia serif in all compartments;
+        navy accent (#1F497D) title borders; muted (#F1F5F9) title band; slate ink; comfortable density.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-class.png" alt="executive theme class diagram — E-Commerce Domain Model">
+    </div>
+    <div class="card-footer">
+      <a href="executive-class.svg">SVG</a>
+      <a href="mermaid-class.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 51. executive-state — Tier-2 contract, state binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 51 · executive-state</div>
+      <div class="card-title">Executive State — Order Payment Lifecycle
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">stateDiagram</span>
+      </div>
+      <div class="card-desc">
+        <code>bindStateTheme(CONTRACT_THEMES.executive)</code>. Composite state with navy accent
+        boundary, dark-slate pseudostates, comfortable spacing. Georgia serif throughout.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-state.png" alt="executive theme state diagram — Order Payment Lifecycle">
+    </div>
+    <div class="card-footer">
+      <a href="executive-state.svg">SVG</a>
+      <a href="mermaid-state.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 52. executive-er — Tier-2 contract, ER binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 52 · executive-er</div>
+      <div class="card-title">Executive ER — E-Commerce Schema
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">erDiagram</span>
+      </div>
+      <div class="card-desc">
+        <code>bindErTheme(CONTRACT_THEMES.executive)</code>. Crow's-foot notation; navy (#1F497D)
+        PK/FK key accent; muted title bands; comfortable entity spacing. Georgia serif.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-er.png" alt="executive theme ER diagram — E-Commerce Schema">
+    </div>
+    <div class="card-footer">
+      <a href="executive-er.svg">SVG</a>
+      <a href="mermaid-er.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 53. executive-c4 — Tier-2 contract, C4 binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 53 · executive-c4</div>
+      <div class="card-title">Executive C4 — Internet Banking System Context
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">C4Context</span>
+      </div>
+      <div class="card-desc">
+        <code>bindC4Theme(CONTRACT_THEMES.executive)</code>. Navy accent hierarchy for internal
+        elements (accentStrong → accent → accentMuted → muted); muted grey for externals.
+        Dashed enterprise boundary. Georgia serif.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-c4.png" alt="executive theme C4 Context diagram — Internet Banking System">
+    </div>
+    <div class="card-footer">
+      <a href="executive-c4.svg">SVG</a>
+      <a href="mermaid-c4.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 54. executive-requirement — Tier-2 contract, requirement binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 54 · executive-requirement</div>
+      <div class="card-title">Executive Requirement — Auth System
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">requirementDiagram</span>
+      </div>
+      <div class="card-desc">
+        <code>bindRequirementTheme(CONTRACT_THEMES.executive)</code>. Muted title bands; navy
+        accent borders; «kind» edge pills with surface fill and borderStrong stroke; comfortable spacing.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-requirement.png" alt="executive theme requirement diagram — Auth System">
+    </div>
+    <div class="card-footer">
+      <a href="executive-requirement.svg">SVG</a>
+      <a href="mermaid-requirement.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 55. executive-block — Tier-2 contract, block binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 55 · executive-block</div>
+      <div class="card-title">Executive Block — Service Architecture
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">block-beta</span>
+      </div>
+      <div class="card-desc">
+        <code>bindBlockTheme(CONTRACT_THEMES.executive)</code>. Navy accent block borders on muted
+        fill; clean arrow routes; comfortable cell grid. Georgia serif. No explicit background rect
+        (transparent canvas — white in browser).
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-block.png" alt="executive theme block diagram — Service Architecture">
+    </div>
+    <div class="card-footer">
+      <a href="executive-block.svg">SVG</a>
+      <a href="mermaid-block.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- 56. executive-architecture — Tier-2 contract, architecture binding -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Example 56 · executive-architecture</div>
+      <div class="card-title">Executive Architecture — Cloud Services
+        <span class="tag tag-milestones">executive theme</span>
+        <span class="tag tag-sublanes">architecture-beta</span>
+      </div>
+      <div class="card-desc">
+        <code>bindArchitectureTheme(CONTRACT_THEMES.executive)</code>. Navy accent service icons;
+        dashed muted group boundaries; borderStrong edges; comfortable grid. Georgia serif.
+      </div>
+    </div>
+    <div class="card-img">
+      <img src="executive-architecture.png" alt="executive theme architecture diagram — Cloud Services">
+    </div>
+    <div class="card-footer">
+      <a href="executive-architecture.svg">SVG</a>
+      <a href="mermaid-architecture.mmd">Mermaid Source</a>
     </div>
   </div>
 

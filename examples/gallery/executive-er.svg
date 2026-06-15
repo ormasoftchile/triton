@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="703" version="1.1" viewBox="0 0 656 703" width="656" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#94A3B8" stroke-width="1.5" x1="498" x2="498" y1="230" y2="253"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="362" x2="294" y1="352" y2="352"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="158" x2="158" y1="239" y2="243"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="362" x2="294" y1="131" y2="131"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="158" x2="158" y1="493" y2="239"/>
+  <rect fill="#F8F9FA" height="165" rx="4" stroke="#E2E8F0" stroke-width="1" width="220" x="48" y="48"/>
+  <rect fill="#F1F5F9" height="46" rx="4" stroke="#1F497D" stroke-width="1.5" width="220" x="48" y="48"/>
+  <line stroke="#E2E8F0" stroke-width="1" x1="48" x2="268" y1="94" y2="94"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" text-anchor="middle" x="158" y="74">PRODUCT</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="117">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="105" y="117">id</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="700" text-anchor="start" x="151" y="117">PK</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="136">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="105" y="136">sku</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="155">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="105" y="155">name</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="174">float</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="105" y="174">price</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="193">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="105" y="193">stock</text>
+  <rect fill="#F8F9FA" height="146" rx="4" stroke="#E2E8F0" stroke-width="1" width="220" x="388" y="58"/>
+  <rect fill="#F1F5F9" height="46" rx="4" stroke="#1F497D" stroke-width="1.5" width="220" x="388" y="58"/>
+  <line stroke="#E2E8F0" stroke-width="1" x1="388" x2="608" y1="104" y2="104"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" text-anchor="middle" x="498" y="84">CUSTOMER</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="127">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="127">id</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="700" text-anchor="start" x="504" y="127">PK</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="146">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="146">name</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="165">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="165">email</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="184">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="184">address</text>
+  <rect fill="#F8F9FA" height="165" rx="4" stroke="#E2E8F0" stroke-width="1" width="220" x="48" y="269"/>
+  <rect fill="#F1F5F9" height="46" rx="4" stroke="#1F497D" stroke-width="1.5" width="220" x="48" y="269"/>
+  <line stroke="#E2E8F0" stroke-width="1" x1="48" x2="268" y1="315" y2="315"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" text-anchor="middle" x="158" y="295">LINE_ITEM</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="338">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="100" y="338">id</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="700" text-anchor="start" x="173" y="338">PK</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="357">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="100" y="357">order_id</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="700" text-anchor="start" x="173" y="357">FK</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="376">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="100" y="376">product_id</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="700" text-anchor="start" x="173" y="376">FK</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="395">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="100" y="395">quantity</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="414">float</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="100" y="414">unit_price</text>
+  <rect fill="#F8F9FA" height="146" rx="4" stroke="#E2E8F0" stroke-width="1" width="220" x="388" y="279"/>
+  <rect fill="#F1F5F9" height="46" rx="4" stroke="#1F497D" stroke-width="1.5" width="220" x="388" y="279"/>
+  <line stroke="#E2E8F0" stroke-width="1" x1="388" x2="608" y1="325" y2="325"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" text-anchor="middle" x="498" y="305">ORDER</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="348">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="348">id</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="700" text-anchor="start" x="519" y="348">PK</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="367">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="367">status</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="386">date</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="386">created_at</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="404" y="405">float</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="445" y="405">total</text>
+  <rect fill="#F8F9FA" height="108" rx="4" stroke="#E2E8F0" stroke-width="1" width="220" x="48" y="519"/>
+  <rect fill="#F1F5F9" height="46" rx="4" stroke="#1F497D" stroke-width="1.5" width="220" x="48" y="519"/>
+  <line stroke="#E2E8F0" stroke-width="1" x1="48" x2="268" y1="565" y2="565"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" text-anchor="middle" x="158" y="545">CATEGORY</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="588">int</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="105" y="588">id</text>
+  <text dominant-baseline="alphabetic" fill="#1F497D" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="700" text-anchor="start" x="151" y="588">PK</text>
+  <text dominant-baseline="alphabetic" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="64" y="607">string</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="start" x="105" y="607">name</text>
+  <path d="M 506 210 L 490 210" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 506 216 L 490 216" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 494 274 A 4.199999999999999 4.199999999999999 0 1 0 502 274 A 4.199999999999999 4.199999999999999 0 1 0 494 274 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 498 257 L 498 267" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 498 257 L 505 263" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 498 257 L 491 263" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 382 360 L 382 344" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 376 360 L 376 344" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 274 344 L 274 360" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 352 L 280 352" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 352 L 284 359" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 352 L 284 345" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 166 219 L 150 219" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 166 225 L 150 225" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 154 264 A 4.199999999999999 4.199999999999999 0 1 0 162 264 A 4.199999999999999 4.199999999999999 0 1 0 154 264 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 158 247 L 158 257" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 158 247 L 165 253" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 158 247 L 151 253" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 379 131 A 4.199999999999999 4.199999999999999 0 1 0 387 131 A 4.199999999999999 4.199999999999999 0 1 0 379 131 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 366 131 L 376 131" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 366 131 L 372 124" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 366 131 L 372 138" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 269 131 A 4.199999999999999 4.199999999999999 0 1 0 277 131 A 4.199999999999999 4.199999999999999 0 1 0 269 131 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 131 L 280 131" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 131 L 284 138" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 131 L 284 124" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 150 513 L 166 513" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 150 507 L 166 507" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 166 219 L 150 219" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 158 235 L 158 225" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 158 235 L 151 229" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 158 235 L 165 229" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="510" y="242">places</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="328" y="364">contains</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="170" y="241">ordered in</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="328" y="143">wishlist</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="146" y="366">categorizes</text>
+</svg>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="908" version="1.1" viewBox="0 0 626 908" width="626" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#94A3B8" stroke-width="1.5" x1="314" x2="313" y1="71" y2="91"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="313" x2="313" y1="146" y2="166"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="313" x2="313" y1="291" y2="311"/>
+  <path d="M 48 235 L 16 235 L 16 420 L 221 420" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 233 420 L 16 420 L 16 849 L 290 849" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="93" x2="121" y1="242" y2="242"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="293" x2="321" y1="242" y2="242"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="493" x2="521" y1="242" y2="242"/>
+  <path d="M 233 345 L 16 345 L 16 489 L 285 489" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="313" x2="313" y1="505" y2="525"/>
+  <path d="M 297 489 L 16 489 L 16 634 L 221 634" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="313" x2="313" y1="612" y2="592"/>
+  <path d="M 233 559 L 16 559 L 16 709 L 221 709" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="313" x2="313" y1="730" y2="750"/>
+  <line stroke="#94A3B8" stroke-width="1.5" x1="313" x2="314" y1="805" y2="825"/>
+  <path d="M 233 559 L 16 559 L 16 849 L 290 849" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 304 60 A 10 10 0 1 0 324 60 A 10 10 0 1 0 304 60 Z" fill="#1E293B" stroke="#1E293B" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="233" y="103"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="313" y="129">Idle</text>
+  <rect fill="#F8F9FA" height="113" rx="6" stroke="#1F497D" stroke-width="1.5" width="530" x="48" y="178"/>
+  <line stroke="#1F497D" stroke-width="1" x1="48" x2="578" y1="206" y2="206"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" text-anchor="start" x="64" y="204">Processing</text>
+  <path d="M 72 242 A 10 10 0 1 0 92 242 A 10 10 0 1 0 72 242 Z" fill="#1E293B" stroke="#1E293B" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="133" y="220"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="213" y="246">Validating</text>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="333" y="220"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="413" y="246">Charging</text>
+  <path d="M 535 242 A 10 10 0 1 0 555 242 A 10 10 0 1 0 535 242 Z" fill="#FFFFFF" stroke="#1E293B" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 540 242 A 5.5 5.5 0 1 0 551 242 A 5.5 5.5 0 1 0 540 242 Z" fill="#1E293B" stroke="#1E293B" stroke-linecap="round" stroke-width="1"/>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="233" y="323"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="313" y="349">Authorized</text>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="233" y="398"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="313" y="424">Failed</text>
+  <path d="M 313 473 L 329 489 L 313 505 L 297 489 Z" fill="#F1F5F9" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="233" y="537"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="313" y="563">Completed</text>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="233" y="612"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="313" y="638">PartialPay</text>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="233" y="687"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="313" y="713">Refunding</text>
+  <rect fill="#F8F9FA" height="43" rx="4" stroke="#E2E8F0" stroke-width="1.5" width="160" x="233" y="762"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="600" text-anchor="middle" x="313" y="788">Refunded</text>
+  <path d="M 304 849 A 10 10 0 1 0 324 849 A 10 10 0 1 0 304 849 Z" fill="#FFFFFF" stroke="#1E293B" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 309 849 A 5.5 5.5 0 1 0 320 849 A 5.5 5.5 0 1 0 309 849 Z" fill="#1E293B" stroke="#1E293B" stroke-linecap="round" stroke-width="1"/>
+  <path d="M 306 91 L 313 103 L 321 91" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 306 166 L 313 178 L 320 166" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 306 311 L 313 323 L 320 311" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 221 427 L 233 420 L 221 413" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 856 L 302 849 L 290 842" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 121 249 L 133 242 L 121 235" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 321 249 L 333 242 L 321 235" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 521 249 L 533 242 L 521 235" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 285 496 L 297 489 L 285 482" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 306 525 L 313 537 L 320 525" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 221 641 L 233 634 L 221 627" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 320 592 L 313 580 L 306 592" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 221 716 L 233 709 L 221 702" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 306 750 L 313 762 L 320 750" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 306 825 L 314 837 L 321 825" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 290 856 L 302 849 L 290 842" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="301" y="157">order_placed</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="301" y="302">authorize [amount &gt; 0]</text>
+  <rect fill="#FFFFFF" height="15" rx="2" stroke="none" stroke-width="0" width="113" x="19" y="321"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="22" y="328">authorize [amount &lt;= 0]</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="307" y="254">valid</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="301" y="516">[full payment]</text>
+  <rect fill="#FFFFFF" height="15" rx="2" stroke="none" stroke-width="0" width="39" x="19" y="555"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="22" y="562">[partial]</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="325" y="601">remaining paid</text>
+  <rect fill="#FFFFFF" height="15" rx="2" stroke="none" stroke-width="0" width="85" x="19" y="627"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="start" x="22" y="634">refund_requested</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="301" y="741">process_refund</text>
+</svg>
