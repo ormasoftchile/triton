@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="312" version="1.1" viewBox="0 0 863 312" width="863" xmlns="http://www.w3.org/2000/svg">
+  <line opacity="1" stroke="#33FF00" stroke-width="3" x1="167" x2="815" y1="48" y2="48"/>
+  <line opacity="1" stroke="#FFB800" stroke-width="3" x1="239" x2="671" y1="120" y2="120"/>
+  <line opacity="1" stroke="#00FFFF" stroke-width="3" x1="383" x2="455" y1="192" y2="192"/>
+  <line opacity="1" stroke="#FF3333" stroke-width="3" x1="599" x2="599" y1="264" y2="264"/>
+  <path d="M 167 48 C 167 84 239 84 239 120" fill="none" opacity="1" stroke="#FFB800" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 311 120 C 311 156 383 156 383 192" fill="none" opacity="1" stroke="#00FFFF" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 527 120 C 527 192 599 192 599 264" fill="none" opacity="1" stroke="#FF3333" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 455 192 C 455 156 527 156 527 120" fill="none" opacity="1" stroke="#00FFFF" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 599 264 C 599 192 671 192 671 120" fill="none" opacity="1" stroke="#FF3333" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 671 120 C 671 84 743 84 743 48" fill="none" opacity="1" stroke="#FFB800" stroke-linecap="round" stroke-width="3"/>
+  <circle cx="167" cy="48" fill="#33FF00" r="8" stroke="#33FF00" stroke-width="2"/>
+  <circle cx="239" cy="120" fill="#FFB800" r="8" stroke="#FFB800" stroke-width="2"/>
+  <circle cx="311" cy="120" fill="#FFB800" r="8" stroke="#FFB800" stroke-width="2"/>
+  <circle cx="383" cy="192" fill="#00FFFF" r="8" stroke="#00FFFF" stroke-width="2"/>
+  <circle cx="455" cy="192" fill="#00FFFF" r="8" stroke="#00FFFF" stroke-width="2"/>
+  <circle cx="527" cy="120" fill="#0C0C0C" r="8" stroke="#FFB800" stroke-width="4"/>
+  <circle cx="599" cy="264" fill="#FF3333" r="8" stroke="#FF3333" stroke-width="2"/>
+  <circle cx="671" cy="120" fill="#0C0C0C" r="8" stroke="#FFB800" stroke-width="4"/>
+  <circle cx="743" cy="48" fill="#0C0C0C" r="8" stroke="#33FF00" stroke-width="4"/>
+  <rect fill="#33FF00" height="18" rx="2" stroke="#33FF00" stroke-width="2" width="18" x="806" y="39"/>
+  <rect fill="#33FF00" height="22" rx="11" width="50" x="47" y="37"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="72" y="48">main</text>
+  <rect fill="#FFB800" height="22" rx="11" width="66" x="39" y="109"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="72" y="120">develop</text>
+  <rect fill="#00FFFF" height="22" rx="11" width="90" x="27" y="181"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="72" y="192">feature/auth</text>
+  <rect fill="#FF3333" height="22" rx="11" width="119" x="12" y="253"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="72" y="264">feature/payments</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="167" y="68">initial</text>
+  <path d="M 164 24 L 156 24 Q 152 24 152 20 L 152 12 Q 152 8 156 8 L 179 8 Q 183 8 183 12 L 183 20 Q 183 24 179 24 L 170 24 L 167 30 Z" fill="#111111" stroke="#2C2C2C" stroke-width="1"/>
+  <text dominant-baseline="middle" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="8" font-weight="700" text-anchor="middle" x="167" y="16">v0.1</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="239" y="140">setup-ci</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="311" y="140">add-tests</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="383" y="212">auth-model</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="455" y="212">auth-api</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="527" y="140">merge-auth</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="599" y="284">payment-model</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="671" y="140">merge-payments</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="743" y="68">release-1.0</text>
+  <path d="M 740 24 L 732 24 Q 728 24 728 20 L 728 12 Q 728 8 732 8 L 755 8 Q 759 8 759 12 L 759 20 Q 759 24 755 24 L 746 24 L 743 30 Z" fill="#111111" stroke="#2C2C2C" stroke-width="1"/>
+  <text dominant-baseline="middle" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="8" font-weight="700" text-anchor="middle" x="743" y="16">v1.0</text>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="815" y="68">hotfix-typo</text>
+</svg>

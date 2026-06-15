@@ -480,3 +480,25 @@ export type {
   PortSide,
   ArrowType,
 } from './grammars/architecture/index.js';
+
+// Tier-2 Theme Contract — public API for config-surface and custom themes
+export {
+  CONTRACT_THEMES,
+  isContractTheme,
+  resolveContractTheme,
+  executive,
+  midnight,
+  blueprint,
+  editorial,
+} from './theme-contract/index.js';
+export type {
+  ThemeContract,
+  RolePalette,
+  DataPalette,
+  Typography,
+  Spacing,
+  Density,
+  ShapeLanguage,
+  Effects,
+  ResolveContractOptions,
+} from './theme-contract/index.js';

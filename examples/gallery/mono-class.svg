@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="820" version="1.1" viewBox="0 0 504 820" width="504" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#9E9E9E" stroke-width="1.5" x1="122" x2="122" y1="197" y2="217"/>
+  <line stroke="#9E9E9E" stroke-width="1.5" x1="122" x2="122" y1="418" y2="445"/>
+  <line stroke="#9E9E9E" stroke-width="1.5" x1="122" x2="122" y1="572" y2="629"/>
+  <line stroke="#9E9E9E" stroke-dasharray="6,4" stroke-width="1.5" x1="382" x2="382" y1="239" y2="197"/>
+  <line stroke="#9E9E9E" stroke-width="1.5" x1="212" x2="290" y1="115" y2="497"/>
+  <line stroke="#9E9E9E" stroke-width="1.5" x1="292" x2="217" y1="509" y2="323"/>
+  <rect fill="#F5F5F5" height="165" rx="2" stroke="#D4D4D4" stroke-width="1" width="180" x="32" y="32"/>
+  <rect fill="#F0F0F0" height="38" rx="2" stroke="#595959" stroke-width="1.5" width="180" x="32" y="32"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="32" x2="212" y1="70" y2="70"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="32" x2="212" y1="143" y2="143"/>
+  <text dominant-baseline="alphabetic" fill="#2E2E2E" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="122" y="53">Customer</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="88">+id: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="107">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="126">+email: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="161">+register()</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="180">+login(): bool</text>
+  <rect fill="#F5F5F5" height="165" rx="2" stroke="#D4D4D4" stroke-width="1" width="180" x="32" y="229"/>
+  <rect fill="#F0F0F0" height="38" rx="2" stroke="#595959" stroke-width="1.5" width="180" x="32" y="229"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="32" x2="212" y1="267" y2="267"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="32" x2="212" y1="340" y2="340"/>
+  <text dominant-baseline="alphabetic" fill="#2E2E2E" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="122" y="250">Order</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="285">+orderId: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="304">+createdAt: Date</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="323">+total: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="358">+submit()</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="377">+cancel(): bool</text>
+  <rect fill="#F5F5F5" height="127" rx="2" stroke="#D4D4D4" stroke-width="1" width="180" x="32" y="445"/>
+  <rect fill="#F0F0F0" height="38" rx="2" stroke="#595959" stroke-width="1.5" width="180" x="32" y="445"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="32" x2="212" y1="483" y2="483"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="32" x2="212" y1="537" y2="537"/>
+  <text dominant-baseline="alphabetic" fill="#2E2E2E" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="122" y="466">OrderItem</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="501">+quantity: int</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="520">+unitPrice: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="555">+subtotal(): float</text>
+  <rect fill="#F5F5F5" height="130" rx="2" stroke="#D4D4D4" stroke-width="1" width="180" x="32" y="641"/>
+  <rect fill="#F0F0F0" height="38" rx="2" stroke="#595959" stroke-width="1.5" width="180" x="32" y="641"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="32" x2="212" y1="679" y2="679"/>
+  <text dominant-baseline="alphabetic" fill="#2E2E2E" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="122" y="662">Product</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="697">+sku: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="716">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="735">+price: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="46" y="754">+stock: int</text>
+  <rect fill="#F5F5F5" height="141" rx="2" stroke="#D4D4D4" stroke-width="1" width="180" x="292" y="44"/>
+  <rect fill="#F0F0F0" height="52" rx="2" stroke="#595959" stroke-width="1.5" width="180" x="292" y="44"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="292" x2="472" y1="96" y2="96"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="292" x2="472" y1="131" y2="131"/>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="382" y="60">&lt;&lt;interface&gt;&gt;</text>
+  <text dominant-baseline="alphabetic" fill="#2E2E2E" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="382" y="78">Payment</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="114">+amount: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="149">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="168">+refund(): bool</text>
+  <rect fill="#F5F5F5" height="146" rx="2" stroke="#D4D4D4" stroke-width="1" width="180" x="292" y="239"/>
+  <rect fill="#F0F0F0" height="38" rx="2" stroke="#595959" stroke-width="1.5" width="180" x="292" y="239"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="292" x2="472" y1="277" y2="277"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="292" x2="472" y1="331" y2="331"/>
+  <text dominant-baseline="alphabetic" fill="#2E2E2E" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="382" y="260">CreditCardPayment</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="295">+cardNumber: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="314">+expiry: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="349">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="368">+refund(): bool</text>
+  <rect fill="#F5F5F5" height="111" rx="2" stroke="#D4D4D4" stroke-width="1" width="180" x="292" y="453"/>
+  <rect fill="#F0F0F0" height="38" rx="2" stroke="#595959" stroke-width="1.5" width="180" x="292" y="453"/>
+  <line stroke="#D4D4D4" stroke-width="1" x1="292" x2="472" y1="491" y2="491"/>
+  <text dominant-baseline="alphabetic" fill="#2E2E2E" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle" x="382" y="474">ShoppingCart</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="509">+addItem(Product p)</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="528">+removeItem(String sku)</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start" x="306" y="547">+checkout(): Order</text>
+  <path d="M 115 217 L 122 229 L 129 217" fill="none" stroke="#9E9E9E" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 122 394 L 115 406 L 122 418 L 129 406 Z" fill="#9E9E9E" stroke="#9E9E9E" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 115 629 L 122 641 L 129 629" fill="none" stroke="#9E9E9E" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 382 185 L 389 197 L 375 197 Z" fill="#FFFFFF" stroke="#9E9E9E" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 283 499 L 292 509 L 297 496" fill="none" stroke="#9E9E9E" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 223 320 L 212 312 L 210 326" fill="none" stroke="#9E9E9E" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="114" y="209">1</text>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="114" y="217">*</text>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="132" y="213">places</text>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="132" y="420">contains</text>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="132" y="607">references</text>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="262" y="310">has</text>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="243" y="414">creates</text>
+</svg>

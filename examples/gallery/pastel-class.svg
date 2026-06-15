@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="1092" version="1.1" viewBox="0 0 568 1092" width="568" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#C8BCDC" stroke-width="1.3" x1="146" x2="146" y1="259" y2="302"/>
+  <line stroke="#C8BCDC" stroke-width="1.3" x1="146" x2="146" y1="544" y2="595"/>
+  <line stroke="#C8BCDC" stroke-width="1.3" x1="146" x2="146" y1="756" y2="843"/>
+  <line stroke="#C8BCDC" stroke-dasharray="6,4" stroke-width="1.3" x1="422" x2="422" y1="326" y2="259"/>
+  <line stroke="#C8BCDC" stroke-width="1.3" x1="236" x2="330" y1="158" y2="663"/>
+  <line stroke="#C8BCDC" stroke-width="1.3" x1="332" x2="241" y1="676" y2="429"/>
+  <rect fill="#FFF0ED" height="203" rx="12" stroke="#E8E0F0" stroke-width="1" width="180" x="56" y="56"/>
+  <rect fill="#F0EBF8" height="50" rx="12" stroke="#8B7ED8" stroke-width="1.3" width="180" x="56" y="56"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="56" x2="236" y1="106" y2="106"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="56" x2="236" y1="193" y2="193"/>
+  <text dominant-baseline="alphabetic" fill="#6B5FC0" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="146" y="83">Customer</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="129">+id: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="150">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="171">+email: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="216">+register()</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="237">+login(): bool</text>
+  <rect fill="#FFF0ED" height="203" rx="12" stroke="#E8E0F0" stroke-width="1" width="180" x="56" y="315"/>
+  <rect fill="#F0EBF8" height="50" rx="12" stroke="#8B7ED8" stroke-width="1.3" width="180" x="56" y="315"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="56" x2="236" y1="365" y2="365"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="56" x2="236" y1="452" y2="452"/>
+  <text dominant-baseline="alphabetic" fill="#6B5FC0" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="146" y="342">Order</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="388">+orderId: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="409">+createdAt: Date</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="430">+total: float</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="475">+submit()</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="496">+cancel(): bool</text>
+  <rect fill="#FFF0ED" height="161" rx="12" stroke="#E8E0F0" stroke-width="1" width="180" x="56" y="595"/>
+  <rect fill="#F0EBF8" height="50" rx="12" stroke="#8B7ED8" stroke-width="1.3" width="180" x="56" y="595"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="56" x2="236" y1="645" y2="645"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="56" x2="236" y1="711" y2="711"/>
+  <text dominant-baseline="alphabetic" fill="#6B5FC0" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="146" y="622">OrderItem</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="668">+quantity: int</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="689">+unitPrice: float</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="734">+subtotal(): float</text>
+  <rect fill="#FFF0ED" height="158" rx="12" stroke="#E8E0F0" stroke-width="1" width="180" x="56" y="856"/>
+  <rect fill="#F0EBF8" height="50" rx="12" stroke="#8B7ED8" stroke-width="1.3" width="180" x="56" y="856"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="56" x2="236" y1="906" y2="906"/>
+  <text dominant-baseline="alphabetic" fill="#6B5FC0" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="146" y="883">Product</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="929">+sku: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="950">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="971">+price: float</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="74" y="992">+stock: int</text>
+  <rect fill="#FFF0ED" height="176" rx="12" stroke="#E8E0F0" stroke-width="1" width="180" x="332" y="70"/>
+  <rect fill="#F0EBF8" height="65" rx="12" stroke="#8B7ED8" stroke-width="1.3" width="180" x="332" y="70"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="332" x2="512" y1="135" y2="135"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="332" x2="512" y1="180" y2="180"/>
+  <text dominant-baseline="alphabetic" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="422" y="91">&lt;&lt;interface&gt;&gt;</text>
+  <text dominant-baseline="alphabetic" fill="#6B5FC0" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="422" y="111">Payment</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="158">+amount: float</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="203">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="224">+refund(): bool</text>
+  <rect fill="#FFF0ED" height="182" rx="12" stroke="#E8E0F0" stroke-width="1" width="180" x="332" y="326"/>
+  <rect fill="#F0EBF8" height="50" rx="12" stroke="#8B7ED8" stroke-width="1.3" width="180" x="332" y="326"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="332" x2="512" y1="376" y2="376"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="332" x2="512" y1="442" y2="442"/>
+  <text dominant-baseline="alphabetic" fill="#6B5FC0" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="422" y="353">CreditCardPayment</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="399">+cardNumber: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="420">+expiry: String</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="465">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="486">+refund(): bool</text>
+  <rect fill="#FFF0ED" height="137" rx="12" stroke="#E8E0F0" stroke-width="1" width="180" x="332" y="607"/>
+  <rect fill="#F0EBF8" height="50" rx="12" stroke="#8B7ED8" stroke-width="1.3" width="180" x="332" y="607"/>
+  <line stroke="#E8E0F0" stroke-width="1" x1="332" x2="512" y1="657" y2="657"/>
+  <text dominant-baseline="alphabetic" fill="#6B5FC0" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" x="422" y="634">ShoppingCart</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="680">+addItem(Product p)</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="701">+removeItem(String sku)</text>
+  <text dominant-baseline="alphabetic" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start" x="350" y="722">+checkout(): Order</text>
+  <path d="M 138 302 L 146 315 L 154 302" fill="none" stroke="#C8BCDC" stroke-linecap="round" stroke-width="1.3"/>
+  <path d="M 146 518 L 138 531 L 146 544 L 154 531 Z" fill="#C8BCDC" stroke="#C8BCDC" stroke-linecap="round" stroke-width="1.3"/>
+  <path d="M 138 843 L 146 856 L 154 843" fill="none" stroke="#C8BCDC" stroke-linecap="round" stroke-width="1.3"/>
+  <path d="M 422 246 L 430 259 L 414 259 Z" fill="#FFF8F6" stroke="#C8BCDC" stroke-linecap="round" stroke-width="1.3"/>
+  <path d="M 322 665 L 332 676 L 337 662" fill="none" stroke="#C8BCDC" stroke-linecap="round" stroke-width="1.3"/>
+  <path d="M 248 426 L 236 417 L 233 432" fill="none" stroke="#C8BCDC" stroke-linecap="round" stroke-width="1.3"/>
+  <text dominant-baseline="middle" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="138" y="271">1</text>
+  <text dominant-baseline="middle" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="138" y="303">*</text>
+  <text dominant-baseline="middle" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="156" y="287">places</text>
+  <text dominant-baseline="middle" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="156" y="557">contains</text>
+  <text dominant-baseline="middle" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="156" y="806">references</text>
+  <text dominant-baseline="middle" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="294" y="415">has</text>
+  <text dominant-baseline="middle" fill="#7B6F8E" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle" x="275" y="550">creates</text>
+</svg>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="400" version="1.1" viewBox="0 0 1104 400" width="1104" xmlns="http://www.w3.org/2000/svg">
+  <line opacity="1" stroke="#595959" stroke-width="3" x1="206" x2="1034" y1="68" y2="68"/>
+  <line opacity="1" stroke="#2E2E2E" stroke-width="3" x1="298" x2="850" y1="156" y2="156"/>
+  <line opacity="1" stroke="#9E9E9E" stroke-width="3" x1="482" x2="574" y1="244" y2="244"/>
+  <line opacity="1" stroke="#1A1A1A" stroke-width="3" x1="758" x2="758" y1="332" y2="332"/>
+  <path d="M 206 68 C 206 112 298 112 298 156" fill="none" opacity="1" stroke="#2E2E2E" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 390 156 C 390 200 482 200 482 244" fill="none" opacity="1" stroke="#9E9E9E" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 666 156 C 666 244 758 244 758 332" fill="none" opacity="1" stroke="#1A1A1A" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 574 244 C 574 200 666 200 666 156" fill="none" opacity="1" stroke="#9E9E9E" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 758 332 C 758 244 850 244 850 156" fill="none" opacity="1" stroke="#1A1A1A" stroke-linecap="round" stroke-width="3"/>
+  <path d="M 850 156 C 850 112 942 112 942 68" fill="none" opacity="1" stroke="#2E2E2E" stroke-linecap="round" stroke-width="3"/>
+  <circle cx="206" cy="68" fill="#595959" r="8" stroke="#595959" stroke-width="2"/>
+  <circle cx="298" cy="156" fill="#2E2E2E" r="8" stroke="#2E2E2E" stroke-width="2"/>
+  <circle cx="390" cy="156" fill="#2E2E2E" r="8" stroke="#2E2E2E" stroke-width="2"/>
+  <circle cx="482" cy="244" fill="#9E9E9E" r="8" stroke="#9E9E9E" stroke-width="2"/>
+  <circle cx="574" cy="244" fill="#9E9E9E" r="8" stroke="#9E9E9E" stroke-width="2"/>
+  <circle cx="666" cy="156" fill="#FFFFFF" r="8" stroke="#2E2E2E" stroke-width="4"/>
+  <circle cx="758" cy="332" fill="#1A1A1A" r="8" stroke="#1A1A1A" stroke-width="2"/>
+  <circle cx="850" cy="156" fill="#FFFFFF" r="8" stroke="#2E2E2E" stroke-width="4"/>
+  <circle cx="942" cy="68" fill="#FFFFFF" r="8" stroke="#595959" stroke-width="4"/>
+  <rect fill="#595959" height="18" rx="2" stroke="#595959" stroke-width="2" width="18" x="1025" y="59"/>
+  <rect fill="#595959" height="22" rx="11" width="50" x="67" y="57"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle" x="92" y="68">main</text>
+  <rect fill="#2E2E2E" height="22" rx="11" width="66" x="59" y="145"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle" x="92" y="156">develop</text>
+  <rect fill="#9E9E9E" height="22" rx="11" width="90" x="47" y="233"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle" x="92" y="244">feature/auth</text>
+  <rect fill="#1A1A1A" height="22" rx="11" width="119" x="33" y="321"/>
+  <text dominant-baseline="middle" fill="#ffffff" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle" x="93" y="332">feature/payments</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="206" y="92">initial</text>
+  <path d="M 203 40 L 195 40 Q 191 40 191 36 L 191 28 Q 191 24 195 24 L 218 24 Q 222 24 222 28 L 222 36 Q 222 40 218 40 L 209 40 L 206 46 Z" fill="#EBEBEB" stroke="#9E9E9E" stroke-width="1"/>
+  <text dominant-baseline="middle" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="8" font-weight="700" text-anchor="middle" x="206" y="32">v0.1</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="298" y="180">setup-ci</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="390" y="180">add-tests</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="482" y="268">auth-model</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="574" y="268">auth-api</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="666" y="180">merge-auth</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="758" y="356">payment-model</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="850" y="180">merge-payments</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="942" y="92">release-1.0</text>
+  <path d="M 939 40 L 931 40 Q 927 40 927 36 L 927 28 Q 927 24 931 24 L 954 24 Q 958 24 958 28 L 958 36 Q 958 40 954 40 L 945 40 L 942 46 Z" fill="#EBEBEB" stroke="#9E9E9E" stroke-width="1"/>
+  <text dominant-baseline="middle" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="8" font-weight="700" text-anchor="middle" x="942" y="32">v1.0</text>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="500" text-anchor="middle" x="1034" y="92">hotfix-typo</text>
+</svg>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="576" version="1.1" viewBox="0 0 1036 576" width="1036" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-76-403-218-8b7ed8-e8948c" x1="203" x2="403" y1="76" y2="218">
+    <stop offset="0%" stop-color="#8B7ED8"/>
+    <stop offset="100%" stop-color="#E8948C"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-201-403-281-7eb89c-e8948c" x1="203" x2="403" y1="201" y2="281">
+    <stop offset="0%" stop-color="#7EB89C"/>
+    <stop offset="100%" stop-color="#E8948C"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-331-403-330-7eb4d4-e8948c" x1="203" x2="403" y1="331" y2="330">
+    <stop offset="0%" stop-color="#7EB4D4"/>
+    <stop offset="100%" stop-color="#E8948C"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-399-403-386-e8b87a-e8948c" x1="203" x2="403" y1="399" y2="386">
+    <stop offset="0%" stop-color="#E8B87A"/>
+    <stop offset="100%" stop-color="#E8948C"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-137-618-143-8b7ed8-c498c8" x1="203" x2="618" y1="137" y2="143">
+    <stop offset="0%" stop-color="#8B7ED8"/>
+    <stop offset="100%" stop-color="#C498C8"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-245-618-186-7eb89c-c498c8" x1="203" x2="618" y1="245" y2="186">
+    <stop offset="0%" stop-color="#7EB89C"/>
+    <stop offset="100%" stop-color="#C498C8"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-505-618-333-7ed4c4-d4b87a" x1="203" x2="618" y1="505" y2="333">
+    <stop offset="0%" stop-color="#7ED4C4"/>
+    <stop offset="100%" stop-color="#D4B87A"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-280-618-422-7eb89c-b0a8e8" x1="203" x2="618" y1="280" y2="422">
+    <stop offset="0%" stop-color="#7EB89C"/>
+    <stop offset="100%" stop-color="#B0A8E8"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-203-435-618-442-e8b87a-b0a8e8" x1="203" x2="618" y1="435" y2="442">
+    <stop offset="0%" stop-color="#E8B87A"/>
+    <stop offset="100%" stop-color="#B0A8E8"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-418-213-618-235-e8948c-c498c8" x1="418" x2="618" y1="213" y2="235">
+    <stop offset="0%" stop-color="#E8948C"/>
+    <stop offset="100%" stop-color="#C498C8"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-418-263-618-464-e8948c-b0a8e8" x1="418" x2="618" y1="263" y2="464">
+    <stop offset="0%" stop-color="#E8948C"/>
+    <stop offset="100%" stop-color="#B0A8E8"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-418-285-618-391-e8948c-d4b87a" x1="418" x2="618" y1="285" y2="391">
+    <stop offset="0%" stop-color="#E8948C"/>
+    <stop offset="100%" stop-color="#D4B87A"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-633-128-833-227-c498c8-6b5fc0" x1="633" x2="833" y1="128" y2="227">
+    <stop offset="0%" stop-color="#C498C8"/>
+    <stop offset="100%" stop-color="#6B5FC0"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-633-409-833-240-b0a8e8-6b5fc0" x1="633" x2="833" y1="409" y2="240">
+    <stop offset="0%" stop-color="#B0A8E8"/>
+    <stop offset="100%" stop-color="#6B5FC0"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-418-333-833-290-e8948c-6b5fc0" x1="418" x2="833" y1="333" y2="290">
+    <stop offset="0%" stop-color="#E8948C"/>
+    <stop offset="100%" stop-color="#6B5FC0"/>
+  </linearGradient>
+  <linearGradient gradientUnits="userSpaceOnUse" id="fg-633-302-833-359-d4b87a-6b5fc0" x1="633" x2="833" y1="302" y2="359">
+    <stop offset="0%" stop-color="#D4B87A"/>
+    <stop offset="100%" stop-color="#6B5FC0"/>
+  </linearGradient>
+</defs>
+
+  <path d="M 203 40 C 270 40 336 182 403 182 L 403 254 C 336 254 270 112 203 112 Z" fill="url(#fg-203-76-403-218-8b7ed8-e8948c)" opacity="0.45" stroke="#8B7ED8" stroke-width="0.4"/>
+  <path d="M 203 174 C 270 174 336 254 403 254 L 403 307 C 336 307 270 227 203 227 Z" fill="url(#fg-203-201-403-281-7eb89c-e8948c)" opacity="0.45" stroke="#7EB89C" stroke-width="0.4"/>
+  <path d="M 203 308 C 270 308 336 307 403 307 L 403 353 C 336 353 270 354 203 354 Z" fill="url(#fg-203-331-403-330-7eb4d4-e8948c)" opacity="0.45" stroke="#7EB4D4" stroke-width="0.4"/>
+  <path d="M 203 366 C 270 366 336 353 403 353 L 403 418 C 336 418 270 431 203 431 Z" fill="url(#fg-203-399-403-386-e8b87a-e8948c)" opacity="0.45" stroke="#E8B87A" stroke-width="0.4"/>
+  <path d="M 203 112 C 341 112 480 118 618 118 L 618 168 C 480 168 341 162 203 162 Z" fill="url(#fg-203-137-618-143-8b7ed8-c498c8)" opacity="0.45" stroke="#8B7ED8" stroke-width="0.4"/>
+  <path d="M 203 227 C 341 227 480 168 618 168 L 618 204 C 480 204 341 263 203 263 Z" fill="url(#fg-203-245-618-186-7eb89c-c498c8)" opacity="0.45" stroke="#7EB89C" stroke-width="0.4"/>
+  <path d="M 203 450 C 341 450 480 278 618 278 L 618 388 C 480 388 341 560 203 560 Z" fill="url(#fg-203-505-618-333-7ed4c4-d4b87a)" opacity="0.45" stroke="#7ED4C4" stroke-width="0.4"/>
+  <path d="M 203 263 C 341 263 480 405 618 405 L 618 438 C 480 438 341 296 203 296 Z" fill="url(#fg-203-280-618-422-7eb89c-b0a8e8)" opacity="0.45" stroke="#7EB89C" stroke-width="0.4"/>
+  <path d="M 203 431 C 341 431 480 438 618 438 L 618 445 C 480 445 341 438 203 438 Z" fill="url(#fg-203-435-618-442-e8b87a-b0a8e8)" opacity="0.45" stroke="#E8B87A" stroke-width="0.4"/>
+  <path d="M 418 182 C 485 182 551 204 618 204 L 618 266 C 551 266 485 244 418 244 Z" fill="url(#fg-418-213-618-235-e8948c-c498c8)" opacity="0.45" stroke="#E8948C" stroke-width="0.4"/>
+  <path d="M 418 244 C 485 244 551 445 618 445 L 618 483 C 551 483 485 282 418 282 Z" fill="url(#fg-418-263-618-464-e8948c-b0a8e8)" opacity="0.45" stroke="#E8948C" stroke-width="0.4"/>
+  <path d="M 418 282 C 485 282 551 388 618 388 L 618 393 C 551 393 485 287 418 287 Z" fill="url(#fg-418-285-618-391-e8948c-d4b87a)" opacity="0.45" stroke="#E8948C" stroke-width="0.4"/>
+  <path d="M 633 118 C 700 118 766 217 833 217 L 833 236 C 766 236 700 137 633 137 Z" fill="url(#fg-633-128-833-227-c498c8-6b5fc0)" opacity="0.45" stroke="#C498C8" stroke-width="0.4"/>
+  <path d="M 633 405 C 700 405 766 236 833 236 L 833 244 C 766 244 700 413 633 413 Z" fill="url(#fg-633-409-833-240-b0a8e8-6b5fc0)" opacity="0.45" stroke="#B0A8E8" stroke-width="0.4"/>
+  <path d="M 418 287 C 556 287 695 244 833 244 L 833 335 C 695 335 556 378 418 378 Z" fill="url(#fg-418-333-833-290-e8948c-6b5fc0)" opacity="0.45" stroke="#E8948C" stroke-width="0.4"/>
+  <path d="M 633 278 C 700 278 766 335 833 335 L 833 383 C 766 383 700 326 633 326 Z" fill="url(#fg-633-302-833-359-d4b87a-6b5fc0)" opacity="0.45" stroke="#D4B87A" stroke-width="0.4"/>
+  <rect fill="#8B7ED8" height="122" opacity="1" rx="3" width="15" x="188" y="40"/>
+  <rect fill="#7EB89C" height="122" opacity="1" rx="3" width="15" x="188" y="174"/>
+  <rect fill="#7EB4D4" height="46" opacity="1" rx="3" width="15" x="188" y="308"/>
+  <rect fill="#E8B87A" height="72" opacity="1" rx="3" width="15" x="188" y="366"/>
+  <rect fill="#7ED4C4" height="110" opacity="1" rx="3" width="15" x="188" y="450"/>
+  <rect fill="#E8948C" height="237" opacity="1" rx="3" width="15" x="403" y="182"/>
+  <rect fill="#C498C8" height="148" opacity="1" rx="3" width="15" x="618" y="118"/>
+  <rect fill="#D4B87A" height="115" opacity="1" rx="3" width="15" x="618" y="278"/>
+  <rect fill="#B0A8E8" height="78" opacity="1" rx="3" width="15" x="618" y="405"/>
+  <rect fill="#6B5FC0" height="166" opacity="1" rx="3" width="15" x="833" y="217"/>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="180" y="101">Coal 7100</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="180" y="235">Natural Gas 7100</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="180" y="331">Nuclear 2700</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="180" y="402">Renewables 4220</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="end" x="180" y="505">Oil 6400</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="426" y="301">Electricity Generation 13800</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="641" y="192">Industry 8600</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="641" y="336">Transport 6710</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="641" y="444">Buildings 4520</text>
+  <text dominant-baseline="middle" fill="#2D2540" font-family="Nunito, Poppins, 'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start" x="856" y="300">Heat Losses 9680</text>
+</svg>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="480" version="1.1" viewBox="0 0 920 480" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0C0C0C" height="480" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="18" font-weight="700" text-anchor="middle" x="460" y="30">Monthly Revenue vs Target 2026</text>
+  <line opacity="0.9" stroke="#1C1C1C" stroke-dasharray="4,4" stroke-width="1" x1="84" x2="888" y1="396" y2="396"/>
+  <line opacity="0.9" stroke="#1C1C1C" stroke-dasharray="4,4" stroke-width="1" x1="84" x2="888" y1="285.33" y2="285.33"/>
+  <line opacity="0.9" stroke="#1C1C1C" stroke-dasharray="4,4" stroke-width="1" x1="84" x2="888" y1="174.67" y2="174.67"/>
+  <line opacity="0.9" stroke="#1C1C1C" stroke-dasharray="4,4" stroke-width="1" x1="84" x2="888" y1="64" y2="64"/>
+  <rect fill="#33FF00" height="99.6" rx="3" stroke="#0C0C0C" stroke-width="1" width="109.88" x="96.06" y="296.4"/>
+  <rect fill="#33FF00" height="143.87" rx="3" stroke="#0C0C0C" stroke-width="1" width="109.88" x="230.06" y="252.13"/>
+  <rect fill="#33FF00" height="188.13" rx="3" stroke="#0C0C0C" stroke-width="1" width="109.88" x="364.06" y="207.87"/>
+  <rect fill="#33FF00" height="171.53" rx="3" stroke="#0C0C0C" stroke-width="1" width="109.88" x="498.06" y="224.47"/>
+  <rect fill="#33FF00" height="249" rx="3" stroke="#0C0C0C" stroke-width="1" width="109.88" x="632.06" y="147"/>
+  <rect fill="#33FF00" height="287.73" rx="3" stroke="#0C0C0C" stroke-width="1" width="109.88" x="766.06" y="108.27"/>
+  <path d="M 151 285.33 L 285 257.67 L 419 230 L 553 218.93 L 687 174.67 L 821 119.33" fill="none" stroke="#FFB800" stroke-linecap="round" stroke-width="2.5"/>
+  <circle cx="151" cy="285.33" fill="#FFB800" r="4" stroke="#0C0C0C" stroke-width="1"/>
+  <circle cx="285" cy="257.67" fill="#FFB800" r="4" stroke="#0C0C0C" stroke-width="1"/>
+  <circle cx="419" cy="230" fill="#FFB800" r="4" stroke="#0C0C0C" stroke-width="1"/>
+  <circle cx="553" cy="218.93" fill="#FFB800" r="4" stroke="#0C0C0C" stroke-width="1"/>
+  <circle cx="687" cy="174.67" fill="#FFB800" r="4" stroke="#0C0C0C" stroke-width="1"/>
+  <circle cx="821" cy="119.33" fill="#FFB800" r="4" stroke="#0C0C0C" stroke-width="1"/>
+  <line stroke="#33FF00" stroke-width="1.5" x1="84" x2="888" y1="396" y2="396"/>
+  <line stroke="#33FF00" stroke-width="1.5" x1="151" x2="151" y1="396" y2="402"/>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="151" y="416">Jan</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="285" x2="285" y1="396" y2="402"/>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="285" y="416">Feb</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="419" x2="419" y1="396" y2="402"/>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="419" y="416">Mar</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="553" x2="553" y1="396" y2="402"/>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="553" y="416">Apr</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="687" x2="687" y1="396" y2="402"/>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="687" y="416">May</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="821" x2="821" y1="396" y2="402"/>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="821" y="416">Jun</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="84" x2="84" y1="64" y2="396"/>
+  <line stroke="#33FF00" stroke-width="1.5" x1="78" x2="84" y1="396" y2="396"/>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="end" x="72" y="396">0</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="78" x2="84" y1="285.33" y2="285.33"/>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="end" x="72" y="285.33">2000</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="78" x2="84" y1="174.67" y2="174.67"/>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="end" x="72" y="174.67">4000</text>
+  <line stroke="#33FF00" stroke-width="1.5" x1="78" x2="84" y1="64" y2="64"/>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="end" x="72" y="64">6000</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="600" text-anchor="start" x="84" y="54">Revenue (USD k)</text>
+  <rect fill="#33FF00" height="8" rx="2" stroke="#0C0C0C" stroke-width="1" width="8" x="778" y="74"/>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="start" x="794" y="79">bar 0</text>
+  <rect fill="#FFB800" height="8" rx="2" stroke="#0C0C0C" stroke-width="1" width="8" x="778" y="94"/>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="start" x="794" y="99">line 0</text>
+</svg>

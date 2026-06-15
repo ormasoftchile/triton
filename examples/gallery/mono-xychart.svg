@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="560" version="1.1" viewBox="0 0 920 560" width="920" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="560" width="920" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="20" font-weight="700" text-anchor="middle" x="460" y="44">Monthly Revenue vs Target 2026</text>
+  <line opacity="0.9" stroke="#D4D4D4" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="876" y1="464" y2="464"/>
+  <line opacity="0.9" stroke="#D4D4D4" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="876" y1="335.33" y2="335.33"/>
+  <line opacity="0.9" stroke="#D4D4D4" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="876" y1="206.67" y2="206.67"/>
+  <line opacity="0.9" stroke="#D4D4D4" stroke-dasharray="4,4" stroke-width="1" x1="96" x2="876" y1="78" y2="78"/>
+  <rect fill="#595959" height="115.8" rx="3" stroke="#FFFFFF" stroke-width="1" width="106.6" x="107.7" y="348.2"/>
+  <rect fill="#595959" height="167.27" rx="3" stroke="#FFFFFF" stroke-width="1" width="106.6" x="237.7" y="296.73"/>
+  <rect fill="#595959" height="218.73" rx="3" stroke="#FFFFFF" stroke-width="1" width="106.6" x="367.7" y="245.27"/>
+  <rect fill="#595959" height="199.43" rx="3" stroke="#FFFFFF" stroke-width="1" width="106.6" x="497.7" y="264.57"/>
+  <rect fill="#595959" height="289.5" rx="3" stroke="#FFFFFF" stroke-width="1" width="106.6" x="627.7" y="174.5"/>
+  <rect fill="#595959" height="334.53" rx="3" stroke="#FFFFFF" stroke-width="1" width="106.6" x="757.7" y="129.47"/>
+  <path d="M 161 335.33 L 291 303.17 L 421 271 L 551 258.13 L 681 206.67 L 811 142.33" fill="none" stroke="#2E2E2E" stroke-linecap="round" stroke-width="2.5"/>
+  <circle cx="161" cy="335.33" fill="#2E2E2E" r="4" stroke="#FFFFFF" stroke-width="1"/>
+  <circle cx="291" cy="303.17" fill="#2E2E2E" r="4" stroke="#FFFFFF" stroke-width="1"/>
+  <circle cx="421" cy="271" fill="#2E2E2E" r="4" stroke="#FFFFFF" stroke-width="1"/>
+  <circle cx="551" cy="258.13" fill="#2E2E2E" r="4" stroke="#FFFFFF" stroke-width="1"/>
+  <circle cx="681" cy="206.67" fill="#2E2E2E" r="4" stroke="#FFFFFF" stroke-width="1"/>
+  <circle cx="811" cy="142.33" fill="#2E2E2E" r="4" stroke="#FFFFFF" stroke-width="1"/>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="96" x2="876" y1="464" y2="464"/>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="161" x2="161" y1="464" y2="470"/>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="161" y="484">Jan</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="291" x2="291" y1="464" y2="470"/>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="291" y="484">Feb</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="421" x2="421" y1="464" y2="470"/>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="421" y="484">Mar</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="551" x2="551" y1="464" y2="470"/>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="551" y="484">Apr</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="681" x2="681" y1="464" y2="470"/>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="681" y="484">May</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="811" x2="811" y1="464" y2="470"/>
+  <text dominant-baseline="alphabetic" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="811" y="484">Jun</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="96" x2="96" y1="78" y2="464"/>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="90" x2="96" y1="464" y2="464"/>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="end" x="84" y="464">0</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="90" x2="96" y1="335.33" y2="335.33"/>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="end" x="84" y="335.33">2000</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="90" x2="96" y1="206.67" y2="206.67"/>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="end" x="84" y="206.67">4000</text>
+  <line stroke="#1A1A1A" stroke-width="1.5" x1="90" x2="96" y1="78" y2="78"/>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="end" x="84" y="78">6000</text>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="start" x="96" y="68">Revenue (USD k)</text>
+  <rect fill="#595959" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="766" y="88"/>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="start" x="786" y="95">bar 0</text>
+  <rect fill="#2E2E2E" height="12" rx="2" stroke="#FFFFFF" stroke-width="1" width="12" x="766" y="112"/>
+  <text dominant-baseline="middle" fill="#767676" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="10" font-weight="400" text-anchor="start" x="786" y="119">line 0</text>
+</svg>

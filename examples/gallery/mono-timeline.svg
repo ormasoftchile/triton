@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="346" version="1.1" viewBox="0 0 1380 346" width="1380" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="346" stroke="none" width="1380" x="0" y="0"/>
+  <text dominant-baseline="alphabetic" fill="#1A1A1A" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="24" font-weight="700" text-anchor="middle" x="690" y="64">History of Programming Languages</text>
+  <rect fill="#595959" height="40" rx="0" stroke="none" width="300" x="40" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="190" y="111">Foundations</text>
+  <rect fill="#494949" height="32" stroke="none" width="99" x="40" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="90" y="146">1954</text>
+  <rect fill="#ebebeb" height="38" rx="5" stroke="#acacac" stroke-width="1" width="91" x="44" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="90" y="187">FORTRAN</text>
+  <rect fill="#ebebeb" height="38" rx="5" stroke="#acacac" stroke-width="1" width="91" x="44" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="90" y="222">First high-level</text>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="90" y="235">compiled langu…</text>
+  <rect fill="#494949" height="32" stroke="none" width="99" x="140" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="190" y="146">1958</text>
+  <rect fill="#ebebeb" height="38" rx="5" stroke="#acacac" stroke-width="1" width="91" x="144" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="190" y="187">LISP</text>
+  <rect fill="#ebebeb" height="38" rx="5" stroke="#acacac" stroke-width="1" width="91" x="144" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="190" y="222">Functional</text>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="190" y="235">programming pi…</text>
+  <rect fill="#494949" height="32" stroke="none" width="99" x="240" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="290" y="146">1960</text>
+  <rect fill="#ebebeb" height="38" rx="5" stroke="#acacac" stroke-width="1" width="91" x="244" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="290" y="187">COBOL</text>
+  <rect fill="#ebebeb" height="38" rx="5" stroke="#acacac" stroke-width="1" width="91" x="244" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="290" y="222">Business data</text>
+  <text dominant-baseline="alphabetic" fill="#282828" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="290" y="235">processing</text>
+  <rect fill="#2E2E2E" height="40" rx="0" stroke="none" width="300" x="340" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="490" y="111">Systems Era</text>
+  <line stroke="rgba(0,0,0,0.15)" stroke-width="1" x1="340" x2="340" y1="84" y2="156"/>
+  <rect fill="#262626" height="32" stroke="none" width="99" x="340" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="390" y="146">1969</text>
+  <rect fill="#e6e6e6" height="38" rx="5" stroke="#979797" stroke-width="1" width="91" x="344" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="390" y="187">C</text>
+  <rect fill="#e6e6e6" height="38" rx="5" stroke="#979797" stroke-width="1" width="91" x="344" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="390" y="222">Systems</text>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="390" y="235">programming r…</text>
+  <rect fill="#262626" height="32" stroke="none" width="99" x="440" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="490" y="146">1972</text>
+  <rect fill="#e6e6e6" height="38" rx="5" stroke="#979797" stroke-width="1" width="91" x="444" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="490" y="187">Smalltalk</text>
+  <rect fill="#e6e6e6" height="38" rx="5" stroke="#979797" stroke-width="1" width="91" x="444" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="490" y="222">Object-oriented</text>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="490" y="235">concepts</text>
+  <rect fill="#262626" height="32" stroke="none" width="99" x="540" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="590" y="146">1983</text>
+  <rect fill="#e6e6e6" height="38" rx="5" stroke="#979797" stroke-width="1" width="91" x="544" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="590" y="187">C++</text>
+  <rect fill="#e6e6e6" height="38" rx="5" stroke="#979797" stroke-width="1" width="91" x="544" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="590" y="222">OOP meets</text>
+  <text dominant-baseline="alphabetic" fill="#151515" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="590" y="235">systems progra…</text>
+  <rect fill="#9E9E9E" height="40" rx="0" stroke="none" width="300" x="640" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="790" y="111">Scripting Wave</text>
+  <line stroke="rgba(0,0,0,0.15)" stroke-width="1" x1="640" x2="640" y1="84" y2="156"/>
+  <rect fill="#828282" height="32" stroke="none" width="99" x="640" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="690" y="146">1987</text>
+  <rect fill="#f3f3f3" height="38" rx="5" stroke="#cfcfcf" stroke-width="1" width="91" x="644" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="690" y="187">Perl</text>
+  <rect fill="#f3f3f3" height="38" rx="5" stroke="#cfcfcf" stroke-width="1" width="91" x="644" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="690" y="222">Text processing</text>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="690" y="235">&amp; web CGI</text>
+  <rect fill="#828282" height="32" stroke="none" width="99" x="740" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="790" y="146">1991</text>
+  <rect fill="#f3f3f3" height="38" rx="5" stroke="#cfcfcf" stroke-width="1" width="91" x="744" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="790" y="187">Python</text>
+  <rect fill="#f3f3f3" height="38" rx="5" stroke="#cfcfcf" stroke-width="1" width="91" x="744" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="790" y="222">Readable &amp;</text>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="790" y="235">general-purpose</text>
+  <rect fill="#828282" height="32" stroke="none" width="99" x="840" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="890" y="146">1995</text>
+  <rect fill="#f3f3f3" height="38" rx="5" stroke="#cfcfcf" stroke-width="1" width="91" x="844" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="890" y="187">Java</text>
+  <rect fill="#f3f3f3" height="38" rx="5" stroke="#cfcfcf" stroke-width="1" width="91" x="844" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="890" y="222">Write once, run</text>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="890" y="235">anywhere</text>
+  <rect fill="#f3f3f3" height="38" rx="5" stroke="#cfcfcf" stroke-width="1" width="91" x="844" y="248"/>
+  <text dominant-baseline="alphabetic" fill="#474747" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="890" y="271">JVM ecosystem</text>
+  <rect fill="#1A1A1A" height="40" rx="0" stroke="none" width="400" x="940" y="84"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="13.33" font-weight="700" text-anchor="middle" x="1140" y="111">Modern Languages</text>
+  <line stroke="rgba(0,0,0,0.15)" stroke-width="1" x1="940" x2="940" y1="84" y2="156"/>
+  <rect fill="#151515" height="32" stroke="none" width="99" x="940" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="990" y="146">2003</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="944" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="990" y="187">Scala</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="944" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="990" y="222">Functional +</text>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="990" y="235">OOP on JVM</text>
+  <rect fill="#151515" height="32" stroke="none" width="99" x="1040" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1090" y="146">2009</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="1044" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1090" y="187">Go</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="1044" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1090" y="222">Systems +</text>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1090" y="235">concurrency</text>
+  <rect fill="#151515" height="32" stroke="none" width="99" x="1140" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1190" y="146">2010</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="1144" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1190" y="187">Rust</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="1144" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1190" y="222">Memory safety</text>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1190" y="235">without GC</text>
+  <rect fill="#151515" height="32" stroke="none" width="99" x="1240" y="124"/>
+  <text dominant-baseline="alphabetic" fill="#FFFFFF" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1290" y="146">2014</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="1244" y="164"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1290" y="187">Swift</text>
+  <rect fill="#e4e4e4" height="38" rx="5" stroke="#8d8d8d" stroke-width="1" width="91" x="1244" y="206"/>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1290" y="222">Apple platform</text>
+  <text dominant-baseline="alphabetic" fill="#0c0c0c" font-family="Helvetica Neue, Helvetica, Arial, system-ui, sans-serif" font-size="11" font-weight="400" text-anchor="middle" x="1290" y="235">modernisation</text>
+  <line stroke="#444444" stroke-width="2" x1="40" x2="1352" y1="156" y2="156"/>
+  <path d="M 1352 156 L 1342 151 L 1342 161 Z" fill="#444444" stroke="none"/>
+</svg>

@@ -1,0 +1,15 @@
+---
+title: "Midnight Theme — Teal Accent Override"
+theme: midnight
+themeOverrides:
+  accent: "#0A9F8A"
+---
+flowchart LR
+    req([HTTP Request])
+    req --> auth{Auth?}
+    auth -->|valid| proc[Process Request]
+    auth -->|invalid| rej[Reject 401]
+    proc --> cache{Cached?}
+    cache -->|yes| fast([Cache Hit])
+    cache -->|no| db[Query DB]
+    db --> resp([Response])

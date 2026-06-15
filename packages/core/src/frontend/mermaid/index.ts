@@ -33,7 +33,10 @@
 import type { Scene } from '../../scene.js';
 import { sceneHash as computeSceneHash } from '../../scene.js';
 
-import { CONTRACT_THEMES, isContractTheme } from '../../theme-contract/index.js';
+import { CONTRACT_THEMES, isContractTheme, resolveContractTheme } from '../../theme-contract/index.js';
+import type { Density } from '../../theme-contract/index.js';
+import { bindTimelineTheme } from '../../themes/index.js';
+import { buildScene, renderDocument } from '../../render/index.js';
 import { bindFlowTheme }         from '../../grammars/flow/contract-binding.js';
 import { bindSequenceTheme }     from '../../grammars/sequence/contract-binding.js';
 import { bindChartTheme }        from '../../grammars/chart/contract-binding.js';
@@ -126,7 +129,6 @@ import {
 } from '../../grammars/tree/index.js';
 import type { TreeDocument } from '../../grammars/tree/index.js';
 
-import { buildScene, renderDocument } from '../../render/index.js';
 import type { IRDocument } from '../../types.js';
 
 import { preprocessMermaid } from './utils.js';
@@ -462,11 +464,83 @@ export interface MermaidRenderResult {
   png?: Uint8Array;
 }
 
+// ---------------------------------------------------------------------------
+// Config-surface helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate that a value is a Density literal.
+ * Called for both frontmatter and directive values.
+ */
+function isValidDensity(v: unknown): v is Density {
+  return v === 'compact' || v === 'normal' || v === 'comfortable';
+}
+
+/**
+ * Safely extract a `themeOverrides` object from an arbitrary value.
+ * Returns undefined for null, arrays, non-objects, and missing values.
+ */
+function getValidOverrides(v: unknown): Record<string, unknown> | undefined {
+  if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+    return v as Record<string, unknown>;
+  }
+  return undefined;
+}
+
+/**
+ * Merge two override objects: frontmatter overrides take precedence over
+ * directive overrides (shallow merge at the top level; the deep-merge
+ * inside resolveContractTheme handles nested structure).
+ * Returns undefined if both are undefined or empty.
+ */
+function mergeConfigOverrides(
+  fmOverrides: Record<string, unknown> | undefined,
+  directiveOverrides: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!fmOverrides && !directiveOverrides) return undefined;
+  if (!directiveOverrides) return fmOverrides;
+  if (!fmOverrides) return directiveOverrides;
+  // Frontmatter wins over directive for overlapping keys
+  return { ...directiveOverrides, ...fmOverrides };
+}
+
+/** Valid timeline layout strings accepted via config-surface. */
+const VALID_TIMELINE_LAYOUTS = new Set([
+  'horizontal', 'vertical-spine', 'serpentine', 'roadmap', 'timeline-columns',
+]);
+
+/**
+ * Resolve the user-specified layout for a timeline/gantt diagram.
+ * Falls back to the provided default if the value is invalid.
+ * Emits a warning into the warnings array for unknown values.
+ */
+function resolveTimelineLayout(
+  rawLayout: unknown,
+  fallback: 'timeline-columns' | 'gantt',
+  warnings: string[],
+): 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'gantt' | 'timeline-columns' {
+  if (typeof rawLayout !== 'string' || !rawLayout) return fallback;
+  if (VALID_TIMELINE_LAYOUTS.has(rawLayout)) {
+    return rawLayout as 'horizontal' | 'vertical-spine' | 'serpentine' | 'roadmap' | 'timeline-columns';
+  }
+  if (rawLayout === 'gantt') return 'gantt';
+  warnings.push(
+    `[config-surface] Unknown layout "${rawLayout}" — using "${fallback}". ` +
+    `Valid timeline layouts: timeline-columns, vertical-spine, serpentine, roadmap, horizontal.`,
+  );
+  return fallback;
+}
+
 /**
  * Parse Mermaid text, lay out the diagram, and serialise to SVG or PNG.
  *
  * Theme precedence (highest wins):
  *   options.theme > frontmatter `theme:` field > %%{init: {"theme":…}}%% > grammar default
+ *
+ * Config-surface keys (frontmatter or %%{init}%%, frontmatter wins):
+ *   layout:        layout variant for multi-layout components (e.g. timeline)
+ *   density:       'compact' | 'normal' | 'comfortable' — overrides contract theme density
+ *   themeOverrides: object of token patches applied onto the resolved ThemeContract
  *
  * Mermaid front-end coverage includes flowchart, sequenceDiagram, gantt, timeline, mindmap, classDiagram, stateDiagram, erDiagram, and the C4 family.
  *
@@ -478,15 +552,30 @@ export function renderMermaid(
 ): MermaidRenderResult {
   const kind = detectDiagramType(text);
 
+  // Extract directive-level config (%%{init}%%) once.
+  // Frontmatter fields come from each grammar's parser return value.
+  const {
+    directiveLayout,
+    directiveDensity,
+    directiveThemeOverrides,
+  } = preprocessMermaid(text);
+
   // ── sequenceDiagram ────────────────────────────────────────────────────
   if (kind === 'sequence') {
     const { doc, warnings, frontmatter } = parseSequenceInternal(text);
 
     const fmTheme  = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
+
+    // Config-surface: density + overrides
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const fmOverrides = getValidOverrides(frontmatter['themeOverrides']);
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(fmOverrides, directiveThemeOverrides);
+
     // Contract-binding path: derive SequenceTheme from Tier-2 contract if applicable.
     const seqTheme = isContractTheme(themeName)
-      ? bindSequenceTheme(CONTRACT_THEMES[themeName]!)
+      ? bindSequenceTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveSequenceTheme(themeName);
 
     const finalDoc: SequenceDocument = {
@@ -523,9 +612,16 @@ export function renderMermaid(
 
     const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme;
+
+    // Config-surface: density + overrides (layout ignored for flowchart — direction comes from header)
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const fmOverrides = getValidOverrides(frontmatter['themeOverrides']);
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(fmOverrides, directiveThemeOverrides);
+
     // Contract-binding path: derive FlowTheme from Tier-2 contract if applicable.
     const baseTheme = isContractTheme(themeName)
-      ? bindFlowTheme(CONTRACT_THEMES[themeName]!)
+      ? bindFlowTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveFlowTheme(themeName);
 
     const orientation: FlowTheme['orientation'] =
@@ -567,15 +663,33 @@ export function renderMermaid(
     const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'consulting';
 
+    // Config-surface: density + overrides applied via resolvedTheme when contract active
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const fmOverrides = getValidOverrides(frontmatter['themeOverrides']);
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(fmOverrides, directiveThemeOverrides);
+    const hasConfig   = density !== undefined || (overrides !== undefined && Object.keys(overrides).length > 0);
+
     const finalDoc: IRDocument = {
       ...doc,
       metadata: { ...doc.metadata, theme: themeName, layout: 'gantt' },
     };
 
     const format = options.format ?? 'svg';
-    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: 'gantt' });
-    const scene = buildScene(finalDoc, { theme: themeName, layout: 'gantt' });
-    const hash  = computeSceneHash(scene);
+
+    let renderResult: ReturnType<typeof renderDocument>;
+    let scene: ReturnType<typeof buildScene>;
+
+    if (hasConfig && isContractTheme(themeName)) {
+      const resolvedTheme = bindTimelineTheme(resolveContractTheme(themeName, { density, overrides }));
+      renderResult = renderDocument(finalDoc, { format, layout: 'gantt', resolvedTheme });
+      scene        = buildScene(finalDoc, { layout: 'gantt', resolvedTheme });
+    } else {
+      renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: 'gantt' });
+      scene        = buildScene(finalDoc, { theme: themeName, layout: 'gantt' });
+    }
+
+    const hash = computeSceneHash(scene);
 
     return {
       kind,
@@ -595,18 +709,43 @@ export function renderMermaid(
     const fmTheme   = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'consulting';
 
-    // Use the Mermaid-faithful section-column layout for the `timeline` type.
-    // The 'timeline-columns' path is opt-in and separate from all other layouts,
-    // so no existing golden outputs can be affected.
+    // Config-surface: layout selection
+    const fmLayout  = typeof frontmatter['layout'] === 'string' ? frontmatter['layout'] : undefined;
+    const timelineLayout = resolveTimelineLayout(
+      fmLayout ?? directiveLayout,
+      'timeline-columns',
+      warnings,
+    );
+
+    // Config-surface: density + overrides applied via resolvedTheme when contract active
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const fmOverrides = getValidOverrides(frontmatter['themeOverrides']);
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(fmOverrides, directiveThemeOverrides);
+    const hasConfig   = density !== undefined || (overrides !== undefined && Object.keys(overrides).length > 0);
+
     const finalDoc: IRDocument = {
       ...doc,
-      metadata: { ...doc.metadata, theme: themeName, layout: 'timeline-columns' },
+      metadata: { ...doc.metadata, theme: themeName, layout: timelineLayout },
     };
 
     const format = options.format ?? 'svg';
-    const renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: 'timeline-columns' });
-    const scene = buildScene(finalDoc, { theme: themeName, layout: 'timeline-columns' });
-    const hash  = computeSceneHash(scene);
+
+    let renderResult: ReturnType<typeof renderDocument>;
+    let scene: ReturnType<typeof buildScene>;
+
+    if (hasConfig && isContractTheme(themeName)) {
+      // Apply density + overrides via Tier-2 contract binding, bypassing legacy registry.
+      const resolvedTheme = bindTimelineTheme(resolveContractTheme(themeName, { density, overrides }));
+      renderResult = renderDocument(finalDoc, { format, layout: timelineLayout, resolvedTheme });
+      scene        = buildScene(finalDoc, { layout: timelineLayout, resolvedTheme });
+    } else {
+      // Standard path: theme name dispatched through resolveTheme (handles legacy + contract names).
+      renderResult = renderDocument(finalDoc, { format, theme: themeName, layout: timelineLayout });
+      scene        = buildScene(finalDoc, { theme: themeName, layout: timelineLayout });
+    }
+
+    const hash = computeSceneHash(scene);
 
     return {
       kind,
@@ -625,6 +764,12 @@ export function renderMermaid(
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme;
 
+    // Config-surface: density + overrides
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const fmOverrides = getValidOverrides(frontmatter['themeOverrides']);
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(fmOverrides, directiveThemeOverrides);
+
     const finalDoc: TreeDocument = {
       ...doc,
       metadata: { ...doc.metadata, theme: 'mindmap-radial' },
@@ -632,7 +777,7 @@ export function renderMermaid(
 
     const format = options.format ?? 'svg';
     const radialOpts = isContractTheme(themeName)
-      ? bindMindmapTheme(CONTRACT_THEMES[themeName]!)
+      ? bindMindmapTheme(resolveContractTheme(themeName, { density, overrides }))
       : undefined;
     const renderResult = renderTreeDocumentRadial(finalDoc, { format }, radialOpts);
 
@@ -652,8 +797,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseClassDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-class';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const classTheme = isContractTheme(themeName)
-      ? bindClassTheme(CONTRACT_THEMES[themeName]!)
+      ? bindClassTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveClassTheme(themeName);
     const finalDoc: ClassDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildClassScene(finalDoc, classTheme);
@@ -669,8 +817,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseStateDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-state';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const stateTheme = isContractTheme(themeName)
-      ? bindStateTheme(CONTRACT_THEMES[themeName]!)
+      ? bindStateTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveStateTheme(themeName);
     const finalDoc: StateDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildStateScene(finalDoc, stateTheme);
@@ -686,8 +837,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseErDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-er';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const erTheme = isContractTheme(themeName)
-      ? bindErTheme(CONTRACT_THEMES[themeName]!)
+      ? bindErTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveErTheme(themeName);
     const finalDoc: ErDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildErScene(finalDoc, erTheme);
@@ -702,8 +856,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseC4DiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-c4';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const c4Theme = isContractTheme(themeName)
-      ? bindC4Theme(CONTRACT_THEMES[themeName]!)
+      ? bindC4Theme(resolveContractTheme(themeName, { density, overrides }))
       : resolveC4Theme(themeName);
     const finalDoc: C4Document = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildC4Scene(finalDoc, c4Theme);
@@ -718,8 +875,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parsePieDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const chartTheme = isContractTheme(themeName)
-      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      ? bindChartTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
@@ -734,9 +894,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseXYChartDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
-    // Contract-binding path: derive ChartTheme from Tier-2 contract if applicable.
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const chartTheme = isContractTheme(themeName)
-      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      ? bindChartTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
@@ -751,8 +913,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseQuadrantDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const chartTheme = isContractTheme(themeName)
-      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      ? bindChartTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
@@ -767,8 +932,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseRadarDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? 'default-chart';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const chartTheme = isContractTheme(themeName)
-      ? bindChartTheme(CONTRACT_THEMES[themeName]!)
+      ? bindChartTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveChartTheme(themeName);
     const finalDoc: ChartDocument = doc;
     const scene = buildChartScene(finalDoc, chartTheme);
@@ -783,8 +951,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseJourneyDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-journey';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const journeyTheme = isContractTheme(themeName)
-      ? bindJourneyTheme(CONTRACT_THEMES[themeName]!)
+      ? bindJourneyTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveJourneyTheme(themeName);
     const finalDoc: JourneyDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildJourneyScene(finalDoc, journeyTheme);
@@ -799,8 +970,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseGitGraphDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-gitgraph';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const gitGraphTheme = isContractTheme(themeName)
-      ? bindGitGraphTheme(CONTRACT_THEMES[themeName]!)
+      ? bindGitGraphTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveGitGraphTheme(themeName);
     const finalDoc: GitGraphDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildGitGraphScene(finalDoc, gitGraphTheme);
@@ -815,8 +989,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseSankeyDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-sankey';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const sankeyTheme = isContractTheme(themeName)
-      ? bindSankeyTheme(CONTRACT_THEMES[themeName]!)
+      ? bindSankeyTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveSankeyTheme(themeName);
     const finalDoc: SankeyDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildSankeyScene(finalDoc, sankeyTheme);
@@ -832,8 +1009,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseRequirementDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-requirement';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const reqTheme = isContractTheme(themeName)
-      ? bindRequirementTheme(CONTRACT_THEMES[themeName]!)
+      ? bindRequirementTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveRequirementTheme(themeName);
     const finalDoc: RequirementDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildRequirementScene(finalDoc, reqTheme);
@@ -849,8 +1029,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseKanbanDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-kanban';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const kanbanTheme = isContractTheme(themeName)
-      ? bindKanbanTheme(CONTRACT_THEMES[themeName]!)
+      ? bindKanbanTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveKanbanTheme(themeName);
     const finalDoc: KanbanDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildKanbanScene(finalDoc, kanbanTheme);
@@ -866,8 +1049,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parseBlockDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-block';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const blockTheme = isContractTheme(themeName)
-      ? bindBlockTheme(CONTRACT_THEMES[themeName]!)
+      ? bindBlockTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveBlockTheme(themeName);
     const finalDoc: BlockDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildBlockScene(finalDoc, blockTheme);
@@ -883,8 +1069,11 @@ export function renderMermaid(
     const { doc, warnings, frontmatter } = parsePacketDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-packet';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const packetTheme = isContractTheme(themeName)
-      ? bindPacketTheme(CONTRACT_THEMES[themeName]!)
+      ? bindPacketTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolvePacketTheme(themeName);
     const finalDoc: PacketDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildPacketScene(finalDoc, packetTheme);
@@ -895,14 +1084,16 @@ export function renderMermaid(
     return { kind, doc: finalDoc, scene, sceneHash: hash, warnings, svg: renderResult.svg, png: renderResult.png };
   }
 
-
   // ── architecture-beta ───────────────────────────────────────────────────
   if (kind === 'architecture') {
     const { doc, warnings, frontmatter } = parseArchitectureDiagramInternal(text);
     const fmTheme = typeof frontmatter['theme'] === 'string' ? frontmatter['theme'] : undefined;
     const themeName = options.theme ?? fmTheme ?? doc.metadata.theme ?? 'default-architecture';
+    const fmDensity   = isValidDensity(frontmatter['density']) ? frontmatter['density'] : undefined;
+    const density     = fmDensity ?? (isValidDensity(directiveDensity) ? directiveDensity : undefined);
+    const overrides   = mergeConfigOverrides(getValidOverrides(frontmatter['themeOverrides']), directiveThemeOverrides);
     const architectureTheme = isContractTheme(themeName)
-      ? bindArchitectureTheme(CONTRACT_THEMES[themeName]!)
+      ? bindArchitectureTheme(resolveContractTheme(themeName, { density, overrides }))
       : resolveArchitectureTheme(themeName);
     const finalDoc: ArchitectureDocument = { ...doc, metadata: { ...doc.metadata, theme: themeName } };
     const scene = buildArchitectureScene(finalDoc, architectureTheme);

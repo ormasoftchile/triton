@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="290" version="1.1" viewBox="0 0 1366 290" width="1366" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0F1620" height="290" width="1366" x="0" y="0"/>
+  <path d="M 189 130 C 217 130 246 130 267 130" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 419 130 C 445 130 471 73 490 73" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 419 130 C 450 130 480 186 504 186" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 645 73 C 669 73 692 130 709 130" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 877 130 C 905 130 933 186 954 186" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 877 130 C 905 130 933 73 954 73" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <path d="M 1081 73 C 1116 73 1151 130 1179 130" fill="none" stroke="#1E2D40" stroke-width="1.5"/>
+  <rect fill="#1A2535" height="81" rx="41" stroke="#0A9F8A" stroke-width="1.5" width="136" x="53" y="89"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="121" y="130">HTTP Request</text>
+  <path d="M 346 89 L 419 130 L 346 170 L 274 130 Z" fill="#1A2535" stroke="#0A9F8A" stroke-width="1.5"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="346" y="130">Auth?</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#0A9F8A" stroke-width="1.5" width="148" x="497" y="32"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="571" y="73">Process Request</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#0A9F8A" stroke-width="1.5" width="120" x="511" y="145"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="571" y="186">Reject 401</text>
+  <path d="M 796 89 L 877 130 L 796 170 L 716 130 Z" fill="#1A2535" stroke="#0A9F8A" stroke-width="1.5"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="796" y="130">Cached?</text>
+  <rect fill="#1A2535" height="81" rx="0" stroke="#0A9F8A" stroke-width="1.5" width="120" x="961" y="32"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1021" y="73">Query DB</text>
+  <rect fill="#1A2535" height="81" rx="41" stroke="#0A9F8A" stroke-width="1.5" width="120" x="961" y="145"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1021" y="186">Cache Hit</text>
+  <rect fill="#1A2535" height="81" rx="41" stroke="#0A9F8A" stroke-width="1.5" width="120" x="1186" y="89"/>
+  <text dominant-baseline="central" fill="#E2E8F0" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle" x="1246" y="130">Response</text>
+  <path d="M 274 130 L 267 126 L 267 134 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 497 73 L 490 69 L 490 77 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 511 186 L 504 182 L 504 190 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 716 130 L 709 126 L 709 134 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 961 186 L 954 182 L 954 190 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 961 73 L 954 69 L 954 77 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M 1186 130 L 1179 126 L 1179 134 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="458" y="94">valid</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="465" y="150">invalid</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="919" y="150">yes</text>
+  <text dominant-baseline="auto" fill="#64748B" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="10" font-weight="400" text-anchor="middle" x="919" y="94">no</text>
+</svg>

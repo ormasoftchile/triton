@@ -1,0 +1,12 @@
+---
+title: "Executive Theme — Compact Density"
+theme: executive
+density: compact
+---
+flowchart LR
+    codePush([Code Push]) --> lint[Lint]
+    lint -->|pass| test[Unit Tests]
+    lint -->|fail| fail1[Notify Lint Failed]
+    test -->|pass| build[Docker Build]
+    test -->|fail| fail2[Notify Tests Failed]
+    build --> deploy([Deploy Production])

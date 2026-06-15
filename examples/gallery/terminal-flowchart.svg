@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="162" version="1.1" viewBox="0 0 1336 162" width="1336" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#0C0C0C" height="162" width="1336" x="0" y="0"/>
+  <path d="M 916 69 C 916 109 751 143 751 103" fill="none" stroke="#2C2C2C" stroke-dasharray="5,4" stroke-width="1.5"/>
+  <path d="M 151 76 L 189 76" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 316 76 L 354 102" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 316 76 L 354 49" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 481 102 L 519 49" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 481 102 L 517 102" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 646 49 L 683 76" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 812 76 L 849 102" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 812 76 L 849 49" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 976 102 L 1014 76" fill="none" stroke="#1C1C1C" stroke-dasharray="2,4" stroke-width="1.5"/>
+  <path d="M 1141 76 L 1178 49" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <path d="M 1141 76 L 1179 102" fill="none" stroke="#1C1C1C" stroke-width="1.5"/>
+  <rect fill="#141414" height="41" rx="21" stroke="#33FF00" stroke-width="1.5" width="120" x="31" y="55"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="91" y="76">Code Push</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="120" x="196" y="55"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="256" y="76">Lint and Format</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="120" x="361" y="28"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="421" y="49">Notify Lint Failed</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="120" x="361" y="81"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="421" y="102">Run Unit Tests</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="120" x="526" y="28"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="586" y="49">Docker Build</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="125" x="524" y="81"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="586" y="102">Notify Tests Failed</text>
+  <path d="M 751 55 L 812 76 L 751 96 L 690 76 Z" fill="#141414" stroke="#33FF00" stroke-width="1.5"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="751" y="76">Security Scan</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="120" x="856" y="28"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="916" y="49">Hold for Review</text>
+  <rect fill="#141414" height="41" rx="21" stroke="#33FF00" stroke-width="1.5" width="120" x="856" y="81"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="916" y="102">Deploy Staging</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="120" x="1021" y="55"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="1081" y="76">Smoke Tests</text>
+  <rect fill="#141414" height="41" rx="21" stroke="#33FF00" stroke-width="1.5" width="123" x="1185" y="28"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="1246" y="49">Deploy Production</text>
+  <rect fill="#141414" height="41" rx="0" stroke="#33FF00" stroke-width="1.5" width="120" x="1186" y="81"/>
+  <text dominant-baseline="central" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="700" text-anchor="middle" x="1246" y="102">Rollback</text>
+  <path d="M 751 96 L 747 103 L 755 103 Z" fill="#2C2C2C" stroke="none" stroke-width="0"/>
+  <path d="M 196 76 L 189 72 L 189 80 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 361 102 L 354 98 L 354 106 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 361 49 L 354 45 L 354 53 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 526 49 L 519 45 L 519 53 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 524 102 L 517 98 L 517 106 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 690 76 L 683 72 L 683 80 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 856 102 L 849 98 L 849 106 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 856 49 L 849 45 L 849 53 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 1021 76 L 1014 72 L 1014 80 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 1185 49 L 1178 45 L 1178 53 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <path d="M 1186 102 L 1179 98 L 1179 106 Z" fill="#1E9900" stroke="none" stroke-width="0"/>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="339" y="81">pass</text>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="339" y="55">fail</text>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="504" y="68">pass</text>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="503" y="94">fail</text>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="834" y="81">clean</text>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="834" y="55">issues</text>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="1163" y="55">pass</text>
+  <text dominant-baseline="auto" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="400" text-anchor="middle" x="1164" y="81">fail</text>
+</svg>

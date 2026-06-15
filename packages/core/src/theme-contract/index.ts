@@ -38,11 +38,20 @@ export { midnight }  from './midnight.js';
 export { blueprint } from './blueprint.js';
 export { editorial } from './editorial.js';
 
+export { resolveContractTheme } from './resolve.js';
+export type { ResolveContractOptions } from './resolve.js';
+export { terminal }  from './terminal.js';
+export { pastel }    from './pastel.js';
+export { mono }      from './mono.js';
+
 import type { ThemeContract } from './types.js';
 import { executive } from './executive.js';
 import { midnight }  from './midnight.js';
 import { blueprint } from './blueprint.js';
 import { editorial } from './editorial.js';
+import { terminal }  from './terminal.js';
+import { pastel }    from './pastel.js';
+import { mono }      from './mono.js';
 
 /**
  * Registry of all contract-path named themes.
@@ -54,12 +63,18 @@ import { editorial } from './editorial.js';
  *   midnight  — dark charcoal/cyan, Inter sans, comfortable, fidelity 2
  *   blueprint — deep-blue/cyan, JetBrains Mono, normal density, fidelity 1
  *   editorial — warm cream/burgundy, Lora serif, comfortable, fidelity 2
+ *   terminal  — near-black/phosphor-green, Courier New mono, compact, fidelity 1
+ *   pastel    — warm off-white/lavender, Nunito rounded sans, comfortable, fidelity 2
+ *   mono      — pure grayscale/white, Helvetica Neue, normal density, fidelity 1
  */
 export const CONTRACT_THEMES: Record<string, ThemeContract> = {
   executive,
   midnight,
   blueprint,
   editorial,
+  terminal,
+  pastel,
+  mono,
 };
 
 /**

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="740" version="1.1" viewBox="0 0 480 740" width="480" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#2C2C2C" stroke-width="1.5" x1="118" x2="118" y1="181" y2="193"/>
+  <line stroke="#2C2C2C" stroke-width="1.5" x1="118" x2="118" y1="382" y2="401"/>
+  <line stroke="#2C2C2C" stroke-width="1.5" x1="118" x2="118" y1="516" y2="563"/>
+  <line stroke="#2C2C2C" stroke-dasharray="6,4" stroke-width="1.5" x1="362" x2="362" y1="215" y2="181"/>
+  <line stroke="#2C2C2C" stroke-width="1.5" x1="208" x2="270" y1="105" y2="447"/>
+  <line stroke="#2C2C2C" stroke-width="1.5" x1="272" x2="212" y1="459" y2="293"/>
+  <rect fill="#141414" height="153" rx="0" stroke="#1C1C1C" stroke-width="1" width="180" x="28" y="28"/>
+  <rect fill="#111111" height="34" rx="0" stroke="#33FF00" stroke-width="1.5" width="180" x="28" y="28"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="28" x2="208" y1="62" y2="62"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="28" x2="208" y1="131" y2="131"/>
+  <text dominant-baseline="alphabetic" fill="#00CC00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="14" font-weight="700" text-anchor="middle" x="118" y="47">Customer</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="78">+id: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="97">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="116">+email: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="147">+register()</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="166">+login(): bool</text>
+  <rect fill="#141414" height="153" rx="0" stroke="#1C1C1C" stroke-width="1" width="180" x="28" y="205"/>
+  <rect fill="#111111" height="34" rx="0" stroke="#33FF00" stroke-width="1.5" width="180" x="28" y="205"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="28" x2="208" y1="239" y2="239"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="28" x2="208" y1="308" y2="308"/>
+  <text dominant-baseline="alphabetic" fill="#00CC00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="14" font-weight="700" text-anchor="middle" x="118" y="224">Order</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="255">+orderId: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="274">+createdAt: Date</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="293">+total: float</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="324">+submit()</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="343">+cancel(): bool</text>
+  <rect fill="#141414" height="115" rx="0" stroke="#1C1C1C" stroke-width="1" width="180" x="28" y="401"/>
+  <rect fill="#111111" height="34" rx="0" stroke="#33FF00" stroke-width="1.5" width="180" x="28" y="401"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="28" x2="208" y1="435" y2="435"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="28" x2="208" y1="485" y2="485"/>
+  <text dominant-baseline="alphabetic" fill="#00CC00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="14" font-weight="700" text-anchor="middle" x="118" y="420">OrderItem</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="451">+quantity: int</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="470">+unitPrice: float</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="501">+subtotal(): float</text>
+  <rect fill="#141414" height="122" rx="0" stroke="#1C1C1C" stroke-width="1" width="180" x="28" y="575"/>
+  <rect fill="#111111" height="34" rx="0" stroke="#33FF00" stroke-width="1.5" width="180" x="28" y="575"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="28" x2="208" y1="609" y2="609"/>
+  <text dominant-baseline="alphabetic" fill="#00CC00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="14" font-weight="700" text-anchor="middle" x="118" y="594">Product</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="625">+sku: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="644">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="663">+price: float</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="40" y="682">+stock: int</text>
+  <rect fill="#141414" height="129" rx="0" stroke="#1C1C1C" stroke-width="1" width="180" x="272" y="40"/>
+  <rect fill="#111111" height="48" rx="0" stroke="#33FF00" stroke-width="1.5" width="180" x="272" y="40"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="272" x2="452" y1="88" y2="88"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="272" x2="452" y1="119" y2="119"/>
+  <text dominant-baseline="alphabetic" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="362" y="54">&lt;&lt;interface&gt;&gt;</text>
+  <text dominant-baseline="alphabetic" fill="#00CC00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="14" font-weight="700" text-anchor="middle" x="362" y="72">Payment</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="104">+amount: float</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="135">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="154">+refund(): bool</text>
+  <rect fill="#141414" height="134" rx="0" stroke="#1C1C1C" stroke-width="1" width="180" x="272" y="215"/>
+  <rect fill="#111111" height="34" rx="0" stroke="#33FF00" stroke-width="1.5" width="180" x="272" y="215"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="272" x2="452" y1="249" y2="249"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="272" x2="452" y1="299" y2="299"/>
+  <text dominant-baseline="alphabetic" fill="#00CC00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="14" font-weight="700" text-anchor="middle" x="362" y="234">CreditCardPayment</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="265">+cardNumber: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="284">+expiry: String</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="315">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="334">+refund(): bool</text>
+  <rect fill="#141414" height="103" rx="0" stroke="#1C1C1C" stroke-width="1" width="180" x="272" y="407"/>
+  <rect fill="#111111" height="34" rx="0" stroke="#33FF00" stroke-width="1.5" width="180" x="272" y="407"/>
+  <line stroke="#1C1C1C" stroke-width="1" x1="272" x2="452" y1="441" y2="441"/>
+  <text dominant-baseline="alphabetic" fill="#00CC00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="14" font-weight="700" text-anchor="middle" x="362" y="426">ShoppingCart</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="457">+addItem(Product p)</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="476">+removeItem(String sku)</text>
+  <text dominant-baseline="alphabetic" fill="#33FF00" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="12" font-weight="400" text-anchor="start" x="284" y="495">+checkout(): Order</text>
+  <path d="M 111 193 L 118 205 L 125 193" fill="none" stroke="#2C2C2C" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 118 358 L 111 370 L 118 382 L 125 370 Z" fill="#2C2C2C" stroke="#2C2C2C" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 111 563 L 118 575 L 125 563" fill="none" stroke="#2C2C2C" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 362 169 L 369 181 L 355 181 Z" fill="#0C0C0C" stroke="#2C2C2C" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 263 448 L 272 459 L 277 446" fill="none" stroke="#2C2C2C" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 219 291 L 208 282 L 205 296" fill="none" stroke="#2C2C2C" stroke-linecap="round" stroke-width="1.5"/>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="110" y="193">1</text>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="110" y="193">*</text>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="128" y="193">places</text>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="128" y="380">contains</text>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="128" y="546">references</text>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="250" y="280">has</text>
+  <text dominant-baseline="middle" fill="#1E9900" font-family="Courier New, 'Courier', 'Lucida Console', monospace" font-size="10" font-weight="500" text-anchor="middle" x="231" y="374">creates</text>
+</svg>
