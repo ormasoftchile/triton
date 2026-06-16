@@ -2,6 +2,34 @@
 
 ---
 
+# Decision: GEOMETRY-QUALITY KERNEL (objective visual judgment)
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-16  
+**Status:** DECIDED — implemented, validated, gated; all posters CLEAN
+
+## Summary
+
+Pure deterministic kernel (`packages/core/src/geometry/`, @flatten-js/core + rbush): detectors (`edgeThroughNode`, `labelOverNode`, `labelLabelOverlap`, `outOfBounds`) + defect scores. Consumed TWO ways: (1) DURING layout — the overlay router enumerates candidate routes, scores with the kernel, picks lowest-cost deterministically (a node-stabbing route can't be chosen when a clean one exists) → no poisoned renders; (2) post-render GATE (`test/visual-quality.test.ts`) fails egregious defects + prints objective report. Validation caught a real defect (state `__end__` pseudo-state stab) → pseudo-states excluded from anchor registry. All posters CLEAN (measured verdict matches visual). 2770 tests, determinism preserved. Committed b4b2f04.
+
+## Technical
+
+**Kernel:** `packages/core/src/geometry/` exports `Box`, `Segment`, `BoxWithId`, `LabeledGeometry`, `Defect`, detectors (edgeThroughNode, labelOverNode, labelLabelOverlap, outOfBounds), spatial-index via rbush, quality scores, closed-form route cost model (scoreRoute, pickBestRoute). **36 unit tests** in `geometry-kernel.test.ts` confirm synthetic defect detection + false-negative absence.
+
+**Router integration:** Already wired in `packages/core/src/frontend/mermaid/index.ts` (prior session). Overlay router `enumerateHopCandidates` produces fixed deterministic candidate set per hop; `pickBestRoute` selects lowest-cost candidate against ALL node boxes, committed edges, committed labels.
+
+**Post-render gate:** New file `packages/core/test/visual-quality.test.ts` — 9 tests in 4 groups. Reads `.mmd` files directly (gallery + design figures). Uses `renderMermaid().qualityGeometry`. All 5 posters verdict CLEAN.
+
+**Pseudo-state fix:** `layoutState` in `packages/core/src/grammars/state/layout.ts` excluded pseudo-states (`__start__`, `__end__`, fork, join, choice) from `NodeAnchorRegistry` — they are not semantically linkable and were false obstacles. Real defect in `link-poster.mmd` (ship→Shipped stab of `__end__`) fixed by this change.
+
+## Scope & Next
+
+Kernel currently gates EGREGIOUS overlap/crossing defects; AESTHETIC scores (balance/density/whitespace) exist but not yet gating thresholds; extend feedback-driven quality to other grammars' node/label placement.
+
+**Commits:** b4b2f04 (geometry kernel validation + gate + pseudo-state fix)
+
+---
+
 # Decision: CROSS-DIAGRAM LINKS + TRACES IMPLEMENTED (§30b)
 
 **Agent:** Barbara (Semantics & Rendering)  

@@ -2,7 +2,7 @@
 
 **Owner:** Leslie (Spec Architect)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-16T13:30:12Z (Design doc ASCII diagrams now all rendered by our own compiler (12 dogfood figures))
+**Updated:** 2026-06-16T14:45:00Z (Geometry-quality kernel: feedback-driven layout + post-render gate; objective defect detection. All posters CLEAN; 2770 tests, determinism preserved.)
 
 ---
 
