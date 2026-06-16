@@ -568,30 +568,14 @@ cells:
   \item \textbf{Final Scene:} $1200 \times (2 \cdot 32 + H_{\text{hdr}} + H_{\text{ftr}} + 280 + 340 + 24)$ --- all primitives from 4 sub-scenes + chrome in a single \texttt{Scene} object.  \texttt{sceneHash()} is deterministic.
 \end{enumerate}
 
-\begin{Verbatim}[frame=single,fontsize=\small]
-+---------------------------------------------------+
-|         RAG Architecture Deep Dive                |
-|  Retrieval-Augmented Generation Pipeline          |
-+------------------------+--------------------------+
-| [Ingestion Pipeline]   | [Document Taxonomy]      |
-|                        |                          |
-| docs -> chunk -> embed |      Corpus              |
-|           -> store     |     /     \              |
-|                        |   PDFs   Web Pages       |
-|                        |  / \      / \            |
-|                        | Papers  Docs Blogs       |
-+------------------------+--------------------------+
-| [Query Flow]           | [Retrieval Accuracy]     |
-|                        |                          |
-| User  API  VDB  LLM   |        94.2%             |
-|  |---->|    |    |     |  Top-5 recall on eval    |
-|  |    |---->|    |     |        ^  (up)           |
-|  |    |<----|    |     |                          |
-|  |    |--------->|     |                          |
-|  |    |<---------|     |                          |
-|  |<----|    |    |     |                          |
-+------------------------+--------------------------+
-\end{Verbatim}
+
+\ourdiagram[0.85\linewidth]{rag-poster-layout}{%
+  Composition structure of the RAG Architecture Deep Dive poster:
+  four panels (Ingestion Pipeline, Document Taxonomy, Query Flow, Retrieval Accuracy)
+  arranged in a $2{\times}2$ grid, each compiled by its grammar-specific layout engine
+  and assembled into a single Unified Scene IR.}
+
+
 
 % =========================================================================
 \subsection{Panel References}

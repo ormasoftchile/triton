@@ -1,0 +1,25 @@
+---
+theme: executive
+---
+flowchart LR
+    CAN["Canvas"]
+
+    THC["Track Header Column<br>(Hhdr px wide)"]
+    CAREA["Content Area<br>(canvas.width − Hhdr)"]
+
+    AXH["Axis Header Row<br>(Haxis px tall)"]
+    TRS["Track Rows"]
+
+    T0["Track 0<br>row_height px<br>activity bars + milestones"]
+    TK["Track 1 … N-2<br>row_height px each"]
+    TN["Track N-1<br>row_height px"]
+
+    CAN --> THC
+    CAN --> CAREA
+
+    CAREA --> AXH
+    CAREA --> TRS
+
+    TRS --> T0
+    TRS --> TK
+    TRS --> TN

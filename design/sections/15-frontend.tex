@@ -7,32 +7,11 @@ This dual front-end is the architectural key to serving both human authors
 
 \subsection{The Two Input Paths}
 
-\begin{figure}[h]
-\centering
-\begin{Verbatim}[frame=single,fontsize=\small]
-  Path A: Mermaid-Superset DSL        Path B: Structured IR (JSON/YAML)
-  (human-authored text)                (agent-emitted structured data)
-        |                                      |
-        v                                      v
-  [Parser: PEG/Nearley]               [Schema Validation]
-        |                                      |
-        +----------------+---------------------+
-                         |
-                         v
-              Domain IR (grammar-specific)
-                         |
-                         v
-              [Layout Engine + Theme]
-                         |
-                         v
-                      Scene IR
-                         |
-                         v
-              [Backends: SVG / PNG / PDF]
-\end{Verbatim}
-\caption{Dual front-end: text DSL and structured IR converge at the Domain IR layer}
-\label{fig:dual-frontend}
-\end{figure}
+\ourdiagram[0.95\linewidth]{dual-frontend}{%
+  Dual front-end: Mermaid DSL text (Path~A) passes through a PEG/Nearley parser;
+  structured IR JSON/YAML (Path~B) passes through schema validation.
+  Both paths converge at the same Domain IR, then proceed through the shared
+  layout and rendering pipeline to SVG, PNG, and PDF outputs.}
 
 \paragraph{Path A: Mermaid-Superset DSL.}
 Human authors write diagrams in Mermaid syntax (or our extensions).

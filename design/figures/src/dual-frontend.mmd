@@ -1,0 +1,25 @@
+---
+theme: executive
+---
+flowchart LR
+    DSL["Mermaid DSL<br>(human-authored text)"]
+    IR["Structured IR<br>(JSON / YAML)"]
+
+    PAR["PEG / Nearley<br>Parser"]
+    VAL["Schema<br>Validation"]
+
+    DIR["Domain IR<br>(grammar-specific)"]
+    LSIR["Layout Engine<br>→ Scene IR"]
+
+    SVG["SVG"]
+    PNG["PNG"]
+    PDF["PDF"]
+
+    DSL --> PAR
+    IR  --> VAL
+    PAR --> DIR
+    VAL --> DIR
+    DIR --> LSIR
+    LSIR --> SVG
+    LSIR --> PNG
+    LSIR --> PDF

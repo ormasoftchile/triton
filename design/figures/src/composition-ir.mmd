@@ -1,0 +1,22 @@
+---
+theme: executive
+---
+flowchart LR
+    CIR["Composition IR<br>panels + layout: grid(2,2)"]
+
+    CLE["Composition<br>Layout Engine"]
+
+    TE["Timeline<br>Layout Engine"]
+    FE["Flow<br>Layout Engine"]
+    SE["Stat<br>Layout Engine"]
+
+    CSIR["Unified Scene IR<br>(panels arranged in grid)"]
+
+    CIR --> CLE
+    CLE --> TE
+    CLE --> FE
+    CLE --> SE
+
+    TE --> CSIR
+    FE --> CSIR
+    SE --> CSIR

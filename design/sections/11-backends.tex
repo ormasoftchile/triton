@@ -5,29 +5,12 @@ This section defines the rendering backends that consume the Scene IR and produc
 
 \subsection{The Backend Architecture}
 
-\begin{figure}[h]
-\centering
-\begin{Verbatim}[frame=single,fontsize=\small]
-                      Scene IR
-                         |
-         +---------------+---------------+
-         |               |               |
-         v               v               v
-    SVG Backend     Skia Backend    PPTX Backend
-         |               |               |
-         v               v               v
-       SVG file     PNG / PDF       PPTX (native shapes)
-         |          (art effects)
-         |
-    +----+----+
-    |         |
-    v         v
-  resvg      PDF
-  (PNG)    (vector)
-\end{Verbatim}
-\caption{Backend architecture: SVG as the canonical path; Skia and PPTX as specialized backends}
-\label{fig:backend-arch}
-\end{figure}
+\ourdiagram[0.95\linewidth]{backend-arch}{%
+  Backend architecture: Scene IR fans out to three backends.
+  The SVG Backend is canonical---its SVG file is further rasterized by resvg (PNG)
+  or converted to vector PDF.
+  Skia renders art-effect PNG/PDF directly from Scene IR.
+  PPTX Backend maps Scene IR primitives to native DrawingML shapes.}
 
 \subsection{SVG as Canonical Source of Truth}
 

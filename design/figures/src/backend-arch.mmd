@@ -1,0 +1,27 @@
+---
+theme: executive
+---
+flowchart LR
+    SIR["Scene IR"]
+
+    SVGB["SVG Backend<br>(canonical)"]
+    SKIAB["Skia Backend"]
+    PPTXB["PPTX Backend"]
+
+    SVGF["SVG file"]
+    SKIAO["PNG / PDF<br>(art effects)"]
+    PPTXO["PPTX<br>(native shapes)"]
+
+    RESVG["PNG<br>(resvg raster)"]
+    VPDF["PDF<br>(vector)"]
+
+    SIR --> SVGB
+    SIR --> SKIAB
+    SIR --> PPTXB
+
+    SVGB  --> SVGF
+    SKIAB --> SKIAO
+    PPTXB --> PPTXO
+
+    SVGF --> RESVG
+    SVGF --> VPDF

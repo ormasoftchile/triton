@@ -1,0 +1,29 @@
+---
+theme: executive
+---
+flowchart LR
+    TIR["Timeline IR"]
+    FIR["Flow IR"]
+    GIR["Graph IR"]
+
+    TLE["Timeline<br>Layout Engine"]
+    FLE["Flow<br>Layout Engine"]
+    GLE["Graph<br>Layout Engine"]
+
+    SIR["Scene IR<br>Rect · Circle · Line<br>Path · Text · Group<br>Effects · Animation Hints"]
+
+    SVG["SVG Backend"]
+    SKI["Skia Backend"]
+    PPT["PPTX Backend"]
+
+    TIR --> TLE
+    FIR --> FLE
+    GIR --> GLE
+
+    TLE --> SIR
+    FLE --> SIR
+    GLE --> SIR
+
+    SIR --> SVG
+    SIR --> SKI
+    SIR --> PPT

@@ -86,26 +86,11 @@ the canvas is the origin $(0,\,0)$; $x$ increases rightward, $y$ downward. All l
 computations use integer arithmetic in logical pixels; the Scene/Render IR records
 decimal-valued coordinates as its output (see Section~\ref{sec:scene-output}).
 
-\begin{figure}[h]
-\centering
-\begin{Verbatim}[frame=single,fontsize=\small]
-  x=0           x=Hhdr+mL              x=canvas.width
-  +--------------+----------------------------------+
-  |              |  Axis header (Haxis px)          |  y = mT
-  |  Track       +----------------------------------+
-  |  header      |  Track[0]  (row_height px)       |
-  |  column      |  [activity bars, milestones]     |
-  |  (Hhdr px)   +----------------------------------+
-  |              |  Track[1]  (row_height px)       |
-  |              |    ...                            |
-  |              +----------------------------------+
-  |              |  Track[N-1]                      |
-  +--------------+----------------------------------+
-                                         y = canvas.height
-\end{Verbatim}
-\caption{Canvas coordinate system and layout zones}
-\label{fig:canvas-layout}
-\end{figure}
+\ourdiagram[0.9\linewidth]{canvas-layout}{%
+  Timeline canvas coordinate zones: the canvas splits into a Track Header Column
+  (left, \texttt{Hhdr}~px wide) and a Content Area (right).
+  The Content Area holds the Axis Header Row at the top,
+  followed by Track~0 through Track~$N{-}1$, each \texttt{row\_height}~px tall.}
 
 \begin{table}[h]
 \centering

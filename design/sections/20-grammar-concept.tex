@@ -125,33 +125,10 @@ large, polymorphic schema is an agent-authoring failure vector.
 
 The architecture uses \textbf{two layers of intermediate representation}:
 
-\begin{figure}[h]
-\centering
-\begin{Verbatim}[frame=single,fontsize=\small]
-Layer 1: Domain IRs (grammar-specific)
-  +-------------+  +-------------+  +-------------+
-  | Timeline IR |  |   Flow IR   |  |  Graph IR   |
-  +-------------+  +-------------+  +-------------+
-        |                |                |
-        v                v                v
-  [Timeline        [Flow Layout    [Graph Layout
-   Layout Engine]   Engine]         Engine]
-        |                |                |
-        +-------+--------+-------+--------+
-                |
-                v
-Layer 2: Scene IR (universal)
-  +------------------------------------------+
-  |  Rect, Circle, Line, Path, Text, Group   |
-  |  Effects, Animation Hints                |
-  +------------------------------------------+
-                |
-                v
-  [Rendering Backends: SVG, Skia, PPTX]
-\end{Verbatim}
-\caption{The two-IR-layer model: diverse Domain IRs compile to unified Scene IR}
-\label{fig:two-ir-model}
-\end{figure}
+\ourdiagram[0.95\linewidth]{two-ir-model}{%
+  The two-IR-layer model: each grammar's Domain IR feeds its own Layout Engine,
+  all of which compile down to the single shared Scene IR,
+  consumed by SVG, Skia, and PPTX rendering backends.}
 
 \paragraph{Domain IRs are diverse, small, and grammar-specific.}
 The Timeline IR has tracks, activities, milestones. The Flow IR has nodes, edges, lanes. The Graph IR has vertices, edges, clusters. These entities are \emph{semantically meaningful} within their grammar---an Activity knows it has a start date; a Node knows it has incoming edges.
@@ -207,21 +184,10 @@ The two-IR-layer model inverts the coupling: Domain IRs are independent; the Sce
 
 For multi-panel posters (Section~\ref{sec:composition}), a Composition IR sits \emph{above} the Domain IRs, not merged into them:
 
-\begin{Verbatim}[frame=single,fontsize=\small]
-Composition IR
-  +-------------------+
-  | panels: [         |
-  |   { type: timeline, ir: {...} },
-  |   { type: flow,     ir: {...} },
-  |   { type: stat,     ir: {...} }
-  | ]                 |
-  | layout: grid(2,2) |
-  +-------------------+
-        |
-        v  [Composition Layout Engine]
-        |
-  (compiles each panel's Domain IR, then arranges in Scene IR)
-\end{Verbatim}
+\ourdiagram[0.9\linewidth]{composition-ir}{%
+  Composition IR sits above Domain IRs: the Composition Layout Engine dispatches
+  each panel to its grammar-specific layout engine, then assembles the resulting
+  sub-scenes into a single Unified Scene IR.}
 
 The Composition IR \emph{references} panels, each with its own grammar type and Domain IR. It does not flatten them into a single schema.
 

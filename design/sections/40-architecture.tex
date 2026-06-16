@@ -5,31 +5,10 @@ This section defines the layered architecture of the diagram compiler, emphasizi
 
 \subsection{The Three Layers}
 
-\begin{figure}[h]
-\centering
-\begin{Verbatim}[frame=single,fontsize=\small]
-+------------------------------------------------------------------+
-|                      COMPOSITION LAYER                           |
-|   (arranges panels into posters; references grammar outputs)     |
-+------------------------------------------------------------------+
-        |               |               |               |
-        v               v               v               v
-+---------------+ +-------------+ +-------------+ +-----------+
-|   Timeline    | |    Flow     | |    Graph    | | Comparison|
-|   Grammar     | |   Grammar   | |   Grammar   | |  Grammar  |
-+---------------+ +-------------+ +-------------+ +-----------+
-        |               |               |               |
-        +-------+-------+-------+-------+-------+-------+
-                |
-                v
-+------------------------------------------------------------------+
-|                          KERNEL                                  |
-|   Scene IR | Backends | Themes | Determinism | Icons | Lint     |
-+------------------------------------------------------------------+
-\end{Verbatim}
-\caption{The three-layer architecture: Composition → Grammars → Kernel}
-\label{fig:three-layers}
-\end{figure}
+\ourdiagram[0.95\linewidth]{three-layers}{%
+  The three-layer architecture: the Composition layer depends on peer Grammar modules,
+  each Grammar depends on the Kernel.
+  The Kernel (Scene IR, Backends, Themes, Determinism, Icons, Lint) is grammar-agnostic.}
 
 \ourdiagram[0.95\linewidth]{architecture}{%
   The two-frontend, two-IR compilation pipeline.
