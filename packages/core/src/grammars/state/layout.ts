@@ -724,23 +724,37 @@ export function layoutState(doc: StateDocument, themeOverride?: StateTheme): Ren
   }
 
   // ── Node-anchor registry (sidecar — §30b Phase A) ─────────────────────────
-  // Include all REAL placed states by their node id.  Pseudo-states (__start__,
-  // __end__, fork, join, choice) are layout-internal nodes that cannot be
-  // referenced in `link`/`trace` directives and must NOT be registered as
-  // anchors — they would otherwise appear as false obstacles in the geometry
-  // kernel, causing any route approaching a real node they bracket to be flagged
-  // as defective.  The isPseudo field is optional (undefined) or explicit null
-  // for real states; it is a non-empty string for pseudo-states.
+  // Two separate registries are built here to honour the dual role of placed nodes:
+  //
+  //  anchors   — ADDRESSABLE TARGETS: real states only.  Pseudo-states (__start__,
+  //              __end__, fork, join, choice) are NOT valid `link`/`trace` endpoints
+  //              and are excluded from this registry so they are never surfaced as
+  //              referenceable nodes.
+  //
+  //  obstacles — FULL OBSTACLE SET: every placed node box, real AND pseudo.  The
+  //              geometry kernel and feedback router MUST see all rendered shapes;
+  //              a route that passes through the end-state bullseye is a real defect
+  //              and must be penalised and rerouted.  Excluding pseudo-states from
+  //              obstacles was the root cause of the blind-spot bug (2026-06-16).
+  //
+  // The isPseudo field is undefined/null for real states and a non-empty string for
+  // pseudo-states ('start' | 'end' | 'fork' | 'join' | 'choice').
   const anchors: NodeAnchorRegistry = {};
+  const obstacles: NodeAnchorRegistry = {};
   for (const s of allPlaced) {
-    if (s.node.isPseudo) continue; // skip pseudo-states ('start'|'end'|'fork'|'join'|'choice')
-    anchors[s.node.id] = {
+    const box: NodeAnchorRegistry[string] = {
       id: s.node.id,
       x: s.x,
       y: s.y,
       w: s.right - s.x,
       h: s.bottom - s.y,
     };
+    // Obstacles = ALL rendered node boxes (real + pseudo).
+    obstacles[s.node.id] = box;
+    // Addressable targets = real states only (no pseudo-states).
+    if (!s.node.isPseudo) {
+      anchors[s.node.id] = box;
+    }
   }
 
   return {
@@ -751,5 +765,6 @@ export function layoutState(doc: StateDocument, themeOverride?: StateTheme): Ren
       primitives: [...edgeLines, ...nodePrimitives, ...notePrimitives, ...edgeMarkers, ...edgeLabels],
     },
     anchors,
+    obstacles,
   };
 }

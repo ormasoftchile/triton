@@ -545,6 +545,7 @@ export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): Ren
         primitives: [],
       },
       anchors: {},
+      obstacles: {},
     };
   }
 
@@ -611,12 +612,19 @@ export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): Ren
   // Index by BOTH the display name (cls.name, as authored in the source) and
   // the sanitized id (cls.id, lowercase) so that link statements can reference
   // class nodes using the original capitalisation they were declared with.
+  //
+  // The `obstacles` field contains only ONE entry per physical box (keyed by
+  // cls.name) so the geometry kernel does not double-penalise a route passing
+  // through a class node that is dual-indexed (name ≠ id).
   const anchors: NodeAnchorRegistry = {};
+  const obstacles: NodeAnchorRegistry = {};
   for (const item of placed) {
     const anchor = { id: item.cls.name, x: item.x, y: item.y, w: item.width, h: item.height };
     anchors[item.cls.name] = anchor;
+    obstacles[item.cls.name] = anchor; // one physical box per class node
     if (item.cls.id !== item.cls.name) {
       anchors[item.cls.id] = { ...anchor, id: item.cls.id };
+      // intentionally NOT added to obstacles — same physical box, different key
     }
   }
 
@@ -628,5 +636,6 @@ export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): Ren
       primitives: [...edgeLines, ...classPrimitives, ...edgeMarkers, ...edgeLabels],
     },
     anchors,
+    obstacles,
   };
 }

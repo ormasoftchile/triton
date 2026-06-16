@@ -70,8 +70,20 @@ export type NodeAnchorRegistry = Record<string, NodeAnchor>;
  *
  * The `scene` field is byte-identical to the plain `Scene` returned previously
  * — the registry is purely additive metadata that does not affect rendering.
+ *
+ * `anchors`  — ADDRESSABLE TARGETS only: nodes that can be referenced in
+ *              `link`/`trace` directives.  Pseudo-states (start/end/fork/join/
+ *              choice) are intentionally excluded — they are not valid endpoints.
+ *
+ * `obstacles` — FULL OBSTACLE SET: every rendered node box, including pseudo-
+ *              states, that the geometry kernel and router must treat as an
+ *              opaque obstruction.  Grammars that have no rendered-but-not-
+ *              addressable nodes may omit this field; the composition layer
+ *              falls back to `anchors` when it is absent.
  */
 export interface RenderWithAnchors<S> {
   scene: S;
   anchors: NodeAnchorRegistry;
+  /** All rendered node boxes (addressable + pseudo-states); used as kernel obstacles. */
+  obstacles?: NodeAnchorRegistry;
 }

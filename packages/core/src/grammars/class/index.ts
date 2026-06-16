@@ -43,9 +43,10 @@ export function buildClassScene(doc: ClassDocument, themeOverride?: ClassTheme):
 export function buildClassSceneWithAnchors(
   doc: ClassDocument,
   themeOverride?: ClassTheme,
-): { scene: Scene; anchors: NodeAnchorRegistry } {
+): { scene: Scene; anchors: NodeAnchorRegistry; obstacles: NodeAnchorRegistry } {
   classDocumentSchema.parse(doc);
-  return layoutClass(doc, themeOverride);
+  const result = layoutClass(doc, themeOverride);
+  return { scene: result.scene, anchors: result.anchors, obstacles: result.obstacles ?? result.anchors };
 }
 
 export type ClassRenderFormat = 'svg' | 'png';

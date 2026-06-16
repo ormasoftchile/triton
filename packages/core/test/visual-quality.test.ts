@@ -26,6 +26,17 @@
  *
  *   D. Defect-report helper
  *      D1. printDefectReport — prints a formatted report for a named poster
+ *
+ *   E. Regression — pseudo-state obstacles (2026-06-16 fix)
+ *      E1. kernel flags edge through state end-bullseye when it is in obstacle set
+ *      E2. link-poster qualityGeometry includes __end__ as an obstacle node
+ *
+ * GATE INVARIANT: The kernel's obstacle set (geo.nodes) MUST equal ALL rendered
+ * node boxes — real nodes AND pseudo-states (start/end/fork/join/choice).
+ * Excluding pseudo-states from obstacles made the kernel blind to routes that
+ * passed through the end-state bullseye.  The fix: the state grammar now returns
+ * a separate `obstacles` registry (all placed nodes) alongside `anchors`
+ * (addressable targets only), and the router/gate use `obstacles` for scoring.
  */
 
 import { readFileSync } from 'node:fs';
@@ -258,3 +269,88 @@ describe('D. Defect-report helper', () => {
   });
 
 });
+
+// ---------------------------------------------------------------------------
+// E. Regression — pseudo-state obstacles (2026-06-16 fix)
+// ---------------------------------------------------------------------------
+// ROOT CAUSE: The state grammar excluded pseudo-states from its NodeAnchorRegistry
+// to prevent them from being addressed as `link`/`trace` endpoints.  But the
+// composition layer reused that same pruned registry as the kernel's obstacle set.
+// Result: the kernel was blind to the end-state bullseye and could not flag (or
+// penalise) routes that passed straight through it.
+//
+// FIX: The state grammar now returns a SEPARATE `obstacles` registry containing
+// ALL placed node boxes (real states + pseudo-states).  The router and post-render
+// gate both use `obstacles` for scoring; `anchors` is still used only for endpoint
+// resolution.  Pseudo-states remain non-addressable; they are now proper obstacles.
+// ---------------------------------------------------------------------------
+
+describe('E. Regression — pseudo-state obstacles (2026-06-16)', () => {
+
+  it('E1: kernel flags edge through state end-bullseye when bullseye is in obstacle set', () => {
+    // Simulate the EXACT blind-spot that was reported: a route from a flow node
+    // to a state node, routed via the bus (bottom segment), entering the state
+    // cell from below and passing through the __end__ bullseye that sits below
+    // the Shipped node.
+    //
+    // Before the fix: __end__ was NOT in geo.nodes → kernel reported CLEAN (wrong).
+    // After the fix:  __end__ IS in geo.nodes     → kernel flags edgeThroughNode.
+    const shipped: BoxWithId  = { id: 'Shipped', x: 200, y: 100, w: 80, h: 30 };
+    const endNode: BoxWithId  = { id: '__end__', x: 226, y: 145, w: 28, h: 28 }; // bullseye below Shipped
+    const flowSrc: BoxWithId  = { id: 'ship',    x:   0, y: 100, w: 80, h: 30 };
+
+    // Route: bus segment rises from y=200 (below everything) to Shipped.bottom (y=130),
+    // passing vertically through __end__ (y=145..173).
+    const shipCenterX = flowSrc.x + flowSrc.w / 2;
+    const tgtCenterX  = shipped.x + shipped.w / 2;
+    const busY = 200;
+
+    const geo: LabeledGeometry = {
+      nodes: [flowSrc, shipped, endNode], // endNode IS in the obstacle set (post-fix behaviour)
+      labels: [],
+      edges: [
+        {
+          id: 'ship->Shipped',
+          fromId: 'ship',
+          toId: 'Shipped',
+          segments: [
+            { x1: shipCenterX, y1: flowSrc.y + flowSrc.h, x2: shipCenterX, y2: busY },
+            { x1: shipCenterX, y1: busY,                   x2: tgtCenterX,  y2: busY },
+            { x1: tgtCenterX,  y1: busY,                   x2: tgtCenterX,  y2: shipped.y + shipped.h },
+          ],
+        },
+      ],
+      canvas: { x: 0, y: 0, w: 400, h: 250 },
+    };
+
+    const defects = edgeThroughNode(geo);
+    console.log('[E1] end-bullseye obstacle regression:', formatDefectReport(geo, 'synthetic-end-bullseye'));
+    expect(defects.length).toBeGreaterThan(0);
+    expect(defects.some((d) => d.kind === 'edgeThroughNode' && d.objectId === '__end__')).toBe(true);
+  });
+
+  it('E2: link-poster qualityGeometry obstacle set includes __end__ pseudo-state node', () => {
+    // After the fix the composition layer passes the full obstacle registry
+    // (anchors + pseudo-states) to the kernel.  We verify that the __end__ node
+    // appears in qualityGeometry.nodes for the link-poster, which contains a
+    // state diagram cell with a Shipped → [*] end transition.
+    const src = readPoster(join(FIGURES_DIR, 'link-poster.mmd'));
+    const result = renderMermaid(src, { format: 'svg' });
+    if (!result.qualityGeometry) throw new Error('E2: link-poster has no qualityGeometry');
+
+    const geo = result.qualityGeometry;
+    // The state cell (C1, col 2 row 0) has __end__ at key "0,2:__end__"
+    const hasEndNode = geo.nodes.some((n) => n.id.includes('__end__'));
+    console.log('[E2] nodes in obstacle set:', geo.nodes.map((n) => n.id).join(', '));
+    expect(hasEndNode).toBe(true);
+
+    // And the whole poster must still be CLEAN — the route was fixed by the
+    // router picking a non-bullseye path now that __end__ is a scored obstacle.
+    const report = detectDefects(geo);
+    console.log('[E2] post-fix defect report:', formatDefectReport(geo, 'link-poster E2'));
+    expect(report.clean).toBe(true);
+    expect(report.counts.edgeThroughNode).toBe(0);
+  });
+
+});
+

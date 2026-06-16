@@ -1207,8 +1207,10 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     : ['#1F497D', '#2E86AB', '#4CAF82', '#D97706', '#7C3AED', '#0891B2'];
 
   const cells: Cell[] = [];
-  // Map from "row,col" key → local-space NodeAnchorRegistry
+  // Map from "row,col" key → local-space NodeAnchorRegistry (addressable targets)
   const cellAnchors = new Map<string, NodeAnchorRegistry>();
+  // Map from "row,col" key → local-space full obstacle set (includes pseudo-states)
+  const cellObstacles = new Map<string, NodeAnchorRegistry>();
 
   for (const cellDef of doc.cells) {
     const cellText = `${cellDef.typeHeader}\n${cellDef.body}`;
@@ -1232,7 +1234,10 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
         content: sceneContent,
       };
       cells.push(cell);
-      cellAnchors.set(`${cellDef.row},${cellDef.col}`, result.anchors);
+      const key = `${cellDef.row},${cellDef.col}`;
+      cellAnchors.set(key, result.anchors);
+      // Use grammar-supplied obstacles (includes pseudo-states); fall back to anchors.
+      cellObstacles.set(key, result.obstacles ?? result.anchors);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       warnings.push(
@@ -1265,22 +1270,27 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
 
   const { scene: baseScene, cellTransforms } = layoutCompositionFull(compDoc, layoutTheme);
 
-  // Build poster-space anchor map: key = "row,col", value = transformed registry
+  // Build poster-space anchor map: key = "row,col", value = transformed registry (addressable targets)
   const posterAnchors = new Map<string, NodeAnchorRegistry>();
+  // Build poster-space obstacle map: key = "row,col", value = transformed full obstacle set
+  const posterObstacles = new Map<string, NodeAnchorRegistry>();
   for (const ct of cellTransforms) {
     const key = `${ct.row},${ct.col}`;
-    const localAnchors = cellAnchors.get(key) ?? {};
-    const transformed: NodeAnchorRegistry = {};
-    for (const [id, anchor] of Object.entries(localAnchors)) {
-      transformed[id] = {
-        id,
-        x: anchor.x * ct.scale + ct.dx,
-        y: anchor.y * ct.scale + ct.dy,
-        w: anchor.w * ct.scale,
-        h: anchor.h * ct.scale,
-      };
-    }
-    posterAnchors.set(key, transformed);
+    const transformReg = (local: NodeAnchorRegistry): NodeAnchorRegistry => {
+      const out: NodeAnchorRegistry = {};
+      for (const [id, anchor] of Object.entries(local)) {
+        out[id] = {
+          id,
+          x: anchor.x * ct.scale + ct.dx,
+          y: anchor.y * ct.scale + ct.dy,
+          w: anchor.w * ct.scale,
+          h: anchor.h * ct.scale,
+        };
+      }
+      return out;
+    };
+    posterAnchors.set(key, transformReg(cellAnchors.get(key) ?? {}));
+    posterObstacles.set(key, transformReg(cellObstacles.get(key) ?? {}));
   }
 
   // Resolve and draw overlay edges (links + desugared trace hops).  The router
@@ -1302,6 +1312,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     doc.links,
     doc.traces,
     posterAnchors,
+    posterObstacles,
     cellTransforms,
     warnings,
     layoutTheme,
@@ -1614,6 +1625,26 @@ function enumerateHopCandidates(
         labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
       };
     }));
+    // Near-source variant: the vertical gutter sits just past the source cell's right
+    // edge.  For non-adjacent targets (cells in between), this keeps the vertical
+    // segment inside the actual gap between source and its immediate right neighbour
+    // rather than inside an intermediate cell.  Lower-rank than the midpoint variant;
+    // the kernel picks this when the midpoint route has a higher throughNode cost.
+    const gxNear = srcCell.x + srcCell.w + 8;
+    if (Math.round(gxNear) !== Math.round(gx0)) { // skip when degenerate duplicate
+      candidates.push(mk('h-right', `hx:${Math.round(gxNear)}`, (off) => {
+        const gx = gxNear + off;
+        return {
+          points: [
+            { x: s.x + s.w, y: srcCy },
+            { x: gx, y: srcCy },
+            { x: gx, y: tgtCy },
+            { x: t.x, y: tgtCy },
+          ],
+          labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+        };
+      }));
+    }
   }
 
   // Direct horizontal gutter — target to the LEFT.
@@ -1631,6 +1662,22 @@ function enumerateHopCandidates(
         labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
       };
     }));
+    // Near-source variant (symmetric to h-right-near).
+    const gxNear = srcCell.x - 8;
+    if (Math.round(gxNear) !== Math.round(gx0)) {
+      candidates.push(mk('h-left', `hx:${Math.round(gxNear)}`, (off) => {
+        const gx = gxNear + off;
+        return {
+          points: [
+            { x: s.x, y: srcCy },
+            { x: gx, y: srcCy },
+            { x: gx, y: tgtCy },
+            { x: t.x + t.w, y: tgtCy },
+          ],
+          labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+        };
+      }));
+    }
   }
 
   // Direct vertical gutter — target BELOW.
@@ -1667,7 +1714,11 @@ function enumerateHopCandidates(
     }));
   }
 
-  // Bottom-margin bus fallback (always available).  `offset` adds lane pitch.
+  // Bottom-margin bus fallback — center entry (always available).
+  // The bus drops below all cells and rises into the target's bottom-centre.
+  // For targets with a pseudo-state (e.g. end-bullseye) directly below the node,
+  // the centre-X entry may pass through that pseudo-state; the left/right entry
+  // variants below provide clean alternatives the kernel can score against.
   candidates.push(mk('bus', 'bus', (off) => {
     const busY = busBaseY + off;
     return {
@@ -1678,6 +1729,38 @@ function enumerateHopCandidates(
         { x: tgtCx, y: t.y + t.h },
       ],
       labelBox: labelBoxAt((srcCx + tgtCx) / 2, busY, label),
+    };
+  }));
+
+  // Bus left-entry: rises into the target's bottom-left.  For targets whose
+  // centre-bottom is blocked by a pseudo-state (end-bullseye at tgtCx), this
+  // enters at the left edge of the target box, which is typically clear.
+  const busEntryLeft = t.x + 4;
+  candidates.push(mk('bus', 'bus', (off) => {
+    const busY = busBaseY + off;
+    return {
+      points: [
+        { x: srcCx,       y: s.y + s.h },
+        { x: srcCx,       y: busY },
+        { x: busEntryLeft, y: busY },
+        { x: busEntryLeft, y: t.y + t.h },
+      ],
+      labelBox: labelBoxAt((srcCx + busEntryLeft) / 2, busY, label),
+    };
+  }));
+
+  // Bus right-entry: symmetric to bus-left, enters at the target's bottom-right.
+  const busEntryRight = t.x + t.w - 4;
+  candidates.push(mk('bus', 'bus', (off) => {
+    const busY = busBaseY + off;
+    return {
+      points: [
+        { x: srcCx,        y: s.y + s.h },
+        { x: srcCx,        y: busY },
+        { x: busEntryRight, y: busY },
+        { x: busEntryRight, y: t.y + t.h },
+      ],
+      labelBox: labelBoxAt((srcCx + busEntryRight) / 2, busY, label),
     };
   }));
 
@@ -1704,6 +1787,7 @@ function resolveAndDrawLinks(
   links: PosterLink[],
   traces: TraceRecord[],
   posterAnchors: Map<string, NodeAnchorRegistry>,
+  posterObstacles: Map<string, NodeAnchorRegistry>,
   cellTransforms: CellTransform[],
   warnings: string[],
   theme: CompositionTheme,
@@ -1729,12 +1813,18 @@ function resolveAndDrawLinks(
   });
 
   // Cell rectangles + ALL node boxes in poster space (for kernel scoring).
+  // CRITICAL: nodeBoxes is built from posterObstacles (the FULL rendered-node set,
+  // including pseudo-states such as start/end bullseyes) — NOT from posterAnchors
+  // (addressable targets only).  Using only anchors was the root cause of the
+  // link-poster blind-spot bug: the end-state bullseye was excluded from anchors
+  // (not a valid link target), so it was also excluded from obstacles, making the
+  // kernel blind to routes passing straight through it (2026-06-16 regression fix).
   const cellRectByKey = new Map<string, CellRect>();
   for (const ct of cellTransforms) {
     cellRectByKey.set(`${ct.row},${ct.col}`, { x: ct.cellX, y: ct.cellY, w: ct.cellW, h: ct.cellH });
   }
   const nodeBoxes: KernelBoxWithId[] = [];
-  for (const [key, registry] of posterAnchors) {
+  for (const [key, registry] of posterObstacles) {
     for (const anchor of Object.values(registry)) {
       nodeBoxes.push({ id: `${key}:${anchor.id}`, x: anchor.x, y: anchor.y, w: anchor.w, h: anchor.h });
     }
@@ -2052,11 +2142,16 @@ function lightenHex(hex: string, fraction: number): string {
  * Throws on parse or render errors so the caller can catch + warn + skip.
  *
  * Grammars that do not yet export anchors return `{ scene, anchors: {} }`.
+ *
+ * `obstacles` is the FULL set of rendered node boxes for that cell (including
+ * pseudo-states for the state grammar).  The composition layer uses this as the
+ * kernel's obstacle set so routes never pass through rendered-but-not-addressable
+ * nodes (e.g. the end-state bullseye).  Defaults to `anchors` when absent.
  */
 function renderCellSceneWithAnchors(
   cellText: string,
   themeName: string,
-): { scene: Scene; anchors: NodeAnchorRegistry } | null {
+): { scene: Scene; anchors: NodeAnchorRegistry; obstacles?: NodeAnchorRegistry } | null {
   const cellKind = detectDiagramType(cellText);
 
   switch (cellKind) {
