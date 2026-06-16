@@ -2,6 +2,125 @@
 
 ---
 
+# Decision: AESTHETIC METRICS LAYER — Continuous Quality Scorecard + Corpus Gate
+
+**Agent:** Barbara (Semantics & Rendering)
+**Date:** 2026-06-16
+**Status:** IMPLEMENTED — 2790 tests passing; poster-trace golden updated; all others byte-identical
+
+---
+
+## What Was Added
+
+### 1. Aesthetic Metrics (`geometry/aesthetics.ts`)
+
+Five continuous quality metrics, normalized 0..1 (1 = best), pure + deterministic. Unlike the existing binary defect detectors (edgeThroughNode, labelOverNode, etc.), these catch the "feels horrible" class of layouts — not broken, but visually uncomfortable.
+
+| Metric | What it catches | How |
+|---|---|---|
+| `gridBalanceScore` | "empty hub third" — large dead-whitespace region, lopsided fill | 16×16 occupancy grid; largest contiguous empty region + quadrant variance |
+| `congestionScore` | "busy gutter" — many edges piling into one inter-cell gap | Per-cell segment count; score = 1/(1 + max(0, peakLevel−1)) |
+| `alignmentScore` | Scattered nodes with no shared guide | Fraction of boxes that share left/center-x/right/top/center-y/bottom guides within 5px |
+| `spacingUniformScore` | Irregular gaps between sibling elements | Coefficient of variation of edge-to-edge gaps among axis-aligned neighbours |
+| `edgeCrossingsAestheticScore` | Tangled overlay routes | Re-uses existing `edgeCrossingsScore` from scores.ts |
+
+Key API: `computeAestheticScores(geo: LabeledGeometry): AestheticScores` (deterministic) and `formatAestheticScorecard(geo, name, thresholds?)` (human-readable report string).
+
+### 2. Corpus Calibration
+
+Baseline measured over all 5 poster diagrams (the only diagrams with full `LabeledGeometry` via `qualityGeometry`):
+
+```
+metric         min    max    mean
+gridBalance    0.617  0.684  0.666
+congestion     0.600  1.000  0.790
+alignment      0.778  1.000  0.889
+spacingUniform 0.000  0.517  0.373  ← link-poster has 0 (3 nodes at very different Y)
+edgeCrossings  0.667  1.000  0.800
+overall        0.649  0.788  0.714
+```
+
+Existing posters are in the ACCEPTABLE–MEDIOCRE range (0.649–0.788 overall). The metrics correctly identify the residual aesthetic issues: crossings unavoidable in 2×2 multi-hop layouts, spacing variance from irregular node placement.
+
+### 3. Corpus-Calibrated Gate
+
+Added to `test/visual-quality.test.ts` (Group F: F1 + F2):
+
+**HARD GATE** (fail on assertion):
+- `gridBalance < 0.30` — extreme dead-whitespace (≥70% of canvas in one empty region, corpus min = 0.617, gate = 50% below)
+- `congestion < 0.30` — extreme gutter jam (≥10 segments per cell, corpus min = 0.600, gate = 50% below)
+
+**REPORT-ONLY** (printed, not asserted):
+- alignment, spacingUniform, edgeCrossings, overall — too variable between layout styles; subtle enough not to hard-gate
+
+Rationale for conservative thresholds: existing examples must all pass (they do — corpus min 0.617 >> gate 0.30). Hard-gate exists to catch future regressions that are MUCH worse (completely empty canvas, impossibly dense gutter).
+
+F1 prints the full scorecard + corpus distribution table on every test run so the CI log acts as an objective judgment tool.
+
+### 4. Route-Cost Congestion Penalty
+
+Added `congestion: 20` weight to `ROUTE_WEIGHTS` in `route-cost.ts`. In `scoreRoute`, the `congestionCount` measures how many already-committed edges share a parallel gutter corridor within `CORRIDOR_TOL = 24px` of the new candidate's segments.
+
+Effect: the router spreads routes across distinct gutters rather than piling them into one vertical or horizontal band. The penalty (20 per shared corridor) sits between `edgeCrossing (40)` and `bend (4)` — strong enough to steer, never overriding hard defect avoidance.
+
+Added `congestionCount` field to `RouteCost` interface (additive, backward-compatible).
+
+---
+
+## Before → After Poster Scores
+
+| Poster | Metric | Before | After | Change |
+|---|---|---|---|---|
+| link-poster | congestion | 0.750 | **1.000** | **+0.250** |
+| link-poster | overall | 0.698 | 0.733 | +0.035 |
+| poster-trace | gridBalance | 0.650 | 0.682 | +0.032 |
+| poster-trace | overall | 0.642 | 0.649 | +0.007 |
+| crosslink-poster | gridBalance | 0.654 | 0.684 | +0.030 |
+| crosslink-poster | overall | 0.694 | 0.700 | +0.006 |
+| trace-poster | gridBalance | 0.650 | 0.682 | +0.032 |
+| trace-poster | overall | 0.642 | 0.649 | +0.007 |
+| poster-crosslink | (all) | unchanged | unchanged | — |
+
+Changed goldens: `examples/gallery/poster-trace.{svg,png}` only (routing improved). All other goldens byte-identical.
+
+Visual verdict: link-poster links now travel distinct gutter lanes (congestion = 1.000 — perfect spread). Trace posters show REQ-13/REQ-02 return legs using distinct corridors from REQ-12/REQ-01. Residual: 2 crossings in 2×2 multi-hop layouts (geometrically unavoidable given current topology).
+
+---
+
+## What's Report-Only vs Hard-Gated
+
+| Metric | Status | Rationale |
+|---|---|---|
+| gridBalance | HARD GATE at 0.30 | "Dead third" is a clear, defensible defect; threshold is 50% below corpus min |
+| congestion | HARD GATE at 0.30 | Extreme gutter jam is actionable; threshold is 50% below corpus min |
+| alignment | REPORT-ONLY | Varies too much by diagram type; single-cell grids vs multi-node grids differ dramatically |
+| spacingUniform | REPORT-ONLY | link-poster has 0.000 (geometrically unavoidable with 3 overlay nodes at different Y) |
+| edgeCrossings | REPORT-ONLY | Crossings unavoidable in 2×2 multi-hop topology; 0.667 floor is expected behaviour |
+| overall | REPORT-ONLY | Composite — individual metric outliers are more actionable |
+
+---
+
+## Files Changed
+
+- **New**: `packages/core/src/geometry/aesthetics.ts` (316 lines; gridBalanceScore, congestionScore, alignmentScore, spacingUniformScore, computeAestheticScores, formatAestheticScorecard)
+- **Modified**: `packages/core/src/geometry/index.ts` (exports new aesthetic functions)
+- **Modified**: `packages/core/src/geometry/route-cost.ts` (congestion weight, sharesGutterCorridor helper, congestionCount in RouteCost)
+- **Modified**: `packages/core/test/geometry-kernel.test.ts` (+18 aesthetic unit tests with clear synthetic cases)
+- **Modified**: `packages/core/test/visual-quality.test.ts` (+F group: F1 corpus calibration print + F2 hard gate assertion)
+- **Changed goldens**: `examples/gallery/poster-trace.{svg,png}` (route improved, still CLEAN)
+
+---
+
+## Next Steps
+
+- Extend aesthetic scoring to non-poster single diagrams (requires extracting `LabeledGeometry` from rendered scene rather than overlay-only).
+- Tune `CONGESTION_THRESHOLD` (currently 3) as more poster layouts are added — the corpus will grow and thresholds should be updated.
+- Consider adding the `gridBalance` term directly to route-cost as a route-selection signal (not just a post-render score), to steer link routing toward underutilized canvas regions.
+- Extend `alignmentScore` and `spacingUniformScore` to include label boxes (currently nodes-only).
+- As other grammars gain `LabeledGeometry` output (sequence, ER, Gantt), re-run corpus calibration and recalibrate thresholds.
+
+---
+
 # Decision: KERNEL OBSTACLES FIX — Separate Rendered Nodes from Addressable Link Targets
 
 **Agent:** Barbara (Semantics & Rendering)  
