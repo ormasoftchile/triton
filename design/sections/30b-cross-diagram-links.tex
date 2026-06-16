@@ -3,6 +3,14 @@
 % =============================================================================
 % Specifies the mechanism for drawing edges between nodes that live in
 % different cells of a poster/composition.  Superset-only.  Spec-first (2026).
+%
+% §30b covers two levels of cross-diagram linking:
+%   • Atomic link  — a single directed or undirected overlay edge
+%                    between two specific nodes in different cells.
+%   • trace        — a named, ordered, optionally-typed multi-hop path
+%                    (A→B→C→…) representing a logical thread woven
+%                    across system layers/views.  The headline use case
+%                    is layered system traceability.
 % =============================================================================
 
 \section{Cross-Diagram Node Linking}
@@ -21,6 +29,22 @@ undirected edge between a node in one cell's diagram and a node in another
 cell's diagram, turning the poster into a \textbf{linked multi-view system
 diagram}.
 
+This section specifies two constructs built on the same underlying machinery:
+
+\begin{description}
+  \item[Atomic \texttt{link}.] A single cross-diagram edge between a source
+        node and a target node.  This is the primitive from which all
+        cross-diagram overlay drawing is built.
+
+  \item[\texttt{trace}.] A \emph{named, ordered, optionally-typed multi-hop
+        path} of atomic links.  A trace represents a logical thread --- such
+        as a user journey, a distributed request, or a requirements
+        traceability chain --- woven across the diagram layers of a poster.
+        This is the flagship use case for cross-diagram linking: representing
+        system traceability across abstraction levels.  The \texttt{trace}
+        construct is specified in Section~\ref{sec:cdl-trace}.
+\end{description}
+
 \begin{description}
   \item[Presentation-layer assertion.]
         A cross-diagram link does not modify either diagram's Domain IR or
@@ -28,11 +52,11 @@ diagram}.
         after every cell has compiled independently.
 
   \item[Superset-only.]
-        The \texttt{link} statement is a new top-level poster keyword with no
-        Mermaid equivalent (Section~\ref{sec:superset-extensions}).  A
-        standard Mermaid renderer will reject a poster document that contains
-        \texttt{link} statements; this is the intended signal that the file
-        requires our compiler.
+        The \texttt{link} and \texttt{trace} statements are new top-level
+        poster keywords with no Mermaid equivalent
+        (Section~\ref{sec:superset-extensions}).  A standard Mermaid renderer
+        will reject a poster document that contains these statements; this is
+        the intended signal that the file requires our compiler.
 
   \item[Additive and non-fatal.]
         Unresolvable links (unknown cell, unknown node, non-linkable diagram
@@ -564,13 +588,613 @@ be drawn.  They are listed in dependency order.
 
   \item \textbf{Implement graceful degradation}: WARN on unresolvable
         endpoints, skip the link, continue.
+
+  \item \textbf{Extend the poster parser} to recognise \texttt{trace}
+        statements (Section~\ref{sec:cdl-trace-syntax}) and populate
+        \texttt{PosterDocument.traces: TraceRecord[]}.  Desugar each
+        \texttt{TraceRecord} to the ordered sequence of atomic link pairs it
+        implies, storing them as \texttt{link} entries tagged with their
+        parent trace id.  This is a pure addition to the poster parser;
+        the link-resolution, routing, and overlay machinery from items 5--7
+        are reused without modification.
+
+  \item \textbf{Assign categorical-palette colours} to \texttt{TraceRecord}s
+        at composition time: iterate traces in declaration order and assign
+        \texttt{categorical[i \% n]} from the active theme's data palette
+        (Section~\ref{sec:contract-palette}).  Store the resolved colour in
+        \texttt{TraceRecord.color} for use by the overlay rendering pass.
+
+  \item \textbf{Emit the trace legend}: after all overlay edges are appended,
+        generate a legend block below the poster canvas listing each named
+        trace with its colour swatch and type pill.  Suppress if
+        \texttt{trace legend: off} is set in the poster frontmatter.
 \end{enumerate}
 
-Items 1 and 5 are pure additions.  Items 2--4 and 6--7 are incremental
+Items 1, 5, and 8 are pure additions.  Items 2--4 and 6--7 are incremental
 extensions to existing functions with no breaking changes to current callers
 (the \texttt{Scene} return type is replaced by \texttt{RenderResult} for
 linkable grammars; callers that ignore the \texttt{anchors} field are
-unaffected).
+unaffected).  Items 9--10 extend only the composition layer and overlay pass.
+
+% =============================================================================
+% §30b.8 — The trace Abstraction: Named, Typed, Ordered Multi-Hop Paths
+% =============================================================================
+\subsection{The \texttt{trace} Abstraction: Named, Typed, Ordered Paths}
+\label{sec:cdl-trace}
+
+\begin{quote}
+\textbf{Headline use case.}  A poster assembled from layered system views ---
+a C4 Context diagram, a Container diagram, a Component diagram, an ER schema,
+a test suite --- is a natural representation of \emph{system architecture
+across abstraction levels}.  A single user story, requirement, or runtime
+request touches nodes in several of those layers simultaneously.  The
+\texttt{trace} construct names, types, and orders that multi-layer thread,
+turning a poster from a side-by-side collection of views into a first-class
+\textbf{system traceability artefact}.
+\end{quote}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Concept}
+\label{sec:cdl-trace-concept}
+
+A \textbf{trace} is a \emph{named, ordered, optionally-typed multi-hop path}
+of cross-diagram links.  Where a single \texttt{link} is one atomic directed
+edge between two nodes in different cells, a \texttt{trace} is a path
+$A \to B \to C \to \cdots$ stitching together a logical thread that runs
+across system layers or diagram views in a fixed order.
+
+Three properties distinguish a trace from a loose collection of links:
+
+\begin{description}
+  \item[Named.]  A trace carries a human-readable name (a quoted string) that
+    identifies the logical thread it represents --- for example,
+    \texttt{"Login flow"} or \texttt{"REQ-12"}.  The name is the stable
+    handle used for highlight, filter, and legend display.
+
+  \item[Ordered.]  The hops of a trace form a sequence, not a bag of edges.
+    Ordering encodes direction and traversal: from origin (e.g.\ a requirement
+    or user action) through intermediate layers (components, services) to
+    terminus (e.g.\ a test, a database table, or a deployed service).
+    Ordering is what makes a trace a \emph{path}, not a cluster.
+
+  \item[Typed.]  An optional type token drawn from a shared vocabulary
+    (Section~\ref{sec:cdl-trace-vocab}) annotates every hop in the trace with
+    the same semantic relationship kind.  Typing makes traceability uniform:
+    a \texttt{satisfies} trace across a poster carries exactly the same
+    meaning as a \texttt{satisfies} edge inside a \texttt{requirementDiagram}
+    cell.
+\end{description}
+
+\paragraph{Relation to \texttt{link}: desugaring.}
+
+The \texttt{link} statement remains the \textbf{primitive}.  A \texttt{trace}
+\emph{desugars} to an ordered sequence of atomic \texttt{link}s \emph{plus}
+a \texttt{TraceRecord} (name, type, ordered member link list).  Specifically,
+a trace with $n$ hops $h_1 \to h_2 \to \cdots \to h_n$ lowers at composition
+time to the $n - 1$ atomic links $\{h_1 \to h_2,\; h_2 \to h_3,\; \ldots,\;
+h_{n-1} \to h_n\}$ together with a \texttt{TraceRecord} that groups those
+links under the trace name, type, and ordinal index.  The link-resolution,
+port-selection, and overlay-routing machinery from Sections
+\ref{sec:cdl-anchor-registry}--\ref{sec:cdl-semantics} apply unchanged to
+each desugared hop.
+
+\begin{lstlisting}[language=,caption={Desugaring a trace to atomic links + group record}]
+-- Input (poster DSL):
+trace "Login flow" : A1.Login -> B1.AuthAPI -> C1.UserService -> D1.users
+
+-- Desugars to three atomic links:
+link A1.Login    --> B1.AuthAPI      -- hop 1->2  (trace member 0)
+link B1.AuthAPI  --> C1.UserService  -- hop 2->3  (trace member 1)
+link C1.UserService --> D1.users     -- hop 3->4  (trace member 2)
+-- PLUS a TraceRecord:
+-- { name: "Login flow", type: none,
+--   members: [ link[0], link[1], link[2] ] }
+\end{lstlisting}
+
+A \texttt{link} statement that is not part of any \texttt{trace} continues to
+behave exactly as specified in Section~\ref{sec:cdl-syntax}: a standalone
+overlay edge with no trace-group affiliation and no categorical colour.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Syntax}
+\label{sec:cdl-trace-syntax}
+
+The \texttt{trace} statement is a poster-level declaration written alongside
+\texttt{cell} and \texttt{link} definitions.  Its abstract grammar is:
+
+\begin{lstlisting}[language=,caption={Trace statement --- abstract grammar}]
+trace "<name>" [<type>] : <hop> <arrow> <hop> { <arrow> <hop> }
+
+<name>  ::= quoted string (UTF-8; any character except unescaped `"`)
+
+<type>  ::= (* optional; drawn from the trace-type vocabulary,
+               Section~\ref{sec:cdl-trace-vocab} *)
+            "satisfies" | "derives"  | "verifies" | "refines"
+          | "traces"    | "contains" | "copies"
+          | "calls"     | "flowsTo"  | "mapsTo"
+
+<hop>   ::= <cellAddr> "." <nodeId>
+            (* cellAddr and nodeId same as link, Section~\ref{sec:cdl-syntax} *)
+
+<arrow> ::= "-->"   (* solid directed --- default for most types *)
+          | "-..->" (* dashed directed --- for weak or inferred links *)
+\end{lstlisting}
+
+Two concrete examples:
+
+\begin{lstlisting}[language=,caption={Trace syntax: untyped presentation-flow and typed requirement trace}]
+-- Untyped trace: a named presentation-flow path across four cells
+trace "Login flow" : A1.Login -> B1.AuthAPI -> C1.UserService -> D1.users
+
+-- Typed trace: requirement traceability using the requirement vocabulary
+trace "REQ-12" satisfies : A1.Req12 --> B1.AuthService --> C1.AuthTest
+\end{lstlisting}
+
+\paragraph{Arrow forms in traces.}
+
+Inside a \texttt{trace} path the arrow token determines the edge style of
+every desugared link in that trace.  When the type token is present the
+compiler selects the canonical arrow form for that type per
+Table~\ref{tab:cdl-trace-types}; the arrow token in the source may be omitted
+when a type is supplied.  When omitted entirely the default is \texttt{-->}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Trace-Type Vocabulary}
+\label{sec:cdl-trace-vocab}
+
+The trace type is drawn from two groups.  The first group is the
+\textbf{requirement-relationship vocabulary} used by the
+\texttt{requirementDiagram} grammar, grounded in
+\texttt{packages/core/src/grammars/requirement/types.ts}
+(\texttt{RequirementRelKind}).  The Zod schema in
+\texttt{packages/core/src/grammars/requirement/schema.ts} enumerates
+the identical seven values.  The second group is a small set of
+\textbf{presentation-flow types} for architectural and runtime diagrams.
+
+Reusing the requirement-grammar vocabulary ensures that a traceability
+assertion is semantically identical whether expressed as a
+\texttt{requirementDiagram} edge inside one cell or as a typed \texttt{trace}
+across poster cells.  An author can graduate a single-cell requirement diagram
+into a cross-view poster trace without changing the relationship kind.  Tools
+that index or query the composition IR see uniform type tokens in both
+contexts.
+
+\begin{table}[h]
+\centering\small
+\caption{Trace-type vocabulary and default presentation}
+\begin{tabularx}{\textwidth}{p{2.2cm}p{2.2cm}p{1.6cm}p{2.2cm}X}
+\toprule
+\textbf{Type token} & \textbf{Group} & \textbf{Default arrow} & \textbf{IR source} & \textbf{Semantics} \\
+\midrule
+\texttt{satisfies}  & Requirement & \texttt{-{}-{}>}  & \texttt{RequirementRelKind} & Component satisfies a requirement \\
+\texttt{derives}    & Requirement & \texttt{-.->} & \texttt{RequirementRelKind} & Requirement derived from another \\
+\texttt{verifies}   & Requirement & \texttt{-{}-{}>}  & \texttt{RequirementRelKind} & Test verifies a requirement \\
+\texttt{refines}    & Requirement & \texttt{-.->} & \texttt{RequirementRelKind} & Requirement refines a higher-level one \\
+\texttt{traces}     & Requirement & \texttt{-.->} & \texttt{RequirementRelKind} & Generic traceability link \\
+\texttt{contains}   & Requirement & \texttt{-{}-{}>}  & \texttt{RequirementRelKind} & Requirement contains a sub-requirement \\
+\texttt{copies}     & Requirement & \texttt{-.->} & \texttt{RequirementRelKind} & Requirement copied from another \\
+\midrule
+\texttt{calls}      & Presentation & \texttt{-{}-{}>}  & (new; poster-layer) & A service or component calls another \\
+\texttt{flowsTo}    & Presentation & \texttt{-{}-{}>}  & (new; poster-layer) & Data or control flows to a node \\
+\texttt{mapsTo}     & Presentation & \texttt{-.->} & (new; poster-layer) & A model element maps to a view element \\
+\bottomrule
+\end{tabularx}
+\label{tab:cdl-trace-types}
+\end{table}
+
+When \texttt{<type>} is omitted, the trace is \textbf{untyped}: all desugared
+links receive the plain directed arrow (\texttt{-->}) and no semantic label or
+pill is rendered.  Untyped traces are valid and useful for pure
+presentation-flow paths where no traceability semantics are implied.
+
+The three presentation-flow types (\texttt{calls}, \texttt{flowsTo},
+\texttt{mapsTo}) are poster-layer additions with no counterpart in the
+\texttt{requirementDiagram} grammar.  They are excluded from
+\texttt{RequirementRelKind} deliberately: they carry no formal requirements-
+engineering semantics and their home is the composition layer, not the domain
+grammar.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Rationale: Why Traces Beat Loose Links}
+\label{sec:cdl-trace-rationale}
+
+Loose individual \texttt{link} statements can express the same set of edges as
+a trace, but without the structure that makes those edges useful as a
+traceability artefact.  Three properties of traces over loose links:
+
+\begin{description}
+  \item[Named and highlightable.]
+    A trace can be emphasised \emph{as a unit}.  Hovering or selecting
+    \texttt{"Login flow"} in the legend highlights every hop in that path
+    simultaneously, dimming all other overlay edges and uninvolved cells.
+    Filtering to a single trace hides all other links.  A loose collection of
+    links with the same topology has no identity, no unit of selection, and no
+    filter target.
+
+  \item[Typed and consistent.]
+    A typed trace carries traceability semantics (e.g.\ \texttt{satisfies},
+    \texttt{verifies}) that are uniform across the poster because they come
+    from the same \texttt{RequirementRelKind} vocabulary used inside
+    \texttt{requirementDiagram} cells.  A reader of a poster trace and a
+    reader of a requirement-diagram edge see the same semantic label.  Tools
+    that consume the composition IR can index traceability uniformly regardless
+    of which representation was used.
+
+  \item[Ordered and directional.]
+    A path $A \to B \to C$ encodes traversal direction and origin; a bag of
+    edges $\{A \to B,\; B \to C\}$ does not, in isolation, identify that the
+    path begins at $A$ and terminates at $C$.  For traceability, direction
+    matters: \emph{requirement REQ-12 is satisfied by AuthService which is
+    verified by AuthTest} is different from the reverse, and the ordered trace
+    makes that unambiguous.
+\end{description}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Presentation Semantics}
+\label{sec:cdl-trace-presentation}
+
+\paragraph{Per-trace colour from the data palette.}
+
+Each named trace is assigned a distinct colour drawn from the theme's
+\textbf{categorical data palette} (Section~\ref{sec:contract-palette}).  This
+is the same palette used by chart-family components (bar charts, XY charts,
+pie charts) to assign per-series colours.  Reusing the categorical palette
+ensures that trace colours are:
+
+\begin{enumerate}
+  \item \textbf{Perceptually distinct} from one another --- the categorical
+    palette is designed for discrimination across 6--12 concurrent categories.
+
+  \item \textbf{On-brand and theme-coherent} --- the palette is defined by the
+    active contract theme, so \texttt{executive}, \texttt{pastel},
+    \texttt{terminal}, and all other themes provide trace-appropriate
+    categorical colours automatically and consistently with every other diagram
+    on the poster.
+
+  \item \textbf{Non-clashing with diagram-internal colours} --- diagram
+    components consume the \emph{semantic role palette} (surface, ink, accent,
+    muted, border), while traces consume the \emph{data palette}.  The two
+    sub-palettes are designed within each theme never to collide
+    (Section~\ref{sec:contract-palette}).
+\end{enumerate}
+
+Traces are assigned colours by declaration order: the first \texttt{trace}
+statement receives \texttt{categorical[0]}, the second \texttt{categorical[1]},
+and so on.  If the number of traces exceeds the categorical palette length $n$,
+the palette wraps modulo $n$ with a 20\% lightness offset applied on each
+cycle to maintain visual distinction.
+
+\paragraph{Trace legend.}
+
+A \textbf{trace legend} is automatically generated and appended at the bottom
+of the poster canvas when at least one named trace is present.  Each legend
+entry shows:
+
+\begin{itemize}
+  \item A colour swatch (small filled rectangle) in the trace's assigned
+    categorical colour.
+  \item The trace name (the quoted string as authored).
+  \item The type token, if present, rendered as a \texttt{«type»} pill styled
+    by the theme's \texttt{overlayLabelFont} token --- the same pill style
+    used for \texttt{requirementDiagram} relationship labels.
+\end{itemize}
+
+The legend can be suppressed with a \texttt{trace legend: off} directive in
+the poster frontmatter.  When no named traces exist, no legend is emitted.
+
+\paragraph{Highlight, dim, and filter modes.}
+
+Traces introduce three presentation-layer interaction modes at the composition
+level.  These are specified here at the design level; rendering detail
+(interactive SVG event handlers, static pre-rendered variants, CLI
+\texttt{--active-trace} flags) is deferred to the backend implementation.
+
+\begin{description}
+  \item[\textbf{Highlight mode} (one trace active).]  When a trace is
+    activated (e.g.\ hover on a legend entry or programmatic selection via the
+    agent API): all edges belonging to the active trace render at full opacity
+    with a luminosity boost of the trace colour; all other overlay edges render
+    at 30\% opacity; cells containing no hop of the active trace render at 40\%
+    opacity; cells containing at least one hop render at full opacity.
+
+  \item[\textbf{Dim mode} (any edge hovered, no specific trace selected).]
+    All overlay edges render at full opacity.  Bare \texttt{link} statements
+    (not part of any trace) render at 60\% opacity.  No cells are dimmed.
+
+  \item[\textbf{Filter mode} (trace selection).]  Only selected trace(s) are
+    visible; all other overlay edges and non-participating cells are hidden.
+    Filter mode is toggled via the legend (click a legend entry) or
+    programmatically via the agent API
+    (Section~\ref{sec:cdl-trace-agent}).  Multiple traces may be simultaneously
+    active in filter mode.
+\end{description}
+
+\paragraph{Degradation contract for traces.}
+
+Pathological cases in trace resolution follow the same ``warn and render
+the resolvable portion'' principle as atomic links, with refinements specific
+to the multi-hop structure:
+
+\begin{description}
+  \item[\textbf{One unresolvable hop} ($h_k$ fails).]  The compiler emits
+    \texttt{WARNING: trace "\textit{name}" hop \textit{k}: \textit{<reason>}
+    --- hop omitted.}  The trace renders as two sub-paths: $h_1 \to \cdots
+    \to h_{k-1}$ and $h_{k+1} \to \cdots \to h_n$, both in the trace's
+    assigned colour.  The trace name still appears in the legend.
+
+  \item[\textbf{All hops unresolvable}.]  The trace is wholly omitted.
+    The compiler emits \texttt{WARNING: trace "\textit{name}": no resolvable
+    hops --- trace skipped.}  No legend entry is generated.
+
+  \item[\textbf{Duplicate hop} (same node appears at positions $i$ and $j$).]
+    The compiler emits \texttt{WARNING: trace "\textit{name}" hop \textit{j}:
+    node \textit{X.Y} already appears at position \textit{i} --- cycle
+    detected; loop arc rendered.}  A self-loop arc is drawn at the repeated
+    node.
+
+  \item[\textbf{Fewer than two resolvable hops}.]  A trace cannot form an
+    edge without two resolved endpoints.  The compiler emits \texttt{WARNING:
+    trace "\textit{name}": fewer than 2 resolvable hops --- trace skipped.}
+
+  \item[\textbf{Hop routing crosses cell bodies}.]  Follows the atomic-link
+    routing degradation (Section~\ref{sec:cdl-overlay-routing}): Phase~1
+    fallback is used per individual desugared hop; an additional warning is
+    emitted if the hop crosses more than three cell bodies.
+\end{description}
+
+All trace degradation is non-fatal.  The poster compiles and renders; only
+the affected hop segments are omitted or replaced by fallback arcs.  Other
+traces and all standalone \texttt{link} statements are unaffected.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Worked Examples}
+\label{sec:cdl-trace-examples}
+
+% ---- Example 1: C4 architecture drill-down ----
+\paragraph{Example 1 --- C4 architecture drill-down (context to container to component to data).}
+
+The classic C4 model organises a software architecture across four nested
+abstraction levels.  A four-cell poster places one C4 view per cell and
+connects them with a single \texttt{trace} that represents one user journey
+through the stack: from the context-level user persona, through a container,
+down into a component, and into the data layer.
+
+\begin{lstlisting}[language=,caption={C4 drill-down: one trace across four architecture abstraction levels}]
+---
+theme: executive
+layout: grid 2x2
+---
+poster "E-Commerce Platform -- Login Journey"
+
+  cell A1: C4Context
+    Person(user, "Customer", "Web or mobile shopper")
+    System(webapp, "Web Application", "React SPA")
+    System_Ext(idp, "Identity Provider", "Auth0")
+    Rel(user, webapp, "Uses", "HTTPS")
+    Rel(webapp, idp, "Delegates auth", "OIDC")
+
+  cell B1: C4Container
+    Container(spa, "SPA", "React", "Browser client")
+    Container(api, "API Gateway", "Node/Express", "REST")
+    Container(authsvc, "Auth Service", "Go", "gRPC")
+    Rel(spa, api, "Calls", "REST/HTTPS")
+    Rel(api, authsvc, "Authenticates via", "gRPC")
+
+  cell A2: C4Component
+    Component(loginctrl, "LoginController", "React", "Login page")
+    Component(authclient, "AuthClient", "TS", "OIDC adapter")
+    Rel(loginctrl, authclient, "Invokes")
+
+  cell B2: classDiagram
+    class User
+    class Session
+    class Token
+    User "1" --> "*" Session : owns
+    Session --> Token : contains
+
+trace "Login journey" calls :
+  A1.user --> B1.spa --> B1.api --> B1.authsvc --> B2.Token
+\end{lstlisting}
+
+The \texttt{calls} trace renders in \texttt{categorical[0]} of the executive
+theme.  A legend entry labelled ``Login journey / calls'' appears beneath the
+poster grid.  The intra-cell sub-hop \texttt{B1.spa}\,$\to$\,\texttt{B1.api}
+is within the same cell; the compiler emits a warning and renders a short
+intra-cell loopback arc styled in the trace colour, then resumes the
+cross-diagram routing for the next hop.
+
+% ---- Example 2: Distributed request trace ----
+\paragraph{Example 2 --- Distributed request trace across heterogeneous diagram types.}
+
+A distributed system poster combines a flowchart (entry-point logic), a
+sequence diagram (inter-service protocol, deferred/v2), an architecture
+diagram (deployed topology), and an ER diagram (data schema) in one poster.
+A single trace named for the operation represents one end-to-end request.
+
+\begin{lstlisting}[language=,caption={Distributed request trace across four diagram types}]
+---
+theme: executive
+layout: grid 2x2
+---
+poster "Payment Processing -- Charge Request"
+
+  cell A1: flowchart LR
+    entry[API Entry] --> validate[Validate Payload]
+    validate --> auth[Authorise]
+    auth --> charge[Charge]
+
+  cell B1: sequenceDiagram
+    APIGateway->>PaymentService: POST /charge
+    PaymentService->>FraudEngine: check(payload)
+    FraudEngine-->>PaymentService: score
+    PaymentService->>Ledger: debit(account)
+
+  cell A2: architecture-beta
+    service APIGateway(server, "API Gateway", "us-east-1")
+    service PaymentService(server, "Payment Svc", "us-east-1")
+    service FraudEngine(server, "Fraud Engine", "eu-west-1")
+    service Ledger(database, "Ledger DB", "us-east-1")
+    APIGateway --> PaymentService
+    PaymentService --> FraudEngine
+    PaymentService --> Ledger
+
+  cell B2: erDiagram
+    ACCOUNT ||--o{ TRANSACTION : has
+    TRANSACTION }|--|| CHARGE_EVENT : records
+    CHARGE_EVENT }o--|| FRAUD_SCORE : scored_by
+
+trace "Charge request" flowsTo :
+  A1.entry --> A1.charge --> A2.PaymentService --> B2.TRANSACTION
+\end{lstlisting}
+
+The hop \texttt{A1.entry}\,$\to$\,\texttt{A1.charge} is intra-cell (both
+in the flowchart); the compiler warns and renders a loopback arc, then
+continues cross-diagram.  The sequence diagram cell \texttt{B1} is deliberately
+not included in this trace because \texttt{sequenceDiagram} is non-linkable in
+v1 (Table~\ref{tab:cdl-non-linkable}); it remains visible on the poster as
+context.  The trace renders two cross-diagram hops:
+\texttt{A1}\,$\to$\,\texttt{A2} (flowchart $\to$ architecture) and
+\texttt{A2}\,$\to$\,\texttt{B2} (architecture $\to$ ER), both coloured in
+\texttt{categorical[0]}.
+
+% ---- Example 3: Requirements traceability (typed, multi-trace) ----
+\paragraph{Example 3 --- Requirements traceability with typed traces and a trace legend.}
+
+This is the flagship use case for typed traces.  A requirement in one cell is
+satisfied by a component in a second cell, which is verified by a test in a
+third.  Two separate \texttt{satisfies} traces make two independent
+traceability chains visible simultaneously, each in its own colour, with a
+generated legend.
+
+\begin{lstlisting}[language=,caption={Multi-typed requirements traceability poster with trace legend}]
+---
+theme: executive
+layout: grid 1x3
+---
+poster "Authentication System -- Requirements Traceability"
+
+  cell A1: requirementDiagram
+    requirement REQ-12 {
+      id: "REQ-12"
+      text: "User must be authenticated within 500ms"
+      risk: high
+      verifymethod: test
+    }
+    requirement REQ-13 {
+      id: "REQ-13"
+      text: "Session token must expire within 24h"
+      risk: medium
+      verifymethod: test
+    }
+    REQ-12 - derives -> REQ-13
+
+  cell B1: C4Component
+    Component(authctrl, "AuthController", "Go", "JWT validation")
+    Component(tokensvc, "TokenService", "Go", "Token lifecycle")
+    Component(cache, "SessionCache", "Redis", "Active sessions")
+    authctrl --> tokensvc : "issues"
+    tokensvc --> cache : "stores"
+
+  cell C1: flowchart TD
+    T1[Test: auth_latency_test] --> A1r[Assert: p99 < 500ms]
+    T2[Test: token_expiry_test] --> A2r[Assert: exp = now+86400s]
+
+-- REQ-12 satisfied by AuthController, verified by auth_latency_test
+trace "REQ-12 trace" satisfies : A1.REQ-12 --> B1.authctrl --> C1.T1
+
+-- REQ-13 satisfied by TokenService, verified by token_expiry_test
+trace "REQ-13 trace" satisfies : A1.REQ-13 --> B1.tokensvc --> C1.T2
+\end{lstlisting}
+
+The two traces render in \texttt{categorical[0]} and \texttt{categorical[1]}
+of the executive theme respectively.  The auto-generated legend beneath the
+poster grid reads (schematically):
+
+\begin{center}\small
+\begin{tabular}{lll}
+\textbf{[swatch]} & REQ-12 trace & \textsf{«satisfies»} \\
+\textbf{[swatch]} & REQ-13 trace & \textsf{«satisfies»} \\
+\end{tabular}
+\end{center}
+
+A reviewer hovers ``REQ-12 trace'' in the legend to highlight only the first
+colour thread --- from the requirement cell through \texttt{authctrl} to
+\texttt{T1} --- while all other cells and the REQ-13 trace dim to 40\%
+opacity.  The filter mode lets a reviewer isolate a single requirement's
+complete traceability chain on a poster that may contain dozens of requirements
+and components.  This is the core interaction model for poster-scale
+traceability review.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Agent Integration}
+\label{sec:cdl-trace-agent}
+
+Traces are first-class artefacts in the IR/composition API surface
+(Section~\ref{sec:agent-integration}).  An agent does not need to manipulate
+poster DSL text to assert or query traceability; it operates on the structured
+\texttt{TraceRecord} type:
+
+\begin{lstlisting}[language=javascript,caption={TraceRecord and TraceHop --- IR types for the agent API (pseudo-TypeScript)}]
+/** A single hop in a trace: canonical cell address + node id. */
+interface TraceHop {
+  cell:   string;   // canonical Excel address ("A1", "B2", ...)
+  nodeId: string;   // node identifier within that cell's diagram
+}
+
+/**
+ * Trace-type vocabulary.
+ * Requirement group: identical to RequirementRelKind in
+ *   packages/core/src/grammars/requirement/types.ts
+ * Presentation-flow group: poster-layer only.
+ */
+type TraceType =
+  | 'satisfies' | 'derives'  | 'verifies'   // RequirementRelKind
+  | 'refines'   | 'traces'   | 'contains'   // RequirementRelKind
+  | 'copies'                                 // RequirementRelKind
+  | 'calls'     | 'flowsTo'  | 'mapsTo';    // presentation-flow (poster-layer)
+
+/** A named, typed, ordered multi-hop trace: the composition IR unit. */
+interface TraceRecord {
+  name:    string;      // human-readable identifier; must be unique per poster
+  type?:   TraceType;   // omitted = untyped trace
+  hops:    TraceHop[];  // ordered list of hops; length >= 2
+  color?:  string;      // hex string; assigned at render time from categorical palette
+}
+\end{lstlisting}
+
+An agent can use this API to:
+
+\begin{itemize}
+  \item \textbf{Assert traceability programmatically.}  Construct a
+    \texttt{TraceRecord} with a name, type, and ordered hops and push it to
+    \texttt{PosterDocument.traces}.  This is a structured traceability
+    artefact that replaces ad-hoc comment annotations or manually maintained
+    link lists.  The artefact is reproducible, diffable across poster
+    revisions, and queryable without parsing diagram source.
+
+  \item \textbf{Query traces by type.}  Filter
+    \texttt{PosterDocument.traces} by \texttt{type} to enumerate all
+    \texttt{satisfies} traces (requirement coverage) or all \texttt{verifies}
+    traces (test coverage).
+
+  \item \textbf{Activate filter mode.}  Set
+    \texttt{PosterRenderOptions.activeTraces} to a list of trace names to
+    render a filtered view with only the specified traces visible.  This lets
+    an agent generate specialised traceability views without modifying the
+    poster source.
+
+  \item \textbf{Detect coverage gaps.}  Walk the \texttt{requirementDiagram}
+    Domain IR in cell~$A$ to enumerate all requirements, then check whether
+    each has a corresponding \texttt{satisfies} trace hop as its origin.  Flag
+    requirements that have no such trace as uncovered --- a gap report that
+    drives the next authoring action.
+\end{itemize}
+
+A \texttt{trace} is therefore not merely a drawing command: it is a
+\textbf{structured, typed, agent-queryable traceability artefact}.  An
+agent-generated traceability matrix is reproducible, queryable, and diffable
+across poster revisions --- properties that no graphical or freeform annotation
+scheme can provide.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection*{Cross-references}
@@ -591,4 +1215,9 @@ unaffected).
   \item Agent integration surface (IR-as-agent-API, node-addressing):
         Section~\ref{sec:agent-integration}
   \item Dimension guard mindset: Section~\ref{sec:composition-edge-cases}
+  \item Theme data palette / categorical sub-palette (trace colour source):
+        Section~\ref{sec:contract-palette} and Section~\ref{sec:themes}
+  \item Requirement-relationship vocabulary (\texttt{RequirementRelKind},
+        seven values): \texttt{packages/core/src/grammars/requirement/types.ts}
+        and \texttt{packages/core/src/grammars/requirement/schema.ts}
 \end{itemize}
