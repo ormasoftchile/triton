@@ -1,0 +1,35 @@
+---
+theme: executive
+layout: grid 3x1
+---
+poster "Payment System — Requirements Traceability"
+
+  cell A1: flowchart TD
+    REQ1[REQ-01: Authenticate within 500ms]
+    REQ2[REQ-02: Session token expires in 24h]
+    REQ1 --> REQ2
+
+  cell B1: classDiagram
+    class AuthController {
+      +login(cred): Token
+      +validate(tok): bool
+    }
+    class TokenService {
+      +issue(uid): Token
+      +revoke(tok): void
+    }
+    class SessionCache {
+      +store(tok, ttl): void
+      +lookup(tok): Session
+    }
+    AuthController --> TokenService : issues
+    TokenService --> SessionCache : stores
+
+  cell C1: flowchart TD
+    T1[auth_latency_test]
+    T2[token_expiry_test]
+    T1 --> R1[assert p99 < 500ms]
+    T2 --> R2[assert exp = now+86400s]
+
+trace "REQ-01 chain" satisfies : A1.REQ1 --> B1.AuthController --> C1.T1
+trace "REQ-02 chain" satisfies : A1.REQ2 --> B1.TokenService --> C1.T2

@@ -62,7 +62,7 @@ import type { Cell, SceneCellContent } from '../../composition/index.js';
 import type { CompositionTheme } from '../../composition/theme.js';
 
 import { parsePosterInternal, buildCompositionThemeFor } from './poster.js';
-import type { PosterDocument, PosterLink } from './poster.js';
+import type { PosterDocument, PosterLink, TraceRecord } from './poster.js';
 import type { NodeAnchorRegistry } from '../../anchors.js';
 
 import {
@@ -1174,6 +1174,11 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
   const themeName = options.theme ?? doc.theme ?? 'executive';
   const compositionTheme = buildCompositionThemeFor(themeName);
 
+  // Categorical palette for trace colouring (§30b.8 — data palette)
+  const categoricalPalette: string[] = isContractTheme(themeName)
+    ? resolveContractTheme(themeName).dataPalette.categorical
+    : ['#1F497D', '#2E86AB', '#4CAF82', '#D97706', '#7C3AED', '#0891B2'];
+
   const cells: Cell[] = [];
   // Map from "row,col" key → local-space NodeAnchorRegistry
   const cellAnchors = new Map<string, NodeAnchorRegistry>();
@@ -1238,14 +1243,32 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     posterAnchors.set(key, transformed);
   }
 
-  // Resolve and draw overlay links
-  const overlayPrimitives = resolveAndDrawLinks(doc.links, posterAnchors, warnings, compositionTheme);
+  // Resolve and draw overlay edges (links + desugared trace hops)
+  const overlayPrimitives = resolveAndDrawLinks(
+    doc.links,
+    doc.traces,
+    posterAnchors,
+    warnings,
+    compositionTheme,
+    categoricalPalette,
+  );
 
-  // Merge overlay primitives on top of the base scene
-  const scene: Scene = overlayPrimitives.length > 0
+  // Build trace legend (emitted at bottom of canvas)
+  const { legendPrims, legendH } = buildTraceLegend(
+    doc.traces,
+    categoricalPalette,
+    baseScene.width,
+    baseScene.height,
+    compositionTheme,
+  );
+
+  // Merge overlay + legend on top of the base scene, extending height for legend
+  const allOverlay = [...overlayPrimitives, ...legendPrims];
+  const scene: Scene = allOverlay.length > 0
     ? {
         ...baseScene,
-        primitives: [...baseScene.primitives, ...overlayPrimitives],
+        primitives: [...baseScene.primitives, ...allOverlay],
+        height: baseScene.height + legendH,
       }
     : baseScene;
 
@@ -1274,11 +1297,15 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
 }
 
 // ---------------------------------------------------------------------------
-// resolveAndDrawLinks — cross-diagram overlay edge rendering (§30b Phase A)
+// resolveAndDrawLinks — cross-diagram overlay edge rendering (§30b Phase A+B)
 // ---------------------------------------------------------------------------
 
 /** Choose the best port side on `anchor` when connecting toward `targetCx, targetCy`. */
-function chooseSide(anchor: { x: number; y: number; w: number; h: number }, targetCx: number, targetCy: number): { px: number; py: number } {
+function chooseSide(
+  anchor: { x: number; y: number; w: number; h: number },
+  targetCx: number,
+  targetCy: number,
+): { px: number; py: number } {
   const cx = anchor.x + anchor.w / 2;
   const cy = anchor.y + anchor.h / 2;
   const dx = targetCx - cx;
@@ -1300,8 +1327,65 @@ function chooseSide(anchor: { x: number; y: number; w: number; h: number }, targ
   }
 }
 
+/** Return true when the point (px, py) lies inside the given bounding box. */
+function pointInBox(
+  px: number, py: number,
+  box: { x: number; y: number; w: number; h: number },
+): boolean {
+  return px >= box.x && px <= box.x + box.w && py >= box.y && py <= box.y + box.h;
+}
+
+/**
+ * Find the label midpoint along the edge (srcPort → tgtPort), offset away from
+ * any anchor bounding box that the naive midpoint overlaps.
+ *
+ * Walk outward from t=0.5 in steps until a clear point is found, or return
+ * the best approximation (still may overlap, but reduced blemish).
+ */
+function clearLabelPoint(
+  srcPx: number, srcPy: number,
+  tgtPx: number, tgtPy: number,
+  allBoxes: Array<{ x: number; y: number; w: number; h: number }>,
+): { x: number; y: number } {
+  // The naive midpoint
+  const midX = (srcPx + tgtPx) / 2;
+  const midY = (srcPy + tgtPy) / 2;
+
+  // Check if any box overlaps the naive midpoint
+  const blocked = allBoxes.some((b) => pointInBox(midX, midY, b));
+  if (!blocked) return { x: midX, y: midY };
+
+  // Walk outward in both directions (t from 0.3 to 0.7, then expand)
+  const edgeLen = Math.sqrt((tgtPx - srcPx) ** 2 + (tgtPy - srcPy) ** 2);
+  const step = Math.max(8, edgeLen * 0.05);
+  const totalLen = edgeLen;
+
+  for (let d = step; d < totalLen / 2; d += step) {
+    // Try t = 0.5 + d/totalLen
+    const t1 = 0.5 + d / totalLen;
+    const t2 = 0.5 - d / totalLen;
+
+    for (const t of [t1, t2]) {
+      if (t < 0 || t > 1) continue;
+      const cx = srcPx + (tgtPx - srcPx) * t;
+      const cy = srcPy + (tgtPy - srcPy) * t;
+      if (!allBoxes.some((b) => pointInBox(cx, cy, b))) {
+        return { x: cx, y: cy };
+      }
+    }
+  }
+
+  // Last resort: return the plain midpoint (label may still overlap but that's
+  // acceptable compared to crashing or disappearing)
+  return { x: midX, y: midY };
+}
+
 /** Build a filled arrowhead triangle pointing at `tip` from `tailDir`. */
-function arrowhead(tip: { x: number; y: number }, tailDir: { x: number; y: number }, color: string): PathPrimitive {
+function arrowhead(
+  tip: { x: number; y: number },
+  tailDir: { x: number; y: number },
+  color: string,
+): PathPrimitive {
   const len = Math.sqrt(tailDir.x * tailDir.x + tailDir.y * tailDir.y);
   const ux = len > 0.001 ? tailDir.x / len : 1;
   const uy = len > 0.001 ? tailDir.y / len : 0;
@@ -1320,22 +1404,173 @@ function arrowhead(tip: { x: number; y: number }, tailDir: { x: number; y: numbe
 }
 
 /**
- * Resolve all `link` statements to poster-space anchor coordinates and emit
- * Scene primitives for the overlay edges + arrowheads + labels.
+ * Emit overlay edge primitives for a single link.
  *
- * Unresolvable links (missing cell, missing node) emit a WARNING and are skipped.
+ * Routing strategy (§30b overlay routing):
+ *   - Same row: straight line from srcPort to tgtPort.
+ *   - Different rows (or non-adjacent): single horizontal-elbow (Z-route):
+ *       srcPort → (elbowX, srcPort.py) → (elbowX, tgtPort.py) → tgtPort
+ *     where elbowX = midpoint between the two port X coordinates.
+ *     This channels through the inter-cell gutter and avoids crossing node boxes.
+ *
+ * Returns the primitives emitted (edge path/line, optional arrowhead, optional label pill).
+ */
+function emitEdge(
+  srcPort: { px: number; py: number },
+  tgtPort: { px: number; py: number },
+  isDashed: boolean,
+  isDirected: boolean,
+  color: string,
+  strokeWidth: number,
+  label: string | undefined,
+  isSameRow: boolean,
+  allBoxes: Array<{ x: number; y: number; w: number; h: number }>,
+  theme: CompositionTheme,
+): ScenePrimitive[] {
+  const prims: ScenePrimitive[] = [];
+  const DASH = '6,4';
+
+  if (isSameRow) {
+    // Straight line
+    const edgeLine: ScenePrimitive = {
+      kind: 'line',
+      x1: srcPort.px,
+      y1: srcPort.py,
+      x2: tgtPort.px,
+      y2: tgtPort.py,
+      stroke: color,
+      strokeWidth,
+      opacity: 0.92,
+      ...(isDashed ? { dashArray: DASH } : {}),
+    };
+    prims.push(edgeLine);
+
+    if (isDirected) {
+      const dx = tgtPort.px - srcPort.px;
+      const dy = tgtPort.py - srcPort.py;
+      prims.push(arrowhead({ x: tgtPort.px, y: tgtPort.py }, { x: dx, y: dy }, color));
+    }
+
+    if (label) {
+      const { x: lx, y: ly } = clearLabelPoint(srcPort.px, srcPort.py, tgtPort.px, tgtPort.py, allBoxes);
+      prims.push(...labelPill(lx, ly, label, color, theme));
+    }
+  } else {
+    // Single horizontal elbow: srcPort → elbowX column → tgtPort row → tgtPort
+    const elbowX = (srcPort.px + tgtPort.px) / 2;
+    const d = [
+      `M ${srcPort.px.toFixed(2)} ${srcPort.py.toFixed(2)}`,
+      `L ${elbowX.toFixed(2)} ${srcPort.py.toFixed(2)}`,
+      `L ${elbowX.toFixed(2)} ${tgtPort.py.toFixed(2)}`,
+      `L ${tgtPort.px.toFixed(2)} ${tgtPort.py.toFixed(2)}`,
+    ].join(' ');
+
+    prims.push({
+      kind: 'path',
+      d,
+      fill: 'none',
+      stroke: color,
+      strokeWidth,
+      strokeLinecap: 'round',
+      opacity: 0.92,
+      ...(isDashed ? { dashArray: DASH } : {}),
+    });
+
+    // Arrowhead on the last horizontal segment
+    if (isDirected) {
+      const finalDx = tgtPort.px - elbowX;
+      prims.push(arrowhead({ x: tgtPort.px, y: tgtPort.py }, { x: finalDx, y: 0 }, color));
+    }
+
+    if (label) {
+      // Place label at elbow midpoint (vertical segment — usually clear space)
+      const elbowMidY = (srcPort.py + tgtPort.py) / 2;
+      const { x: lx, y: ly } = clearLabelPoint(elbowX, srcPort.py, elbowX, tgtPort.py, allBoxes);
+      void lx; // elbowX is the x coord
+      prims.push(...labelPill(elbowX, elbowMidY > ly ? elbowMidY : ly, label, color, theme));
+    }
+  }
+
+  return prims;
+}
+
+/** Emit a label pill (background rect + text) at the given centre. */
+function labelPill(
+  cx: number, cy: number,
+  text: string,
+  color: string,
+  theme: CompositionTheme,
+): ScenePrimitive[] {
+  const fontSize = 11;
+  const pad = 4;
+  const approxW = text.length * fontSize * 0.55 + 2 * pad;
+  const approxH = fontSize * 1.4 + 2 * pad;
+
+  return [
+    {
+      kind: 'rect',
+      x: cx - approxW / 2,
+      y: cy - approxH / 2,
+      width: approxW,
+      height: approxH,
+      fill: '#FFFFFF',
+      stroke: color,
+      strokeWidth: 1,
+      rx: 3,
+    },
+    {
+      kind: 'text',
+      x: cx,
+      y: cy,
+      text,
+      fontFamily: theme.textFont?.family ?? 'Georgia, serif',
+      fontSize,
+      fontWeight: 400,
+      fill: color,
+      textAnchor: 'middle',
+      dominantBaseline: 'central',
+    },
+  ];
+}
+
+/**
+ * Resolve all `link` statements (including trace-desugared hops) to poster-space
+ * anchor coordinates and emit Scene primitives for overlay edges + arrowheads + labels.
+ *
+ * Phase B additions over Phase A:
+ *  - Trace links are coloured from the theme categorical data palette.
+ *  - Standalone links retain the Phase-A warm-red colour.
+ *  - `-->` (solid) edges no longer incorrectly render with a dash pattern.
+ *  - Labels are offset away from any overlapping anchor bounding box.
+ *  - Links between cells in different rows use a single horizontal elbow to avoid
+ *    routing through cell bodies.
+ *
+ * Unresolvable links emit a WARNING and are skipped.
  */
 function resolveAndDrawLinks(
   links: PosterLink[],
+  traces: TraceRecord[],
   posterAnchors: Map<string, NodeAnchorRegistry>,
   warnings: string[],
   theme: CompositionTheme,
+  categoricalPalette: string[],
 ): ScenePrimitive[] {
   if (links.length === 0) return [];
 
-  const overlayColor = '#E05B4B'; // warm red — clearly distinct from diagram ink
-  const overlayDash  = '6,4';
-  const overlayStrokeWidth = 2;
+  const STANDALONE_COLOR = '#E05B4B'; // warm red for standalone links
+  const STROKE_WIDTH = 2;
+
+  // Build trace-index → color map (declaration order → categorical[i])
+  const traceColorMap = new Map<number, string>();
+  const n = Math.max(1, categoricalPalette.length);
+  traces.forEach((_trace, i) => {
+    const base = categoricalPalette[i % n]!;
+    // On second cycle (i >= n), lighten slightly to distinguish from first cycle
+    traceColorMap.set(i, i < n ? base : lightenHex(base, 0.18));
+  });
+
+  // Collect ALL anchor bboxes for label-overlap detection
+  const allBoxes = [...posterAnchors.values()].flatMap((reg) => Object.values(reg));
 
   const primitives: ScenePrimitive[] = [];
 
@@ -1391,69 +1626,192 @@ function resolveAndDrawLinks(
     const srcPort = chooseSide(srcAnchor, tgtCx, tgtCy);
     const tgtPort = chooseSide(tgtAnchor, srcCx, srcCy);
 
-    const isDashed = link.edgeStyle === '-..' || link.edgeStyle === '-.-' || link.edgeStyle === '-.->';
+    const isDashed  = link.edgeStyle === '-..' || link.edgeStyle === '-.-' || link.edgeStyle === '-.->';
     const isDirected = link.edgeStyle === '-->' || link.edgeStyle === '-.->';
+    const isSameRow = link.fromCell.row === link.toCell.row;
 
-    // Edge line
-    const edgeLine: ScenePrimitive = {
-      kind: 'line',
-      x1: srcPort.px,
-      y1: srcPort.py,
-      x2: tgtPort.px,
-      y2: tgtPort.py,
-      stroke: overlayColor,
-      strokeWidth: overlayStrokeWidth,
-      dashArray: isDashed ? overlayDash : '8,4',
-      opacity: 0.92,
-    };
-    primitives.push(edgeLine);
+    const color = link.traceIndex !== undefined
+      ? (traceColorMap.get(link.traceIndex) ?? STANDALONE_COLOR)
+      : STANDALONE_COLOR;
 
-    // Arrowhead at target (for directed edges)
-    if (isDirected) {
-      const dx = tgtPort.px - srcPort.px;
-      const dy = tgtPort.py - srcPort.py;
-      primitives.push(arrowhead({ x: tgtPort.px, y: tgtPort.py }, { x: dx, y: dy }, overlayColor));
-    }
-
-    // Label at midpoint
-    if (link.label) {
-      const midX = (srcPort.px + tgtPort.px) / 2;
-      const midY = (srcPort.py + tgtPort.py) / 2;
-      const labelFontSize = 11;
-      const labelPad = 4;
-      const approxW = link.label.length * labelFontSize * 0.55 + 2 * labelPad;
-      const approxH = labelFontSize * 1.4 + 2 * labelPad;
-
-      // Label background pill
-      primitives.push({
-        kind: 'rect',
-        x: midX - approxW / 2,
-        y: midY - approxH / 2,
-        width: approxW,
-        height: approxH,
-        fill: '#FFFFFF',
-        stroke: overlayColor,
-        strokeWidth: 1,
-        rx: 3,
-      });
-
-      // Label text
-      primitives.push({
-        kind: 'text',
-        x: midX,
-        y: midY,
-        text: link.label,
-        fontFamily: theme.textFont?.family ?? 'Georgia, serif',
-        fontSize: labelFontSize,
-        fontWeight: 400,
-        fill: overlayColor,
-        textAnchor: 'middle',
-        dominantBaseline: 'central',
-      });
-    }
+    primitives.push(...emitEdge(
+      srcPort, tgtPort,
+      isDashed, isDirected,
+      color, STROKE_WIDTH,
+      link.label,
+      isSameRow,
+      allBoxes,
+      theme,
+    ));
   }
 
   return primitives;
+}
+
+/**
+ * Build the trace legend strip — a horizontal row of colour swatches + names + type pills.
+ * Placed at the bottom of the poster canvas, starting at `yStart`.
+ *
+ * Returns the legend primitives and the total height added to the canvas.
+ */
+function buildTraceLegend(
+  traces: TraceRecord[],
+  categoricalPalette: string[],
+  canvasWidth: number,
+  yStart: number,
+  theme: CompositionTheme,
+): { legendPrims: ScenePrimitive[]; legendH: number } {
+  const namedTraces = traces.filter((t) => t.name);
+  if (namedTraces.length === 0) return { legendPrims: [], legendH: 0 };
+
+  const LEGEND_PAD_TOP = 14;
+  const LEGEND_PAD_BOT = 14;
+  const ROW_H          = 22;
+  const SWATCH_W       = 18;
+  const SWATCH_H       = 12;
+  const FONT_SIZE      = 12;
+  const PILL_FONT_SIZE = 10;
+  const PILL_PAD_X     = 6;
+  const PILL_PAD_Y     = 3;
+  const ITEM_GAP       = 20; // horizontal gap between legend items
+  const LEGEND_MARGIN  = 18; // left margin
+
+  const n = Math.max(1, categoricalPalette.length);
+  const legendH = LEGEND_PAD_TOP + ROW_H + LEGEND_PAD_BOT;
+  const legendY = yStart;
+
+  const prims: ScenePrimitive[] = [];
+
+  // Legend background band
+  prims.push({
+    kind: 'rect',
+    x: 0,
+    y: legendY,
+    width: canvasWidth,
+    height: legendH,
+    fill: theme.canvasBackground,
+    stroke: theme.cellBorder?.color ?? '#CBD5E1',
+    strokeWidth: 1,
+    rx: 0,
+  });
+
+  // Thin rule at top of legend
+  prims.push({
+    kind: 'line',
+    x1: 0, y1: legendY,
+    x2: canvasWidth, y2: legendY,
+    stroke: theme.cellBorder?.color ?? '#CBD5E1',
+    strokeWidth: 1,
+    opacity: 0.5,
+  });
+
+  // "Traces:" label — use textFont color (readable on canvas background)
+  const labelColor = theme.textFont?.color ?? '#334155';
+  prims.push({
+    kind: 'text',
+    x: LEGEND_MARGIN,
+    y: legendY + LEGEND_PAD_TOP + ROW_H / 2,
+    text: 'Traces:',
+    fontFamily: theme.textFont?.family ?? 'Georgia, serif',
+    fontSize: FONT_SIZE,
+    fontWeight: 600,
+    fill: labelColor,
+    textAnchor: 'start',
+    dominantBaseline: 'central',
+  });
+
+  // Measure "Traces: " label width (approx)
+  let itemX = LEGEND_MARGIN + 'Traces: '.length * FONT_SIZE * 0.6 + 4;
+
+  namedTraces.forEach((trace, i) => {
+    const traceIdx = traces.indexOf(trace);
+    const base = categoricalPalette[traceIdx % n]!;
+    const color = traceIdx < n ? base : lightenHex(base, 0.18);
+    const rowCy = legendY + LEGEND_PAD_TOP + ROW_H / 2;
+
+    // Colour swatch
+    prims.push({
+      kind: 'rect',
+      x: itemX,
+      y: rowCy - SWATCH_H / 2,
+      width: SWATCH_W,
+      height: SWATCH_H,
+      fill: color,
+      rx: 2,
+    });
+    itemX += SWATCH_W + 6;
+
+    // Trace name
+    const nameW = trace.name.length * FONT_SIZE * 0.58 + 4;
+    prims.push({
+      kind: 'text',
+      x: itemX,
+      y: rowCy,
+      text: trace.name,
+      fontFamily: theme.textFont?.family ?? 'Georgia, serif',
+      fontSize: FONT_SIZE,
+      fontWeight: 400,
+      fill: labelColor,
+      textAnchor: 'start',
+      dominantBaseline: 'central',
+    });
+    itemX += nameW;
+
+    // Type pill (if typed trace)
+    if (trace.type) {
+      const pillText = `«${trace.type}»`;
+      const pillW = pillText.length * PILL_FONT_SIZE * 0.6 + 2 * PILL_PAD_X;
+      const pillH = PILL_FONT_SIZE * 1.4 + 2 * PILL_PAD_Y;
+      itemX += 6;
+
+      prims.push({
+        kind: 'rect',
+        x: itemX,
+        y: rowCy - pillH / 2,
+        width: pillW,
+        height: pillH,
+        fill: lightenHex(color, 0.55),
+        stroke: color,
+        strokeWidth: 1,
+        rx: 4,
+      });
+      prims.push({
+        kind: 'text',
+        x: itemX + pillW / 2,
+        y: rowCy,
+        text: pillText,
+        fontFamily: theme.textFont?.family ?? 'Georgia, serif',
+        fontSize: PILL_FONT_SIZE,
+        fontWeight: 400,
+        fill: color,
+        textAnchor: 'middle',
+        dominantBaseline: 'central',
+      });
+      itemX += pillW;
+    }
+
+    itemX += ITEM_GAP;
+    // Wrap to next row if overflowing (not implemented — single-row legend)
+    void i;
+  });
+
+  return { legendPrims: prims, legendH };
+}
+
+/**
+ * Lighten a hex colour by the given fraction (0–1).
+ * Used for trace palette wrapping and legend pill backgrounds.
+ */
+function lightenHex(hex: string, fraction: number): string {
+  const c = hex.replace('#', '');
+  if (c.length !== 6) return hex;
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  const lr = Math.min(255, Math.round(r + (255 - r) * fraction));
+  const lg = Math.min(255, Math.round(g + (255 - g) * fraction));
+  const lb = Math.min(255, Math.round(b + (255 - b) * fraction));
+  return `#${lr.toString(16).padStart(2, '0')}${lg.toString(16).padStart(2, '0')}${lb.toString(16).padStart(2, '0')}`;
 }
 
 // ---------------------------------------------------------------------------

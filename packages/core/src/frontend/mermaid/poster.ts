@@ -77,6 +77,8 @@ export interface PosterDocument {
   cells: PosterCellDef[];
   /** Cross-diagram links declared in this poster (§30b Phase A). */
   links: PosterLink[];
+  /** Named multi-hop traces declared in this poster (§30b Phase B). */
+  traces: TraceRecord[];
 }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +109,52 @@ export interface PosterLink {
   toNodeId: string;
   /** Optional label displayed at the midpoint of the overlay edge. */
   label?: string;
+  /**
+   * 0-based index into PosterDocument.traces when this link was desugared
+   * from a trace statement (§30b Phase B).  Absent for standalone `link`s.
+   */
+  traceIndex?: number;
+}
+
+// ---------------------------------------------------------------------------
+// TraceRecord — §30b Phase B named multi-hop trace
+// ---------------------------------------------------------------------------
+
+/**
+ * Trace-type vocabulary (§30b.8, Table 30b.1).
+ *
+ * Requirement group: reuses RequirementRelKind from packages/core/src/grammars/requirement/types.ts
+ * Presentation-flow group: poster-layer only (no counterpart in requirementDiagram grammar).
+ *
+ * Type → default edge style:
+ *   solid (-->):  satisfies, verifies, contains, calls, flowsTo
+ *   dashed (-.->) derives, refines, traces, copies, mapsTo
+ */
+export type TraceType =
+  | 'satisfies' | 'derives' | 'verifies' | 'refines'
+  | 'traces'    | 'contains' | 'copies'
+  | 'calls'     | 'flowsTo'  | 'mapsTo';
+
+/** A single hop in a named trace: the cell it lives in + the node id within that cell. */
+export interface TraceHop {
+  cell: { row: number; col: number };
+  nodeId: string;
+}
+
+/**
+ * A named, typed, ordered multi-hop cross-diagram trace (§30b.8).
+ *
+ * Desugars to (hops.length - 1) atomic PosterLinks plus a group record that
+ * lets the renderer assign a distinct per-trace colour from the theme's
+ * categorical data palette.
+ */
+export interface TraceRecord {
+  /** Human-readable identifier; must be unique per poster. */
+  name: string;
+  /** Optional type from TraceType vocabulary; omitted = untyped trace. */
+  type?: TraceType;
+  /** Ordered list of hops (length ≥ 2). */
+  hops: TraceHop[];
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +209,82 @@ const EDGE_STYLE_MAP: Record<string, PosterLinkEdgeStyle> = {
   '--->': '-->',
   '---.': '-.-',
 };
+
+// ---------------------------------------------------------------------------
+// Trace-parsing helpers — §30b Phase B
+// ---------------------------------------------------------------------------
+
+/**
+ * All valid trace-type tokens (case-sensitive, lower-camel).
+ * Matches the TraceType union exactly.
+ */
+const TRACE_TYPE_SET = new Set<string>([
+  'satisfies', 'derives', 'verifies', 'refines',
+  'traces',    'contains', 'copies',
+  'calls',     'flowsTo',  'mapsTo',
+]);
+
+/**
+ * Map from trace type → default edge style.
+ * Solid (-->) for affirmative/realising relationships;
+ * dashed (-.->) for derived, weak, or mapping relationships.
+ */
+const TRACE_TYPE_EDGE: Record<string, PosterLinkEdgeStyle> = {
+  satisfies: '-->',   verifies:  '-->',  contains: '-->',
+  calls:     '-->',   flowsTo:   '-->',
+  derives:   '-.->', refines:   '-.->', traces:   '-.->',
+  copies:    '-.->', mapsTo:    '-.->',
+};
+
+/**
+ * Regex matching the trace statement head (everything up to and including the colon).
+ *
+ * Matches:
+ *   trace "Name" :
+ *   trace "Name" satisfies :
+ *
+ * Capture groups:
+ *   1  name (inside quotes)
+ *   2  optional type token (may be undefined)
+ *   3  remainder of the line after the colon (the hop chain)
+ */
+const TRACE_HEAD_RE =
+  /^trace\s+"([^"]+)"\s+(?:(satisfies|derives|verifies|refines|traces|contains|copies|calls|flowsTo|mapsTo)\s+)?:\s*(.+)$/i;
+
+/**
+ * Split a hop chain like `A1.node -> B1.node --> C1.node` into alternating
+ * [hop, arrow, hop, arrow, hop, ...] tokens.
+ *
+ * Recognised arrow tokens (in priority order): `-->`, `-.->`, `->`.
+ * Returns an odd-length array: hops at even indices, arrows at odd indices.
+ * Returns `null` if the chain has fewer than two hops or unparseable segments.
+ */
+function splitHopChain(chain: string): string[] | null {
+  // Split on arrow tokens, keeping the delimiters so we know the edge style
+  const tokens = chain
+    .split(/\s+(-->|--|-\.-?>|->)\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
+
+  // tokens = [hop, arrow, hop, arrow, hop, ...]
+  if (tokens.length < 3) return null;          // need at least 2 hops
+  if (tokens.length % 2 === 0) return null;    // must be odd length
+
+  return tokens;
+}
+
+/**
+ * Parse a single hop token `<cellAddr>.<nodeId>` into its parts.
+ * Returns `null` if the hop is not in the expected form.
+ */
+function parseHop(hop: string): { cell: { row: number; col: number }; nodeId: string } | null {
+  // Support both bracket [r,c] and Excel A1 forms, followed by `.nodeId`
+  const m = /^(\[[^\]]+\]|[A-Za-z]+\d+)\.(\S+)$/.exec(hop.trim());
+  if (!m) return null;
+  const cellAddr = addrToRowCol(m[1]!);
+  if (!cellAddr) return null;
+  return { cell: cellAddr, nodeId: m[2]! };
+}
 
 // ---------------------------------------------------------------------------
 // Excel address helpers
@@ -243,6 +367,7 @@ export function parsePosterInternal(text: string): {
   let title = 'Untitled Poster';
   const cells: PosterCellDef[] = [];
   const links: PosterLink[] = [];
+  const traces: TraceRecord[] = [];
 
   // Parser state
   let currentCell: { row: number; col: number; typeHeader: string; rawLines: string[] } | null = null;
@@ -327,6 +452,106 @@ export function parsePosterInternal(text: string): {
       continue;
     }
 
+    // ── Detect `trace` statement (§30b Phase B) ───────────────────────────
+    // Syntax: `trace "<name>" [<type>] : <hop> [<arrow> <hop>]+`
+    // Top-level only (zero leading whitespace).
+    const isTopLevelTrace = /^trace\s+"/i.test(trimmed);
+    if (isTopLevelTrace) {
+      flushCurrentCell();
+      const traceM = TRACE_HEAD_RE.exec(trimmed.trim());
+      if (!traceM) {
+        warnings.push(`[poster] Unrecognised trace statement: "${trimmed.trim()}" — skipped.`);
+        continue;
+      }
+
+      const traceName  = traceM[1]!;
+      const rawType    = traceM[2];   // may be undefined
+      const chainStr   = traceM[3]!.trim();
+
+      // Validate type token (case-insensitive recognition, but keep canonical casing)
+      const traceType: TraceType | undefined = rawType && TRACE_TYPE_SET.has(rawType)
+        ? (rawType as TraceType)
+        : undefined;
+
+      // Determine default edge style from type (used when no explicit arrow in chain)
+      const typeEdge: PosterLinkEdgeStyle = traceType
+        ? (TRACE_TYPE_EDGE[traceType] ?? '-->')
+        : '-->';
+
+      // Split hop chain into [hop, arrow, hop, arrow, hop, ...]
+      const tokens = splitHopChain(chainStr);
+      if (!tokens) {
+        warnings.push(
+          `[poster] trace "${traceName}": could not parse hop chain "${chainStr}" ` +
+          `(need ≥2 hops separated by -> or -->) — trace skipped.`,
+        );
+        continue;
+      }
+
+      // Parse individual hops (tokens at even indices)
+      const parsedHops: Array<TraceHop | null> = [];
+      for (let ti = 0; ti < tokens.length; ti += 2) {
+        const hopStr = tokens[ti]!;
+        const parsed = parseHop(hopStr);
+        if (!parsed) {
+          warnings.push(
+            `[poster] trace "${traceName}" hop ${ti / 2 + 1}: ` +
+            `unrecognised hop "${hopStr}" — hop omitted.`,
+          );
+          parsedHops.push(null);
+        } else {
+          parsedHops.push(parsed);
+        }
+      }
+
+      // Resolve edge arrows (tokens at odd indices)
+      const hopArrows: PosterLinkEdgeStyle[] = [];
+      for (let ti = 1; ti < tokens.length; ti += 2) {
+        const arrow = tokens[ti]!;
+        const mapped: PosterLinkEdgeStyle =
+          arrow === '-.->' || arrow === '-.->'.substring(0, 3) ? '-.->':
+          arrow === '->' || arrow === '-->'                    ? '-->' :
+          typeEdge;
+        hopArrows.push((EDGE_STYLE_MAP[arrow] ?? mapped) as PosterLinkEdgeStyle);
+      }
+
+      // Build TraceRecord (only resolved hops)
+      const resolvedHops: TraceHop[] = parsedHops.filter((h): h is TraceHop => h !== null);
+      if (resolvedHops.length < 2) {
+        warnings.push(
+          `[poster] trace "${traceName}": fewer than 2 resolvable hops — trace skipped.`,
+        );
+        continue;
+      }
+
+      const traceRecord: TraceRecord = {
+        name: traceName,
+        hops: resolvedHops,
+        ...(traceType ? { type: traceType } : {}),
+      };
+      const traceIndex = traces.length;
+      traces.push(traceRecord);
+
+      // Desugar into atomic PosterLinks — one per consecutive hop pair
+      for (let hi = 0; hi < parsedHops.length - 1; hi++) {
+        const fromHop = parsedHops[hi];
+        const toHop   = parsedHops[hi + 1];
+        if (!fromHop || !toHop) continue; // omitted hops
+
+        const edgeStyle = hi < hopArrows.length ? hopArrows[hi]! : typeEdge;
+        links.push({
+          fromCell:   fromHop.cell,
+          fromNodeId: fromHop.nodeId,
+          edgeStyle,
+          toCell:     toHop.cell,
+          toNodeId:   toHop.nodeId,
+          traceIndex,
+        });
+      }
+
+      continue;
+    }
+
     // Detect cell header — try bracket form first, then Excel form.
     const cellM = CELL_HEADER_RE.exec(trimmed);
     if (cellM) {
@@ -374,7 +599,7 @@ export function parsePosterInternal(text: string): {
     warnings.push('[poster] No cells found in poster document.');
   }
 
-  const doc: PosterDocument = { title, theme: fmTheme, columns, rows, cells, links };
+  const doc: PosterDocument = { title, theme: fmTheme, columns, rows, cells, links, traces };
   return { doc, warnings, frontmatter };
 }
 

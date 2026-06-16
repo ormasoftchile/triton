@@ -2848,6 +2848,31 @@
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-body">
+      <div class="card-num">Superset: Posters · Cross-Diagram Traces (§30b Phase B)</div>
+      <div class="card-title">Requirements Traceability — Named Multi-Hop Traces
+        <span class="tag tag-sublanes">poster</span>
+        <span class="tag">trace "name" satisfies : A1.node --&gt; B1.Class --&gt; C1.test</span>
+        <span class="tag">Phase B</span>
+      </div>
+      <div class="card-desc">
+        The <code>trace</code> superset keyword declares named, typed, ordered multi-hop paths
+        across diagram layers. Two <code>satisfies</code> traces weave system-traceability threads
+        from requirement nodes (flowchart) through service classes (classDiagram) to test nodes
+        (flowchart). Each trace receives a distinct colour from the theme's categorical data
+        palette. The auto-generated <strong>trace legend</strong> at the bottom shows colour
+        swatches, trace names, and <code>«satisfies»</code> type pills. Traces desugar to
+        ordered atomic links — existing <code>link</code> machinery handles resolution + routing.
+      </div>
+    </div>
+    <div class="card-img"><img src="poster-trace.png" alt="Multi-hop trace demo: requirements → services → tests with trace legend"></div>
+    <div class="card-footer">
+      <a href="poster-trace.svg">SVG</a>
+      <a href="poster-trace.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
 </div>
 <footer>
   Timeline Compiler · Phase 1–5 Gallery · Horizontal &amp; vertical-spine layout families.

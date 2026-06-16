@@ -1126,6 +1126,27 @@ and components.  This is the core interaction model for poster-scale
 traceability review.
 
 % ─────────────────────────────────────────────────────────────────────────────
+\subsubsection{Rendered Example: Two Typed Traces Across Three Diagram Layers}
+\label{sec:cdl-trace-rendered}
+
+The following poster was rendered by the Timeline compiler (Phase~B,
+\texttt{poster-trace.mmd}).  It uses three cells --- a flowchart of
+requirements, a class diagram of services, and a flowchart of tests --- with
+two named, typed \texttt{satisfies} traces.
+
+\ourdiagram[0.97\linewidth]{crosslink-poster}{%
+  Rendered poster: two \texttt{satisfies} traces (\textcolor[HTML]{1F497D}{REQ-01 chain}
+  and \textcolor[HTML]{2E86AB}{REQ-02 chain}) weave a traceability thread from
+  requirement nodes (left cell) through service classes (centre cell) to test
+  nodes (right cell).  The trace legend at the bottom shows each trace's colour
+  swatch, name, and \texttt{«satisfies»} type pill.}
+
+\noindent The categorical data palette provides perceptually-distinct trace
+colours that are on-brand with the \texttt{executive} theme and do not clash
+with the diagram-internal navy border and ink colours.  The legend beneath the
+grid makes the two traceability chains immediately identifiable at a glance.
+
+% ─────────────────────────────────────────────────────────────────────────────
 \subsubsection{Agent Integration}
 \label{sec:cdl-trace-agent}
 

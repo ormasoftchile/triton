@@ -1,0 +1,30 @@
+---
+theme: executive
+layout: grid 3x1
+---
+poster "System Traceability — Cross-Diagram Traces"
+
+  cell A1: flowchart TD
+    REQ1[REQ-01: Auth < 500ms]
+    REQ2[REQ-02: Token expires 24h]
+    REQ1 --> REQ2
+
+  cell B1: classDiagram
+    class AuthController {
+      +login(): Token
+      +validate(): bool
+    }
+    class TokenService {
+      +issue(): Token
+      +revoke(): void
+    }
+    AuthController --> TokenService : issues
+
+  cell C1: flowchart TD
+    T1[auth_latency_test]
+    T2[token_expiry_test]
+    T1 --> R1[p99 < 500ms]
+    T2 --> R2[exp=now+86400s]
+
+trace "REQ-01 chain" satisfies : A1.REQ1 --> B1.AuthController --> C1.T1
+trace "REQ-02 chain" satisfies : A1.REQ2 --> B1.TokenService --> C1.T2
