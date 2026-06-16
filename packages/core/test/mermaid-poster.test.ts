@@ -32,14 +32,26 @@
  *   E. CompositionDocument — SceneCellContent additive kind
  *      E1. layoutComposition accepts SceneCellContent without error
  *      E2. Scene hash stable across two layoutComposition calls with same input
+ *
+ *   F. Excel cell addressing
+ *      F0. excelToRowCol unit: A1→[0,0], B1→[0,1], A2→[1,0], C3→[2,2], Z1→[0,25], AA1→[0,26], AB1→[0,27]
+ *      F1. Parser: A1/B1/A2/B2 map to correct row/col
+ *      F2. Case-insensitive: a1 ≡ A1
+ *      F3. C3 → row:2, col:2
+ *      F4. AA1 → row:0, col:26
+ *      F5. Mixed bracket [r,c] and Excel in same poster
+ *      F6. Malformed cell address → warn + skip (graceful degradation)
+ *      F7. Equivalence: Excel poster produces same cell positions as [r,c] poster
+ *      F8. Excel poster renders to SVG
+ *      F9. Gallery emit — poster-excel.{mmd,svg,png}
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { parsePosterInternal, buildCompositionThemeFor } from '../src/frontend/mermaid/poster.js';
+import { parsePosterInternal, buildCompositionThemeFor, excelToRowCol } from '../src/frontend/mermaid/poster.js';
 import { detectDiagramType, renderMermaid } from '../src/frontend/mermaid/index.js';
 import { layoutComposition } from '../src/composition/index.js';
 import type { SceneCellContent } from '../src/composition/index.js';
@@ -410,5 +422,203 @@ describe('E. SceneCellContent — additive composition kind (non-breaking)', () 
     const scene1 = layoutComposition(compDoc);
     const scene2 = layoutComposition(compDoc);
     expect(sceneHash(scene1)).toBe(sceneHash(scene2));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F. Excel cell addressing
+// ---------------------------------------------------------------------------
+
+// Fixture: poster using Excel-style cell addresses (A1, B1, A2, B2)
+const EXCEL_POSTER_MMD = `---
+theme: executive
+layout: grid 2x2
+---
+poster "Excel Address Demo"
+  cell A1: flowchart LR
+    A[Query] --> B[Retriever]
+    B --> C[Generator]
+  cell B1: sequenceDiagram
+    User->>API: request
+    API->>DB: lookup
+    DB-->>API: results
+    API-->>User: response
+  cell A2: mindmap
+    root((RAG))
+      Retriever
+        Dense
+        Sparse
+      Generator
+        LLM
+        Context
+  cell B2: xychart-beta
+    title "Retrieval Accuracy"
+    x-axis [k=1, k=3, k=5, k=10]
+    y-axis "Recall %" 0 --> 100
+    bar [72, 81, 86, 91]
+`;
+
+// Equivalent poster authored with bracket addresses (same cells, same positions)
+const BRACKET_EQUIV_MMD = `---
+theme: executive
+layout: grid 2x2
+---
+poster "Bracket Equiv"
+  cell [0,0]: flowchart LR
+    A[Query] --> B[Retriever]
+    B --> C[Generator]
+  cell [0,1]: sequenceDiagram
+    User->>API: request
+    API->>DB: lookup
+    DB-->>API: results
+    API-->>User: response
+  cell [1,0]: mindmap
+    root((RAG))
+      Retriever
+        Dense
+        Sparse
+      Generator
+        LLM
+        Context
+  cell [1,1]: xychart-beta
+    title "Retrieval Accuracy"
+    x-axis [k=1, k=3, k=5, k=10]
+    y-axis "Recall %" 0 --> 100
+    bar [72, 81, 86, 91]
+`;
+
+describe('F. Excel cell addressing', () => {
+  // ── F0. Unit: excelToRowCol helper ────────────────────────────────────────
+  describe('F0. excelToRowCol helper', () => {
+    it('A1 → {row:0, col:0}', () => expect(excelToRowCol('A', '1')).toEqual({ row: 0, col: 0 }));
+    it('B1 → {row:0, col:1}', () => expect(excelToRowCol('B', '1')).toEqual({ row: 0, col: 1 }));
+    it('A2 → {row:1, col:0}', () => expect(excelToRowCol('A', '2')).toEqual({ row: 1, col: 0 }));
+    it('C3 → {row:2, col:2}', () => expect(excelToRowCol('C', '3')).toEqual({ row: 2, col: 2 }));
+    it('Z1 → {row:0, col:25}', () => expect(excelToRowCol('Z', '1')).toEqual({ row: 0, col: 25 }));
+    it('AA1 → {row:0, col:26}', () => expect(excelToRowCol('AA', '1')).toEqual({ row: 0, col: 26 }));
+    it('AB1 → {row:0, col:27}', () => expect(excelToRowCol('AB', '1')).toEqual({ row: 0, col: 27 }));
+  });
+
+  // ── F1. Parser: Excel addresses map to correct row/col ───────────────────
+  it('F1. A1→[0,0], B1→[0,1], A2→[1,0], B2→[1,1]', () => {
+    const { doc } = parsePosterInternal(EXCEL_POSTER_MMD);
+    expect(doc.cells).toHaveLength(4);
+    expect(doc.cells[0]).toMatchObject({ row: 0, col: 0 });
+    expect(doc.cells[1]).toMatchObject({ row: 0, col: 1 });
+    expect(doc.cells[2]).toMatchObject({ row: 1, col: 0 });
+    expect(doc.cells[3]).toMatchObject({ row: 1, col: 1 });
+  });
+
+  // ── F2. Case-insensitive: a1 ≡ A1 ────────────────────────────────────────
+  it('F2. case-insensitive: a1 is the same as A1', () => {
+    const { doc } = parsePosterInternal(`poster "CI Test"
+  cell a1: flowchart LR
+    A --> B
+  cell b2: sequenceDiagram
+    Alice->>Bob: hello
+`);
+    expect(doc.cells).toHaveLength(2);
+    expect(doc.cells[0]).toMatchObject({ row: 0, col: 0 });
+    expect(doc.cells[1]).toMatchObject({ row: 1, col: 1 });
+  });
+
+  // ── F3. C3 → row:2, col:2 ────────────────────────────────────────────────
+  it('F3. C3 → {row:2, col:2}', () => {
+    const { doc } = parsePosterInternal(`---
+layout: grid 3x3
+---
+poster "Grid"
+  cell C3: flowchart LR
+    A --> B
+`);
+    expect(doc.cells[0]).toMatchObject({ row: 2, col: 2 });
+  });
+
+  // ── F4. AA1 → row:0, col:26 ──────────────────────────────────────────────
+  it('F4. AA1 → {row:0, col:26}', () => {
+    const { doc } = parsePosterInternal(`poster "Wide"
+  cell AA1: flowchart LR
+    A --> B
+`);
+    expect(doc.cells[0]).toMatchObject({ row: 0, col: 26 });
+  });
+
+  // ── F5. Mixed bracket + Excel in same poster ──────────────────────────────
+  it('F5. bracket [r,c] and Excel A1 may be mixed in one poster', () => {
+    const { doc, warnings } = parsePosterInternal(`---
+layout: grid 2x2
+---
+poster "Mixed"
+  cell [0,0]: flowchart LR
+    A --> B
+  cell B1: sequenceDiagram
+    Alice->>Bob: hello
+  cell [1,0]: mindmap
+    root((x))
+  cell B2: xychart-beta
+    x-axis [a, b]
+    y-axis 0 --> 10
+    bar [3, 7]
+`);
+    // No warnings about address form
+    expect(warnings.filter(w => w.includes('Unrecognised cell address'))).toHaveLength(0);
+    expect(doc.cells).toHaveLength(4);
+    expect(doc.cells[0]).toMatchObject({ row: 0, col: 0 }); // [0,0]
+    expect(doc.cells[1]).toMatchObject({ row: 0, col: 1 }); // B1
+    expect(doc.cells[2]).toMatchObject({ row: 1, col: 0 }); // [1,0]
+    expect(doc.cells[3]).toMatchObject({ row: 1, col: 1 }); // B2
+  });
+
+  // ── F6. Malformed address → warn + skip ──────────────────────────────────
+  it('F6. malformed cell address → warn + skip (graceful degradation)', () => {
+    const { doc, warnings } = parsePosterInternal(`poster "Bad"
+  cell @@weirdaddress: flowchart LR
+    A --> B
+  cell A1: sequenceDiagram
+    Alice->>Bob: hello
+`);
+    // The @@weirdaddress line starts with "cell " so it triggers the fallback warning
+    expect(warnings.some(w => w.includes('Unrecognised cell address'))).toBe(true);
+    // Only the valid A1 cell is parsed
+    expect(doc.cells).toHaveLength(1);
+    expect(doc.cells[0]).toMatchObject({ row: 0, col: 0 });
+  });
+
+  // ── F7. Equivalence: Excel poster produces SAME cell positions as [r,c] ──
+  it('F7. Excel-addressed poster produces same cell positions as [r,c] poster', () => {
+    const { doc: excelDoc } = parsePosterInternal(EXCEL_POSTER_MMD);
+    const { doc: bracketDoc } = parsePosterInternal(BRACKET_EQUIV_MMD);
+
+    expect(excelDoc.cells).toHaveLength(bracketDoc.cells.length);
+    for (let i = 0; i < bracketDoc.cells.length; i++) {
+      expect(excelDoc.cells[i]!.row).toBe(bracketDoc.cells[i]!.row);
+      expect(excelDoc.cells[i]!.col).toBe(bracketDoc.cells[i]!.col);
+      expect(excelDoc.cells[i]!.typeHeader).toBe(bracketDoc.cells[i]!.typeHeader);
+    }
+  });
+
+  // ── F8. Excel poster renders to SVG (render integration) ─────────────────
+  it('F8. Excel-addressed poster renders to SVG without error', () => {
+    const result = renderMermaid(EXCEL_POSTER_MMD, { format: 'svg' });
+    expect(result.kind).toBe('poster');
+    expect(result.svg).toBeDefined();
+    expect(result.svg).toContain('<svg');
+  });
+
+  // ── F9. Gallery emit — poster-excel.{mmd,svg,png} ────────────────────────
+  it('F9. Gallery emit — poster-excel.{mmd,svg,png} written to examples/gallery/', () => {
+    const svgResult = renderMermaid(EXCEL_POSTER_MMD, { format: 'svg' });
+    expect(svgResult.svg).toBeDefined();
+
+    writeGallery('poster-excel.mmd', EXCEL_POSTER_MMD);
+    writeGallery('poster-excel.svg', svgResult.svg!);
+
+    const pngResult = renderMermaid(EXCEL_POSTER_MMD, { format: 'png' });
+    expect(pngResult.png).toBeDefined();
+    writeGallery('poster-excel.png', pngResult.png!);
+
+    expect(existsSync(join(GALLERY, 'poster-excel.mmd'))).toBe(true);
+    expect(existsSync(join(GALLERY, 'poster-excel.svg'))).toBe(true);
+    expect(existsSync(join(GALLERY, 'poster-excel.png'))).toBe(true);
   });
 });

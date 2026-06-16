@@ -26,6 +26,7 @@ extended features).
 \end{description}
 
 \subsection{Composition / Posters}
+\label{sec:composition-posters}
 
 A new \texttt{poster} keyword enables multi-diagram compositions directly in the DSL:
 
@@ -52,6 +53,29 @@ poster "RAG Architecture"
 
 This maps to the Composition IR (Section~\ref{sec:composition}) and produces grid-based
 multi-panel posters.
+
+\subsubsection*{Dual Cell Addressing}
+
+Cell positions may be specified in either of two equivalent forms, which may be mixed
+freely within a single poster:
+
+\begin{description}
+  \item[Bracket form] \texttt{cell [row, col]:} — explicit 0-indexed row and column.
+        \texttt{cell [0,0]:} addresses the top-left cell; \texttt{cell [1,2]:} addresses
+        row~1, column~2.
+
+  \item[Excel/spreadsheet form] \texttt{cell A1:} — column letter(s) followed by a
+        1-indexed row number, matching spreadsheet convention.
+        Column letters use bijective base-26: \texttt{A}=0, \texttt{B}=1, \ldots,
+        \texttt{Z}=25, \texttt{AA}=26, \texttt{AB}=27, \ldots
+        Row numbers are 1-indexed (row~\texttt{1}~$\to$ internal row~0).
+\end{description}
+
+The two forms are strictly equivalent: \texttt{cell A1:}~$\equiv$~\texttt{cell [0,0]:},
+\texttt{cell B1:}~$\equiv$~\texttt{cell [0,1]:},
+\texttt{cell A2:}~$\equiv$~\texttt{cell [1,0]:},
+\texttt{cell AA1:}~$\equiv$~\texttt{cell [0,26]:}.
+Both forms are case-insensitive. A malformed address emits a warning and the cell is skipped.
 
 \subsection{Rich Theming}
 
@@ -92,18 +116,27 @@ rendering static resting frames.
 
 \subsection{Cross-Diagram References}
 
-Elements in one diagram can reference elements in another within the same poster:
+Cross-diagram node linking connects nodes that live in \emph{different} cells
+of a poster, turning a set of side-by-side panels into a linked multi-view
+system diagram.  A \texttt{link} statement in the poster DSL names both
+endpoints using the existing dual cell-addressing scheme
+(Section~\ref{sec:composition-posters}) and a Mermaid-mirrored edge style:
 
-\begin{lstlisting}[language=yaml,caption={Cross-diagram reference annotation}]
----
-refs:
-  - from: flow.nodeC
-    to: sequence.participant.API
-    style: dashed-arrow
----
+\begin{lstlisting}[language=,caption={Cross-diagram link statement (superset-only)}]
+link A1.pay --> B1.PaymentGateway : "handled by"
+link A1.pick -.-> A2.Processing   : "triggers"
+link B1.OrderService --- A2.Pending
 \end{lstlisting}
 
-References resolve at the composition layer and render as overlay connectors.
+Links are resolved at composition time, after each cell's diagram has compiled
+independently, and rendered as overlay connectors on a synthetic layer above
+all cell primitives.  They are \emph{presentation-layer assertions on the
+composition} --- they do not modify any diagram's Domain IR or Scene IR.  An
+unresolvable link (unknown cell, unknown node, or non-linkable diagram type)
+emits a WARNING and is skipped; the poster renders in full.  The full
+specification --- link grammar, the node-anchor registry prerequisite, overlay
+routing, linkable-type rules, and the degradation contract --- is given in
+Section~\ref{sec:cross-diagram-links}.
 
 \subsection{Icons and Images in Nodes}
 

@@ -2756,7 +2756,7 @@
   Superset: Posters <span style="font-weight:400;font-size:13px;color:#888;">(§17.2 — new top-level keyword, no Mermaid equivalent)</span>
 </h2>
 <div style="max-width:1100px;margin:0 auto 24px;font-size:13px;color:#555;padding-left:20px;">
-  The <code>poster</code> keyword composes multiple diagram types into a single themed grid — the flagship superset feature. Each <code>cell [row,col]:</code> embeds an independent diagram; all cells share one named theme for a coherent board.
+  The <code>poster</code> keyword composes multiple diagram types into a single themed grid — the flagship superset feature. Each cell embeds an independent diagram; all cells share one named theme for a coherent board. Cell positions accept either <code>cell [row,col]:</code> (0-indexed bracket form) or <code>cell A1:</code> (Excel/spreadsheet style) — both forms are equivalent and may be mixed.
 </div>
 <div class="gallery">
 
@@ -2798,6 +2798,27 @@
     <div class="card-footer">
       <a href="poster-rag-midnight.svg">SVG</a>
       <a href="poster-rag-midnight.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
+  <!-- poster: Excel addressing demo -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Superset: Posters · Excel addressing</div>
+      <div class="card-title">Excel-Style Cell Addresses — A1, B1, A2, B2
+        <span class="tag tag-sublanes">poster</span>
+        <span class="tag">cell A1 ≡ cell [0,0]</span>
+      </div>
+      <div class="card-desc">
+        Same 2×2 RAG poster authored with <code>cell A1:</code> / <code>cell B1:</code> / <code>cell A2:</code> / <code>cell B2:</code>
+        instead of <code>cell [0,0]:</code> etc. Both forms are equivalent and may be mixed freely.
+        Column letters are bijective base-26 (A=0 … Z=25, AA=26 …); row numbers are 1-indexed.
+      </div>
+    </div>
+    <div class="card-img"><img src="poster-excel.png" alt="RAG Architecture poster with Excel-style cell addresses"></div>
+    <div class="card-footer">
+      <a href="poster-excel.svg">SVG</a>
+      <a href="poster-excel.mmd">Mermaid Source</a>
     </div>
   </div>
 

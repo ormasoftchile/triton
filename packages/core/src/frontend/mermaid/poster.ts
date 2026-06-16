@@ -12,20 +12,22 @@
  * layout: grid 2x2
  * ---
  * poster "RAG Architecture"
- *   cell [0,0]: flowchart LR
+ *   cell [0,0]: flowchart LR        ← bracket form (0-indexed row, col)
  *     A[Query] --> B[Retriever] --> C[Generator]
+ *   cell A1: flowchart LR           ← Excel form (equivalent to cell [0,0])
+ *     A[Query] --> B[Retriever]
  *   cell [0,1]: sequenceDiagram
  *     User->>API: request
- *   cell [1,0]: mindmap
- *     root((Components))
- *       Retriever
- *       Generator
- *   cell [1,1]: xychart-beta
- *     title "Accuracy"
- *     x-axis [k=1, k=3, k=5]
- *     y-axis 0 --> 100
- *     bar [72, 81, 86]
+ *   cell B1: sequenceDiagram        ← Excel form (equivalent to cell [0,1])
+ *     User->>API: request
  * ```
+ *
+ * Cell address forms (both valid, mixable within one poster):
+ *  - Bracket:  `cell [row, col]:` — 0-indexed row then col.
+ *  - Excel:    `cell A1:` — column letter(s) then 1-indexed row number.
+ *              Column letters use bijective base-26 (A=0, B=1, …, Z=25, AA=26, …).
+ *              Row number is 1-indexed (row 1 → internal row 0).
+ *              So A1≡[0,0], B1≡[0,1], A2≡[1,0], AA1≡[0,26].
  *
  * Design notes:
  *  - `parsePosterInternal` is pure: no I/O, no imports from index.ts.
@@ -79,14 +81,45 @@ export interface PosterDocument {
 // parsePosterInternal
 // ---------------------------------------------------------------------------
 
-/** Cell header regex: `  cell [row,col]: typeHeader` */
+/** Cell header — bracket form: `  cell [row,col]: typeHeader` */
 const CELL_HEADER_RE = /^(\s*)cell\s*\[(\d+)\s*,\s*(\d+)\]\s*:\s*(.+)$/i;
+
+/**
+ * Cell header — Excel form: `  cell A1: typeHeader`
+ * Capture groups: (indent)(colLetters)(rowNumber)(typeHeader)
+ */
+const CELL_HEADER_EXCEL_RE = /^(\s*)cell\s+([A-Za-z]+)(\d+)\s*:\s*(.+)$/i;
+
+/** Detects any line starting with the `cell` keyword (used for malformed-address warning). */
+const CELL_KEYWORD_RE = /^(\s*)cell\s/i;
 
 /** Poster title regex: `poster "Title"` or `poster Title` */
 const POSTER_TITLE_RE = /^poster\s+"([^"]+)"\s*$|^poster\s+'([^']+)'\s*$|^poster\s+(.+)$/i;
 
 /** Grid layout regex: `grid 2x2` or `grid 2 x 2` */
 const GRID_RE = /^grid\s+(\d+)\s*[xX×]\s*(\d+)\s*$/;
+
+// ---------------------------------------------------------------------------
+// Excel address helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert an Excel-style cell address to 0-indexed {row, col}.
+ *
+ * Column letters use bijective base-26 (A=0, B=1, …, Z=25, AA=26, …).
+ * Row number is 1-indexed in Excel; we convert to 0-indexed.
+ *
+ * Examples: excelToRowCol("A","1")→{row:0,col:0}, excelToRowCol("AA","1")→{row:0,col:26}.
+ */
+export function excelToRowCol(colLetters: string, rowNum: string): { row: number; col: number } {
+  let col = 0;
+  for (const ch of colLetters.toUpperCase()) {
+    col = col * 26 + (ch.charCodeAt(0) - 65 /* 'A' */ + 1);
+  }
+  col -= 1; // bijective base-26 → 0-indexed
+  const row = parseInt(rowNum, 10) - 1; // 1-indexed → 0-indexed
+  return { row, col };
+}
 
 /**
  * Parse raw poster DSL text into a `PosterDocument`.
@@ -165,15 +198,30 @@ export function parsePosterInternal(text: string): {
       continue;
     }
 
-    // Detect cell header: any line matching `  cell [r,c]: typeHeader`
+    // Detect cell header — try bracket form first, then Excel form.
     const cellM = CELL_HEADER_RE.exec(trimmed);
     if (cellM) {
-      // Flush previous cell
       flushCurrentCell();
       const row        = parseInt(cellM[2]!, 10);
       const col        = parseInt(cellM[3]!, 10);
       const typeHeader = (cellM[4] ?? '').trim();
       currentCell = { row, col, typeHeader, rawLines: [] };
+      continue;
+    }
+
+    const excelM = CELL_HEADER_EXCEL_RE.exec(trimmed);
+    if (excelM) {
+      flushCurrentCell();
+      const { row, col } = excelToRowCol(excelM[2]!, excelM[3]!);
+      const typeHeader   = (excelM[4] ?? '').trim();
+      currentCell = { row, col, typeHeader, rawLines: [] };
+      continue;
+    }
+
+    // Line starts with `cell` keyword but matched neither valid form → warn + skip.
+    if (CELL_KEYWORD_RE.test(trimmed)) {
+      warnings.push(`[poster] Unrecognised cell address in: "${trimmed.trim()}". Use "cell [row,col]:" or "cell A1:" form. Skipping.`);
+      flushCurrentCell();
       continue;
     }
 
