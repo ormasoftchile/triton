@@ -6,6 +6,30 @@ Decisions guide future work. Never deleted; deferred decisions remain visible.
 
 ## Active Decisions
 
+### Decision: POSTER EXCEL ADDRESSING
+
+**Agent:** Bjarne (Ingestion Design)  
+**Date:** 2026-06-15  
+**Status:** COMPLETE  
+**Commit:** feaec9d
+
+Poster cells now accept spreadsheet addresses (A1 ≡ [0,0]) in addition to [row,col], freely mixable. Bijective base-26 columns, col-then-row mapped to internal [row,col]. `excelToRowCol` helper exported. Demo poster-excel added to gallery (2×2 cells). §17.2 doc updated. All 2659 tests passing; existing goldens byte-identical.
+
+---
+
+### Decision: CROSS-DIAGRAM NODE LINKING SPEC (design §30b)
+
+**Agent:** Leslie (Spec Architect)  
+**Date:** 2026-06-15  
+**Status:** SPEC WRITTEN  
+**Commit:** 73d8c21
+
+Spec'd cross-diagram node linking: `link <cellAddr>.<nodeId> --> <cellAddr>.<nodeId> : "label"` syntax (reuses bracket/Excel addressing + Mermaid edge styles). Recommended mechanism: sidecar node-anchor registry per linkable grammar ({scene, anchors}), transformed to poster coords via translateAndScale; overlay routing; linkable-type rules (stable-id grammars only: flowchart/class/state/ER/C4/block/architecture/mindmap/gitGraph). Charts excluded. Presentation-layer degradation contract: unresolved links warn+skip.
+
+**BIG PREREQUISITE:** Grammar layout functions currently discard node positions (flow PlacedNode) — surfacing them as a sidecar unlocks linking AND is reusable (hit-testing/tooltips/agent node-addressing/accessibility). Spec-only, no code yet. NEXT when implementing: build the node-anchor sidecar on 2-3 grammars + the overlay link layer.
+
+---
+
 ### Decision: NAMED CONTRACT THEMES ADDED (matrix proven) — 3 New Themes: midnight, blueprint, editorial
 
 **Agent:** Barbara (Semantics & Rendering)  
