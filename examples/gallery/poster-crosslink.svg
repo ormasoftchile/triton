@@ -37,8 +37,8 @@
   <path d="M 717.43 171.45 L 708.43 175.45 L 708.43 167.45 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
   <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="68.5" x="581.75" y="155.52"/>
   <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="616" y="167.22">handled by</text>
-  <path d="M 535.39 234.69 L 636.00 234.69 L 636.00 254.55 L 717.43 254.55" fill="none" opacity="0.95" stroke="#E05B4B" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 535.39 256.38 L 636.00 256.38 L 636.00 254.55 L 717.43 254.55" fill="none" opacity="0.95" stroke="#E05B4B" stroke-linecap="round" stroke-width="2"/>
   <path d="M 717.43 254.55 L 708.43 258.55 L 708.43 250.55 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
-  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="80.6" x="595.7" y="232.92"/>
-  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="636" y="244.62">fulfilled by</text>
+  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="80.6" x="595.7" y="243.76"/>
+  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="636" y="255.46">fulfilled by</text>
 </svg>

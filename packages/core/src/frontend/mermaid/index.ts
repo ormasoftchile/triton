@@ -67,7 +67,7 @@ import type { NodeAnchor, NodeAnchorRegistry } from '../../anchors.js';
 
 // Geometry-quality kernel — feedback-driven route selection (during layout) +
 // objective defect report (post render).  Pure & deterministic.
-import { pickBestRoute, polylineToSegments } from '../../geometry/index.js';
+import { pickBestRoute, polylineToSegments, computeAestheticScores, detectDefects } from '../../geometry/index.js';
 import type {
   Box as KernelBox,
   BoxWithId as KernelBoxWithId,
@@ -1176,6 +1176,370 @@ export function renderMermaid(
 }
 
 // ---------------------------------------------------------------------------
+// Aesthetic-driven composition layout selection — enumerate-score-pick (2026-06)
+// ---------------------------------------------------------------------------
+//
+// The layout selection algorithm lifts the proven enumerate-score-pick pattern
+// from overlay routing up to composition layout:
+//
+//   C0 = as-authored (the exact grid/spans from the DSL)
+//   C1 = trace-ordered ROW: cells ordered left-to-right following the dominant
+//        trace hop sequence, so each hop connects adjacent cells → straight
+//        horizontal routes with no crossings.
+//   C2 = trace-ordered COLUMN: same order, stacked top-to-bottom.
+//
+// For each candidate the full layout+routing pipeline runs deterministically.
+// The aesthetic overall score + egregious defect count determine the winner.
+// C0 is preferred on near-ties (epsilon = 0.02) to respect well-authored posters.
+// ---------------------------------------------------------------------------
+
+/**
+ * Candidate cell arrangement: a remapping of original cell positions to a new
+ * grid configuration.  C0 uses an empty positionMap (identity).
+ */
+interface PosterArrangement {
+  name: string;
+  columns: number;
+  rows?: number;
+  /** Original "row,col" key → new grid position (+ optional span override). */
+  positionMap: Map<string, { row: number; col: number; colSpan?: number; rowSpan?: number }>;
+}
+
+/** Epsilon for C0 tie-break preference: non-C0 must exceed C0 by this margin. */
+const LAYOUT_EPSILON = 0.02;
+
+/**
+ * Derive topological cell visit order from link hop pairs.
+ *
+ * Builds a directed graph of cells (each node = "row,col" key, each directed
+ * edge = one link's fromCell → toCell hop).  Kahn's topological sort with
+ * authored-order tie-breaking returns cells in the dominant trace-visit sequence.
+ * Falls back to authored order on cycles.
+ */
+function deriveCellTraceOrder(
+  links: PosterLink[],
+  authoredKeys: string[],
+): string[] {
+  if (links.length === 0) return [...authoredKeys];
+
+  const allKeys = new Set<string>(authoredKeys);
+  const outEdges = new Map<string, Set<string>>();
+  const inDegree = new Map<string, number>();
+
+  for (const link of links) {
+    const fk = `${link.fromCell.row},${link.fromCell.col}`;
+    const tk = `${link.toCell.row},${link.toCell.col}`;
+    allKeys.add(fk);
+    allKeys.add(tk);
+    if (!outEdges.has(fk)) outEdges.set(fk, new Set());
+    outEdges.get(fk)!.add(tk);
+  }
+
+  for (const k of allKeys) inDegree.set(k, 0);
+  for (const [, outs] of outEdges) {
+    for (const to of outs) inDegree.set(to, (inDegree.get(to) ?? 0) + 1);
+  }
+
+  const authoredIdx = new Map<string, number>(authoredKeys.map((k, i) => [k, i]));
+  const byAuthored = (a: string, b: string): number =>
+    (authoredIdx.get(a) ?? 9999) - (authoredIdx.get(b) ?? 9999);
+
+  // Initial queue: zero in-degree nodes in authored order.
+  const queue: string[] = [...allKeys].filter((k) => (inDegree.get(k) ?? 0) === 0).sort(byAuthored);
+  const sorted: string[] = [];
+
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    sorted.push(node);
+    const outs = [...(outEdges.get(node) ?? [])].sort(byAuthored);
+    for (const to of outs) {
+      const d = (inDegree.get(to) ?? 0) - 1;
+      inDegree.set(to, d);
+      if (d === 0) {
+        const insertAt = queue.findIndex((q) => byAuthored(q, to) > 0);
+        if (insertAt === -1) queue.push(to);
+        else queue.splice(insertAt, 0, to);
+      }
+    }
+  }
+
+  // Cycle detected — fall back to authored order.
+  if (sorted.length < allKeys.size) return [...authoredKeys];
+
+  // Keep only authored cell keys, in trace-derived order.
+  return sorted.filter((k) => authoredKeys.includes(k));
+}
+
+/**
+ * Build the bounded candidate set: C0, C1, C2.
+ * Returns only [C0] when the poster has no links (nothing to optimise).
+ */
+function buildCandidateArrangements(
+  cells: Cell[],
+  links: PosterLink[],
+  docColumns: number,
+): PosterArrangement[] {
+  const c0: PosterArrangement = { name: 'C0', columns: docColumns, positionMap: new Map() };
+  if (links.length === 0 || cells.length <= 1) return [c0];
+
+  const authoredKeys = cells.map((c) => `${c.row ?? 0},${c.col ?? 0}`);
+  const traceOrder = deriveCellTraceOrder(links, authoredKeys);
+  if (traceOrder.length <= 1) return [c0];
+
+  // C1: trace-ordered ROW (left-to-right).
+  const c1Map = new Map<string, { row: number; col: number; colSpan?: number; rowSpan?: number }>();
+  traceOrder.forEach((k, i) => c1Map.set(k, { row: 0, col: i, colSpan: 1, rowSpan: 1 }));
+
+  // C2: trace-ordered COLUMN (top-to-bottom).
+  const c2Map = new Map<string, { row: number; col: number; colSpan?: number; rowSpan?: number }>();
+  traceOrder.forEach((k, i) => c2Map.set(k, { row: i, col: 0, colSpan: 1, rowSpan: 1 }));
+
+  const candidates: PosterArrangement[] = [
+    c0,
+    { name: 'C1', columns: traceOrder.length, rows: 1, positionMap: c1Map },
+    { name: 'C2', columns: 1, rows: traceOrder.length, positionMap: c2Map },
+  ];
+
+  // C3: hub-sidebar — the most-connected through-cell (hub) sits at col=1 with rowSpan=N,
+  // while the other cells stack vertically at col=0. This lets each hop exit the hub's
+  // LEFT edge (unblocked) or enter from adjacent col=0 cells on clean h-right routes.
+  if (traceOrder.length >= 3) {
+    const hasInbound = new Set<string>();
+    const hasOutbound = new Set<string>();
+    const connectivity = new Map<string, number>(authoredKeys.map((k) => [k, 0]));
+    for (const link of links) {
+      const fk = `${link.fromCell.row},${link.fromCell.col}`;
+      const tk = `${link.toCell.row},${link.toCell.col}`;
+      connectivity.set(fk, (connectivity.get(fk) ?? 0) + 1);
+      connectivity.set(tk, (connectivity.get(tk) ?? 0) + 1);
+      hasOutbound.add(fk);
+      hasInbound.add(tk);
+    }
+    const throughCells = authoredKeys.filter((k) => hasInbound.has(k) && hasOutbound.has(k));
+    if (throughCells.length > 0) {
+      const hubKey = throughCells.sort(
+        (a, b) => (connectivity.get(b) ?? 0) - (connectivity.get(a) ?? 0),
+      )[0]!;
+      const nonHubKeys = traceOrder.filter((k) => k !== hubKey);
+      if (nonHubKeys.length >= 2) {
+        const c3Map = new Map<string, { row: number; col: number; colSpan?: number; rowSpan?: number }>();
+        c3Map.set(hubKey, { row: 0, col: 1, colSpan: 1, rowSpan: nonHubKeys.length });
+        nonHubKeys.forEach((k, i) => c3Map.set(k, { row: i, col: 0, colSpan: 1, rowSpan: 1 }));
+        candidates.push({ name: 'C3', columns: 2, rows: nonHubKeys.length, positionMap: c3Map });
+
+        // C4: hub-sidebar REVERSED — same hub at col=1, but non-hub cells stacked in
+        // REVERSE trace order (destination at row=0, source at row=N-1). Routes travel
+        // upward through the gutter, reducing staircase crossings when traces go bottom→hub→top.
+        const reversedNonHub = [...nonHubKeys].reverse();
+        const c4Map = new Map<string, { row: number; col: number; colSpan?: number; rowSpan?: number }>();
+        c4Map.set(hubKey, { row: 0, col: 1, colSpan: 1, rowSpan: reversedNonHub.length });
+        reversedNonHub.forEach((k, i) => c4Map.set(k, { row: i, col: 0, colSpan: 1, rowSpan: 1 }));
+        candidates.push({ name: 'C4', columns: 2, rows: reversedNonHub.length, positionMap: c4Map });
+      }
+    }
+  }
+
+  return candidates;
+}
+
+/**
+ * Apply an arrangement to cells, anchor maps, and links, producing remapped
+ * versions ready for layoutCompositionFull + resolveAndDrawLinks.
+ */
+function applyArrangement(
+  arr: PosterArrangement,
+  authoredCells: Cell[],
+  localAnchors: Map<string, NodeAnchorRegistry>,
+  localObstacles: Map<string, NodeAnchorRegistry>,
+  links: PosterLink[],
+  title: string,
+  themeName: string,
+): {
+  compDoc: { version: string; metadata: { title: string; theme: string }; grid: { columns: number; rows?: number }; cells: Cell[] };
+  mappedAnchors: Map<string, NodeAnchorRegistry>;
+  mappedObstacles: Map<string, NodeAnchorRegistry>;
+  mappedLinks: PosterLink[];
+} {
+  const { positionMap, columns, rows } = arr;
+
+  const newCells: Cell[] = authoredCells.map((cell) => {
+    const origKey = `${cell.row ?? 0},${cell.col ?? 0}`;
+    const np = positionMap.get(origKey);
+    if (!np) return cell;
+    return {
+      ...cell,
+      row: np.row,
+      col: np.col,
+      ...(np.colSpan !== undefined ? { colSpan: np.colSpan } : {}),
+      ...(np.rowSpan !== undefined ? { rowSpan: np.rowSpan } : {}),
+    };
+  });
+
+  const mappedAnchors = new Map<string, NodeAnchorRegistry>();
+  const mappedObstacles = new Map<string, NodeAnchorRegistry>();
+  for (const [origKey, reg] of localAnchors) {
+    const np = positionMap.get(origKey);
+    mappedAnchors.set(np ? `${np.row},${np.col}` : origKey, reg);
+  }
+  for (const [origKey, reg] of localObstacles) {
+    const np = positionMap.get(origKey);
+    mappedObstacles.set(np ? `${np.row},${np.col}` : origKey, reg);
+  }
+
+  const mappedLinks: PosterLink[] = links.map((link) => {
+    const fk = `${link.fromCell.row},${link.fromCell.col}`;
+    const tk = `${link.toCell.row},${link.toCell.col}`;
+    const fnp = positionMap.get(fk);
+    const tnp = positionMap.get(tk);
+    return {
+      ...link,
+      fromCell: fnp ? { row: fnp.row, col: fnp.col } : link.fromCell,
+      toCell:   tnp ? { row: tnp.row, col: tnp.col } : link.toCell,
+    };
+  });
+
+  return {
+    compDoc: {
+      version: '1.0',
+      metadata: { title, theme: themeName },
+      grid: { columns, ...(rows !== undefined ? { rows } : {}) },
+      cells: newCells,
+    },
+    mappedAnchors,
+    mappedObstacles,
+    mappedLinks,
+  };
+}
+
+/**
+ * Score a candidate arrangement by running the full layout + routing pipeline
+ * and computing egregious-defect count + aesthetic overall score.
+ *
+ * Errors (e.g. unresolvable links) return worst-case scores so the candidate
+ * is safely skipped by pickBestArrangement.
+ */
+function scorePosterCandidate(
+  arr: PosterArrangement,
+  authoredCells: Cell[],
+  localAnchors: Map<string, NodeAnchorRegistry>,
+  localObstacles: Map<string, NodeAnchorRegistry>,
+  links: PosterLink[],
+  traces: TraceRecord[],
+  title: string,
+  themeName: string,
+  layoutTheme: CompositionTheme,
+  categoricalPalette: string[],
+): { egregiousDefects: number; overall: number } {
+  try {
+    const { compDoc, mappedAnchors, mappedObstacles, mappedLinks } = applyArrangement(
+      arr, authoredCells, localAnchors, localObstacles, links, title, themeName,
+    );
+
+    const { scene: candScene, cellTransforms } = layoutCompositionFull(compDoc, layoutTheme);
+
+    // Transform local anchors/obstacles to poster (scene) space.
+    const pAnchors = new Map<string, NodeAnchorRegistry>();
+    const pObstacles = new Map<string, NodeAnchorRegistry>();
+    for (const ct of cellTransforms) {
+      const key = `${ct.row},${ct.col}`;
+      const xform = (local: NodeAnchorRegistry): NodeAnchorRegistry => {
+        const out: NodeAnchorRegistry = {};
+        for (const [id, a] of Object.entries(local)) {
+          out[id] = {
+            id,
+            x: a.x * ct.scale + ct.dx,
+            y: a.y * ct.scale + ct.dy,
+            w: a.w * ct.scale,
+            h: a.h * ct.scale,
+          };
+        }
+        return out;
+      };
+      pAnchors.set(key, xform(mappedAnchors.get(key) ?? {}));
+      pObstacles.set(key, xform(mappedObstacles.get(key) ?? {}));
+    }
+
+    const slack = mappedLinks.length * 18 + 16 + 60;
+    const candCanvas: KernelBox = { x: 0, y: 0, w: candScene.width, h: candScene.height + slack };
+
+    // Run routing (suppressing warnings — scoring pass only).
+    const { geometry } = resolveAndDrawLinks(
+      mappedLinks, traces, pAnchors, pObstacles,
+      cellTransforms, [], layoutTheme, categoricalPalette, candCanvas,
+    );
+
+    if (geometry.edges.length === 0 && mappedLinks.length > 0) {
+      // No links resolved — score as defective.
+      return { egregiousDefects: mappedLinks.length, overall: 0 };
+    }
+
+    const qualGeo: LabeledGeometry = {
+      nodes: geometry.nodes,
+      labels: geometry.labels,
+      edges: geometry.edges,
+      canvas: { x: 0, y: 0, w: candScene.width, h: candScene.height },
+    };
+
+    const defectReport = detectDefects(qualGeo);
+    const aesthetic   = computeAestheticScores(qualGeo);
+    return { egregiousDefects: defectReport.defects.length, overall: aesthetic.overall };
+  } catch {
+    return { egregiousDefects: 999, overall: 0 };
+  }
+}
+
+/**
+ * Pick the best arrangement index.
+ *
+ * Rules (in priority order):
+ *  1. Zero egregious defects is a hard requirement; if no candidate achieves
+ *     this, C0 (as-authored, index 0) is returned as the safest fallback.
+ *  2. Among zero-defect candidates, pick the one with the highest aesthetic
+ *     overall score.
+ *  3. C0 gets a preference margin of LAYOUT_EPSILON (0.02): a non-C0 candidate
+ *     must score strictly above C0.overall + LAYOUT_EPSILON to win.  This
+ *     ensures well-authored posters are not altered by tiny rounding differences.
+ */
+function pickBestArrangement(
+  scores: Array<{ egregiousDefects: number; overall: number }>,
+): number {
+  const c0 = scores[0] ?? { egregiousDefects: 999, overall: 0 };
+
+  // Collect zero-defect candidates.
+  const cleanIndices = scores
+    .map((s, i) => ({ s, i }))
+    .filter(({ s }) => s.egregiousDefects === 0)
+    .map(({ i }) => i);
+
+  // No clean candidate — keep C0 (safest fallback).
+  if (cleanIndices.length === 0) return 0;
+  if (cleanIndices.length === 1) return cleanIndices[0]!;
+
+  // Multiple clean candidates — pick highest overall, C0 preferred on near-ties.
+  let bestIdx = cleanIndices[0]!;
+  let bestOverall = scores[bestIdx]!.overall;
+
+  for (const i of cleanIndices.slice(1)) {
+    const candOverall = scores[i]!.overall;
+    if (bestIdx === 0) {
+      // Current best is C0 — challenger needs LAYOUT_EPSILON advantage.
+      if (candOverall > c0.overall + LAYOUT_EPSILON) {
+        bestIdx = i;
+        bestOverall = candOverall;
+      }
+    } else {
+      // Already past C0 — take the strictly better non-C0 candidate.
+      if (candOverall > bestOverall) {
+        bestIdx = i;
+        bestOverall = candOverall;
+      }
+    }
+  }
+
+  return bestIdx;
+}
+
+// ---------------------------------------------------------------------------
 // renderPoster — poster DSL renderer (§17.2 superset)
 // ---------------------------------------------------------------------------
 
@@ -1186,7 +1550,9 @@ export function renderMermaid(
  *  1. Parse poster DSL → PosterDocument (cells + theme + grid + links)
  *  2. For each cell: detect type, build Scene+Anchors via renderCellSceneWithAnchors()
  *     — unknown types or render failures produce a warning and skip the cell
- *  3. Assemble a CompositionDocument with SceneCellContent cells
+ *  3. Enumerate candidate cell arrangements (C0/C1/C2); score each with the
+ *     aesthetic kernel; pick the best (zero defects + highest overall, C0 preferred
+ *     on near-ties) — aesthetic-driven layout selection (2026-06)
  *  4. Call layoutCompositionFull() → { scene, cellTransforms }
  *  5. Transform local anchors → poster-space anchors using cellTransforms
  *  6. Resolve link endpoints; draw overlay edges in poster space
@@ -1250,13 +1616,6 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     throw new Error('[poster] All cells failed to render — cannot produce a poster.');
   }
 
-  const compDoc = {
-    version: '1.0',
-    metadata: { title: doc.title, theme: themeName },
-    grid: { columns: doc.columns, rows: doc.rows },
-    cells,
-  };
-
   // When the poster carries cross-diagram edges, widen the inter-cell gaps so a
   // real routing channel (the "gutter") opens between cells.  Overlay threads
   // route orthogonally through this gutter — short, direct, PCB-style connectors
@@ -1267,6 +1626,49 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
   const layoutTheme: CompositionTheme = doc.links.length > 0
     ? { ...compositionTheme, gap: Math.max(compositionTheme.gap, ROUTING_GUTTER), cellVAlign: 'center' }
     : compositionTheme;
+
+  // ── Aesthetic-driven layout selection (2026-06): enumerate → score → pick ──
+  // Build ~3 candidate arrangements (C0=as-authored, C1=trace-ordered row,
+  // C2=trace-ordered column), run the full layout+routing pipeline for each,
+  // and pick the one with zero egregious defects and the highest aesthetic
+  // overall score.  C0 is preferred on near-ties (epsilon = 0.02) so
+  // well-authored posters are not altered by small rounding differences.
+  const candidates = buildCandidateArrangements(cells, doc.links, doc.columns);
+  const candidateScores: Array<{ egregiousDefects: number; overall: number }> = [];
+
+  if (candidates.length > 1) {
+    for (const arr of candidates) {
+      candidateScores.push(
+        scorePosterCandidate(
+          arr, cells, cellAnchors, cellObstacles,
+          doc.links, doc.traces, doc.title, themeName, layoutTheme, categoricalPalette,
+        ),
+      );
+    }
+  }
+
+  let activeArrangement = candidates[0]!;
+  if (candidateScores.length >= 2) {
+    const bestIdx = pickBestArrangement(candidateScores);
+    activeArrangement = candidates[bestIdx]!;
+    if (bestIdx !== 0) {
+      warnings.push(
+        `[poster] aesthetic-layout: ${activeArrangement.name} selected ` +
+        `(overall ${candidateScores[bestIdx]!.overall.toFixed(3)} vs ` +
+        `C0 ${candidateScores[0]!.overall.toFixed(3)})`,
+      );
+    }
+  }
+
+  // Apply the winning arrangement → compDoc + remapped anchors/links.
+  const {
+    compDoc,
+    mappedAnchors: winnerAnchors,
+    mappedObstacles: winnerObstacles,
+    mappedLinks: winnerLinks,
+  } = applyArrangement(
+    activeArrangement, cells, cellAnchors, cellObstacles, doc.links, doc.title, themeName,
+  );
 
   const { scene: baseScene, cellTransforms } = layoutCompositionFull(compDoc, layoutTheme);
 
@@ -1289,8 +1691,8 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
       }
       return out;
     };
-    posterAnchors.set(key, transformReg(cellAnchors.get(key) ?? {}));
-    posterObstacles.set(key, transformReg(cellObstacles.get(key) ?? {}));
+    posterAnchors.set(key, transformReg(winnerAnchors.get(key) ?? {}));
+    posterObstacles.set(key, transformReg(winnerObstacles.get(key) ?? {}));
   }
 
   // Resolve and draw overlay edges (links + desugared trace hops).  The router
@@ -1301,7 +1703,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
   // the bottom-margin bus.  `busBottomY` is the lowest Y any bus lane reached
   // (0 when no hop used the bus).  The scoring canvas is generous downward so
   // legitimate bus routes are not penalised as out-of-bounds.
-  const BUS_SCORING_SLACK = doc.links.length * 18 + 16 + 60;
+  const BUS_SCORING_SLACK = winnerLinks.length * 18 + 16 + 60;
   const scoringCanvas: KernelBox = {
     x: 0,
     y: 0,
@@ -1309,7 +1711,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     h: baseScene.height + BUS_SCORING_SLACK,
   };
   const { primitives: overlayPrimitives, busBottomY, geometry: overlayGeometry } = resolveAndDrawLinks(
-    doc.links,
+    winnerLinks,
     doc.traces,
     posterAnchors,
     posterObstacles,
@@ -1347,7 +1749,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     : busScene;
 
   // Final overlay geometry, with the canvas set to the committed scene bounds.
-  const qualityGeometry: LabeledGeometry | undefined = doc.links.length > 0
+  const qualityGeometry: LabeledGeometry | undefined = winnerLinks.length > 0
     ? {
         nodes: overlayGeometry.nodes,
         labels: overlayGeometry.labels,
@@ -1645,6 +2047,76 @@ function enumerateHopCandidates(
         };
       }));
     }
+    // Alternate-port variants: exit at the TOP-RIGHT or BOTTOM-RIGHT corner of
+    // the source node instead of the centre-right edge.
+    //
+    // Motivation: when a sibling node lives in the SAME cell as the source and
+    // occupies the same y-range (e.g. SessionCache immediately to the right of
+    // AuthController in a class diagram), the centre-exit segment passes through
+    // that sibling's interior and gets the full `throughNode` penalty (×1000).
+    // The bus fallback may also be blocked (e.g. TokenService directly below
+    // AuthController).  In that situation ALL existing candidates get penalised
+    // and the kernel is forced to pick the "least bad" defective route.
+    //
+    // `segmentIntersectsBox` uses strict interior semantics: a horizontal segment
+    // at exactly y = sibling.y (the sibling's TOP boundary) clips to a region
+    // whose midpoint lies on the boundary, not strictly inside — so it returns
+    // false.  Exiting at y = s.y (top edge of the source node) therefore avoids
+    // any same-row sibling whose top y equals the source's top y.  Similarly,
+    // y = s.y + s.h avoids a sibling whose bottom y equals the source's bottom y.
+    //
+    // These candidates have higher ranks (lower priority) so they win only when
+    // the centre-exit route is genuinely blocked by a same-cell sibling.
+    candidates.push(mk('h-right', `hx:${Math.round(gx0)}`, (off) => {
+      const gx = gx0 + off;
+      return {
+        points: [
+          { x: s.x + s.w, y: s.y },
+          { x: gx, y: s.y },
+          { x: gx, y: tgtCy },
+          { x: t.x, y: tgtCy },
+        ],
+        labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+      };
+    }));
+    candidates.push(mk('h-right', `hx:${Math.round(gx0)}`, (off) => {
+      const gx = gx0 + off;
+      return {
+        points: [
+          { x: s.x + s.w, y: s.y + s.h },
+          { x: gx, y: s.y + s.h },
+          { x: gx, y: tgtCy },
+          { x: t.x, y: tgtCy },
+        ],
+        labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
+      };
+    }));
+    if (Math.round(gxNear) !== Math.round(gx0)) {
+      candidates.push(mk('h-right', `hx:${Math.round(gxNear)}`, (off) => {
+        const gx = gxNear + off;
+        return {
+          points: [
+            { x: s.x + s.w, y: s.y },
+            { x: gx, y: s.y },
+            { x: gx, y: tgtCy },
+            { x: t.x, y: tgtCy },
+          ],
+          labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+        };
+      }));
+      candidates.push(mk('h-right', `hx:${Math.round(gxNear)}`, (off) => {
+        const gx = gxNear + off;
+        return {
+          points: [
+            { x: s.x + s.w, y: s.y + s.h },
+            { x: gx, y: s.y + s.h },
+            { x: gx, y: tgtCy },
+            { x: t.x, y: tgtCy },
+          ],
+          labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
+        };
+      }));
+    }
   }
 
   // Direct horizontal gutter — target to the LEFT.
@@ -1675,6 +2147,59 @@ function enumerateHopCandidates(
             { x: t.x + t.w, y: tgtCy },
           ],
           labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+        };
+      }));
+    }
+    // Alternate-port variants for h-left: exit at TOP-LEFT or BOTTOM-LEFT corner.
+    // Symmetric to the h-right alternate-port variants above — avoids same-row
+    // siblings in the source cell that share the source node's y-range.
+    candidates.push(mk('h-left', `hx:${Math.round(gx0)}`, (off) => {
+      const gx = gx0 + off;
+      return {
+        points: [
+          { x: s.x, y: s.y },
+          { x: gx, y: s.y },
+          { x: gx, y: tgtCy },
+          { x: t.x + t.w, y: tgtCy },
+        ],
+        labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+      };
+    }));
+    candidates.push(mk('h-left', `hx:${Math.round(gx0)}`, (off) => {
+      const gx = gx0 + off;
+      return {
+        points: [
+          { x: s.x, y: s.y + s.h },
+          { x: gx, y: s.y + s.h },
+          { x: gx, y: tgtCy },
+          { x: t.x + t.w, y: tgtCy },
+        ],
+        labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
+      };
+    }));
+    if (Math.round(gxNear) !== Math.round(gx0)) {
+      candidates.push(mk('h-left', `hx:${Math.round(gxNear)}`, (off) => {
+        const gx = gxNear + off;
+        return {
+          points: [
+            { x: s.x, y: s.y },
+            { x: gx, y: s.y },
+            { x: gx, y: tgtCy },
+            { x: t.x + t.w, y: tgtCy },
+          ],
+          labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+        };
+      }));
+      candidates.push(mk('h-left', `hx:${Math.round(gxNear)}`, (off) => {
+        const gx = gxNear + off;
+        return {
+          points: [
+            { x: s.x, y: s.y + s.h },
+            { x: gx, y: s.y + s.h },
+            { x: gx, y: tgtCy },
+            { x: t.x + t.w, y: tgtCy },
+          ],
+          labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
         };
       }));
     }
