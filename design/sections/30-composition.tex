@@ -643,8 +643,13 @@ This enables:
 % =========================================================================
 
 \begin{description}
-  \item[No cross-panel connectors] Edges cannot span from a node in panel A to a node in panel B. Panels are visually independent.
-  
+  \item[Cross-panel connectors (specified, not yet implemented)]
+        Edges that span from a node in one panel to a node in another are
+        specified as a superset-only feature in
+        Section~\ref{sec:cross-diagram-links}.  The implementation requires the
+        node-anchor registry prerequisite described there.  Panels remain
+        visually independent until that prerequisite is shipped.
+
   \item[No responsive layout] Panel sizes are computed once; there is no responsive reflow for different canvas widths.
   
   \item[No interactive linking] Clicking a panel does not navigate or filter. Output is static.
@@ -652,7 +657,9 @@ This enables:
   \item[No upscaling] Sub-scenes are never scaled up (only down or 1:1). Prevents pixelation of content designed for smaller viewports.
 \end{description}
 
-These limitations are intentional: they keep the Composition layer simple and deterministic. Cross-panel connections and responsive layout would significantly complicate the architecture.
+These constraints keep the Composition layer simple and deterministic.  Cross-panel
+connections are addressed in Section~\ref{sec:cross-diagram-links}; responsive layout
+remains out of scope.
 
 % =========================================================================
 \subsection{Open Questions}
