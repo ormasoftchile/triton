@@ -2,7 +2,7 @@
 
 **Owner:** Leslie (Spec Architect)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-16T00:13:01Z (Multi-line node labels shipped; C4 descriptions now wrap)
+**Updated:** 2026-06-16T13:30:12Z (Design doc ASCII diagrams now all rendered by our own compiler (12 dogfood figures))
 
 ---
 

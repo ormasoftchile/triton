@@ -2,6 +2,10 @@
 
 ## Current Status (2026-06-16)
 
+**ASCII-to-Diagrams Batch 2 Complete (2026-06-16)**: Converted 2 remaining ASCII/box-drawing diagrams across 2 sections. §02 central-thesis: `central-pipeline` (dual-input pipeline from DSL/IR through Domain IR → Layout Engine → Scene IR → Rendering Backend → SVG/PNG/PDF). §51 distribution: `distribution-arch` (Core Library hub → CLI Binary / npm Package / MCP Server / VS Code Extension / Docker Image). Both executive theme, flowchart LR, pass dimension guard. PDF builds clean at 3.1MB. ASCII-diagram conversion is now COMPLETE across the full design document. Decision note: `.squad/decisions/inbox/bjarne-ascii-to-diagrams-batch2.md`.
+
+**ASCII-to-Diagrams Batch 1 Complete (2026-06-16)**: Converted 7 ASCII/box-drawing diagrams across 6 sections to dogfood figures rendered by our compiler. Sections covered: §40-architecture (three-layers), §20-grammar-concept (two-ir-model, composition-ir), §15-frontend (dual-frontend), §11-backends (backend-arch), §22-rendering (canvas-layout), §30-composition (rag-poster-layout). All figures: executive theme, flowchart LR, multi-line labels, pass dimension guard. PDF builds clean at 3.1MB. Decision note written to `.squad/decisions/inbox/bjarne-ascii-to-diagrams-batch1.md`.
+
 **Multi-Line Node Labels Implemented (2026-06-16)**: Barbara shipped multi-line label support (`<br>/\n`); C4 descriptions now wrap correctly.
 
 **Dogfood Figures Pipeline Complete (2026-06-15)**: CLI now renders `.mmd` files via `parseMermaid`/`renderMermaid`. `make figures` in `design/` renders every `design/figures/src/*.mmd` → `design/figures/<name>.png` at 3× scale. Three dogfood figures authored and placed in §40-architecture, §28-family-taxonomy, §12-themes. `\ourdiagram` LaTeX macro added. PDF clean (2.5MB). 2659/2659 tests passing; existing goldens byte-identical.
@@ -74,6 +78,71 @@ Placed in `design/main.tex` preamble before `\title{}`. Usage: `\ourdiagram{base
 | `theme-contract` | flowchart LR | executive | 4512×1650 | 2.73 | §12 |
 
 All pass dimension guard. Existing §55 `target-*.png` files unchanged.
+
+### ASCII-to-Diagrams Batch 1 patterns (2026-06-16)
+
+**Converted diagrams — summary:**
+
+| Figure | Section | What It Depicts | Dimensions | Aspect |
+|--------|---------|-----------------|------------|--------|
+| `three-layers` | §40 | Composition → Grammars → Kernel three-layer arch | 2676×1572 | 1.70:1 |
+| `two-ir-model` | §20 | Domain IRs → Layout Engines → Scene IR → Backends | 3132×1380 | 2.27:1 |
+| `composition-ir` | §20 | Composition IR dispatching to grammar engines | 3096×1074 | 2.88:1 |
+| `dual-frontend` | §15 | DSL + structured IR → Domain IR → Layout → backends | 3678×1074 | 3.42:1 |
+| `backend-arch` | §11 | Scene IR → SVG/Skia/PPTX backends, SVG→resvg+PDF | 2484×1074 | 2.31:1 |
+| `canvas-layout` | §22 | Timeline canvas zones: header column + track rows | 3132×1227 | 2.55:1 |
+| `rag-poster-layout` | §30 | 2×2 poster composition → unified Scene IR | 2586×1572 | 1.65:1 |
+
+**Authoring patterns for architecture/pipeline diagrams:**
+
+- Use `flowchart LR` + `executive` theme to match existing dogfood figures.
+- Represent TOP-to-BOTTOM architecture stacks as LEFT-to-RIGHT by having the "highest-level" component (Composition) on the LEFT and the "foundation" (Kernel) on the RIGHT. Arrows point right (dependency direction).
+- Pipeline stages: each stage is a node. Fan-in (multiple sources → one) and fan-out (one → multiple) render cleanly in LR.
+- Multi-line labels via `<br>` are essential for keeping nodes compact in width while expressing multi-concept labels.
+- **Semicolons (`;`) in node labels are statement separators in Mermaid** — must be avoided. Replace with commas, newlines via `<br>`, or rephrase.
+- **Aspect ratio 4:1 limit**: at 3× scale, a 6-column flowchart pipeline reaches ~4500px width. To stay under 4:1, either reduce columns (merge intermediate stages) or increase height (more output nodes or multi-line labels). Merged `LE + Scene IR` into single "Layout Engine → Scene IR" node to bring `dual-frontend` from 4.22:1 to 3.42:1.
+- **Inline Verbatim blocks** (not wrapped in `\begin{figure}`) can be replaced directly with `\ourdiagram` — the macro creates its own float wrapper.
+- **Labels that exist only in their own section** (not `\ref`-ed elsewhere): safe to drop when converting `\begin{figure}...\label{...}...\end{figure}` to `\ourdiagram`.
+
+**Skipped blocks in Batch 1:**
+- `§13-determinism.tex`: only `lstlisting` JS code (test patterns). No ASCII structure diagrams.
+- `§14-animation.tex`: Verbatim blocks are pseudocode type specs (FlowingDashes, DrawOn, etc.), not diagrams.
+- All `lstlisting` blocks in §40, §20, §15, §11, §22, §30: code samples, API definitions, YAML examples — not diagrams.
+
+### ASCII-to-Diagrams Batch 2 patterns (2026-06-16)
+
+**Converted diagrams — summary:**
+
+| Figure | Section | What It Depicts | Dimensions | Aspect |
+|--------|---------|-----------------|------------|--------|
+| `central-pipeline` | §02 | Dual-input pipeline: DSL/IR → Domain IR → Layout Engine → Scene IR → Rendering Backend → SVG/PNG/PDF | 4476×1227 | 3.65:1 |
+| `distribution-arch` | §51 | Core Library hub → CLI Binary / npm Package / MCP Server / VS Code Extension / Docker Image | 1320×1917 | 1.45:1 |
+
+**Batch 2 section survey — what was and wasn't converted:**
+
+- **§12 themes**: Matrix is already a LaTeX `tabularx` table (not ASCII art). Three-tier token architecture is prose + YAML code listings. Theme pipeline described in prose. **Nothing to convert.**
+- **§16 mermaid-compat**: LaTeX tables + `lstlisting` YAML examples only. **Nothing to convert.**
+- **§17 superset-extensions**: All `lstlisting` blocks are DSL/YAML examples (poster DSL, theme config, animation, cross-diagram link syntax). **Nothing to convert.**
+- **§29 chart-family**: `\begin{Verbatim}` blocks show Mermaid DSL examples (pie, xychart, quadrant, radar syntax) — language samples, not structural diagrams. **Nothing to convert.**
+- **§30b cross-diagram-links**: All content is `lstlisting` pseudo-TypeScript types + DSL examples + LaTeX tables. No ASCII box-drawing structure diagram exists anywhere in §30b. The "trace-overlay illustration" caution was moot — no such illustration existed as ASCII art in the section. **Nothing to convert.**
+
+**Aspect ratio fix pattern (central-pipeline):**
+
+First render of `central-pipeline.mmd` was 5739×1074 (5.34:1) — failed dimension guard. Pipeline had 7 logical columns (Input A/B → Parser/Validation → Domain IR → Layout Engine → Scene IR → Backend → SVG/PNG/PDF). Fix: merge Layout Engine + Scene IR into one "Layout Engine → Scene IR" node (same pattern already used in `dual-frontend.mmd`). Re-render: 4476×1227 (3.65:1). **Rule: for each extra LR column, add ~650–750px to width at 3×; target ≤ 6 columns for safety in pipelines.**
+
+**§30b caution follow-through:**
+
+Per instructions, reviewed all content in §30b carefully. There are NO ASCII box-drawing diagrams (no `\begin{Verbatim}` or `\begin{verbatim}` blocks anywhere in the section). All illustrations in §30b are expressed as code listings or LaTeX tables. The "poster-layout illustration (2×2 grid)" mentioned in the caution does not appear in ASCII form — it's described only in prose via DSL examples. No diagram was skipped due to the caution — there was simply nothing to convert.
+
+**ASCII-diagram conversion COMPLETE confirmation:**
+
+As of 2026-06-16, all 12 dogfood figures are in place across the design document:
+- `architecture`, `three-layers` (§40), `family-taxonomy` (§28), `theme-contract` (§12)
+- `dual-frontend` (§15), `two-ir-model`, `composition-ir` (§20)
+- `backend-arch` (§11), `canvas-layout` (§22), `rag-poster-layout` (§30)
+- `central-pipeline` (§02), `distribution-arch` (§51)
+
+No ASCII box-drawing diagrams remain unconverted in any section of the document.
 
 ## Technical Details
 

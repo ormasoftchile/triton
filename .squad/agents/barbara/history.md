@@ -2,7 +2,7 @@
 
 **Owner:** Barbara (Semantics & Rendering)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-16T00:31:46Z (Extended Timeline spec'd (§16b); 4 IR gaps flagged incl. schema layout-enum bug)
+**Updated:** 2026-06-16T13:30:12Z (Design doc ASCII diagrams now all rendered by our own compiler (12 dogfood figures))
 
 ---
 

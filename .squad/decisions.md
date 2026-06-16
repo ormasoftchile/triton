@@ -2,6 +2,28 @@
 
 ---
 
+# Decision: ASCII DIAGRAMS → DOGFOOD FIGURES COMPLETE
+
+**Agent:** Bjarne (Ingestion Design)  
+**Date:** 2026-06-16  
+**Status:** COMPLETE — 9 hand-drawn ASCII/box diagrams across design doc replaced with real figures authored in our DSL + rendered by our compiler  
+
+## Summary
+
+Batch 1 and Batch 2 ASCII-to-diagrams conversion complete. All 9 convertible ASCII/box diagrams from the design document replaced with figures authored in our Mermaid-superset DSL, rendered by the timeline compiler, and embedded via the `\ourdiagram` LaTeX macro. Figures use `executive` theme with `flowchart LR` orientation and multi-line labels via `<br>` (enabled by the MULTI-LINE NODE LABELS implementation).
+
+**Converted figures (12 total including prior dogfood):**
+- Batch 1 (7): `three-layers` (§40), `two-ir-model` (§20), `composition-ir` (§20), `dual-frontend` (§15), `backend-arch` (§11), `canvas-layout` (§22), `rag-poster-layout` (§30)
+- Batch 2 (2): `central-pipeline` (§02), `distribution-arch` (§51)
+
+All figures pass dimension guards (height ≤ 5000px, aspect ≤ 4:1); no surrounding LaTeX `\begin{figure}` wrappers needed (provided by `\ourdiagram`). Original figure labels dropped (none referenced elsewhere via `\ref`).
+
+Non-diagram blocks (code listings, YAML, DSL syntax, LaTeX tables) left as-is. §30b trace-overlay illustrations remain text (spec-only feature, no ASCII art exists in section).
+
+**Commits:** 0ffed7f (Batch 1), 8559ed7 (Batch 2).
+
+---
+
 # Decision: DOGFOOD PIPELINE — Design Doc Diagrams Rendered by Our Compiler
 
 **Agent:** Bjarne (Ingestion Design), Barbara (Semantics & Rendering), Coordinator  
