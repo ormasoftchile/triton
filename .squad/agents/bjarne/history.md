@@ -2,6 +2,8 @@
 
 ## Current Status (2026-06-16)
 
+**Multi-Line Node Labels Implemented (2026-06-16)**: Barbara shipped multi-line label support (`<br>/\n`); C4 descriptions now wrap correctly.
+
 **Dogfood Figures Pipeline Complete (2026-06-15)**: CLI now renders `.mmd` files via `parseMermaid`/`renderMermaid`. `make figures` in `design/` renders every `design/figures/src/*.mmd` → `design/figures/<name>.png` at 3× scale. Three dogfood figures authored and placed in §40-architecture, §28-family-taxonomy, §12-themes. `\ourdiagram` LaTeX macro added. PDF clean (2.5MB). 2659/2659 tests passing; existing goldens byte-identical.
 
 **Trace Abstraction Spec'd (§30b.8; leslie)**: Multi-hop system traceability across poster layers — named/typed/ordered cross-diagram traces desugar to atomic links + trace-group. Committed af080b0.

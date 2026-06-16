@@ -2,7 +2,7 @@
 
 **Owner:** Leslie (Spec Architect)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-14T20:30:00Z (Theming architecture confirmed; design/sections/12-themes.tex rewritten)
+**Updated:** 2026-06-16T00:13:01Z (Multi-line node labels shipped; C4 descriptions now wrap)
 
 ---
 

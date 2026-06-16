@@ -27,7 +27,7 @@ Design document diagrams now rendered by the compiler they describe. CLI enhance
 
 **Agent:** Barbara (Semantics & Rendering)  
 **Date:** 2026-06-15  
-**Status:** FLAGGED (not yet fixed); workaround documented; gap identified during dogfooding
+**Status:** RESOLVED (implementation shipped; see MULTI-LINE NODE LABELS — IMPLEMENTED below)
 
 ## Summary
 
@@ -44,6 +44,42 @@ In label extraction, detect `\n` (and optionally `<br>`/`<br/>`) and emit `Multi
 ## Workaround
 
 Single-line labels. Both dogfood figures re-authored with single-line labels; no renderer code touched.
+
+---
+
+# Decision: MULTI-LINE NODE LABELS — IMPLEMENTED
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-15  
+**Status:** SHIPPED — gap closed; 2687/2687 tests pass  
+**Resolves:** PRODUCT GAP — Multi-Line Node Labels Unsupported (decision above)
+
+## Summary
+
+Multi-line node labels now supported. Authors use `<br>` / `<br/>` / `<br />` (case-insensitive) or `\n` in any node label; labels render as stacked lines with correct node sizing. New utility `packages/core/src/util/label-lines.ts` exports `splitLabelLines()`. Applied to flow, tree (tidy + radial/mindmap), state (title), C4 (description); mindmap parser preserves `<br>`.
+
+## Grammars Updated
+
+| Grammar | File | Coverage |
+|---------|------|----------|
+| **flow** | `grammars/flow/layout.ts` | Node labels (all shapes) |
+| **tree** | `grammars/tree/layout.ts` | Node labels (tidy-tree) |
+| **tree/radial** | `grammars/tree/layoutRadial.ts` | Root circle + child boxes (mindmap) |
+| **state** | `grammars/state/layout.ts` | State title field |
+| **C4** | `grammars/c4/layout.ts` | Element description (`<br>` → real line break) |
+| **mindmap** | `frontend/mermaid/mindmap.ts` | Parser preserves `<br>` |
+
+## Determinism
+
+Grepped all fixtures/goldens: no existing flow/tree/state fixture had `<br>` or `\n` in a label. Change purely additive except:
+- **C4 gallery SVG** (`examples/gallery/executive-c4.{svg,png}`): regenerated — C4 descriptions with `<br>` now wrap correctly (intentional improvement).
+- **Mindmap corpus test**: one test updated (now correctly asserts `<br>` preserved).
+
+## Tests & Dogfood
+
+- 28 new tests in `packages/core/test/label-lines.test.ts` covering `splitLabelLines`, flow, tree multi-line assertions, node sizing.
+- Dogfood figures (`design/figures/src/theme-contract.mmd`, `family-taxonomy.mmd`) now use real multi-line labels with `<br>`.
+- All 2687 tests pass; existing goldens byte-identical except intentional C4 gallery improvement.
 
 ---
 
