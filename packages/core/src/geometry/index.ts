@@ -66,3 +66,14 @@ export {
 
 export type { RouteCandidate, RouteContext, RouteCost } from './route-cost.js';
 export { ROUTE_WEIGHTS, scoreRoute, pickBestRoute } from './route-cost.js';
+
+export type { AestheticScores, AestheticThresholds } from './aesthetics.js';
+export {
+  gridBalanceScore,
+  congestionScore,
+  alignmentScore,
+  spacingUniformScore,
+  edgeCrossingsAestheticScore,
+  computeAestheticScores,
+  formatAestheticScorecard,
+} from './aesthetics.js';

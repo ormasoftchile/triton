@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="762" version="1.1" viewBox="0 0 1200 762" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="712" width="1200" x="0" y="0"/>
+<svg height="766" version="1.1" viewBox="0 0 1200 766" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="716" width="1200" x="0" y="0"/>
   <rect fill="#1F497D" height="60" width="1200" x="0" y="0"/>
   <text dominant-baseline="central" fill="#FFFFFF" font-family="Georgia, serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="30">Authentication System — Requirements Traceability</text>
   <rect fill="#F8F9FB" height="252" rx="6" stroke="#1F497D" stroke-width="1" width="559" x="24" y="84"/>
@@ -58,17 +58,17 @@
   <path d="M 489.50 491.50 L 498.50 487.50 L 498.50 495.50 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
   <path d="M 531.42 231.98 L 629.00 231.98 L 629.00 455.95 L 711.04 455.95" fill="none" opacity="0.95" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
   <path d="M 711.04 455.95 L 702.04 459.95 L 702.04 451.95 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
-  <path d="M 711.04 455.95 L 629.00 455.95 L 629.00 572.50 L 489.50 572.50" fill="none" opacity="0.95" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
-  <path d="M 489.50 572.50 L 498.50 568.50 L 498.50 576.50 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
-  <rect fill="#FFFFFF" height="50" rx="0" stroke="#1F497D" stroke-width="1" width="1200" x="0" y="712"/>
-  <line opacity="0.5" stroke="#1F497D" stroke-width="1" x1="0" x2="1200" y1="712" y2="712"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="600" text-anchor="start" x="18" y="737">Traces:</text>
-  <rect fill="#1F497D" height="12" rx="2" width="18" x="79.6" y="731"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="103.6" y="737">REQ-12</text>
-  <rect fill="#9aadc5" height="20" rx="4" stroke="#1F497D" stroke-width="1" width="78" x="155.36" y="727"/>
-  <text dominant-baseline="central" fill="#1F497D" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="194.36" y="737">«satisfies»</text>
-  <rect fill="#2E86AB" height="12" rx="2" width="18" x="253.36" y="731"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="277.36" y="737">REQ-13</text>
-  <rect fill="#a1c9d9" height="20" rx="4" stroke="#2E86AB" stroke-width="1" width="78" x="329.12" y="727"/>
-  <text dominant-baseline="central" fill="#2E86AB" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="368.12" y="737">«satisfies»</text>
+  <path d="M 791.75 504.37 L 791.75 704.00 L 485.50 704.00 L 485.50 597.00" fill="none" opacity="0.95" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 485.50 597.00 L 489.50 606.00 L 481.50 606.00 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
+  <rect fill="#FFFFFF" height="50" rx="0" stroke="#1F497D" stroke-width="1" width="1200" x="0" y="716"/>
+  <line opacity="0.5" stroke="#1F497D" stroke-width="1" x1="0" x2="1200" y1="716" y2="716"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="600" text-anchor="start" x="18" y="741">Traces:</text>
+  <rect fill="#1F497D" height="12" rx="2" width="18" x="79.6" y="735"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="103.6" y="741">REQ-12</text>
+  <rect fill="#9aadc5" height="20" rx="4" stroke="#1F497D" stroke-width="1" width="78" x="155.36" y="731"/>
+  <text dominant-baseline="central" fill="#1F497D" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="194.36" y="741">«satisfies»</text>
+  <rect fill="#2E86AB" height="12" rx="2" width="18" x="253.36" y="735"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="277.36" y="741">REQ-13</text>
+  <rect fill="#a1c9d9" height="20" rx="4" stroke="#2E86AB" stroke-width="1" width="78" x="329.12" y="731"/>
+  <text dominant-baseline="central" fill="#2E86AB" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="368.12" y="741">«satisfies»</text>
 </svg>

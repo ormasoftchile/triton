@@ -31,6 +31,11 @@
  *      E1. kernel flags edge through state end-bullseye when it is in obstacle set
  *      E2. link-poster qualityGeometry includes __end__ as an obstacle node
  *
+ *   F. Aesthetic scorecard — corpus calibration + corpus-calibrated gate (2026-06-16)
+ *      F1. Compute and PRINT aesthetic scorecard for all 5 posters (soft report)
+ *      F2. All posters pass the HARD-GATE thresholds (conservative, from corpus)
+ *      F3. Thresholds documented: HARD-GATE vs REPORT-ONLY rationale
+ *
  * GATE INVARIANT: The kernel's obstacle set (geo.nodes) MUST equal ALL rendered
  * node boxes — real nodes AND pseudo-states (start/end/fork/join/choice).
  * Excluding pseudo-states from obstacles made the kernel blind to routes that
@@ -50,6 +55,8 @@ import {
   formatDefectReport,
   edgeThroughNode,
   labelOverNode,
+  computeAestheticScores,
+  formatAestheticScorecard,
 } from '../src/geometry/index.js';
 import type { LabeledGeometry, BoxWithId } from '../src/geometry/index.js';
 
@@ -354,3 +361,133 @@ describe('E. Regression — pseudo-state obstacles (2026-06-16)', () => {
 
 });
 
+
+// ---------------------------------------------------------------------------
+// F. Aesthetic scorecard — corpus calibration + corpus-calibrated gate (2026-06-16)
+// ---------------------------------------------------------------------------
+//
+// CORPUS: The 5 poster diagrams that have qualityGeometry (overlay geometry).
+//
+// BASELINE DISTRIBUTION (measured 2026-06-16, post-congestion-penalty):
+//   gridBalance:    min=0.617, max=0.684, mean≈0.666
+//   congestion:     min=0.600, max=1.000, mean≈0.790
+//   alignment:      min=0.778, max=1.000, mean≈0.889
+//   spacingUniform: min=0.000, max=0.517, mean≈0.373  (link-poster has 0 — 3 nodes at varied Y)
+//   edgeCrossings:  min=0.667, max=1.000, mean≈0.800
+//   overall:        min=0.649, max=0.788, mean≈0.714
+//
+// ROUTE-COST IMPROVEMENT (before → after congestion penalty in scoreRoute):
+//   poster-trace:    gridBalance 0.650→0.682, overall 0.642→0.649
+//   link-poster:     congestion  0.750→1.000, overall 0.698→0.733
+//   crosslink-poster: gridBalance 0.654→0.684, overall 0.694→0.700
+//   trace-poster:    gridBalance 0.650→0.682, overall 0.642→0.649
+//
+// THRESHOLDS (corpus-calibrated):
+//   HARD GATE  — gridBalance < 0.30 : extreme dead-whitespace (≥70% empty region)
+//   HARD GATE  — congestion  < 0.30 : extreme congestion (≥10 segments per cell)
+//   REPORT-ONLY — all other metrics: too variable or too subtle to gate firmly
+//
+//   The hard-gate values are 50% below the corpus minimum, so NO existing example
+//   would fail.  They exist to catch future regressions that are MUCH worse (e.g.
+//   a completely empty canvas or an impossibly dense gutter).
+//
+//   Rationale for REPORT-ONLY status of other metrics:
+//     • alignment, spacingUniform — sensitive to node count and diagram type;
+//       values naturally vary widely between layout styles (2-node vs 9-node poster).
+//     • edgeCrossings — for 2-hop traces in a 2×2 grid, some crossings are
+//       geometrically unavoidable; the current 0.667 floor is expected behaviour.
+//     • overall — composite; individual outliers are more actionable.
+// ---------------------------------------------------------------------------
+
+describe('F. Aesthetic scorecard — corpus calibration + gate', () => {
+
+  /**
+   * Corpus-calibrated HARD-GATE thresholds.
+   * Conservative: 50% below the corpus minimum so no existing example fails.
+   * Catch only GENUINELY BROKEN future layouts (extreme dead-space or extreme jam).
+   */
+  const HARD_GATE = {
+    gridBalance: 0.30,  // corpus min = 0.617 → gate at 0.30 (catch >70% dead)
+    congestion:  0.30,  // corpus min = 0.600 → gate at 0.30 (catch 10+ segs/cell)
+  };
+
+  const POSTERS = [
+    { name: 'poster-crosslink', path: join(GALLERY_DIR, 'poster-crosslink.mmd') },
+    { name: 'poster-trace',     path: join(GALLERY_DIR, 'poster-trace.mmd') },
+    { name: 'link-poster',      path: join(FIGURES_DIR, 'link-poster.mmd') },
+    { name: 'crosslink-poster', path: join(FIGURES_DIR, 'crosslink-poster.mmd') },
+    { name: 'trace-poster',     path: join(FIGURES_DIR, 'trace-poster.mmd') },
+  ];
+
+  it('F1: aesthetic scorecard — print all posters (soft corpus report)', () => {
+    console.log('\n=== AESTHETIC SCORECARD — all posters ===');
+    console.log('(hard-gate thresholds: gridBalance>=0.30, congestion>=0.30)\n');
+
+    const results: Array<{ name: string; scores: ReturnType<typeof computeAestheticScores> }> = [];
+
+    for (const p of POSTERS) {
+      const src = readPoster(p.path);
+      const result = renderMermaid(src, { format: 'svg' });
+      if (result.qualityGeometry) {
+        const scores = computeAestheticScores(result.qualityGeometry);
+        results.push({ name: p.name, scores });
+        console.log(formatAestheticScorecard(result.qualityGeometry, p.name, HARD_GATE));
+        console.log();
+      } else {
+        console.log(`${p.name}: no qualityGeometry (no overlay links)\n`);
+      }
+    }
+
+    // Print baseline distribution table.
+    if (results.length > 0) {
+      const metrics = ['gridBalance', 'congestion', 'alignment', 'spacingUniform', 'edgeCrossings', 'overall'] as const;
+      console.log('Corpus distribution:');
+      console.log('metric         min    max    mean');
+      console.log('─'.repeat(50));
+      for (const m of metrics) {
+        const vals = results.map((r) => r.scores[m]);
+        const mn = Math.min(...vals);
+        const mx = Math.max(...vals);
+        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+        console.log(`${m.padEnd(16)} ${mn.toFixed(3)}  ${mx.toFixed(3)}  ${mean.toFixed(3)}`);
+      }
+      console.log('=== END SCORECARD ===\n');
+    }
+
+    // F1 itself only asserts the helper runs and produces output.
+    expect(results.length).toBeGreaterThan(0);
+  });
+
+  it('F2: all posters pass HARD-GATE thresholds (corpus-calibrated conservative gates)', () => {
+    const failures: string[] = [];
+
+    for (const p of POSTERS) {
+      const src = readPoster(p.path);
+      const result = renderMermaid(src, { format: 'svg' });
+      if (!result.qualityGeometry) continue;
+
+      const scores = computeAestheticScores(result.qualityGeometry);
+
+      if (scores.gridBalance < HARD_GATE.gridBalance) {
+        failures.push(
+          `${p.name}: gridBalance=${scores.gridBalance.toFixed(3)} < HARD_GATE=${HARD_GATE.gridBalance} ` +
+          `(extreme dead-whitespace — >70% of canvas is in one empty region)`,
+        );
+      }
+      if (scores.congestion < HARD_GATE.congestion) {
+        failures.push(
+          `${p.name}: congestion=${scores.congestion.toFixed(3)} < HARD_GATE=${HARD_GATE.congestion} ` +
+          `(extreme gutter congestion — 10+ edge segments in a single cell)`,
+        );
+      }
+    }
+
+    if (failures.length > 0) {
+      console.error('\n[F2] AESTHETIC HARD-GATE FAILURES:');
+      for (const f of failures) console.error(`  • ${f}`);
+    }
+
+    expect(failures).toHaveLength(0);
+  });
+
+});

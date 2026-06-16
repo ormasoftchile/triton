@@ -25,6 +25,12 @@ import {
   computeScores,
   scoreRoute,
   pickBestRoute,
+  gridBalanceScore,
+  congestionScore,
+  alignmentScore,
+  spacingUniformScore,
+  computeAestheticScores,
+  formatAestheticScorecard,
 } from '../src/geometry/index.js';
 import type {
   Box,
@@ -417,5 +423,311 @@ describe('scoreRoute / pickBestRoute (closed-form candidate selection)', () => {
       rank: 0,
     };
     expect(scoreRoute(withBadLabel, ctx).labelOverNodeCount).toBeGreaterThan(0);
+  });
+
+  it('penalises a second candidate that shares a gutter corridor with a committed edge', () => {
+    // Committed edge: horizontal segment at y=100.  Both candidates travel left-to-right
+    // at y≈100 or y=50; neither crosses the committed segment (they're parallel), so the
+    // crossing penalty is 0 for both.  The ONLY difference is whether their horizontal
+    // segment shares the y=100 corridor with the committed edge.
+    const committedHorizontal: Segment = { x1: 0, y1: 100, x2: 400, y2: 100 };
+    const ctxWithCommitted: RouteContext = {
+      nodes: [],
+      committedEdges: [[committedHorizontal]],
+      committedLabels: [],
+      canvas: { x: 0, y: 0, w: 400, h: 300 },
+      lengthScale: 400,
+    };
+    // Candidate A: travels horizontally at y=100 — same corridor as the committed edge.
+    const sameGutter: RouteCandidate = {
+      points: [{ x: 0, y: 100 }, { x: 200, y: 100 }],
+      fromId: 'src',
+      toId: 'tgt',
+      rank: 0,
+    };
+    // Candidate B: travels horizontally at y=50 — different corridor, 50px away (>CORRIDOR_TOL=24).
+    const diffGutter: RouteCandidate = {
+      points: [{ x: 0, y: 50 }, { x: 200, y: 50 }],
+      fromId: 'src',
+      toId: 'tgt',
+      rank: 1,
+    };
+    const costSame = scoreRoute(sameGutter, ctxWithCommitted);
+    const costDiff = scoreRoute(diffGutter, ctxWithCommitted);
+    expect(costSame.congestionCount).toBe(1);
+    expect(costDiff.congestionCount).toBe(0);
+    // Same-gutter route has higher total cost — router prefers the spread one.
+    expect(costSame.total).toBeGreaterThan(costDiff.total);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Aesthetic metrics (aesthetics.ts) — unit tests
+//
+// Each test uses a clear SYNTHETIC layout so the expected score direction is
+// unambiguous.  The goal: confirm the metric captures the "feels bad" direction
+// (low score) and the "feels good" direction (high score) reliably.
+// ---------------------------------------------------------------------------
+
+describe('gridBalanceScore', () => {
+  it('all content in one corner → large empty region → low score', () => {
+    // Four nodes crammed into the bottom-right quadrant, leaving TL/TR/BL empty.
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x: 700, y: 400, w: 80, h: 40 },
+        { id: 'b', x: 800, y: 400, w: 80, h: 40 },
+        { id: 'c', x: 700, y: 500, w: 80, h: 40 },
+        { id: 'd', x: 800, y: 500, w: 80, h: 40 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 1000, h: 600 },
+    };
+    const score = gridBalanceScore(geo);
+    expect(score).toBeLessThan(0.6); // large dead-whitespace region → low
+  });
+
+  it('content spread evenly across all four quadrants → scores higher than lopsided', () => {
+    // One node per quadrant — no quadrant imbalance, but still a large central empty region.
+    // Score will be moderate (0.50+) because the canvas is mostly empty despite good quadrant spread.
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x:  50, y:  50, w: 80, h: 40 }, // TL
+        { id: 'b', x: 600, y:  50, w: 80, h: 40 }, // TR
+        { id: 'c', x:  50, y: 350, w: 80, h: 40 }, // BL
+        { id: 'd', x: 600, y: 350, w: 80, h: 40 }, // BR
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 800, h: 500 },
+    };
+    const lopsided: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x: 700, y: 400, w: 80, h: 40 },
+        { id: 'b', x: 700, y: 450, w: 80, h: 40 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 800, h: 500 },
+    };
+    // Spread evenly across quadrants scores strictly higher than all content in one corner.
+    expect(gridBalanceScore(geo)).toBeGreaterThan(gridBalanceScore(lopsided));
+    // Both nodes are moderate scores (not extreme); the evenly-spread layout is at least 0.50.
+    expect(gridBalanceScore(geo)).toBeGreaterThan(0.50);
+  });
+
+  it('lopsided diagram (all content in one half) scores lower than balanced', () => {
+    const lopsided: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x: 10, y: 100, w: 80, h: 40 },
+        { id: 'b', x: 10, y: 200, w: 80, h: 40 },
+        { id: 'c', x: 10, y: 300, w: 80, h: 40 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 800, h: 500 },
+    };
+    const balanced: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x:  50, y: 200, w: 80, h: 40 },
+        { id: 'b', x: 350, y: 200, w: 80, h: 40 },
+        { id: 'c', x: 650, y: 200, w: 80, h: 40 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 800, h: 500 },
+    };
+    expect(gridBalanceScore(lopsided)).toBeLessThan(gridBalanceScore(balanced));
+  });
+});
+
+describe('congestionScore', () => {
+  it('no edges → 1.0 (nothing to congest)', () => {
+    const geo: LabeledGeometry = {
+      nodes: [{ id: 'a', x: 0, y: 0, w: 50, h: 30 }],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 400, h: 300 },
+    };
+    expect(congestionScore(geo)).toBe(1);
+  });
+
+  it('many parallel edges through the same narrow zone → low score', () => {
+    // 8 horizontal segments all at y≈100, packed into a 400×300 canvas.
+    // They all pass through the same row of grid cells.
+    const segments = Array.from({ length: 8 }, (_, i) => ({
+      id: `e${i}`,
+      fromId: `s${i}`,
+      toId: `t${i}`,
+      segments: [{ x1: 0, y1: 100 + i * 2, x2: 400, y2: 100 + i * 2 }],
+    }));
+    const geo: LabeledGeometry = {
+      nodes: [],
+      labels: [],
+      edges: segments,
+      canvas: { x: 0, y: 0, w: 400, h: 300 },
+    };
+    expect(congestionScore(geo)).toBeLessThan(0.8); // congested → score < 1
+  });
+
+  it('well-spread edges across the canvas → higher score than packed', () => {
+    const packed: LabeledGeometry = {
+      nodes: [],
+      labels: [],
+      edges: [0, 1, 2, 3, 4, 5, 6].map((i) => ({
+        id: `e${i}`,
+        fromId: `s${i}`,
+        toId: `t${i}`,
+        segments: [{ x1: 0, y1: 100, x2: 400, y2: 100 }],
+      })),
+      canvas: { x: 0, y: 0, w: 400, h: 400 },
+    };
+    const spread: LabeledGeometry = {
+      nodes: [],
+      labels: [],
+      edges: [0, 1, 2, 3, 4, 5, 6].map((i) => ({
+        id: `e${i}`,
+        fromId: `s${i}`,
+        toId: `t${i}`,
+        segments: [{ x1: 0, y1: 50 + i * 50, x2: 400, y2: 50 + i * 50 }],
+      })),
+      canvas: { x: 0, y: 0, w: 400, h: 400 },
+    };
+    expect(congestionScore(spread)).toBeGreaterThan(congestionScore(packed));
+  });
+});
+
+describe('alignmentScore', () => {
+  it('fewer than 2 nodes → 1.0 (trivially aligned)', () => {
+    const geo: LabeledGeometry = {
+      nodes: [{ id: 'a', x: 10, y: 10, w: 40, h: 20 }],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 200, h: 200 },
+    };
+    expect(alignmentScore(geo)).toBe(1);
+  });
+
+  it('tidy grid — all boxes share left/top guides → 1.0', () => {
+    // 3 boxes in a column, all left-aligned.
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x: 50, y:  20, w: 80, h: 30 },
+        { id: 'b', x: 50, y:  80, w: 80, h: 30 },
+        { id: 'c', x: 50, y: 140, w: 80, h: 30 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 300, h: 300 },
+    };
+    expect(alignmentScore(geo)).toBe(1); // all share left=50
+  });
+
+  it('randomly placed boxes — few shared guides → low score', () => {
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x:  11, y:  37, w: 80, h: 30 },
+        { id: 'b', x: 103, y: 211, w: 80, h: 30 },
+        { id: 'c', x: 247, y:  73, w: 80, h: 30 },
+        { id: 'd', x:  59, y: 301, w: 80, h: 30 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 500, h: 500 },
+    };
+    expect(alignmentScore(geo)).toBeLessThan(0.6);
+  });
+});
+
+describe('spacingUniformScore', () => {
+  it('fewer than 2 nodes → 1.0', () => {
+    const geo: LabeledGeometry = {
+      nodes: [{ id: 'a', x: 0, y: 0, w: 40, h: 20 }],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 200, h: 200 },
+    };
+    expect(spacingUniformScore(geo)).toBe(1);
+  });
+
+  it('equal gaps between horizontal siblings → 1.0', () => {
+    // 3 boxes at x=0, x=50, x=100 (all 30 wide) → gaps = [20, 20].
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x:  0, y: 50, w: 30, h: 20 },
+        { id: 'b', x: 50, y: 50, w: 30, h: 20 },
+        { id: 'c', x: 100, y: 50, w: 30, h: 20 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 200, h: 200 },
+    };
+    expect(spacingUniformScore(geo)).toBe(1);
+  });
+
+  it('wildly unequal gaps → low score', () => {
+    // Gaps: 5, 100 (coefficient of variation is high).
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x:   0, y: 50, w: 30, h: 20 },
+        { id: 'b', x:  35, y: 50, w: 30, h: 20 }, // gap = 5
+        { id: 'c', x: 165, y: 50, w: 30, h: 20 }, // gap = 100
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 400, h: 200 },
+    };
+    expect(spacingUniformScore(geo)).toBeLessThan(0.6);
+  });
+});
+
+describe('computeAestheticScores', () => {
+  it('all components are in [0, 1]', () => {
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x:  50, y:  50, w: 80, h: 40 },
+        { id: 'b', x: 200, y:  50, w: 80, h: 40 },
+      ],
+      labels: [],
+      edges: [{ id: 'e1', fromId: 'a', toId: 'b', segments: [{ x1: 130, y1: 70, x2: 200, y2: 70 }] }],
+      canvas: { x: 0, y: 0, w: 400, h: 200 },
+    };
+    const s = computeAestheticScores(geo);
+    for (const key of ['gridBalance', 'congestion', 'alignment', 'spacingUniform', 'edgeCrossings', 'overall'] as const) {
+      expect(s[key]).toBeGreaterThanOrEqual(0);
+      expect(s[key]).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('is deterministic — identical geometry produces identical scores', () => {
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x: 10, y: 10, w: 50, h: 30 },
+        { id: 'b', x: 100, y: 10, w: 50, h: 30 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 300, h: 200 },
+    };
+    const s1 = computeAestheticScores(geo);
+    const s2 = computeAestheticScores(geo);
+    expect(s1).toEqual(s2);
+  });
+
+  it('formatAestheticScorecard produces a non-empty report string', () => {
+    const geo: LabeledGeometry = {
+      nodes: [
+        { id: 'a', x: 10, y: 10, w: 50, h: 30 },
+        { id: 'b', x: 100, y: 10, w: 50, h: 30 },
+      ],
+      labels: [],
+      edges: [],
+      canvas: { x: 0, y: 0, w: 300, h: 200 },
+    };
+    const report = formatAestheticScorecard(geo, 'synthetic-test');
+    expect(report).toContain('Aesthetic scorecard: synthetic-test');
+    expect(report).toContain('gridBalance');
+    expect(report).toContain('congestion');
+    expect(report).toContain('overall');
   });
 });
