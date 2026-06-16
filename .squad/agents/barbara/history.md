@@ -8,6 +8,8 @@
 
 ## Current Status (2026-06-16)
 
+**Trace abstraction spec'd (§30b.8) — multi-hop system traceability across poster layers**
+
 **Extended Timeline Spec'd (§16b; leslie):** One IR × 6 layouts × 7 themes = 42 presentations. Two-tier superset of Mermaid `timeline` with full IRDocument field mapping. Four known IR gaps flagged: (1) Milestone no `shape` field, (2) schema.ts layout enum missing `gantt`/`timeline-columns`, (3) `density` not persisted, (4) legend auto-generation unspecified. Implementation TBD.
 
 **Active Work (2026-06-15):**

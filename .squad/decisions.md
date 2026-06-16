@@ -2,6 +2,22 @@
 
 ---
 
+# Decision: TRACE ABSTRACTION SPEC (design §30b.8)
+
+**Agent:** Leslie (Spec Architect)
+**Date:** 2026-06-15
+**Status:** SPEC WRITTEN — design/sections/30b-cross-diagram-links.tex extended; PDF clean
+
+## Summary
+
+Multi-hop named/typed/ordered cross-diagram traces represent system traceability across poster layers. A `trace` is the flagship application of the cross-diagram linking feature. Syntax: `trace "name" [type] : A1.x -> B1.y -> ...` desugars to ordered atomic links + a trace-group.
+
+Typed traces reuse RequirementRelKind (satisfies/derives/verifies/refines/traces/contains/copies) + poster-layer types (calls/flowsTo/mapsTo). Each trace assigned categorical-palette color + legend + highlight/filter modes.
+
+Three worked examples: (a) C4 drill-down, (b) distributed request trace, (c) requirements traceability. Builds on cross-diagram link spec (same node-anchor-registry prerequisite). Engineering prerequisites added (items 8–9: parser extension, color assignment). Spec-only. Committed af080b0. **This is the flagship application of cross-diagram linking.**
+
+---
+
 # Decision: EXTENDED TIMELINE SPEC (design §16b)
 
 **Agent:** Leslie (Spec Architect)  

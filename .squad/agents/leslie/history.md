@@ -93,3 +93,36 @@ For detailed context from earlier sessions, see `leslie/history-archive.md`.
 **2026-06-15 — Cross-Diagram Node Linking §30b spec written:** See `history-2026-06-15-summarized.md` for link syntax, node-anchor registry prerequisite, linkable-type rules, overlay routing, and degradation contract.
 
 **Earlier work (2026-06-14 and prior):** See `leslie/history-archive.md` for composition implementation, design doc restructure, Tier 1/2/3 completions, and real-Mermaid fidelity passes.
+
+---
+
+## Learnings
+
+### Trace Abstraction — §30b Extension (2026-06-15)
+
+**What was added:** New subsection §30b.8 in `design/sections/30b-cross-diagram-links.tex` specifying the `trace` construct: a named, ordered, optionally-typed multi-hop path of cross-diagram links.
+
+**Core design decisions:**
+
+- **trace = link sequence + group record.** A trace with `n` hops desugars at composition time to `n−1` atomic `link`s **plus** a `TraceRecord` (name, type, ordered member list). The `link` primitive is unchanged; `trace` is sugar and grouping metadata.
+
+- **Typed-trace vocabulary confirmed against source.** The requirement-relationship group is the exact `RequirementRelKind` type from `packages/core/src/grammars/requirement/types.ts` (verified against `schema.ts` Zod enum): `satisfies`, `derives`, `verifies`, `refines`, `traces`, `contains`, `copies`. These seven tokens are shared verbatim with the `requirementDiagram` grammar — traceability semantics are uniform whether expressed inside a requirement cell or as a poster-level trace. The presentation-flow group (`calls`, `flowsTo`, `mapsTo`) is poster-layer only and deliberately excluded from `RequirementRelKind`.
+
+- **Per-trace colour from the §12 categorical data palette.** Traces are assigned colours in declaration order from `categorical[0]`, `categorical[1]`, … of the active contract theme (same sub-palette used by chart-family components for series colours). Palette wraps with 20% lightness offset if trace count exceeds palette length. The semantic role palette (diagram internals) and data palette (traces + chart series) are non-colliding within every theme by design.
+
+- **Trace legend auto-generated.** Swatch + name + «type» pill appended below the poster canvas; suppressed by `trace legend: off` frontmatter directive.
+
+- **Three presentation modes specified at design level:** highlight (one trace at full opacity, rest dimmed), dim (any edge hovered, bare links at 60%), filter (only selected trace(s) visible, multiple traces allowed simultaneously). Rendering detail deferred.
+
+- **Precise degradation contract:** one unresolvable hop → warn + render two sub-paths; all unresolvable → warn + skip; duplicate hop (cycle) → warn + loop arc; fewer than 2 resolvable hops → warn + skip. All non-fatal.
+
+- **Three worked examples:** (a) C4 drill-down across four abstraction levels (`calls`); (b) distributed request trace across flowchart + architecture + ER (sequence non-linkable v1, shown as context only); (c) requirements traceability with two `satisfies` traces and legend — the flagship use case.
+
+- **Agent IR type (`TraceRecord`).** Agents assert traceability by constructing `TraceRecord { name, type?, hops: TraceHop[], color? }` and pushing to `PosterDocument.traces`. Supports programmatic query (filter by type), filter-mode activation (`PosterRenderOptions.activeTraces`), and coverage-gap detection (requirements with no `satisfies`-trace origin).
+
+**Design tensions flagged:**
+1. Intra-cell hops within a trace are permitted (warn + loopback arc); bare intra-cell `link` statements remain wholly disallowed — slightly asymmetric but coherent within the path semantics.
+2. Vocabulary boundary: presentation-flow types are poster-layer only, not added to `RequirementRelKind` — right boundary; domain grammars should define their own vocabulary.
+3. Typed trace with no matching grammar cell is valid (type is presentational metadata at poster level; no semantic validation of origin node kind).
+
+**Artefacts:** `design/sections/30b-cross-diagram-links.tex` extended; `design/main.pdf` clean (exit 0, 2026-06-15); decision note at `.squad/decisions/inbox/leslie-trace-abstraction-spec.md`.
