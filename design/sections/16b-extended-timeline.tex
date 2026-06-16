@@ -1,0 +1,531 @@
+% =============================================================================
+% §16b — Extended Timeline Syntax
+% Authored: Leslie (Spec Architect), 2026-06-15
+% =============================================================================
+
+\section{Extended Timeline Syntax}
+\label{sec:extended-timeline}
+
+Mermaid's \texttt{timeline} keyword is intentionally minimal: a sequence of
+\texttt{section} groupings each containing \texttt{period : event} lines.
+That simplicity makes it portable but leaves the full power of the Timeline
+Domain IR~(Section~\ref{sec:timeline-grammar}) unreachable from the text
+surface.
+
+The \emph{Extended Timeline} is a strict superset of that syntax.  It uses
+the same \texttt{timeline} header keyword and accepts every legal Mermaid
+timeline file unchanged; files that use any extended construct are
+superset-only and carry a compiler warning (see
+Section~\ref{sec:et-degradation}).  The design principle is \emph{one IR,
+many diagrams}: a single extended-timeline source compiles to the same
+\texttt{IRDocument} regardless of which of the six layout families the author
+selects (Section~\ref{sec:et-layouts}), and it inherits all seven contract
+themes (Section~\ref{sec:themes}) without modification.
+
+% ---------------------------------------------------------------------------
+\subsection{Two-Tier Portability Model}
+\label{sec:et-tiers}
+% ---------------------------------------------------------------------------
+
+\begin{description}
+  \item[Tier 1 — Mermaid-faithful \texttt{timeline}] (unchanged, portable).
+        Uses only \texttt{section} and \texttt{period : event} syntax.
+        Any valid Mermaid timeline is valid here and renders identically in
+        vanilla Mermaid.  The compiler maps these files to the Timeline IR
+        via the existing \texttt{parseTimeline} path and defaults the layout
+        to \texttt{timeline-columns} to match Mermaid's visual presentation.
+
+  \item[Tier 2 — Extended Timeline] (superset-only, not renderable in
+        vanilla Mermaid).  Uses any construct defined in this section: named
+        tracks, duration activities, \texttt{@}-directives, sections with
+        explicit time ranges, annotations, legend, or axis breaks.  The
+        compiler emits a diagnostic warning and proceeds normally; the same
+        \texttt{IRDocument} is the output regardless of which layout is
+        chosen.
+\end{description}
+
+The two tiers share \emph{exactly} the same IR target.  There is no new IR
+introduced by the Extended Timeline --- every construct maps to an existing
+\texttt{IRDocument} field defined in \texttt{packages/core/src/types.ts} and
+validated by \texttt{packages/core/src/schema.ts}.
+
+% ---------------------------------------------------------------------------
+\subsection{Frontmatter Configuration}
+\label{sec:et-frontmatter}
+% ---------------------------------------------------------------------------
+
+The YAML frontmatter block (\texttt{---}\ldots\texttt{---}) configures the
+document at parse time.  All keys are optional; unknown keys are warned and
+ignored.  The full config surface (Section~\ref{sec:superset-extensions},
+\S17.1) is available; the timeline-relevant subset is:
+
+\begin{lstlisting}[language=yaml,caption={Extended timeline frontmatter}]
+---
+title: "Platform Roadmap 2026"
+subtitle: "Engineering org — Q1..Q4"
+theme: executive          # any of 7 contract themes
+layout: roadmap           # horizontal | vertical-spine | serpentine |
+                          # roadmap | gantt | timeline-columns
+density: compact          # compact | normal | comfortable
+spineSpacing: even        # time | even  (vertical-spine only)
+---
+\end{lstlisting}
+
+\begin{table}[h]
+\centering\small
+\caption{Frontmatter keys and their IR targets}
+\label{tab:et-frontmatter}
+\begin{tabular}{lll}
+\toprule
+\textbf{Key} & \textbf{IR field} & \textbf{Notes} \\
+\midrule
+\texttt{title}       & \texttt{metadata.title}        & Already supported in Tier 1 \\
+\texttt{subtitle}    & \texttt{metadata.subtitle}     & Already supported in Tier 1 \\
+\texttt{theme}       & \texttt{metadata.theme}        & 7 contract theme names valid \\
+\texttt{layout}      & \texttt{metadata.layout}       & 6 values; see Table~\ref{tab:et-layouts} \\
+\texttt{density}     & Theme-resolution config        & Not an IR \texttt{Metadata} field; \\
+                     &                                & passed to \texttt{resolveContractTheme} \\
+\texttt{spineSpacing}& \texttt{RenderOptions.spineSpacing} & \texttt{time} (proportional) or \\
+                     &                                & \texttt{even} (infographic); \\
+                     &                                & only affects \texttt{vertical-spine} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+\textbf{Note on \texttt{layout} schema gap.}  As of 2026-06-15,
+\texttt{metadata.layout} in \texttt{schema.ts} accepts only four values
+(\texttt{horizontal}, \texttt{vertical-spine}, \texttt{serpentine},
+\texttt{roadmap}); the TypeScript type in \texttt{types.ts} correctly
+includes all six.  The Zod schema must be extended to add \texttt{gantt} and
+\texttt{timeline-columns} before those values can be round-tripped through
+JSON Schema validation.  This is a known schema gap, not a design gap.
+
+% ---------------------------------------------------------------------------
+\subsection{Grammar Sketch}
+\label{sec:et-grammar}
+% ---------------------------------------------------------------------------
+
+The following EBNF-style grammar covers the Extended Timeline body (after
+frontmatter extraction).  Whitespace between tokens is insignificant except
+that indented lines nest under the nearest enclosing construct.  Two-space
+indentation is conventional; the parser accepts any consistent depth $\ge
+1$.
+
+\begin{lstlisting}[caption={Extended Timeline EBNF sketch}]
+extended-timeline ::=
+    'timeline' [ 'extended' ] EOL
+    stmt*
+
+stmt ::=
+      title-stmt
+    | track-stmt
+    | section-stmt
+    | annotation-stmt
+    | legend-stmt
+    | break-stmt
+
+(* ---- top-level declarations ---- *)
+title-stmt    ::= 'title' text EOL
+
+track-stmt    ::= 'track' track-name EOL
+                  INDENT track-item*
+
+track-item    ::= activity-stmt | milestone-stmt
+
+(* ---- activities ---- *)
+activity-stmt ::= label ':' date-expr EOL
+                  ( INDENT directive )*
+
+date-expr     ::= irdate '..' irdate   (* duration form *)
+               |  irdate               (* single-date (span) form *)
+
+(* ---- milestones ---- *)
+milestone-stmt ::= '@milestone' label ':' irdate EOL
+                   ( INDENT directive )*
+
+(* ---- @-directives (sub-lines under activity or milestone) ---- *)
+directive     ::= '@status'      status-value EOL
+               |  '@progress'    integer      EOL   (* 0-100 *)
+               |  '@shape'       shape-token  EOL
+               |  '@icon'        icon-name    EOL
+               |  '@color'       css-color    EOL
+               |  '@description' text         EOL
+
+(* ---- sections ---- *)
+section-stmt  ::= 'section' label
+                  ( '[' irdate '..' irdate ']' )? EOL
+
+(* ---- annotations ---- *)
+annotation-stmt ::= 'annotation' DQUOTED-TEXT
+                    '@' annotation-target EOL
+
+annotation-target ::= irdate '..' irdate    (* period annotation *)
+                    | irdate                (* point annotation  *)
+
+(* ---- legend ---- *)
+legend-stmt   ::= 'legend' ( 'show' | 'hide' )? EOL
+
+(* ---- axis breaks ---- *)
+break-stmt    ::= 'break' irdate '..' irdate EOL
+
+(* ---- primitives ---- *)
+irdate   ::= (* IR date string per §21 §4 date model;
+               examples: 2026-Q2  2026-06-01  FY26-Q3  now  tbd *)
+
+status-value ::=
+    'planned' | 'in-progress' | 'done' |
+    'at-risk'  | 'blocked'    | 'cancelled' | 'tentative'
+
+shape-token  ::= (* theme-resolved icon name, e.g. 'diamond' 'star' 'flag' *)
+
+label        ::= (* non-empty text, no leading colon *)
+track-name   ::= (* non-empty text *)
+\end{lstlisting}
+
+\paragraph{Keyword \texttt{extended}.}  The optional \texttt{extended}
+modifier on the opening line is a forward hint.  When present, the compiler
+suppresses the ``extended features detected'' warning (the author has
+explicitly opted in).  When absent, the warning is emitted on the first use
+of any Tier-2 construct.
+
+\paragraph{Indentation and nesting.}
+A \texttt{track} header owns all activity and milestone lines at the next
+indentation level until a dedent or another \texttt{track}/\texttt{section}/
+\texttt{annotation} at the same level appears.  \texttt{@}-directives attach
+to the \emph{immediately preceding} activity or milestone and must be
+indented one level deeper than that activity.
+
+% ---------------------------------------------------------------------------
+\subsection{Construct-to-IR Mapping}
+\label{sec:et-ir-mapping}
+% ---------------------------------------------------------------------------
+
+Every Extended Timeline construct maps to an existing \texttt{IRDocument}
+field.  Table~\ref{tab:et-ir-mapping} gives the authoritative mapping using
+the canonical TypeScript field names from \texttt{types.ts} in
+\texttt{packages/core/src/}.
+
+\begin{table}[h]
+\centering\small
+\caption{Extended Timeline syntax $\rightarrow$ IRDocument field mapping}
+\label{tab:et-ir-mapping}
+\begin{tabular}{p{3.8cm}p{4.2cm}p{5.0cm}}
+\toprule
+\textbf{DSL construct} & \textbf{IR field} & \textbf{Notes} \\
+\midrule
+\texttt{track Name}
+  & \texttt{Track \{ id, label \}}
+  & \texttt{id} = sanitized kebab-case slug of Name \\
+\addlinespace
+\texttt{Label: start..end}
+  & \texttt{Activity \{ track, label,} \texttt{start, end \}}
+  & Both \texttt{start} and \texttt{end} are \texttt{IRDate} strings \\
+\addlinespace
+\texttt{Label: date}
+  & \texttt{Activity \{ track, label, span \}}
+  & Single-date form; \texttt{Activity.span} is the period identifier \\
+\addlinespace
+\texttt{@status value}
+  & \texttt{Activity.status} or \texttt{Milestone.status}
+  & Must be one of the 7 \texttt{Status} enum values \\
+\addlinespace
+\texttt{@progress N}
+  & \texttt{Activity.progress}
+  & Author writes integer 0--100; parser stores $N \div 100 \in [0,1]$ \\
+\addlinespace
+\texttt{@milestone Label: date}
+  & \texttt{Milestone \{ id, label, date, track \}}
+  & \texttt{track} is the enclosing \texttt{track} block's ID \\
+\addlinespace
+\texttt{@shape token}
+  & \texttt{Milestone.icon}
+  & No \texttt{shape} field in IR; \texttt{icon} is the closest proxy.
+    Exact marker geometry is theme-resolved.
+    \emph{(Gap: see \S\ref{sec:et-gaps})} \\
+\addlinespace
+\texttt{section Name [s..e]}
+  & \texttt{Section \{ id, label, time\_range \}}
+  & \texttt{time\_range.start} and \texttt{time\_range.end} from bracket \\
+\addlinespace
+\texttt{annotation "text" @ date}
+  & \texttt{Annotation \{ type:'callout', text, date \}}
+  & Point annotation; \texttt{type} = \texttt{'callout'} \\
+\addlinespace
+\texttt{annotation "text" @ s..e}
+  & \texttt{Annotation \{ type:'period', text, start, end \}}
+  & Range annotation; \texttt{type} = \texttt{'period'} \\
+\addlinespace
+\texttt{legend show}
+  & \texttt{Legend \{ show: true \}}
+  & Renderer auto-builds entries from \texttt{Status}/\texttt{category} data \\
+\addlinespace
+\texttt{break s..e}
+  & \texttt{Metadata.axis\_breaks: [\{ from, to \}]}
+  & Collapses dead calendar gaps to a \texttt{//} notch \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The \texttt{Status} enum.}
+The seven legal \texttt{@status} values (from \texttt{types.ts}) are:
+\texttt{planned}, \texttt{in-progress}, \texttt{done}, \texttt{at-risk},
+\texttt{blocked}, \texttt{cancelled}, \texttt{tentative}.
+The theme contract maps each to a role-palette color
+(Section~\ref{sec:contract-palette}).
+
+\paragraph{The \texttt{IRDate} format.}
+Both \texttt{start..end} operands and standalone \texttt{date} values must
+conform to the date model defined in Section~\ref{sec:date-model} and the
+regex in \texttt{schema.ts}.  Legal examples: \texttt{2026-06-01},
+\texttt{2026-Q2}, \texttt{2026-H1}, \texttt{FY26-Q3}, \texttt{now},
+\texttt{tbd}, \texttt{\~{}2027-Q1}.
+
+\paragraph{\texttt{@progress} integer-to-float mapping.}
+The IR stores \texttt{Activity.progress} as a decimal in $[0, 1]$ (type
+\texttt{number[0..1]}).  The DSL accepts an author-friendly integer percent:
+$\texttt{@progress}\ N \mapsto \texttt{progress} = N / 100$.  The parser
+clamps the value to $[0, 1]$; values outside $[0, 100]$ emit a warning.
+
+% ---------------------------------------------------------------------------
+\subsection{One IR, Many Layouts}
+\label{sec:et-layouts}
+% ---------------------------------------------------------------------------
+
+The canonical claim of the Extended Timeline is the \emph{reach principle}
+(Section~\ref{sec:themes-reach}): one \texttt{IRDocument} can be rendered
+under any of the six layout families without changing the source.  The
+author sets \texttt{layout:} in the frontmatter; switching layouts requires
+editing \emph{only that line}.
+
+\begin{table}[h]
+\centering\small
+\caption{The six layout families and their extended-timeline affordances}
+\label{tab:et-layouts}
+\begin{tabular}{lp{4.2cm}p{6.5cm}}
+\toprule
+\textbf{\texttt{layout} value} & \textbf{Character} & \textbf{Best-fit use case} \\
+\midrule
+\texttt{horizontal}       & Time axis left$\rightarrow$right, track rows
+  & Dense multi-track engineering schedules; high information density \\
+\texttt{vertical-spine}   & Central spine, L/R alternating entries
+  & Narrative timelines; investor decks; few milestones \\
+\texttt{serpentine}       & Boustrophedon winding path
+  & Journey maps; annual reviews with a clear chronological story \\
+\texttt{roadmap}          & Band-per-track, month/quarter columns
+  & Product roadmaps; portfolio views; the \emph{executive} sweet spot \\
+\texttt{gantt}            & Mermaid-faithful Gantt: task bars, date axis
+  & Project management; dependency-heavy schedules \\
+\texttt{timeline-columns} & Section-colored header bands, evenly-spaced columns
+  & Mermaid-compatible presentation; events stacked under periods \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The $7 \times 6 = 42$ look matrix.}
+Any of the seven contract themes (\texttt{executive}, \texttt{midnight},
+\texttt{blueprint}, \texttt{editorial}, \texttt{terminal}, \texttt{pastel},
+\texttt{mono}) combined with any of the six layouts produces a distinct
+visual presentation from a single source file.  Themes drive typography,
+palette, and connector style (Section~\ref{sec:themes-drives-layout});
+layouts drive geometry and axis orientation
+(Section~\ref{sec:timeline-rendering}).  This \emph{combination matrix} is
+the primary differentiator of the Extended Timeline over Mermaid's fixed
+rendering.
+
+\paragraph{The \texttt{poster} bridge.}
+A \texttt{poster} (Section~\ref{sec:superset-extensions}) can reference the
+same extended-timeline source under multiple layouts in adjacent cells,
+producing a side-by-side showcase of the $42$-look matrix in a single
+document.
+
+\paragraph{Dimension guard.}
+The layout engine enforces a dimension guard (height $\le 5000$\,px; aspect
+ratio $\le 4:1$; see \texttt{gallery-dimensions.test.ts}).  Pathological
+combinations --- for example, \texttt{vertical-spine} over a multi-decade
+span with default \texttt{spineSpacing:time} --- trigger a render-time
+warning and a concrete suggestion:
+
+\begin{quote}
+\textit{``vertical-spine with a time-proportional spine exceeds safe render
+dimensions.  Consider \texttt{spineSpacing: even} or switching to
+\texttt{layout: roadmap} / \texttt{timeline-columns} for multi-decade
+spans.''}
+\end{quote}
+
+This is implemented in \texttt{packages/core/src/grammars/timeline/\allowbreak
+vertical-spine.ts} and was validated against the full gallery in the
+dimension-guard decision (2026-06-15).
+
+% ---------------------------------------------------------------------------
+\subsection{Degradation and Portability Contract}
+\label{sec:et-degradation}
+% ---------------------------------------------------------------------------
+
+\begin{quote}
+\textbf{Extended Timeline Portability Contract (2026-06-15).}
+
+\begin{enumerate}
+  \item A file using only Tier-1 constructs (\texttt{section} +
+        \texttt{period : event}) is byte-compatible with vanilla Mermaid and
+        produces no warnings from this compiler.
+  \item A file using any Tier-2 construct is superset-only.  The compiler
+        emits a \texttt{WARNING} at parse time:
+        \textit{``Extended timeline features detected --- output is not
+        renderable by vanilla Mermaid.  Use Tier-1 syntax for portable
+        files.''} and continues compilation normally.
+  \item The warning is \emph{suppressed} when the opening line reads
+        \texttt{timeline extended}, signalling explicit opt-in.
+  \item All Tier-2 constructs map to existing \texttt{IRDocument} fields.
+        No new IR is introduced.  Switching from a Tier-2 file back to
+        Tier-1 syntax produces a valid (reduced) document with no schema
+        changes.
+  \item Vanilla Mermaid renderers encountering a Tier-2 file will fail to
+        parse it predictably (they do not silently corrupt output); the
+        failure is a clear signal to switch to this compiler.
+\end{enumerate}
+\end{quote}
+
+% ---------------------------------------------------------------------------
+\subsection{Worked Examples}
+\label{sec:et-examples}
+% ---------------------------------------------------------------------------
+
+\subsubsection{Full Extended Timeline}
+
+The following example exercises every Tier-2 construct and shows the
+frontmatter configuration.
+
+\begin{lstlisting}[caption={Full extended timeline source}]
+---
+title: "Platform Engineering Roadmap"
+subtitle: "2026 — all tracks"
+theme: executive
+layout: roadmap
+density: normal
+---
+timeline extended
+
+section Infrastructure [2026-Q1 .. 2026-Q2]
+section Product [2026-Q2 .. 2026-Q4]
+
+track Platform
+  Kubernetes Upgrade: 2026-Q1 .. 2026-Q2
+    @status done
+    @progress 100
+    @description "Migrate all clusters to k8s 1.32"
+  Service Mesh Rollout: 2026-Q2 .. 2026-Q3
+    @status in-progress
+    @progress 40
+  @milestone Hard Freeze: 2026-06-30
+    @status planned
+    @shape diamond
+
+track API
+  GraphQL Gateway: 2026-Q1 .. 2026-Q3
+    @status in-progress
+    @progress 60
+  @milestone v3 Launch: 2026-09-01
+    @status planned
+    @shape star
+
+track Mobile
+  iOS Redesign: 2026-Q2
+    @status planned
+  Android Parity: 2026-Q3 .. 2026-Q4
+    @status tentative
+
+annotation "PCI-DSS audit window" @ 2026-06-01 .. 2026-06-30
+annotation "Board review" @ 2026-Q3
+
+break 2026-12-20 .. 2027-01-05
+
+legend show
+\end{lstlisting}
+
+\subsubsection{Same Data, Multiple Layouts}
+
+Switching \texttt{layout:} in the frontmatter (one line) re-renders the
+identical \texttt{IRDocument} under a different presentation family.
+
+\begin{lstlisting}[caption={Same source, four layout variants}]
+# Layout 1: Gantt — dependency-aware task bars
+layout: gantt
+
+# Layout 2: Roadmap — band-per-track, quarter columns
+layout: roadmap
+
+# Layout 3: Serpentine — boustrophedon journey narrative
+layout: serpentine
+
+# Layout 4: Timeline-columns — Mermaid-compatible column bands
+layout: timeline-columns
+\end{lstlisting}
+
+\noindent
+Combined with seven contract themes, this yields 42 distinct visual
+presentations from one source.  A \texttt{poster} cell grid can render
+selected layout-theme combinations side by side:
+
+\begin{lstlisting}[language=yaml,caption={Poster showcasing two layout variants of the same source}]
+---
+theme: executive
+layout: grid 1x2
+---
+poster "Roadmap two ways"
+  cell [0,0]: timeline extended
+    # ... (roadmap layout via frontmatter override)
+  cell [0,1]: timeline extended
+    # ... (gantt layout via frontmatter override)
+\end{lstlisting}
+
+% ---------------------------------------------------------------------------
+\subsection{Known IR Gaps and Deferred Questions}
+\label{sec:et-gaps}
+% ---------------------------------------------------------------------------
+
+The following items are gaps between what the Extended Timeline syntax
+expresses and what the current IR (2026-06-15) can cleanly carry.  They are
+flagged here for future IR revision, not as blockers for the syntax
+definition.
+
+\begin{description}
+  \item[\texttt{@shape} has no IR field.]
+        \texttt{Milestone} in \texttt{types.ts} carries \texttt{icon?:
+        string} and \texttt{category?: string} but no \texttt{shape} field.
+        The parser maps \texttt{@shape diamond} to \texttt{Milestone.icon =
+        'diamond'}, conflating pictogram identity with marker geometry.
+        Future IR revision should add \texttt{Milestone.shape?: enum\{diamond,
+        circle, square, star, flag\}} and separate it from \texttt{icon}.
+
+  \item[\texttt{gantt} and \texttt{timeline-columns} missing from Zod schema.]
+        \texttt{metadata.layout} in \texttt{schema.ts} lists only four values
+        (\texttt{horizontal}, \texttt{vertical-spine}, \texttt{serpentine},
+        \texttt{roadmap}).  The TypeScript type in \texttt{types.ts} correctly
+        includes all six.  The schema must be extended to add \texttt{gantt}
+        and \texttt{timeline-columns} for these layouts to survive
+        JSON Schema round-trip validation.
+
+  \item[\texttt{density} is not an \texttt{IRDocument} field.]
+        Density is resolved at theme time via \texttt{resolveContractTheme}
+        and never written into the IR.  A document authored at
+        \texttt{density: compact} is indistinguishable from one at
+        \texttt{density: normal} after IR round-trip.  Whether density should
+        be promoted to \texttt{Metadata} is an open question for the Tier-2
+        contract evolution (Section~\ref{sec:themes-contract}).
+
+  \item[\texttt{legend} auto-entry generation is unspecified.]
+        The IR supports \texttt{Legend.entries} (explicit \texttt{LegendEntry}
+        objects), but the parser-level behaviour of \texttt{legend show}
+        without explicit entries (auto-build from status/category data) is a
+        rendering convention, not an IR invariant.  The spec defers the
+        auto-entry algorithm to the layout engine documentation
+        (Section~\ref{sec:timeline-rendering}).
+
+  \item[\texttt{@milestone} without an enclosing \texttt{track}.]
+        If \texttt{@milestone} appears outside any \texttt{track} block, the
+        parser should assign \texttt{Milestone.track = undefined} (the IR
+        permits this).  The layout engine then renders the milestone on the
+        global axis rather than a swimlane.  This behaviour should be
+        explicitly validated.
+\end{description}
