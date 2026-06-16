@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="412" version="1.1" viewBox="0 0 1200 412" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="362" width="1200" x="0" y="0"/>
+<svg height="448" version="1.1" viewBox="0 0 1200 448" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="398" width="1200" x="0" y="0"/>
   <rect fill="#1F497D" height="60" width="1200" x="0" y="0"/>
   <text dominant-baseline="central" fill="#FFFFFF" font-family="Georgia, serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="30">Payment System — Requirements Traceability</text>
   <rect fill="#F8F9FB" height="254" rx="6" stroke="#1F497D" stroke-width="1" width="423" x="24" y="84"/>
@@ -50,23 +50,23 @@
   <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.12" font-weight="600" text-anchor="middle" x="1081.67" y="178.92">assert exp = now+86400s</text>
   <path d="M1033.59 130.84 L1029.43 128.46 L1029.43 133.21 Z" fill="#64748B" stroke="none" stroke-width="0"/>
   <path d="M1024.09 178.92 L1019.93 176.55 L1019.93 181.3 Z" fill="#64748B" stroke="none" stroke-width="0"/>
-  <line opacity="0.92" stroke="#1F497D" stroke-width="2" x1="213.38" x2="504.52" y1="130.78" y2="157.61"/>
-  <path d="M 504.52 157.61 L 495.19 160.77 L 495.93 152.80 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
-  <line opacity="0.92" stroke="#1F497D" stroke-width="2" x1="611.48" x2="882.81" y1="157.61" y2="130.54"/>
-  <path d="M 882.81 130.54 L 874.25 135.41 L 873.45 127.45 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
-  <line opacity="0.92" stroke="#2E86AB" stroke-width="2" x1="332.36" x2="504.52" y1="145.43" y2="250.3"/>
-  <path d="M 504.52 250.30 L 494.75 249.04 L 498.92 242.21 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
-  <line opacity="0.92" stroke="#2E86AB" stroke-width="2" x1="611.48" x2="882.81" y1="250.3" y2="178.62"/>
-  <path d="M 882.81 178.62 L 875.13 184.79 L 873.08 177.06 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
-  <rect fill="#FFFFFF" height="50" rx="0" stroke="#1F497D" stroke-width="1" width="1200" x="0" y="362"/>
-  <line opacity="0.5" stroke="#1F497D" stroke-width="1" x1="0" x2="1200" y1="362" y2="362"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="600" text-anchor="start" x="18" y="387">Traces:</text>
-  <rect fill="#1F497D" height="12" rx="2" width="18" x="79.6" y="381"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="103.6" y="387">REQ-01 chain</text>
-  <rect fill="#9aadc5" height="20" rx="4" stroke="#1F497D" stroke-width="1" width="78" x="197.12" y="377"/>
-  <text dominant-baseline="central" fill="#1F497D" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="236.12" y="387">«satisfies»</text>
-  <rect fill="#2E86AB" height="12" rx="2" width="18" x="295.12" y="381"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="319.12" y="387">REQ-02 chain</text>
-  <rect fill="#a1c9d9" height="20" rx="4" stroke="#2E86AB" stroke-width="1" width="78" x="412.64" y="377"/>
-  <text dominant-baseline="central" fill="#2E86AB" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="451.64" y="387">«satisfies»</text>
+  <path d="M 138.64 145.43 L 138.64 352.00 L 558.00 352.00 L 558.00 189.70" fill="none" opacity="0.92" stroke="#1F497D" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 558.00 189.70 L 562.00 198.70 L 554.00 198.70 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
+  <path d="M 558.00 189.70 L 558.00 352.00 L 928.22 352.00 L 928.22 145.08" fill="none" opacity="0.92" stroke="#1F497D" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 928.22 145.08 L 932.22 154.08 L 924.22 154.08 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
+  <path d="M 332.36 145.43 L 332.36 370.00 L 558.00 370.00 L 558.00 282.39" fill="none" opacity="0.92" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 558.00 282.39 L 562.00 291.39 L 554.00 291.39 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
+  <path d="M 558.00 282.39 L 558.00 370.00 L 928.22 370.00 L 928.22 193.17" fill="none" opacity="0.92" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 928.22 193.17 L 932.22 202.17 L 924.22 202.17 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
+  <rect fill="#FFFFFF" height="50" rx="0" stroke="#1F497D" stroke-width="1" width="1200" x="0" y="398"/>
+  <line opacity="0.5" stroke="#1F497D" stroke-width="1" x1="0" x2="1200" y1="398" y2="398"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="600" text-anchor="start" x="18" y="423">Traces:</text>
+  <rect fill="#1F497D" height="12" rx="2" width="18" x="79.6" y="417"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="103.6" y="423">REQ-01 chain</text>
+  <rect fill="#9aadc5" height="20" rx="4" stroke="#1F497D" stroke-width="1" width="78" x="197.12" y="413"/>
+  <text dominant-baseline="central" fill="#1F497D" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="236.12" y="423">«satisfies»</text>
+  <rect fill="#2E86AB" height="12" rx="2" width="18" x="295.12" y="417"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="319.12" y="423">REQ-02 chain</text>
+  <rect fill="#a1c9d9" height="20" rx="4" stroke="#2E86AB" stroke-width="1" width="78" x="412.64" y="413"/>
+  <text dominant-baseline="central" fill="#2E86AB" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="451.64" y="423">«satisfies»</text>
 </svg>

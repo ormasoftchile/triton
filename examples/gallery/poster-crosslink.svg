@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="341" version="1.1" viewBox="0 0 1200 341" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="341" width="1200" x="0" y="0"/>
+<svg height="377" version="1.1" viewBox="0 0 1200 377" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="377" width="1200" x="0" y="0"/>
   <rect fill="#1F497D" height="60" width="1200" x="0" y="0"/>
   <text dominant-baseline="central" fill="#FFFFFF" font-family="Georgia, serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="30">Order Processing — Cross-Diagram Links Demo</text>
   <rect fill="#F8F9FB" height="233" rx="6" stroke="#1F497D" stroke-width="1" width="671" x="24" y="84"/>
@@ -33,12 +33,12 @@
   <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="11.13" font-weight="700" text-anchor="middle" x="1053.25" y="155.06">ShipmentHandler</text>
   <path d="M828.18 200.39 L833.75 209.93 L839.32 200.39" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.19"/>
   <path d="M972.13 159.03 L981.67 153.47 L972.13 147.9" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.19"/>
-  <line opacity="0.92" stroke="#E05B4B" stroke-width="2" x1="486.42" x2="762.17" y1="142.1" y2="228.22"/>
-  <path d="M 762.17 228.22 L 752.39 229.36 L 754.78 221.72 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
-  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="68.5" x="590.05" y="173.46"/>
-  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="624.3" y="185.16">handled by</text>
-  <line opacity="0.92" stroke="#E05B4B" stroke-width="2" x1="644.48" x2="981.67" y1="142.1" y2="153.47"/>
-  <path d="M 981.67 153.47 L 972.54 157.16 L 972.81 149.16 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
-  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="80.6" x="705.34" y="133.81"/>
-  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="745.64" y="145.51">fulfilled by</text>
+  <path d="M 438.53 161.66 L 438.53 331.00 L 833.75 331.00 L 833.75 246.51" fill="none" opacity="0.92" stroke="#E05B4B" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 833.75 246.51 L 837.75 255.51 L 829.75 255.51 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
+  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="68.5" x="601.89" y="319.3"/>
+  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="636.14" y="331">handled by</text>
+  <path d="M 596.59 161.66 L 596.59 349.00 L 1053.25 349.00 L 1053.25 171.76" fill="none" opacity="0.92" stroke="#E05B4B" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 1053.25 171.76 L 1057.25 180.76 L 1049.25 180.76 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
+  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="80.6" x="784.62" y="337.3"/>
+  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="824.92" y="349">fulfilled by</text>
 </svg>

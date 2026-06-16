@@ -575,6 +575,11 @@ export interface CellTransform {
   dy: number;
   /** Uniform scale factor applied to sub-scene (≤ 1.0 — no upscale). */
   scale: number;
+  /** Poster-space cell bounding box — used by the overlay bus router (§30b). */
+  cellX: number;
+  cellY: number;
+  cellW: number;
+  cellH: number;
 }
 
 /**
@@ -732,7 +737,7 @@ export function layoutCompositionFull(
       }
     }
 
-    cellTransforms.push({ row: pc.row, col: pc.col, dx, dy, scale });
+    cellTransforms.push({ row: pc.row, col: pc.col, dx, dy, scale, cellX, cellY, cellW, cellH });
   }
 
   return {

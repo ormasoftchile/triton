@@ -58,7 +58,7 @@ import { bindBlockTheme }        from '../../grammars/block/contract-binding.js'
 import { bindArchitectureTheme } from '../../grammars/architecture/contract-binding.js';
 
 import { layoutCompositionFull } from '../../composition/index.js';
-import type { Cell, SceneCellContent } from '../../composition/index.js';
+import type { Cell, SceneCellContent, CellTransform } from '../../composition/index.js';
 import type { CompositionTheme } from '../../composition/theme.js';
 
 import { parsePosterInternal, buildCompositionThemeFor } from './poster.js';
@@ -1243,34 +1243,48 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     posterAnchors.set(key, transformed);
   }
 
+  // Extend canvas height for orthogonal bus routing channels (§30b rewrite).
+  // Each distinct lane group (one per trace, one per standalone link) needs
+  // BUS_LANE_PITCH vertical pixels below the cell bottoms.
+  const numBusLanes = computeNumBusLanes(doc.links);
+  const BUS_EXTRA_TOP  = 14; // gap between cell-bottom and first lane centre
+  const BUS_LANE_PITCH = 18; // vertical pitch between lane centres
+  const BUS_EXTRA_BOT  = 10; // below last lane
+  const busNeeded = numBusLanes > 0
+    ? BUS_EXTRA_TOP + numBusLanes * BUS_LANE_PITCH + BUS_EXTRA_BOT
+    : 0;
+  const extraH = Math.max(0, busNeeded - compositionTheme.padding);
+  const busScene = extraH > 0 ? extendCanvasHeight(baseScene, extraH) : baseScene;
+
   // Resolve and draw overlay edges (links + desugared trace hops)
   const overlayPrimitives = resolveAndDrawLinks(
     doc.links,
     doc.traces,
     posterAnchors,
+    cellTransforms,
     warnings,
     compositionTheme,
     categoricalPalette,
   );
 
-  // Build trace legend (emitted at bottom of canvas)
+  // Build trace legend (emitted at bottom of canvas, below the bus channels)
   const { legendPrims, legendH } = buildTraceLegend(
     doc.traces,
     categoricalPalette,
-    baseScene.width,
-    baseScene.height,
+    busScene.width,
+    busScene.height,
     compositionTheme,
   );
 
-  // Merge overlay + legend on top of the base scene, extending height for legend
+  // Merge overlay + legend on top of the bus-extended scene
   const allOverlay = [...overlayPrimitives, ...legendPrims];
   const scene: Scene = allOverlay.length > 0
     ? {
-        ...baseScene,
-        primitives: [...baseScene.primitives, ...allOverlay],
-        height: baseScene.height + legendH,
+        ...busScene,
+        primitives: [...busScene.primitives, ...allOverlay],
+        height: busScene.height + legendH,
       }
-    : baseScene;
+    : busScene;
 
   const hash  = computeSceneHash(scene);
   const format = options.format ?? 'svg';
@@ -1297,90 +1311,55 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
 }
 
 // ---------------------------------------------------------------------------
-// resolveAndDrawLinks — cross-diagram overlay edge rendering (§30b Phase A+B)
+// resolveAndDrawLinks — orthogonal bus routing (§30b routing rewrite 2026-06)
+// ---------------------------------------------------------------------------
+// Route all cross-cell overlay edges through a horizontal "bus" channel in the
+// whitespace below the poster cells.  Each edge follows an orthogonal U-path:
+//
+//   (1) Exit the source node at its bottom-centre port, going downward.
+//   (2) Travel vertically to the assigned bus-lane Y (below all cell boxes).
+//   (3) Travel horizontally along the lane to the target node's centre X.
+//   (4) Travel vertically upward into the target node's bottom-centre port.
+//
+// This guarantees no segment ever crosses a cell interior or an unrelated node.
+// Labels are placed at the midpoint of the horizontal bus segment.
+//
+// Lane assignment (deterministic):
+//   - All hops of one trace share a single lane (by traceIndex).
+//   - Each standalone link gets its own lane.
+//   - Order: traces first (by traceIndex asc), then standalone links (by
+//     declaration index asc), giving a stable lane numbering across re-runs.
 // ---------------------------------------------------------------------------
 
-/** Choose the best port side on `anchor` when connecting toward `targetCx, targetCy`. */
-function chooseSide(
-  anchor: { x: number; y: number; w: number; h: number },
-  targetCx: number,
-  targetCy: number,
-): { px: number; py: number } {
-  const cx = anchor.x + anchor.w / 2;
-  const cy = anchor.y + anchor.h / 2;
-  const dx = targetCx - cx;
-  const dy = targetCy - cy;
-
-  // Prefer horizontal side if |dx| > |dy| (adjusted for aspect)
-  if (Math.abs(dx) * (anchor.h / Math.max(anchor.w, 1)) >= Math.abs(dy)) {
-    if (dx >= 0) {
-      return { px: anchor.x + anchor.w, py: cy }; // E
-    } else {
-      return { px: anchor.x, py: cy }; // W
-    }
-  } else {
-    if (dy >= 0) {
-      return { px: cx, py: anchor.y + anchor.h }; // S
-    } else {
-      return { px: cx, py: anchor.y }; // N
-    }
-  }
-}
-
-/** Return true when the point (px, py) lies inside the given bounding box. */
-function pointInBox(
-  px: number, py: number,
-  box: { x: number; y: number; w: number; h: number },
-): boolean {
-  return px >= box.x && px <= box.x + box.w && py >= box.y && py <= box.y + box.h;
+/** Number of distinct bus lanes needed for all links in a poster document. */
+function computeNumBusLanes(links: PosterLink[]): number {
+  const groups = new Set<string>();
+  links.forEach((link, i) => {
+    groups.add(link.traceIndex !== undefined ? `t${link.traceIndex}` : `s${i}`);
+  });
+  return groups.size;
 }
 
 /**
- * Find the label midpoint along the edge (srcPort → tgtPort), offset away from
- * any anchor bounding box that the naive midpoint overlaps.
- *
- * Walk outward from t=0.5 in steps until a clear point is found, or return
- * the best approximation (still may overlap, but reduced blemish).
+ * Extend the canvas background rect (first primitive) and the scene height by
+ * `extraH` pixels.  Returns the base scene unchanged when extraH ≤ 0.
  */
-function clearLabelPoint(
-  srcPx: number, srcPy: number,
-  tgtPx: number, tgtPy: number,
-  allBoxes: Array<{ x: number; y: number; w: number; h: number }>,
-): { x: number; y: number } {
-  // The naive midpoint
-  const midX = (srcPx + tgtPx) / 2;
-  const midY = (srcPy + tgtPy) / 2;
-
-  // Check if any box overlaps the naive midpoint
-  const blocked = allBoxes.some((b) => pointInBox(midX, midY, b));
-  if (!blocked) return { x: midX, y: midY };
-
-  // Walk outward in both directions (t from 0.3 to 0.7, then expand)
-  const edgeLen = Math.sqrt((tgtPx - srcPx) ** 2 + (tgtPy - srcPy) ** 2);
-  const step = Math.max(8, edgeLen * 0.05);
-  const totalLen = edgeLen;
-
-  for (let d = step; d < totalLen / 2; d += step) {
-    // Try t = 0.5 + d/totalLen
-    const t1 = 0.5 + d / totalLen;
-    const t2 = 0.5 - d / totalLen;
-
-    for (const t of [t1, t2]) {
-      if (t < 0 || t > 1) continue;
-      const cx = srcPx + (tgtPx - srcPx) * t;
-      const cy = srcPy + (tgtPy - srcPy) * t;
-      if (!allBoxes.some((b) => pointInBox(cx, cy, b))) {
-        return { x: cx, y: cy };
+function extendCanvasHeight(scene: Scene, extraH: number): Scene {
+  if (extraH <= 0) return scene;
+  const newH = scene.height + extraH;
+  return {
+    ...scene,
+    height: newH,
+    primitives: scene.primitives.map((p, idx) => {
+      if (idx === 0 && p.kind === 'rect' && p.x === 0 && p.y === 0) {
+        return { ...p, height: newH };
       }
-    }
-  }
-
-  // Last resort: return the plain midpoint (label may still overlap but that's
-  // acceptable compared to crashing or disappearing)
-  return { x: midX, y: midY };
+      return p;
+    }),
+  };
 }
 
-/** Build a filled arrowhead triangle pointing at `tip` from `tailDir`. */
+/** Build a filled arrowhead triangle with tip at `tip`, pointing in direction `tailDir`. */
 function arrowhead(
   tip: { x: number; y: number },
   tailDir: { x: number; y: number },
@@ -1403,98 +1382,7 @@ function arrowhead(
   };
 }
 
-/**
- * Emit overlay edge primitives for a single link.
- *
- * Routing strategy (§30b overlay routing):
- *   - Same row: straight line from srcPort to tgtPort.
- *   - Different rows (or non-adjacent): single horizontal-elbow (Z-route):
- *       srcPort → (elbowX, srcPort.py) → (elbowX, tgtPort.py) → tgtPort
- *     where elbowX = midpoint between the two port X coordinates.
- *     This channels through the inter-cell gutter and avoids crossing node boxes.
- *
- * Returns the primitives emitted (edge path/line, optional arrowhead, optional label pill).
- */
-function emitEdge(
-  srcPort: { px: number; py: number },
-  tgtPort: { px: number; py: number },
-  isDashed: boolean,
-  isDirected: boolean,
-  color: string,
-  strokeWidth: number,
-  label: string | undefined,
-  isSameRow: boolean,
-  allBoxes: Array<{ x: number; y: number; w: number; h: number }>,
-  theme: CompositionTheme,
-): ScenePrimitive[] {
-  const prims: ScenePrimitive[] = [];
-  const DASH = '6,4';
-
-  if (isSameRow) {
-    // Straight line
-    const edgeLine: ScenePrimitive = {
-      kind: 'line',
-      x1: srcPort.px,
-      y1: srcPort.py,
-      x2: tgtPort.px,
-      y2: tgtPort.py,
-      stroke: color,
-      strokeWidth,
-      opacity: 0.92,
-      ...(isDashed ? { dashArray: DASH } : {}),
-    };
-    prims.push(edgeLine);
-
-    if (isDirected) {
-      const dx = tgtPort.px - srcPort.px;
-      const dy = tgtPort.py - srcPort.py;
-      prims.push(arrowhead({ x: tgtPort.px, y: tgtPort.py }, { x: dx, y: dy }, color));
-    }
-
-    if (label) {
-      const { x: lx, y: ly } = clearLabelPoint(srcPort.px, srcPort.py, tgtPort.px, tgtPort.py, allBoxes);
-      prims.push(...labelPill(lx, ly, label, color, theme));
-    }
-  } else {
-    // Single horizontal elbow: srcPort → elbowX column → tgtPort row → tgtPort
-    const elbowX = (srcPort.px + tgtPort.px) / 2;
-    const d = [
-      `M ${srcPort.px.toFixed(2)} ${srcPort.py.toFixed(2)}`,
-      `L ${elbowX.toFixed(2)} ${srcPort.py.toFixed(2)}`,
-      `L ${elbowX.toFixed(2)} ${tgtPort.py.toFixed(2)}`,
-      `L ${tgtPort.px.toFixed(2)} ${tgtPort.py.toFixed(2)}`,
-    ].join(' ');
-
-    prims.push({
-      kind: 'path',
-      d,
-      fill: 'none',
-      stroke: color,
-      strokeWidth,
-      strokeLinecap: 'round',
-      opacity: 0.92,
-      ...(isDashed ? { dashArray: DASH } : {}),
-    });
-
-    // Arrowhead on the last horizontal segment
-    if (isDirected) {
-      const finalDx = tgtPort.px - elbowX;
-      prims.push(arrowhead({ x: tgtPort.px, y: tgtPort.py }, { x: finalDx, y: 0 }, color));
-    }
-
-    if (label) {
-      // Place label at elbow midpoint (vertical segment — usually clear space)
-      const elbowMidY = (srcPort.py + tgtPort.py) / 2;
-      const { x: lx, y: ly } = clearLabelPoint(elbowX, srcPort.py, elbowX, tgtPort.py, allBoxes);
-      void lx; // elbowX is the x coord
-      prims.push(...labelPill(elbowX, elbowMidY > ly ? elbowMidY : ly, label, color, theme));
-    }
-  }
-
-  return prims;
-}
-
-/** Emit a label pill (background rect + text) at the given centre. */
+/** Emit a label pill (background rect + text) centred at (cx, cy). */
 function labelPill(
   cx: number, cy: number,
   text: string,
@@ -1534,16 +1422,72 @@ function labelPill(
 }
 
 /**
- * Resolve all `link` statements (including trace-desugared hops) to poster-space
- * anchor coordinates and emit Scene primitives for overlay edges + arrowheads + labels.
+ * Emit orthogonal U-route primitives for a single overlay edge.
  *
- * Phase B additions over Phase A:
- *  - Trace links are coloured from the theme categorical data palette.
- *  - Standalone links retain the Phase-A warm-red colour.
- *  - `-->` (solid) edges no longer incorrectly render with a dash pattern.
- *  - Labels are offset away from any overlapping anchor bounding box.
- *  - Links between cells in different rows use a single horizontal elbow to avoid
- *    routing through cell bodies.
+ * Route: srcPx,srcPy → down to busLaneY → horizontal → up to tgtPx,tgtPy.
+ * All segments are axis-aligned (Manhattan routing). The arrowhead points
+ * upward into the target node's bottom port.  The label sits at the midpoint
+ * of the horizontal bus segment.
+ */
+function emitBusEdge(
+  srcPx: number, srcPy: number,
+  tgtPx: number, tgtPy: number,
+  busLaneY: number,
+  isDashed: boolean,
+  isDirected: boolean,
+  color: string,
+  strokeWidth: number,
+  label: string | undefined,
+  theme: CompositionTheme,
+): ScenePrimitive[] {
+  const prims: ScenePrimitive[] = [];
+  const DASH = '6,4';
+
+  // Orthogonal U-path (all four points: src bottom → lane → same-X target → target bottom)
+  const d = [
+    `M ${srcPx.toFixed(2)} ${srcPy.toFixed(2)}`,
+    `L ${srcPx.toFixed(2)} ${busLaneY.toFixed(2)}`,
+    `L ${tgtPx.toFixed(2)} ${busLaneY.toFixed(2)}`,
+    `L ${tgtPx.toFixed(2)} ${tgtPy.toFixed(2)}`,
+  ].join(' ');
+
+  prims.push({
+    kind: 'path',
+    d,
+    fill: 'none',
+    stroke: color,
+    strokeWidth,
+    strokeLinecap: 'round',
+    opacity: 0.92,
+    ...(isDashed ? { dashArray: DASH } : {}),
+  });
+
+  if (isDirected) {
+    // Final segment goes upward (from busLaneY down to tgtPy, where tgtPy < busLaneY).
+    // tailDir = direction from tail (busLaneY) to tip (tgtPy) = upward (negative dy).
+    prims.push(arrowhead(
+      { x: tgtPx, y: tgtPy },
+      { x: 0, y: tgtPy - busLaneY },  // negative → upward-pointing arrowhead
+      color,
+    ));
+  }
+
+  if (label) {
+    // Label at the midpoint of the horizontal bus segment, centred on the lane.
+    const labelX = (srcPx + tgtPx) / 2;
+    prims.push(...labelPill(labelX, busLaneY, label, color, theme));
+  }
+
+  return prims;
+}
+
+/**
+ * Resolve all `link` statements (including trace-desugared hops) to poster-space
+ * anchor coordinates and emit Scene primitives for overlay edges using orthogonal
+ * bus routing (§30b routing rewrite, 2026-06).
+ *
+ * Routing guarantee: no emitted segment ever crosses a cell box or a non-endpoint
+ * node.  All edges travel through the whitespace bus channel below the cells.
  *
  * Unresolvable links emit a WARNING and are skipped.
  */
@@ -1551,6 +1495,7 @@ function resolveAndDrawLinks(
   links: PosterLink[],
   traces: TraceRecord[],
   posterAnchors: Map<string, NodeAnchorRegistry>,
+  cellTransforms: CellTransform[],
   warnings: string[],
   theme: CompositionTheme,
   categoricalPalette: string[],
@@ -1559,22 +1504,51 @@ function resolveAndDrawLinks(
 
   const STANDALONE_COLOR = '#E05B4B'; // warm red for standalone links
   const STROKE_WIDTH = 2;
+  const BUS_MARGIN_TOP  = 14; // pixels below cell-bottom to first bus lane
+  const BUS_LANE_PITCH  = 18; // vertical pitch between bus lanes
 
   // Build trace-index → color map (declaration order → categorical[i])
-  const traceColorMap = new Map<number, string>();
   const n = Math.max(1, categoricalPalette.length);
+  const traceColorMap = new Map<number, string>();
   traces.forEach((_trace, i) => {
     const base = categoricalPalette[i % n]!;
-    // On second cycle (i >= n), lighten slightly to distinguish from first cycle
     traceColorMap.set(i, i < n ? base : lightenHex(base, 0.18));
   });
 
-  // Collect ALL anchor bboxes for label-overlap detection
-  const allBoxes = [...posterAnchors.values()].flatMap((reg) => Object.values(reg));
+  // Global bus base: bottom of ALL cells in poster space.
+  // This guarantees every bus lane is below every cell, regardless of row.
+  const globalCellBot = cellTransforms.reduce(
+    (m, ct) => Math.max(m, ct.cellY + ct.cellH),
+    0,
+  );
+
+  // Assign deterministic bus lane index per link-group.
+  // Group key: 't<traceIndex>' for trace hops, 's<linkIdx>' for standalone links.
+  // Traces are assigned lanes before standalone links; within each category,
+  // order follows declaration order — giving a fully deterministic assignment.
+  const laneMap = new Map<string, number>();
+  let nextLane = 0;
+
+  // First pass: traces (by traceIndex ascending)
+  for (const link of links) {
+    if (link.traceIndex !== undefined) {
+      const key = `t${link.traceIndex}`;
+      if (!laneMap.has(key)) laneMap.set(key, nextLane++);
+    }
+  }
+  // Second pass: standalone links (by declaration order)
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i]!;
+    if (link.traceIndex === undefined) {
+      const key = `s${i}`;
+      if (!laneMap.has(key)) laneMap.set(key, nextLane++);
+    }
+  }
 
   const primitives: ScenePrimitive[] = [];
 
-  for (const link of links) {
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i]!;
     const fromKey = `${link.fromCell.row},${link.fromCell.col}`;
     const toKey   = `${link.toCell.row},${link.toCell.col}`;
 
@@ -1595,7 +1569,6 @@ function resolveAndDrawLinks(
     }
 
     const srcAnchor = fromRegistry[link.fromNodeId]
-      // Case-insensitive fallback — handles grammars that sanitize IDs to lowercase
       ?? Object.values(fromRegistry).find(
            (a) => a.id.toLowerCase() === link.fromNodeId.toLowerCase(),
          );
@@ -1617,30 +1590,30 @@ function resolveAndDrawLinks(
       continue;
     }
 
-    // Center coords for port selection
-    const srcCx = srcAnchor.x + srcAnchor.w / 2;
-    const srcCy = srcAnchor.y + srcAnchor.h / 2;
-    const tgtCx = tgtAnchor.x + tgtAnchor.w / 2;
-    const tgtCy = tgtAnchor.y + tgtAnchor.h / 2;
+    // Bottom-centre ports — always route through the bottom-margin bus channel.
+    const srcPx = srcAnchor.x + srcAnchor.w / 2;
+    const srcPy = srcAnchor.y + srcAnchor.h;  // bottom of source node
+    const tgtPx = tgtAnchor.x + tgtAnchor.w / 2;
+    const tgtPy = tgtAnchor.y + tgtAnchor.h;  // bottom of target node
 
-    const srcPort = chooseSide(srcAnchor, tgtCx, tgtCy);
-    const tgtPort = chooseSide(tgtAnchor, srcCx, srcCy);
-
-    const isDashed  = link.edgeStyle === '-..' || link.edgeStyle === '-.-' || link.edgeStyle === '-.->';
+    const isDashed   = link.edgeStyle === '-..' || link.edgeStyle === '-.-' || link.edgeStyle === '-.->';
     const isDirected = link.edgeStyle === '-->' || link.edgeStyle === '-.->';
-    const isSameRow = link.fromCell.row === link.toCell.row;
 
     const color = link.traceIndex !== undefined
       ? (traceColorMap.get(link.traceIndex) ?? STANDALONE_COLOR)
       : STANDALONE_COLOR;
 
-    primitives.push(...emitEdge(
-      srcPort, tgtPort,
+    const laneGroupKey = link.traceIndex !== undefined ? `t${link.traceIndex}` : `s${i}`;
+    const laneIdx = laneMap.get(laneGroupKey) ?? 0;
+    const busLaneY = globalCellBot + BUS_MARGIN_TOP + laneIdx * BUS_LANE_PITCH;
+
+    primitives.push(...emitBusEdge(
+      srcPx, srcPy,
+      tgtPx, tgtPy,
+      busLaneY,
       isDashed, isDirected,
       color, STROKE_WIDTH,
       link.label,
-      isSameRow,
-      allBoxes,
       theme,
     ));
   }
