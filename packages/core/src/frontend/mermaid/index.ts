@@ -63,7 +63,7 @@ import type { CompositionTheme } from '../../composition/theme.js';
 
 import { parsePosterInternal, buildCompositionThemeFor } from './poster.js';
 import type { PosterDocument, PosterLink, TraceRecord } from './poster.js';
-import type { NodeAnchorRegistry } from '../../anchors.js';
+import type { NodeAnchor, NodeAnchorRegistry } from '../../anchors.js';
 
 import {
   buildFlowScene,
@@ -1200,6 +1200,8 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
         id: `cell-${cellDef.row}-${cellDef.col}`,
         row: cellDef.row,
         col: cellDef.col,
+        ...(cellDef.colSpan && cellDef.colSpan > 1 ? { colSpan: cellDef.colSpan } : {}),
+        ...(cellDef.rowSpan && cellDef.rowSpan > 1 ? { rowSpan: cellDef.rowSpan } : {}),
         content: sceneContent,
       };
       cells.push(cell);
@@ -1223,7 +1225,18 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     cells,
   };
 
-  const { scene: baseScene, cellTransforms } = layoutCompositionFull(compDoc, compositionTheme);
+  // When the poster carries cross-diagram edges, widen the inter-cell gaps so a
+  // real routing channel (the "gutter") opens between cells.  Overlay threads
+  // route orthogonally through this gutter — short, direct, PCB-style connectors
+  // — and trace/link labels sit in the clear gutter space, never over a node.
+  // Cell content is vertically centred so a tall spanning hub sits balanced
+  // beside a stack of shorter cells (this only affects link/trace posters).
+  const ROUTING_GUTTER = 72;
+  const layoutTheme: CompositionTheme = doc.links.length > 0
+    ? { ...compositionTheme, gap: Math.max(compositionTheme.gap, ROUTING_GUTTER), cellVAlign: 'center' }
+    : compositionTheme;
+
+  const { scene: baseScene, cellTransforms } = layoutCompositionFull(compDoc, layoutTheme);
 
   // Build poster-space anchor map: key = "row,col", value = transformed registry
   const posterAnchors = new Map<string, NodeAnchorRegistry>();
@@ -1243,40 +1256,38 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     posterAnchors.set(key, transformed);
   }
 
-  // Extend canvas height for orthogonal bus routing channels (§30b rewrite).
-  // Each distinct lane group (one per trace, one per standalone link) needs
-  // BUS_LANE_PITCH vertical pixels below the cell bottoms.
-  const numBusLanes = computeNumBusLanes(doc.links);
-  const BUS_EXTRA_TOP  = 14; // gap between cell-bottom and first lane centre
-  const BUS_LANE_PITCH = 18; // vertical pitch between lane centres
-  const BUS_EXTRA_BOT  = 10; // below last lane
-  const busNeeded = numBusLanes > 0
-    ? BUS_EXTRA_TOP + numBusLanes * BUS_LANE_PITCH + BUS_EXTRA_BOT
-    : 0;
-  const extraH = Math.max(0, busNeeded - compositionTheme.padding);
-  const busScene = extraH > 0 ? extendCanvasHeight(baseScene, extraH) : baseScene;
-
-  // Resolve and draw overlay edges (links + desugared trace hops)
-  const overlayPrimitives = resolveAndDrawLinks(
+  // Resolve and draw overlay edges (links + desugared trace hops).  Routing
+  // prefers a DIRECT orthogonal hop through the gutter between two adjacent
+  // cells; only genuinely non-adjacent hops (or hops a direct route would force
+  // through a third cell) fall back to the bottom-margin bus.  `busBottomY` is
+  // the lowest Y any bus lane reached (0 when no hop used the bus).
+  const { primitives: overlayPrimitives, busBottomY } = resolveAndDrawLinks(
     doc.links,
     doc.traces,
     posterAnchors,
     cellTransforms,
     warnings,
-    compositionTheme,
+    layoutTheme,
     categoricalPalette,
   );
 
-  // Build trace legend (emitted at bottom of canvas, below the bus channels)
+  // Extend the canvas only if a bus-fallback lane reached below the cell area.
+  const BUS_EXTRA_BOT = 12;
+  const extraH = busBottomY > 0
+    ? Math.max(0, busBottomY + BUS_EXTRA_BOT - baseScene.height)
+    : 0;
+  const busScene = extraH > 0 ? extendCanvasHeight(baseScene, extraH) : baseScene;
+
+  // Build trace legend (emitted at bottom of canvas, below any bus channel)
   const { legendPrims, legendH } = buildTraceLegend(
     doc.traces,
     categoricalPalette,
     busScene.width,
     busScene.height,
-    compositionTheme,
+    layoutTheme,
   );
 
-  // Merge overlay + legend on top of the bus-extended scene
+  // Merge overlay + legend on top of the (possibly bus-extended) scene
   const allOverlay = [...overlayPrimitives, ...legendPrims];
   const scene: Scene = allOverlay.length > 0
     ? {
@@ -1330,15 +1341,6 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
 //   - Order: traces first (by traceIndex asc), then standalone links (by
 //     declaration index asc), giving a stable lane numbering across re-runs.
 // ---------------------------------------------------------------------------
-
-/** Number of distinct bus lanes needed for all links in a poster document. */
-function computeNumBusLanes(links: PosterLink[]): number {
-  const groups = new Set<string>();
-  links.forEach((link, i) => {
-    groups.add(link.traceIndex !== undefined ? `t${link.traceIndex}` : `s${i}`);
-  });
-  return groups.size;
-}
 
 /**
  * Extend the canvas background rect (first primitive) and the scene height by
@@ -1482,12 +1484,129 @@ function emitBusEdge(
 }
 
 /**
- * Resolve all `link` statements (including trace-desugared hops) to poster-space
- * anchor coordinates and emit Scene primitives for overlay edges using orthogonal
- * bus routing (§30b routing rewrite, 2026-06).
+ * Emit a DIRECT orthogonal overlay edge that routes through the gutter between
+ * two adjacent cells (the clean, PCB/subway-style connector).
  *
- * Routing guarantee: no emitted segment ever crosses a cell box or a non-endpoint
- * node.  All edges travel through the whitespace bus channel below the cells.
+ * Horizontal hops (orientation 'h'): exit the source node at its left/right
+ * boundary, run to the gutter centre-line `gutterPos` (an X), travel vertically
+ * to the target's port Y, then enter the target node at its boundary.
+ * Vertical hops (orientation 'v') are the 90°-rotated dual (gutterPos is a Y).
+ *
+ * Three axis-aligned segments only.  The arrowhead lands on the target boundary;
+ * the label pill sits at the midpoint of the gutter run — always in clear gutter
+ * space, never over a node.
+ */
+function emitDirectEdge(
+  srcPort: { x: number; y: number },
+  tgtPort: { x: number; y: number },
+  gutterPos: number,
+  orientation: 'h' | 'v',
+  isDashed: boolean,
+  isDirected: boolean,
+  color: string,
+  strokeWidth: number,
+  label: string | undefined,
+  theme: CompositionTheme,
+): ScenePrimitive[] {
+  const prims: ScenePrimitive[] = [];
+  const DASH = '6,4';
+
+  let d: string;
+  let labelX: number;
+  let labelY: number;
+  let tailDir: { x: number; y: number };
+
+  if (orientation === 'h') {
+    d = [
+      `M ${srcPort.x.toFixed(2)} ${srcPort.y.toFixed(2)}`,
+      `L ${gutterPos.toFixed(2)} ${srcPort.y.toFixed(2)}`,
+      `L ${gutterPos.toFixed(2)} ${tgtPort.y.toFixed(2)}`,
+      `L ${tgtPort.x.toFixed(2)} ${tgtPort.y.toFixed(2)}`,
+    ].join(' ');
+    labelX = gutterPos;
+    labelY = (srcPort.y + tgtPort.y) / 2;
+    tailDir = { x: tgtPort.x - gutterPos, y: 0 };
+  } else {
+    d = [
+      `M ${srcPort.x.toFixed(2)} ${srcPort.y.toFixed(2)}`,
+      `L ${srcPort.x.toFixed(2)} ${gutterPos.toFixed(2)}`,
+      `L ${tgtPort.x.toFixed(2)} ${gutterPos.toFixed(2)}`,
+      `L ${tgtPort.x.toFixed(2)} ${tgtPort.y.toFixed(2)}`,
+    ].join(' ');
+    labelX = (srcPort.x + tgtPort.x) / 2;
+    labelY = gutterPos;
+    tailDir = { x: 0, y: tgtPort.y - gutterPos };
+  }
+
+  prims.push({
+    kind: 'path',
+    d,
+    fill: 'none',
+    stroke: color,
+    strokeWidth,
+    strokeLinecap: 'round',
+    opacity: 0.95,
+    ...(isDashed ? { dashArray: DASH } : {}),
+  });
+
+  if (isDirected) {
+    prims.push(arrowhead({ x: tgtPort.x, y: tgtPort.y }, tailDir, color));
+  }
+
+  if (label) {
+    prims.push(...labelPill(labelX, labelY, label, color, theme));
+  }
+
+  return prims;
+}
+
+interface CellRect { x: number; y: number; w: number; h: number; }
+
+type RouteMode = 'h-right' | 'h-left' | 'v-down' | 'v-up' | 'bus';
+
+interface RouteRecord {
+  linkIndex: number;
+  link: PosterLink;
+  srcAnchor: NodeAnchor;
+  tgtAnchor: NodeAnchor;
+  mode: RouteMode;
+  /** Gutter centre-line: an X for horizontal modes, a Y for vertical modes. */
+  gutterCenter: number;
+  gutterKey: string;
+  laneGroupKey: string;
+  color: string;
+  isDashed: boolean;
+  isDirected: boolean;
+}
+
+/** True if any cell (other than src/tgt) sits inside the X×Y corridor. */
+function corridorBlocked(
+  rects: CellRect[], src: CellRect, tgt: CellRect,
+  xLo: number, xHi: number, yLo: number, yHi: number,
+): boolean {
+  for (const c of rects) {
+    if (c === src || c === tgt) continue;
+    if (c.x < xHi - 1 && c.x + c.w > xLo + 1 && c.y < yHi - 1 && c.y + c.h > yLo + 1) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Resolve all `link` statements (including trace-desugared hops) to poster-space
+ * anchor coordinates and emit overlay-edge primitives.
+ *
+ * Routing strategy (§30b direct-routing rewrite, 2026-06):
+ *   • Adjacent cells → a DIRECT orthogonal hop through the gutter between them
+ *     (vertical gutter for left/right neighbours, horizontal gutter for
+ *     above/below neighbours).  Short, direct, lane-separated.
+ *   • Non-adjacent cells, or a direct route that a third cell would block →
+ *     fall back to the bottom-margin bus.
+ *
+ * Returns the emitted primitives plus `busBottomY` (the lowest Y reached by any
+ * bus lane, or 0 when every hop routed directly) so the caller can size the
+ * canvas only when the bus fallback was actually used.
  *
  * Unresolvable links emit a WARNING and are skipped.
  */
@@ -1499,12 +1618,13 @@ function resolveAndDrawLinks(
   warnings: string[],
   theme: CompositionTheme,
   categoricalPalette: string[],
-): ScenePrimitive[] {
-  if (links.length === 0) return [];
+): { primitives: ScenePrimitive[]; busBottomY: number } {
+  if (links.length === 0) return { primitives: [], busBottomY: 0 };
 
   const STANDALONE_COLOR = '#E05B4B'; // warm red for standalone links
-  const STROKE_WIDTH = 2;
-  const BUS_MARGIN_TOP  = 14; // pixels below cell-bottom to first bus lane
+  const STROKE_WIDTH    = 2;
+  const GUTTER_PITCH    = 20; // lane separation inside a direct gutter
+  const BUS_MARGIN_TOP  = 16; // pixels below cell-bottom to first bus lane
   const BUS_LANE_PITCH  = 18; // vertical pitch between bus lanes
 
   // Build trace-index → color map (declaration order → categorical[i])
@@ -1515,38 +1635,18 @@ function resolveAndDrawLinks(
     traceColorMap.set(i, i < n ? base : lightenHex(base, 0.18));
   });
 
-  // Global bus base: bottom of ALL cells in poster space.
-  // This guarantees every bus lane is below every cell, regardless of row.
-  const globalCellBot = cellTransforms.reduce(
-    (m, ct) => Math.max(m, ct.cellY + ct.cellH),
-    0,
-  );
-
-  // Assign deterministic bus lane index per link-group.
-  // Group key: 't<traceIndex>' for trace hops, 's<linkIdx>' for standalone links.
-  // Traces are assigned lanes before standalone links; within each category,
-  // order follows declaration order — giving a fully deterministic assignment.
-  const laneMap = new Map<string, number>();
-  let nextLane = 0;
-
-  // First pass: traces (by traceIndex ascending)
-  for (const link of links) {
-    if (link.traceIndex !== undefined) {
-      const key = `t${link.traceIndex}`;
-      if (!laneMap.has(key)) laneMap.set(key, nextLane++);
-    }
+  // Cell rectangles in poster space, keyed by "row,col".
+  const cellRectByKey = new Map<string, CellRect>();
+  const cellRects: CellRect[] = [];
+  for (const ct of cellTransforms) {
+    const r: CellRect = { x: ct.cellX, y: ct.cellY, w: ct.cellW, h: ct.cellH };
+    cellRectByKey.set(`${ct.row},${ct.col}`, r);
+    cellRects.push(r);
   }
-  // Second pass: standalone links (by declaration order)
-  for (let i = 0; i < links.length; i++) {
-    const link = links[i]!;
-    if (link.traceIndex === undefined) {
-      const key = `s${i}`;
-      if (!laneMap.has(key)) laneMap.set(key, nextLane++);
-    }
-  }
+  const globalCellBot = cellRects.reduce((m, r) => Math.max(m, r.y + r.h), 0);
 
-  const primitives: ScenePrimitive[] = [];
-
+  // ── Pass 1: resolve endpoints and choose a routing mode per link ──────────
+  const routes: RouteRecord[] = [];
   for (let i = 0; i < links.length; i++) {
     const link = links[i]!;
     const fromKey = `${link.fromCell.row},${link.fromCell.col}`;
@@ -1554,71 +1654,166 @@ function resolveAndDrawLinks(
 
     const fromRegistry = posterAnchors.get(fromKey);
     const toRegistry   = posterAnchors.get(toKey);
-
     if (!fromRegistry) {
-      warnings.push(
-        `[poster] link: source cell [${link.fromCell.row},${link.fromCell.col}] not found or has no anchors — link skipped.`,
-      );
+      warnings.push(`[poster] link: source cell [${link.fromCell.row},${link.fromCell.col}] not found or has no anchors — link skipped.`);
       continue;
     }
     if (!toRegistry) {
-      warnings.push(
-        `[poster] link: target cell [${link.toCell.row},${link.toCell.col}] not found or has no anchors — link skipped.`,
-      );
+      warnings.push(`[poster] link: target cell [${link.toCell.row},${link.toCell.col}] not found or has no anchors — link skipped.`);
       continue;
     }
 
     const srcAnchor = fromRegistry[link.fromNodeId]
-      ?? Object.values(fromRegistry).find(
-           (a) => a.id.toLowerCase() === link.fromNodeId.toLowerCase(),
-         );
+      ?? Object.values(fromRegistry).find((a) => a.id.toLowerCase() === link.fromNodeId.toLowerCase());
     const tgtAnchor = toRegistry[link.toNodeId]
-      ?? Object.values(toRegistry).find(
-           (a) => a.id.toLowerCase() === link.toNodeId.toLowerCase(),
-         );
-
+      ?? Object.values(toRegistry).find((a) => a.id.toLowerCase() === link.toNodeId.toLowerCase());
     if (!srcAnchor) {
-      warnings.push(
-        `[poster] link: node "${link.fromNodeId}" not found in cell [${link.fromCell.row},${link.fromCell.col}] (anchors: ${Object.keys(fromRegistry).join(', ')}) — link skipped.`,
-      );
+      warnings.push(`[poster] link: node "${link.fromNodeId}" not found in cell [${link.fromCell.row},${link.fromCell.col}] (anchors: ${Object.keys(fromRegistry).join(', ')}) — link skipped.`);
       continue;
     }
     if (!tgtAnchor) {
-      warnings.push(
-        `[poster] link: node "${link.toNodeId}" not found in cell [${link.toCell.row},${link.toCell.col}] (anchors: ${Object.keys(toRegistry).join(', ')}) — link skipped.`,
-      );
+      warnings.push(`[poster] link: node "${link.toNodeId}" not found in cell [${link.toCell.row},${link.toCell.col}] (anchors: ${Object.keys(toRegistry).join(', ')}) — link skipped.`);
       continue;
     }
 
-    // Bottom-centre ports — always route through the bottom-margin bus channel.
-    const srcPx = srcAnchor.x + srcAnchor.w / 2;
-    const srcPy = srcAnchor.y + srcAnchor.h;  // bottom of source node
-    const tgtPx = tgtAnchor.x + tgtAnchor.w / 2;
-    const tgtPy = tgtAnchor.y + tgtAnchor.h;  // bottom of target node
+    const srcCell = cellRectByKey.get(fromKey)!;
+    const tgtCell = cellRectByKey.get(toKey)!;
 
     const isDashed   = link.edgeStyle === '-..' || link.edgeStyle === '-.-' || link.edgeStyle === '-.->';
     const isDirected = link.edgeStyle === '-->' || link.edgeStyle === '-.->';
-
     const color = link.traceIndex !== undefined
       ? (traceColorMap.get(link.traceIndex) ?? STANDALONE_COLOR)
       : STANDALONE_COLOR;
-
     const laneGroupKey = link.traceIndex !== undefined ? `t${link.traceIndex}` : `s${i}`;
-    const laneIdx = laneMap.get(laneGroupKey) ?? 0;
-    const busLaneY = globalCellBot + BUS_MARGIN_TOP + laneIdx * BUS_LANE_PITCH;
 
-    primitives.push(...emitBusEdge(
-      srcPx, srcPy,
-      tgtPx, tgtPy,
-      busLaneY,
-      isDashed, isDirected,
-      color, STROKE_WIDTH,
-      link.label,
-      theme,
-    ));
+    // Port Y/X centres of the two nodes.
+    const srcCy = srcAnchor.y + srcAnchor.h / 2;
+    const tgtCy = tgtAnchor.y + tgtAnchor.h / 2;
+    const srcCx = srcAnchor.x + srcAnchor.w / 2;
+    const tgtCx = tgtAnchor.x + tgtAnchor.w / 2;
+
+    const EPS = 1;
+    let mode: RouteMode = 'bus';
+    let gutterCenter = 0;
+
+    if (tgtCell.x >= srcCell.x + srcCell.w - EPS) {
+      // target column lies to the RIGHT
+      const xLo = srcCell.x + srcCell.w, xHi = tgtCell.x;
+      const yLo = Math.min(srcCy, tgtCy), yHi = Math.max(srcCy, tgtCy);
+      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
+        mode = 'h-right';
+        gutterCenter = (xLo + xHi) / 2;
+      }
+    } else if (tgtCell.x + tgtCell.w <= srcCell.x + EPS) {
+      // target column lies to the LEFT
+      const xLo = tgtCell.x + tgtCell.w, xHi = srcCell.x;
+      const yLo = Math.min(srcCy, tgtCy), yHi = Math.max(srcCy, tgtCy);
+      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
+        mode = 'h-left';
+        gutterCenter = (xLo + xHi) / 2;
+      }
+    } else if (tgtCell.y >= srcCell.y + srcCell.h - EPS) {
+      // target row lies BELOW
+      const yLo = srcCell.y + srcCell.h, yHi = tgtCell.y;
+      const xLo = Math.min(srcCx, tgtCx), xHi = Math.max(srcCx, tgtCx);
+      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
+        mode = 'v-down';
+        gutterCenter = (yLo + yHi) / 2;
+      }
+    } else if (tgtCell.y + tgtCell.h <= srcCell.y + EPS) {
+      // target row lies ABOVE
+      const yLo = tgtCell.y + tgtCell.h, yHi = srcCell.y;
+      const xLo = Math.min(srcCx, tgtCx), xHi = Math.max(srcCx, tgtCx);
+      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
+        mode = 'v-up';
+        gutterCenter = (yLo + yHi) / 2;
+      }
+    }
+
+    const gutterKey = mode === 'bus'
+      ? 'bus'
+      : (mode === 'h-right' || mode === 'h-left')
+        ? `hx:${Math.round(gutterCenter)}`
+        : `vy:${Math.round(gutterCenter)}`;
+
+    routes.push({
+      linkIndex: i, link, srcAnchor, tgtAnchor,
+      mode, gutterCenter, gutterKey, laneGroupKey,
+      color, isDashed, isDirected,
+    });
   }
 
-  return primitives;
+  // ── Pass 2: deterministic lane assignment ─────────────────────────────────
+  // Per direct gutter: traces first (by traceIndex), then standalone links (by
+  // declaration order); each distinct group gets one lane centred in the gutter.
+  // Bus-fallback links share one global lane stack below the cells.
+  const gutterLanes = new Map<string, Map<string, number>>();
+  const gutterCount = new Map<string, number>();
+  const busLanes = new Map<string, number>();
+  let nextBusLane = 0;
+
+  const assign = (predicate: (r: RouteRecord) => boolean) => {
+    for (const r of routes) {
+      if (!predicate(r)) continue;
+      if (r.mode === 'bus') {
+        if (!busLanes.has(r.laneGroupKey)) busLanes.set(r.laneGroupKey, nextBusLane++);
+      } else {
+        let lanes = gutterLanes.get(r.gutterKey);
+        if (!lanes) { lanes = new Map(); gutterLanes.set(r.gutterKey, lanes); }
+        if (!lanes.has(r.laneGroupKey)) lanes.set(r.laneGroupKey, lanes.size);
+      }
+    }
+  };
+  assign((r) => r.link.traceIndex !== undefined); // traces first
+  assign((r) => r.link.traceIndex === undefined); // then standalone
+  for (const [key, lanes] of gutterLanes) gutterCount.set(key, lanes.size);
+
+  // ── Pass 3: emit ──────────────────────────────────────────────────────────
+  const primitives: ScenePrimitive[] = [];
+  let busBottomY = 0;
+
+  for (const r of routes) {
+    const { srcAnchor: s, tgtAnchor: t } = r;
+    const srcCy = s.y + s.h / 2, tgtCy = t.y + t.h / 2;
+    const srcCx = s.x + s.w / 2, tgtCx = t.x + t.w / 2;
+
+    if (r.mode === 'bus') {
+      const laneIdx = busLanes.get(r.laneGroupKey) ?? 0;
+      const busLaneY = globalCellBot + BUS_MARGIN_TOP + laneIdx * BUS_LANE_PITCH;
+      busBottomY = Math.max(busBottomY, busLaneY);
+      primitives.push(...emitBusEdge(
+        srcCx, s.y + s.h, tgtCx, t.y + t.h, busLaneY,
+        r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme,
+      ));
+      continue;
+    }
+
+    // Lane offset, centred within the gutter.
+    const lanes = gutterLanes.get(r.gutterKey)!;
+    const lane = lanes.get(r.laneGroupKey) ?? 0;
+    const count = gutterCount.get(r.gutterKey) ?? 1;
+    const offset = (lane - (count - 1) / 2) * GUTTER_PITCH;
+
+    if (r.mode === 'h-right') {
+      const srcPort = { x: s.x + s.w, y: srcCy };
+      const tgtPort = { x: t.x, y: tgtCy };
+      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'h', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
+    } else if (r.mode === 'h-left') {
+      const srcPort = { x: s.x, y: srcCy };
+      const tgtPort = { x: t.x + t.w, y: tgtCy };
+      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'h', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
+    } else if (r.mode === 'v-down') {
+      const srcPort = { x: srcCx, y: s.y + s.h };
+      const tgtPort = { x: tgtCx, y: t.y };
+      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'v', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
+    } else { // v-up
+      const srcPort = { x: srcCx, y: s.y };
+      const tgtPort = { x: tgtCx, y: t.y + t.h };
+      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'v', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
+    }
+  }
+
+  return { primitives, busBottomY };
 }
 
 /**

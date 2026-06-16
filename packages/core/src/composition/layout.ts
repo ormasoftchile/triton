@@ -238,7 +238,7 @@ function computeGridLayout(
   const chromeHeightExtra = cellTitleHeight + chromePadding;
   const chromeWidthExtra = chromePadding;
 
-  // ── Pass 1a: natural column widths ────────────────────────────────────────
+  // ── Pass 1a: natural column widths (single-span cells set their column) ───
   const colWidths: number[] = new Array(columns).fill(0) as number[];
 
   for (const pc of placed) {
@@ -246,6 +246,26 @@ function computeGridLayout(
       const naturalW = pc.subScene.width + chromeWidthExtra;
       if (naturalW > colWidths[pc.col]!) {
         colWidths[pc.col] = naturalW;
+      }
+    }
+  }
+
+  // ── Pass 1a': column-spanning cells distribute any width deficit ──────────
+  // A cell that spans multiple columns (or sits alone in a column with no
+  // single-span occupant) must not be squeezed below its natural width.  If
+  // its natural width exceeds the columns it covers, distribute the deficit
+  // evenly across those columns so the spanning content fits.
+  for (const pc of placed) {
+    if (pc.colSpan >= 1 && (pc.colSpan > 1 || colWidths[pc.col] === 0)) {
+      const naturalW = pc.subScene.width + chromeWidthExtra;
+      let spannedW = 0;
+      for (let c = pc.col; c < pc.col + pc.colSpan; c++) spannedW += colWidths[c] ?? 0;
+      spannedW += (pc.colSpan - 1) * gap;
+      if (naturalW > spannedW) {
+        const add = (naturalW - spannedW) / pc.colSpan;
+        for (let c = pc.col; c < pc.col + pc.colSpan; c++) {
+          colWidths[c] = (colWidths[c] ?? 0) + add;
+        }
       }
     }
   }
@@ -286,6 +306,32 @@ function computeGridLayout(
   // Ensure minimum row heights (at least 60px).
   for (let r = 0; r < rows; r++) {
     rowHeights[r] = Math.max(rhuInt(rowHeights[r]!), 60);
+  }
+
+  // ── Pass 2': row-spanning cells distribute any height deficit ─────────────
+  // A cell spanning multiple rows must be tall enough to show its (width-
+  // fitted) content.  If its fitted height exceeds the rows it covers,
+  // distribute the deficit evenly so the tall cell — e.g. a class-diagram hub
+  // beside a stack of shorter cells — is never vertically squeezed.
+  for (const pc of placed) {
+    if (pc.rowSpan > 1) {
+      const naturalW = pc.subScene.width + chromeWidthExtra;
+      const naturalH = pc.subScene.height + chromeHeightExtra;
+      let spannedColW = 0;
+      for (let c = pc.col; c < pc.col + pc.colSpan; c++) spannedColW += colWidths[c] ?? 0;
+      spannedColW += (pc.colSpan - 1) * gap;
+      const fitScale = naturalW > 0 ? Math.min(spannedColW / naturalW, 1.0) : 1.0;
+      const fittedH = naturalH * fitScale;
+      let spannedH = 0;
+      for (let r = pc.row; r < pc.row + pc.rowSpan; r++) spannedH += rowHeights[r] ?? 0;
+      spannedH += (pc.rowSpan - 1) * gap;
+      if (fittedH > spannedH) {
+        const add = (fittedH - spannedH) / pc.rowSpan;
+        for (let r = pc.row; r < pc.row + pc.rowSpan; r++) {
+          rowHeights[r] = rhuInt((rowHeights[r] ?? 0) + add);
+        }
+      }
+    }
   }
 
   // rowSizing: 'equal' normalizes all rows to the global max height AFTER the

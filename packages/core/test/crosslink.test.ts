@@ -552,3 +552,113 @@ trace "partial" satisfies : A1.X --> B1.NONEXISTENT --> B1.GoodClass
     expect(result.warnings.some(w => w.includes('NONEXISTENT') || w.includes('not found'))).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Group F: Poster DSL cell-span addressing (hybrid layouts)
+//
+//   The poster DSL lets a single cell span a rectangular block of the grid so
+//   a tall diagram can sit beside a stack of shorter ones. Three header forms
+//   are accepted and all feed Cell.colSpan / Cell.rowSpan:
+//     F1. Excel range    `cell B1:B2:`        → col 1, rowSpan 2
+//     F2. bracket range  `cell [0,1]:[1,1]:`  → col 1, rowSpan 2
+//     F3. keyword form   `cell B1 rowspan 2:` → col 1, rowSpan 2
+//     F4. colSpan range  `cell A1:B1:`        → row 0, colSpan 2
+//     F5. single-cell addressing still yields span 1 (no regression)
+//     F6. spanning cell renders end-to-end without warnings
+// ---------------------------------------------------------------------------
+describe('Cross-Diagram Links — Group F: poster cell spans', () => {
+  const hybrid = (header: string) => `
+---
+theme: executive
+layout: grid 2x2
+---
+poster "Span"
+
+  cell A1: flowchart LR
+    A[a] --> B[b]
+
+  cell A2: flowchart LR
+    C[c] --> D[d]
+
+  cell ${header}: classDiagram
+    class Hub
+`;
+
+  it('F1: Excel range B1:B2 → col 1, rowSpan 2', () => {
+    const { doc } = parsePosterInternal(hybrid('B1:B2'));
+    const span = doc.cells.find(c => (c.rowSpan ?? 1) > 1 || (c.colSpan ?? 1) > 1);
+    expect(span).toBeTruthy();
+    expect(span!.row).toBe(0);
+    expect(span!.col).toBe(1);
+    expect(span!.rowSpan).toBe(2);
+    expect(span!.colSpan ?? 1).toBe(1);
+  });
+
+  it('F2: bracket range [0,1]:[1,1] → col 1, rowSpan 2', () => {
+    const { doc } = parsePosterInternal(hybrid('[0,1]:[1,1]'));
+    const span = doc.cells.find(c => (c.rowSpan ?? 1) > 1);
+    expect(span).toBeTruthy();
+    expect(span!.row).toBe(0);
+    expect(span!.col).toBe(1);
+    expect(span!.rowSpan).toBe(2);
+  });
+
+  it('F3: keyword form `B1 rowspan 2` → col 1, rowSpan 2', () => {
+    const { doc } = parsePosterInternal(hybrid('B1 rowspan 2'));
+    const span = doc.cells.find(c => (c.rowSpan ?? 1) > 1);
+    expect(span).toBeTruthy();
+    expect(span!.row).toBe(0);
+    expect(span!.col).toBe(1);
+    expect(span!.rowSpan).toBe(2);
+  });
+
+  it('F4: Excel range A1:B1 → row 0, colSpan 2', () => {
+    const src = `
+---
+theme: executive
+layout: grid 2x2
+---
+poster "ColSpan"
+
+  cell A1:B1: flowchart LR
+    A[a] --> B[b]
+
+  cell A2: flowchart LR
+    C[c] --> D[d]
+`;
+    const { doc } = parsePosterInternal(src);
+    const span = doc.cells.find(c => (c.colSpan ?? 1) > 1);
+    expect(span).toBeTruthy();
+    expect(span!.row).toBe(0);
+    expect(span!.col).toBe(0);
+    expect(span!.colSpan).toBe(2);
+    expect(span!.rowSpan ?? 1).toBe(1);
+  });
+
+  it('F5: single-cell addressing yields no span (regression)', () => {
+    const src = `
+---
+theme: executive
+layout: grid 2x1
+---
+poster "Single"
+
+  cell A1: flowchart LR
+    A[a] --> B[b]
+
+  cell B1: classDiagram
+    class Hub
+`;
+    const { doc } = parsePosterInternal(src);
+    for (const c of doc.cells) {
+      expect(c.colSpan ?? 1).toBe(1);
+      expect(c.rowSpan ?? 1).toBe(1);
+    }
+  });
+
+  it('F6: spanning hub poster renders without span-related warnings', () => {
+    const result = renderMermaid(hybrid('B1:B2'), { format: 'svg' });
+    expect(result.svg).toBeTruthy();
+    expect(result.warnings.some(w => /span/i.test(w))).toBe(false);
+  });
+});

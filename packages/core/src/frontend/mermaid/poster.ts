@@ -29,6 +29,16 @@
  *              Row number is 1-indexed (row 1 → internal row 0).
  *              So A1≡[0,0], B1≡[0,1], A2≡[1,0], AA1≡[0,26].
  *
+ * Cell SPAN forms (a cell may span multiple rows and/or columns):
+ *  - Excel range:    `cell B1:B2:` — top-left B1 (col 1, row 0) through
+ *                    bottom-right B2 → colSpan 1, rowSpan 2.  `cell A1:B2:` →
+ *                    colSpan 2, rowSpan 2.  The two corners may be given in any
+ *                    order; the bounding box is normalised.
+ *  - Bracket range:  `cell [0,1]:[1,1]:` — top-left [0,1] through [1,1].
+ *  - Keyword:        `cell B1 rowspan 2:` / `cell A1 colspan 2 rowspan 2:`.
+ *  Spans feed the composition engine's Cell.colSpan / Cell.rowSpan, so a tall
+ *  cell can occupy a column beside a stack of shorter cells (hybrid posters).
+ *
  * Design notes:
  *  - `parsePosterInternal` is pure: no I/O, no imports from index.ts.
  *  - Composition-theme factories (`buildCompositionThemeFor`) map contract
@@ -46,10 +56,20 @@ import { preprocessMermaid } from './utils.js';
 // ---------------------------------------------------------------------------
 
 export interface PosterCellDef {
-  /** 0-indexed row position. */
+  /** 0-indexed row position (top-left corner of a spanning cell). */
   row: number;
-  /** 0-indexed column position. */
+  /** 0-indexed column position (top-left corner of a spanning cell). */
   col: number;
+  /**
+   * Number of columns this cell spans. Default: 1.
+   * Set via the range form `cell A1:B1:` or the keyword form `cell A1 colspan 2:`.
+   */
+  colSpan?: number;
+  /**
+   * Number of rows this cell spans. Default: 1.
+   * Set via the range form `cell B1:B2:` or the keyword form `cell B1 rowspan 2:`.
+   */
+  rowSpan?: number;
   /**
    * The diagram type header (everything after `cell [r,c]:`).
    * E.g. `"flowchart LR"`, `"sequenceDiagram"`, `"mindmap"`.
@@ -169,6 +189,31 @@ const CELL_HEADER_RE = /^(\s*)cell\s*\[(\d+)\s*,\s*(\d+)\]\s*:\s*(.+)$/i;
  * Capture groups: (indent)(colLetters)(rowNumber)(typeHeader)
  */
 const CELL_HEADER_EXCEL_RE = /^(\s*)cell\s+([A-Za-z]+)(\d+)\s*:\s*(.+)$/i;
+
+/**
+ * Cell header — Excel RANGE (span) form: `  cell A1:B2: typeHeader`
+ * Two corner addresses separated by a colon, then the usual `:` + typeHeader.
+ * Capture groups: (indent)(col1)(row1)(col2)(row2)(typeHeader)
+ */
+const CELL_HEADER_EXCEL_RANGE_RE =
+  /^(\s*)cell\s+([A-Za-z]+)(\d+)\s*:\s*([A-Za-z]+)(\d+)\s*:\s*(.+)$/i;
+
+/**
+ * Cell header — bracket RANGE (span) form: `  cell [0,1]:[1,1]: typeHeader`
+ * Two corner addresses separated by a colon, then the usual `:` + typeHeader.
+ * Capture groups: (indent)(r1)(c1)(r2)(c2)(typeHeader)
+ */
+const CELL_HEADER_BRACKET_RANGE_RE =
+  /^(\s*)cell\s*\[(\d+)\s*,\s*(\d+)\]\s*:\s*\[(\d+)\s*,\s*(\d+)\]\s*:\s*(.+)$/i;
+
+/**
+ * Cell header — keyword span form: `  cell A1 colspan 2 rowspan 2: typeHeader`
+ * A single anchor address (bracket or Excel) followed by optional
+ * `colspan N` / `rowspan N` tokens (any order), then `:` + typeHeader.
+ * Capture groups: (indent)(anchorAddr)(spanTokens)(typeHeader)
+ */
+const CELL_HEADER_KEYWORD_SPAN_RE =
+  /^(\s*)cell\s+(\[\s*\d+\s*,\s*\d+\s*\]|[A-Za-z]+\d+)\s+((?:(?:col|row)span\s+\d+\s*)+):\s*(.+)$/i;
 
 /** Detects any line starting with the `cell` keyword (used for malformed-address warning). */
 const CELL_KEYWORD_RE = /^(\s*)cell\s/i;
@@ -325,6 +370,23 @@ function addrToRowCol(addr: string): { row: number; col: number } | null {
 }
 
 /**
+ * Build a spanning-cell parser-state record from two opposite corner
+ * addresses.  The bounding box is normalised so the anchor is the top-left
+ * corner; colSpan / rowSpan are the inclusive extents.
+ */
+function makeSpanningCell(
+  a: { row: number; col: number },
+  b: { row: number; col: number },
+  typeHeader: string,
+): { row: number; col: number; colSpan: number; rowSpan: number; typeHeader: string; rawLines: string[] } {
+  const row = Math.min(a.row, b.row);
+  const col = Math.min(a.col, b.col);
+  const rowSpan = Math.abs(a.row - b.row) + 1;
+  const colSpan = Math.abs(a.col - b.col) + 1;
+  return { row, col, colSpan, rowSpan, typeHeader, rawLines: [] };
+}
+
+/**
  * Parse raw poster DSL text into a `PosterDocument`.
  *
  * Parses frontmatter (`theme:`, `layout:`), the `poster "Title"` header,
@@ -370,7 +432,14 @@ export function parsePosterInternal(text: string): {
   const traces: TraceRecord[] = [];
 
   // Parser state
-  let currentCell: { row: number; col: number; typeHeader: string; rawLines: string[] } | null = null;
+  let currentCell: {
+    row: number;
+    col: number;
+    colSpan: number;
+    rowSpan: number;
+    typeHeader: string;
+    rawLines: string[];
+  } | null = null;
   let foundPosterLine = false;
 
   const flushCurrentCell = () => {
@@ -379,6 +448,8 @@ export function parsePosterInternal(text: string): {
     cells.push({
       row: currentCell.row,
       col: currentCell.col,
+      ...(currentCell.colSpan > 1 ? { colSpan: currentCell.colSpan } : {}),
+      ...(currentCell.rowSpan > 1 ? { rowSpan: currentCell.rowSpan } : {}),
       typeHeader: currentCell.typeHeader,
       body: deindented,
     });
@@ -552,23 +623,73 @@ export function parsePosterInternal(text: string): {
       continue;
     }
 
-    // Detect cell header — try bracket form first, then Excel form.
+    // Detect cell header.  Span (range / keyword) forms are tried FIRST because
+    // the single-cell regexes would otherwise greedily mis-parse the second
+    // corner address as part of the type header.
+    //
+    // 1) Excel range:    cell A1:B2: typeHeader
+    const excelRangeM = CELL_HEADER_EXCEL_RANGE_RE.exec(trimmed);
+    if (excelRangeM) {
+      flushCurrentCell();
+      const a = excelToRowCol(excelRangeM[2]!, excelRangeM[3]!);
+      const b = excelToRowCol(excelRangeM[4]!, excelRangeM[5]!);
+      currentCell = makeSpanningCell(a, b, (excelRangeM[6] ?? '').trim());
+      continue;
+    }
+
+    // 2) Bracket range:  cell [0,1]:[1,1]: typeHeader
+    const bracketRangeM = CELL_HEADER_BRACKET_RANGE_RE.exec(trimmed);
+    if (bracketRangeM) {
+      flushCurrentCell();
+      const a = { row: parseInt(bracketRangeM[2]!, 10), col: parseInt(bracketRangeM[3]!, 10) };
+      const b = { row: parseInt(bracketRangeM[4]!, 10), col: parseInt(bracketRangeM[5]!, 10) };
+      currentCell = makeSpanningCell(a, b, (bracketRangeM[6] ?? '').trim());
+      continue;
+    }
+
+    // 3) Keyword span:   cell A1 colspan 2 rowspan 2: typeHeader
+    const keywordSpanM = CELL_HEADER_KEYWORD_SPAN_RE.exec(trimmed);
+    if (keywordSpanM) {
+      const anchor = addrToRowCol(keywordSpanM[2]!.trim());
+      if (anchor) {
+        flushCurrentCell();
+        let colSpan = 1;
+        let rowSpan = 1;
+        const spanTokens = keywordSpanM[3]!;
+        const colM = /colspan\s+(\d+)/i.exec(spanTokens);
+        const rowM = /rowspan\s+(\d+)/i.exec(spanTokens);
+        if (colM) colSpan = Math.max(1, parseInt(colM[1]!, 10));
+        if (rowM) rowSpan = Math.max(1, parseInt(rowM[1]!, 10));
+        currentCell = {
+          row: anchor.row,
+          col: anchor.col,
+          colSpan,
+          rowSpan,
+          typeHeader: (keywordSpanM[4] ?? '').trim(),
+          rawLines: [],
+        };
+        continue;
+      }
+    }
+
+    // 4) Single bracket form: cell [row,col]: typeHeader
     const cellM = CELL_HEADER_RE.exec(trimmed);
     if (cellM) {
       flushCurrentCell();
       const row        = parseInt(cellM[2]!, 10);
       const col        = parseInt(cellM[3]!, 10);
       const typeHeader = (cellM[4] ?? '').trim();
-      currentCell = { row, col, typeHeader, rawLines: [] };
+      currentCell = { row, col, colSpan: 1, rowSpan: 1, typeHeader, rawLines: [] };
       continue;
     }
 
+    // 5) Single Excel form: cell A1: typeHeader
     const excelM = CELL_HEADER_EXCEL_RE.exec(trimmed);
     if (excelM) {
       flushCurrentCell();
       const { row, col } = excelToRowCol(excelM[2]!, excelM[3]!);
       const typeHeader   = (excelM[4] ?? '').trim();
-      currentCell = { row, col, typeHeader, rawLines: [] };
+      currentCell = { row, col, colSpan: 1, rowSpan: 1, typeHeader, rawLines: [] };
       continue;
     }
 
@@ -591,7 +712,7 @@ export function parsePosterInternal(text: string): {
 
   // Derive columns from cell positions if not specified in frontmatter
   if (!fmLayout && cells.length > 0) {
-    const maxCol = cells.reduce((m, c) => Math.max(m, c.col), 0);
+    const maxCol = cells.reduce((m, c) => Math.max(m, c.col + (c.colSpan ?? 1) - 1), 0);
     columns = maxCol + 1;
   }
 

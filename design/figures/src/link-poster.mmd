@@ -7,13 +7,13 @@ poster "Order Fulfilment System"
   cell A1: flowchart LR
     recv[Receive Order] --> valid[Validate]
     valid --> pay[Payment]
-    pay --> pick[Warehouse Pick]
-    pick --> ship[Dispatch]
+    valid --> pick[Warehouse Pick]
+    valid --> ship[Dispatch]
 
   cell B1: classDiagram
-    class OrderService
     class PaymentGateway
     class WarehouseSystem
+    class OrderService
     OrderService --> PaymentGateway
     OrderService --> WarehouseSystem
 

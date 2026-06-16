@@ -7,12 +7,12 @@ poster "Order Processing — Cross-Diagram Links Demo"
   cell A1: flowchart LR
     recv[Receive Order] --> validate[Validate]
     validate --> pay[Payment]
-    pay --> ship[Dispatch]
+    validate --> ship[Dispatch]
 
   cell B1: classDiagram
-    class OrderService
     class PaymentGateway
     class ShipmentHandler
+    class OrderService
     OrderService --> PaymentGateway
     OrderService --> ShipmentHandler
 

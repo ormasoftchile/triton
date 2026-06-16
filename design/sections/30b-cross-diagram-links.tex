@@ -112,13 +112,13 @@ poster "Order Fulfilment System"
   cell A1: flowchart LR
     recv[Receive Order] --> valid[Validate]
     valid --> pay[Payment]
-    pay --> pick[Warehouse Pick]
-    pick --> ship[Dispatch]
+    valid --> pick[Warehouse Pick]
+    valid --> ship[Dispatch]
 
   cell B1: classDiagram
-    class OrderService
     class PaymentGateway
     class WarehouseSystem
+    class OrderService
     OrderService --> PaymentGateway
     OrderService --> WarehouseSystem
 
@@ -136,9 +136,12 @@ link A1.ship --> C1.Shipped : "triggers"
 \ourdiagram[\linewidth]{link-poster}{%
   Rendered poster: three cross-diagram overlay edges connect the order-flow
   cell (left) to the service-class cell (centre) and the order-state cell
-  (right).  \texttt{link} edges are drawn by the compiler as directed overlay
-  arrows on top of the composed poster grid; node positions come from the
-  per-grammar anchor registries.}
+  (right).  The two adjacent-cell links (\texttt{handled by},
+  \texttt{fulfilled by}) route \emph{directly} through the vertical gutter
+  between the flow and class cells; the non-adjacent skip-link
+  (\texttt{triggers}, A1$\to$C1, which would cross the centre cell) falls back
+  to the bottom routing bus.  Node positions come from the per-grammar anchor
+  registries.}
 
 \texttt{link A1.pay --> B1.PaymentGateway} reads: ``draw a directed arrow
 from the node with id \texttt{pay} in cell \texttt{A1} to the class named
@@ -1060,28 +1063,55 @@ context.  The trace renders two cross-diagram hops:
 \texttt{A2}\,$\to$\,\texttt{B2} (architecture $\to$ ER), both coloured in
 \texttt{categorical[0]}.
 
+% ---- Cell spans (poster DSL) ----
+\subsubsection{Cell Spans in the Poster DSL}
+\label{sec:cdl-cell-spans}
+
+By default each \texttt{cell} header addresses a single grid cell.  To let a
+single diagram occupy a rectangular block of the grid, the poster DSL accepts a
+\emph{span} in the cell header.  Three equivalent forms are supported:
+
+\begin{lstlisting}[language=,caption={Cell span forms --- all three place one cell in column~B spanning rows 1--2 (rowSpan~2)}]
+cell B1:B2:    classDiagram   (* Excel range: top-left : bottom-right *)
+cell [0,1]:[1,1]: classDiagram   (* bracket range, 0-indexed row,col *)
+cell B1 rowspan 2: classDiagram   (* keyword form; colspan N also accepted *)
+\end{lstlisting}
+
+\noindent The range forms derive \texttt{colSpan}/\texttt{rowSpan} from the
+inclusive distance between the two endpoints; the keyword form sets them
+directly.  Spans feed straight into the composition engine's existing
+\texttt{Cell.colSpan}/\texttt{Cell.rowSpan} fields, and the grid layout
+distributes the spanning cell's intrinsic size across the tracks it covers so
+that a tall hub cell aligns flush with the combined height of the cells beside
+it.  Single-cell addressing is unchanged.
+
 % ---- Example 3: Requirements traceability (typed, multi-trace) ----
 \paragraph{Example 3 --- Requirements traceability with typed traces and a trace legend.}
 
 This is the flagship use case for typed traces.  A requirement in one cell is
-satisfied by a component in a second cell, which is verified by a test in a
-third.  Two separate \texttt{satisfies} traces make two independent
-traceability chains visible simultaneously, each in its own colour, with a
-generated legend.
+satisfied by a component in the hub cell, which is verified by a test in a
+third cell.  Following the directive's hybrid layout, the two \emph{wide}
+flowcharts (requirements and tests) are stacked in the left column and the
+\emph{tall} class diagram spans both rows on the right as the hub.  Two
+separate \texttt{satisfies} traces make two independent traceability chains
+visible simultaneously, each in its own colour, with a generated legend.
 
-\begin{lstlisting}[language=,caption={Multi-typed requirements traceability poster with trace legend (flow, class, flow)}]
+\begin{lstlisting}[language=,caption={Multi-typed requirements traceability poster --- hybrid layout: wide flows stacked left, tall class hub spanning two rows on the right}]
 ---
 theme: executive
-layout: grid 3x1
+layout: grid 2x2
 ---
 poster "Authentication System — Requirements Traceability"
 
-  cell A1: flowchart TD
-    REQ12[REQ-12: Authenticate within 500ms]
-    REQ13[REQ-13: Session token expires in 24h]
-    REQ12 --> REQ13
+  cell A1: flowchart LR
+    SPEC[Spec §4.2: Auth NFRs] --> REQ12[REQ-12: Authenticate < 500ms]
+    SPEC --> REQ13[REQ-13: Token expires in 24h]
 
-  cell B1: classDiagram
+  cell A2: flowchart LR
+    SUITE[CI auth-suite] --> AUTHT[auth_latency_test]
+    SUITE --> TOKT[token_expiry_test]
+
+  cell B1:B2: classDiagram
     class AuthController {
       +login(cred): Token
       +validate(tok): bool
@@ -1090,26 +1120,37 @@ poster "Authentication System — Requirements Traceability"
       +issue(uid): Token
       +revoke(tok): void
     }
+    class SessionCache {
+      +store(tok, ttl): void
+      +lookup(tok): Session
+    }
     AuthController --> TokenService : issues
+    TokenService --> SessionCache : stores
 
-  cell C1: flowchart TD
-    T1[auth_latency_test]
-    T2[token_expiry_test]
-    T1 --> R1[assert p99 < 500ms]
-    T2 --> R2[assert exp = now+86400s]
-
-trace "REQ-12 trace" satisfies : A1.REQ12 --> B1.AuthController --> C1.T1
-trace "REQ-13 trace" satisfies : A1.REQ13 --> B1.TokenService --> C1.T2
+trace "REQ-12" satisfies : A1.REQ12 --> B1.AuthController --> A2.AUTHT
+trace "REQ-13" satisfies : A1.REQ13 --> B1.TokenService --> A2.TOKT
 \end{lstlisting}
 
+The cell header \texttt{cell B1:B2} uses the \emph{span} form of the poster DSL
+(Section~\ref{sec:cdl-cell-spans}): the Excel range \texttt{B1:B2} places one
+cell in column~B spanning rows~1--2, i.e. \texttt{rowSpan = 2}.  This is the
+hybrid layout the directive calls for: the two \emph{wide} flowcharts (the
+requirements in \texttt{A1} and the tests in \texttt{A2}) are stacked in the
+left column, and the naturally \emph{tall} class diagram is placed to their
+right as a single hub cell spanning their combined height.  Each
+\texttt{satisfies} trace threads out of a requirement node, directly through the
+central gutter into the hub class, then back out to the matching test node.
+
 \ourdiagram[\linewidth]{trace-poster}{%
-  Rendered poster: two \texttt{satisfies} traces
-  (\textcolor[HTML]{1F497D}{REQ-12 trace} and \textcolor[HTML]{2E86AB}{REQ-13 trace})
-  weave a traceability thread from requirement nodes (left cell, flowchart)
-  through service classes (centre cell, class diagram) to test nodes (right cell,
-  flowchart).  The auto-generated trace legend at the bottom shows each trace's
-  colour swatch, name, and \texttt{«satisfies»} type pill --- rendered directly
-  by the compiler from the listing above.}
+  Rendered hybrid poster: two \texttt{satisfies} traces
+  (\textcolor[HTML]{1F497D}{REQ-12} and \textcolor[HTML]{2E86AB}{REQ-13})
+  weave a traceability thread from the requirement nodes (top-left cell) and
+  test nodes (bottom-left cell) through the tall service-class hub (right cell,
+  spanning both rows).  Each trace routes directly through the central gutter
+  --- lane-separated by colour, with arrowheads landing at cell boundaries and
+  no segment crossing a non-endpoint node.  The auto-generated trace legend at
+  the bottom shows each trace's colour swatch, name, and \texttt{«satisfies»}
+  type pill --- rendered directly by the compiler from the listing above.}
 
 The two traces render in \texttt{categorical[0]} and \texttt{categorical[1]}
 of the executive theme respectively.  The auto-generated legend beneath the
@@ -1117,34 +1158,38 @@ poster grid reads:
 
 \begin{center}\small
 \begin{tabular}{lll}
-\textbf{[swatch]} & REQ-12 trace & \textsf{«satisfies»} \\
-\textbf{[swatch]} & REQ-13 trace & \textsf{«satisfies»} \\
+\textbf{[swatch]} & REQ-12 & \textsf{«satisfies»} \\
+\textbf{[swatch]} & REQ-13 & \textsf{«satisfies»} \\
 \end{tabular}
 \end{center}
 
-A reviewer hovers ``REQ-12 trace'' in the legend to highlight only the first
+A reviewer hovers ``REQ-12'' in the legend to highlight only the first
 colour thread --- from the requirement cell through \texttt{AuthController} to
-\texttt{T1} --- while all other cells and the REQ-13 trace dim to 40\%
+\texttt{auth\_latency\_test} --- while all other cells and the REQ-13 trace dim
+to 40\%
 opacity.  The filter mode lets a reviewer isolate a single requirement's
 complete traceability chain on a poster that may contain dozens of requirements
 and components.  This is the core interaction model for poster-scale
 traceability review.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\subsubsection{Rendered Example: Two Typed Traces Across Three Diagram Layers}
+\subsubsection{Rendered Example: Two Typed Traces in the Hybrid Layout}
 \label{sec:cdl-trace-rendered}
 
 The following poster was rendered by the Timeline compiler (Phase~B,
-\texttt{poster-trace.mmd}).  It uses three cells --- a flowchart of
-requirements, a class diagram of services, and a flowchart of tests --- with
-two named, typed \texttt{satisfies} traces.
+\texttt{crosslink-poster.mmd}).  It adopts the same hybrid layout as the worked
+example above: the wide requirement and test flowcharts are stacked in the left
+column, and the tall service class diagram spans both rows as the hub on the
+right.  Two named, typed \texttt{satisfies} traces thread through it.
 
 \ourdiagram[0.97\linewidth]{crosslink-poster}{%
-  Rendered poster: two \texttt{satisfies} traces (\textcolor[HTML]{1F497D}{REQ-01 chain}
+  Rendered hybrid poster: two \texttt{satisfies} traces (\textcolor[HTML]{1F497D}{REQ-01 chain}
   and \textcolor[HTML]{2E86AB}{REQ-02 chain}) weave a traceability thread from
-  requirement nodes (left cell) through service classes (centre cell) to test
-  nodes (right cell).  The trace legend at the bottom shows each trace's colour
-  swatch, name, and \texttt{«satisfies»} type pill.}
+  the requirement nodes (top-left cell) and test nodes (bottom-left cell)
+  through the service class hub (right cell, spanning both rows).  Each trace
+  routes directly through the central gutter, lane-separated by colour.  The
+  trace legend at the bottom shows each trace's colour swatch, name, and
+  \texttt{«satisfies»} type pill.}
 
 \noindent The categorical data palette provides perceptually-distinct trace
 colours that are on-brand with the \texttt{executive} theme and do not clash

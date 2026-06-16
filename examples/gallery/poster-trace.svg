@@ -1,72 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="448" version="1.1" viewBox="0 0 1200 448" width="1200" xmlns="http://www.w3.org/2000/svg">
-  <rect fill="#FFFFFF" height="398" width="1200" x="0" y="0"/>
+<svg height="762" version="1.1" viewBox="0 0 1200 762" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="712" width="1200" x="0" y="0"/>
   <rect fill="#1F497D" height="60" width="1200" x="0" y="0"/>
-  <text dominant-baseline="central" fill="#FFFFFF" font-family="Georgia, serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="30">Payment System — Requirements Traceability</text>
-  <rect fill="#F8F9FB" height="254" rx="6" stroke="#1F497D" stroke-width="1" width="423" x="24" y="84"/>
-  <rect fill="#FFFFFF" height="86.69" width="397" x="37" y="97"/>
-  <path d="M213.38 131.08 L234.3 131.08 L234.3 131.08 L250.45 131.08" fill="none" stroke="#E2E8F0" stroke-width="0.9"/>
-  <rect fill="#F8F9FA" height="29.3" rx="0" stroke="#1F497D" stroke-width="0.9" width="149.47" x="63.91" y="116.13"/>
-  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.17" font-weight="600" text-anchor="middle" x="138.64" y="131.08">REQ-01: Authenticate within 500ms</text>
-  <rect fill="#F8F9FA" height="29.3" rx="0" stroke="#1F497D" stroke-width="0.9" width="155.45" x="254.63" y="116.13"/>
-  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.17" font-weight="600" text-anchor="middle" x="332.36" y="131.08">REQ-02: Session token expires in 24h</text>
-  <path d="M254.63 131.08 L250.45 128.69 L250.45 133.47 Z" fill="#64748B" stroke="none" stroke-width="0"/>
-  <rect fill="#F8F9FB" height="254" rx="6" stroke="#1F497D" stroke-width="1" width="354" x="463" y="84"/>
-  <line stroke="#94A3B8" stroke-width="0.89" x1="558" x2="558" y1="189.7" y2="211.09"/>
-  <line stroke="#94A3B8" stroke-width="0.89" x1="611.48" x2="664.96" y1="250.3" y2="163.55"/>
-  <rect fill="#F8F9FA" height="64.17" rx="2.38" stroke="#E2E8F0" stroke-width="0.59" width="106.96" x="504.52" y="125.52"/>
-  <rect fill="#F1F5F9" height="27.33" rx="2.38" stroke="#1F497D" stroke-width="0.89" width="106.96" x="504.52" y="125.52"/>
-  <line stroke="#E2E8F0" stroke-width="0.59" x1="504.52" x2="611.48" y1="152.86" y2="152.86"/>
-  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="8.32" font-weight="700" text-anchor="middle" x="558" y="140.38">AuthController</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.13" font-weight="500" text-anchor="start" x="515.22" y="165.93">+login(cred): : Token</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.13" font-weight="500" text-anchor="start" x="515.22" y="177.22">+validate(tok): : bool</text>
-  <rect fill="#F8F9FA" height="64.17" rx="2.38" stroke="#E2E8F0" stroke-width="0.59" width="106.96" x="504.52" y="218.22"/>
-  <rect fill="#F1F5F9" height="27.33" rx="2.38" stroke="#1F497D" stroke-width="0.89" width="106.96" x="504.52" y="218.22"/>
-  <line stroke="#E2E8F0" stroke-width="0.59" x1="504.52" x2="611.48" y1="245.55" y2="245.55"/>
-  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="8.32" font-weight="700" text-anchor="middle" x="558" y="233.07">TokenService</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.13" font-weight="500" text-anchor="start" x="515.22" y="258.62">+issue(uid): : Token</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.13" font-weight="500" text-anchor="start" x="515.22" y="269.91">+revoke(tok): : void</text>
-  <rect fill="#F8F9FA" height="64.17" rx="2.38" stroke="#E2E8F0" stroke-width="0.59" width="106.96" x="668.52" y="125.52"/>
-  <rect fill="#F1F5F9" height="27.33" rx="2.38" stroke="#1F497D" stroke-width="0.89" width="106.96" x="668.52" y="125.52"/>
-  <line stroke="#E2E8F0" stroke-width="0.59" x1="668.52" x2="775.48" y1="152.86" y2="152.86"/>
-  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="8.32" font-weight="700" text-anchor="middle" x="722" y="140.38">SessionCache</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.13" font-weight="500" text-anchor="start" x="679.22" y="165.93">+store(tok, ttl): : void</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.13" font-weight="500" text-anchor="start" x="679.22" y="177.22">+lookup(tok): : Session</text>
-  <path d="M553.84 211.09 L558 218.22 L562.16 211.09" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="0.89"/>
-  <path d="M668.52 165.93 L668.52 157.61 L661.39 161.17" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="0.89"/>
-  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="5.94" font-weight="500" text-anchor="middle" x="563.94" y="203.96">issues</text>
-  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="5.94" font-weight="500" text-anchor="middle" x="634.65" y="200.99">stores</text>
-  <rect fill="#F8F9FB" height="254" rx="6" stroke="#1F497D" stroke-width="1" width="343" x="833" y="84"/>
-  <rect fill="#FFFFFF" height="134.16" width="317" x="846" y="97"/>
-  <path d="M973.63 130.84 L1003.91 130.84 L1003.91 130.84 L1029.43 130.84" fill="none" stroke="#E2E8F0" stroke-width="0.89"/>
-  <path d="M973.63 178.92 L999.16 178.92 L999.16 178.92 L1019.93 178.92" fill="none" stroke="#E2E8F0" stroke-width="0.89"/>
-  <rect fill="#F8F9FA" height="29.09" rx="0" stroke="#1F497D" stroke-width="0.89" width="90.83" x="882.81" y="116"/>
-  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.12" font-weight="600" text-anchor="middle" x="927.92" y="130.84">auth_latency_test</text>
-  <rect fill="#F8F9FA" height="29.09" rx="0" stroke="#1F497D" stroke-width="0.89" width="90.83" x="882.81" y="164.08"/>
-  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.12" font-weight="600" text-anchor="middle" x="927.92" y="178.92">token_expiry_test</text>
-  <rect fill="#F8F9FA" height="29.09" rx="0" stroke="#1F497D" stroke-width="0.89" width="96.76" x="1033.59" y="116"/>
-  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.12" font-weight="600" text-anchor="middle" x="1081.67" y="130.84">assert p99 &lt; 500ms</text>
-  <rect fill="#F8F9FA" height="29.09" rx="0" stroke="#1F497D" stroke-width="0.89" width="115.76" x="1024.09" y="164.08"/>
-  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="7.12" font-weight="600" text-anchor="middle" x="1081.67" y="178.92">assert exp = now+86400s</text>
-  <path d="M1033.59 130.84 L1029.43 128.46 L1029.43 133.21 Z" fill="#64748B" stroke="none" stroke-width="0"/>
-  <path d="M1024.09 178.92 L1019.93 176.55 L1019.93 181.3 Z" fill="#64748B" stroke="none" stroke-width="0"/>
-  <path d="M 138.64 145.43 L 138.64 352.00 L 558.00 352.00 L 558.00 189.70" fill="none" opacity="0.92" stroke="#1F497D" stroke-linecap="round" stroke-width="2"/>
-  <path d="M 558.00 189.70 L 562.00 198.70 L 554.00 198.70 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
-  <path d="M 558.00 189.70 L 558.00 352.00 L 928.22 352.00 L 928.22 145.08" fill="none" opacity="0.92" stroke="#1F497D" stroke-linecap="round" stroke-width="2"/>
-  <path d="M 928.22 145.08 L 932.22 154.08 L 924.22 154.08 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
-  <path d="M 332.36 145.43 L 332.36 370.00 L 558.00 370.00 L 558.00 282.39" fill="none" opacity="0.92" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
-  <path d="M 558.00 282.39 L 562.00 291.39 L 554.00 291.39 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
-  <path d="M 558.00 282.39 L 558.00 370.00 L 928.22 370.00 L 928.22 193.17" fill="none" opacity="0.92" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
-  <path d="M 928.22 193.17 L 932.22 202.17 L 924.22 202.17 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
-  <rect fill="#FFFFFF" height="50" rx="0" stroke="#1F497D" stroke-width="1" width="1200" x="0" y="398"/>
-  <line opacity="0.5" stroke="#1F497D" stroke-width="1" x1="0" x2="1200" y1="398" y2="398"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="600" text-anchor="start" x="18" y="423">Traces:</text>
-  <rect fill="#1F497D" height="12" rx="2" width="18" x="79.6" y="417"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="103.6" y="423">REQ-01 chain</text>
-  <rect fill="#9aadc5" height="20" rx="4" stroke="#1F497D" stroke-width="1" width="78" x="197.12" y="413"/>
-  <text dominant-baseline="central" fill="#1F497D" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="236.12" y="423">«satisfies»</text>
-  <rect fill="#2E86AB" height="12" rx="2" width="18" x="295.12" y="417"/>
-  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="319.12" y="423">REQ-02 chain</text>
-  <rect fill="#a1c9d9" height="20" rx="4" stroke="#2E86AB" stroke-width="1" width="78" x="412.64" y="413"/>
-  <text dominant-baseline="central" fill="#2E86AB" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="451.64" y="423">«satisfies»</text>
+  <text dominant-baseline="central" fill="#FFFFFF" font-family="Georgia, serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="30">Authentication System — Requirements Traceability</text>
+  <rect fill="#F8F9FB" height="252" rx="6" stroke="#1F497D" stroke-width="1" width="559" x="24" y="84"/>
+  <rect fill="#FFFFFF" height="202.79" width="533" x="37" y="108.6"/>
+  <path d="M253.25 196.54 L293.63 196.54 L293.63 159.75 L326.83 159.75" fill="none" stroke="#E2E8F0" stroke-width="1.35"/>
+  <path d="M253.25 196.54 L294.53 196.54 L294.53 232.43 L329.52 232.43" fill="none" stroke="#E2E8F0" stroke-width="1.35"/>
+  <rect fill="#F8F9FA" height="43.97" rx="0" stroke="#1F497D" stroke-width="1.35" width="157.93" x="95.32" y="174.11"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.77" font-weight="600" text-anchor="middle" x="174.29" y="196.54">Spec §4.2: Auth NFRs</text>
+  <rect fill="#F8F9FA" height="43.97" rx="0" stroke="#1F497D" stroke-width="1.35" width="201.89" x="333.11" y="137.32"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.77" font-weight="600" text-anchor="middle" x="433.61" y="159.75">REQ-12: Authenticate &lt; 500ms</text>
+  <rect fill="#F8F9FA" height="43.97" rx="0" stroke="#1F497D" stroke-width="1.35" width="195.61" x="335.8" y="210"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.77" font-weight="600" text-anchor="middle" x="433.61" y="232.43">REQ-13: Token expires in 24h</text>
+  <path d="M333.11 159.75 L326.83 156.16 L326.83 163.34 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M335.8 232.43 L329.52 228.84 L329.52 236.02 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <rect fill="#F8F9FB" height="280" rx="6" stroke="#1F497D" stroke-width="1" width="559" x="24" y="408"/>
+  <rect fill="#FFFFFF" height="226" width="450" x="78.5" y="435"/>
+  <path d="M258.5 533 L297.5 533 L297.5 492 L329.5 492" fill="none" stroke="#E2E8F0" stroke-width="1.5"/>
+  <path d="M258.5 533 L297.5 533 L297.5 573 L329.5 573" fill="none" stroke="#E2E8F0" stroke-width="1.5"/>
+  <rect fill="#F8F9FA" height="49" rx="0" stroke="#1F497D" stroke-width="1.5" width="126" x="132.5" y="508"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="195.5" y="533">CI auth-suite</text>
+  <rect fill="#F8F9FA" height="49" rx="0" stroke="#1F497D" stroke-width="1.5" width="153" x="336.5" y="467"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="412.5" y="492">auth_latency_test</text>
+  <rect fill="#F8F9FA" height="49" rx="0" stroke="#1F497D" stroke-width="1.5" width="153" x="336.5" y="548"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="600" text-anchor="middle" x="412.5" y="573">token_expiry_test</text>
+  <path d="M336.5 492 L329.5 488 L329.5 496 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M336.5 573 L329.5 569 L329.5 577 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <rect fill="#F8F9FB" height="604" rx="6" stroke="#1F497D" stroke-width="1" width="521" x="655" y="84"/>
+  <line stroke="#94A3B8" stroke-width="1.35" x1="791.75" x2="791.75" y1="364.48" y2="396.76"/>
+  <line stroke="#94A3B8" stroke-width="1.35" x1="872.46" x2="953.16" y1="455.95" y2="325.02"/>
+  <rect fill="#F8F9FA" height="96.85" rx="3.59" stroke="#E2E8F0" stroke-width="0.9" width="161.41" x="711.04" y="267.63"/>
+  <rect fill="#F1F5F9" height="41.25" rx="3.59" stroke="#1F497D" stroke-width="1.35" width="161.41" x="711.04" y="267.63"/>
+  <line stroke="#E2E8F0" stroke-width="0.9" x1="711.04" x2="872.46" y1="308.88" y2="308.88"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="12.55" font-weight="700" text-anchor="middle" x="791.75" y="290.05">AuthController</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.76" font-weight="500" text-anchor="start" x="727.18" y="328.61">+login(cred): : Token</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.76" font-weight="500" text-anchor="start" x="727.18" y="345.65">+validate(tok): : bool</text>
+  <rect fill="#F8F9FA" height="96.85" rx="3.59" stroke="#E2E8F0" stroke-width="0.9" width="161.41" x="711.04" y="407.52"/>
+  <rect fill="#F1F5F9" height="41.25" rx="3.59" stroke="#1F497D" stroke-width="1.35" width="161.41" x="711.04" y="407.52"/>
+  <line stroke="#E2E8F0" stroke-width="0.9" x1="711.04" x2="872.46" y1="448.77" y2="448.77"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="12.55" font-weight="700" text-anchor="middle" x="791.75" y="429.94">TokenService</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.76" font-weight="500" text-anchor="start" x="727.18" y="468.5">+issue(uid): : Token</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.76" font-weight="500" text-anchor="start" x="727.18" y="485.54">+revoke(tok): : void</text>
+  <rect fill="#F8F9FA" height="96.85" rx="3.59" stroke="#E2E8F0" stroke-width="0.9" width="161.41" x="958.54" y="267.63"/>
+  <rect fill="#F1F5F9" height="41.25" rx="3.59" stroke="#1F497D" stroke-width="1.35" width="161.41" x="958.54" y="267.63"/>
+  <line stroke="#E2E8F0" stroke-width="0.9" x1="958.54" x2="1119.96" y1="308.88" y2="308.88"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="12.55" font-weight="700" text-anchor="middle" x="1039.25" y="290.05">SessionCache</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.76" font-weight="500" text-anchor="start" x="974.68" y="328.61">+store(tok, ttl): : void</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="10.76" font-weight="500" text-anchor="start" x="974.68" y="345.65">+lookup(tok): : Session</text>
+  <path d="M785.47 396.76 L791.75 407.52 L798.03 396.76" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.35"/>
+  <path d="M958.54 328.61 L958.54 316.05 L947.78 321.43" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.35"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="8.97" font-weight="500" text-anchor="middle" x="800.72" y="386">issues</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="8.97" font-weight="500" text-anchor="middle" x="907.43" y="381.52">stores</text>
+  <path d="M 535.01 159.30 L 609.00 159.30 L 609.00 316.05 L 711.04 316.05" fill="none" opacity="0.95" stroke="#1F497D" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 711.04 316.05 L 702.04 320.05 L 702.04 312.05 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
+  <path d="M 711.04 316.05 L 609.00 316.05 L 609.00 491.50 L 489.50 491.50" fill="none" opacity="0.95" stroke="#1F497D" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 489.50 491.50 L 498.50 487.50 L 498.50 495.50 Z" fill="#1F497D" stroke="none" stroke-width="0"/>
+  <path d="M 531.42 231.98 L 629.00 231.98 L 629.00 455.95 L 711.04 455.95" fill="none" opacity="0.95" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 711.04 455.95 L 702.04 459.95 L 702.04 451.95 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
+  <path d="M 711.04 455.95 L 629.00 455.95 L 629.00 572.50 L 489.50 572.50" fill="none" opacity="0.95" stroke="#2E86AB" stroke-linecap="round" stroke-width="2"/>
+  <path d="M 489.50 572.50 L 498.50 568.50 L 498.50 576.50 Z" fill="#2E86AB" stroke="none" stroke-width="0"/>
+  <rect fill="#FFFFFF" height="50" rx="0" stroke="#1F497D" stroke-width="1" width="1200" x="0" y="712"/>
+  <line opacity="0.5" stroke="#1F497D" stroke-width="1" x1="0" x2="1200" y1="712" y2="712"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="600" text-anchor="start" x="18" y="737">Traces:</text>
+  <rect fill="#1F497D" height="12" rx="2" width="18" x="79.6" y="731"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="103.6" y="737">REQ-12</text>
+  <rect fill="#9aadc5" height="20" rx="4" stroke="#1F497D" stroke-width="1" width="78" x="155.36" y="727"/>
+  <text dominant-baseline="central" fill="#1F497D" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="194.36" y="737">«satisfies»</text>
+  <rect fill="#2E86AB" height="12" rx="2" width="18" x="253.36" y="731"/>
+  <text dominant-baseline="central" fill="#333333" font-family="Georgia, serif" font-size="12" font-weight="400" text-anchor="start" x="277.36" y="737">REQ-13</text>
+  <rect fill="#a1c9d9" height="20" rx="4" stroke="#2E86AB" stroke-width="1" width="78" x="329.12" y="727"/>
+  <text dominant-baseline="central" fill="#2E86AB" font-family="Georgia, serif" font-size="10" font-weight="400" text-anchor="middle" x="368.12" y="737">«satisfies»</text>
 </svg>
