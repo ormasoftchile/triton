@@ -224,20 +224,10 @@ A TypeScript core with WASM or native compilation for CLI may satisfy all requir
 
 \subsection{Recommended Architecture}
 
-\begin{verbatim}
-                        +-------------------+
-                        |   Core Library    |
-                        | (render, validate |
-                        |   theme, schema)  |
-                        +-------------------+
-                                 |
-         +-----------+-----------+-----------+-----------+
-         |           |           |           |           |
-    +----+----+ +----+----+ +----+----+ +----+----+ +----+----+
-    |   CLI   | |   npm   | |   MCP   | | VS Code | | Docker  |
-    |  Binary | | Package | | Server  | |   Ext   | |  Image  |
-    +---------+ +---------+ +---------+ +---------+ +---------+
-\end{verbatim}
+\ourdiagram[0.7\linewidth]{distribution-arch}{%
+  Recommended distribution architecture: a single Core Library (render, validate,
+  theme, schema) wrapped by five distribution targets --- CLI Binary, npm Package,
+  MCP Server, VS Code Extension, and Docker Image.}
 
 \textbf{Core Library:} Single implementation of IR parsing, validation, theme loading, layout, and rendering. All distribution targets wrap this core.
 

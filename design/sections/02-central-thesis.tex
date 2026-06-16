@@ -34,29 +34,11 @@ for free.
 Every diagram in the compiler follows the same pipeline, regardless of whether it enters
 as Mermaid text or structured IR:
 
-\begin{figure}[h]
-\centering
-\begin{Verbatim}[frame=single,fontsize=\small]
-  Input A: Mermaid-Superset DSL     Input B: Structured IR (JSON/YAML)
-        |                                    |
-        v  [Grammar-specific Parser]         v  [Schema Validation]
-        |                                    |
-        +---------------+--------------------+
-                        |
-                        v
-              Domain IR (grammar-specific)
-                        |
-                        v  [Grammar-specific Layout Engine]
-                        |
-              Scene IR (universal primitives)
-                        |
-                        v  [Rendering Backend]
-                        |
-              Output (SVG / PNG / PDF)
-\end{Verbatim}
-\caption{The dual-input pipeline: DSL and structured IR converge at Domain IR}
-\label{fig:central-pipeline}
-\end{figure}
+\ourdiagram[0.95\linewidth]{central-pipeline}{%
+  The dual-input pipeline: Mermaid-Superset DSL (Grammar Parser path) and
+  Structured IR (Schema Validation path) converge at Domain IR, flow through
+  the Layout Engine to Scene IR, and reach the Rendering Backend which emits
+  SVG, PNG, or PDF.}
 
 \paragraph{Validate-before-render.}
 The pipeline enforces a strict contract: no diagram reaches the renderer until it passes schema validation and semantic checks. This is not defensive coding; it is a \emph{specification-level guarantee}. An invalid IR produces a diagnostic, never a corrupt visual.

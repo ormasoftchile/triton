@@ -1,0 +1,23 @@
+---
+theme: executive
+---
+flowchart LR
+    DSL["Input A:<br>Mermaid-Superset DSL"]
+    IR["Input B:<br>Structured IR<br>(JSON / YAML)"]
+
+    PAR["Grammar<br>Parser"]
+    VAL["Schema<br>Validation"]
+
+    DIR["Domain IR<br>(grammar-specific)"]
+    LSIR["Layout Engine<br>→ Scene IR"]
+    BE["Rendering<br>Backend"]
+
+    SVG["SVG"]
+    PNG["PNG"]
+    PDF["PDF"]
+
+    DSL --> PAR --> DIR
+    IR  --> VAL --> DIR
+    DIR --> LSIR --> BE --> SVG
+                    BE --> PNG
+                    BE --> PDF

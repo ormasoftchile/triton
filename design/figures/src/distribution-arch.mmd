@@ -1,0 +1,17 @@
+---
+theme: executive
+---
+flowchart LR
+    CORE["Core Library<br>(render / validate<br>theme / schema)"]
+
+    CLI["CLI Binary"]
+    NPM["npm Package"]
+    MCP["MCP Server"]
+    VS["VS Code<br>Extension"]
+    DCK["Docker Image"]
+
+    CORE --> CLI
+    CORE --> NPM
+    CORE --> MCP
+    CORE --> VS
+    CORE --> DCK
