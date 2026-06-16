@@ -23,8 +23,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@flatten-js/core": "^1.6.12",
     "@resvg/resvg-js": "^2.6.2",
     "canvaskit-wasm": "^0.41.1",
+    "rbush": "^4.0.1",
     "yaml": "^2.9.0",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.5"

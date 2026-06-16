@@ -724,9 +724,16 @@ export function layoutState(doc: StateDocument, themeOverride?: StateTheme): Ren
   }
 
   // ── Node-anchor registry (sidecar — §30b Phase A) ─────────────────────────
-  // Include all placed states (top-level + composite children) by their node id.
+  // Include all REAL placed states by their node id.  Pseudo-states (__start__,
+  // __end__, fork, join, choice) are layout-internal nodes that cannot be
+  // referenced in `link`/`trace` directives and must NOT be registered as
+  // anchors — they would otherwise appear as false obstacles in the geometry
+  // kernel, causing any route approaching a real node they bracket to be flagged
+  // as defective.  The isPseudo field is optional (undefined) or explicit null
+  // for real states; it is a non-empty string for pseudo-states.
   const anchors: NodeAnchorRegistry = {};
   for (const s of allPlaced) {
+    if (s.node.isPseudo) continue; // skip pseudo-states ('start'|'end'|'fork'|'join'|'choice')
     anchors[s.node.id] = {
       id: s.node.id,
       x: s.x,

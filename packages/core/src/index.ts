@@ -503,3 +503,41 @@ export type {
   Effects,
   ResolveContractOptions,
 } from './theme-contract/index.js';
+
+// Geometry-Quality Kernel — pure, deterministic primitives / predicates /
+// defect detectors / scores consumed during layout (route scoring) and after
+// render (CI gate + objective report).  See src/geometry/index.ts.
+export type {
+  Box,
+  BoxWithId,
+  Point,
+  Segment,
+  LabeledEdge,
+  LabeledGeometry,
+  Defect,
+  DefectKind,
+  DefectReport,
+  QualityScores,
+  RouteCandidate,
+  RouteContext,
+  RouteCost,
+} from './geometry/index.js';
+export {
+  boxesOverlap,
+  overlapArea,
+  boxContains,
+  pointInBox,
+  segmentIntersectsBox,
+  segmentsCross,
+  BoxIndex,
+  labelOverNode,
+  edgeThroughNode,
+  labelLabelOverlap,
+  outOfBounds,
+  detectDefects,
+  formatDefectReport,
+  computeScores,
+  scoreRoute,
+  pickBestRoute,
+  ROUTE_WEIGHTS,
+} from './geometry/index.js';

@@ -65,6 +65,26 @@ import { parsePosterInternal, buildCompositionThemeFor } from './poster.js';
 import type { PosterDocument, PosterLink, TraceRecord } from './poster.js';
 import type { NodeAnchor, NodeAnchorRegistry } from '../../anchors.js';
 
+// Geometry-quality kernel — feedback-driven route selection (during layout) +
+// objective defect report (post render).  Pure & deterministic.
+import { pickBestRoute, polylineToSegments } from '../../geometry/index.js';
+import type {
+  Box as KernelBox,
+  BoxWithId as KernelBoxWithId,
+  Segment as KernelSegment,
+  RouteCandidate,
+  RouteContext,
+  LabeledGeometry,
+  LabeledEdge as OverlayEdge,
+} from '../../geometry/index.js';
+
+/** Overlay geometry captured by the router for the post-render quality gate. */
+interface OverlayGeometry {
+  nodes: KernelBoxWithId[];
+  labels: KernelBoxWithId[];
+  edges: OverlayEdge[];
+}
+
 import {
   buildFlowScene,
   buildFlowSceneWithAnchors,
@@ -483,6 +503,13 @@ export interface MermaidRenderResult {
   svg?: string;
   /** PNG bytes (present when format='png'). */
   png?: Uint8Array;
+  /**
+   * For posters with cross-diagram overlay edges: the labelled geometry of the
+   * committed overlay (node boxes + label boxes + routed edge segments).  Used
+   * by the post-render visual-quality gate to re-verify the final scene with
+   * the geometry kernel.  Absent for diagrams without an overlay.
+   */
+  qualityGeometry?: LabeledGeometry;
 }
 
 // ---------------------------------------------------------------------------
@@ -1256,12 +1283,22 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     posterAnchors.set(key, transformed);
   }
 
-  // Resolve and draw overlay edges (links + desugared trace hops).  Routing
-  // prefers a DIRECT orthogonal hop through the gutter between two adjacent
-  // cells; only genuinely non-adjacent hops (or hops a direct route would force
-  // through a third cell) fall back to the bottom-margin bus.  `busBottomY` is
-  // the lowest Y any bus lane reached (0 when no hop used the bus).
-  const { primitives: overlayPrimitives, busBottomY } = resolveAndDrawLinks(
+  // Resolve and draw overlay edges (links + desugared trace hops).  The router
+  // is feedback-driven: for each hop it ENUMERATES a fixed candidate set, SCORES
+  // each with the geometry kernel (heavily penalising routes that stab a
+  // non-endpoint node or drop a label on a box), and PICKS the lowest-cost
+  // candidate deterministically — a direct gutter hop when one is clean, else
+  // the bottom-margin bus.  `busBottomY` is the lowest Y any bus lane reached
+  // (0 when no hop used the bus).  The scoring canvas is generous downward so
+  // legitimate bus routes are not penalised as out-of-bounds.
+  const BUS_SCORING_SLACK = doc.links.length * 18 + 16 + 60;
+  const scoringCanvas: KernelBox = {
+    x: 0,
+    y: 0,
+    w: baseScene.width,
+    h: baseScene.height + BUS_SCORING_SLACK,
+  };
+  const { primitives: overlayPrimitives, busBottomY, geometry: overlayGeometry } = resolveAndDrawLinks(
     doc.links,
     doc.traces,
     posterAnchors,
@@ -1269,6 +1306,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     warnings,
     layoutTheme,
     categoricalPalette,
+    scoringCanvas,
   );
 
   // Extend the canvas only if a bus-fallback lane reached below the cell area.
@@ -1297,6 +1335,16 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
       }
     : busScene;
 
+  // Final overlay geometry, with the canvas set to the committed scene bounds.
+  const qualityGeometry: LabeledGeometry | undefined = doc.links.length > 0
+    ? {
+        nodes: overlayGeometry.nodes,
+        labels: overlayGeometry.labels,
+        edges: overlayGeometry.edges,
+        canvas: { x: 0, y: 0, w: scene.width, h: scene.height },
+      }
+    : undefined;
+
   const hash  = computeSceneHash(scene);
   const format = options.format ?? 'svg';
 
@@ -1318,6 +1366,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     warnings,
     svg,
     png,
+    ...(qualityGeometry ? { qualityGeometry } : {}),
   };
 }
 
@@ -1424,17 +1473,17 @@ function labelPill(
 }
 
 /**
- * Emit orthogonal U-route primitives for a single overlay edge.
+ * Emit the scene primitives for an already-chosen orthogonal route polyline.
  *
- * Route: srcPx,srcPy → down to busLaneY → horizontal → up to tgtPx,tgtPy.
- * All segments are axis-aligned (Manhattan routing). The arrowhead points
- * upward into the target node's bottom port.  The label sits at the midpoint
- * of the horizontal bus segment.
+ * Generic over route shape (direct gutter hop or bottom-margin bus U-route) —
+ * the route geometry was already SELECTED by the geometry kernel
+ * (`pickBestRoute`) so this function only renders it.  The arrowhead lands on
+ * the final vertex pointing along the last segment; the label pill sits at the
+ * centre of `labelBox` (always pre-validated to be clear of nodes).
  */
-function emitBusEdge(
-  srcPx: number, srcPy: number,
-  tgtPx: number, tgtPy: number,
-  busLaneY: number,
+function emitRoutePolyline(
+  points: { x: number; y: number }[],
+  labelBox: { x: number; y: number; w: number; h: number } | undefined,
   isDashed: boolean,
   isDirected: boolean,
   color: string,
@@ -1445,98 +1494,9 @@ function emitBusEdge(
   const prims: ScenePrimitive[] = [];
   const DASH = '6,4';
 
-  // Orthogonal U-path (all four points: src bottom → lane → same-X target → target bottom)
-  const d = [
-    `M ${srcPx.toFixed(2)} ${srcPy.toFixed(2)}`,
-    `L ${srcPx.toFixed(2)} ${busLaneY.toFixed(2)}`,
-    `L ${tgtPx.toFixed(2)} ${busLaneY.toFixed(2)}`,
-    `L ${tgtPx.toFixed(2)} ${tgtPy.toFixed(2)}`,
-  ].join(' ');
-
-  prims.push({
-    kind: 'path',
-    d,
-    fill: 'none',
-    stroke: color,
-    strokeWidth,
-    strokeLinecap: 'round',
-    opacity: 0.92,
-    ...(isDashed ? { dashArray: DASH } : {}),
-  });
-
-  if (isDirected) {
-    // Final segment goes upward (from busLaneY down to tgtPy, where tgtPy < busLaneY).
-    // tailDir = direction from tail (busLaneY) to tip (tgtPy) = upward (negative dy).
-    prims.push(arrowhead(
-      { x: tgtPx, y: tgtPy },
-      { x: 0, y: tgtPy - busLaneY },  // negative → upward-pointing arrowhead
-      color,
-    ));
-  }
-
-  if (label) {
-    // Label at the midpoint of the horizontal bus segment, centred on the lane.
-    const labelX = (srcPx + tgtPx) / 2;
-    prims.push(...labelPill(labelX, busLaneY, label, color, theme));
-  }
-
-  return prims;
-}
-
-/**
- * Emit a DIRECT orthogonal overlay edge that routes through the gutter between
- * two adjacent cells (the clean, PCB/subway-style connector).
- *
- * Horizontal hops (orientation 'h'): exit the source node at its left/right
- * boundary, run to the gutter centre-line `gutterPos` (an X), travel vertically
- * to the target's port Y, then enter the target node at its boundary.
- * Vertical hops (orientation 'v') are the 90°-rotated dual (gutterPos is a Y).
- *
- * Three axis-aligned segments only.  The arrowhead lands on the target boundary;
- * the label pill sits at the midpoint of the gutter run — always in clear gutter
- * space, never over a node.
- */
-function emitDirectEdge(
-  srcPort: { x: number; y: number },
-  tgtPort: { x: number; y: number },
-  gutterPos: number,
-  orientation: 'h' | 'v',
-  isDashed: boolean,
-  isDirected: boolean,
-  color: string,
-  strokeWidth: number,
-  label: string | undefined,
-  theme: CompositionTheme,
-): ScenePrimitive[] {
-  const prims: ScenePrimitive[] = [];
-  const DASH = '6,4';
-
-  let d: string;
-  let labelX: number;
-  let labelY: number;
-  let tailDir: { x: number; y: number };
-
-  if (orientation === 'h') {
-    d = [
-      `M ${srcPort.x.toFixed(2)} ${srcPort.y.toFixed(2)}`,
-      `L ${gutterPos.toFixed(2)} ${srcPort.y.toFixed(2)}`,
-      `L ${gutterPos.toFixed(2)} ${tgtPort.y.toFixed(2)}`,
-      `L ${tgtPort.x.toFixed(2)} ${tgtPort.y.toFixed(2)}`,
-    ].join(' ');
-    labelX = gutterPos;
-    labelY = (srcPort.y + tgtPort.y) / 2;
-    tailDir = { x: tgtPort.x - gutterPos, y: 0 };
-  } else {
-    d = [
-      `M ${srcPort.x.toFixed(2)} ${srcPort.y.toFixed(2)}`,
-      `L ${srcPort.x.toFixed(2)} ${gutterPos.toFixed(2)}`,
-      `L ${tgtPort.x.toFixed(2)} ${gutterPos.toFixed(2)}`,
-      `L ${tgtPort.x.toFixed(2)} ${tgtPort.y.toFixed(2)}`,
-    ].join(' ');
-    labelX = (srcPort.x + tgtPort.x) / 2;
-    labelY = gutterPos;
-    tailDir = { x: 0, y: tgtPort.y - gutterPos };
-  }
+  const d = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+    .join(' ');
 
   prims.push({
     kind: 'path',
@@ -1549,66 +1509,196 @@ function emitDirectEdge(
     ...(isDashed ? { dashArray: DASH } : {}),
   });
 
-  if (isDirected) {
-    prims.push(arrowhead({ x: tgtPort.x, y: tgtPort.y }, tailDir, color));
+  if (isDirected && points.length >= 2) {
+    const tip = points[points.length - 1]!;
+    const prev = points[points.length - 2]!;
+    prims.push(arrowhead(tip, { x: tip.x - prev.x, y: tip.y - prev.y }, color));
   }
 
-  if (label) {
-    prims.push(...labelPill(labelX, labelY, label, color, theme));
+  if (label && labelBox) {
+    const cx = labelBox.x + labelBox.w / 2;
+    const cy = labelBox.y + labelBox.h / 2;
+    prims.push(...labelPill(cx, cy, label, color, theme));
   }
 
   return prims;
 }
 
+// ---------------------------------------------------------------------------
+// Candidate-route enumeration + kernel-scored selection (§ geometry kernel)
+// ---------------------------------------------------------------------------
+// The router no longer commits a route from a first-match heuristic.  Instead,
+// for every hop it ENUMERATES a fixed, deterministic candidate set (the direct
+// gutter routes through each viable boundary-port pair, plus the bottom-bus
+// fallback), SCORES each with the pure geometry kernel — heavily penalising a
+// route that stabs a non-endpoint node or drops a label on a node — and PICKS
+// the lowest-cost candidate with a stable tie-break.  A route that crosses a
+// node can therefore NEVER be chosen when a clean alternative exists.
+// ---------------------------------------------------------------------------
+
 interface CellRect { x: number; y: number; w: number; h: number; }
 
-type RouteMode = 'h-right' | 'h-left' | 'v-down' | 'v-up' | 'bus';
+type RouteShape = 'h-right' | 'h-left' | 'v-down' | 'v-up' | 'bus';
 
-interface RouteRecord {
-  linkIndex: number;
-  link: PosterLink;
-  srcAnchor: NodeAnchor;
-  tgtAnchor: NodeAnchor;
-  mode: RouteMode;
-  /** Gutter centre-line: an X for horizontal modes, a Y for vertical modes. */
-  gutterCenter: number;
-  gutterKey: string;
-  laneGroupKey: string;
-  color: string;
-  isDashed: boolean;
-  isDirected: boolean;
+/** Label pill geometry for a route, mirroring `labelPill`'s sizing exactly. */
+function labelBoxAt(cx: number, cy: number, text: string | undefined): KernelBox | undefined {
+  if (!text) return undefined;
+  const fontSize = 11;
+  const pad = 4;
+  const w = text.length * fontSize * 0.55 + 2 * pad;
+  const h = fontSize * 1.4 + 2 * pad;
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
 }
 
-/** True if any cell (other than src/tgt) sits inside the X×Y corridor. */
-function corridorBlocked(
-  rects: CellRect[], src: CellRect, tgt: CellRect,
-  xLo: number, xHi: number, yLo: number, yHi: number,
-): boolean {
-  for (const c of rects) {
-    if (c === src || c === tgt) continue;
-    if (c.x < xHi - 1 && c.x + c.w > xLo + 1 && c.y < yHi - 1 && c.y + c.h > yLo + 1) {
-      return true;
-    }
+/**
+ * A single enumerated candidate.  `build(offset)` reconstructs the route's
+ * polyline (and label box) with a lane offset applied to the gutter centre-line
+ * — used so parallel traces in the same gutter separate into lanes after the
+ * kernel has chosen each hop's shape.
+ */
+interface HopCandidate extends RouteCandidate {
+  shape: RouteShape;
+  gutterKey: string;
+  laneGroupKey: string;
+  isDashed: boolean;
+  isDirected: boolean;
+  color: string;
+  build: (offset: number) => { points: { x: number; y: number }[]; labelBox?: KernelBox };
+}
+
+/**
+ * Build the fixed candidate set for one hop.  Direction candidates are emitted
+ * only when the target cell genuinely lies in that direction; the bottom-bus
+ * fallback is always present so every hop has at least one routable option.
+ */
+function enumerateHopCandidates(
+  s: NodeAnchor, t: NodeAnchor,
+  srcCell: CellRect, tgtCell: CellRect,
+  globalCellBot: number,
+  fromId: string, toId: string,
+  laneGroupKey: string,
+  label: string | undefined,
+  isDashed: boolean, isDirected: boolean, color: string,
+  busBaseY: number,
+): HopCandidate[] {
+  const srcCx = s.x + s.w / 2, srcCy = s.y + s.h / 2;
+  const tgtCx = t.x + t.w / 2, tgtCy = t.y + t.h / 2;
+  const EPS = 1;
+  const candidates: HopCandidate[] = [];
+  let rank = 0;
+
+  const mk = (
+    shape: RouteShape,
+    gutterKey: string,
+    build: (offset: number) => { points: { x: number; y: number }[]; labelBox?: KernelBox },
+  ): HopCandidate => {
+    const { points, labelBox } = build(0);
+    return {
+      shape, gutterKey, laneGroupKey, isDashed, isDirected, color,
+      build, points, labelBox, fromId, toId, rank: rank++,
+    };
+  };
+
+  // Direct horizontal gutter — target to the RIGHT.
+  if (tgtCell.x >= srcCell.x + srcCell.w - EPS) {
+    const gx0 = (srcCell.x + srcCell.w + tgtCell.x) / 2;
+    candidates.push(mk('h-right', `hx:${Math.round(gx0)}`, (off) => {
+      const gx = gx0 + off;
+      return {
+        points: [
+          { x: s.x + s.w, y: srcCy },
+          { x: gx, y: srcCy },
+          { x: gx, y: tgtCy },
+          { x: t.x, y: tgtCy },
+        ],
+        labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+      };
+    }));
   }
-  return false;
+
+  // Direct horizontal gutter — target to the LEFT.
+  if (tgtCell.x + tgtCell.w <= srcCell.x + EPS) {
+    const gx0 = (tgtCell.x + tgtCell.w + srcCell.x) / 2;
+    candidates.push(mk('h-left', `hx:${Math.round(gx0)}`, (off) => {
+      const gx = gx0 + off;
+      return {
+        points: [
+          { x: s.x, y: srcCy },
+          { x: gx, y: srcCy },
+          { x: gx, y: tgtCy },
+          { x: t.x + t.w, y: tgtCy },
+        ],
+        labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+      };
+    }));
+  }
+
+  // Direct vertical gutter — target BELOW.
+  if (tgtCell.y >= srcCell.y + srcCell.h - EPS) {
+    const gy0 = (srcCell.y + srcCell.h + tgtCell.y) / 2;
+    candidates.push(mk('v-down', `vy:${Math.round(gy0)}`, (off) => {
+      const gy = gy0 + off;
+      return {
+        points: [
+          { x: srcCx, y: s.y + s.h },
+          { x: srcCx, y: gy },
+          { x: tgtCx, y: gy },
+          { x: tgtCx, y: t.y },
+        ],
+        labelBox: labelBoxAt((srcCx + tgtCx) / 2, gy, label),
+      };
+    }));
+  }
+
+  // Direct vertical gutter — target ABOVE.
+  if (tgtCell.y + tgtCell.h <= srcCell.y + EPS) {
+    const gy0 = (tgtCell.y + tgtCell.h + srcCell.y) / 2;
+    candidates.push(mk('v-up', `vy:${Math.round(gy0)}`, (off) => {
+      const gy = gy0 + off;
+      return {
+        points: [
+          { x: srcCx, y: s.y },
+          { x: srcCx, y: gy },
+          { x: tgtCx, y: gy },
+          { x: tgtCx, y: t.y + t.h },
+        ],
+        labelBox: labelBoxAt((srcCx + tgtCx) / 2, gy, label),
+      };
+    }));
+  }
+
+  // Bottom-margin bus fallback (always available).  `offset` adds lane pitch.
+  candidates.push(mk('bus', 'bus', (off) => {
+    const busY = busBaseY + off;
+    return {
+      points: [
+        { x: srcCx, y: s.y + s.h },
+        { x: srcCx, y: busY },
+        { x: tgtCx, y: busY },
+        { x: tgtCx, y: t.y + t.h },
+      ],
+      labelBox: labelBoxAt((srcCx + tgtCx) / 2, busY, label),
+    };
+  }));
+
+  return candidates;
 }
 
 /**
  * Resolve all `link` statements (including trace-desugared hops) to poster-space
- * anchor coordinates and emit overlay-edge primitives.
+ * coordinates and emit overlay-edge primitives.
  *
- * Routing strategy (§30b direct-routing rewrite, 2026-06):
- *   • Adjacent cells → a DIRECT orthogonal hop through the gutter between them
- *     (vertical gutter for left/right neighbours, horizontal gutter for
- *     above/below neighbours).  Short, direct, lane-separated.
- *   • Non-adjacent cells, or a direct route that a third cell would block →
- *     fall back to the bottom-margin bus.
+ * Feedback-driven routing (geometry kernel): each hop enumerates a fixed
+ * candidate set (`enumerateHopCandidates`), the pure kernel SCORES every
+ * candidate against ALL node boxes / committed edges / committed labels
+ * (`scoreRoute`), and the lowest-cost candidate is committed deterministically
+ * (`pickBestRoute`).  Parallel hops sharing a gutter are then separated into
+ * lanes by a stable offset.  The function also returns the committed
+ * `LabeledGeometry` (node + label boxes + routed edge segments) so the same
+ * kernel can re-verify the final scene as a post-render gate.
  *
- * Returns the emitted primitives plus `busBottomY` (the lowest Y reached by any
- * bus lane, or 0 when every hop routed directly) so the caller can size the
- * canvas only when the bus fallback was actually used.
- *
- * Unresolvable links emit a WARNING and are skipped.
+ * Returns the emitted primitives, `busBottomY` (lowest bus-lane Y, or 0), and
+ * the labelled geometry of the overlay.  Unresolvable links WARN and are skipped.
  */
 function resolveAndDrawLinks(
   links: PosterLink[],
@@ -1618,35 +1708,50 @@ function resolveAndDrawLinks(
   warnings: string[],
   theme: CompositionTheme,
   categoricalPalette: string[],
-): { primitives: ScenePrimitive[]; busBottomY: number } {
-  if (links.length === 0) return { primitives: [], busBottomY: 0 };
+  canvas: KernelBox,
+): { primitives: ScenePrimitive[]; busBottomY: number; geometry: OverlayGeometry } {
+  if (links.length === 0) {
+    return { primitives: [], busBottomY: 0, geometry: { nodes: [], labels: [], edges: [] } };
+  }
 
-  const STANDALONE_COLOR = '#E05B4B'; // warm red for standalone links
-  const STROKE_WIDTH    = 2;
-  const GUTTER_PITCH    = 20; // lane separation inside a direct gutter
-  const BUS_MARGIN_TOP  = 16; // pixels below cell-bottom to first bus lane
-  const BUS_LANE_PITCH  = 18; // vertical pitch between bus lanes
+  const STANDALONE_COLOR = '#E05B4B';
+  const STROKE_WIDTH     = 2;
+  const GUTTER_PITCH     = 20;
+  const BUS_MARGIN_TOP   = 16;
+  const BUS_LANE_PITCH   = 18;
 
-  // Build trace-index → color map (declaration order → categorical[i])
+  // Trace-index → colour map (declaration order → categorical palette).
   const n = Math.max(1, categoricalPalette.length);
   const traceColorMap = new Map<number, string>();
-  traces.forEach((_trace, i) => {
+  traces.forEach((_t, i) => {
     const base = categoricalPalette[i % n]!;
     traceColorMap.set(i, i < n ? base : lightenHex(base, 0.18));
   });
 
-  // Cell rectangles in poster space, keyed by "row,col".
+  // Cell rectangles + ALL node boxes in poster space (for kernel scoring).
   const cellRectByKey = new Map<string, CellRect>();
-  const cellRects: CellRect[] = [];
   for (const ct of cellTransforms) {
-    const r: CellRect = { x: ct.cellX, y: ct.cellY, w: ct.cellW, h: ct.cellH };
-    cellRectByKey.set(`${ct.row},${ct.col}`, r);
-    cellRects.push(r);
+    cellRectByKey.set(`${ct.row},${ct.col}`, { x: ct.cellX, y: ct.cellY, w: ct.cellW, h: ct.cellH });
   }
-  const globalCellBot = cellRects.reduce((m, r) => Math.max(m, r.y + r.h), 0);
+  const nodeBoxes: KernelBoxWithId[] = [];
+  for (const [key, registry] of posterAnchors) {
+    for (const anchor of Object.values(registry)) {
+      nodeBoxes.push({ id: `${key}:${anchor.id}`, x: anchor.x, y: anchor.y, w: anchor.w, h: anchor.h });
+    }
+  }
+  const globalCellBot = [...cellRectByKey.values()].reduce((m, r) => Math.max(m, r.y + r.h), 0);
+  const busBaseY = globalCellBot + BUS_MARGIN_TOP;
+  const lengthScale = Math.hypot(canvas.w, canvas.h) || 1;
 
-  // ── Pass 1: resolve endpoints and choose a routing mode per link ──────────
-  const routes: RouteRecord[] = [];
+  // ── Pass 1: resolve endpoints + kernel-pick a shape per hop ────────────────
+  interface Chosen {
+    cand: HopCandidate;
+    label: string | undefined;
+  }
+  const chosen: Chosen[] = [];
+  const committedEdges: KernelSegment[][] = [];
+  const committedLabels: KernelBox[] = [];
+
   for (let i = 0; i < links.length; i++) {
     const link = links[i]!;
     const fromKey = `${link.fromCell.row},${link.fromCell.col}`;
@@ -1678,6 +1783,8 @@ function resolveAndDrawLinks(
 
     const srcCell = cellRectByKey.get(fromKey)!;
     const tgtCell = cellRectByKey.get(toKey)!;
+    const fromId  = `${fromKey}:${srcAnchor.id}`;
+    const toId    = `${toKey}:${tgtAnchor.id}`;
 
     const isDashed   = link.edgeStyle === '-..' || link.edgeStyle === '-.-' || link.edgeStyle === '-.->';
     const isDirected = link.edgeStyle === '-->' || link.edgeStyle === '-.->';
@@ -1686,134 +1793,86 @@ function resolveAndDrawLinks(
       : STANDALONE_COLOR;
     const laneGroupKey = link.traceIndex !== undefined ? `t${link.traceIndex}` : `s${i}`;
 
-    // Port Y/X centres of the two nodes.
-    const srcCy = srcAnchor.y + srcAnchor.h / 2;
-    const tgtCy = tgtAnchor.y + tgtAnchor.h / 2;
-    const srcCx = srcAnchor.x + srcAnchor.w / 2;
-    const tgtCx = tgtAnchor.x + tgtAnchor.w / 2;
+    const candidates = enumerateHopCandidates(
+      srcAnchor, tgtAnchor, srcCell, tgtCell, globalCellBot,
+      fromId, toId, laneGroupKey, link.label,
+      isDashed, isDirected, color, busBaseY,
+    );
 
-    const EPS = 1;
-    let mode: RouteMode = 'bus';
-    let gutterCenter = 0;
+    const ctx: RouteContext = {
+      nodes: nodeBoxes,
+      committedEdges,
+      committedLabels,
+      canvas,
+      lengthScale,
+    };
+    const best = pickBestRoute(candidates, ctx);
+    const cand = best.candidate as HopCandidate;
+    chosen.push({ cand, label: link.label });
 
-    if (tgtCell.x >= srcCell.x + srcCell.w - EPS) {
-      // target column lies to the RIGHT
-      const xLo = srcCell.x + srcCell.w, xHi = tgtCell.x;
-      const yLo = Math.min(srcCy, tgtCy), yHi = Math.max(srcCy, tgtCy);
-      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
-        mode = 'h-right';
-        gutterCenter = (xLo + xHi) / 2;
-      }
-    } else if (tgtCell.x + tgtCell.w <= srcCell.x + EPS) {
-      // target column lies to the LEFT
-      const xLo = tgtCell.x + tgtCell.w, xHi = srcCell.x;
-      const yLo = Math.min(srcCy, tgtCy), yHi = Math.max(srcCy, tgtCy);
-      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
-        mode = 'h-left';
-        gutterCenter = (xLo + xHi) / 2;
-      }
-    } else if (tgtCell.y >= srcCell.y + srcCell.h - EPS) {
-      // target row lies BELOW
-      const yLo = srcCell.y + srcCell.h, yHi = tgtCell.y;
-      const xLo = Math.min(srcCx, tgtCx), xHi = Math.max(srcCx, tgtCx);
-      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
-        mode = 'v-down';
-        gutterCenter = (yLo + yHi) / 2;
-      }
-    } else if (tgtCell.y + tgtCell.h <= srcCell.y + EPS) {
-      // target row lies ABOVE
-      const yLo = tgtCell.y + tgtCell.h, yHi = srcCell.y;
-      const xLo = Math.min(srcCx, tgtCx), xHi = Math.max(srcCx, tgtCx);
-      if (!corridorBlocked(cellRects, srcCell, tgtCell, xLo, xHi, yLo, yHi)) {
-        mode = 'v-up';
-        gutterCenter = (yLo + yHi) / 2;
-      }
-    }
-
-    const gutterKey = mode === 'bus'
-      ? 'bus'
-      : (mode === 'h-right' || mode === 'h-left')
-        ? `hx:${Math.round(gutterCenter)}`
-        : `vy:${Math.round(gutterCenter)}`;
-
-    routes.push({
-      linkIndex: i, link, srcAnchor, tgtAnchor,
-      mode, gutterCenter, gutterKey, laneGroupKey,
-      color, isDashed, isDirected,
-    });
+    // Commit (offset-free) geometry so later hops are scored against it.
+    committedEdges.push(polylineToSegments(cand.points));
+    if (cand.labelBox) committedLabels.push(cand.labelBox);
   }
 
-  // ── Pass 2: deterministic lane assignment ─────────────────────────────────
-  // Per direct gutter: traces first (by traceIndex), then standalone links (by
-  // declaration order); each distinct group gets one lane centred in the gutter.
-  // Bus-fallback links share one global lane stack below the cells.
+  // ── Pass 2: deterministic lane assignment within shared gutters / bus ──────
   const gutterLanes = new Map<string, Map<string, number>>();
-  const gutterCount = new Map<string, number>();
   const busLanes = new Map<string, number>();
   let nextBusLane = 0;
-
-  const assign = (predicate: (r: RouteRecord) => boolean) => {
-    for (const r of routes) {
-      if (!predicate(r)) continue;
-      if (r.mode === 'bus') {
-        if (!busLanes.has(r.laneGroupKey)) busLanes.set(r.laneGroupKey, nextBusLane++);
+  const assign = (predicate: (c: HopCandidate) => boolean) => {
+    for (const { cand } of chosen) {
+      if (!predicate(cand)) continue;
+      if (cand.shape === 'bus') {
+        if (!busLanes.has(cand.laneGroupKey)) busLanes.set(cand.laneGroupKey, nextBusLane++);
       } else {
-        let lanes = gutterLanes.get(r.gutterKey);
-        if (!lanes) { lanes = new Map(); gutterLanes.set(r.gutterKey, lanes); }
-        if (!lanes.has(r.laneGroupKey)) lanes.set(r.laneGroupKey, lanes.size);
+        let lanes = gutterLanes.get(cand.gutterKey);
+        if (!lanes) { lanes = new Map(); gutterLanes.set(cand.gutterKey, lanes); }
+        if (!lanes.has(cand.laneGroupKey)) lanes.set(cand.laneGroupKey, lanes.size);
       }
     }
   };
-  assign((r) => r.link.traceIndex !== undefined); // traces first
-  assign((r) => r.link.traceIndex === undefined); // then standalone
-  for (const [key, lanes] of gutterLanes) gutterCount.set(key, lanes.size);
+  assign((c) => c.laneGroupKey.startsWith('t')); // traces first (stable order)
+  assign((c) => c.laneGroupKey.startsWith('s')); // then standalone links
 
-  // ── Pass 3: emit ──────────────────────────────────────────────────────────
+  // ── Pass 3: emit with lane offsets + collect final geometry ────────────────
   const primitives: ScenePrimitive[] = [];
+  const edges: OverlayEdge[] = [];
+  const labels: KernelBoxWithId[] = [];
   let busBottomY = 0;
+  let edgeSeq = 0;
 
-  for (const r of routes) {
-    const { srcAnchor: s, tgtAnchor: t } = r;
-    const srcCy = s.y + s.h / 2, tgtCy = t.y + t.h / 2;
-    const srcCx = s.x + s.w / 2, tgtCx = t.x + t.w / 2;
-
-    if (r.mode === 'bus') {
-      const laneIdx = busLanes.get(r.laneGroupKey) ?? 0;
-      const busLaneY = globalCellBot + BUS_MARGIN_TOP + laneIdx * BUS_LANE_PITCH;
-      busBottomY = Math.max(busBottomY, busLaneY);
-      primitives.push(...emitBusEdge(
-        srcCx, s.y + s.h, tgtCx, t.y + t.h, busLaneY,
-        r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme,
-      ));
-      continue;
+  for (const { cand, label } of chosen) {
+    let offset = 0;
+    if (cand.shape === 'bus') {
+      const laneIdx = busLanes.get(cand.laneGroupKey) ?? 0;
+      offset = laneIdx * BUS_LANE_PITCH;
+    } else {
+      const lanes = gutterLanes.get(cand.gutterKey)!;
+      const lane = lanes.get(cand.laneGroupKey) ?? 0;
+      const count = lanes.size;
+      offset = (lane - (count - 1) / 2) * GUTTER_PITCH;
     }
 
-    // Lane offset, centred within the gutter.
-    const lanes = gutterLanes.get(r.gutterKey)!;
-    const lane = lanes.get(r.laneGroupKey) ?? 0;
-    const count = gutterCount.get(r.gutterKey) ?? 1;
-    const offset = (lane - (count - 1) / 2) * GUTTER_PITCH;
+    const { points, labelBox } = cand.build(offset);
 
-    if (r.mode === 'h-right') {
-      const srcPort = { x: s.x + s.w, y: srcCy };
-      const tgtPort = { x: t.x, y: tgtCy };
-      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'h', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
-    } else if (r.mode === 'h-left') {
-      const srcPort = { x: s.x, y: srcCy };
-      const tgtPort = { x: t.x + t.w, y: tgtCy };
-      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'h', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
-    } else if (r.mode === 'v-down') {
-      const srcPort = { x: srcCx, y: s.y + s.h };
-      const tgtPort = { x: tgtCx, y: t.y };
-      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'v', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
-    } else { // v-up
-      const srcPort = { x: srcCx, y: s.y };
-      const tgtPort = { x: tgtCx, y: t.y + t.h };
-      primitives.push(...emitDirectEdge(srcPort, tgtPort, r.gutterCenter + offset, 'v', r.isDashed, r.isDirected, r.color, STROKE_WIDTH, r.link.label, theme));
+    if (cand.shape === 'bus') {
+      busBottomY = Math.max(busBottomY, busBaseY + offset);
     }
+
+    primitives.push(...emitRoutePolyline(
+      points, labelBox, cand.isDashed, cand.isDirected, cand.color, STROKE_WIDTH, label, theme,
+    ));
+
+    const edgeId = `${cand.fromId}->${cand.toId}#${edgeSeq++}`;
+    edges.push({ id: edgeId, fromId: cand.fromId, toId: cand.toId, segments: polylineToSegments(points) });
+    if (label && labelBox) labels.push({ id: edgeId, x: labelBox.x, y: labelBox.y, w: labelBox.w, h: labelBox.h });
   }
 
-  return { primitives, busBottomY };
+  return {
+    primitives,
+    busBottomY,
+    geometry: { nodes: nodeBoxes, labels, edges },
+  };
 }
 
 /**
