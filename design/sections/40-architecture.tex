@@ -31,6 +31,11 @@ This section defines the layered architecture of the diagram compiler, emphasizi
 \label{fig:three-layers}
 \end{figure}
 
+\ourdiagram[0.95\linewidth]{architecture}{%
+  The two-frontend, two-IR compilation pipeline.
+  Mermaid DSL (\texttt{.mmd}) and structured IR (YAML/JSON) both feed into a Domain IR,
+  which the layout engine transforms into a Scene IR consumed by SVG, PNG, and Skia backends.}
+
 \subsection{Layer 1: The Kernel}
 \label{sec:arch-kernel}
 

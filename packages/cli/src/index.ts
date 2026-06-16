@@ -3,7 +3,7 @@
  * @timeline-compiler/cli — Timeline Compiler command-line interface.
  *
  * Commands:
- *   render <input>   — Validate then render a timeline YAML/JSON file to SVG or PNG
+ *   render <input>   — Validate then render a timeline YAML/JSON or Mermaid .mmd file to SVG/PNG
  *   validate <input> — Validate a timeline YAML/JSON file (schema + all invariants)
  *   lint <input>     — Check layout quality (overlaps, out-of-bounds, axis collisions)
  *   schema           — Print the Timeline IR JSON Schema
@@ -22,6 +22,9 @@ import {
   loadIR,
   render,
   validate,
+  parseMermaid,
+  renderMermaid,
+  svgToPng,
 } from '@timeline-compiler/core';
 import { renderDocumentAsync } from '@timeline-compiler/core';
 import type { Diagnostic } from '@timeline-compiler/core';
@@ -57,6 +60,35 @@ process.on('unhandledRejection', (reason) => {
   console.error(`Unhandled rejection: ${String(reason)}`);
   process.exit(1);
 });
+
+// ---------------------------------------------------------------------------
+// Mermaid detection
+// ---------------------------------------------------------------------------
+
+/** Mermaid keyword prefixes recognised as diagram starters (first non-blank line). */
+const MERMAID_KEYWORDS = [
+  'flowchart', 'graph', 'sequenceDiagram', 'gantt', 'timeline', 'mindmap',
+  'classDiagram', 'stateDiagram', 'erDiagram', 'C4Context', 'C4Container',
+  'C4Component', 'C4Dynamic', 'C4Deployment', 'requirementDiagram', 'kanban',
+  'block-beta', 'packet-beta', 'architecture-beta', 'architecture', 'poster',
+  'pie', 'xychart-beta', 'quadrantChart', 'radar', 'radar-beta', 'journey',
+  'gitGraph', 'sankey-beta',
+];
+
+/**
+ * Return true when the input should be routed through the Mermaid front-end.
+ * Primary signal: .mmd extension. Secondary: content starts with a known
+ * Mermaid diagram keyword or a YAML frontmatter block (---).
+ */
+function isMermaidInput(filePath: string, content: string): boolean {
+  if (filePath.endsWith('.mmd')) return true;
+  const trimmed = content.trimStart();
+  // Frontmatter block → treated as Mermaid superset with config
+  if (trimmed.startsWith('---')) return true;
+  // Known Mermaid diagram keywords on the first non-blank line
+  const firstLine = trimmed.split('\n')[0]?.trimEnd() ?? '';
+  return MERMAID_KEYWORDS.some((kw) => firstLine.startsWith(kw));
+}
 
 // ---------------------------------------------------------------------------
 // Program
@@ -125,18 +157,20 @@ program
 
 program
   .command('render <input>')
-  .description('Render a timeline YAML/JSON file to SVG or PNG (validate-before-render)')
+  .description('Render a timeline YAML/JSON or Mermaid .mmd file to SVG or PNG')
   .option('-o, --output <path>', 'output file path (default: input basename with .svg/.png)')
-  .option('--theme <theme>', 'theme id', 'consulting')
+  .option('--theme <theme>', 'theme id (overrides frontmatter); default: consulting for IR, per-grammar for .mmd')
   .option('--format <format>', 'output format: svg or png', 'svg')
-  .option('--layout <layout>', 'layout family: horizontal, vertical-spine, or serpentine', 'horizontal')
-  .option('--backend <backend>', 'rendering backend: svg or skia', 'svg')
+  .option('--layout <layout>', 'layout family for IR files: horizontal, vertical-spine, or serpentine', 'horizontal')
+  .option('--backend <backend>', 'rendering backend for IR files: svg or skia', 'svg')
+  .option('--scale <n>', 'PNG zoom scale for high-DPI output (e.g. 2 or 3; default 3 for .mmd, 1 for IR)', parseFloat)
   .action(async (inputPath: string, options: {
     output?: string;
-    theme: string;
+    theme?: string;
     format: string;
     layout: 'horizontal' | 'vertical-spine' | 'serpentine';
     backend: string;
+    scale?: number;
   }) => {
     const format = options.format as 'svg' | 'png';
     if (format !== 'svg' && format !== 'png') {
@@ -145,6 +179,78 @@ program
       return;
     }
 
+    let text: string;
+    try {
+      text = readFileSync(resolve(inputPath), 'utf-8');
+    } catch (e) {
+      console.error(`Error reading file: ${inputPath}`);
+      console.error((e as Error).message);
+      process.exit(1);
+      return;
+    }
+
+    // ── Mermaid .mmd path ────────────────────────────────────────────────
+    if (isMermaidInput(inputPath, text)) {
+      let mmdResult;
+      try {
+        // Parse+render via the Mermaid front-end (format: 'svg' always first,
+        // then optionally scale up for high-DPI PNG).
+        mmdResult = renderMermaid(text, {
+          format: 'svg',
+          ...(options.theme ? { theme: options.theme } : {}),
+        });
+      } catch (e) {
+        console.error(`Render error: ${(e as Error).message}`);
+        process.exit(1);
+        return;
+      }
+
+      // Surface parse warnings to stderr.
+      for (const w of mmdResult.warnings) {
+        process.stderr.write(`warning: ${w}\n`);
+      }
+
+      const inputResolved = resolve(inputPath);
+      const ext = extname(inputResolved);
+      const inputBase = basename(inputResolved, ext);
+      const inputDir = dirname(inputResolved);
+      const defaultOut = join(inputDir, `${inputBase}.${format}`);
+      const outputPath = options.output ? resolve(options.output) : defaultOut;
+
+      try {
+        const outputDir = dirname(outputPath);
+        if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
+
+        if (format === 'svg') {
+          if (!mmdResult.svg) {
+            console.error('Render error: no SVG produced');
+            process.exit(1);
+            return;
+          }
+          writeFileSync(outputPath, mmdResult.svg, 'utf-8');
+        } else {
+          // PNG: apply high-DPI scale (default 3 for .mmd, crispness for print/PDF)
+          const scale = options.scale ?? 3;
+          if (!mmdResult.svg) {
+            console.error('Render error: no SVG produced for PNG rasterisation');
+            process.exit(1);
+            return;
+          }
+          const png = svgToPng(mmdResult.svg, undefined, scale);
+          writeFileSync(outputPath, png);
+        }
+      } catch (e) {
+        console.error(`Error writing output: ${(e as Error).message}`);
+        process.exit(1);
+        return;
+      }
+
+      console.log(`Written: ${outputPath}`);
+      console.log(`sceneHash: ${mmdResult.sceneHash}`);
+      return;
+    }
+
+    // ── Timeline IR (YAML/JSON) path ─────────────────────────────────────
     const layoutFamily = options.layout as 'horizontal' | 'vertical-spine' | 'serpentine';
     if (layoutFamily !== 'horizontal' && layoutFamily !== 'vertical-spine' && layoutFamily !== 'serpentine') {
       console.error(`Error: --layout must be "horizontal", "vertical-spine", or "serpentine", got "${options.layout}"`);
@@ -159,15 +265,7 @@ program
       return;
     }
 
-    let text: string;
-    try {
-      text = readFileSync(resolve(inputPath), 'utf-8');
-    } catch (e) {
-      console.error(`Error reading file: ${inputPath}`);
-      console.error((e as Error).message);
-      process.exit(1);
-      return;
-    }
+    const themeId = options.theme ?? 'consulting';
 
     // ── Parse ─────────────────────────────────────────────────────────────
     let ir;
@@ -208,9 +306,9 @@ program
     let result;
     try {
       if (backend === 'skia' && format === 'png') {
-        result = await renderDocumentAsync(ir, { format, theme: options.theme, layout: layoutFamily, backend: 'skia' });
+        result = await renderDocumentAsync(ir, { format, theme: themeId, layout: layoutFamily, backend: 'skia' });
       } else {
-        result = render(ir, { format, theme: options.theme, layout: layoutFamily, backend });
+        result = render(ir, { format, theme: themeId, layout: layoutFamily, backend });
       }
     } catch (e) {
       console.error(`Render error: ${(e as Error).message}`);
@@ -233,7 +331,14 @@ program
       if (format === 'svg' && result.svg) {
         writeFileSync(outputPath, result.svg, 'utf-8');
       } else if (format === 'png' && result.png) {
-        writeFileSync(outputPath, result.png);
+        // Apply high-DPI scale if requested (IR path)
+        const scale = options.scale;
+        if (scale && scale > 1 && result.svg) {
+          const png = svgToPng(result.svg, undefined, scale);
+          writeFileSync(outputPath, png);
+        } else {
+          writeFileSync(outputPath, result.png);
+        }
       }
     } catch (e) {
       console.error(`Error writing output: ${(e as Error).message}`);

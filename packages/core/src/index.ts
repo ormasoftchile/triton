@@ -56,6 +56,7 @@ export { resolveTheme } from './themes/index.js';
 export { sceneHash } from './scene.js';
 export type { Scene, ScenePrimitive, ImagePrimitive } from './scene.js';
 export { sceneToSvg } from './render/svg.js';
+export { svgToPng } from './render/png.js';
 
 // Layout-quality linter
 export { lintScene } from './lint.js';

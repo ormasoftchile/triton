@@ -1,0 +1,19 @@
+---
+theme: executive
+---
+flowchart LR
+    TC["Theme Contract"]
+
+    TC --> BF["bindFlowTheme → FlowTheme"]
+    TC --> BS["bindSequenceTheme → SequenceTheme"]
+    TC --> BT["bindTimelineTheme → ResolvedTheme"]
+    TC --> BC["bindClassTheme → ClassTheme"]
+    TC --> BE["bindErTheme → ErTheme"]
+    TC --> BM["bindMindmapTheme → TreeTheme"]
+
+    BF --> R1["flowchart render"]
+    BS --> R2["sequence render"]
+    BT --> R3["timeline render"]
+    BC --> R4["class render"]
+    BE --> R5["ER render"]
+    BM --> R6["mindmap render"]

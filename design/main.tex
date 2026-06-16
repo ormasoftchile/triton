@@ -83,6 +83,24 @@
 % DOCUMENT METADATA
 % ============================================================================
 
+% ============================================================================
+% OURDIAGRAM — macro for dogfooded figures rendered by our own compiler
+% ============================================================================
+% Usage: \ourdiagram[<width>]{<basename>}{<caption text>}
+%   <width>    optional, defaults to \linewidth
+%   <basename> filename stem in design/figures/ (no extension, no path)
+%   <caption>  figure caption
+\newcommand{\ourdiagram}[3][\linewidth]{%
+  \begin{figure}[htbp]
+  \centering
+  \includegraphics[width=#1]{figures/#2.png}
+  \caption{#3}
+  \par\vspace{0.4em}
+  \textit{\small Rendered by the diagram compiler this document describes
+    (source: \texttt{design/figures/src/#2.mmd}, built with \texttt{make figures}).}
+  \end{figure}%
+}
+
 \title{A Mermaid-Superset Diagram Compiler\\[0.5em]\Large Beautiful, Deterministic, Agent-Authorable\\[0.3em]\normalsize Architecture \& Specification}
 \author{Timeline Compiler Project}
 \date{June 2026}
@@ -94,6 +112,18 @@
 \begin{document}
 
 \maketitle
+
+\begin{quote}
+\textbf{This document is dogfooded.}
+Every diagram in this specification is rendered by the compiler the document describes.
+Diagram sources live in \texttt{design/figures/src/} as \texttt{.mmd} files authored in our Mermaid-superset DSL;
+running \texttt{make figures} from the \texttt{design/} directory invokes the CLI
+(\texttt{timeline render <name>.mmd --format png --scale 3}) to produce high-DPI PNGs that are
+then included via \texttt{\textbackslash{}ourdiagram}.
+This reusable recipe works for any \LaTeX{} document: author diagrams in our DSL,
+render to PNG, include with \texttt{\textbackslash{}includegraphics}.
+Vector PDF output is a future enhancement (see \S\ref{sec:backends}).
+\end{quote}
 
 \tableofcontents
 \newpage

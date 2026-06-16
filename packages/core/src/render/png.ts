@@ -70,9 +70,12 @@ function getFontPath(): string {
  * @param svg       The SVG string to rasterise (output of `sceneToSvg`).
  * @param fontPath  Optional explicit path to a TTF/OTF font file.  When
  *                  omitted, the bundled DejaVu Sans font is used.
+ * @param scale     Optional zoom factor for high-DPI output (e.g. 2 or 3).
+ *                  Uses resvg's fitTo zoom mode. Default: 1 (no scaling).
  */
-export function svgToPng(svg: string, fontPath?: string): Uint8Array {
+export function svgToPng(svg: string, fontPath?: string, scale?: number): Uint8Array {
   const resolvedFontPath = fontPath ?? getFontPath();
+  const zoom = (scale !== undefined && scale > 0) ? scale : 1;
 
   const resvg = new Resvg(svg, {
     font: {
@@ -82,6 +85,7 @@ export function svgToPng(svg: string, fontPath?: string): Uint8Array {
     },
     shapeRendering: 2,   // geometricPrecision
     textRendering:  2,   // geometricPrecision
+    ...(zoom !== 1 ? { fitTo: { mode: 'zoom' as const, value: zoom } } : {}),
   });
 
   const rendered = resvg.render();

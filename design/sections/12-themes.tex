@@ -105,6 +105,13 @@ requires writing a new, isolated theme. In the matrix model each direction is O(
 authoring work: a new theme is one new general-contract file; a new component is one new
 implementation that automatically supports all existing themes.
 
+\ourdiagram{theme-contract}{%
+  One Theme Contract, many component bindings.
+  Each grammar (\emph{flow}, \emph{sequence}, \emph{timeline}, \ldots) exposes a
+  \texttt{bind\{Grammar\}Theme} function that translates the contract's general tokens
+  into its own specific vocabulary.
+  Adding a new component is one new binding; adding a new theme is one new contract definition.}
+
 % ──────────────────────────────────────────────────────────────────────────────
 \subsection{The General Theme Contract}
 \label{sec:themes-contract}
