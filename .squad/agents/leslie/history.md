@@ -126,3 +126,7 @@ For detailed context from earlier sessions, see `leslie/history-archive.md`.
 3. Typed trace with no matching grammar cell is valid (type is presentational metadata at poster level; no semantic validation of origin node kind).
 
 **Artefacts:** `design/sections/30b-cross-diagram-links.tex` extended; `design/main.pdf` clean (exit 0, 2026-06-15); decision note at `.squad/decisions/inbox/leslie-trace-abstraction-spec.md`.
+
+---
+
+**2026-06-15T23:30:00Z — Dogfood pipeline shipped (doc figures via our compiler); multi-line node labels flagged as a gap.**

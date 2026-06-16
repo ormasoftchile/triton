@@ -142,3 +142,5 @@ All 21 Mermaid diagram types now adopt the Tier-2 `ThemeContract`. The `executiv
 - (2026-06-15T15:55:53Z) Dimension guard added; vertical-spine warns on pathological height
 
 **CROSS-AGENT (2026-06-15T21:45:00Z):** Excel poster addressing shipped (feaec9d); cross-diagram linking spec'd §30b (73d8c21).
+
+**CROSS-AGENT (2026-06-15T23:30:00Z):** Dogfood pipeline shipped (doc figures via our compiler); multi-line node labels flagged as a gap.

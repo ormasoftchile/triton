@@ -2,6 +2,51 @@
 
 ---
 
+# Decision: DOGFOOD PIPELINE — Design Doc Diagrams Rendered by Our Compiler
+
+**Agent:** Bjarne (Ingestion Design), Barbara (Semantics & Rendering), Coordinator  
+**Date:** 2026-06-15  
+**Status:** COMPLETE — CLI renders .mmd (--scale high-DPI PNG); design/Makefile `figures` target; \ourdiagram macro; 3 figures dogfooded (architecture §40, family-taxonomy §28, theme-contract §12); committed 8ac76cf; 2659/2659 tests passing
+
+## Summary
+
+Design document diagrams now rendered by the compiler they describe. CLI enhanced to render Mermaid-superset `.mmd` files with `--scale` zoom factor for high-DPI PNG output. Automated pipeline via `design/Makefile` `figures` target. Three figures authored in our DSL, placed in the document, and regenerated via `make figures`. Reusable recipe for other LaTeX documents: create `figures/src/*.mmd`, add `\ourdiagram` macro to preamble, run `make figures` before building PDF. PNG chosen over SVG→PDF (no converter installed; PDF already embeds PNG cleanly). **Native vector PDF output is a future enhancement.**
+
+## Technical Details
+
+- **CLI routing** (`packages/cli/src/index.ts`): `.mmd` detection → `parseMermaid` + `--scale` option (default 3 for .mmd)
+- **svgToPng enhancement** (`packages/core/src/render/png.ts`): optional `scale?: number` parameter using Resvg `fitTo: { mode: 'zoom' }`
+- **Makefile pattern rule**: `timeline render <src>.mmd --format png --scale 3 -o figures/<name>.png`
+- **\ourdiagram macro** (`design/main.tex`): includes PNG, caption, source footnote
+- **3 dogfood figures**: architecture (flowchart LR, executive), family-taxonomy (mindmap, blueprint), theme-contract (flowchart LR, executive)
+- **Determinism**: all figures produce stable sceneHash; PNG bytes identical across runs
+
+---
+
+# Decision: PRODUCT GAP — Multi-Line Node Labels Unsupported
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-15  
+**Status:** FLAGGED (not yet fixed); workaround documented; gap identified during dogfooding
+
+## Summary
+
+Flow/tree (and likely other) layouts render `\n` and `<br>` in node labels LITERALLY (pass raw text to a single `TextPrimitive`, no line-break interpretation). Surfaced during dogfooding when figures showed literal backslash-n in node labels. Workaround: use single-line labels. **Tier-2 feature gap** — not a blocker for shipping, tracked on product backlog.
+
+## Root Cause
+
+`extractLabel` in flowchart parser and tree layout engine strip quotes but do NOT interpret `\n`/`<br>`. No code path reaches `MultiTextPrimitive` for node labels.
+
+## Future Fix
+
+In label extraction, detect `\n` (and optionally `<br>`/`<br/>`) and emit `MultiTextPrimitive` instead of `TextPrimitive`. Update `measureText`/node-sizing to use widest line for width and `lines × lineHeight` for height. **Determinism-sensitive:** verify no existing golden uses `\n` in a label (likely none — no existing golden should split).
+
+## Workaround
+
+Single-line labels. Both dogfood figures re-authored with single-line labels; no renderer code touched.
+
+---
+
 # Decision: TRACE ABSTRACTION SPEC (design §30b.8)
 
 **Agent:** Leslie (Spec Architect)
