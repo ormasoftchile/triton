@@ -1,0 +1,30 @@
+---
+theme: executive
+layout: grid 3x1
+---
+poster "Authentication System — Requirements Traceability"
+
+  cell A1: flowchart TD
+    REQ12[REQ-12: Authenticate within 500ms]
+    REQ13[REQ-13: Session token expires in 24h]
+    REQ12 --> REQ13
+
+  cell B1: classDiagram
+    class AuthController {
+      +login(cred): Token
+      +validate(tok): bool
+    }
+    class TokenService {
+      +issue(uid): Token
+      +revoke(tok): void
+    }
+    AuthController --> TokenService : issues
+
+  cell C1: flowchart TD
+    T1[auth_latency_test]
+    T2[token_expiry_test]
+    T1 --> R1[assert p99 < 500ms]
+    T2 --> R2[assert exp = now+86400s]
+
+trace "REQ-12 trace" satisfies : A1.REQ12 --> B1.AuthController --> C1.T1
+trace "REQ-13 trace" satisfies : A1.REQ13 --> B1.TokenService --> C1.T2

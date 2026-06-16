@@ -1,0 +1,28 @@
+---
+theme: executive
+layout: grid 3x1
+---
+poster "Order Fulfilment System"
+
+  cell A1: flowchart LR
+    recv[Receive Order] --> valid[Validate]
+    valid --> pay[Payment]
+    pay --> pick[Warehouse Pick]
+    pick --> ship[Dispatch]
+
+  cell B1: classDiagram
+    class OrderService
+    class PaymentGateway
+    class WarehouseSystem
+    OrderService --> PaymentGateway
+    OrderService --> WarehouseSystem
+
+  cell C1: stateDiagram-v2
+    [*] --> Pending
+    Pending --> Processing
+    Processing --> Shipped
+    Shipped --> [*]
+
+link A1.pay --> B1.PaymentGateway : "handled by"
+link A1.pick --> B1.WarehouseSystem : "fulfilled by"
+link A1.ship --> C1.Shipped : "triggers"

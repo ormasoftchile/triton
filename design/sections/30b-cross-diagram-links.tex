@@ -102,17 +102,18 @@ the midpoint of the overlay edge, styled by the composition theme's
 The following poster specifies an Order Fulfilment system with four cells and
 three cross-diagram links that connect nodes across cells:
 
-\begin{lstlisting}[language=,caption={Cross-diagram links in a four-cell poster}]
+\begin{lstlisting}[language=,caption={Cross-diagram links in a three-cell poster (flow, class, state)}]
 ---
 theme: executive
-layout: grid 2x2
+layout: grid 3x1
 ---
 poster "Order Fulfilment System"
 
   cell A1: flowchart LR
     recv[Receive Order] --> valid[Validate]
     valid --> pay[Payment]
-    pay --> pick[Warehouse Pick] --> ship[Dispatch]
+    pay --> pick[Warehouse Pick]
+    pick --> ship[Dispatch]
 
   cell B1: classDiagram
     class OrderService
@@ -121,27 +122,29 @@ poster "Order Fulfilment System"
     OrderService --> PaymentGateway
     OrderService --> WarehouseSystem
 
-  cell A2: stateDiagram-v2
+  cell C1: stateDiagram-v2
     [*] --> Pending
     Pending --> Processing
     Processing --> Shipped
     Shipped --> [*]
 
-  cell B2: sequenceDiagram
-    Customer->>OrderService: placeOrder()
-    OrderService->>PaymentGateway: charge()
-    PaymentGateway-->>OrderService: receipt
-
 link A1.pay --> B1.PaymentGateway : "handled by"
-link A1.pick -.-> A2.Processing : "triggers"
-link B1.OrderService --- A2.Pending : "creates"
+link A1.pick --> B1.WarehouseSystem : "fulfilled by"
+link A1.ship --> C1.Shipped : "triggers"
 \end{lstlisting}
+
+\ourdiagram[\linewidth]{link-poster}{%
+  Rendered poster: three cross-diagram overlay edges connect the order-flow
+  cell (left) to the service-class cell (centre) and the order-state cell
+  (right).  \texttt{link} edges are drawn by the compiler as directed overlay
+  arrows on top of the composed poster grid; node positions come from the
+  per-grammar anchor registries.}
 
 \texttt{link A1.pay --> B1.PaymentGateway} reads: ``draw a directed arrow
 from the node with id \texttt{pay} in cell \texttt{A1} to the class named
-\texttt{PaymentGateway} in cell \texttt{B1}''.  The cell addresses
-\texttt{A1} and \texttt{B1} are the Excel equivalents of \texttt{[0,0]}
-and \texttt{[0,1]}.
+\texttt{PaymentGateway} in cell \texttt{B1}''.  The cell addresses use
+Excel-style notation: \texttt{A1}=\texttt{[0,0]}, \texttt{B1}=\texttt{[0,1]},
+\texttt{C1}=\texttt{[0,2]}.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \subsection{The Node-Anchor Registry}
@@ -1066,49 +1069,51 @@ third.  Two separate \texttt{satisfies} traces make two independent
 traceability chains visible simultaneously, each in its own colour, with a
 generated legend.
 
-\begin{lstlisting}[language=,caption={Multi-typed requirements traceability poster with trace legend}]
+\begin{lstlisting}[language=,caption={Multi-typed requirements traceability poster with trace legend (flow, class, flow)}]
 ---
 theme: executive
-layout: grid 1x3
+layout: grid 3x1
 ---
-poster "Authentication System -- Requirements Traceability"
+poster "Authentication System — Requirements Traceability"
 
-  cell A1: requirementDiagram
-    requirement REQ-12 {
-      id: "REQ-12"
-      text: "User must be authenticated within 500ms"
-      risk: high
-      verifymethod: test
-    }
-    requirement REQ-13 {
-      id: "REQ-13"
-      text: "Session token must expire within 24h"
-      risk: medium
-      verifymethod: test
-    }
-    REQ-12 - derives -> REQ-13
+  cell A1: flowchart TD
+    REQ12[REQ-12: Authenticate within 500ms]
+    REQ13[REQ-13: Session token expires in 24h]
+    REQ12 --> REQ13
 
-  cell B1: C4Component
-    Component(authctrl, "AuthController", "Go", "JWT validation")
-    Component(tokensvc, "TokenService", "Go", "Token lifecycle")
-    Component(cache, "SessionCache", "Redis", "Active sessions")
-    authctrl --> tokensvc : "issues"
-    tokensvc --> cache : "stores"
+  cell B1: classDiagram
+    class AuthController {
+      +login(cred): Token
+      +validate(tok): bool
+    }
+    class TokenService {
+      +issue(uid): Token
+      +revoke(tok): void
+    }
+    AuthController --> TokenService : issues
 
   cell C1: flowchart TD
-    T1[Test: auth_latency_test] --> A1r[Assert: p99 < 500ms]
-    T2[Test: token_expiry_test] --> A2r[Assert: exp = now+86400s]
+    T1[auth_latency_test]
+    T2[token_expiry_test]
+    T1 --> R1[assert p99 < 500ms]
+    T2 --> R2[assert exp = now+86400s]
 
--- REQ-12 satisfied by AuthController, verified by auth_latency_test
-trace "REQ-12 trace" satisfies : A1.REQ-12 --> B1.authctrl --> C1.T1
-
--- REQ-13 satisfied by TokenService, verified by token_expiry_test
-trace "REQ-13 trace" satisfies : A1.REQ-13 --> B1.tokensvc --> C1.T2
+trace "REQ-12 trace" satisfies : A1.REQ12 --> B1.AuthController --> C1.T1
+trace "REQ-13 trace" satisfies : A1.REQ13 --> B1.TokenService --> C1.T2
 \end{lstlisting}
+
+\ourdiagram[\linewidth]{trace-poster}{%
+  Rendered poster: two \texttt{satisfies} traces
+  (\textcolor[HTML]{1F497D}{REQ-12 trace} and \textcolor[HTML]{2E86AB}{REQ-13 trace})
+  weave a traceability thread from requirement nodes (left cell, flowchart)
+  through service classes (centre cell, class diagram) to test nodes (right cell,
+  flowchart).  The auto-generated trace legend at the bottom shows each trace's
+  colour swatch, name, and \texttt{«satisfies»} type pill --- rendered directly
+  by the compiler from the listing above.}
 
 The two traces render in \texttt{categorical[0]} and \texttt{categorical[1]}
 of the executive theme respectively.  The auto-generated legend beneath the
-poster grid reads (schematically):
+poster grid reads:
 
 \begin{center}\small
 \begin{tabular}{lll}
@@ -1118,7 +1123,7 @@ poster grid reads (schematically):
 \end{center}
 
 A reviewer hovers ``REQ-12 trace'' in the legend to highlight only the first
-colour thread --- from the requirement cell through \texttt{authctrl} to
+colour thread --- from the requirement cell through \texttt{AuthController} to
 \texttt{T1} --- while all other cells and the REQ-13 trace dim to 40\%
 opacity.  The filter mode lets a reviewer isolate a single requirement's
 complete traceability chain on a poster that may contain dozens of requirements
