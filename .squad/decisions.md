@@ -2,6 +2,37 @@
 
 ---
 
+# Decision: CROSS-DIAGRAM LINKS + TRACES IMPLEMENTED (§30b)
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-16  
+**Status:** SHIPPED — Phase A (node-anchor registry) + Phase B (trace multi-hop) complete; 2719 tests passing; dogfood embedded in design doc (§30b figure)
+
+## Summary
+
+Full cross-diagram linking and traceability system implemented. Nodes from flow, class, and state diagrams are anchored (x, y, width, height) via sidecar `NodeAnchorRegistry`. Composition overlay bridges cells and draws two types of edges: **atomic `link`** (single hop with optional label) and **named `trace`** (multi-hop chains with type from requirement vocabulary). Traces render with distinct categorical colors from theme palette + legend band. Overlay polish: label collision avoidance via `clearLabelPoint()`, inter-row elbows through gutter, solid edge rendering. **§30b dogfoods a real rendered traced poster** (3-cell requirements traceability: requirements → service class → tests; 2 satisfies traces, colored, legend).
+
+## Technical
+
+**Phase A (70d494f):** `NodeAnchorRegistry` type (`anchors.ts`) per grammar layout; flow/class/state return `RenderWithAnchors<Scene>`. Composition `CellTransform` (row, col, dx, dy, scale) transforms anchors to poster-space. Poster `link` DSL: `link <cellAddr>.<nodeId> --> <cellAddr>.<nodeId> : "label"` parsed + resolved; cell addr both bracket `[r,c]` and Excel `A1` notation. Overlay `resolveAndDrawLinks` emits lines + arrowheads + label pills. Demo: `poster-crosslink`.
+
+**Phase B (9d57815):** `trace` superset keyword: `trace "<name>" [type] : A1.x --> B1.y --> C1.z` desugars to ordered atomic links + `TraceRecord` group. 10 trace types (satisfies/derives/verifies/refines/traces/contains/copies/calls/flowsTo/mapsTo). **Categorical coloring** from theme dataPalette (deterministic, per-trace index). **Trace legend** band (50px, swatch + name + type pill). Overlay polish: solid `-->` no longer dashed, labels clear node bboxes via outward walk, inter-row links route as L-shaped elbows. Demo: `poster-trace` (Requirements Traceability).
+
+**Dogfood:** `design/figures/src/crosslink-poster.mmd` (3-cell traced poster) → rendered at scale 3 → embedded in `design/sections/30b-cross-diagram-links.tex` via `\ourdiagram` macro. Figure shows **real rendered traced poster** (not text description). `design/main.pdf` rebuilt clean.
+
+**Test coverage:** 53 test files, 2719 pass. Goldens: only `poster-crosslink.{svg,png}` + `poster-trace.{svg,png}` changed (overlay polish; intentional). All other goldens byte-identical.
+
+## Remaining (Phase C+)
+
+- **More anchored grammars**: sequence, er, C4, architecture, gantt, mindmap, block, kanban, requirement, timeline, quadrant (same `WithAnchors` pattern).
+- **Routing Phase 2**: Manhattan router avoiding all anchor bboxes (same-row links currently route straight through nodes).
+- **Interactivity**: Hover-to-highlight trace, filter by type/name (deferred; TraceRecord metadata ready).
+- **Undirected edges**: Arrowhead suppression for `---` (one conditional).
+
+**Commits:** 70d494f (Phase A), 9d57815 (Phase B).
+
+---
+
 # Decision: ASCII DIAGRAMS → DOGFOOD FIGURES COMPLETE
 
 **Agent:** Bjarne (Ingestion Design)  

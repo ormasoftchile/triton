@@ -147,3 +147,5 @@ No ASCII box-drawing diagrams remain unconverted in any section of the document.
 ## Technical Details
 
 See `history-archive.md` for detailed learnings on Excel addressing, config-surface parsing, theme-contract merge, layout wiring, poster DSL architecture, and 2026-06-14 work on requirementDiagram + kanban + parser fidelity.
+
+**Cross-Diagram Links + Traces Implemented (§30b; barbara, 2026-06-16)**: Node-anchor registry on flow/class/state grammars enables cross-diagram linking via poster `link` (atomic) and `trace` (multi-hop, typed, colored) keywords. Traces render with categorical palette colors + legend. §30b now embeds a real traced-poster figure. 70d494f (Phase A), 9d57815 (Phase B).
