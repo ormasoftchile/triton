@@ -13,6 +13,7 @@ import type {
 } from '../../scene.js';
 import { measureText } from '../../fonts/metrics.js';
 import { splitLabelLines } from '../../util/label-lines.js';
+import type { NodeAnchorRegistry, RenderWithAnchors } from '../../anchors.js';
 
 import type { StateDocument, StateNode, StateTransition } from './types.js';
 import type { StateTheme } from './theme.js';
@@ -651,14 +652,17 @@ function orderTopLevel(states: StateNode[]): StateNode[] {
   return [...starts, ...middle, ...ends];
 }
 
-export function layoutState(doc: StateDocument, themeOverride?: StateTheme): Scene {
+export function layoutState(doc: StateDocument, themeOverride?: StateTheme): RenderWithAnchors<Scene> {
   const tk = themeOverride ?? resolveStateTheme(doc.metadata.theme);
   if (doc.states.length === 0) {
     return {
-      width: rhuInt(tk.marginLeft + tk.marginRight),
-      height: rhuInt(tk.marginTop + tk.marginBottom),
-      background: tk.background,
-      primitives: [],
+      scene: {
+        width: rhuInt(tk.marginLeft + tk.marginRight),
+        height: rhuInt(tk.marginTop + tk.marginBottom),
+        background: tk.background,
+        primitives: [],
+      },
+      anchors: {},
     };
   }
 
@@ -719,10 +723,26 @@ export function layoutState(doc: StateDocument, themeOverride?: StateTheme): Sce
     maxBottom = Math.max(maxBottom, note.bottom);
   }
 
+  // ── Node-anchor registry (sidecar — §30b Phase A) ─────────────────────────
+  // Include all placed states (top-level + composite children) by their node id.
+  const anchors: NodeAnchorRegistry = {};
+  for (const s of allPlaced) {
+    anchors[s.node.id] = {
+      id: s.node.id,
+      x: s.x,
+      y: s.y,
+      w: s.right - s.x,
+      h: s.bottom - s.y,
+    };
+  }
+
   return {
-    width: rhuInt(maxRight + tk.marginRight),
-    height: rhuInt(maxBottom + tk.marginBottom),
-    background: tk.background,
-    primitives: [...edgeLines, ...nodePrimitives, ...notePrimitives, ...edgeMarkers, ...edgeLabels],
+    scene: {
+      width: rhuInt(maxRight + tk.marginRight),
+      height: rhuInt(maxBottom + tk.marginBottom),
+      background: tk.background,
+      primitives: [...edgeLines, ...nodePrimitives, ...notePrimitives, ...edgeMarkers, ...edgeLabels],
+    },
+    anchors,
   };
 }

@@ -7,6 +7,7 @@ import { sceneHash } from '../../scene.js';
 import { sceneToSvg } from '../../render/svg.js';
 import { svgToPng } from '../../render/png.js';
 import { sceneToPngSkia } from '../../render/skia.js';
+import type { NodeAnchorRegistry } from '../../anchors.js';
 
 import type { StateDocument } from './types.js';
 import type { StateTheme } from './theme.js';
@@ -31,6 +32,19 @@ export {
 } from './theme.js';
 
 export function buildStateScene(doc: StateDocument, themeOverride?: StateTheme): Scene {
+  const normalized = normalizeStateDocument(doc);
+  stateDocumentSchema.parse(normalized);
+  return layoutState(normalized, themeOverride).scene;
+}
+
+/**
+ * Like `buildStateScene` but also returns the `NodeAnchorRegistry` sidecar (§30b).
+ * Used by the poster composition layer for cross-diagram link resolution.
+ */
+export function buildStateSceneWithAnchors(
+  doc: StateDocument,
+  themeOverride?: StateTheme,
+): { scene: Scene; anchors: NodeAnchorRegistry } {
   const normalized = normalizeStateDocument(doc);
   stateDocumentSchema.parse(normalized);
   return layoutState(normalized, themeOverride);

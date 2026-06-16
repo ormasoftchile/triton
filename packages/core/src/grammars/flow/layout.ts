@@ -38,6 +38,7 @@ import type { Scene, ScenePrimitive, SceneAnimation } from '../../scene.js';
 import { measureText } from '../../fonts/metrics.js';
 import { getIcon } from '../../icons.js';
 import { splitLabelLines } from '../../util/label-lines.js';
+import type { NodeAnchorRegistry, RenderWithAnchors } from '../../anchors.js';
 
 import type { FlowDocument, FlowNode, FlowEdge } from './types.js';
 import type { FlowTheme } from './theme.js';
@@ -777,12 +778,12 @@ function emitBackEdge(
  *
  * @param doc - Validated FlowDocument.
  * @param themeOverride - Optional theme (overrides metadata.theme lookup).
- * @returns Deterministic Scene ready for sceneToSvg / svgToPng.
+ * @returns Scene + NodeAnchorRegistry (anchors in local cell coordinates).
  */
 export function layoutFlow(
   doc: FlowDocument,
   themeOverride?: FlowTheme,
-): Scene {
+): RenderWithAnchors<Scene> {
   const tk = themeOverride ?? resolveFlowTheme(doc.metadata?.theme);
   const nodes = doc.flow.nodes;
   const edges = doc.flow.edges;
@@ -917,7 +918,13 @@ export function layoutFlow(
     emitNode(p, tk, nodePrimitives);
   }
 
-  return {
+  // ── Build node-anchor registry (sidecar — §30b Phase A) ──────────────────
+  const anchors: NodeAnchorRegistry = {};
+  for (const [id, p] of placed) {
+    anchors[id] = { id, x: p.x, y: p.y, w: p.w, h: p.h };
+  }
+
+  const scene: Scene = {
     width: canvasW,
     height: canvasH,
     background: tk.background,
@@ -932,4 +939,6 @@ export function layoutFlow(
       ...fwdLabels,
     ],
   };
+
+  return { scene, anchors };
 }

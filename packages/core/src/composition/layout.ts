@@ -551,3 +551,197 @@ export function layoutComposition(
     primitives: allPrimitives,
   };
 }
+
+// ---------------------------------------------------------------------------
+// CellTransform + layoutCompositionFull — for anchor-to-poster transforms (§30b)
+// ---------------------------------------------------------------------------
+
+/**
+ * The translate+scale transform applied to one cell's sub-scene during
+ * composition layout.  Used by the poster link layer to transform local-space
+ * node anchors to poster coordinates:
+ *
+ *   x_poster = x_local * scale + dx
+ *   y_poster = y_local * scale + dy
+ *   w_poster = w_local * scale
+ *   h_poster = h_local * scale
+ */
+export interface CellTransform {
+  row: number;
+  col: number;
+  /** X translation applied to sub-scene primitives (poster coordinate space). */
+  dx: number;
+  /** Y translation applied to sub-scene primitives (poster coordinate space). */
+  dy: number;
+  /** Uniform scale factor applied to sub-scene (≤ 1.0 — no upscale). */
+  scale: number;
+}
+
+/**
+ * Like `layoutComposition` but also returns the per-cell `CellTransform` array.
+ *
+ * The Scene is byte-identical to `layoutComposition` output.  `cellTransforms`
+ * allows the poster link layer to convert local-cell anchor coordinates to
+ * poster-level coordinates without repeating the grid arithmetic.
+ */
+export function layoutCompositionFull(
+  doc: CompositionDocument,
+  themeOverride?: CompositionTheme,
+): { scene: Scene; cellTransforms: CellTransform[] } {
+  const theme = themeOverride ?? resolveCompositionTheme(doc.metadata.theme);
+  const { gap, padding } = theme;
+  const columns = doc.grid.columns;
+
+  const placed: PlacedCell[] = [];
+  let cursor = 0;
+
+  for (const cell of doc.cells) {
+    const colSpan = cell.colSpan ?? 1;
+    const rowSpan = cell.rowSpan ?? 1;
+
+    let col: number;
+    let row: number;
+    if (cell.col !== undefined && cell.row !== undefined) {
+      col = cell.col;
+      row = cell.row;
+    } else {
+      col = cursor % columns;
+      row = Math.floor(cursor / columns);
+      cursor += colSpan;
+    }
+
+    const subScene = compileCellContent(cell.content, theme);
+    placed.push({ cell, col, row, colSpan, rowSpan, subScene });
+  }
+
+  const explicitRows = doc.grid.rows;
+  const maxRowFromCells = placed.reduce(
+    (m, pc) => Math.max(m, pc.row + pc.rowSpan),
+    0,
+  );
+  const rows = explicitRows ?? maxRowFromCells;
+
+  const canvasWidth = DEFAULT_CANVAS_WIDTH;
+  const { colWidths, rowHeights } = computeGridLayout(placed, columns, rows, theme, canvasWidth);
+
+  const hasTitle = !!doc.metadata.title;
+  const headerH = hasTitle ? theme.posterHeaderHeight : 0;
+  const totalRowH = rowHeights.reduce((s, h) => s + h, 0);
+  const canvasHeight =
+    2 * padding + headerH + totalRowH + Math.max(0, rows - 1) * gap;
+
+  const allPrimitives: ScenePrimitive[] = [];
+  allPrimitives.push({
+    kind: 'rect',
+    x: 0,
+    y: 0,
+    width: canvasWidth,
+    height: canvasHeight,
+    fill: theme.canvasBackground,
+  });
+
+  if (hasTitle) {
+    allPrimitives.push({
+      kind: 'rect',
+      x: 0,
+      y: 0,
+      width: canvasWidth,
+      height: headerH,
+      fill: theme.posterHeaderBackground,
+    });
+    allPrimitives.push({
+      kind: 'text',
+      x: canvasWidth / 2,
+      y: headerH / 2,
+      text: doc.metadata.title!,
+      fontFamily: theme.posterTitleFont.family,
+      fontSize: theme.posterTitleFont.size,
+      fontWeight: theme.posterTitleFont.weight,
+      fill: theme.posterTitleFont.color,
+      textAnchor: 'middle',
+      dominantBaseline: 'central',
+    });
+  }
+
+  const colX: number[] = [];
+  let cx2 = padding;
+  for (let c = 0; c < columns; c++) {
+    colX.push(cx2);
+    cx2 += colWidths[c]! + gap;
+  }
+
+  const rowY: number[] = [];
+  let ry = padding + headerH;
+  for (let r = 0; r < rows; r++) {
+    rowY.push(ry);
+    ry += rowHeights[r]! + gap;
+  }
+
+  const cellTransforms: CellTransform[] = [];
+
+  for (const pc of placed) {
+    const cellX = colX[pc.col]!;
+    const cellY = rowY[pc.row]!;
+    const cellW =
+      colWidths.slice(pc.col, pc.col + pc.colSpan).reduce((s, w) => s + w, 0) +
+      (pc.colSpan - 1) * gap;
+    const cellH =
+      rowHeights.slice(pc.row, pc.row + pc.rowSpan).reduce((s, h) => s + h, 0) +
+      (pc.rowSpan - 1) * gap;
+
+    allPrimitives.push(renderCellBackground(cellX, cellY, cellW, cellH, theme));
+
+    const hasCaption = !!pc.cell.title;
+    if (hasCaption) {
+      allPrimitives.push(...renderCellTitleBar(cellX, cellY, cellW, pc.cell.title!, theme));
+    }
+
+    const chromePad = theme.cellPadding + theme.cellBorder.width;
+    const titleBarH = hasCaption ? theme.cellTitleHeight : 0;
+    const embedX = cellX + chromePad;
+    const embedY = cellY + chromePad + titleBarH;
+    const embedW = cellW - 2 * chromePad;
+    const embedH = cellH - 2 * chromePad - titleBarH;
+
+    let dx = embedX;
+    let dy = embedY;
+    let scale = 1.0;
+
+    if (embedW > 0 && embedH > 0 && pc.subScene.primitives.length > 0) {
+      const sub = pc.subScene;
+      if (sub.width > 0 && sub.height > 0) {
+        const scaleW = embedW / sub.width;
+        const scaleH = embedH / sub.height;
+        scale = Math.min(scaleW, scaleH, 1.0);
+        const scaledW = sub.width * scale;
+        const scaledH = sub.height * scale;
+
+        dx =
+          theme.cellHAlign === 'center'
+            ? embedX + (embedW - scaledW) / 2
+            : embedX;
+
+        dy =
+          theme.cellVAlign === 'top'
+            ? embedY
+            : embedY + (embedH - scaledH) / 2;
+
+        allPrimitives.push(
+          ...sub.primitives.map((prim) => translateAndScale(prim, dx, dy, scale)),
+        );
+      }
+    }
+
+    cellTransforms.push({ row: pc.row, col: pc.col, dx, dy, scale });
+  }
+
+  return {
+    scene: {
+      width: canvasWidth,
+      height: canvasHeight,
+      background: theme.canvasBackground,
+      primitives: allPrimitives,
+    },
+    cellTransforms,
+  };
+}

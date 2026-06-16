@@ -48,7 +48,8 @@ export {
   COMPOSITION_THEME_REGISTRY,
 } from './theme.js';
 export { resolveCompositionRefs } from './resolve.js';
-export { layoutComposition } from './layout.js';
+export { layoutComposition, layoutCompositionFull } from './layout.js';
+export type { CellTransform } from './layout.js';
 
 // ---------------------------------------------------------------------------
 // buildCompositionScene

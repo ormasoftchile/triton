@@ -31,7 +31,7 @@
  *   DiagramKind, MermaidParseResult, MermaidRenderOptions, MermaidRenderResult
  */
 
-import type { Scene } from '../../scene.js';
+import type { Scene, ScenePrimitive, PathPrimitive } from '../../scene.js';
 import { sceneHash as computeSceneHash } from '../../scene.js';
 import { sceneToSvg } from '../../render/svg.js';
 import { svgToPng }   from '../../render/png.js';
@@ -57,14 +57,17 @@ import { bindRequirementTheme }  from '../../grammars/requirement/contract-bindi
 import { bindBlockTheme }        from '../../grammars/block/contract-binding.js';
 import { bindArchitectureTheme } from '../../grammars/architecture/contract-binding.js';
 
-import { layoutComposition }        from '../../composition/index.js';
+import { layoutCompositionFull } from '../../composition/index.js';
 import type { Cell, SceneCellContent } from '../../composition/index.js';
+import type { CompositionTheme } from '../../composition/theme.js';
 
 import { parsePosterInternal, buildCompositionThemeFor } from './poster.js';
-import type { PosterDocument } from './poster.js';
+import type { PosterDocument, PosterLink } from './poster.js';
+import type { NodeAnchorRegistry } from '../../anchors.js';
 
 import {
   buildFlowScene,
+  buildFlowSceneWithAnchors,
   renderFlowDocument,
   resolveFlowTheme,
 } from '../../grammars/flow/index.js';
@@ -72,6 +75,7 @@ import type { FlowDocument, FlowTheme } from '../../grammars/flow/index.js';
 
 import {
   buildClassScene,
+  buildClassSceneWithAnchors,
   renderClassDocument,
   resolveClassTheme,
 } from '../../grammars/class/index.js';
@@ -79,6 +83,7 @@ import type { ClassDocument } from '../../grammars/class/index.js';
 
 import {
   buildStateScene,
+  buildStateSceneWithAnchors,
   renderStateDocument,
   resolveStateTheme,
 } from '../../grammars/state/index.js';
@@ -1151,12 +1156,14 @@ export function renderMermaid(
  * Render a `poster` DSL document into SVG or PNG.
  *
  * Algorithm:
- *  1. Parse poster DSL → PosterDocument (cells + theme + grid)
- *  2. For each cell: detect type, build Scene via renderCellScene()
+ *  1. Parse poster DSL → PosterDocument (cells + theme + grid + links)
+ *  2. For each cell: detect type, build Scene+Anchors via renderCellSceneWithAnchors()
  *     — unknown types or render failures produce a warning and skip the cell
  *  3. Assemble a CompositionDocument with SceneCellContent cells
- *  4. Call layoutComposition() → Scene
- *  5. Serialise to SVG or PNG
+ *  4. Call layoutCompositionFull() → { scene, cellTransforms }
+ *  5. Transform local anchors → poster-space anchors using cellTransforms
+ *  6. Resolve link endpoints; draw overlay edges in poster space
+ *  7. Serialise to SVG or PNG
  *
  * Theme coherence: every cell is rendered with the same contract theme,
  * so the whole board shares one design system (navy/white for executive, etc.)
@@ -1168,21 +1175,22 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
   const compositionTheme = buildCompositionThemeFor(themeName);
 
   const cells: Cell[] = [];
+  // Map from "row,col" key → local-space NodeAnchorRegistry
+  const cellAnchors = new Map<string, NodeAnchorRegistry>();
 
   for (const cellDef of doc.cells) {
-    // Reconstruct the full diagram text the grammar parsers expect
     const cellText = `${cellDef.typeHeader}\n${cellDef.body}`;
 
     try {
-      const cellScene = renderCellScene(cellText, themeName);
-      if (cellScene === null) {
+      const result = renderCellSceneWithAnchors(cellText, themeName);
+      if (result === null) {
         warnings.push(
           `[poster] Cell [${cellDef.row},${cellDef.col}] type "${cellDef.typeHeader}" is not supported in poster cells — skipped.`,
         );
         continue;
       }
 
-      const sceneContent: SceneCellContent = { kind: 'scene', scene: cellScene };
+      const sceneContent: SceneCellContent = { kind: 'scene', scene: result.scene };
       const cell: Cell = {
         id: `cell-${cellDef.row}-${cellDef.col}`,
         row: cellDef.row,
@@ -1190,6 +1198,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
         content: sceneContent,
       };
       cells.push(cell);
+      cellAnchors.set(`${cellDef.row},${cellDef.col}`, result.anchors);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       warnings.push(
@@ -1209,7 +1218,37 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     cells,
   };
 
-  const scene = layoutComposition(compDoc, compositionTheme);
+  const { scene: baseScene, cellTransforms } = layoutCompositionFull(compDoc, compositionTheme);
+
+  // Build poster-space anchor map: key = "row,col", value = transformed registry
+  const posterAnchors = new Map<string, NodeAnchorRegistry>();
+  for (const ct of cellTransforms) {
+    const key = `${ct.row},${ct.col}`;
+    const localAnchors = cellAnchors.get(key) ?? {};
+    const transformed: NodeAnchorRegistry = {};
+    for (const [id, anchor] of Object.entries(localAnchors)) {
+      transformed[id] = {
+        id,
+        x: anchor.x * ct.scale + ct.dx,
+        y: anchor.y * ct.scale + ct.dy,
+        w: anchor.w * ct.scale,
+        h: anchor.h * ct.scale,
+      };
+    }
+    posterAnchors.set(key, transformed);
+  }
+
+  // Resolve and draw overlay links
+  const overlayPrimitives = resolveAndDrawLinks(doc.links, posterAnchors, warnings, compositionTheme);
+
+  // Merge overlay primitives on top of the base scene
+  const scene: Scene = overlayPrimitives.length > 0
+    ? {
+        ...baseScene,
+        primitives: [...baseScene.primitives, ...overlayPrimitives],
+      }
+    : baseScene;
+
   const hash  = computeSceneHash(scene);
   const format = options.format ?? 'svg';
 
@@ -1232,6 +1271,243 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     svg,
     png,
   };
+}
+
+// ---------------------------------------------------------------------------
+// resolveAndDrawLinks — cross-diagram overlay edge rendering (§30b Phase A)
+// ---------------------------------------------------------------------------
+
+/** Choose the best port side on `anchor` when connecting toward `targetCx, targetCy`. */
+function chooseSide(anchor: { x: number; y: number; w: number; h: number }, targetCx: number, targetCy: number): { px: number; py: number } {
+  const cx = anchor.x + anchor.w / 2;
+  const cy = anchor.y + anchor.h / 2;
+  const dx = targetCx - cx;
+  const dy = targetCy - cy;
+
+  // Prefer horizontal side if |dx| > |dy| (adjusted for aspect)
+  if (Math.abs(dx) * (anchor.h / Math.max(anchor.w, 1)) >= Math.abs(dy)) {
+    if (dx >= 0) {
+      return { px: anchor.x + anchor.w, py: cy }; // E
+    } else {
+      return { px: anchor.x, py: cy }; // W
+    }
+  } else {
+    if (dy >= 0) {
+      return { px: cx, py: anchor.y + anchor.h }; // S
+    } else {
+      return { px: cx, py: anchor.y }; // N
+    }
+  }
+}
+
+/** Build a filled arrowhead triangle pointing at `tip` from `tailDir`. */
+function arrowhead(tip: { x: number; y: number }, tailDir: { x: number; y: number }, color: string): PathPrimitive {
+  const len = Math.sqrt(tailDir.x * tailDir.x + tailDir.y * tailDir.y);
+  const ux = len > 0.001 ? tailDir.x / len : 1;
+  const uy = len > 0.001 ? tailDir.y / len : 0;
+  const arrowSize = 9;
+  const halfW = 4;
+  const base = { x: tip.x - ux * arrowSize, y: tip.y - uy * arrowSize };
+  const lp = { x: base.x - uy * halfW, y: base.y + ux * halfW };
+  const rp = { x: base.x + uy * halfW, y: base.y - ux * halfW };
+  return {
+    kind: 'path',
+    d: `M ${tip.x.toFixed(2)} ${tip.y.toFixed(2)} L ${lp.x.toFixed(2)} ${lp.y.toFixed(2)} L ${rp.x.toFixed(2)} ${rp.y.toFixed(2)} Z`,
+    fill: color,
+    stroke: 'none',
+    strokeWidth: 0,
+  };
+}
+
+/**
+ * Resolve all `link` statements to poster-space anchor coordinates and emit
+ * Scene primitives for the overlay edges + arrowheads + labels.
+ *
+ * Unresolvable links (missing cell, missing node) emit a WARNING and are skipped.
+ */
+function resolveAndDrawLinks(
+  links: PosterLink[],
+  posterAnchors: Map<string, NodeAnchorRegistry>,
+  warnings: string[],
+  theme: CompositionTheme,
+): ScenePrimitive[] {
+  if (links.length === 0) return [];
+
+  const overlayColor = '#E05B4B'; // warm red — clearly distinct from diagram ink
+  const overlayDash  = '6,4';
+  const overlayStrokeWidth = 2;
+
+  const primitives: ScenePrimitive[] = [];
+
+  for (const link of links) {
+    const fromKey = `${link.fromCell.row},${link.fromCell.col}`;
+    const toKey   = `${link.toCell.row},${link.toCell.col}`;
+
+    const fromRegistry = posterAnchors.get(fromKey);
+    const toRegistry   = posterAnchors.get(toKey);
+
+    if (!fromRegistry) {
+      warnings.push(
+        `[poster] link: source cell [${link.fromCell.row},${link.fromCell.col}] not found or has no anchors — link skipped.`,
+      );
+      continue;
+    }
+    if (!toRegistry) {
+      warnings.push(
+        `[poster] link: target cell [${link.toCell.row},${link.toCell.col}] not found or has no anchors — link skipped.`,
+      );
+      continue;
+    }
+
+    const srcAnchor = fromRegistry[link.fromNodeId]
+      // Case-insensitive fallback — handles grammars that sanitize IDs to lowercase
+      ?? Object.values(fromRegistry).find(
+           (a) => a.id.toLowerCase() === link.fromNodeId.toLowerCase(),
+         );
+    const tgtAnchor = toRegistry[link.toNodeId]
+      ?? Object.values(toRegistry).find(
+           (a) => a.id.toLowerCase() === link.toNodeId.toLowerCase(),
+         );
+
+    if (!srcAnchor) {
+      warnings.push(
+        `[poster] link: node "${link.fromNodeId}" not found in cell [${link.fromCell.row},${link.fromCell.col}] (anchors: ${Object.keys(fromRegistry).join(', ')}) — link skipped.`,
+      );
+      continue;
+    }
+    if (!tgtAnchor) {
+      warnings.push(
+        `[poster] link: node "${link.toNodeId}" not found in cell [${link.toCell.row},${link.toCell.col}] (anchors: ${Object.keys(toRegistry).join(', ')}) — link skipped.`,
+      );
+      continue;
+    }
+
+    // Center coords for port selection
+    const srcCx = srcAnchor.x + srcAnchor.w / 2;
+    const srcCy = srcAnchor.y + srcAnchor.h / 2;
+    const tgtCx = tgtAnchor.x + tgtAnchor.w / 2;
+    const tgtCy = tgtAnchor.y + tgtAnchor.h / 2;
+
+    const srcPort = chooseSide(srcAnchor, tgtCx, tgtCy);
+    const tgtPort = chooseSide(tgtAnchor, srcCx, srcCy);
+
+    const isDashed = link.edgeStyle === '-..' || link.edgeStyle === '-.-' || link.edgeStyle === '-.->';
+    const isDirected = link.edgeStyle === '-->' || link.edgeStyle === '-.->';
+
+    // Edge line
+    const edgeLine: ScenePrimitive = {
+      kind: 'line',
+      x1: srcPort.px,
+      y1: srcPort.py,
+      x2: tgtPort.px,
+      y2: tgtPort.py,
+      stroke: overlayColor,
+      strokeWidth: overlayStrokeWidth,
+      dashArray: isDashed ? overlayDash : '8,4',
+      opacity: 0.92,
+    };
+    primitives.push(edgeLine);
+
+    // Arrowhead at target (for directed edges)
+    if (isDirected) {
+      const dx = tgtPort.px - srcPort.px;
+      const dy = tgtPort.py - srcPort.py;
+      primitives.push(arrowhead({ x: tgtPort.px, y: tgtPort.py }, { x: dx, y: dy }, overlayColor));
+    }
+
+    // Label at midpoint
+    if (link.label) {
+      const midX = (srcPort.px + tgtPort.px) / 2;
+      const midY = (srcPort.py + tgtPort.py) / 2;
+      const labelFontSize = 11;
+      const labelPad = 4;
+      const approxW = link.label.length * labelFontSize * 0.55 + 2 * labelPad;
+      const approxH = labelFontSize * 1.4 + 2 * labelPad;
+
+      // Label background pill
+      primitives.push({
+        kind: 'rect',
+        x: midX - approxW / 2,
+        y: midY - approxH / 2,
+        width: approxW,
+        height: approxH,
+        fill: '#FFFFFF',
+        stroke: overlayColor,
+        strokeWidth: 1,
+        rx: 3,
+      });
+
+      // Label text
+      primitives.push({
+        kind: 'text',
+        x: midX,
+        y: midY,
+        text: link.label,
+        fontFamily: theme.textFont?.family ?? 'Georgia, serif',
+        fontSize: labelFontSize,
+        fontWeight: 400,
+        fill: overlayColor,
+        textAnchor: 'middle',
+        dominantBaseline: 'central',
+      });
+    }
+  }
+
+  return primitives;
+}
+
+// ---------------------------------------------------------------------------
+// renderCellSceneWithAnchors — render one cell to Scene + NodeAnchorRegistry
+// ---------------------------------------------------------------------------
+
+/**
+ * Render a single embedded diagram cell to a Scene and its NodeAnchorRegistry.
+ *
+ * Returns `null` for unsupported or self-referential types ('poster', 'unknown').
+ * Throws on parse or render errors so the caller can catch + warn + skip.
+ *
+ * Grammars that do not yet export anchors return `{ scene, anchors: {} }`.
+ */
+function renderCellSceneWithAnchors(
+  cellText: string,
+  themeName: string,
+): { scene: Scene; anchors: NodeAnchorRegistry } | null {
+  const cellKind = detectDiagramType(cellText);
+
+  switch (cellKind) {
+    case 'flowchart': {
+      const { doc, direction } = parseFlowchartInternal(cellText);
+      const baseTheme = isContractTheme(themeName)
+        ? bindFlowTheme(resolveContractTheme(themeName))
+        : resolveFlowTheme(themeName);
+      const orientation: FlowTheme['orientation'] =
+        direction === 'TD' || direction === 'TB' || direction === 'BT' ? 'TB' : 'LR';
+      return buildFlowSceneWithAnchors(doc, { ...baseTheme, orientation });
+    }
+
+    case 'classDiagram': {
+      const { doc } = parseClassDiagramInternal(cellText);
+      const classTheme = isContractTheme(themeName)
+        ? bindClassTheme(resolveContractTheme(themeName))
+        : resolveClassTheme(themeName ?? 'default-class');
+      return buildClassSceneWithAnchors(doc, classTheme);
+    }
+
+    case 'stateDiagram': {
+      const { doc } = parseStateDiagramInternal(cellText);
+      const stateTheme = isContractTheme(themeName)
+        ? bindStateTheme(resolveContractTheme(themeName))
+        : resolveStateTheme(themeName ?? 'default-state');
+      return buildStateSceneWithAnchors(doc, stateTheme);
+    }
+
+    default: {
+      // Fall through to plain renderCellScene for other grammars — empty anchors
+      const scene = renderCellScene(cellText, themeName);
+      if (scene === null) return null;
+      return { scene, anchors: {} };
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

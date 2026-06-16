@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="341" version="1.1" viewBox="0 0 1200 341" width="1200" xmlns="http://www.w3.org/2000/svg">
+  <rect fill="#FFFFFF" height="341" width="1200" x="0" y="0"/>
+  <rect fill="#1F497D" height="60" width="1200" x="0" y="0"/>
+  <text dominant-baseline="central" fill="#FFFFFF" font-family="Georgia, serif" font-size="24" font-weight="700" text-anchor="middle" x="600" y="30">Order Processing — Cross-Diagram Links Demo</text>
+  <rect fill="#F8F9FB" height="233" rx="6" stroke="#1F497D" stroke-width="1" width="671" x="24" y="84"/>
+  <rect fill="#FFFFFF" height="115.75" width="645" x="37" y="97"/>
+  <path d="M175.9 142.5 L204.64 142.5 L204.64 142.5 L226.99 142.5" fill="none" stroke="#E2E8F0" stroke-width="1.2"/>
+  <path d="M328.37 142.5 L359.5 142.5 L359.5 142.5 L385.04 142.5" fill="none" stroke="#E2E8F0" stroke-width="1.2"/>
+  <path d="M486.42 142.5 L517.56 142.5 L517.56 142.5 L543.1 142.5" fill="none" stroke="#E2E8F0" stroke-width="1.2"/>
+  <rect fill="#F8F9FA" height="39.12" rx="0" stroke="#1F497D" stroke-width="1.2" width="106.97" x="68.93" y="122.54"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="9.58" font-weight="600" text-anchor="middle" x="122.41" y="142.5">Receive Order</text>
+  <rect fill="#F8F9FA" height="39.12" rx="0" stroke="#1F497D" stroke-width="1.2" width="95.79" x="232.58" y="122.54"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="9.58" font-weight="600" text-anchor="middle" x="280.47" y="142.5">Validate</text>
+  <rect fill="#F8F9FA" height="39.12" rx="0" stroke="#1F497D" stroke-width="1.2" width="95.79" x="390.63" y="122.54"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="9.58" font-weight="600" text-anchor="middle" x="438.53" y="142.5">Payment</text>
+  <rect fill="#F8F9FA" height="39.12" rx="0" stroke="#1F497D" stroke-width="1.2" width="95.79" x="548.69" y="122.54"/>
+  <text dominant-baseline="central" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="9.58" font-weight="600" text-anchor="middle" x="596.59" y="142.5">Dispatch</text>
+  <path d="M232.58 142.5 L226.99 139.31 L226.99 145.69 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M390.63 142.5 L385.04 139.31 L385.04 145.69 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <path d="M548.69 142.5 L543.1 139.31 L543.1 145.69 Z" fill="#64748B" stroke="none" stroke-width="0"/>
+  <rect fill="#F8F9FB" height="233" rx="6" stroke="#1F497D" stroke-width="1" width="465" x="711" y="84"/>
+  <line stroke="#94A3B8" stroke-width="1.19" x1="833.75" x2="833.75" y1="171.76" y2="200.39"/>
+  <line stroke="#94A3B8" stroke-width="1.19" x1="905.33" x2="972.13" y1="153.47" y2="153.47"/>
+  <rect fill="#F8F9FA" height="36.58" rx="3.18" stroke="#E2E8F0" stroke-width="0.8" width="143.15" x="762.17" y="135.17"/>
+  <rect fill="#F1F5F9" height="36.58" rx="3.18" stroke="#1F497D" stroke-width="1.19" width="143.15" x="762.17" y="135.17"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="11.13" font-weight="700" text-anchor="middle" x="833.75" y="155.06">OrderService</text>
+  <rect fill="#F8F9FA" height="36.58" rx="3.18" stroke="#E2E8F0" stroke-width="0.8" width="143.15" x="762.17" y="209.93"/>
+  <rect fill="#F1F5F9" height="36.58" rx="3.18" stroke="#1F497D" stroke-width="1.19" width="143.15" x="762.17" y="209.93"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="11.13" font-weight="700" text-anchor="middle" x="833.75" y="229.81">PaymentGateway</text>
+  <rect fill="#F8F9FA" height="36.58" rx="3.18" stroke="#E2E8F0" stroke-width="0.8" width="143.15" x="981.67" y="135.17"/>
+  <rect fill="#F1F5F9" height="36.58" rx="3.18" stroke="#1F497D" stroke-width="1.19" width="143.15" x="981.67" y="135.17"/>
+  <text dominant-baseline="alphabetic" fill="#0D2B4E" font-family="Georgia, 'Times New Roman', serif" font-size="11.13" font-weight="700" text-anchor="middle" x="1053.25" y="155.06">ShipmentHandler</text>
+  <path d="M828.18 200.39 L833.75 209.93 L839.32 200.39" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.19"/>
+  <path d="M972.13 159.03 L981.67 153.47 L972.13 147.9" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.19"/>
+  <line opacity="0.92" stroke="#E05B4B" stroke-dasharray="8,4" stroke-width="2" x1="486.42" x2="762.17" y1="142.1" y2="228.22"/>
+  <path d="M 762.17 228.22 L 752.39 229.36 L 754.78 221.72 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
+  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="68.5" x="590.05" y="173.46"/>
+  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="624.3" y="185.16">handled by</text>
+  <line opacity="0.92" stroke="#E05B4B" stroke-dasharray="8,4" stroke-width="2" x1="644.48" x2="981.67" y1="142.1" y2="153.47"/>
+  <path d="M 981.67 153.47 L 972.54 157.16 L 972.81 149.16 Z" fill="#E05B4B" stroke="none" stroke-width="0"/>
+  <rect fill="#FFFFFF" height="23.4" rx="3" stroke="#E05B4B" stroke-width="1" width="80.6" x="772.78" y="136.08"/>
+  <text dominant-baseline="central" fill="#E05B4B" font-family="Georgia, serif" font-size="11" font-weight="400" text-anchor="middle" x="813.08" y="147.78">fulfilled by</text>
+</svg>

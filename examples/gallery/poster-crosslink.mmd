@@ -1,0 +1,20 @@
+---
+theme: executive
+layout: grid 2x1
+---
+poster "Order Processing — Cross-Diagram Links Demo"
+
+  cell A1: flowchart LR
+    recv[Receive Order] --> validate[Validate]
+    validate --> pay[Payment]
+    pay --> ship[Dispatch]
+
+  cell B1: classDiagram
+    class OrderService
+    class PaymentGateway
+    class ShipmentHandler
+    OrderService --> PaymentGateway
+    OrderService --> ShipmentHandler
+
+link A1.pay --> B1.PaymentGateway : "handled by"
+link A1.ship --> B1.ShipmentHandler : "fulfilled by"

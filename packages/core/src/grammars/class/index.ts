@@ -7,6 +7,7 @@ import { sceneHash } from '../../scene.js';
 import { sceneToSvg } from '../../render/svg.js';
 import { svgToPng } from '../../render/png.js';
 import { sceneToPngSkia } from '../../render/skia.js';
+import type { NodeAnchorRegistry } from '../../anchors.js';
 
 import type { ClassDocument } from './types.js';
 import type { ClassTheme } from './theme.js';
@@ -31,6 +32,18 @@ export {
 } from './theme.js';
 
 export function buildClassScene(doc: ClassDocument, themeOverride?: ClassTheme): Scene {
+  classDocumentSchema.parse(doc);
+  return layoutClass(doc, themeOverride).scene;
+}
+
+/**
+ * Like `buildClassScene` but also returns the `NodeAnchorRegistry` sidecar (§30b).
+ * Used by the poster composition layer for cross-diagram link resolution.
+ */
+export function buildClassSceneWithAnchors(
+  doc: ClassDocument,
+  themeOverride?: ClassTheme,
+): { scene: Scene; anchors: NodeAnchorRegistry } {
   classDocumentSchema.parse(doc);
   return layoutClass(doc, themeOverride);
 }

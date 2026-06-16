@@ -2822,6 +2822,32 @@
     </div>
   </div>
 
+  <!-- poster: Cross-diagram node links demo (§30b Phase A) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">Superset: Posters · Cross-Diagram Links (§30b)</div>
+      <div class="card-title">Cross-Diagram Node Linking — flowchart + classDiagram
+        <span class="tag tag-sublanes">poster</span>
+        <span class="tag">link A1.node --&gt; B1.Class</span>
+        <span class="tag">Phase A</span>
+      </div>
+      <div class="card-desc">
+        The <code>link</code> superset keyword draws overlay edges between nodes in different diagram
+        cells. A flowchart (left) and a class diagram (right) are cross-linked: the
+        <strong>Payment</strong> node in the flowchart is connected to the <strong>PaymentGateway</strong>
+        class, and the <strong>Dispatch</strong> node connects to <strong>ShipmentHandler</strong>.
+        Overlay edges appear in poster-space above both cells with arrowheads and label pills.
+        Grammars that support node anchors: <code>flowchart</code>, <code>classDiagram</code>,
+        <code>stateDiagram</code>. Unresolved links warn + skip gracefully.
+      </div>
+    </div>
+    <div class="card-img"><img src="poster-crosslink.png" alt="Cross-diagram link demo: flowchart + classDiagram with overlay edges"></div>
+    <div class="card-footer">
+      <a href="poster-crosslink.svg">SVG</a>
+      <a href="poster-crosslink.mmd">Mermaid Source</a>
+    </div>
+  </div>
+
 </div>
 <footer>
   Timeline Compiler · Phase 1–5 Gallery · Horizontal &amp; vertical-spine layout families.

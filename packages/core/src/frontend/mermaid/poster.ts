@@ -75,6 +75,38 @@ export interface PosterDocument {
   rows: number | undefined;
   /** Parsed cells in declaration order. */
   cells: PosterCellDef[];
+  /** Cross-diagram links declared in this poster (§30b Phase A). */
+  links: PosterLink[];
+}
+
+// ---------------------------------------------------------------------------
+// PosterLink — §30b Phase A cross-diagram link
+// ---------------------------------------------------------------------------
+
+/** Edge style for a cross-diagram link (matches Mermaid edge style vocabulary). */
+export type PosterLinkEdgeStyle = '-->' | '---' | '-.->' | '-.-' | '-..';
+
+/**
+ * A single cross-diagram link between two nodes in different cells.
+ *
+ * Syntax: `link <cellAddr>.<nodeId> <edge> <cellAddr>.<nodeId> [: "label"]`
+ *
+ * Graceful degradation: unresolvable links (unknown cell, unknown node, or
+ * grammar without anchor support) emit a WARNING and are skipped at render time.
+ */
+export interface PosterLink {
+  /** Source cell address (0-indexed). */
+  fromCell: { row: number; col: number };
+  /** Node id in the source cell's diagram (as authored in the source). */
+  fromNodeId: string;
+  /** Edge style. */
+  edgeStyle: PosterLinkEdgeStyle;
+  /** Target cell address (0-indexed). */
+  toCell: { row: number; col: number };
+  /** Node id in the target cell's diagram (as authored in the source). */
+  toNodeId: string;
+  /** Optional label displayed at the midpoint of the overlay edge. */
+  label?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -99,6 +131,37 @@ const POSTER_TITLE_RE = /^poster\s+"([^"]+)"\s*$|^poster\s+'([^']+)'\s*$|^poster
 /** Grid layout regex: `grid 2x2` or `grid 2 x 2` */
 const GRID_RE = /^grid\s+(\d+)\s*[xX×]\s*(\d+)\s*$/;
 
+/**
+ * Cross-diagram link regex.
+ *
+ * Matches: `link <cellAddr>.<nodeId> <edge> <cellAddr>.<nodeId> [: "label"]`
+ *
+ * Edge styles: --> --- -.-> -.- -..
+ * Cell address: bracket [r,c] OR Excel A1 (col letters + row digit).
+ *
+ * Capture groups (both bracket + Excel forms handle `<addr>.<nodeId>`):
+ *   Group 1:  fromAddr  — e.g. "[0,1]" or "A1"
+ *   Group 2:  fromNode  — node id in that cell
+ *   Group 3:  edgeStyle — one of --> | --- | -.-> | -.- | -..
+ *   Group 4:  toAddr    — e.g. "[0,2]" or "B1"
+ *   Group 5:  toNode    — node id in that cell
+ *   Group 6:  label     — optional, inside quotes (may be absent)
+ */
+const LINK_RE =
+  /^link\s+(\[[^\]]+\]|[A-Za-z]+\d+)\.(\S+)\s+(-->|---|-->|-\.->|-\.-|--\.)\s+(\[[^\]]+\]|[A-Za-z]+\d+)\.(\S+)(?:\s*:\s*"([^"]*)")?/i;
+
+/** Edge style normaliser — maps raw match to PosterLinkEdgeStyle. */
+const EDGE_STYLE_MAP: Record<string, PosterLinkEdgeStyle> = {
+  '-->': '-->',
+  '---': '---',
+  '-..': '-..',
+  '-.-': '-.-',
+  '-.->': '-.->',
+  // Tolerate alternative spellings
+  '--->': '-->',
+  '---.': '-.-',
+};
+
 // ---------------------------------------------------------------------------
 // Excel address helpers
 // ---------------------------------------------------------------------------
@@ -119,6 +182,22 @@ export function excelToRowCol(colLetters: string, rowNum: string): { row: number
   col -= 1; // bijective base-26 → 0-indexed
   const row = parseInt(rowNum, 10) - 1; // 1-indexed → 0-indexed
   return { row, col };
+}
+
+/**
+ * Parse a raw cell address string (bracket `[r,c]` or Excel `A1`) into
+ * 0-indexed {row, col}.  Returns `null` for unrecognised formats.
+ */
+function addrToRowCol(addr: string): { row: number; col: number } | null {
+  const bracketM = /^\[(\d+)\s*,\s*(\d+)\]$/.exec(addr.trim());
+  if (bracketM) {
+    return { row: parseInt(bracketM[1]!, 10), col: parseInt(bracketM[2]!, 10) };
+  }
+  const excelM = /^([A-Za-z]+)(\d+)$/.exec(addr.trim());
+  if (excelM) {
+    return excelToRowCol(excelM[1]!, excelM[2]!);
+  }
+  return null;
 }
 
 /**
@@ -163,6 +242,7 @@ export function parsePosterInternal(text: string): {
 
   let title = 'Untitled Poster';
   const cells: PosterCellDef[] = [];
+  const links: PosterLink[] = [];
 
   // Parser state
   let currentCell: { row: number; col: number; typeHeader: string; rawLines: string[] } | null = null;
@@ -195,6 +275,55 @@ export function parsePosterInternal(text: string): {
         continue;
       }
       // Skip non-poster lines before we find the poster keyword
+      continue;
+    }
+
+    // ── Detect `link` statement (§30b Phase A) ────────────────────────────
+    // `link` is a top-level poster directive at position 0 (same level as `cell`).
+    // We detect it by the absence of leading whitespace in `trimmed` (which is
+    // only trailing-stripped).  When a valid LINK_RE match is found, flush the
+    // current cell and process the link.  If the line starts with `link` at
+    // position 0 but does NOT match LINK_RE, it is a malformed link → warn + skip.
+    // Indented `link` inside a cell body falls through to the body collector.
+    const isTopLevelLink = /^link\s/i.test(trimmed); // no leading whitespace → top level
+    if (isTopLevelLink) {
+      const linkM = LINK_RE.exec(trimmed.trim());
+      if (linkM) {
+        // Valid link — flush any open cell then process.
+        flushCurrentCell();
+
+        const fromAddr = linkM[1]!;
+        const fromNode = linkM[2]!;
+        const rawEdge  = linkM[3]!;
+        const toAddr   = linkM[4]!;
+        const toNode   = linkM[5]!;
+        const label    = linkM[6]; // may be undefined
+
+        const fromCellAddr = addrToRowCol(fromAddr);
+        const toCellAddr   = addrToRowCol(toAddr);
+
+        if (!fromCellAddr) {
+          warnings.push(`[poster] link: unrecognised source address "${fromAddr}" — skipped.`);
+        } else if (!toCellAddr) {
+          warnings.push(`[poster] link: unrecognised target address "${toAddr}" — skipped.`);
+        } else {
+          const edgeStyle: PosterLinkEdgeStyle =
+            (EDGE_STYLE_MAP[rawEdge] ?? '-->') as PosterLinkEdgeStyle;
+          const linkRecord: PosterLink = {
+            fromCell: fromCellAddr,
+            fromNodeId: fromNode,
+            edgeStyle,
+            toCell: toCellAddr,
+            toNodeId: toNode,
+          };
+          if (label !== undefined) linkRecord.label = label;
+          links.push(linkRecord);
+        }
+      } else {
+        // Malformed top-level link → flush open cell, warn, skip.
+        flushCurrentCell();
+        warnings.push(`[poster] Unrecognised link statement: "${trimmed.trim()}" — skipped.`);
+      }
       continue;
     }
 
@@ -245,7 +374,7 @@ export function parsePosterInternal(text: string): {
     warnings.push('[poster] No cells found in poster document.');
   }
 
-  const doc: PosterDocument = { title, theme: fmTheme, columns, rows, cells };
+  const doc: PosterDocument = { title, theme: fmTheme, columns, rows, cells, links };
   return { doc, warnings, frontmatter };
 }
 

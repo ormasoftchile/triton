@@ -15,6 +15,7 @@ import { sceneHash }     from '../../scene.js';
 import { sceneToSvg }    from '../../render/svg.js';
 import { svgToPng }      from '../../render/png.js';
 import { sceneToPngSkia }from '../../render/skia.js';
+import type { NodeAnchorRegistry } from '../../anchors.js';
 
 import type { FlowDocument } from './types.js';
 import type { FlowTheme }    from './theme.js';
@@ -33,7 +34,7 @@ export {
 } from './theme.js';
 
 // ---------------------------------------------------------------------------
-// buildFlowScene
+// buildFlowScene — backward-compatible, returns Scene only
 // ---------------------------------------------------------------------------
 
 /**
@@ -46,6 +47,26 @@ export function buildFlowScene(
   doc: FlowDocument,
   themeOverride?: FlowTheme,
 ): Scene {
+  flowDocumentSchema.parse(doc);
+  return layoutFlow(doc, themeOverride).scene;
+}
+
+// ---------------------------------------------------------------------------
+// buildFlowSceneWithAnchors — returns scene + NodeAnchorRegistry (§30b)
+// ---------------------------------------------------------------------------
+
+/**
+ * Like `buildFlowScene` but also returns the `NodeAnchorRegistry` sidecar.
+ * Used by the poster composition layer when resolving cross-diagram links.
+ *
+ * The returned `scene` is byte-identical to `buildFlowScene` output.
+ * `anchors` maps each node's diagram-local id to its bounding box in local
+ * cell coordinates (before any composition translate/scale).
+ */
+export function buildFlowSceneWithAnchors(
+  doc: FlowDocument,
+  themeOverride?: FlowTheme,
+): { scene: Scene; anchors: NodeAnchorRegistry } {
   flowDocumentSchema.parse(doc);
   return layoutFlow(doc, themeOverride);
 }

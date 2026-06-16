@@ -11,6 +11,7 @@ import type {
   TextPrimitive,
 } from '../../scene.js';
 import { measureText } from '../../fonts/metrics.js';
+import type { NodeAnchorRegistry, RenderWithAnchors } from '../../anchors.js';
 
 import type { ClassDef, ClassDocument, ClassMember, ClassRelationship } from './types.js';
 import type { ClassTheme } from './theme.js';
@@ -532,15 +533,18 @@ function buildSelfRelationship(
   };
 }
 
-export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): Scene {
+export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): RenderWithAnchors<Scene> {
   const tk = themeOverride ?? resolveClassTheme(doc.metadata.theme);
 
   if (doc.classes.length === 0) {
     return {
-      width: rhuInt(tk.marginLeft + tk.marginRight),
-      height: rhuInt(tk.marginTop + tk.marginBottom),
-      background: tk.background,
-      primitives: [],
+      scene: {
+        width: rhuInt(tk.marginLeft + tk.marginRight),
+        height: rhuInt(tk.marginTop + tk.marginBottom),
+        background: tk.background,
+        primitives: [],
+      },
+      anchors: {},
     };
   }
 
@@ -603,10 +607,26 @@ export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): Sce
     tk.marginTop + rows * maxRowHeight + (rows - 1) * tk.classGapY + tk.marginBottom,
   );
 
+  // ── Node-anchor registry (sidecar — §30b Phase A) ─────────────────────────
+  // Index by BOTH the display name (cls.name, as authored in the source) and
+  // the sanitized id (cls.id, lowercase) so that link statements can reference
+  // class nodes using the original capitalisation they were declared with.
+  const anchors: NodeAnchorRegistry = {};
+  for (const item of placed) {
+    const anchor = { id: item.cls.name, x: item.x, y: item.y, w: item.width, h: item.height };
+    anchors[item.cls.name] = anchor;
+    if (item.cls.id !== item.cls.name) {
+      anchors[item.cls.id] = { ...anchor, id: item.cls.id };
+    }
+  }
+
   return {
-    width,
-    height,
-    background: tk.background,
-    primitives: [...edgeLines, ...classPrimitives, ...edgeMarkers, ...edgeLabels],
+    scene: {
+      width,
+      height,
+      background: tk.background,
+      primitives: [...edgeLines, ...classPrimitives, ...edgeMarkers, ...edgeLabels],
+    },
+    anchors,
   };
 }
