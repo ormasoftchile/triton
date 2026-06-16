@@ -36,28 +36,28 @@
   <text dominant-baseline="alphabetic" fill="#F8FAFC" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="724" y="368">Allows customers to view information</text>
   <text dominant-baseline="alphabetic" fill="#F8FAFC" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="724" y="384">about their bank accounts, and make</text>
   <text dominant-baseline="alphabetic" fill="#F8FAFC" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="724" y="400">payments.</text>
-  <rect fill="#CBD5E1" height="102" rx="8" stroke="#94A3B8" stroke-width="1.5" width="172" x="350" y="540"/>
+  <rect fill="#CBD5E1" height="102" rx="8" stroke="#94A3B8" stroke-width="1.5" width="160" x="356" y="540"/>
   <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="436" y="562">«Person»</text>
   <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="436" y="585">Banking Customer D</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="436" y="604">A customer of the bank, with personal</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="436" y="620">bank accounts.</text>
-  <rect fill="#CBD5E1" height="102" rx="8" stroke="#94A3B8" stroke-width="1.5" width="169" x="602" y="540"/>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="687" y="562">«System»</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="687" y="585">Authentication Provider</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="687" y="604">The external Authentication Provider,</text>
-  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="687" y="620">Okta.</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="436" y="604">A customer of the bank,</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="436" y="620">with personal bank accounts.</text>
+  <rect fill="#CBD5E1" height="102" rx="8" stroke="#94A3B8" stroke-width="1.5" width="169" x="596" y="540"/>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="681" y="562">«System»</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="12" font-weight="700" text-anchor="middle" x="681" y="585">Authentication Provider</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="681" y="604">The external Authentication Provider,</text>
+  <text dominant-baseline="alphabetic" fill="#1E293B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="681" y="620">Okta.</text>
   <path d="M 316 206 V 255 H 700 V 292" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 724 188 V 292" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 888 155 H 848 V 363 H 820" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 748 304 V 317 H 184 V 318" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 639 363 H 587 V 381 H 547" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
-  <path d="M 522 591 H 590" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 516 591 H 584" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 693 292 L 700 304 L 707 292" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 717 292 L 724 304 L 731 292" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 820 356 L 808 363 L 820 370" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 177 318 L 184 330 L 191 318" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <path d="M 547 374 L 535 381 L 547 388" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
-  <path d="M 590 598 L 602 591 L 590 584" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
+  <path d="M 584 598 L 596 591 L 584 584" fill="none" stroke="#94A3B8" stroke-linecap="round" stroke-width="1.5"/>
   <rect fill="#ffffff" height="20" opacity="0.95" rx="4" stroke="none" stroke-width="0" width="33" x="492" y="223"/>
   <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="508" y="233">Uses</text>
   <rect fill="#ffffff" height="20" opacity="0.95" rx="4" stroke="none" stroke-width="0" width="33" x="730" y="236"/>
@@ -69,7 +69,7 @@
   <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="466" y="309">SMTP</text>
   <rect fill="#ffffff" height="20" opacity="0.95" rx="4" stroke="none" stroke-width="0" width="33" x="597" y="331"/>
   <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="613" y="341">Uses</text>
-  <rect fill="#ffffff" height="32" opacity="0.95" rx="4" stroke="none" stroke-width="0" width="67" x="529" y="553"/>
-  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="562" y="564">Authenticate</text>
-  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="562" y="578">REST</text>
+  <rect fill="#ffffff" height="32" opacity="0.95" rx="4" stroke="none" stroke-width="0" width="67" x="523" y="553"/>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-weight="600" text-anchor="middle" x="556" y="564">Authenticate</text>
+  <text dominant-baseline="middle" fill="#64748B" font-family="Georgia, 'Times New Roman', serif" font-size="8" font-weight="500" text-anchor="middle" x="556" y="578">REST</text>
 </svg>

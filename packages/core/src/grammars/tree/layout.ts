@@ -30,6 +30,7 @@ import { measureText } from '../../fonts/metrics.js';
 import type { TreeTheme } from './theme.js';
 import { defaultTreeTheme, resolveTreeTheme } from './theme.js';
 import { getIcon } from '../../icons.js';
+import { splitLabelLines } from '../../util/label-lines.js';
 
 // ---------------------------------------------------------------------------
 // Rounding helper — round-half-up to integer (§5.1 item 3)
@@ -79,13 +80,18 @@ function buildLayoutTree(
   tk: TreeTheme,
   collapseAtParent: boolean,
 ): LayoutNode {
-  const measured = measureText(node.label, tk.nodeFontSize);
+  const lines = splitLabelLines(node.label);
   const iconW = (tk.showIcons && node.icon && getIcon(node.icon))
     ? tk.iconSize + tk.iconLabelGap
     : 0;
-  const textW = rhuInt(measured.width);
+  // Width: widest line among all label lines
+  const textW = lines.reduce(
+    (max, line) => Math.max(max, rhuInt(measureText(line, tk.nodeFontSize).width)),
+    0,
+  );
   const w = Math.max(textW + iconW + 2 * tk.nodePadX, tk.minNodeWidth);
-  const h = rhuInt(tk.nodeFontSize * 1.4 + 2 * tk.nodePadY);
+  const lineHeight = rhuInt(tk.nodeFontSize * 1.4);
+  const h = rhuInt(lineHeight * lines.length + 2 * tk.nodePadY);
 
   const ln: LayoutNode = {
     treeNode: node,
@@ -395,19 +401,37 @@ function emitNode(
     }
   }
 
-  // Node label
-  primitives.push({
-    kind: 'text',
-    x: textX,
-    y: cy,
-    text: node.label,
-    fontFamily: tk.fontFamily,
-    fontSize: tk.nodeFontSize,
-    fontWeight: tk.nodeFontWeight,
-    fill: textColor,
-    textAnchor: 'middle',
-    dominantBaseline: 'central',
-  });
+  // Node label — single or multi-line depending on break markers in the label
+  const labelLines = splitLabelLines(node.label);
+  if (labelLines.length > 1) {
+    const lineHeight = rhuInt(tk.nodeFontSize * 1.4);
+    primitives.push({
+      kind: 'multitext',
+      x: textX,
+      y: rhuInt(cy - (labelLines.length - 1) * lineHeight / 2),
+      lines: labelLines,
+      lineHeight,
+      fontFamily: tk.fontFamily,
+      fontSize: tk.nodeFontSize,
+      fontWeight: tk.nodeFontWeight,
+      fill: textColor,
+      textAnchor: 'middle',
+      dominantBaseline: 'central',
+    });
+  } else {
+    primitives.push({
+      kind: 'text',
+      x: textX,
+      y: cy,
+      text: node.label,
+      fontFamily: tk.fontFamily,
+      fontSize: tk.nodeFontSize,
+      fontWeight: tk.nodeFontWeight,
+      fill: textColor,
+      textAnchor: 'middle',
+      dominantBaseline: 'central',
+    });
+  }
 
   // Collapsed expander indicator (when node.collapsed=true and children exist in original tree)
   const hasHiddenChildren = (node.children ?? []).length > 0;

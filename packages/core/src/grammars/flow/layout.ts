@@ -37,6 +37,7 @@
 import type { Scene, ScenePrimitive, SceneAnimation } from '../../scene.js';
 import { measureText } from '../../fonts/metrics.js';
 import { getIcon } from '../../icons.js';
+import { splitLabelLines } from '../../util/label-lines.js';
 
 import type { FlowDocument, FlowNode, FlowEdge } from './types.js';
 import type { FlowTheme } from './theme.js';
@@ -356,18 +357,23 @@ function computeNodeSize(
   node: FlowNode,
   tk: FlowTheme,
 ): { w: number; h: number } {
-  const measured = measureText(node.label, tk.nodeFontSize);
+  const lines = splitLabelLines(node.label);
   const iconW =
     tk.showIcons && node.icon && getIcon(node.icon)
       ? tk.iconSize + tk.iconLabelGap
       : 0;
-  const textW = Math.ceil(measured.width);
+  // Width: widest line among all label lines
+  const textW = lines.reduce(
+    (max, line) => Math.max(max, Math.ceil(measureText(line, tk.nodeFontSize).width)),
+    0,
+  );
   // Diamond nodes use double padding so the label fits inside the inscribed area.
   const isDiamond = node.kind === 'diamond';
   const padX = isDiamond ? tk.nodePadX * 2 : tk.nodePadX;
   const padY = isDiamond ? tk.nodePadY * 2 : tk.nodePadY;
+  const lineHeight = rhuInt(tk.nodeFontSize * 1.4);
   const w = Math.max(textW + iconW + 2 * padX, tk.minNodeWidth);
-  const h = rhuInt(tk.nodeFontSize * 1.4 + 2 * padY);
+  const h = rhuInt(lineHeight * lines.length + 2 * padY);
   return { w, h };
 }
 
@@ -541,19 +547,37 @@ function emitNode(
     }
   }
 
-  // Label text
-  primitives.push({
-    kind: 'text',
-    x: labelX,
-    y: cy,
-    text: node.label,
-    fontFamily: tk.fontFamily,
-    fontSize: tk.nodeFontSize,
-    fontWeight: tk.nodeFontWeight,
-    fill: textColor,
-    textAnchor: 'middle',
-    dominantBaseline: 'central',
-  });
+  // Label text — single or multi-line depending on break markers in the label
+  const labelLines = splitLabelLines(node.label);
+  if (labelLines.length > 1) {
+    const lineHeight = rhuInt(tk.nodeFontSize * 1.4);
+    primitives.push({
+      kind: 'multitext',
+      x: labelX,
+      y: rhuInt(cy - (labelLines.length - 1) * lineHeight / 2),
+      lines: labelLines,
+      lineHeight,
+      fontFamily: tk.fontFamily,
+      fontSize: tk.nodeFontSize,
+      fontWeight: tk.nodeFontWeight,
+      fill: textColor,
+      textAnchor: 'middle',
+      dominantBaseline: 'central',
+    });
+  } else {
+    primitives.push({
+      kind: 'text',
+      x: labelX,
+      y: cy,
+      text: node.label,
+      fontFamily: tk.fontFamily,
+      fontSize: tk.nodeFontSize,
+      fontWeight: tk.nodeFontWeight,
+      fill: textColor,
+      textAnchor: 'middle',
+      dominantBaseline: 'central',
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------

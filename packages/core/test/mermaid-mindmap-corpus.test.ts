@@ -125,9 +125,10 @@ describe('AC3 — node shapes → clean label extraction', () => {
     expect(doc.tree.root.children?.[0]?.label).toBe('Asymm');
   });
 
-  it('<br/> HTML → space in label', () => {
+  it('<br/> HTML → line-break marker preserved in label (for multi-line rendering)', () => {
     const doc = parseMindmap(`mindmap\n  root((Root))\n    On effectiveness<br/>and features`);
-    expect(doc.tree.root.children?.[0]?.label).toBe('On effectiveness and features');
+    // <br/> is now preserved so splitLabelLines() can render it as a multi-line label.
+    expect(doc.tree.root.children?.[0]?.label).toBe('On effectiveness<br/>and features');
   });
 
   it('kind set for circle nodes', () => {

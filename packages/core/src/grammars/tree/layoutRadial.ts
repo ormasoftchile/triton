@@ -20,6 +20,7 @@
 import type { Scene, ScenePrimitive } from '../../scene.js';
 import type { TreeDocument, TreeNode } from './types.js';
 import { measureText } from '../../fonts/metrics.js';
+import { splitLabelLines } from '../../util/label-lines.js';
 
 // ---------------------------------------------------------------------------
 // Rounding helper — round-half-up to integer (§5.1 item 3)
@@ -178,13 +179,26 @@ function buildRadialNode(
   let rootR = 0;
 
   if (depth === 0) {
-    const measured = measureText(node.label, ROOT_FONT_SIZE);
-    rootR = Math.max(ROOT_RADIUS_MIN, rhuInt(measured.width / 2) + ROOT_RADIUS_PAD);
+    const lines = splitLabelLines(node.label);
+    const maxLineW = lines.reduce(
+      (max, line) => Math.max(max, measureText(line, ROOT_FONT_SIZE).width),
+      0,
+    );
+    const lineH = ROOT_FONT_SIZE * 1.4;
+    const totalH = lineH * lines.length;
+    // Circle must contain all lines: use the diagonal of the text block as a guide.
+    const halfW = maxLineW / 2;
+    const halfH = totalH / 2;
+    rootR = Math.max(ROOT_RADIUS_MIN, rhuInt(Math.sqrt(halfW * halfW + halfH * halfH)) + ROOT_RADIUS_PAD);
   } else {
     const spec    = getSpec(depth);
-    const measured = measureText(node.label, spec.fontSize);
-    w = Math.max(rhuInt(measured.width) + 2 * spec.padX, spec.minW);
-    h = rhuInt(spec.fontSize * 1.5 + 2 * spec.padY);
+    const lines = splitLabelLines(node.label);
+    const maxLineW = lines.reduce(
+      (max, line) => Math.max(max, measureText(line, spec.fontSize).width),
+      0,
+    );
+    w = Math.max(rhuInt(maxLineW) + 2 * spec.padX, spec.minW);
+    h = rhuInt(spec.fontSize * 1.5 * lines.length + 2 * spec.padY);
   }
 
   const rn: RadialNode = {
@@ -305,18 +319,36 @@ export function layoutTreeRadial(doc: TreeDocument, opts?: RadialThemeOpts): Sce
         r:    rn.rootR,
         fill: rootFill_,
       });
-      nodes.push({
-        kind:             'text',
-        x:                rn.x,
-        y:                rn.y,
-        text:             rn.treeNode.label,
-        fontFamily:       fontFam,
-        fontSize:         ROOT_FONT_SIZE,
-        fontWeight:       ROOT_FONT_WEIGHT,
-        fill:             rootText,
-        textAnchor:       'middle',
-        dominantBaseline: 'central',
-      });
+      const rootLines = splitLabelLines(rn.treeNode.label);
+      if (rootLines.length > 1) {
+        const lineHeight = rhuInt(ROOT_FONT_SIZE * 1.4);
+        nodes.push({
+          kind:             'multitext',
+          x:                rn.x,
+          y:                rhuInt(rn.y - (rootLines.length - 1) * lineHeight / 2),
+          lines:            rootLines,
+          lineHeight,
+          fontFamily:       fontFam,
+          fontSize:         ROOT_FONT_SIZE,
+          fontWeight:       ROOT_FONT_WEIGHT,
+          fill:             rootText,
+          textAnchor:       'middle',
+          dominantBaseline: 'central',
+        });
+      } else {
+        nodes.push({
+          kind:             'text',
+          x:                rn.x,
+          y:                rn.y,
+          text:             rn.treeNode.label,
+          fontFamily:       fontFam,
+          fontSize:         ROOT_FONT_SIZE,
+          fontWeight:       ROOT_FONT_WEIGHT,
+          fill:             rootText,
+          textAnchor:       'middle',
+          dominantBaseline: 'central',
+        });
+      }
       return;
     }
 
@@ -337,18 +369,36 @@ export function layoutTreeRadial(doc: TreeDocument, opts?: RadialThemeOpts): Sce
       rx:          spec.rx,
     });
 
-    nodes.push({
-      kind:             'text',
-      x:                rn.x,
-      y:                rn.y,
-      text:             rn.treeNode.label,
-      fontFamily:       fontFam,
-      fontSize:         spec.fontSize,
-      fontWeight:       spec.fontWeight,
-      fill:             colors.text,
-      textAnchor:       'middle',
-      dominantBaseline: 'central',
-    });
+    const childLines = splitLabelLines(rn.treeNode.label);
+    if (childLines.length > 1) {
+      const lineHeight = rhuInt(spec.fontSize * 1.5);
+      nodes.push({
+        kind:             'multitext',
+        x:                rn.x,
+        y:                rhuInt(rn.y - (childLines.length - 1) * lineHeight / 2),
+        lines:            childLines,
+        lineHeight,
+        fontFamily:       fontFam,
+        fontSize:         spec.fontSize,
+        fontWeight:       spec.fontWeight,
+        fill:             colors.text,
+        textAnchor:       'middle',
+        dominantBaseline: 'central',
+      });
+    } else {
+      nodes.push({
+        kind:             'text',
+        x:                rn.x,
+        y:                rn.y,
+        text:             rn.treeNode.label,
+        fontFamily:       fontFam,
+        fontSize:         spec.fontSize,
+        fontWeight:       spec.fontWeight,
+        fill:             colors.text,
+        textAnchor:       'middle',
+        dominantBaseline: 'central',
+      });
+    }
   }
 
   function emitAll_(root: RadialNode, edges: ScenePrimitive[], nodes: ScenePrimitive[]): void {

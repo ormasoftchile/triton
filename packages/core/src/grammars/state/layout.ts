@@ -4,6 +4,7 @@
 
 import type {
   LinePrimitive,
+  MultiTextPrimitive,
   PathPrimitive,
   RectPrimitive,
   Scene,
@@ -11,6 +12,7 @@ import type {
   TextPrimitive,
 } from '../../scene.js';
 import { measureText } from '../../fonts/metrics.js';
+import { splitLabelLines } from '../../util/label-lines.js';
 
 import type { StateDocument, StateNode, StateTransition } from './types.js';
 import type { StateTheme } from './theme.js';
@@ -155,13 +157,18 @@ function measureState(node: StateNode, tk: StateTheme, depth = 0): MeasuredState
     };
   }
 
-  const titleWidth = rhuInt(measureText(title, tk.stateFontSize).width);
+  const titleLines = splitLabelLines(title);
+  const titleWidth = titleLines.reduce(
+    (max, line) => Math.max(max, rhuInt(measureText(line, tk.stateFontSize).width)),
+    0,
+  );
   const descriptionWidth = description ? rhuInt(measureText(description, tk.descFontSize).width) : 0;
   const width = Math.max(
     tk.minStateWidth,
     rhuInt(Math.max(titleWidth, descriptionWidth) + 2 * tk.statePadX),
   );
-  const height = rhuInt(2 * tk.statePadY + tk.lineHeight + (description ? tk.lineHeight : 0));
+  const titleBlock = tk.lineHeight * titleLines.length;
+  const height = rhuInt(2 * tk.statePadY + titleBlock + (description ? tk.lineHeight : 0));
   return {
     node,
     visualKind: 'regular',
@@ -571,20 +578,38 @@ function buildStatePrimitives(state: PlacedState, tk: StateTheme): ScenePrimitiv
       strokeWidth: tk.stateStrokeWidth,
       rx: tk.stateRx,
     } satisfies RectPrimitive);
-    primitives.push({
-      kind: 'text',
-      x: state.cx,
-      y: rhuInt(state.y + tk.statePadY + tk.stateFontSize),
-      text: state.title,
-      fontFamily: tk.fontFamily,
-      fontSize: tk.stateFontSize,
-      fontWeight: tk.stateFontWeight,
-      fill: tk.stateTextColor,
-      textAnchor: 'middle',
-      dominantBaseline: 'alphabetic',
-    } satisfies TextPrimitive);
+    const titleLines = splitLabelLines(state.title);
+    const titleBaseY = rhuInt(state.y + tk.statePadY + tk.stateFontSize);
+    if (titleLines.length > 1) {
+      primitives.push({
+        kind: 'multitext',
+        x: state.cx,
+        y: titleBaseY,
+        lines: titleLines,
+        lineHeight: tk.lineHeight,
+        fontFamily: tk.fontFamily,
+        fontSize: tk.stateFontSize,
+        fontWeight: tk.stateFontWeight,
+        fill: tk.stateTextColor,
+        textAnchor: 'middle',
+        dominantBaseline: 'alphabetic',
+      } satisfies MultiTextPrimitive);
+    } else {
+      primitives.push({
+        kind: 'text',
+        x: state.cx,
+        y: titleBaseY,
+        text: state.title,
+        fontFamily: tk.fontFamily,
+        fontSize: tk.stateFontSize,
+        fontWeight: tk.stateFontWeight,
+        fill: tk.stateTextColor,
+        textAnchor: 'middle',
+        dominantBaseline: 'alphabetic',
+      } satisfies TextPrimitive);
+    }
     if (state.description) {
-      const dividerY = rhuInt(state.y + tk.statePadY + tk.lineHeight);
+      const dividerY = rhuInt(state.y + tk.statePadY + tk.lineHeight * titleLines.length);
       primitives.push({
         kind: 'line',
         x1: state.x,

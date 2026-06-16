@@ -148,7 +148,12 @@ function paletteFor(element: C4Element, tk: C4Theme): ElementPalette {
 }
 
 function normalizeDescription(text?: string): string | undefined {
-  const normalized = text?.replace(/<br\s*\/?>/gi, ' ').replace(/\s+/g, ' ').trim();
+  // Collapse whitespace within each segment, but preserve <br> markers as explicit line breaks.
+  const normalized = text
+    ?.split(/<br\s*\/?>/gi)
+    .map((seg) => seg.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n');
   return normalized || undefined;
 }
 
@@ -181,8 +186,11 @@ function sortBoundaryChildren(children: Array<C4Element | C4Boundary>): Array<C4
 function measureElement(element: C4Element, tk: C4Theme): MeasuredElement {
   const stereotype = stereotypeFor(element);
   const description = normalizeDescription(element.description);
+  // Split on explicit newlines (from <br> markers), then apply word-wrap to each segment.
   const descriptionLines = description
-    ? wrapText(description, tk.descFontSize, tk.descMaxWidth, 8).lines
+    ? description
+        .split('\n')
+        .flatMap((seg) => wrapText(seg, tk.descFontSize, tk.descMaxWidth, 8).lines)
     : [];
   const widestDesc = descriptionLines.reduce(
     (acc, line) => Math.max(acc, rhuInt(measureText(line, tk.descFontSize).width)),

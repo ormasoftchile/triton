@@ -26,7 +26,8 @@
  *     id>text]         → kind='asymm',   label='text'   (asymmetric)
  *     "text"           → label='text'   (quoted)
  *     text             → label='text'   (bare)
- *     HTML <br/> tags  → replaced with space in label
+ *     HTML <br/> tags  → preserved in label as-is for multi-line rendering
+ *     Other HTML tags  → stripped from label
  *
  *   Icon directives
  *     ::icon(fa fa-x)  → strips "fa fa-" / "fa-" prefix; sets node.icon
@@ -126,9 +127,10 @@ interface NodeInfo {
 function extractNodeInfo(content: string): NodeInfo {
   const s = content.trim();
 
-  // Helper: strip HTML
+  // Helper: strip HTML tags other than <br> variants, but preserve <br> markers for multi-line rendering.
+  // <br>, <br/>, <br /> are kept as-is so splitLabelLines() can split on them later.
   const clean = (t: string) =>
-    t.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').trim();
+    t.replace(/<(?!br[\s/>])[^>]*>/gi, '').trim();
 
   // id((label)) — circle
   let m = s.match(/^(\w+)\(\((.+)\)\)$/s);
