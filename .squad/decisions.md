@@ -1,4 +1,46 @@
-# Squad Decisions — Recent & Current (2026-06-15)
+# Squad Decisions — Recent & Current (2026-06-16)
+
+---
+
+# Decision: EXTENDED TIMELINE SPEC (design §16b)
+
+**Agent:** Leslie (Spec Architect)  
+**Date:** 2026-06-15  
+**Status:** SPEC WRITTEN — design/sections/16b-extended-timeline.tex created; PDF clean
+
+## Summary
+
+Extended Timeline Syntax: strict superset of Mermaid `timeline` exposing full IRDocument power. Grounded in real field names (`packages/core/src/types.ts` + `schema.ts`). Two-tier portability model: Tier 1 (Mermaid-faithful `section` + `period : event`) yields no warnings; Tier 2 (extended constructs: `track`, `@status`, `@progress`, `@milestone`, `@shape`, `section [range]`, `annotation`, `break`, `legend`) emits WARNING. Opt-in suppression via `timeline extended`. All Tier-2 constructs map to existing IR — no new IR introduced.
+
+**One IR, many layouts:** 6 layout values (`horizontal`, `vertical-spine`, `serpentine`, `roadmap`, `gantt`, `timeline-columns`) × 7 contract themes = 42 visual presentations. Dimension guard (height ≤ 5000px, aspect ≤ 4:1) on `vertical-spine` for long spans; warns and suggests `spineSpacing: even` or alternate layout.
+
+**Degradation contract:** Tier-1 byte-compatible with vanilla Mermaid; Tier-2 warns and compiles normally; vanilla Mermaid fails predictably on Tier-2 files (clear signal).
+
+## Document Artefacts
+
+- `design/sections/16b-extended-timeline.tex` — §16b (wired into main.tex)
+- `design/main.pdf` — clean build (2026-06-15)
+- Committed: b067ebd
+
+---
+
+# Decision: IR GAPS FOUND (extended-timeline spec, to fix at implementation)
+
+**Agent:** Leslie (Spec Architect)  
+**Date:** 2026-06-15  
+**Status:** SPEC-FIRST; gaps flagged; NOT YET FIXED
+
+Four known IR gaps discovered during spec authoring; documented in spec §16b:
+
+1. **Milestone has no `shape` field** — IR carries `icon?` (proxy) but no `shape` enum (diamond | circle | square | star | flag). Future: add `Milestone.shape?`.
+
+2. **Schema layout-enum bug** — `types.ts` has all 6 layout values; `schema.ts` Zod enum only 4. `gantt` and `timeline-columns` MISSING → latent JSON-Schema round-trip validation bug (would reject those layouts).
+
+3. **`density` not persisted** — resolved at theme time via `resolveContractTheme`; lost after IR round-trip. Open: promote to `Metadata`?
+
+4. **`legend` auto-entry generation unspecified** — `legend show` without explicit `LegendEntry` objects is a rendering convention, not an IR invariant.
+
+**Spec approach:** User requested spec-first; gaps documented as known-issues; implementation TBD.
 
 ---
 

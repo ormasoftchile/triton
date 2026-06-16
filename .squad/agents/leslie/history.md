@@ -128,3 +128,54 @@ For detailed context from earlier sessions (Composition implementation, design d
 - (2026-06-15) Synced §12 with 4 step-1 contract tokens (surfacePanel, inkPanel, markerShape, status-pattern) and added Implementation Status (2026) subsection; PDF clean.
 - (2026-06-15T17:04:29Z) **3 named contract themes added; matrix proven** — midnight (dark), blueprint (technical), editorial (warm print); zero per-component changes required; all 21 components light up deterministically; 2206 tests passing (Commit 2325c78)
 - (2026-06-15T15:00:00Z) Superset surface complete: config keys + 7 themes + poster keyword (§17.1 extension mechanisms shipped)
+
+---
+
+## Learnings — 2026-06-15 (Extended Timeline Syntax spec written, §16b)
+
+**Extended Timeline Syntax: §16b added to design/sections/16b-extended-timeline.tex**
+
+### Two-Tier Model (DECIDED for spec)
+
+- **Tier 1 (Mermaid-faithful):** `section` + `period : event` only; vanilla-portable; no warning.
+- **Tier 2 (Extended):** any extended construct; superset-only; WARNING emitted, compile proceeds.
+- Opening line `timeline extended` suppresses the warning (explicit opt-in).
+- No new IR introduced — all constructs map to existing `IRDocument` fields.
+
+### Construct → IR Mapping (real field names confirmed from types.ts + schema.ts)
+
+| DSL | IR | Note |
+|---|---|---|
+| `track Name` | `Track { id, label }` | id = kebab-slug |
+| `Label: start..end` | `Activity { track, label, start, end }` | IRDate strings |
+| `Label: date` | `Activity { track, label, span }` | single-date/span form |
+| `@status value` | `Activity.status` / `Milestone.status` | 7-value Status enum |
+| `@progress N` | `Activity.progress = N/100` | author writes 0-100; IR stores [0,1] |
+| `@milestone Label: date` | `Milestone { id, label, date, track }` | |
+| `@shape token` | `Milestone.icon` (proxy) | IR gap: no shape field |
+| `section Name [s..e]` | `Section { id, label, time_range }` | |
+| `annotation "text" @ date` | `Annotation { type:'callout', text, date }` | |
+| `annotation "text" @ s..e` | `Annotation { type:'period', text, start, end }` | |
+| `legend show` | `Legend { show: true }` | |
+| `break s..e` | `Metadata.axis_breaks: [{ from, to }]` | |
+
+### One IR, Many Layouts — the reach principle
+
+- 6 layouts × 7 contract themes = 42 visual presentations from one source.
+- `layout:` key in frontmatter is the single switch.
+- Dimension guard enforced: `vertical-spine` warns on multi-decade spans (height > 5000px or aspect > 4:1), suggests `spineSpacing: even` or `roadmap`/`timeline-columns`.
+
+### IR Gaps Discovered (flag for future IR revision)
+
+1. **`Milestone.shape` missing** — `icon` is a proxy; conflates pictogram with marker geometry. Future: add `Milestone.shape?: enum`.
+2. **Schema gap: `gantt` + `timeline-columns` not in `metadataSchema.layout` Zod enum** — `types.ts` has 6 values; `schema.ts` only has 4. JSON Schema round-trip broken for those two layouts.
+3. **`density` not in `Metadata`** — config-time only, lost after IR round-trip.
+4. **`legend` auto-entry generation** — rendering convention, not IR invariant.
+5. **`@milestone` outside a `track`** — `Milestone.track = undefined` allowed by IR; layout behavior on global axis not yet validated.
+
+### Document Artefacts
+
+- `design/sections/16b-extended-timeline.tex` — new section between §16 and §17
+- `design/main.tex` — `\input{sections/16b-extended-timeline}` added in The Front-End part
+- `design/main.pdf` — clean build (exit 0, 2026-06-15)
+- Decision note: `.squad/decisions/inbox/leslie-extended-timeline-spec.md`
