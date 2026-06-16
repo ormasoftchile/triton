@@ -2,6 +2,49 @@
 
 ---
 
+# Decision: KERNEL OBSTACLES FIX — Separate Rendered Nodes from Addressable Link Targets
+
+**Agent:** Barbara (Semantics & Rendering)  
+**Date:** 2026-06-16  
+**Status:** Implemented, validated, regression-tested (E1/E2); committed 6d8df80  
+**Triggered by:** Critical kernel blindness bug — the geometry-quality kernel reported `link-poster` CLEAN while the red "triggers" link visibly stabbed the state end-bullseye (`__end__`) and leaked into "Shipped".
+
+## Root Cause
+
+`NodeAnchorRegistry` was being used for two conflicting purposes: (1) **addressable targets** for `link`/`trace` endpoint resolution, and (2) **collision obstacles** for the kernel and router. An earlier fix excluded pseudo-states (`__start__`, `__end__`, fork, join, choice) from the registry because they are not semantically linkable. This pruning was correct for endpoint resolution but **silently removed real rendered obstacles from the kernel's view**, making it blind to the end-bullseye node. The kernel couldn't see a node that was plainly drawn on screen, so it couldn't detect the link stabbing straight through it.
+
+A secondary issue: the class grammar dual-indexes each node (canonical name + lowercase `id` for case-insensitive resolution), both keys holding the same bounding box. Using the raw anchor registry as the obstacle set caused the router to count each class box **twice**, inflating collision penalties and biasing routes toward defective alternatives.
+
+## Solution
+
+**Separate the obstacle set from the addressable-target set everywhere:**
+- **`anchors`** ← addressable targets only; pseudo-states excluded; used for link endpoint resolution.
+- **`obstacles`** ← ALL rendered nodes (pseudo-states included); used solely for kernel defect detection and router collision avoidance.
+
+**Implementation changes:**
+- `RenderWithAnchors<S>` gains optional `obstacles?: NodeAnchorRegistry` field in `anchors.ts`.
+- State layout builds both `anchors` (real states only) and `obstacles` (all placed nodes); removed pseudo-state filter.
+- Class layout builds deduped `obstacles` (one entry per unique bounding box) while keeping dual-indexed `anchors` for case-insensitive resolution.
+- Poster overlay `resolveAndDrawLinks` receives `posterObstacles` and builds `nodeBoxes` from it (not from `posterAnchors`); kernel consumes `nodeBoxes`.
+- Router improvements: added `h-right-near`/`h-left-near` (gutter just past source cell edge, not midpoint) + `bus-left`/`bus-right` (side-entry bus variants) to avoid intermediate-cell collisions.
+
+## Validation
+
+1. **Blind-spot closure proof**: Old geometry with `__end__` excluded from obstacle set → CLEAN. After fix, same geometry with `__end__` included → flags defect `edgeThroughNode: edge "0,0:ship->0,2:Shipped#2" passes through non-endpoint node "0,2:__end__"`.
+2. **Visual fix**: Router now picks `h-right-near` candidate; "triggers" link travels cleanly to Shipped's left edge; end-bullseye visibly clear.
+3. **Kernel verdict**: `detectDefects(qualityGeometry)` → CLEAN (0 edge-through-node, 0 label-over-node, 0 label-label-overlap, 0 out-of-bounds).
+4. **Regression tests E1/E2**: E1 (synthetic) enforces kernel detects edge through end-bullseye when bullseye in obstacle set; E2 (integration) confirms `link-poster.mmd` qualityGeometry includes `__end__` + kernel is CLEAN.
+5. **Full suite**: 2772 tests passing; only `design/figures/link-poster.png` changed.
+
+## Lessons
+
+1. **Obstacles ≠ addressable targets.** Never use the same registry for both — pruning one silently removes the other.
+2. **Dual-indexed registries need obstacle dedup.** Deduplicate by key, not by box position, to avoid inflating collision penalties.
+3. **Non-adjacent cell routing needs near-source gutters.** Midpoint gutter formula places the vertical inside intermediate cells; near-source variant keeps it in the actual gap.
+4. **Bus center-entry is fragile for state diagrams.** Pseudo-states at same center X as real states below them; side-entry variants are robust fallbacks.
+
+---
+
 # Decision: GEOMETRY-QUALITY KERNEL (objective visual judgment)
 
 **Agent:** Barbara (Semantics & Rendering)  

@@ -132,3 +132,5 @@ For detailed context from earlier sessions, see `leslie/history-archive.md`.
 **2026-06-15T23:30:00Z — Dogfood pipeline shipped (doc figures via our compiler); multi-line node labels flagged as a gap.**
 
 **Cross-Diagram Links + Traces Implemented (§30b; barbara, 2026-06-16)**: Node-anchor registry on flow/class/state grammars enables cross-diagram linking via poster `link` (atomic) and `trace` (multi-hop, typed, colored) keywords. Traces render with categorical palette colors + legend. §30b now embeds a real traced-poster figure. 70d494f (Phase A), 9d57815 (Phase B).
+
+**Kernel obstacle set = all rendered nodes (pseudo-states included); blindness fixed + regression-tested (2026-06-16)**: Geometry-quality kernel was blind to pseudo-state nodes because obstacle registry excluded them (correct for link endpoints, wrong for collision detection). Separated `anchors` (addressable targets only) from `obstacles` (full rendered set). Router now scores against full set, routing cleanly around end-bullseye. Regression tests E1/E2 added. 2772 tests passing; only `link-poster.png` changed. Committed 6d8df80.
