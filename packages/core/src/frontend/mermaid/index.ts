@@ -1995,8 +1995,25 @@ function enumerateHopCandidates(
   isDashed: boolean, isDirected: boolean, color: string,
   busBaseY: number,
 ): HopCandidate[] {
+  // Wall-centered exit/entry points (visually balanced).
+  // For each direction, connectors exit/enter at the CENTER of the appropriate
+  // wall face, not the node's geometric center. This prevents connectors from
+  // appearing at arbitrary corner positions (e.g., bottom-right instead of
+  // center-right for horizontal routes).
   const srcCx = s.x + s.w / 2, srcCy = s.y + s.h / 2;
   const tgtCx = t.x + t.w / 2, tgtCy = t.y + t.h / 2;
+
+  // Wall-face centers for primary candidates.
+  const srcRight  = { x: s.x + s.w, y: s.y + s.h / 2 }; // middle of right wall
+  const srcLeft   = { x: s.x,       y: s.y + s.h / 2 }; // middle of left wall
+  const srcBottom = { x: s.x + s.w / 2, y: s.y + s.h }; // middle of bottom wall
+  const srcTop    = { x: s.x + s.w / 2, y: s.y };       // middle of top wall
+
+  const tgtRight  = { x: t.x + t.w, y: t.y + t.h / 2 };
+  const tgtLeft   = { x: t.x,       y: t.y + t.h / 2 };
+  const tgtBottom = { x: t.x + t.w / 2, y: t.y + t.h };
+  const tgtTop    = { x: t.x + t.w / 2, y: t.y };
+
   const EPS = 1;
   const candidates: HopCandidate[] = [];
   let rank = 0;
@@ -2020,12 +2037,12 @@ function enumerateHopCandidates(
       const gx = gx0 + off;
       return {
         points: [
-          { x: s.x + s.w, y: srcCy },
-          { x: gx, y: srcCy },
-          { x: gx, y: tgtCy },
-          { x: t.x, y: tgtCy },
+          srcRight,
+          { x: gx, y: srcRight.y },
+          { x: gx, y: tgtLeft.y },
+          tgtLeft,
         ],
-        labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+        labelBox: labelBoxAt(gx, (srcRight.y + tgtLeft.y) / 2, label),
       };
     }));
     // Near-source variant: the vertical gutter sits just past the source cell's right
@@ -2039,12 +2056,12 @@ function enumerateHopCandidates(
         const gx = gxNear + off;
         return {
           points: [
-            { x: s.x + s.w, y: srcCy },
-            { x: gx, y: srcCy },
-            { x: gx, y: tgtCy },
-            { x: t.x, y: tgtCy },
+            srcRight,
+            { x: gx, y: srcRight.y },
+            { x: gx, y: tgtLeft.y },
+            tgtLeft,
           ],
-          labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+          labelBox: labelBoxAt(gx, (srcRight.y + tgtLeft.y) / 2, label),
         };
       }));
     }
@@ -2072,24 +2089,24 @@ function enumerateHopCandidates(
       const gx = gx0 + off;
       return {
         points: [
-          { x: s.x + s.w, y: s.y },
-          { x: gx, y: s.y },
-          { x: gx, y: tgtCy },
-          { x: t.x, y: tgtCy },
+          srcTop,
+          { x: gx, y: srcTop.y },
+          { x: gx, y: tgtLeft.y },
+          tgtLeft,
         ],
-        labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+        labelBox: labelBoxAt(gx, (srcTop.y + tgtLeft.y) / 2, label),
       };
     }));
     candidates.push(mk('h-right', `hx:${Math.round(gx0)}`, (off) => {
       const gx = gx0 + off;
       return {
         points: [
-          { x: s.x + s.w, y: s.y + s.h },
-          { x: gx, y: s.y + s.h },
-          { x: gx, y: tgtCy },
-          { x: t.x, y: tgtCy },
+          srcBottom,
+          { x: gx, y: srcBottom.y },
+          { x: gx, y: tgtLeft.y },
+          tgtLeft,
         ],
-        labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
+        labelBox: labelBoxAt(gx, (srcBottom.y + tgtLeft.y) / 2, label),
       };
     }));
     if (Math.round(gxNear) !== Math.round(gx0)) {
@@ -2097,24 +2114,24 @@ function enumerateHopCandidates(
         const gx = gxNear + off;
         return {
           points: [
-            { x: s.x + s.w, y: s.y },
-            { x: gx, y: s.y },
-            { x: gx, y: tgtCy },
-            { x: t.x, y: tgtCy },
+            srcTop,
+            { x: gx, y: srcTop.y },
+            { x: gx, y: tgtLeft.y },
+            tgtLeft,
           ],
-          labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+          labelBox: labelBoxAt(gx, (srcTop.y + tgtLeft.y) / 2, label),
         };
       }));
       candidates.push(mk('h-right', `hx:${Math.round(gxNear)}`, (off) => {
         const gx = gxNear + off;
         return {
           points: [
-            { x: s.x + s.w, y: s.y + s.h },
-            { x: gx, y: s.y + s.h },
-            { x: gx, y: tgtCy },
-            { x: t.x, y: tgtCy },
+            srcBottom,
+            { x: gx, y: srcBottom.y },
+            { x: gx, y: tgtLeft.y },
+            tgtLeft,
           ],
-          labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
+          labelBox: labelBoxAt(gx, (srcBottom.y + tgtLeft.y) / 2, label),
         };
       }));
     }
@@ -2127,12 +2144,12 @@ function enumerateHopCandidates(
       const gx = gx0 + off;
       return {
         points: [
-          { x: s.x, y: srcCy },
-          { x: gx, y: srcCy },
-          { x: gx, y: tgtCy },
-          { x: t.x + t.w, y: tgtCy },
+          srcLeft,
+          { x: gx, y: srcLeft.y },
+          { x: gx, y: tgtRight.y },
+          tgtRight,
         ],
-        labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+        labelBox: labelBoxAt(gx, (srcLeft.y + tgtRight.y) / 2, label),
       };
     }));
     // Near-source variant (symmetric to h-right-near).
@@ -2142,12 +2159,12 @@ function enumerateHopCandidates(
         const gx = gxNear + off;
         return {
           points: [
-            { x: s.x, y: srcCy },
-            { x: gx, y: srcCy },
-            { x: gx, y: tgtCy },
-            { x: t.x + t.w, y: tgtCy },
+            srcLeft,
+            { x: gx, y: srcLeft.y },
+            { x: gx, y: tgtRight.y },
+            tgtRight,
           ],
-          labelBox: labelBoxAt(gx, (srcCy + tgtCy) / 2, label),
+          labelBox: labelBoxAt(gx, (srcLeft.y + tgtRight.y) / 2, label),
         };
       }));
     }
@@ -2158,24 +2175,24 @@ function enumerateHopCandidates(
       const gx = gx0 + off;
       return {
         points: [
-          { x: s.x, y: s.y },
-          { x: gx, y: s.y },
-          { x: gx, y: tgtCy },
-          { x: t.x + t.w, y: tgtCy },
+          srcTop,
+          { x: gx, y: srcTop.y },
+          { x: gx, y: tgtRight.y },
+          tgtRight,
         ],
-        labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+        labelBox: labelBoxAt(gx, (srcTop.y + tgtRight.y) / 2, label),
       };
     }));
     candidates.push(mk('h-left', `hx:${Math.round(gx0)}`, (off) => {
       const gx = gx0 + off;
       return {
         points: [
-          { x: s.x, y: s.y + s.h },
-          { x: gx, y: s.y + s.h },
-          { x: gx, y: tgtCy },
-          { x: t.x + t.w, y: tgtCy },
+          srcBottom,
+          { x: gx, y: srcBottom.y },
+          { x: gx, y: tgtRight.y },
+          tgtRight,
         ],
-        labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
+        labelBox: labelBoxAt(gx, (srcBottom.y + tgtRight.y) / 2, label),
       };
     }));
     if (Math.round(gxNear) !== Math.round(gx0)) {
@@ -2183,24 +2200,24 @@ function enumerateHopCandidates(
         const gx = gxNear + off;
         return {
           points: [
-            { x: s.x, y: s.y },
-            { x: gx, y: s.y },
-            { x: gx, y: tgtCy },
-            { x: t.x + t.w, y: tgtCy },
+            srcTop,
+            { x: gx, y: srcTop.y },
+            { x: gx, y: tgtRight.y },
+            tgtRight,
           ],
-          labelBox: labelBoxAt(gx, (s.y + tgtCy) / 2, label),
+          labelBox: labelBoxAt(gx, (srcTop.y + tgtRight.y) / 2, label),
         };
       }));
       candidates.push(mk('h-left', `hx:${Math.round(gxNear)}`, (off) => {
         const gx = gxNear + off;
         return {
           points: [
-            { x: s.x, y: s.y + s.h },
-            { x: gx, y: s.y + s.h },
-            { x: gx, y: tgtCy },
-            { x: t.x + t.w, y: tgtCy },
+            srcBottom,
+            { x: gx, y: srcBottom.y },
+            { x: gx, y: tgtRight.y },
+            tgtRight,
           ],
-          labelBox: labelBoxAt(gx, (s.y + s.h + tgtCy) / 2, label),
+          labelBox: labelBoxAt(gx, (srcBottom.y + tgtRight.y) / 2, label),
         };
       }));
     }
@@ -2213,12 +2230,12 @@ function enumerateHopCandidates(
       const gy = gy0 + off;
       return {
         points: [
-          { x: srcCx, y: s.y + s.h },
-          { x: srcCx, y: gy },
-          { x: tgtCx, y: gy },
-          { x: tgtCx, y: t.y },
+          srcBottom,
+          { x: srcBottom.x, y: gy },
+          { x: tgtTop.x, y: gy },
+          tgtTop,
         ],
-        labelBox: labelBoxAt((srcCx + tgtCx) / 2, gy, label),
+        labelBox: labelBoxAt((srcBottom.x + tgtTop.x) / 2, gy, label),
       };
     }));
   }
@@ -2230,12 +2247,12 @@ function enumerateHopCandidates(
       const gy = gy0 + off;
       return {
         points: [
-          { x: srcCx, y: s.y },
-          { x: srcCx, y: gy },
-          { x: tgtCx, y: gy },
-          { x: tgtCx, y: t.y + t.h },
+          srcTop,
+          { x: srcTop.x, y: gy },
+          { x: tgtBottom.x, y: gy },
+          tgtBottom,
         ],
-        labelBox: labelBoxAt((srcCx + tgtCx) / 2, gy, label),
+        labelBox: labelBoxAt((srcTop.x + tgtBottom.x) / 2, gy, label),
       };
     }));
   }
@@ -2249,12 +2266,12 @@ function enumerateHopCandidates(
     const busY = busBaseY + off;
     return {
       points: [
-        { x: srcCx, y: s.y + s.h },
-        { x: srcCx, y: busY },
-        { x: tgtCx, y: busY },
-        { x: tgtCx, y: t.y + t.h },
+        srcBottom,
+        { x: srcBottom.x, y: busY },
+        { x: tgtBottom.x, y: busY },
+        tgtBottom,
       ],
-      labelBox: labelBoxAt((srcCx + tgtCx) / 2, busY, label),
+      labelBox: labelBoxAt((srcBottom.x + tgtBottom.x) / 2, busY, label),
     };
   }));
 
@@ -2266,12 +2283,12 @@ function enumerateHopCandidates(
     const busY = busBaseY + off;
     return {
       points: [
-        { x: srcCx,       y: s.y + s.h },
-        { x: srcCx,       y: busY },
+        srcBottom,
+        { x: srcBottom.x, y: busY },
         { x: busEntryLeft, y: busY },
         { x: busEntryLeft, y: t.y + t.h },
       ],
-      labelBox: labelBoxAt((srcCx + busEntryLeft) / 2, busY, label),
+      labelBox: labelBoxAt((srcBottom.x + busEntryLeft) / 2, busY, label),
     };
   }));
 
@@ -2281,12 +2298,12 @@ function enumerateHopCandidates(
     const busY = busBaseY + off;
     return {
       points: [
-        { x: srcCx,        y: s.y + s.h },
-        { x: srcCx,        y: busY },
+        srcBottom,
+        { x: srcBottom.x, y: busY },
         { x: busEntryRight, y: busY },
         { x: busEntryRight, y: t.y + t.h },
       ],
-      labelBox: labelBoxAt((srcCx + busEntryRight) / 2, busY, label),
+      labelBox: labelBoxAt((srcBottom.x + busEntryRight) / 2, busY, label),
     };
   }));
 
