@@ -144,3 +144,60 @@ All 21 Mermaid diagram types now adopt the Tier-2 `ThemeContract`. The `executiv
 **CROSS-AGENT (2026-06-15T21:45:00Z):** Excel poster addressing shipped (feaec9d); cross-diagram linking spec'd §30b (73d8c21).
 
 **CROSS-AGENT (2026-06-15T23:30:00Z):** Dogfood pipeline shipped (doc figures via our compiler); multi-line node labels flagged as a gap.
+
+---
+
+## 2026-06-17 — Dead Code Audit
+
+**Date:** 2026-06-17T19:20:47-04:00
+**Status:** AUDIT COMPLETE (READ-ONLY)
+
+### Method
+Three-pass audit:
+1. Ecosystem tooling: `pnpm dlx knip` from repo root (finds unused exports, files, deps)
+2. ESLint: `pnpm -C packages/{core,cli,schema} lint` (catches unused locals/imports)
+3. Manual grep verification of every flagged symbol across all `packages/` `.ts` files
+
+### Learnings
+
+**Key dead-code file paths:**
+- `packages/core/src/frontend/mermaid/index.ts` — richest file; 5 unused imports/args (lines 39, 70, 75, 2426, 2588)
+- `packages/core/src/grammars/architecture/layout.ts` — `countIndent` function (line 23) defined but never called; `groupById` Map (line 235) built but never read
+- `packages/core/src/grammars/architecture/index.ts` — duplicate `import type` at lines 14-19 (same symbols already re-exported at 26-36)
+- `packages/core/src/grammars/class/layout.ts` + `flow/layout.ts` — shared copy-paste pattern: `pos1`, `pos2`, `rank` computed but never read
+- `packages/core/src/frontend/mermaid/requirement.ts:64` — `REQUIREMENT_KEYWORDS` Set defined, parsing uses inline regexes instead
+- `packages/core/src/geometry/predicates.ts:165` — `flattenPoint` exported but never used anywhere in the repo
+- `packages/cli/src/index.ts:25` — `parseMermaid` imported but never referenced in CLI
+
+**Key structural findings:**
+- `theme-contract/index.ts` exports `terminal`, `pastel`, `mono` but `core/src/index.ts` only re-exports `executive`, `midnight`, `blueprint`, `editorial` — 3 themes "lost" to the public API
+- `layout/index.ts` exports all 6 layout functions but none are re-exported from `core/src/index.ts` — redundant exports
+- `canvaskit-wasm` flagged by knip as unused dependency — FALSE POSITIVE; loaded via `createRequire` in `render/skia.ts` dynamically
+
+**Root devDependencies:** `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` appear redundant (flat config uses `typescript-eslint` meta-package directly).
+
+**Audit tools that worked well:** `pnpm dlx knip` (no config needed for monorepo detection) + ESLint `no-unused-vars` rule + targeted `grep -rn` for verification. Total: 21 high-confidence dead-code items in source + 3 likely-unused dependencies.
+
+---
+
+## 2026-06-17 — Dead Code Audit Complete (Scribe)
+
+**Date:** 2026-06-17T19:20:47-04:00  
+**Status:** READ-ONLY AUDIT — no code modified  
+**Method:** `pnpm dlx knip` + `eslint --max-warnings=0` + `grep` verification
+
+**High Confidence Dead Code:** 21 items (all grep-verified):
+- Unused imports: `measureText`, `CONTRACT_THEMES`, `pathLength`, `pathBends`, `KernelPoint`, `Segment`, `ArchJunction`, `defaultSequenceTheme`, `defaultTreeTheme`, `parseMermaid`
+- Unused locals/params: `off`, `offset` (callback params), `mL`, `pos1`/`pos2`/`rank` (computed but unused)
+- Dead functions: `countIndent`, `flattenPoint`
+- Dead constants: `REQUIREMENT_KEYWORDS`, `groupById`
+- Duplicate imports: 5 items in architecture & tree grammars
+- Unused directives: eslint-disable comment with no following call
+
+**Likely Dead / Review Needed:** 5 items (overexported functions, theme visibility decisions).
+
+**Unused Root DevDeps:** 3 items (@typescript-eslint/eslint-plugin, @typescript-eslint/parser, vitest root install).
+
+**False Positive:** canvaskit-wasm (dynamically loaded; keep).
+
+**Decision:** Merged to `.squad/decisions.md`. Awaiting user direction on removal priority.

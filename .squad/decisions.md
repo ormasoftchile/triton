@@ -1,5 +1,100 @@
 # Squad Decisions — Recent & Current (2026-06-17)
 
+
+# Dead Code Audit — packages/core, packages/cli, packages/schema
+
+**Date:** 2026-06-17T19:20:47-04:00  
+**Author:** Mark (IR & Data Modeling)  
+**Status:** READ-ONLY AUDIT — no code modified  
+**Method:** `pnpm dlx knip` (monorepo) + `eslint` (unused-vars) + `grep` verification
+
+---
+
+## High Confidence Dead Code (safe to remove)
+
+All 21 items below were grep-verified across the full `packages/` tree.
+
+| # | File | Line | Symbol | Why Dead |
+|---|------|------|--------|----------|
+| 1 | `packages/core/src/composition/layout.ts` | 35 | `measureText` (import) | Imported but never called in this file |
+| 2 | `packages/core/src/frontend/mermaid/index.ts` | 39 | `CONTRACT_THEMES` (import) | Imported with `isContractTheme`/`resolveContractTheme`; only those two are used |
+| 3 | `packages/core/src/frontend/mermaid/index.ts` | 70 | `pathLength`, `pathBends` (destructure) | Destructured from geometry import, never referenced |
+| 4 | `packages/core/src/frontend/mermaid/index.ts` | 75 | `KernelPoint` (type import) | Type imported but never referenced in this file |
+| 5 | `packages/core/src/frontend/mermaid/index.ts` | 2426 | `off` (callback param) | Arrow function param `(off) => {...}` — body ignores `off`; should be `_off` per convention |
+| 6 | `packages/core/src/frontend/mermaid/index.ts` | 2588 | `offset` (callback param) | Arrow function param `(offset: number) => {...}` — body ignores it; should be `_offset` |
+| 7 | `packages/core/src/frontend/mermaid/requirement.ts` | 64 | `REQUIREMENT_KEYWORDS` (const) | Set defined but never read; parsing uses inline regexes on lines 263, 296 instead |
+| 8 | `packages/core/src/geometry/astar-routing.ts` | 20 | `Segment` (type import) | Imported but never used in this file |
+| 9 | `packages/core/src/grammars/architecture/index.ts` | 14–19 | `ArchGroup`, `ArchJunction`, `ArchService`, `ArrowType`, `PortSide` (import type) | Duplicate imports — these same symbols are already re-exported directly from `./types.js` at lines 26–36 |
+| 10 | `packages/core/src/grammars/architecture/layout.ts` | 12 | `ArchJunction` (import type) | Imported but no `ArchJunction` reference appears in the file body |
+| 11 | `packages/core/src/grammars/architecture/layout.ts` | 23 | `countIndent` (function def) | Defined at line 23, never called anywhere in the file or repo |
+| 12 | `packages/core/src/grammars/architecture/layout.ts` | 235 | `groupById` (Map) | Built with `new Map(doc.groups.map(...))` but never read; dead computation |
+| 13 | `packages/core/src/grammars/class/layout.ts` | 653–654, 750 | `pos1`, `pos2`, `rank` | `pos1`/`pos2` computed via `layer.indexOf()` but never read; `rank` destructured but only `layer` used |
+| 14 | `packages/core/src/grammars/flow/layout.ts` | 377–378, 524 | `pos1`, `pos2`, `rank` | Same copy-paste pattern as class/layout.ts |
+| 15 | `packages/core/src/grammars/sequence/layout.ts` | 21 | `defaultSequenceTheme` (import) | Imported but never referenced in this file (resolveSequenceTheme used instead) |
+| 16 | `packages/core/src/grammars/tree/index.ts` | 24 | `BranchColors` (import type) | Duplicate import — already re-exported from source at line 37 |
+| 17 | `packages/core/src/grammars/tree/layout.ts` | 31 | `defaultTreeTheme` (import) | Imported but never referenced in this file |
+| 18 | `packages/core/src/layout/gantt.ts` | 251 | `mL = 0` (const) | Assigned value 0, never used in the function body |
+| 19 | `packages/core/src/geometry/predicates.ts` | 165 | `flattenPoint` (export fn) | Exported but grep confirms zero callers in entire repo |
+| 20 | `packages/core/src/layout/vertical-spine.ts` | 580 | `// eslint-disable-next-line no-console` | Unused directive (no `console` call follows) |
+| 21 | `packages/cli/src/index.ts` | 25 | `parseMermaid` (import) | Imported from `@timeline-compiler/core` but never referenced in the CLI |
+
+---
+
+## Likely Dead / Needs Human Confirmation
+
+| Symbol | File | Ambiguity |
+|--------|------|-----------|
+| `renderCompositionDocumentFromRefs` | `composition/index.ts:145` | Exported from module but NOT from `core/src/index.ts`. Has JSDoc. May be intended as direct-import API. |
+| `tokenizeArgs`, `parseElement`, `parseRel` | `frontend/mermaid/c4.ts:201,306,334` | Used internally in c4.ts; exported needlessly. Could remove `export` keyword. |
+| `addDurationToDate` | `frontend/mermaid/gantt.ts:148` | Used internally in gantt.ts; exported needlessly. |
+| `terminal`, `pastel`, `mono` | `theme-contract/index.ts` | Exported from the sub-module but NOT re-exported from `core/src/index.ts`. 3 themes "invisible" in the public API — may be intentional (planned addition) or oversight. |
+| `layoutHorizontal`, `layoutSerpentine`, `layoutVerticalSpine`, `layoutRoadmap`, `layoutGantt`, `layoutTimelineColumns` | `layout/index.ts:25–30` | Exported from internal barrel but NOT from `core/src/index.ts`. Used inside `layout/index.ts`'s dispatcher. The named exports are redundant. |
+| `isLeapYear`, `daysInMonth` | `layout/dates.ts:34,38` | Used internally in dates.ts. Exported but NOT in public API. `export` keyword could be removed. |
+| `edgeCrossingsAestheticScore`, `edgeLengthUniformityScore` | `geometry/aesthetics.ts:407,431` | Used internally in `computeAestheticScores`. Re-exported in `geometry/index.ts` but NOT in `core/src/index.ts`. |
+| `darkFlowTheme` | `grammars/flow/theme.ts:278` | Referenced in theme registry (`'dark-flow': darkFlowTheme`). Not in `core/src/index.ts`. Used via string key lookup at runtime — low risk, but named export is redundant. |
+
+---
+
+## Public API Exports Unused Internally (Informational — probably keep)
+
+Knip reported 93 "unused exported types" from internal grammar modules. The majority are grammar-specific `*RenderFormat`, `*RenderBackend`, `*PlacedXxx` types exported from internal `index.ts` files but NOT re-exported through `core/src/index.ts`. These are:
+
+- **Architecture layout types** (`ArchPoint`, `ArchPlacedService`, `ArchPlacedJunction`, `ArchPlacedNode`, `ArchPlacedGroup`, `ArchPlacedEdge`) — in `architecture/layout.ts`
+- **Per-grammar render format/backend types** (`ArchitectureRenderFormat`, `BlockRenderFormat`, `C4RenderFormat`, `ChartRenderFormat`, `ClassRenderFormat`, `ErRenderFormat`, `FlowRenderFormat`, `GitGraphRenderFormat`, `JourneyRenderFormat`, `KanbanRenderFormat`, `PacketRenderFormat`, `RequirementRenderFormat`, `SankeyRenderFormat`, `SequenceRenderFormat`, `StateRenderFormat`) — in each grammar's `index.ts`
+- **Composition internal types** (`TimelineCellContent`, `RefCellContent`, `CompositionMetadata`, `CompositionGrid`) — in `composition/types.ts`
+- **Theme-contract types** (`StatusRole`, `SequentialRamp`, `DivergingRamp`, `TypeScale`, `WeightSet`, `SpacingSteps`, `ConnectorStyle`, `DropShadow`, `Glow`, `FidelityTier`) — re-exported from both `types.ts` and `index.ts` but only the index re-export is in the public API
+- **Scene types** (`DashflowAnimation`, `EffectDescriptor`) — in `scene.ts`
+- **Geometry scores** (`boxRight`, `boxBottom`, `boxCenter`, `boxArea`, `normalizeBox`, etc.) — in `geometry/index.ts` barrel but not in package entry
+
+These are architecture-appropriate internal types. The pattern suggests each grammar's `index.ts` over-exports (exports everything it defines) but `core/src/index.ts` selectively re-exports. No action needed.
+
+---
+
+## Unused Dependencies in package.json
+
+| Package | Where | Verdict |
+|---------|-------|---------|
+| `@typescript-eslint/eslint-plugin` | root `package.json` | Likely redundant — `eslint.config.js` uses `import tseslint from 'typescript-eslint'` (the meta-package), not these individual plugins |
+| `@typescript-eslint/parser` | root `package.json` | Same reason |
+| `vitest` | root `package.json` | Root `test` script is `pnpm -r test`; each package has its own vitest devDep. Root install is redundant. |
+| ~~`canvaskit-wasm`~~ | ~~`packages/core/package.json`~~ | **FALSE POSITIVE** — dynamically loaded via `createRequire` in `render/skia.ts:62`. Knip can't see dynamic requires. Do NOT remove. |
+
+---
+
+## Priority Recommendation
+
+**Remove first (zero risk, pure cleanup):**
+1. Items 1–21 in the High Confidence table — all are unused locals/imports. PR is mechanical, ESLint-guided.
+2. The three root devDependencies (`@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `vitest`).
+
+**Review next (export surface cleanup):**
+3. The `terminal`, `pastel`, `mono` themes — decide if they should be added to `core/src/index.ts` or kept internal.
+4. The layout function and date utility re-exports — remove `export` keywords from internal helpers.
+
+**Do not remove:**
+- `canvaskit-wasm` (dynamic require — knip false positive).
+- Any of the 93 "unused exported types" without auditing whether they're needed by consumers importing sub-paths directly.
+
 ---
 
 # Decision: AESTHETIC METRICS LAYER — Continuous Quality Scorecard + Corpus Gate
