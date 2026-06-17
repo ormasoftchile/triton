@@ -38,7 +38,9 @@ export interface AestheticScores {
   spacingUniform: number;
   /** Edge-pair non-crossing fraction. */
   edgeCrossings: number;
-  /** Unweighted mean of the five aesthetic scores. */
+  /** Edge-length uniformity — rewards edges having similar total lengths (inverse coefficient of variation). */
+  edgeLengthUniformity: number;
+  /** Weighted mean of the six aesthetic scores. */
   overall: number;
 }
 
@@ -48,6 +50,7 @@ export interface AestheticThresholds {
   alignment?: number;
   spacingUniform?: number;
   edgeCrossings?: number;
+  edgeLengthUniformity?: number;
   overall?: number;
 }
 
@@ -404,11 +407,58 @@ function axisGaps(
 export { edgeCrossingsScore as edgeCrossingsAestheticScore } from './scores.js';
 
 // ---------------------------------------------------------------------------
+// 6. Edge-length uniformity — coefficient of variation of edge lengths
+// ---------------------------------------------------------------------------
+
+/**
+ * Edge-length uniformity score.
+ *
+ * Measures the uniformity of total edge lengths across all edges in the diagram.
+ * A layout where all edges have similar lengths (e.g., all ~100px or all ~200px)
+ * feels more balanced than one where some edges are 50px and others are 400px.
+ *
+ * score = 1 / (1 + σ/μ)
+ *
+ * where σ = standard deviation of edge lengths, μ = mean edge length.
+ * The ratio σ/μ is the coefficient of variation (CV).
+ *
+ *   1.0 = all edges equal length (CV = 0)
+ *   0.5 = σ = μ (CV = 1) — high variance
+ *   0.0 = extreme variance (not reachable in practice due to 1+ denominator)
+ *
+ * Returns 1 when fewer than 2 edges exist (trivially uniform).
+ */
+export function edgeLengthUniformityScore(geo: LabeledGeometry): number {
+  const edges = geo.edges;
+  if (edges.length < 2) return 1; // trivially uniform
+
+  // Compute total length for each edge.
+  const lengths: number[] = [];
+  for (const edge of edges) {
+    let totalLength = 0;
+    for (const seg of edge.segments) {
+      totalLength += segmentLength(seg);
+    }
+    if (totalLength > 0) lengths.push(totalLength);
+  }
+
+  if (lengths.length < 2) return 1; // only 1 edge with non-zero length
+
+  const mean = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+  if (mean <= 0) return 1; // all edges zero-length — undefined uniformity
+
+  const variance = lengths.reduce((s, len) => s + (len - mean) ** 2, 0) / lengths.length;
+  const stdDev = Math.sqrt(variance);
+  const cv = stdDev / mean; // coefficient of variation
+  return clamp01(1 / (1 + cv));
+}
+
+// ---------------------------------------------------------------------------
 // Aggregate scorecard
 // ---------------------------------------------------------------------------
 
 /**
- * Compute all five aesthetic scores + their unweighted mean.
+ * Compute all six aesthetic scores + their weighted mean.
  * Pure + deterministic: same geometry → same result every time.
  */
 export function computeAestheticScores(geo: LabeledGeometry): AestheticScores {
@@ -417,8 +467,17 @@ export function computeAestheticScores(geo: LabeledGeometry): AestheticScores {
   const alignment = alignmentScore(geo);
   const spacingUniform = spacingUniformScore(geo);
   const edgeCrossings = crossingsScore(geo);
-  const overall = (gridBalance + congestion + alignment + spacingUniform + edgeCrossings) / 5;
-  return { gridBalance, congestion, alignment, spacingUniform, edgeCrossings, overall };
+  const edgeLengthUniformity = edgeLengthUniformityScore(geo);
+  // Weighted mean: edge-length uniformity gets 10% weight, others share 90%.
+  const overall = (
+    gridBalance * 0.18 +
+    congestion * 0.18 +
+    alignment * 0.18 +
+    spacingUniform * 0.18 +
+    edgeCrossings * 0.18 +
+    edgeLengthUniformity * 0.10
+  );
+  return { gridBalance, congestion, alignment, spacingUniform, edgeCrossings, edgeLengthUniformity, overall };
 }
 
 /**
@@ -439,13 +498,14 @@ export function formatAestheticScorecard(
 
   const lines: string[] = [
     `── Aesthetic scorecard: ${name} ──`,
-    `  gridBalance    ${fmt(s.gridBalance)}${flag(s.gridBalance, thresholds?.gridBalance)}  (occupancy symmetry; 1=balanced, 0=dead third)`,
-    `  congestion     ${fmt(s.congestion)}${flag(s.congestion, thresholds?.congestion)}  (inverse peak gutter density; 1=spread, 0=jammed)`,
-    `  alignment      ${fmt(s.alignment)}${flag(s.alignment, thresholds?.alignment)}  (shared guide participation; 1=all aligned)`,
-    `  spacingUniform ${fmt(s.spacingUniform)}${flag(s.spacingUniform, thresholds?.spacingUniform)}  (gap uniformity; 1=equal gaps)`,
-    `  edgeCrossings  ${fmt(s.edgeCrossings)}${flag(s.edgeCrossings, thresholds?.edgeCrossings)}  (non-crossing edge pairs; 1=no crossings)`,
-    `  ─────────────────────────────────────────────────────────────────`,
-    `  overall        ${fmt(s.overall)}  ${aestheticVerdict(s.overall)}`,
+    `  gridBalance         ${fmt(s.gridBalance)}${flag(s.gridBalance, thresholds?.gridBalance)}  (occupancy symmetry; 1=balanced, 0=dead third)`,
+    `  congestion          ${fmt(s.congestion)}${flag(s.congestion, thresholds?.congestion)}  (inverse peak gutter density; 1=spread, 0=jammed)`,
+    `  alignment           ${fmt(s.alignment)}${flag(s.alignment, thresholds?.alignment)}  (shared guide participation; 1=all aligned)`,
+    `  spacingUniform      ${fmt(s.spacingUniform)}${flag(s.spacingUniform, thresholds?.spacingUniform)}  (gap uniformity; 1=equal gaps)`,
+    `  edgeCrossings       ${fmt(s.edgeCrossings)}${flag(s.edgeCrossings, thresholds?.edgeCrossings)}  (non-crossing edge pairs; 1=no crossings)`,
+    `  edgeLengthUniformity ${fmt(s.edgeLengthUniformity)}${flag(s.edgeLengthUniformity, thresholds?.edgeLengthUniformity)}  (length uniformity; 1=equal lengths)`,
+    `  ──────────────────────────────────────────────────────────────────────`,
+    `  overall             ${fmt(s.overall)}  ${aestheticVerdict(s.overall)}`,
   ];
   return lines.join('\n');
 }

@@ -67,11 +67,12 @@ import type { NodeAnchor, NodeAnchorRegistry } from '../../anchors.js';
 
 // Geometry-quality kernel — feedback-driven route selection (during layout) +
 // objective defect report (post render).  Pure & deterministic.
-import { pickBestRoute, polylineToSegments, computeAestheticScores, detectDefects } from '../../geometry/index.js';
+import { pickBestRoute, polylineToSegments, computeAestheticScores, detectDefects, routeWithAStar, pathLength, pathBends } from '../../geometry/index.js';
 import type {
   Box as KernelBox,
   BoxWithId as KernelBoxWithId,
   Segment as KernelSegment,
+  Point as KernelPoint,
   RouteCandidate,
   RouteContext,
   LabeledGeometry,
@@ -1951,7 +1952,7 @@ function emitRoutePolyline(
 
 interface CellRect { x: number; y: number; w: number; h: number; }
 
-type RouteShape = 'h-right' | 'h-left' | 'v-down' | 'v-up' | 'bus';
+type RouteShape = 'h-right' | 'h-left' | 'v-down' | 'v-up' | 'bus' | 'astar';
 
 /** Label pill geometry for a route, mirroring `labelPill`'s sizing exactly. */
 function labelBoxAt(cx: number, cy: number, text: string | undefined): KernelBox | undefined {
@@ -2414,6 +2415,43 @@ function resolveAndDrawLinks(
       isDashed, isDirected, color, busBaseY,
     );
 
+    // Try A* pathfinding for inter-cell edges (gridSize = 10 for fine resolution).
+    // If A* finds a better route than the best enumerated candidate, add it to the set.
+    const srcCx = srcAnchor.x + srcAnchor.w / 2;
+    const srcCy = srcAnchor.y + srcAnchor.h / 2;
+    const tgtCx = tgtAnchor.x + tgtAnchor.w / 2;
+    const tgtCy = tgtAnchor.y + tgtAnchor.h / 2;
+
+    const astarPath = routeWithAStar(
+      { x: srcCx, y: srcCy },
+      { x: tgtCx, y: tgtCy },
+      nodeBoxes,
+      canvas,
+      10, // gridSize = 10px (fine resolution)
+    );
+
+    if (astarPath && astarPath.length >= 2) {
+      // Build an A* candidate with the same structure as enumerated candidates.
+      const astarCandidate: HopCandidate = {
+        shape: 'astar' as RouteShape,
+        gutterKey: 'astar',
+        laneGroupKey,
+        isDashed,
+        isDirected,
+        color,
+        fromId,
+        toId,
+        rank: candidates.length, // Lower-rank than bus fallback (last enumerated)
+        points: astarPath,
+        labelBox: labelBoxAt((srcCx + tgtCx) / 2, (srcCy + tgtCy) / 2, link.label),
+        build: (offset: number) => ({
+          points: astarPath, // A* paths don't offset (they're single-lane)
+          labelBox: labelBoxAt((srcCx + tgtCx) / 2, (srcCy + tgtCy) / 2, link.label),
+        }),
+      };
+      candidates.push(astarCandidate);
+    }
+
     const ctx: RouteContext = {
       nodes: nodeBoxes,
       committedEdges,
@@ -2439,6 +2477,9 @@ function resolveAndDrawLinks(
       if (!predicate(cand)) continue;
       if (cand.shape === 'bus') {
         if (!busLanes.has(cand.laneGroupKey)) busLanes.set(cand.laneGroupKey, nextBusLane++);
+      } else if (cand.shape === 'astar') {
+        // A* routes are single-lane (no gutter sharing) — skip lane assignment.
+        continue;
       } else {
         let lanes = gutterLanes.get(cand.gutterKey);
         if (!lanes) { lanes = new Map(); gutterLanes.set(cand.gutterKey, lanes); }
@@ -2461,6 +2502,9 @@ function resolveAndDrawLinks(
     if (cand.shape === 'bus') {
       const laneIdx = busLanes.get(cand.laneGroupKey) ?? 0;
       offset = laneIdx * BUS_LANE_PITCH;
+    } else if (cand.shape === 'astar') {
+      // A* routes don't use lane offsets (already optimized path).
+      offset = 0;
     } else {
       const lanes = gutterLanes.get(cand.gutterKey)!;
       const lane = lanes.get(cand.laneGroupKey) ?? 0;

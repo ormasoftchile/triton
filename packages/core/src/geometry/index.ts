@@ -74,6 +74,9 @@ export {
   alignmentScore,
   spacingUniformScore,
   edgeCrossingsAestheticScore,
+  edgeLengthUniformityScore,
   computeAestheticScores,
   formatAestheticScorecard,
 } from './aesthetics.js';
+
+export { routeWithAStar, pathLength, pathBends } from './astar-routing.js';
