@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg height="1044" version="1.1" viewBox="0 0 568 1044" width="568" xmlns="http://www.w3.org/2000/svg">
-  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="247" y2="291"/>
-  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="518" y2="569"/>
-  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="722" y2="807"/>
-  <line stroke="#B8A898" stroke-dasharray="6,4" stroke-width="1.4" x1="422" x2="422" y1="313" y2="247"/>
-  <line stroke="#B8A898" stroke-width="1.4" x1="236" x2="330" y1="152" y2="634"/>
-  <line stroke="#B8A898" stroke-width="1.4" x1="332" x2="240" y1="646" y2="410"/>
+<svg height="1291" version="1.1" viewBox="0 0 568 1291" width="568" xmlns="http://www.w3.org/2000/svg">
+  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="247" y2="538"/>
+  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="765" y2="816"/>
+  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="969" y2="1054"/>
+  <line stroke="#B8A898" stroke-dasharray="6,4" stroke-width="1.4" x1="422" x2="422" y1="238" y2="303"/>
+  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="247" y2="322"/>
+  <line stroke="#B8A898" stroke-width="1.4" x1="146" x2="146" y1="463" y2="538"/>
   <rect fill="#F3EDE2" height="191" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="56"/>
   <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="56"/>
   <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="104" y2="104"/>
@@ -16,68 +16,68 @@
   <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="164">+email: String</text>
   <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="207">+register()</text>
   <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="226">+login(): bool</text>
-  <rect fill="#F3EDE2" height="191" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="303"/>
-  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="303"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="351" y2="351"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="432" y2="432"/>
-  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="146" y="329">Order</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="373">+orderId: String</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="392">+createdAt: Date</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="411">+total: float</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="454">+submit()</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="473">+cancel(): bool</text>
-  <rect fill="#F3EDE2" height="153" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="569"/>
-  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="569"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="617" y2="617"/>
+  <rect fill="#F3EDE2" height="172" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="332" y="66"/>
+  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="332" y="66"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="114" y2="114"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="176" y2="176"/>
+  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="422" y="92">CreditCardPayment</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="136">+cardNumber: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="155">+expiry: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="198">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="217">+refund(): bool</text>
+  <rect fill="#F3EDE2" height="129" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="334"/>
+  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="334"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="382" y2="382"/>
+  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="146" y="360">ShoppingCart</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="404">+addItem(Product p)</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="423">+removeItem(String sku)</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="442">+checkout(): Order</text>
+  <rect fill="#F3EDE2" height="167" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="332" y="315"/>
+  <rect fill="#EDE5D8" height="62" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="332" y="315"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="377" y2="377"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="420" y2="420"/>
+  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="422" y="335">&lt;&lt;interface&gt;&gt;</text>
+  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="422" y="354">Payment</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="399">+amount: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="442">+process(): bool</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="461">+refund(): bool</text>
+  <rect fill="#F3EDE2" height="191" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="550"/>
+  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="550"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="598" y2="598"/>
   <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="679" y2="679"/>
-  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="146" y="595">OrderItem</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="639">+quantity: int</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="658">+unitPrice: float</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="701">+subtotal(): float</text>
-  <rect fill="#F3EDE2" height="148" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="819"/>
-  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="819"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="867" y2="867"/>
-  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="146" y="845">Product</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="889">+sku: String</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="908">+name: String</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="927">+price: float</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="946">+stock: int</text>
-  <rect fill="#F3EDE2" height="167" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="332" y="68"/>
-  <rect fill="#EDE5D8" height="62" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="332" y="68"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="130" y2="130"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="173" y2="173"/>
-  <text dominant-baseline="alphabetic" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="422" y="88">&lt;&lt;interface&gt;&gt;</text>
-  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="422" y="107">Payment</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="152">+amount: float</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="195">+process(): bool</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="214">+refund(): bool</text>
-  <rect fill="#F3EDE2" height="172" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="332" y="313"/>
-  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="332" y="313"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="361" y2="361"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="423" y2="423"/>
-  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="422" y="339">CreditCardPayment</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="383">+cardNumber: String</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="402">+expiry: String</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="445">+process(): bool</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="464">+refund(): bool</text>
-  <rect fill="#F3EDE2" height="129" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="332" y="581"/>
-  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="332" y="581"/>
-  <line stroke="#D9CFC0" stroke-width="1" x1="332" x2="512" y1="629" y2="629"/>
-  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="422" y="607">ShoppingCart</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="651">+addItem(Product p)</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="670">+removeItem(String sku)</text>
-  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="354" y="689">+checkout(): Order</text>
-  <path d="M 139 291 L 146 303 L 153 291" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
-  <path d="M 146 494 L 139 506 L 146 518 L 153 506 Z" fill="#B8A898" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
-  <path d="M 139 807 L 146 819 L 153 807" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
-  <path d="M 422 235 L 429 247 L 415 247 Z" fill="#FAF6EF" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
-  <path d="M 323 636 L 332 646 L 337 633" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
-  <path d="M 247 408 L 236 399 L 234 413" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
+  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="146" y="576">Order</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="620">+orderId: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="639">+createdAt: Date</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="658">+total: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="701">+submit()</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="720">+cancel(): bool</text>
+  <rect fill="#F3EDE2" height="153" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="816"/>
+  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="816"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="864" y2="864"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="926" y2="926"/>
+  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="146" y="842">OrderItem</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="886">+quantity: int</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="905">+unitPrice: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="948">+subtotal(): float</text>
+  <rect fill="#F3EDE2" height="148" rx="3" stroke="#D9CFC0" stroke-width="1" width="180" x="56" y="1066"/>
+  <rect fill="#EDE5D8" height="48" rx="3" stroke="#8B2635" stroke-width="1.4" width="180" x="56" y="1066"/>
+  <line stroke="#D9CFC0" stroke-width="1" x1="56" x2="236" y1="1114" y2="1114"/>
+  <text dominant-baseline="alphabetic" fill="#6B1826" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="15" font-weight="700" text-anchor="middle" x="146" y="1092">Product</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="1136">+sku: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="1155">+name: String</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="1174">+price: float</text>
+  <text dominant-baseline="alphabetic" fill="#1A1208" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="12" font-weight="500" text-anchor="start" x="78" y="1193">+stock: int</text>
+  <path d="M 139 538 L 146 550 L 153 538" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
+  <path d="M 146 741 L 139 753 L 146 765 L 153 753 Z" fill="#B8A898" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
+  <path d="M 139 1054 L 146 1066 L 153 1054" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
+  <path d="M 422 315 L 415 303 L 429 303 Z" fill="#FAF6EF" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
+  <path d="M 139 322 L 146 334 L 153 322" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
+  <path d="M 139 538 L 146 550 L 153 538" fill="none" stroke="#B8A898" stroke-linecap="round" stroke-width="1.4"/>
   <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="138" y="259">1</text>
-  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="138" y="291">*</text>
-  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="275">places</text>
-  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="532">contains</text>
-  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="771">references</text>
-  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="294" y="397">has</text>
-  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="275" y="526">creates</text>
+  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="138" y="538">*</text>
+  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="399">places</text>
+  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="779">contains</text>
+  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="1018">references</text>
+  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="291">has</text>
+  <text dominant-baseline="middle" fill="#8B7355" font-family="Lora, Georgia, 'Times New Roman', serif" font-size="10" font-weight="500" text-anchor="middle" x="156" y="507">creates</text>
 </svg>

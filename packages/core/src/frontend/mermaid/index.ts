@@ -67,7 +67,7 @@ import type { NodeAnchor, NodeAnchorRegistry } from '../../anchors.js';
 
 // Geometry-quality kernel — feedback-driven route selection (during layout) +
 // objective defect report (post render).  Pure & deterministic.
-import { pickBestRoute, polylineToSegments, computeAestheticScores, detectDefects, routeWithAStar, pathLength, pathBends } from '../../geometry/index.js';
+import { pickBestRoute, polylineToSegments, computeAestheticScores, detectDefects, routeWithAStar, pathLength, pathBends, segmentIntersectsBox } from '../../geometry/index.js';
 import type {
   Box as KernelBox,
   BoxWithId as KernelBoxWithId,
@@ -1430,6 +1430,7 @@ function scorePosterCandidate(
   themeName: string,
   layoutTheme: CompositionTheme,
   categoricalPalette: string[],
+  routingStyle: 'orthogonal' | 'straight',
 ): { egregiousDefects: number; overall: number } {
   try {
     const { compDoc, mappedAnchors, mappedObstacles, mappedLinks } = applyArrangement(
@@ -1466,7 +1467,7 @@ function scorePosterCandidate(
     // Run routing (suppressing warnings — scoring pass only).
     const { geometry } = resolveAndDrawLinks(
       mappedLinks, traces, pAnchors, pObstacles,
-      cellTransforms, [], layoutTheme, categoricalPalette, candCanvas,
+      cellTransforms, [], layoutTheme, categoricalPalette, candCanvas, routingStyle,
     );
 
     if (geometry.edges.length === 0 && mappedLinks.length > 0) {
@@ -1642,7 +1643,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
       candidateScores.push(
         scorePosterCandidate(
           arr, cells, cellAnchors, cellObstacles,
-          doc.links, doc.traces, doc.title, themeName, layoutTheme, categoricalPalette,
+          doc.links, doc.traces, doc.title, themeName, layoutTheme, categoricalPalette, doc.routingStyle,
         ),
       );
     }
@@ -1721,6 +1722,7 @@ function renderPoster(text: string, options: MermaidRenderOptions): MermaidRende
     layoutTheme,
     categoricalPalette,
     scoringCanvas,
+    doc.routingStyle,
   );
 
   // Extend the canvas only if a bus-fallback lane reached below the cell area.
@@ -1952,7 +1954,7 @@ function emitRoutePolyline(
 
 interface CellRect { x: number; y: number; w: number; h: number; }
 
-type RouteShape = 'h-right' | 'h-left' | 'v-down' | 'v-up' | 'bus' | 'astar';
+type RouteShape = 'h-right' | 'h-left' | 'v-down' | 'v-up' | 'bus' | 'astar' | 'direct' | 'straight';
 
 /** Label pill geometry for a route, mirroring `labelPill`'s sizing exactly. */
 function labelBoxAt(cx: number, cy: number, text: string | undefined): KernelBox | undefined {
@@ -1994,6 +1996,8 @@ function enumerateHopCandidates(
   label: string | undefined,
   isDashed: boolean, isDirected: boolean, color: string,
   busBaseY: number,
+  routingStyle: 'orthogonal' | 'straight',
+  nodeBoxes: Array<{ id: string; x: number; y: number; w: number; h: number }>,
 ): HopCandidate[] {
   // Wall-centered exit/entry points (visually balanced).
   // For each direction, connectors exit/enter at the CENTER of the appropriate
@@ -2030,6 +2034,99 @@ function enumerateHopCandidates(
     };
   };
 
+  // ── STRAIGHT ROUTING WITH OBSTACLE AVOIDANCE ─────────────────────────────
+  // When routingStyle = 'straight', compute straight-line paths that avoid
+  // obstacles. Try direct first; if blocked, generate candidates that dodge
+  // obstacles with minimal bends (1-2 waypoints).
+  if (routingStyle === 'straight') {
+    // Determine which walls to use based on relative position.
+    let start: { x: number; y: number };
+    let end: { x: number; y: number };
+
+    const dx = tgtCx - srcCx;
+    const dy = tgtCy - srcCy;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    // Primary axis determines wall choice.
+    if (absDx > absDy) {
+      // Horizontal primary: use left/right walls.
+      if (dx > 0) {
+        start = srcRight;
+        end = tgtLeft;
+      } else {
+        start = srcLeft;
+        end = tgtRight;
+      }
+    } else {
+      // Vertical primary: use top/bottom walls.
+      if (dy > 0) {
+        start = srcBottom;
+        end = tgtTop;
+      } else {
+        start = srcTop;
+        end = tgtBottom;
+      }
+    }
+
+    const midX = (start.x + end.x) / 2;
+    const midY = (start.y + end.y) / 2;
+
+    // Check if direct path is clear
+    const directSegment = { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
+    const obstaclesInPath: Array<{ id: string; x: number; y: number; w: number; h: number }> = [];
+    
+    for (const node of nodeBoxes) {
+      // Skip source and target nodes
+      if (node.id === fromId || node.id === toId) continue;
+      
+      if (segmentIntersectsBox(directSegment, node)) {
+        obstaclesInPath.push(node);
+      }
+    }
+
+    // If path is clear, use direct 2-point line
+    if (obstaclesInPath.length === 0) {
+      candidates.push(mk('straight', 'straight', () => ({
+        points: [start, end],
+        labelBox: labelBoxAt(midX, midY, label),
+      })));
+    } else {
+      // Path blocked — use A* pathfinding for obstacle avoidance
+      // Calculate canvas bounds
+      let minX = Math.min(start.x, end.x);
+      let minY = Math.min(start.y, end.y);
+      let maxX = Math.max(start.x, end.x);
+      let maxY = Math.max(start.y, end.y);
+      
+      for (const obs of nodeBoxes) {
+        minX = Math.min(minX, obs.x);
+        minY = Math.min(minY, obs.y);
+        maxX = Math.max(maxX, obs.x + obs.w);
+        maxY = Math.max(maxY, obs.y + obs.h);
+      }
+      
+      const canvas = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+      const astarPath = routeWithAStar(start, end, nodeBoxes, canvas, 10); // 10px grid
+      
+      if (astarPath && astarPath.length > 0) {
+        candidates.push(mk('straight', 'straight-astar', () => ({
+          points: astarPath,
+          labelBox: labelBoxAt(midX, midY, label),
+        })));
+      } else {
+        // A* failed — fall back to direct path (kernel will penalize)
+        candidates.push(mk('straight', 'straight-direct-fallback', () => ({
+          points: [start, end],
+          labelBox: labelBoxAt(midX, midY, label),
+        })));
+      }
+    }
+
+    return candidates; // Skip orthogonal candidates entirely.
+  }
+
+  // ── ORTHOGONAL ROUTING ───────────────────────────────────────────────────
   // Direct horizontal gutter — target to the RIGHT.
   if (tgtCell.x >= srcCell.x + srcCell.w - EPS) {
     const gx0 = (srcCell.x + srcCell.w + tgtCell.x) / 2;
@@ -2307,6 +2404,32 @@ function enumerateHopCandidates(
     };
   }));
 
+  // Direct/straight routing: single line from source to target.
+  // Selects appropriate exit/entry walls based on relative positions.
+  // Used when routingStyle='straight' for clean, unobstructed direct paths.
+  const dx = tgtCx - srcCx;
+  const dy = tgtCy - srcCy;
+  let directSrc: { x: number; y: number };
+  let directTgt: { x: number; y: number };
+
+  // Choose exit/entry ports based on direction
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Predominantly horizontal
+    directSrc = dx > 0 ? srcRight : srcLeft;
+    directTgt = dx > 0 ? tgtLeft : tgtRight;
+  } else {
+    // Predominantly vertical
+    directSrc = dy > 0 ? srcBottom : srcTop;
+    directTgt = dy > 0 ? tgtTop : tgtBottom;
+  }
+
+  candidates.push(mk('direct', 'direct', (off) => {
+    return {
+      points: [directSrc, directTgt],
+      labelBox: labelBoxAt((directSrc.x + directTgt.x) / 2, (directSrc.y + directTgt.y) / 2, label),
+    };
+  }));
+
   return candidates;
 }
 
@@ -2336,6 +2459,7 @@ function resolveAndDrawLinks(
   theme: CompositionTheme,
   categoricalPalette: string[],
   canvas: KernelBox,
+  routingStyle: 'orthogonal' | 'straight',
 ): { primitives: ScenePrimitive[]; busBottomY: number; geometry: OverlayGeometry } {
   if (links.length === 0) {
     return { primitives: [], busBottomY: 0, geometry: { nodes: [], labels: [], edges: [] } };
@@ -2429,7 +2553,7 @@ function resolveAndDrawLinks(
     const candidates = enumerateHopCandidates(
       srcAnchor, tgtAnchor, srcCell, tgtCell, globalCellBot,
       fromId, toId, laneGroupKey, link.label,
-      isDashed, isDirected, color, busBaseY,
+      isDashed, isDirected, color, busBaseY, routingStyle, nodeBoxes,
     );
 
     // Try A* pathfinding for inter-cell edges (gridSize = 10 for fine resolution).

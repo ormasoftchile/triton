@@ -533,6 +533,189 @@ function buildSelfRelationship(
   };
 }
 
+// ---------------------------------------------------------------------------
+// ELK-inspired algorithms for class diagram layout
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a layered graph from class relationships.
+ * Returns layers (rank → node ids) and forward edges.
+ */
+function buildLayeredGraph(
+  classes: SizedClass[],
+  relationships: ClassRelationship[],
+): { layers: Map<number, string[]>; edges: Array<{ from: string; to: string }> } {
+  const classById = new Map<string, SizedClass>();
+  for (const cls of classes) classById.set(cls.cls.id, cls);
+
+  // Build adjacency list for outgoing edges
+  const outEdges = new Map<string, string[]>();
+  const inEdges = new Map<string, string[]>();
+  for (const cls of classes) {
+    outEdges.set(cls.cls.id, []);
+    inEdges.set(cls.cls.id, []);
+  }
+  for (const rel of relationships) {
+    if (!classById.has(rel.from) || !classById.has(rel.to)) continue;
+    if (rel.from === rel.to) continue; // skip self-edges
+    outEdges.get(rel.from)!.push(rel.to);
+    inEdges.get(rel.to)!.push(rel.from);
+  }
+
+  // Assign ranks (topological layering)
+  const rank = new Map<string, number>();
+  const visited = new Set<string>();
+
+  function assignRank(nodeId: string): number {
+    if (rank.has(nodeId)) return rank.get(nodeId)!;
+    if (visited.has(nodeId)) return 0; // cycle detected, treat as rank 0
+
+    visited.add(nodeId);
+    const preds = inEdges.get(nodeId)!;
+    let maxPredRank = -1;
+    for (const pred of preds) {
+      maxPredRank = Math.max(maxPredRank, assignRank(pred));
+    }
+    const myRank = maxPredRank + 1;
+    rank.set(nodeId, myRank);
+    return myRank;
+  }
+
+  for (const cls of classes) {
+    assignRank(cls.cls.id);
+  }
+
+  // Build layers
+  const layers = new Map<number, string[]>();
+  for (const [nodeId, r] of rank) {
+    if (!layers.has(r)) layers.set(r, []);
+    layers.get(r)!.push(nodeId);
+  }
+
+  // Build edge list
+  const edges: Array<{ from: string; to: string }> = [];
+  for (const rel of relationships) {
+    if (!classById.has(rel.from) || !classById.has(rel.to)) continue;
+    if (rel.from === rel.to) continue;
+    edges.push({ from: rel.from, to: rel.to });
+  }
+
+  return { layers, edges };
+}
+
+/**
+ * Greedy-switch crossing minimization (ELK algorithm).
+ * Sweeps through layers, swapping adjacent nodes if it reduces crossings.
+ */
+function greedySwitch(
+  layers: Map<number, string[]>,
+  edges: Array<{ from: string; to: string }>,
+): void {
+  const MAX_SWEEPS = 10;
+
+  for (let sweep = 0; sweep < MAX_SWEEPS; sweep++) {
+    let improved = false;
+
+    for (const [rank, layer] of layers) {
+      if (layer.length <= 1) continue;
+
+      for (let i = 0; i < layer.length - 1; i++) {
+        const node1 = layer[i]!;
+        const node2 = layer[i + 1]!;
+
+        const currentCrossings = countCrossingsForPair(node1, node2, layers, edges, rank);
+
+        // Try swapping
+        [layer[i], layer[i + 1]] = [layer[i + 1]!, layer[i]!];
+        const swappedCrossings = countCrossingsForPair(node2, node1, layers, edges, rank);
+
+        if (swappedCrossings < currentCrossings) {
+          improved = true; // keep swap
+        } else {
+          // revert swap
+          [layer[i], layer[i + 1]] = [layer[i + 1]!, layer[i]!];
+        }
+      }
+    }
+
+    if (!improved) break;
+  }
+}
+
+function countCrossingsForPair(
+  node1: string,
+  node2: string,
+  layers: Map<number, string[]>,
+  edges: Array<{ from: string; to: string }>,
+  rank: number,
+): number {
+  const layer = layers.get(rank)!;
+  const pos1 = layer.indexOf(node1);
+  const pos2 = layer.indexOf(node2);
+
+  let crossings = 0;
+
+  // Count crossings with edges from previous layer
+  const prevRank = rank - 1;
+  if (layers.has(prevRank)) {
+    const prevLayer = layers.get(prevRank)!;
+    for (const e1 of edges) {
+      if (e1.to !== node1 && e1.to !== node2) continue;
+      if (!prevLayer.includes(e1.from)) continue;
+      const fromPos1 = prevLayer.indexOf(e1.from);
+
+      for (const e2 of edges) {
+        if (e2.to !== node1 && e2.to !== node2) continue;
+        if (e1.to === e2.to) continue;
+        if (!prevLayer.includes(e2.from)) continue;
+        const fromPos2 = prevLayer.indexOf(e2.from);
+
+        // Check if edges cross
+        const toPos1 = layer.indexOf(e1.to);
+        const toPos2 = layer.indexOf(e2.to);
+
+        if (
+          (fromPos1 < fromPos2 && toPos1 > toPos2) ||
+          (fromPos1 > fromPos2 && toPos1 < toPos2)
+        ) {
+          crossings++;
+        }
+      }
+    }
+  }
+
+  // Count crossings with edges to next layer
+  const nextRank = rank + 1;
+  if (layers.has(nextRank)) {
+    const nextLayer = layers.get(nextRank)!;
+    for (const e1 of edges) {
+      if (e1.from !== node1 && e1.from !== node2) continue;
+      if (!nextLayer.includes(e1.to)) continue;
+      const toPos1 = nextLayer.indexOf(e1.to);
+
+      for (const e2 of edges) {
+        if (e2.from !== node1 && e2.from !== node2) continue;
+        if (e1.from === e2.from) continue;
+        if (!nextLayer.includes(e2.to)) continue;
+        const toPos2 = nextLayer.indexOf(e2.to);
+
+        // Check if edges cross
+        const fromPos1 = layer.indexOf(e1.from);
+        const fromPos2 = layer.indexOf(e2.from);
+
+        if (
+          (fromPos1 < fromPos2 && toPos1 > toPos2) ||
+          (fromPos1 > fromPos2 && toPos1 < toPos2)
+        ) {
+          crossings++;
+        }
+      }
+    }
+  }
+
+  return crossings;
+}
+
 export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): RenderWithAnchors<Scene> {
   const tk = themeOverride ?? resolveClassTheme(doc.metadata.theme);
 
@@ -550,30 +733,42 @@ export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): Ren
   }
 
   const sized = doc.classes.map((cls) => measureClass(cls, tk));
-  const rows = Math.ceil(sized.length / 2);
-  const colCount = sized.length > rows ? 2 : 1;
+
+  // Apply ELK algorithms for better layout
+  const { layers, edges } = buildLayeredGraph(sized, doc.relationships);
+  greedySwitch(layers, edges);
+
+  // Place classes based on layered graph
   const maxColWidth = sized.reduce((acc, item) => Math.max(acc, item.width), 0);
   const maxRowHeight = sized.reduce((acc, item) => Math.max(acc, item.height), 0);
 
-  const placed: PlacedClass[] = sized.map((item, index) => {
-    const col = index < rows ? 0 : 1;
-    const row = col === 0 ? index : index - rows;
-    const cellX = rhuInt(tk.marginLeft + col * (maxColWidth + tk.classGapX));
-    const cellY = rhuInt(tk.marginTop + row * (maxRowHeight + tk.classGapY));
-    const x = rhuInt(cellX + (maxColWidth - item.width) / 2);
-    const y = rhuInt(cellY + (maxRowHeight - item.height) / 2);
-    return {
-      ...item,
-      row,
-      col,
-      x,
-      y,
-      right: rhuInt(x + item.width),
-      bottom: rhuInt(y + item.height),
-      cx: rhuInt(x + item.width / 2),
-      cy: rhuInt(y + item.height / 2),
-    };
-  });
+  const sizedById = new Map<string, SizedClass>();
+  for (const cls of sized) sizedById.set(cls.cls.id, cls);
+
+  const placed: PlacedClass[] = [];
+  let row = 0;
+  for (const [rank, layer] of Array.from(layers.entries()).sort((a, b) => a[0] - b[0])) {
+    for (let col = 0; col < layer.length; col++) {
+      const nodeId = layer[col]!;
+      const item = sizedById.get(nodeId)!;
+      const cellX = rhuInt(tk.marginLeft + col * (maxColWidth + tk.classGapX));
+      const cellY = rhuInt(tk.marginTop + row * (maxRowHeight + tk.classGapY));
+      const x = rhuInt(cellX + (maxColWidth - item.width) / 2);
+      const y = rhuInt(cellY + (maxRowHeight - item.height) / 2);
+      placed.push({
+        ...item,
+        row,
+        col,
+        x,
+        y,
+        right: rhuInt(x + item.width),
+        bottom: rhuInt(y + item.height),
+        cx: rhuInt(x + item.width / 2),
+        cy: rhuInt(y + item.height / 2),
+      });
+    }
+    row++;
+  }
 
   const classById = new Map<string, PlacedClass>();
   for (const item of placed) classById.set(item.cls.id, item);
@@ -601,11 +796,14 @@ export function layoutClass(doc: ClassDocument, themeOverride?: ClassTheme): Ren
     classPrimitives.push(...buildClassPrimitives(item, tk));
   }
 
+  // Compute canvas dimensions from layers
+  const numRows = layers.size;
+  const maxCols = Math.max(...Array.from(layers.values()).map((layer) => layer.length));
   const width = rhuInt(
-    tk.marginLeft + colCount * maxColWidth + (colCount - 1) * tk.classGapX + tk.marginRight,
+    tk.marginLeft + maxCols * maxColWidth + (maxCols - 1) * tk.classGapX + tk.marginRight,
   );
   const height = rhuInt(
-    tk.marginTop + rows * maxRowHeight + (rows - 1) * tk.classGapY + tk.marginBottom,
+    tk.marginTop + numRows * maxRowHeight + (numRows - 1) * tk.classGapY + tk.marginBottom,
   );
 
   // ── Node-anchor registry (sidecar — §30b Phase A) ─────────────────────────

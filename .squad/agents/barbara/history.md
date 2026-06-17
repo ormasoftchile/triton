@@ -2,15 +2,21 @@
 
 **Owner:** Barbara (Semantics & Rendering)  
 **Project:** timeline — deterministic diagram compiler  
-**Updated:** 2026-06-17T11:57:00Z (Greedy-switch crossing minimization integrated; Brandes-Köpf structure added for future; 2790/2790 tests pass)
+**Updated:** 2026-06-17T17:00:00Z (Straight vs Orthogonal routing visual comparison — configurable routing styles; 2790/2790 tests pass)
 
 ---
 
 ## Current Status (2026-06-17)
 
-**GREEDY-SWITCH CROSSING MINIMIZATION INTEGRATED.** Added greedy-switch post-processing after barycenter sweeps in flow layout engine (`flow/layout.ts`). Algorithm iteratively swaps adjacent nodes within layers if swap reduces edge crossings, with deterministic termination (max 10 iterations or no improvement). Added placeholder Brandes-Köpf placement structure (simplified version maintains current sequential placement while preserving algorithm framework for future full implementation). **All 2790/2790 tests pass.** No visual regressions in flowchart examples (flow-rag-pipeline, flow-decision remain byte-identical). Greedy-switch provides 15-25% crossing reduction on complex branching flows (benefit visible on graphs with ≥3 nodes per layer and multiple cross-layer edges). Current examples are simple linear/branching chains with minimal crossings, so improvement not visually apparent but algorithm is validated and deterministic.
+**STRAIGHT ROUTING IMPLEMENTED — VISUAL COMPARISON COMPLETE.** Added configurable routing styles for poster overlay connectors: `routingStyle: 'orthogonal'` (default, Manhattan routing with horizontal/vertical segments) vs `routingStyle: 'straight'` (direct diagonal lines). Implementation: (1) Added 'direct' routing candidate to `enumerateHopCandidates()` that creates single-segment paths from source to target, selecting exit/entry ports based on predominant direction (horizontal vs vertical). (2) Added `routingStyle` field to PosterDocument interface, parsed from frontmatter. (3) Filter candidates based on style: 'straight' keeps ONLY direct candidates, 'orthogonal' (default) filters out direct candidates to preserve existing Manhattan routing. (4) Created link-poster-orthogonal.mmd and link-poster-straight.mmd for side-by-side comparison. **All 2790/2790 tests pass.**
 
-**Earlier (2026-06-17):** A* pathfinding edge routing; edge-length uniformity metric; poster scores 0.733–0.807 ACCEPTABLE; all tests pass. See earlier notes below.
+**VISUAL COMPARISON RESULTS:**
+- **Orthogonal (Manhattan):** Uses 3-segment paths (horizontal-vertical-horizontal) via intermediate vertical gutters. Example: Payment→PaymentGateway goes right to x=489, down to target y, then right to target. Clean 90° turns, respects grid structure, feels intentional and structured. Label boxes sit on vertical gutter segments.
+- **Straight (Direct):** Uses 1-segment diagonal paths. Example: Payment→PaymentGateway goes directly from (416.93,171.11)→(579.04,203.60). Minimal ink, shorter paths, more organic feel. Labels sit on diagonal midpoints.
+- **Which looks better?** DEPENDS ON INTENT. Orthogonal feels more **architectural and intentional** — connectors follow the implicit grid, creating visual alignment and regularity (gutters at x=489, x=509, x=726.5 create vertical rhythm). Straight feels more **organic and minimal** — fewer bends, less visual clutter, direct "as the crow flies" connections. For diagrams emphasizing flow/causality (traces, data pipelines), straight may be cleaner. For architectural/structural diagrams (system boundaries, layered architectures), orthogonal maintains grid discipline.
+- **Trade-offs:** Straight routing COULD cross obstacles if source/target aren't cleanly separated (not an issue in link-poster due to grid layout, but could be problematic in denser posters with overlapping cells). Orthogonal routing ALWAYS respects cell boundaries via gutters, but adds extra path length and visual complexity (3 segments vs 1).
+
+**Earlier (2026-06-17):** Wall-centered connector exit/entry points fix; greedy-switch crossing minimization; Brandes-Köpf structure; A* pathfinding; aesthetic metrics. See earlier notes below.
 
 ---
 
@@ -23,6 +29,29 @@
 ---
 
 ## Learnings
+
+### Wall-Centered Connector Ports (2026-06-17)
+
+1. **Wall-face centers create visually balanced connectors.** Exit/entry points MUST be at the CENTER of the appropriate wall face (right/left/top/bottom), not at the node's geometric center or corners. Using geometric centers for horizontal routes causes connectors to exit from arbitrary vertical positions (e.g., bottom-right corner instead of center-right), creating visual imbalance and staircase routes where straight lines are expected.
+
+2. **ALL candidate variants must use wall centers.** The PRIMARY candidates (first h-right, h-left, v-down, v-up) were already correct, but VARIANT/NEAR/ALTERNATE candidates still used old geometric-center logic (`srcCx`, `srcCy`, `tgtCx`, `tgtCy`). This caused the kernel to pick visually broken routes when the primary candidate had throughNode penalties. Fix: update ALL 18 candidate builders to use the wall-centered points (`srcRight`, `srcLeft`, `srcTop`, `srcBottom`, `tgtRight`, `tgtLeft`, `tgtTop`, `tgtBottom`).
+
+3. **Alternate-port candidates should use wall corners, not arbitrary positions.** The top/bottom alternate-port variants (for avoiding same-cell siblings) should use `srcTop` and `srcBottom` (wall-face points at the top/bottom edges) instead of `{ x: s.x + s.w, y: s.y }` (arbitrary corner coordinate). This maintains the semantic intent (exit from top/bottom edge of right wall) while using the wall-centered abstraction.
+
+4. **Bus candidates exit from bottom wall center.** Bus routes (fallback for blocked direct routes) should exit from `srcBottom` (bottom wall center) and enter the target's bottom wall (`tgtBottom`), not from arbitrary geometric centers. This ensures bus routes also have clean visual entry/exit points.
+
+5. **Label box positioning inherits from wall-centered points.** Label boxes are centered on the midpoint of connector segments. When connectors exit from wall centers instead of geometric centers, labels automatically align better with their edges. The "handled by", "fulfilled by", "triggers" labels in link-poster are now visually centered on their red connector lines.
+
+6. **Test suite validates geometric correctness, not visual balance.** All 2790 tests passed before and after the fix. The tests verify routing kernel correctness (no overlaps, deterministic selection, valid paths), but don't detect visual imbalance issues like corner-exit connectors or staircase routes. Visual assessment (viewing rendered PNGs) is ESSENTIAL for catching these aesthetic regressions.
+
+7. **Regenerating posters reveals global improvements.** Fixing wall-centered ports improved ALL three posters (link-poster, trace-poster, crosslink-poster). The trace-poster showed cleaner cross-cell routing (REQ boxes to class-diagram boxes exit from right wall centers). The crosslink-poster showed improved vertical alignment for multi-cell traces. Wall-centered ports are a GLOBAL aesthetic improvement, not just a link-poster fix.
+
+### Key Files Modified (2026-06-17)
+
+- `packages/core/src/frontend/mermaid/index.ts` — `enumerateHopCandidates()` wall-centered ports (lines 2048-2308)
+- `design/figures/link-poster.png` — regenerated with improved routing
+- `design/figures/trace-poster.png` — regenerated with improved routing
+- `design/figures/crosslink-poster.png` — regenerated with improved routing
 
 ### Greedy-Switch + Brandes-Köpf Implementation (2026-06-17)
 

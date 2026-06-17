@@ -87,6 +87,17 @@ export interface CompositionTheme {
     color: string;
   };
 
+  // ── Connector routing ─────────────────────────────────────────────────────
+  /**
+   * Routing style for overlay connectors (cross-cell links/traces).
+   *
+   * - 'orthogonal' (default): Manhattan routing with wall-centered exit/entry
+   *   points, using vertical/horizontal gutters. Guarantees no diagonal segments.
+   * - 'straight': Direct point-to-point routing with wall-centered exit/entry
+   *   points. Connectors drawn as straight lines (like class diagram arrows).
+   */
+  connectorRouting: 'orthogonal' | 'straight';
+
   // ── Cell content alignment ────────────────────────────────────────────────
   /**
    * Vertical alignment of the sub-scene within the available cell embed area.
@@ -161,6 +172,8 @@ export const defaultCompositionTheme: CompositionTheme = {
   statValueFont: { family: 'Inter, sans-serif', size: 48, weight: 700, color: '#38bdf8' },
   statLabelFont: { family: 'Inter, sans-serif', size: 13, weight: 400, color: '#94a3b8' },
 
+  connectorRouting: 'orthogonal',
+
   cellVAlign: 'top',
   cellHAlign: 'center',
 
@@ -198,6 +211,8 @@ export const darkCompositionTheme: CompositionTheme = {
 
   statValueFont: { family: 'Inter, sans-serif', size: 48, weight: 700, color: '#2dd4bf' },
   statLabelFont: { family: 'Inter, sans-serif', size: 13, weight: 400, color: '#8b949e' },
+
+  connectorRouting: 'orthogonal',
 
   cellVAlign: 'top',
   cellHAlign: 'center',
