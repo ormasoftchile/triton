@@ -60,6 +60,15 @@
             "theme": {
               "type": "string"
             },
+            "layout": {
+              "type": "string",
+              "enum": [
+                "horizontal",
+                "vertical-spine",
+                "serpentine",
+                "roadmap"
+              ]
+            },
             "locale": {
               "type": "string"
             },
@@ -102,6 +111,27 @@
                 "src"
               ],
               "additionalProperties": false
+            },
+            "axis_breaks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
+                  },
+                  "to": {
+                    "type": "string",
+                    "pattern": "^(\\d{4}-\\d{2}-\\d{2}(?:T\\d{2}:\\d{2}(?::\\d{2})?)?|\\d{4}-Q[1-4]|\\d{4}-H[12]|\\d{4}-\\d{2}|\\d{4}|FY\\d{2,4}-Q[1-4]|[+-]\\d+[a-z]|now|tbd|ongoing|unknown|~.+)$"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "additionalProperties": false
+              }
             }
           },
           "required": [
