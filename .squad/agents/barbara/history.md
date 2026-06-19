@@ -89,3 +89,27 @@
 
 **Full detailed learnings (obstacle/target separation, aesthetic metrics, layout selection, intra-cell routing):** See `history-2026-06-16-summarized.md`.
 
+### Parse→Render Pipeline Map (2026-06-17)
+
+Verified end-to-end pipeline stages and key entry-point files for the team's reference:
+
+**Entry points:**
+- CLI: `packages/cli/src/index.ts` — `isMermaidInput()` routes `.mmd`/frontmatter to Mermaid path, YAML/JSON to IR path
+- Public API: `packages/core/src/api.ts` — `render()`, `compile()`, `loadIR()`, `createSession()`
+- Mermaid API: `packages/core/src/frontend/mermaid/index.ts` — `detectDiagramType()`, `parseMermaid()`, `renderMermaid()`
+
+**Pipeline stages:**
+1. **Preprocess** — `frontend/mermaid/utils.ts:preprocessMermaid()` strips YAML frontmatter + `%%{init}%%` directives → `PreprocessResult`
+2. **Detect** — `frontend/mermaid/index.ts:detectDiagramType()` (line 273) regex-matches first non-blank body line → `DiagramKind`
+3. **Parse→Domain IR** — `parseMermaid()` (line 350) dispatches to `parseXxxInternal()` in `frontend/mermaid/xxx.ts` → grammar-specific Domain IR (`FlowDocument`, `SequenceDocument`, `IRDocument`, `ClassDocument`, etc.)
+4. **Theme resolution** — `renderMermaid()` resolves theme: contract path via `resolveContractTheme()` + `bindXxxTheme()`, or legacy registry via `resolveTheme()` in `themes/index.ts` (line 77)
+5. **Layout → Scene IR** — `buildXxxScene()` in `grammars/xxx/layout.ts` (or `layout/index.ts:layout()` for IRDocument) → `Scene` (flat `ScenePrimitive[]` with geometry)
+6. **Geometry kernel** — during layout, `geometry/index.ts:pickBestRoute()` scores edge candidates (enumerate → score → pick)
+7. **SVG serialise** — `render/svg.ts:sceneToSvg()` → SVG string (deterministic, alphabetically-sorted attributes)
+8. **PNG raster** — `render/png.ts:svgToPng()` via `@resvg/resvg-js` (sync), or `render/skia.ts:sceneToPngSkia()` via CanvasKit WASM (async)
+
+**Boundary summary:**
+- Front-end: `frontend/mermaid/*.ts` (text → Domain IR)
+- Middle: `grammars/*/layout.ts` + `layout/*.ts` (Domain IR → Scene IR + theme application)
+- Back-end: `render/svg.ts` + `render/png.ts` + `render/skia.ts` (Scene IR → SVG/PNG)
+
