@@ -93,16 +93,19 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     const toRect   = nodePos.get(edge.to);
     if (!fromRect || !toRect) continue;
 
-    const from = edgeAnchor(fromRect, ir.direction, 'exit');
-    const to   = edgeAnchor(toRect,   ir.direction, 'enter');
+    const fromAnchor = edgeAnchor(fromRect, ir.direction, 'exit',  toRect);
+    const toAnchor   = edgeAnchor(toRect,   ir.direction, 'enter', fromRect);
 
     const style = 'orthogonal';
     const router = getRouter(style) ?? defaultRouter;
     const route = router.route({
-      from, to,
+      from: fromAnchor.point,
+      to: toAnchor.point,
       style,
       obstacles: [],
       padding: 8,
+      fromDir: fromAnchor.portDir,
+      toDir: toAnchor.portDir,
     });
 
     const dash = edge.style === 'dotted' ? '6 3' : edge.style === 'dashed' ? '8 4' : undefined;
@@ -262,19 +265,57 @@ function renderNodeShape(node: FlowNode, r: Rect, fill: string, stroke: string, 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter'): Point {
-  const isLR = dir === 'LR' || dir === 'RL';
+/**
+ * Pick the best connection point on a node's boundary.
+ *
+ * Instead of always using the flow-direction side (right for LR),
+ * we compare the relative position of the peer node. If the peer is
+ * significantly off-axis (more than half the node height/width away),
+ * we exit/enter from the perpendicular side closest to the peer.
+ */
+type AnchorResult = { point: Point; portDir: import('../../contracts/index.js').PortDirection };
+
+function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: Rect): AnchorResult {
   const cx = r.x + r.width  / 2;
   const cy = r.y + r.height / 2;
+  const pcx = peer.x + peer.width  / 2;
+  const pcy = peer.y + peer.height / 2;
+
+  const dx = pcx - cx;
+  const dy = pcy - cy;
+
+  const isLR = dir === 'LR' || dir === 'RL';
 
   if (isLR) {
+    // Primary axis is horizontal
+    const offAxis = Math.abs(dy);
+    const onAxis  = Math.abs(dx);
+
+    // If the peer is more off-axis than on-axis, use top/bottom port
+    if (offAxis > onAxis && offAxis > r.height / 2) {
+      return dy > 0
+        ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
+        : { point: { x: cx, y: r.y },             portDir: 'N' };
+    }
+
+    // Otherwise use the flow-direction side
     return role === 'exit'
-      ? { x: r.x + r.width, y: cy }
-      : { x: r.x,           y: cy };
+      ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
+      : { point: { x: r.x,           y: cy }, portDir: 'W' };
   } else {
+    // Primary axis is vertical
+    const offAxis = Math.abs(dx);
+    const onAxis  = Math.abs(dy);
+
+    if (offAxis > onAxis && offAxis > r.width / 2) {
+      return dx > 0
+        ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
+        : { point: { x: r.x,           y: cy }, portDir: 'W' };
+    }
+
     return role === 'exit'
-      ? { x: cx, y: r.y + r.height }
-      : { x: cx, y: r.y };
+      ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
+      : { point: { x: cx, y: r.y },             portDir: 'N' };
   }
 }
 

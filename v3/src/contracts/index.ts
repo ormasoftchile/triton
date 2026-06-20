@@ -58,6 +58,7 @@ export type {
 
 export type {
   RouteStyle,
+  PortDirection,
   RouteRequest,
   Route,
   Router,

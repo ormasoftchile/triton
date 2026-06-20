@@ -1,4 +1,4 @@
-import type { Router, RouteRequest, Route, RouteStyle } from '../contracts/index.js';
+import type { Router, RouteRequest, Route, RouteStyle, PortDirection } from '../contracts/index.js';
 import type { Point } from '../contracts/index.js';
 
 // ─── Straight ─────────────────────────────────────────────────────────────────
@@ -16,16 +16,62 @@ class StraightRouter implements Router {
 // ─── Orthogonal ───────────────────────────────────────────────────────────────
 
 class OrthogonalRouter implements Router {
-  route({ from, to }: RouteRequest): Route {
+  route({ from, to, fromDir, toDir }: RouteRequest): Route {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
     const midX = (from.x + to.x) / 2;
     const midY = (from.y + to.y) / 2;
-    const dx = Math.abs(to.x - from.x);
-    const dy = Math.abs(to.y - from.y);
 
+    // Already aligned on one axis — straight line
+    if (Math.abs(dx) < 1 || Math.abs(dy) < 1) {
+      return {
+        points: [from, to],
+        path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
+        labelPosition: { x: midX, y: midY },
+      };
+    }
+
+    // With port direction hints, route so the first segment leaves in
+    // fromDir and the last segment arrives along toDir.
+    if (fromDir && toDir) {
+      const exitH = fromDir === 'E' || fromDir === 'W';
+      const entryH = toDir === 'E' || toDir === 'W';
+
+      let points: Point[];
+      let path: string;
+
+      if (exitH && entryH) {
+        // Both horizontal — bend at midX
+        const v1: Point = { x: midX, y: from.y };
+        const v2: Point = { x: midX, y: to.y };
+        points = [from, v1, v2, to];
+        path = `M ${from.x} ${from.y} L ${v1.x} ${v1.y} L ${v2.x} ${v2.y} L ${to.x} ${to.y}`;
+      } else if (!exitH && !entryH) {
+        // Both vertical — bend at midY
+        const v1: Point = { x: from.x, y: midY };
+        const v2: Point = { x: to.x,   y: midY };
+        points = [from, v1, v2, to];
+        path = `M ${from.x} ${from.y} L ${v1.x} ${v1.y} L ${v2.x} ${v2.y} L ${to.x} ${to.y}`;
+      } else if (exitH && !entryH) {
+        // Exit horizontal, enter vertical — single bend
+        const corner: Point = { x: to.x, y: from.y };
+        points = [from, corner, to];
+        path = `M ${from.x} ${from.y} L ${corner.x} ${corner.y} L ${to.x} ${to.y}`;
+      } else {
+        // Exit vertical, enter horizontal — single bend
+        const corner: Point = { x: from.x, y: to.y };
+        points = [from, corner, to];
+        path = `M ${from.x} ${from.y} L ${corner.x} ${corner.y} L ${to.x} ${to.y}`;
+      }
+
+      return { points, path, labelPosition: { x: midX, y: midY } };
+    }
+
+    // Fallback: no direction hints — heuristic based on geometry
     let points: Point[];
     let path: string;
 
-    if (dy >= dx) {
+    if (Math.abs(dy) >= Math.abs(dx)) {
       // Mainly vertical — bend at mid-Y
       const v1: Point = { x: from.x, y: midY };
       const v2: Point = { x: to.x,   y: midY };

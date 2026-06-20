@@ -13,6 +13,14 @@
 
 import type { Point, Rect } from './primitives.js';
 
+// ─── Port Direction ────────────────────────────────────────────────────────────
+
+/**
+ * Cardinal direction the port faces — the direction traffic should
+ * flow when leaving (fromDir) or arriving at (toDir) the anchor.
+ */
+export type PortDirection = 'N' | 'S' | 'E' | 'W';
+
 // ─── Route Style ──────────────────────────────────────────────────────────────
 
 /**
@@ -39,6 +47,10 @@ export interface RouteRequest {
   readonly padding: number;
   /** Bezier only — curve tension in [0, 1]. Default 0.4. */
   readonly tension?: number;
+  /** Direction the exit port faces.  Hint for orthogonal/bezier routing. */
+  readonly fromDir?: PortDirection;
+  /** Direction the entry port faces. Hint for orthogonal/bezier routing. */
+  readonly toDir?: PortDirection;
 }
 
 // ─── Routing Output ───────────────────────────────────────────────────────────

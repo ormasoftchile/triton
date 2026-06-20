@@ -49,17 +49,23 @@
     });
   }
 
-  function openSection(label, start) {
+  function openSection(label) {
     secCounter++;
-    currentSec = { id: slugify(label) || `section-${secCounter}`, label, start, end: start };
+    currentSec = { id: slugify(label) || `section-${secCounter}`, label, start: null, end: null };
   }
 
-  function closeSection(end) {
+  function updateSectionDate(date) {
     if (currentSec) {
-      if (end) currentSec.end = end;
-      sections.push(currentSec);
-      currentSec = null;
+      if (!currentSec.start) currentSec.start = date;
+      currentSec.end = date;
     }
+  }
+
+  function closeSection() {
+    if (currentSec && currentSec.start) {
+      sections.push(currentSec);
+    }
+    currentSec = null;
   }
 
   function reset() {
@@ -328,7 +334,7 @@ function peg$parse(input, options) {
   var peg$e38 = peg$classExpectation(["\n", "\r"], false, false);
 
   var peg$f0 = function(fm, header, directives, body) {
-      closeSection(null);
+      closeSection();
       const titleDir = directives.find(d => d && d.key === 'title');
       const layoutDir = directives.find(d => d && d.key === 'layout');
       return {
@@ -357,15 +363,14 @@ function peg$parse(input, options) {
     };
   var peg$f8 = function(items) { return items.filter(Boolean); };
   var peg$f9 = function(label) {
-      closeSection(null);
-      const t = label.trim();
-      openSection(t, t);
+      closeSection();
+      openSection(label.trim());
       return null;
     };
   var peg$f10 = function(entry) { return entry; };
   var peg$f11 = function(date, label) {
       addActivity(date, null, label, 'default', null);
-      if (currentSec) currentSec.end = date;
+      updateSectionDate(date);
       return { type: 'activity', label };
     };
   var peg$f12 = function(text) { return text.trim(); };
@@ -375,14 +380,15 @@ function peg$parse(input, options) {
   var peg$f16 = function(start, end, label, status, id) { return id; };
   var peg$f17 = function(start, end, label, status, track) {
       addActivity(start, end, label, status, track);
-      if (currentSec) currentSec.end = end;
+      updateSectionDate(start);
+      updateSectionDate(end);
       return { type: 'activity', label };
     };
   var peg$f18 = function(date, label, kind, id) { return id; };
   var peg$f19 = function(date, label, kind, track) {
       if (kind === 'milestone') addMilestone(date, label, track);
       else addActivity(date, null, label, kind, track);
-      if (currentSec) currentSec.end = date;
+      updateSectionDate(date);
       return { type: kind === 'milestone' ? 'milestone' : 'activity', label };
     };
   var peg$f20 = function(text) { return text.trim(); };

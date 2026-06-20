@@ -61,17 +61,23 @@
     });
   }
 
-  function openSection(label, start) {
+  function openSection(label) {
     secCounter++;
-    currentSec = { id: slugify(label) || `section-${secCounter}`, label, start, end: start };
+    currentSec = { id: slugify(label) || `section-${secCounter}`, label, start: null, end: null };
   }
 
-  function closeSection(end) {
+  function updateSectionDate(date) {
     if (currentSec) {
-      if (end) currentSec.end = end;
-      sections.push(currentSec);
-      currentSec = null;
+      if (!currentSec.start) currentSec.start = date;
+      currentSec.end = date;
     }
+  }
+
+  function closeSection() {
+    if (currentSec && currentSec.start) {
+      sections.push(currentSec);
+    }
+    currentSec = null;
   }
 
   function reset() {
@@ -96,7 +102,7 @@
 
 Document
   = fm:ExtFrontmatter? _ header:Header _ directives:Directive* _ body:Body _ {
-      closeSection(null);
+      closeSection();
       const titleDir = directives.find(d => d && d.key === 'title');
       const layoutDir = directives.find(d => d && d.key === 'layout');
       return {
@@ -141,9 +147,8 @@ Body
 
 SectionHeader
   = _ "section" __ label:$[^\n]+ NL {
-      closeSection(null);
-      const t = label.trim();
-      openSection(t, t);
+      closeSection();
+      openSection(label.trim());
       return null;
     }
 
@@ -155,7 +160,7 @@ Entry
 MermaidEntry
   = date:DateToken _ ":" _ label:MermaidLabel {
       addActivity(date, null, label, 'default', null);
-      if (currentSec) currentSec.end = date;
+      updateSectionDate(date);
       return { type: 'activity', label };
     }
 
@@ -171,7 +176,8 @@ ExtRangeActivity
     status:(_ ":" _ s:ExtStatus { return s; })?
     track:(_ "@" id:Identifier { return id; })? {
       addActivity(start, end, label, status, track);
-      if (currentSec) currentSec.end = end;
+      updateSectionDate(start);
+      updateSectionDate(end);
       return { type: 'activity', label };
     }
 
@@ -180,7 +186,7 @@ ExtPointEntry
     track:(_ "@" id:Identifier { return id; })? {
       if (kind === 'milestone') addMilestone(date, label, track);
       else addActivity(date, null, label, kind, track);
-      if (currentSec) currentSec.end = date;
+      updateSectionDate(date);
       return { type: kind === 'milestone' ? 'milestone' : 'activity', label };
     }
 

@@ -13,10 +13,10 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   const gap        = spacing.nodeGap / 2;
   const padding    = spacing.diagramMargin;
   const headerH    = ir.metadata.title ? typography.titleFontSize + unit * 2 : 0;
-  const MIN_CELL_W = unit * 20;       // 10× grid unit
+  const MIN_CELL_W = unit * 20;
   const MIN_CELL_H = unit * 15;
   const MAX_CELL_W = unit * 42;
-  const MAX_CELL_H = unit * 32;
+  const MIN_EMBED_SCALE = 0.65;   // minimum scale — cells expand to ensure readability
 
   // ── Assign row/col to cells that don't specify them ───────────────────────
   const positioned = assignPositions(cells, grid.columns);
@@ -32,25 +32,34 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   const numRows = grid.rows ??
     Math.max(...positioned.map(c => (c.row ?? 0) + (c.rowSpan ?? 1)));
 
-  // Column widths: driven by single-span cells
+  // Column widths: ensure child content is readable at MIN_EMBED_SCALE
+  // Readability takes priority over MAX_CELL_W
   const colWidths = new Array<number>(grid.columns).fill(MIN_CELL_W);
   for (const { cell, result } of cellResults) {
     if ((cell.colSpan ?? 1) === 1) {
       const col = cell.col ?? 0;
-      colWidths[col] = Math.min(MAX_CELL_W, Math.max(colWidths[col]!, result.scene.viewBox.width));
+      const inset = unit / 2;
+      // Cell must be wide enough that child fits at MIN_EMBED_SCALE
+      const needed = result.scene.viewBox.width * MIN_EMBED_SCALE + inset * 2;
+      colWidths[col] = Math.max(colWidths[col]!, needed);
     }
   }
 
-  // Row heights: driven by single-span cells (scaled proportionally to column width)
+  // Row heights: proportional to column width, respecting MIN_EMBED_SCALE
   const rowHeights = new Array<number>(numRows).fill(MIN_CELL_H);
   for (const { cell, result } of cellResults) {
     if ((cell.rowSpan ?? 1) === 1) {
       const row = cell.row ?? 0;
       const col = cell.col ?? 0;
-      const colW  = colWidths[col] ?? MIN_CELL_W;
-      const scale = Math.min(colW / Math.max(result.scene.viewBox.width, 1), 1);
-      const fittedH = result.scene.viewBox.height * scale;
-      rowHeights[row] = Math.min(MAX_CELL_H, Math.max(rowHeights[row]!, fittedH));
+      const cellTitleH = cell.title ? typography.baseFontSize + unit : 0;
+      const inset = unit / 2;
+      const colW = colWidths[col] ?? MIN_CELL_W;
+      const contentW = colW - inset * 2;
+      const scale = Math.min(contentW / Math.max(result.scene.viewBox.width, 1), 1);
+      // If scale < MIN_EMBED_SCALE, the column already expanded; recompute
+      const effectiveScale = Math.max(scale, MIN_EMBED_SCALE);
+      const neededH = result.scene.viewBox.height * effectiveScale + cellTitleH + inset * 2;
+      rowHeights[row] = Math.max(rowHeights[row]!, neededH);
     }
   }
 
@@ -121,11 +130,26 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   const totalW = padding * 2 + sumWithGaps(colWidths,  0, grid.columns, gap) - gap;
   const totalH = padding * 2 + headerH + sumWithGaps(rowHeights, 0, numRows, gap) - gap;
 
+  // Collect defs from all child scenes (e.g. arrow markers)
+  const allDefs: string[] = [];
+  const seenDefs = new Set<string>();
+  for (const { result } of cellResults) {
+    if (result.scene.defs) {
+      for (const def of result.scene.defs) {
+        if (!seenDefs.has(def)) {
+          seenDefs.add(def);
+          allDefs.push(def);
+        }
+      }
+    }
+  }
+
   return {
     scene: {
       viewBox: { x: 0, y: 0, width: totalW, height: totalH },
       background: palette.background,
       elements,
+      ...(allDefs.length > 0 ? { defs: allDefs } : {}),
     },
     anchors: mergedAnchors,
   };
