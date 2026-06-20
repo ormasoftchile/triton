@@ -1,6 +1,7 @@
 import type { DiagramModule, LayoutResult, LayoutOptions, DiagramKind } from '../../contracts/index.js';
 import type { PosterDocument } from './ir.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
+import type { CrossLink, TraceRecord } from '../../contracts/crosslink.js';
 import { layoutPoster } from './layout.js';
 import { getModule } from '../../frontend/registry.js';
 import * as parser from './parser.js';
@@ -14,11 +15,33 @@ export const poster: DiagramModule<PosterDocument> = {
       const content = parseCell(c);
       return { id: c.id, title: c.title, content, colSpan: c.span?.colSpan, rowSpan: c.span?.rowSpan };
     });
+
+    const traces: TraceRecord[] = raw.traces ?? [];
+    const explicitLinks: CrossLink[] = raw.links ?? [];
+
+    // Desugar traces into atomic CrossLinks (N hops → N-1 directed links)
+    const traceLinks: CrossLink[] = [];
+    for (const trace of traces) {
+      for (let i = 0; i < trace.hops.length - 1; i++) {
+        traceLinks.push({
+          from: trace.hops[i],
+          to:   trace.hops[i + 1],
+          direction: 'directed',
+          style: 'solid',
+          traceId: trace.id,
+        });
+      }
+    }
+
+    const allLinks = [...explicitLinks, ...traceLinks];
+
     return {
       version:  raw.version ?? '1.0',
       metadata: { ...raw.metadata },
       grid:     raw.grid,
       cells,
+      ...(allLinks.length > 0 ? { links: allLinks } : {}),
+      ...(traces.length > 0 ? { traces } : {}),
     };
   },
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import '../src/frontend/index.js'; // registers diagram modules
+import { poster } from '../src/diagrams/poster/index.js';
 import { layoutPoster } from '../src/diagrams/poster/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { resolveTheme } from '../src/theme/resolver.js';
@@ -99,3 +100,115 @@ function collectTexts(elements: any[]): string[] {
   }
   return out;
 }
+
+// ─── Grammar: links, traces, explicit IDs ─────────────────────────────────────
+
+describe('poster grammar — cross-links', () => {
+  it('parses explicit cell IDs', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 2
+
+  cell SVC "Services" :: flow
+    flowchart LR
+      a[A] --> b[B]
+  end
+
+  cell DB "Database" :: flow
+    flowchart LR
+      x[X] --> y[Y]
+  end
+`);
+    expect(ir.cells[0]!.id).toBe('SVC');
+    expect(ir.cells[1]!.id).toBe('DB');
+  });
+
+  it('parses link declarations with all arrow types', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 2
+
+  cell A :: flow
+    flowchart LR
+      n1[N1] --> n2[N2]
+  end
+
+  cell B :: flow
+    flowchart LR
+      m1[M1] --> m2[M2]
+  end
+
+  link A.n1 --> B.m1 "solid directed"
+  link A.n2 -.-> B.m2 "dashed directed"
+  link B.m1 <--> A.n1 "bidirectional"
+  link B.m2 --- A.n2 "undirected"
+  link A.n1 ..> B.m2 "dotted"
+`);
+    expect(ir.links).toHaveLength(5);
+    const [l1, l2, l3, l4, l5] = ir.links!;
+    expect(l1!.direction).toBe('directed');
+    expect(l1!.style).toBe('solid');
+    expect(l1!.label).toBe('solid directed');
+    expect(l2!.style).toBe('dashed');
+    expect(l3!.direction).toBe('bidirectional');
+    expect(l4!.direction).toBe('undirected');
+    expect(l5!.style).toBe('dotted');
+  });
+
+  it('parses trace declarations and desugars to links', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 2
+
+  cell A :: flow
+    flowchart LR
+      start[Start] --> mid[Mid]
+  end
+
+  cell B :: flow
+    flowchart LR
+      end1[End] --> done[Done]
+  end
+
+  trace "Request Flow" : triggers A.start --> A.mid --> B.end1 --> B.done
+`);
+    expect(ir.traces).toHaveLength(1);
+    expect(ir.traces![0]!.name).toBe('Request Flow');
+    expect(ir.traces![0]!.type).toBe('triggers');
+    expect(ir.traces![0]!.hops).toHaveLength(4);
+
+    // Trace desugars to 3 directed links
+    const traceLinks = ir.links!.filter(l => l.traceId === ir.traces![0]!.id);
+    expect(traceLinks).toHaveLength(3);
+    expect(traceLinks[0]!.from.nodeId).toBe('start');
+    expect(traceLinks[0]!.to.nodeId).toBe('mid');
+    expect(traceLinks[2]!.from.nodeId).toBe('end1');
+    expect(traceLinks[2]!.to.nodeId).toBe('done');
+  });
+
+  it('renders cross-links from parsed source end-to-end', async () => {
+    const input = `poster "E2E"
+  columns 2
+
+  cell A "Left" :: flow
+    flowchart LR
+      x[X] --> y[Y]
+  end
+
+  cell B "Right" :: flow
+    flowchart LR
+      p[P] --> q[Q]
+  end
+
+  link A.y --> B.p "connects"
+`;
+    const ir = poster.parseMermaid(input);
+    const { scene } = await layoutPoster(ir, defaultTheme);
+
+    // Should have cross-link path elements (stroke-width thicker than internal edges)
+    const paths = scene.elements.filter(e => e.type === 'path') as any[];
+    const crossPaths = paths.filter((p: any) => p.markerEnd === 'triton-crosslink-arrow');
+    expect(crossPaths).toHaveLength(1);
+
+    // Should have label
+    const texts = collectTexts(scene.elements);
+    expect(texts).toContain('connects');
+  });
+});

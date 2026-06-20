@@ -57,11 +57,11 @@ export function renderCrossLinks(
     }
   }
 
-  // Build trace colour map
+  // Build trace colour map — uses distinct colours (avoids primary which is the default link colour)
   const traceColors = new Map<string, string>();
   const categoricalPalette = [
-    palette.primary, palette.success, palette.warning, palette.error,
-    '#9333EA', '#0891B2', '#CA8A04', '#DC2626',
+    '#E11D48', '#16A34A', '#9333EA', '#0891B2',
+    '#CA8A04', '#DC2626', '#2563EB', '#7C3AED',
   ];
   for (let i = 0; i < traces.length; i++) {
     const t = traces[i]!;

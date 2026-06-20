@@ -1,0 +1,18 @@
+poster "Cross-Link Basic Demo"
+  columns 2
+
+  cell A "Frontend Services" :: flow
+    flowchart LR
+      ui[Web UI] --> gateway[API Gateway]
+      gateway --> auth[Auth Service]
+  end
+
+  cell B "Backend Services" :: flow
+    flowchart LR
+      gateway[Gateway] --> orders[Order Service]
+      orders --> db[(Database)]
+      orders --> queue[Message Queue]
+  end
+
+  link A.gateway --> B.gateway "routes to"
+  link A.auth -.-> B.orders "validates"
