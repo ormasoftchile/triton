@@ -1,6 +1,5 @@
-import type { DiagramModule } from '../../contracts/index.js';
+import type { DiagramModule, LayoutResult, LayoutOptions } from '../../contracts/index.js';
 import type { FlowDocument } from './ir.js';
-import type { Scene } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
 import { layoutFlowchart } from './layout.js';
 import * as parser from './parser.js';
@@ -26,7 +25,7 @@ export const flowchart: DiagramModule<FlowDocument> = {
     return JSON.parse(input) as FlowDocument;
   },
 
-  async layout(ir: FlowDocument, theme: ResolvedTheme): Promise<Scene> {
-    return layoutFlowchart(ir, theme);
+  async layout(ir: FlowDocument, theme: ResolvedTheme, options?: LayoutOptions): Promise<LayoutResult> {
+    return layoutFlowchart(ir, theme, options);
   },
 };

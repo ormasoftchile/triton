@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624 236" width="624" height="236">
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Product Roadmap 2025</text>
+  <rect x="44" y="68" width="20" height="134" fill="#4A90D90A" stroke="#4A90D933" stroke-width="1" rx="4" />
+  <text x="50" y="82" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Planning</text>
+  <rect x="44" y="68" width="370.66666666666663" height="134" fill="#4A90D90A" stroke="#4A90D933" stroke-width="1" rx="4" />
+  <text x="50" y="82" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Development</text>
+  <rect x="44" y="68" width="556" height="134" fill="#4A90D90A" stroke="#4A90D933" stroke-width="1" rx="4" />
+  <text x="50" y="82" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Release</text>
+  <path d="M 44 118 L 600 118" stroke="#CBD5E1" stroke-width="2" fill="none" />
+  <text x="24" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B">Default</text>
+  <rect x="44" y="136" width="60" height="32" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
+  <text x="74" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Research</text>
+  <rect x="44" y="136" width="60" height="32" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
+  <text x="74" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Define requirements</text>
+  <rect x="229.33333333333331" y="136" width="60" height="32" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
+  <text x="259.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Build MVP</text>
+  <rect x="414.66666666666663" y="136" width="60" height="32" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
+  <text x="444.66666666666663" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Beta launch</text>
+  <rect x="600" y="136" width="60" height="32" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
+  <text x="630" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">GA release</text>
+</svg>

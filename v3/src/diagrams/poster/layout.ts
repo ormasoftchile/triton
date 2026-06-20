@@ -1,53 +1,55 @@
 import type { PosterDocument, PosterCell, CellContent } from './ir.js';
-import type { Scene, SceneElement, Rect } from '../../contracts/index.js';
+import type { Scene, SceneElement, Rect, LayoutResult, NodeAnchor, NodeAnchorRegistry } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
-import { layoutFlowchart } from '../flowchart/layout.js';
-import { layoutTimeline }  from '../timeline/layout.js';
+import { getModule } from '../../frontend/registry.js';
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
-export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Scene {
+export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Promise<LayoutResult> {
   const { spacing, palette, typography } = theme;
   const { grid, cells } = ir;
 
+  const unit       = spacing.unit;
   const gap        = spacing.nodeGap / 2;
   const padding    = spacing.diagramMargin;
-  const headerH    = ir.metadata.title ? typography.titleFontSize + 20 : 0;
-  const MIN_CELL_W = 200;
-  const MIN_CELL_H = 150;
-  const MAX_CELL_W = 420;
-  const MAX_CELL_H = 320;
+  const headerH    = ir.metadata.title ? typography.titleFontSize + unit * 2 : 0;
+  const MIN_CELL_W = unit * 20;       // 10× grid unit
+  const MIN_CELL_H = unit * 15;
+  const MAX_CELL_W = unit * 42;
+  const MAX_CELL_H = unit * 32;
 
   // ── Assign row/col to cells that don't specify them ───────────────────────
   const positioned = assignPositions(cells, grid.columns);
 
-  // ── Layout each child into a Scene ────────────────────────────────────────
-  const cellScenes = positioned.map(cell => ({
-    cell,
-    scene: layoutCellContent(cell.content, theme),
-  }));
+  // ── Layout each child into a LayoutResult ──────────────────────────────────
+  const cellResults = await Promise.all(
+    positioned.map(async cell => ({
+      cell,
+      result: await layoutCellContent(cell.content, theme),
+    })),
+  );
 
   const numRows = grid.rows ??
     Math.max(...positioned.map(c => (c.row ?? 0) + (c.rowSpan ?? 1)));
 
   // Column widths: driven by single-span cells
   const colWidths = new Array<number>(grid.columns).fill(MIN_CELL_W);
-  for (const { cell, scene } of cellScenes) {
+  for (const { cell, result } of cellResults) {
     if ((cell.colSpan ?? 1) === 1) {
       const col = cell.col ?? 0;
-      colWidths[col] = Math.min(MAX_CELL_W, Math.max(colWidths[col]!, scene.viewBox.width));
+      colWidths[col] = Math.min(MAX_CELL_W, Math.max(colWidths[col]!, result.scene.viewBox.width));
     }
   }
 
   // Row heights: driven by single-span cells (scaled proportionally to column width)
   const rowHeights = new Array<number>(numRows).fill(MIN_CELL_H);
-  for (const { cell, scene } of cellScenes) {
+  for (const { cell, result } of cellResults) {
     if ((cell.rowSpan ?? 1) === 1) {
       const row = cell.row ?? 0;
       const col = cell.col ?? 0;
       const colW  = colWidths[col] ?? MIN_CELL_W;
-      const scale = Math.min(colW / Math.max(scene.viewBox.width, 1), 1);
-      const fittedH = scene.viewBox.height * scale;
+      const scale = Math.min(colW / Math.max(result.scene.viewBox.width, 1), 1);
+      const fittedH = result.scene.viewBox.height * scale;
       rowHeights[row] = Math.min(MAX_CELL_H, Math.max(rowHeights[row]!, fittedH));
     }
   }
@@ -59,11 +61,15 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Scene {
     elements.push({ type: 'text', content: ir.metadata.title, position: { x: padding, y: padding + typography.titleFontSize }, fontSize: typography.titleFontSize + 2, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
   }
 
-  for (const { cell, scene } of cellScenes) {
+  // ── Build anchor registry (hierarchical, path-prefixed) ───────────────────
+  const mergedAnchors: Record<string, NodeAnchor> = {};
+
+  for (const { cell, result } of cellResults) {
     const col     = cell.col ?? 0;
     const row     = cell.row ?? 0;
     const colSpan = cell.colSpan ?? 1;
     const rowSpan = cell.rowSpan ?? 1;
+    const cellId  = cell.id ?? cellAddressFromPosition(row, col);
 
     const cellX = padding + sumWithGaps(colWidths, 0, col, gap);
     const cellY = padding + headerH + sumWithGaps(rowHeights, 0, row, gap);
@@ -73,50 +79,116 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Scene {
     // Cell chrome
     elements.push({ type: 'rect', bounds: { x: cellX, y: cellY, width: cellW, height: cellH }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx: 6 });
 
-    const titleH = cell.title ? 22 : 0;
+    const cellTitleH = cell.title ? typography.baseFontSize + unit : 0;
     if (cell.title) {
-      elements.push({ type: 'text', content: cell.title, position: { x: cellX + 8, y: cellY + 16 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+      elements.push({ type: 'text', content: cell.title, position: { x: cellX + unit, y: cellY + typography.baseFontSize + unit / 2 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
     }
 
     // Embed child scene
-    const contentRect: Rect = { x: cellX + 4, y: cellY + titleH + 4, width: cellW - 8, height: cellH - titleH - 8 };
-    elements.push(embedScene(scene, contentRect));
+    const inset = unit / 2;
+    const contentRect: Rect = { x: cellX + inset, y: cellY + cellTitleH + inset, width: cellW - inset * 2, height: cellH - cellTitleH - inset * 2 };
+    elements.push(embedScene(result.scene, contentRect));
+
+    // Transform child anchors to poster coordinates and merge
+    const scaleX = contentRect.width  / Math.max(result.scene.viewBox.width,  1);
+    const scaleY = contentRect.height / Math.max(result.scene.viewBox.height, 1);
+    const scale  = Math.min(scaleX, scaleY, 1);
+    const offsetX = contentRect.x + (contentRect.width  - result.scene.viewBox.width  * scale) / 2;
+    const offsetY = contentRect.y + (contentRect.height - result.scene.viewBox.height * scale) / 2;
+
+    for (const [nodeId, anchor] of Object.entries(result.anchors)) {
+      const prefixedId = `${cellId}.${nodeId}`;
+      const transformed: NodeAnchor = {
+        bounds: {
+          x:      anchor.bounds.x * scale + offsetX,
+          y:      anchor.bounds.y * scale + offsetY,
+          width:  anchor.bounds.width * scale,
+          height: anchor.bounds.height * scale,
+        },
+        ...(anchor.ports ? {
+          ports: Object.fromEntries(
+            Object.entries(anchor.ports).map(([side, pt]) => [
+              side,
+              { x: pt!.x * scale + offsetX, y: pt!.y * scale + offsetY },
+            ]),
+          ),
+        } : {}),
+      };
+      mergedAnchors[prefixedId] = transformed;
+    }
   }
 
   const totalW = padding * 2 + sumWithGaps(colWidths,  0, grid.columns, gap) - gap;
   const totalH = padding * 2 + headerH + sumWithGaps(rowHeights, 0, numRows, gap) - gap;
 
   return {
-    viewBox: { x: 0, y: 0, width: totalW, height: totalH },
-    background: palette.background,
-    elements,
+    scene: {
+      viewBox: { x: 0, y: 0, width: totalW, height: totalH },
+      background: palette.background,
+      elements,
+    },
+    anchors: mergedAnchors,
   };
 }
 
 // ─── Cell Content Dispatch ────────────────────────────────────────────────────
 
-function layoutCellContent(content: CellContent, theme: ResolvedTheme): Scene {
-  const { palette, typography } = theme;
+async function layoutCellContent(content: CellContent, theme: ResolvedTheme): Promise<LayoutResult> {
+  const { palette, typography, spacing } = theme;
+  const unit = spacing.unit;
+  const pad  = spacing.nodePadding;
 
   switch (content.kind) {
-    case 'flow':
-      return layoutFlowchart(content.doc, theme);
-    case 'timeline':
-      return layoutTimeline(content.doc, theme);
+    case 'diagram': {
+      const module = getModule(content.diagramKind);
+      if (!module) {
+        const w = unit * 20;
+        const h = typography.baseFontSize + pad * 2;
+        return {
+          scene: {
+            viewBox: { x: 0, y: 0, width: w, height: h },
+            elements: [{ type: 'text', content: `[${content.diagramKind}]`, position: { x: pad, y: pad + typography.baseFontSize * 0.8 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted }],
+          },
+          anchors: {},
+        };
+      }
+      return module.layout(content.doc, theme);
+    }
     case 'text': {
+      // Approximate width: ~8px per character at baseFontSize, with min/max
+      const estCharW = typography.baseFontSize * 0.6;
+      const textW    = Math.max(unit * 10, Math.min(unit * 30, content.text.length * estCharW + pad * 2));
+      const textH    = typography.baseFontSize * typography.lineHeight + pad * 2;
       return {
-        viewBox: { x: 0, y: 0, width: 200, height: 60 },
-        elements: [{ type: 'text', content: content.text, position: { x: 10, y: 30 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fill: palette.text }],
+        scene: {
+          viewBox: { x: 0, y: 0, width: textW, height: textH },
+          elements: [{ type: 'text', content: content.text, position: { x: pad, y: pad + typography.baseFontSize * 0.8 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fill: palette.text }],
+        },
+        anchors: {},
       };
     }
     case 'stat': {
+      const valueFontSize = typography.titleFontSize * 1.5;
+      const cellW = Math.max(unit * 10, valueFontSize * 3);
+      const centerX = cellW / 2;
+
+      const valueY = pad + valueFontSize * 0.8;
+      const labelGap = unit;
+      const labelY = valueY + labelGap + typography.smallFontSize * 0.8;
+      const cellH  = content.label
+        ? valueY + labelGap + typography.smallFontSize + pad
+        : valueY + pad;
+
       const els: SceneElement[] = [
-        { type: 'text', content: content.value, position: { x: 60, y: 38 }, fontSize: 28, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.primary, anchor: 'middle' },
+        { type: 'text', content: content.value, position: { x: centerX, y: valueY }, fontSize: valueFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.primary, anchor: 'middle' },
       ];
       if (content.label) {
-        els.push({ type: 'text', content: content.label, position: { x: 60, y: 56 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted, anchor: 'middle' });
+        els.push({ type: 'text', content: content.label, position: { x: centerX, y: labelY }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted, anchor: 'middle' });
       }
-      return { viewBox: { x: 0, y: 0, width: 120, height: 70 }, elements: els };
+      return {
+        scene: { viewBox: { x: 0, y: 0, width: cellW, height: cellH }, elements: els },
+        anchors: {},
+      };
     }
   }
 }
@@ -158,4 +230,19 @@ function sumWithGaps(sizes: number[], start: number, end: number, gap: number): 
   let total = 0;
   for (let i = start; i < end; i++) total += (sizes[i] ?? 0) + gap;
   return total;
+}
+
+/**
+ * Generate an Excel-style cell address from row/col indices.
+ * col 0 → "A", col 1 → "B", ..., col 25 → "Z", col 26 → "AA"
+ * Row is 1-indexed in the output: row 0 → "1".
+ */
+function cellAddressFromPosition(row: number, col: number): string {
+  let addr = '';
+  let c = col;
+  do {
+    addr = String.fromCharCode(65 + (c % 26)) + addr;
+    c = Math.floor(c / 26) - 1;
+  } while (c >= 0);
+  return `${addr}${row + 1}`;
 }

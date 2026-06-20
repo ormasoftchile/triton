@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import '../src/frontend/index.js'; // registers diagram modules
 import { layoutPoster } from '../src/diagrams/poster/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { resolveTheme } from '../src/theme/resolver.js';
@@ -25,67 +26,67 @@ const posterDoc: PosterDocument = {
   metadata: { title: 'Architecture Overview' },
   grid: { columns: 2 },
   cells: [
-    { id: 'flow',     title: 'Pipeline', content: { kind: 'flow',     doc: flowDoc } },
-    { id: 'timeline', title: 'Roadmap',  content: { kind: 'timeline', doc: timelineDoc } },
+    { id: 'flow',     title: 'Pipeline', content: { kind: 'diagram', diagramKind: 'flowchart', doc: flowDoc } },
+    { id: 'timeline', title: 'Roadmap',  content: { kind: 'diagram', diagramKind: 'timeline', doc: timelineDoc } },
     { id: 'stat',     title: 'Uptime',   content: { kind: 'stat', value: '99.9%', label: 'Availability' } },
     { id: 'note',                         content: { kind: 'text', text: 'All systems nominal.' } },
   ],
 };
 
 describe('poster layout', () => {
-  it('produces a valid scene', () => {
-    const scene = layoutPoster(posterDoc, defaultTheme);
+  it('produces a valid scene', async () => {
+    const { scene } = await layoutPoster(posterDoc, defaultTheme);
     expect(scene.viewBox.width).toBeGreaterThan(0);
     expect(scene.viewBox.height).toBeGreaterThan(0);
     expect(scene.elements.length).toBeGreaterThan(0);
   });
 
-  it('title appears in elements', () => {
-    const scene = layoutPoster(posterDoc, defaultTheme);
+  it('title appears in elements', async () => {
+    const { scene } = await layoutPoster(posterDoc, defaultTheme);
     const texts = scene.elements.filter(e => e.type === 'text') as any[];
     expect(texts.some(t => t.content === 'Architecture Overview')).toBe(true);
   });
 
-  it('produces cell border rects for all 4 cells', () => {
-    const scene = layoutPoster(posterDoc, defaultTheme);
+  it('produces cell border rects for all 4 cells', async () => {
+    const { scene } = await layoutPoster(posterDoc, defaultTheme);
     const rects = scene.elements.filter(e => e.type === 'rect') as any[];
     // 4 cell borders + possibly more from child scenes
     expect(rects.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('embeds child scenes as groups with transforms', () => {
-    const scene = layoutPoster(posterDoc, defaultTheme);
+  it('embeds child scenes as groups with transforms', async () => {
+    const { scene } = await layoutPoster(posterDoc, defaultTheme);
     const groups = scene.elements.filter(e => e.type === 'group') as any[];
     const withTransform = groups.filter((g: any) => g.transform);
     expect(withTransform.length).toBeGreaterThan(0);
   });
 
-  it('stat cell renders value text', () => {
-    const scene = layoutPoster(posterDoc, defaultTheme);
+  it('stat cell renders value text', async () => {
+    const { scene } = await layoutPoster(posterDoc, defaultTheme);
     const allTexts = collectTexts(scene.elements);
     expect(allTexts.some(t => t === '99.9%')).toBe(true);
   });
 
-  it('text cell renders its content', () => {
-    const scene = layoutPoster(posterDoc, defaultTheme);
+  it('text cell renders its content', async () => {
+    const { scene } = await layoutPoster(posterDoc, defaultTheme);
     const allTexts = collectTexts(scene.elements);
     expect(allTexts.some(t => t === 'All systems nominal.')).toBe(true);
   });
 
-  it('auto-assigns row/col to cells without explicit position', () => {
+  it('auto-assigns row/col to cells without explicit position', async () => {
     // All cells lack row/col → auto-assigned; should not throw
-    expect(() => layoutPoster(posterDoc, defaultTheme)).not.toThrow();
+    await expect(layoutPoster(posterDoc, defaultTheme)).resolves.toBeDefined();
   });
 
-  it('theme change propagates to all child diagrams', () => {
+  it('theme change propagates to all child diagrams', async () => {
     const dark = resolveTheme({ palette: { background: '#1a1a2e', primary: '#FF6B6B' } }, defaultTheme);
-    const scene = layoutPoster(posterDoc, dark);
+    const { scene } = await layoutPoster(posterDoc, dark);
     expect(scene.background).toBe('#1a1a2e');
   });
 
-  it('columns=1 stacks cells vertically', () => {
+  it('columns=1 stacks cells vertically', async () => {
     const single: PosterDocument = { ...posterDoc, grid: { columns: 1 } };
-    const scene = layoutPoster(single, defaultTheme);
+    const { scene } = await layoutPoster(single, defaultTheme);
     expect(scene.viewBox.height).toBeGreaterThan(scene.viewBox.width * 0.5);
   });
 });

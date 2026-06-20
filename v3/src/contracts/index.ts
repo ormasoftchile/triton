@@ -81,3 +81,26 @@ export type {
 export { ok, err } from './result.js';
 
 export type { Renderer } from './renderer.js';
+
+export type {
+  CardinalSide,
+  CardinalPorts,
+  NodeAnchor,
+  NodeAnchorRegistry,
+  LayoutResult,
+  PortHint,
+  LayoutOptions,
+} from './anchors.js';
+
+export type {
+  NodeAddress,
+  CrossLinkEdgeStyle,
+  CrossLinkDirection,
+  CrossLink,
+  TraceType,
+  TraceRecord,
+  ResolvedCrossLink,
+  RouteQuality,
+  PerturbationKind,
+  Perturbation,
+} from './crosslink.js';

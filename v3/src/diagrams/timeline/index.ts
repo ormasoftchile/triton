@@ -1,6 +1,5 @@
-import type { DiagramModule } from '../../contracts/index.js';
+import type { DiagramModule, LayoutResult, LayoutOptions } from '../../contracts/index.js';
 import type { TimelineDocument } from './ir.js';
-import type { Scene } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
 import { layoutTimeline } from './layout.js';
 import * as parser from './parser.js';
@@ -26,7 +25,7 @@ export const timeline: DiagramModule<TimelineDocument> = {
     return JSON.parse(input) as TimelineDocument;
   },
 
-  async layout(ir: TimelineDocument, theme: ResolvedTheme): Promise<Scene> {
+  async layout(ir: TimelineDocument, theme: ResolvedTheme, options?: LayoutOptions): Promise<LayoutResult> {
     return layoutTimeline(ir, theme);
   },
 };

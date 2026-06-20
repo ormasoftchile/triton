@@ -1,15 +1,13 @@
-import type { BaseIR } from '../../contracts/index.js';
-import type { FlowDocument } from '../flowchart/ir.js';
-import type { TimelineDocument } from '../timeline/ir.js';
+import type { BaseIR, CrossLink, TraceRecord, DiagramKind } from '../../contracts/index.js';
 
 // ─── Cell Content ─────────────────────────────────────────────────────────────
 
-export interface FlowCell     { readonly kind: 'flow';     readonly doc: FlowDocument }
-export interface TimelineCell { readonly kind: 'timeline'; readonly doc: TimelineDocument }
+/** A cell whose content is any registered diagram type. */
+export interface DiagramCell  { readonly kind: 'diagram'; readonly diagramKind: DiagramKind; readonly doc: BaseIR }
 export interface TextCell     { readonly kind: 'text';     readonly text: string }
 export interface StatCell     { readonly kind: 'stat';     readonly value: string; readonly label?: string }
 
-export type CellContent = FlowCell | TimelineCell | TextCell | StatCell;
+export type CellContent = DiagramCell | TextCell | StatCell;
 
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 
@@ -34,4 +32,8 @@ export interface PosterDocument extends BaseIR {
   readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
   readonly grid: PosterGrid;
   readonly cells: readonly PosterCell[];
+  /** Cross-diagram links declared at this poster level. */
+  readonly links?: readonly CrossLink[];
+  /** Named multi-hop traces declared at this poster level. */
+  readonly traces?: readonly TraceRecord[];
 }

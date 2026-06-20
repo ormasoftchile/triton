@@ -1,6 +1,7 @@
 import type { FlowDocument, FlowNode, FlowEdge, FlowDirection } from './ir.js';
-import type { Scene, SceneElement, Rect, Point } from '../../contracts/index.js';
+import type { Scene, SceneElement, Rect, Point, LayoutResult, NodeAnchorRegistry, NodeAnchor, LayoutOptions } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
+import { getRouter } from '../../routing/registry.js';
 import { defaultRouter } from '../../routing/router.js';
 import { compileOverlays } from '../../overlay/compiler.js';
 import { layoutOverlays } from '../../overlay/layout.js';
@@ -13,7 +14,7 @@ const ARROW_MARKER_ID = 'triton-arrow';
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
-export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme): Scene {
+export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult {
   const { spacing, palette, typography, edges: edgeTheme } = theme;
   const margin = spacing.diagramMargin;
   const isLR = ir.direction === 'LR' || ir.direction === 'RL';
@@ -95,9 +96,11 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme): Scene {
     const from = edgeAnchor(fromRect, ir.direction, 'exit');
     const to   = edgeAnchor(toRect,   ir.direction, 'enter');
 
-    const route = defaultRouter.route({
+    const style = 'orthogonal';
+    const router = getRouter(style) ?? defaultRouter;
+    const route = router.route({
       from, to,
-      style: 'orthogonal',
+      style,
       obstacles: [],
       padding: 8,
     });
@@ -170,7 +173,21 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme): Scene {
     scene = { ...scene, elements: [...scene.elements, ...overlayEls], viewBox };
   }
 
-  return scene;
+  // ── Build anchor registry ──────────────────────────────────────────────────
+  const anchors: Record<string, NodeAnchor> = {};
+  for (const [id, rect] of nodePos) {
+    anchors[id] = {
+      bounds: rect,
+      ports: {
+        N: { x: rect.x + rect.width / 2, y: rect.y },
+        S: { x: rect.x + rect.width / 2, y: rect.y + rect.height },
+        E: { x: rect.x + rect.width, y: rect.y + rect.height / 2 },
+        W: { x: rect.x, y: rect.y + rect.height / 2 },
+      },
+    };
+  }
+
+  return { scene, anchors };
 }
 
 // ─── Layer Assignment ─────────────────────────────────────────────────────────

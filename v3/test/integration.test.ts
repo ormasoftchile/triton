@@ -94,8 +94,8 @@ describe('compile', () => {
     const result = await compile('flowchart TD\nA --> B\n');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.viewBox.width).toBeGreaterThan(0);
-    expect(result.value.viewBox.height).toBeGreaterThan(0);
+    expect(result.value.scene.viewBox.width).toBeGreaterThan(0);
+    expect(result.value.scene.viewBox.height).toBeGreaterThan(0);
   });
 
   it('returns error result for unregistered diagram types', async () => {

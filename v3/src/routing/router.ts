@@ -83,19 +83,27 @@ class PolylineRouter implements Router {
   }
 }
 
+// ─── Singleton Instances ──────────────────────────────────────────────────────
+
+export const straightRouter: Router   = new StraightRouter();
+export const orthogonalRouter: Router  = new OrthogonalRouter();
+export const bezierRouter: Router      = new BezierRouter();
+export const polylineRouter: Router    = new PolylineRouter();
+
 // ─── Factory & Default ────────────────────────────────────────────────────────
 
+/** Create (or look up) a router by style name. */
 export function createRouter(style: RouteStyle): Router {
   switch (style) {
-    case 'straight':    return new StraightRouter();
-    case 'orthogonal':  return new OrthogonalRouter();
-    case 'bezier':      return new BezierRouter();
-    case 'polyline':    return new PolylineRouter();
+    case 'straight':    return straightRouter;
+    case 'orthogonal':  return orthogonalRouter;
+    case 'bezier':      return bezierRouter;
+    case 'polyline':    return polylineRouter;
   }
 }
 
 /** Default router used by layout engines unless overridden. */
-export const defaultRouter: Router = new OrthogonalRouter();
+export const defaultRouter: Router = orthogonalRouter;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -1,12 +1,12 @@
 import type { TimelineDocument, Activity, Milestone, Section, Track } from './ir.js';
-import type { Scene, SceneElement, Rect, Point } from '../../contracts/index.js';
+import type { Scene, SceneElement, Rect, Point, LayoutResult } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
 import { compileOverlays } from '../../overlay/compiler.js';
 import { layoutOverlays } from '../../overlay/layout.js';
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
-export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): Scene {
+export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
   switch (ir.layout) {
     case 'horizontal':
     default:
@@ -16,7 +16,7 @@ export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): Scen
 
 // ─── Horizontal Layout ────────────────────────────────────────────────────────
 
-function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): Scene {
+function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
   const margin = spacing.diagramMargin;
   const elements: SceneElement[] = [];
@@ -123,7 +123,7 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): Scene {
     scene = { ...scene, elements: [...scene.elements, ...overlayEls], viewBox };
   }
 
-  return scene;
+  return { scene, anchors: {} };
 }
 
 // ─── Date Mapping ─────────────────────────────────────────────────────────────

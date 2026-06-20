@@ -21,7 +21,7 @@ const doc: TimelineDocument = {
 
 describe('timeline layout', () => {
   it('produces a valid scene', () => {
-    const scene = layoutTimeline(doc, defaultTheme);
+    const { scene } = layoutTimeline(doc, defaultTheme);
     expect(scene.viewBox.width).toBeGreaterThan(0);
     expect(scene.viewBox.height).toBeGreaterThan(0);
     expect(scene.elements.length).toBeGreaterThan(0);
@@ -29,20 +29,20 @@ describe('timeline layout', () => {
   });
 
   it('title appears in elements', () => {
-    const scene = layoutTimeline(doc, defaultTheme);
+    const { scene } = layoutTimeline(doc, defaultTheme);
     const texts = scene.elements.filter(e => e.type === 'text') as any[];
     expect(texts.some(t => t.content === 'Project Milestones')).toBe(true);
   });
 
   it('milestones render as path elements (diamond)', () => {
-    const scene = layoutTimeline(doc, defaultTheme);
+    const { scene } = layoutTimeline(doc, defaultTheme);
     const paths = scene.elements.filter(e => e.type === 'path') as any[];
     // Axis line + diamond paths for 3 milestones
     expect(paths.length).toBeGreaterThanOrEqual(3);
   });
 
   it('milestone dates map to different x positions', () => {
-    const scene = layoutTimeline(doc, defaultTheme);
+    const { scene } = layoutTimeline(doc, defaultTheme);
     // Milestones are paths — check their `d` attributes contain different x values
     const texts = scene.elements.filter(e => e.type === 'text') as any[];
     const dateLabels = texts.filter((t: any) =>
@@ -58,7 +58,7 @@ describe('timeline layout', () => {
   });
 
   it('later dates are positioned further right than earlier dates', () => {
-    const scene = layoutTimeline(doc, defaultTheme);
+    const { scene } = layoutTimeline(doc, defaultTheme);
     const texts = scene.elements.filter(e => e.type === 'text') as any[];
     const kickoffX = texts.find((t: any) => t.content === '2025-01')?.position.x ?? 0;
     const launchX  = texts.find((t: any) => t.content === '2025-09')?.position.x ?? 0;
@@ -66,14 +66,14 @@ describe('timeline layout', () => {
   });
 
   it('activities produce rect elements', () => {
-    const scene = layoutTimeline(doc, defaultTheme);
+    const { scene } = layoutTimeline(doc, defaultTheme);
     const rects = scene.elements.filter(e => e.type === 'rect') as any[];
     // At least 2 rects for the two activities
     expect(rects.length).toBeGreaterThanOrEqual(2);
   });
 
   it('theme colors are used for fills', () => {
-    const scene = layoutTimeline(doc, defaultTheme);
+    const { scene } = layoutTimeline(doc, defaultTheme);
     const fills = collectFills(scene.elements);
     expect(fills.some(f => f?.includes(defaultTheme.palette.primary))).toBe(true);
   });
@@ -83,7 +83,7 @@ describe('timeline layout', () => {
       ...doc,
       sections: [{ id: 'q1', label: 'Q1', start: '2025-01', end: '2025-03' }],
     };
-    const scene = layoutTimeline(withSections, defaultTheme);
+    const { scene } = layoutTimeline(withSections, defaultTheme);
     const rects = scene.elements.filter(e => e.type === 'rect') as any[];
     // Should have section background + activity bars
     expect(rects.length).toBeGreaterThan(2);
@@ -99,7 +99,7 @@ describe('timeline layout', () => {
       ],
       milestones: [],
     };
-    const scene = layoutTimeline(multiTrack, defaultTheme);
+    const { scene } = layoutTimeline(multiTrack, defaultTheme);
     const rects = scene.elements.filter(e => e.type === 'rect') as any[];
     const activityRects = rects.filter(r => r.fill !== defaultTheme.palette.background);
     // Both activities should have different y positions

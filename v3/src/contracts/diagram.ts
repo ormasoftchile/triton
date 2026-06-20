@@ -24,6 +24,7 @@
 import type { Scene } from './scene.js';
 import type { ResolvedTheme, ThemeInput } from './theme.js';
 import type { RawOverlay } from './overlay.js';
+import type { LayoutResult, LayoutOptions } from './anchors.js';
 
 // ─── Base IR ──────────────────────────────────────────────────────────────────
 
@@ -69,16 +70,22 @@ export interface DiagramParser<IR extends BaseIR> {
 
 export interface DiagramLayoutEngine<IR extends BaseIR> {
   /**
-   * Transform a validated IR into a fully resolved, renderable Scene.
+   * Transform a validated IR into a fully resolved, renderable LayoutResult.
+   *
+   * Returns both the renderable Scene and the node anchor registry.
+   * Non-linkable diagram types return an empty anchors registry {}.
    *
    * Async to support layout engines that require deferred operations
    * (font metric measurement, WASM, external data fetching).
-   * Sync implementations simply return Promise.resolve(scene).
+   * Sync implementations simply return Promise.resolve(result).
    *
    * The returned Scene is complete — all overlay geometry has been
    * incorporated into Scene.elements before the promise resolves.
+   *
+   * @param options - Optional layout constraints (port hints) from the
+   *   composition layer during negotiation passes. Absent on first pass.
    */
-  layout(ir: IR, theme: ResolvedTheme): Promise<Scene>;
+  layout(ir: IR, theme: ResolvedTheme, options?: LayoutOptions): Promise<LayoutResult>;
 }
 
 // ─── Full Module ──────────────────────────────────────────────────────────────
