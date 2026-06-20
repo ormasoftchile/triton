@@ -2,6 +2,8 @@ import type { PosterDocument, PosterCell, CellContent } from './ir.js';
 import type { Scene, SceneElement, Rect, LayoutResult, NodeAnchor, NodeAnchorRegistry } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
 import { getModule } from '../../frontend/registry.js';
+import { resolveCrossLinks } from '../../crosslink/resolve.js';
+import { renderCrossLinks } from '../../crosslink/render.js';
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
@@ -141,6 +143,34 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
           allDefs.push(def);
         }
       }
+    }
+  }
+
+  // ─── Cross-Link Resolution & Rendering ──────────────────────────────────
+  const links  = ir.links  ?? [];
+  const traces = ir.traces ?? [];
+
+  if (links.length > 0) {
+    const { resolved, diagnostics } = resolveCrossLinks(links, mergedAnchors);
+
+    // Log diagnostics (unresolvable links) — non-fatal
+    for (const diag of diagnostics) {
+      console.warn(`[poster:crosslink] Link ${diag.linkIndex}: ${diag.message}`);
+    }
+
+    if (resolved.length > 0) {
+      const { defs: linkDefs, elements: linkElements } = renderCrossLinks(resolved, traces, theme, mergedAnchors);
+
+      // Add link defs
+      for (const def of linkDefs) {
+        if (!seenDefs.has(def)) {
+          seenDefs.add(def);
+          allDefs.push(def);
+        }
+      }
+
+      // Add link elements (drawn above cell content)
+      elements.push(...linkElements);
     }
   }
 
