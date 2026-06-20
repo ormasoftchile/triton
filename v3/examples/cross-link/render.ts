@@ -101,8 +101,8 @@ async function main() {
   const svg = svgRenderer.render(result.scene);
 
   mkdirSync(__dirname, { recursive: true });
-  writeFileSync(join(__dirname, 'cross-link-demo.svg'), svg, 'utf-8');
-  console.log('✓ cross-link-demo.svg');
+  writeFileSync(join(__dirname, 'cross-link-basic-demo.svg'), svg, 'utf-8');
+  console.log('✓ cross-link-basic-demo.svg');
 
   // Also dump the anchor registry for inspection
   const anchorDump = JSON.stringify(result.anchors, null, 2);
