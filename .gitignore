@@ -26,3 +26,4 @@ build/
 coverage/
 *.tsbuildinfo
 .turbo/
+.pnpm-store/

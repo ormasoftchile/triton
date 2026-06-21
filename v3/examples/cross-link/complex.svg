@@ -7,6 +7,14 @@
   <rect width="100%" height="100%" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Microservices Architecture — Cross-Link Map</text>
   <rect x="24" y="58" width="160" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="58" width="325.2" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="436" width="160" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="436" width="325.2" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 306.6 288 L 282.6 288 L 282.6 428 L 17.714285714285715 428 L 17.714285714285715 646.5714285714286 L 49.714285714285715 646.5714285714286" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 346.6 388 L 346.6 574.1904761904763 L 301.6 574.1904761904763" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 470.6 561.1904761904763 L 470.6 176 L 366.6 176 L 366.6 148" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)" />
+  <path d="M 158.28571428571428 248 L 232.44285714285715 248 L 232.44285714285715 128 L 306.6 128" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 386.6 388 L 386.6 443.8571428571429 L 104 443.8571428571429 L 104 483.7142857142857" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">UI Layer</text>
   <g transform="translate(28, 135.8095238095238) scale(0.9047619047619048)">
     <g id="app">
@@ -22,7 +30,6 @@
       <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Web App</text>
     </g>
   </g>
-  <rect x="204" y="58" width="325.2" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="212" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">API &amp; Orchestration</text>
   <g transform="translate(282.6, 84) scale(1)">
     <g id="gw">
@@ -42,7 +49,6 @@
       <text x="84" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Orders</text>
     </g>
   </g>
-  <rect x="24" y="436" width="160" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="32" y="454" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Data Stores</text>
   <g transform="translate(28, 462) scale(0.9047619047619048)">
     <g id="pg">
@@ -58,7 +64,6 @@
       <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Redis Cache</text>
     </g>
   </g>
-  <rect x="204" y="436" width="325.2" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="212" y="454" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Async &amp; Observability</text>
   <g transform="translate(208, 545.5904761904762) scale(0.65)">
     <path d="M 144 44 L 184 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
@@ -76,12 +81,7 @@
       <text x="404" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Metrics</text>
     </g>
   </g>
-  <path d="M 306.6 288 L 211.6 288 L 211.6 646.5714285714286 L 158.28571428571428 646.5714285714286" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 306.6 361.3333333333333 L 262.6 361.3333333333333 L 262.6 561.1904761904763" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 470.6 561.1904761904763 L 470.6 128 L 426.6 128" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)" />
-  <path d="M 158.28571428571428 248 L 232.44285714285715 248 L 232.44285714285715 128 L 306.6 128" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 306.6 374.6666666666667 L 232.44285714285715 374.6666666666667 L 232.44285714285715 501.8095238095238 L 158.28571428571428 501.8095238095238" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <text x="211.6" y="472.625" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">cache hit?</text>
-  <text x="262.6" y="494.625" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">publishes</text>
-  <text x="470.6" y="338.59523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">health</text>
+  <text x="150.15714285714287" y="422" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">cache hit?</text>
+  <text x="346.6" y="475.09523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">publishes</text>
+  <text x="470.6" y="362.59523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">health</text>
 </svg>

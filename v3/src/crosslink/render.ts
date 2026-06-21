@@ -39,6 +39,13 @@ const CROSSLINK_ARROW_BOTH_ID = 'triton-crosslink-arrow-both';
  * @param occupiedRects — bounding boxes of existing text/elements that labels must avoid
  * @param routingObstacles — additional thin obstacles (cell borders) for the router to avoid
  */
+/**
+ * Amount (px) by which intermediate-cell rectangles are shrunk on each side
+ * before being used as routing obstacles. Must match the router’s padding
+ * so that effective corridor width (gap + 2×SHRINK − 2×padding) leaves room.
+ */
+const CELL_SHRINK = 12;
+
 export function renderCrossLinks(
   resolved: readonly ResolvedCrossLink[],
   traces: readonly TraceRecord[],
@@ -46,6 +53,7 @@ export function renderCrossLinks(
   anchors?: NodeAnchorRegistry,
   occupiedRects?: readonly Rect[],
   routingObstacles?: readonly Rect[],
+  cellRects?: ReadonlyMap<string, Rect>,
 ): CrossLinkRenderResult {
   const { palette, typography, edges: edgeTheme } = theme;
   const elements: SceneElement[] = [];
@@ -102,11 +110,33 @@ export function renderCrossLinks(
     const routeStyle: RouteStyle = link.routing ?? 'orthogonal';
     const router  = getRouter(routeStyle) ?? createRouter(routeStyle);
     const tension = link.props?.tension as number | undefined;
+
+    // Build per-link obstacles: all node bounds + shrunken intermediate-cell
+    // rects. Intermediate cells (neither source nor target) are shrunk inward
+    // by CELL_SHRINK so routes travel through inter-cell corridors instead of
+    // cutting through other cells’ content areas. Source/target cells are
+    // excluded so routes can freely exit/enter through their own cell’s space.
+    let linkObstacles: Rect[] = obstacles;
+    if (cellRects) {
+      const srcId = link.from.cellPath.join('.');
+      const dstId = link.to.cellPath.join('.');
+      const extra: Rect[] = [];
+      for (const [cellId, r] of cellRects) {
+        if (cellId === srcId || cellId === dstId) continue;
+        const sw = r.width  - 2 * CELL_SHRINK;
+        const sh = r.height - 2 * CELL_SHRINK;
+        if (sw > 0 && sh > 0) {
+          extra.push({ x: r.x + CELL_SHRINK, y: r.y + CELL_SHRINK, width: sw, height: sh });
+        }
+      }
+      if (extra.length > 0) linkObstacles = [...obstacles, ...extra];
+    }
+
     const route   = router.route({
       from: fromPort,
       to: toPort,
       style: routeStyle,
-      obstacles,
+      obstacles: linkObstacles,
       padding: 12,
       fromDir,
       toDir,
@@ -272,12 +302,15 @@ function longestSegmentMidpoint(points: readonly Point[]): Point {
 }
 
 /**
- * De-collide label rectangles by pushing them vertically away from
- * fixed obstacles and from each other. Mutates labelRects in place.
+ * De-collide label rectangles by pushing them away from fixed obstacles and
+ * from each other in the direction of minimum overlap (MTV approach).
+ * Horizontal push is used when horizontal overlap is smaller than vertical —
+ * this avoids vertical stacking when labels share the same route corridor.
+ * Mutates labelRects in place.
  */
 function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number; height: number }>, fixedRects: readonly Rect[]): void {
   const MAX_PASSES = 20;
-  const NUDGE = 2; // extra pixels gap after pushing
+  const NUDGE = 2;
 
   for (let pass = 0; pass < MAX_PASSES; pass++) {
     let moved = false;
@@ -285,19 +318,21 @@ function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number
     // Push labels away from fixed rects
     for (const lr of labelRects) {
       for (const fr of fixedRects) {
-        if (rectsOverlap(lr, fr)) {
-          // Push label vertically away from fixed rect center
-          const labelCY = lr.y + lr.height / 2;
-          const fixedCY = fr.y + fr.height / 2;
-          if (labelCY <= fixedCY) {
-            // Push up (above the fixed rect)
-            lr.y = fr.y - lr.height - NUDGE;
-          } else {
-            // Push down (below the fixed rect)
-            lr.y = fr.y + fr.height + NUDGE;
-          }
-          moved = true;
+        if (!rectsOverlap(lr, fr)) continue;
+        const ox = Math.min(lr.x + lr.width, fr.x + fr.width) - Math.max(lr.x, fr.x);
+        const oy = Math.min(lr.y + lr.height, fr.y + fr.height) - Math.max(lr.y, fr.y);
+        if (ox <= oy) {
+          // Horizontal push — less movement
+          const lCX = lr.x + lr.width / 2;
+          const fCX = fr.x + fr.width / 2;
+          lr.x = lCX <= fCX ? fr.x - lr.width - NUDGE : fr.x + fr.width + NUDGE;
+        } else {
+          // Vertical push
+          const lCY = lr.y + lr.height / 2;
+          const fCY = fr.y + fr.height / 2;
+          lr.y = lCY <= fCY ? fr.y - lr.height - NUDGE : fr.y + fr.height + NUDGE;
         }
+        moved = true;
       }
     }
 
@@ -305,21 +340,30 @@ function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number
     for (let i = 0; i < labelRects.length; i++) {
       for (let j = i + 1; j < labelRects.length; j++) {
         const a = labelRects[i]!, b = labelRects[j]!;
-        if (rectsOverlap(a, b)) {
+        if (!rectsOverlap(a, b)) continue;
+        const ox = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+        const oy = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+        if (ox <= oy) {
+          // Push horizontally — shared-corridor case
+          const aCX = a.x + a.width / 2;
+          const bCX = b.x + b.width / 2;
+          if (aCX <= bCX) { a.x -= ox / 2; b.x += ox / 2; }
+          else             { a.x += ox / 2; b.x -= ox / 2; }
+        } else {
+          // Push vertically
           const aCY = a.y + a.height / 2;
           const bCY = b.y + b.height / 2;
           if (aCY <= bCY) {
-            // a above b — push apart
-            const overlap = (a.y + a.height) - b.y + NUDGE;
-            a.y -= overlap / 2;
-            b.y += overlap / 2;
+            const overlap = (a.y + a.height) - b.y;
+            a.y -= (overlap + NUDGE) / 2;
+            b.y += (overlap + NUDGE) / 2;
           } else {
-            const overlap = (b.y + b.height) - a.y + NUDGE;
-            b.y -= overlap / 2;
-            a.y += overlap / 2;
+            const overlap = (b.y + b.height) - a.y;
+            b.y -= (overlap + NUDGE) / 2;
+            a.y += (overlap + NUDGE) / 2;
           }
-          moved = true;
         }
+        moved = true;
       }
     }
 

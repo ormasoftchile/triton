@@ -6,6 +6,20 @@
   <rect width="100%" height="100%" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">ML Platform — Training &amp; Serving Pipeline</text>
   <rect x="24" y="58" width="160" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="58" width="160" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="58" width="429.2" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="436" width="160" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="436" width="160" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="436" width="429.2" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 158.28571428571428 320.3809523809524 L 191 320.3809523809524 L 191 133.39682539682542 L 229.71428571428572 133.39682539682542" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 338.2857142857143 356.57142857142856 L 438.4428571428572 356.57142857142856 L 438.4428571428572 208 L 538.6 208" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 598.6 308 L 598.6 332 L 16 332 L 16 543.9047619047619 L 104 543.9047619047619 L 104 519.9047619047619" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 578.6 388 L 578.6 443.8571428571429 L 104 443.8571428571429 L 104 483.7142857142857" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 646.5714285714286 L 197 646.5714285714286 L 197 145.46031746031747 L 229.71428571428572 145.46031746031747" stroke="#CA8A04" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 284 700.8571428571429 L 284 676.8571428571429 L 376 676.8571428571429 L 376 172 L 578.6 172 L 578.6 148" stroke="#DC2626" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 229.71428571428572 646.5714285714286 L 194 646.5714285714286 L 194 574.1904761904761 L 158.28571428571428 574.1904761904761" stroke="#2563EB" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 546.6 597.3809523809524 L 546.6 492.6904761904762 L 618.6 492.6904761904762 L 618.6 388" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 754.6 597.3809523809524 L 754.6 176 L 618.6 176 L 618.6 148" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Data Ingestion</text>
   <g transform="translate(28, 135.8095238095238) scale(0.9047619047619048)">
     <g id="s3">
@@ -21,7 +35,6 @@
       <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Feature Registry</text>
     </g>
   </g>
-  <rect x="204" y="58" width="160" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="212" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Training Cluster</text>
   <g transform="translate(208, 99.61904761904762) scale(0.9047619047619048)">
     <g id="scheduler">
@@ -41,7 +54,6 @@
       <text x="84" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">MLflow</text>
     </g>
   </g>
-  <rect x="384" y="58" width="429.2" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="392" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Model Serving</text>
   <g transform="translate(514.6, 84) scale(1)">
     <g id="gateway">
@@ -61,7 +73,6 @@
       <text x="84" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Stable</text>
     </g>
   </g>
-  <rect x="24" y="436" width="160" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="32" y="454" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Monitoring &amp; Alerts</text>
   <g transform="translate(28, 462) scale(0.9047619047619048)">
     <g id="prom">
@@ -81,7 +92,6 @@
       <text x="84" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">PagerDuty</text>
     </g>
   </g>
-  <rect x="204" y="436" width="160" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="212" y="454" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">CI/CD</text>
   <g transform="translate(208, 462) scale(0.9047619047619048)">
     <g id="gh">
@@ -101,7 +111,6 @@
       <text x="84" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Deploy</text>
     </g>
   </g>
-  <rect x="384" y="436" width="429.2" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="392" y="454" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Infrastructure</text>
   <g transform="translate(388, 581.7809523809524) scale(0.65)">
     <path d="M 144 44 L 184 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
@@ -124,22 +133,13 @@
       <text x="564" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Vault</text>
     </g>
   </g>
-  <path d="M 158.28571428571428 320.3809523809524 L 191 320.3809523809524 L 191 133.39682539682542 L 229.71428571428572 133.39682539682542" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 338.2857142857143 356.57142857142856 L 438.4428571428572 356.57142857142856 L 438.4428571428572 208 L 538.6 208" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 538.6 288 L 514.6 288 L 514.6 394.9047619047619 L 174.28571428571428 394.9047619047619 L 174.28571428571428 501.8095238095238 L 158.28571428571428 501.8095238095238" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 578.6 388 L 578.6 443.8571428571429 L 104 443.8571428571429 L 104 483.7142857142857" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 646.5714285714286 L 197 646.5714285714286 L 197 145.46031746031747 L 229.71428571428572 145.46031746031747" stroke="#CA8A04" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 338.2857142857143 718.952380952381 L 391.6 718.952380952381 L 391.6 128 L 538.6 128" stroke="#DC2626" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 229.71428571428572 646.5714285714286 L 194 646.5714285714286 L 194 574.1904761904761 L 158.28571428571428 574.1904761904761" stroke="#2563EB" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 546.6 597.3809523809524 L 546.6 492.6904761904762 L 618.6 492.6904761904762 L 618.6 388" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 754.6 597.3809523809524 L 754.6 128 L 658.6 128" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <text x="191" y="247.90476190476193" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">triggers training</text>
   <text x="438.4428571428572" y="276.2857142857143" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">promotes model</text>
-  <text x="344.4428571428572" y="391.2678571428571" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">reports metrics</text>
-  <text x="341.3" y="433.8690476190476" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0891B2" text-anchor="middle" font-weight="bold">reports metrics</text>
+  <text x="307.3" y="326" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">reports metrics</text>
+  <text x="341.3" y="433.05357142857144" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0891B2" text-anchor="middle" font-weight="bold">reports metrics</text>
   <text x="197" y="392.6666666666667" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#CA8A04" text-anchor="middle" font-weight="bold">retrains on drift</text>
-  <text x="391.6" y="413.2678571428571" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#DC2626" text-anchor="middle" font-weight="bold">rolls out</text>
+  <text x="376" y="411.05357142857144" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#DC2626" text-anchor="middle" font-weight="bold">rolls out</text>
   <text x="194" y="610.2857142857142" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2563EB" text-anchor="middle" font-weight="bold">posts results</text>
   <text x="546.6" y="539.0357142857143" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">hosts</text>
-  <text x="754.6" y="356.6904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">injects secrets</text>
+  <text x="754.6" y="380.6904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">injects secrets</text>
 </svg>

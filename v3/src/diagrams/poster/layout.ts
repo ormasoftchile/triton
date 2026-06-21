@@ -66,14 +66,26 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   }
 
   // ── Build elements ────────────────────────────────────────────────────────
-  const elements: SceneElement[] = [];
+  // Layers assembled in painter's order (back→front):
+  //   headerElements — poster title text
+  //   cellBg         — cell chrome rects
+  //   linkPaths      — cross-link routes (behind node content so routes that
+  //                    pass through a cell render behind its nodes)
+  //   cellContent    — cell titles + embedded node scenes
+  //   linkLabels     — cross-link label text (topmost, always readable)
+  const headerElements: SceneElement[] = [];
+  const cellBg: SceneElement[] = [];
+  const cellContent: SceneElement[] = [];
   // Track text bounding rects so cross-link labels can avoid them
   const textOccupied: Array<{ x: number; y: number; width: number; height: number }> = [];
   // Track cell border edges as thin obstacles so connectors don't run along cell walls
   const cellBorders: Array<{ x: number; y: number; width: number; height: number }> = [];
+  // Full cell bounding boxes keyed by cell ID — used by the cross-link router
+  // to treat intermediate cells as blocked zones (routes must use corridors).
+  const cellRects = new Map<string, { x: number; y: number; width: number; height: number }>();
 
   if (ir.metadata.title) {
-    elements.push({ type: 'text', content: ir.metadata.title, position: { x: padding, y: padding + typography.titleFontSize }, fontSize: typography.titleFontSize + 2, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+    headerElements.push({ type: 'text', content: ir.metadata.title, position: { x: padding, y: padding + typography.titleFontSize }, fontSize: typography.titleFontSize + 2, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
     // Estimate title bounding rect
     const titleW = ir.metadata.title.length * (typography.titleFontSize + 2) * 0.6;
     const titleH = typography.titleFontSize + 2;
@@ -95,8 +107,8 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
     const cellW = sumWithGaps(colWidths,  col, col + colSpan, gap) - gap;
     const cellH = sumWithGaps(rowHeights, row, row + rowSpan, gap) - gap;
 
-    // Cell chrome
-    elements.push({ type: 'rect', bounds: { x: cellX, y: cellY, width: cellW, height: cellH }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx: 6 });
+    // Cell chrome — background layer (connectors route behind this)
+    cellBg.push({ type: 'rect', bounds: { x: cellX, y: cellY, width: cellW, height: cellH }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx: 6 });
 
     // Record cell edges as thin obstacles (4px) so connectors avoid running along borders
     const borderThick = 4;
@@ -106,20 +118,22 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
       { x: cellX - borderThick / 2, y: cellY, width: borderThick, height: cellH },              // left edge
       { x: cellX + cellW - borderThick / 2, y: cellY, width: borderThick, height: cellH },      // right edge
     );
+    // Record the full cell bounding box for corridor-based cross-link routing.
+    cellRects.set(cellId, { x: cellX, y: cellY, width: cellW, height: cellH });
 
     const cellTitleH = cell.title ? typography.baseFontSize + unit : 0;
     if (cell.title) {
-      elements.push({ type: 'text', content: cell.title, position: { x: cellX + unit, y: cellY + typography.baseFontSize + unit / 2 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+      cellContent.push({ type: 'text', content: cell.title, position: { x: cellX + unit, y: cellY + typography.baseFontSize + unit / 2 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
       // Estimate cell title bounding rect for label de-collision
       const tw = cell.title.length * typography.baseFontSize * 0.65;
       const th = typography.baseFontSize;
       textOccupied.push({ x: cellX + unit, y: cellY + unit / 2 - 2, width: tw, height: th + 4 });
     }
 
-    // Embed child scene
+    // Embed child scene — content layer (above cross-link paths)
     const inset = unit / 2;
     const contentRect: Rect = { x: cellX + inset, y: cellY + cellTitleH + inset, width: cellW - inset * 2, height: cellH - cellTitleH - inset * 2 };
-    elements.push(embedScene(result.scene, contentRect));
+    cellContent.push(embedScene(result.scene, contentRect));
 
     // Transform child anchors to poster coordinates and merge
     const scaleX = contentRect.width  / Math.max(result.scene.viewBox.width,  1);
@@ -171,8 +185,12 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   const links  = ir.links  ?? [];
   const traces = ir.traces ?? [];
 
+  // Start with the grid dimensions; cross-link rendering may expand these.
+  let finalW = totalW;
+  let finalH = totalH;
+
   if (links.length > 0) {
-    const { resolved, diagnostics } = resolveCrossLinks(links, mergedAnchors);
+    const { resolved, diagnostics } = resolveCrossLinks(links, mergedAnchors, cellRects);
 
     // Log diagnostics (unresolvable links) — non-fatal
     for (const diag of diagnostics) {
@@ -180,7 +198,7 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
     }
 
     if (resolved.length > 0) {
-      const { defs: linkDefs, elements: linkElements } = renderCrossLinks(resolved, traces, theme, mergedAnchors, textOccupied, cellBorders);
+      const { defs: linkDefs, elements: linkElements } = renderCrossLinks(resolved, traces, theme, mergedAnchors, textOccupied, cellBorders, cellRects);
 
       // Add link defs
       for (const def of linkDefs) {
@@ -190,14 +208,43 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
         }
       }
 
-      // Add link elements (drawn above cell content)
-      elements.push(...linkElements);
+      // Split link elements: paths go behind cell content, labels go on top.
+      const linkPaths  = linkElements.filter(e => e.type !== 'text');
+      const linkLabels = linkElements.filter(e => e.type === 'text');
+
+      // Expand the viewBox to include all cross-link route and label extents.
+      const ext = crossLinkExtents(linkElements);
+      if (ext.maxX > finalW) finalW = ext.maxX + padding;
+      if (ext.maxY > finalH) finalH = ext.maxY + padding;
+
+      // Assemble in painter's order (back → front):
+      //   header → cell backgrounds → link routes → cell content → link labels
+      const elements: SceneElement[] = [
+        ...headerElements,
+        ...cellBg,
+        ...linkPaths,
+        ...cellContent,
+        ...linkLabels,
+      ];
+
+      return {
+        scene: {
+          viewBox: { x: 0, y: 0, width: finalW, height: finalH },
+          background: palette.background,
+          elements,
+          ...(allDefs.length > 0 ? { defs: allDefs } : {}),
+        },
+        anchors: mergedAnchors,
+      };
     }
   }
 
+  // No cross-links (or none resolved): flat assembly without link layers.
+  const elements: SceneElement[] = [...headerElements, ...cellBg, ...cellContent];
+
   return {
     scene: {
-      viewBox: { x: 0, y: 0, width: totalW, height: totalH },
+      viewBox: { x: 0, y: 0, width: finalW, height: finalH },
       background: palette.background,
       elements,
       ...(allDefs.length > 0 ? { defs: allDefs } : {}),
@@ -206,7 +253,49 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   };
 }
 
+/**
+ * Compute the rightmost and bottommost extents across all cross-link
+ * scene elements (paths and text labels).
+ *
+ * For paths: extract all numeric coordinates from the SVG path `d` string.
+ *   Taking the max of all numbers over-approximates bezier control-point
+ *   extents, but that is safe (never under-estimates) and keeps the logic
+ *   simple without a full bezier bounding-box solver.
+ *
+ * For text: use the anchor position plus an estimated character-width.
+ */
+function crossLinkExtents(elements: readonly SceneElement[]): { maxX: number; maxY: number } {
+  let maxX = 0;
+  let maxY = 0;
+
+  for (const el of elements) {
+    if (el.type === 'path') {
+      // Extract all numbers from the path d string in adjacent x,y pairs.
+      // This works exactly for M/L commands and safely over-approximates C.
+      const nums: number[] = [];
+      for (const m of el.d.matchAll(/[-\d.]+/g)) {
+        const n = parseFloat(m[0]);
+        if (!isNaN(n)) nums.push(n);
+      }
+      for (let i = 0; i + 1 < nums.length; i += 2) {
+        maxX = Math.max(maxX, nums[i]!);
+        maxY = Math.max(maxY, nums[i + 1]!);
+      }
+    } else if (el.type === 'text') {
+      const approxW = el.content.length * (el.fontSize ?? 12) * 0.65;
+      const right = el.anchor === 'middle'
+        ? el.position.x + approxW / 2
+        : el.position.x + approxW;
+      maxX = Math.max(maxX, right);
+      maxY = Math.max(maxY, el.position.y + (el.fontSize ?? 12));
+    }
+  }
+
+  return { maxX, maxY };
+}
+
 // ─── Cell Content Dispatch ────────────────────────────────────────────────────
+
 
 async function layoutCellContent(content: CellContent, theme: ResolvedTheme): Promise<LayoutResult> {
   const { palette, typography, spacing } = theme;

@@ -34,15 +34,27 @@ export interface ResolutionDiagnostic {
  * The registry keys are dot-prefixed paths: "A1.nodeId" for flat posters,
  * "A1.B1.nodeId" for nested. The NodeAddress.cellPath + nodeId must match.
  */
+/**
+ * Amount (px) by which intermediate-cell rectangles are shrunk on each side
+ * before being used as port-selection crossing obstacles. Must equal the
+ * router’s padding so that the effective corridor width (gap + 2×SHRINK)
+ * minus two padding clearances leaves a viable route channel.
+ */
+const CELL_SHRINK = 12;
+
 export function resolveCrossLinks(
   links: readonly CrossLink[],
   anchors: NodeAnchorRegistry,
+  cellRects?: ReadonlyMap<string, Rect>,
 ): ResolutionResult {
   const resolved: ResolvedCrossLink[] = [];
   const diagnostics: ResolutionDiagnostic[] = [];
 
-  // Collect all obstacle bounds for port selection.
-  const allBounds: Rect[] = Object.values(anchors).map(a => a.bounds);
+  // All node bounds — used as crossing obstacles, but own-cell nodes are
+  // excluded per-link (see below) so routes aren't penalised for exiting
+  // through their own cell's node space.
+  const allAnchorEntries = Object.entries(anchors);
+  const allBounds: Rect[] = allAnchorEntries.map(([, a]) => a.bounds);
 
   for (let i = 0; i < links.length; i++) {
     const link = links[i]!;
@@ -61,7 +73,38 @@ export function resolveCrossLinks(
       continue;
     }
 
-    const { fromPort, toPort, fromSide, toSide } = selectBestPorts(fromAnchor, toAnchor, allBounds);
+    // Exclude same-cell nodes from crossing obstacles: a route exiting the
+    // source cell or entering the target cell must traverse its own cell's
+    // internal space. Penalising that biases port selection toward long
+    // outside paths (e.g. going around the diagram edge) when a direct
+    // inter-cell route is actually shorter and cleaner.
+    const srcCellPrefix = link.from.cellPath.join('.') + '.';
+    const dstCellPrefix = link.to.cellPath.join('.') + '.';
+    const ownBoundsSet = new Set<Rect>();
+    for (const [key, anchor] of allAnchorEntries) {
+      if (key.startsWith(srcCellPrefix) || key.startsWith(dstCellPrefix)) {
+        ownBoundsSet.add(anchor.bounds);
+      }
+    }
+    const crossingObstacles = allBounds.filter(b => !ownBoundsSet.has(b));
+
+    // Add shrunken intermediate-cell rects as crossing obstacles.
+    // This guides port selection toward routes that travel through inter-cell
+    // corridors rather than cutting through other cells’ content areas.
+    if (cellRects) {
+      const srcId = link.from.cellPath.join('.');
+      const dstId = link.to.cellPath.join('.');
+      for (const [cellId, r] of cellRects) {
+        if (cellId === srcId || cellId === dstId) continue;
+        const sw = r.width  - 2 * CELL_SHRINK;
+        const sh = r.height - 2 * CELL_SHRINK;
+        if (sw > 0 && sh > 0) {
+          crossingObstacles.push({ x: r.x + CELL_SHRINK, y: r.y + CELL_SHRINK, width: sw, height: sh });
+        }
+      }
+    }
+
+    const { fromPort, toPort, fromSide, toSide } = selectBestPorts(fromAnchor, toAnchor, crossingObstacles);
 
     resolved.push({ link, fromAnchor, toAnchor, fromPort, toPort, fromSide, toSide });
   }
