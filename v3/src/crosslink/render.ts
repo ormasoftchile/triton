@@ -144,6 +144,12 @@ export function renderCrossLinks(
     });
 
     const dash = edgeStyleToDash(link.style);
+    // Animation: explicit DSL value wins; default is 'march' for dashed/dotted, nothing for solid.
+    const animation: 'march' | 'particle' | undefined =
+      link.animation === 'none'     ? undefined :
+      link.animation === 'particle' ? 'particle' :
+      link.animation === 'march'    ? 'march'    :
+      dash                          ? 'march'    : undefined;
     let markerEnd: string | undefined;
     let markerStart: string | undefined;
     if (link.direction === 'directed') {
@@ -164,6 +170,7 @@ export function renderCrossLinks(
       toDir,
       color,
       dash,
+      animation,
       markerEnd,
       markerStart,
       label: link.label,
@@ -197,8 +204,9 @@ export function renderCrossLinks(
       d: path,
       stroke: pr.color,
       strokeWidth: edgeTheme.strokeWidth + 0.5,
-      ...(pr.dash ? { strokeDasharray: pr.dash, animated: true } : {}),
-      ...(pr.markerEnd ? { markerEnd: pr.markerEnd } : {}),
+      ...(pr.dash      ? { strokeDasharray: pr.dash }     : {}),
+      ...(pr.animation ? { animated: pr.animation }       : {}),
+      ...(pr.markerEnd   ? { markerEnd: pr.markerEnd }   : {}),
       ...(pr.markerStart ? { markerStart: pr.markerStart } : {}),
     };
     elements.push(pathEl);
@@ -967,6 +975,7 @@ interface PendingRoute {
   toDir: PortDirection | undefined;
   color: string;
   dash: string | undefined;
+  animation: 'march' | 'particle' | undefined;
   markerEnd: string | undefined;
   markerStart: string | undefined;
   label: string | undefined;

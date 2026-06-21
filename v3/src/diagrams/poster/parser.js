@@ -361,8 +361,10 @@ function peg$parse(input, options) {
       if (ann) result.routing = ann[2];
       if (block) {
         const b = block[1];
-        // Map { route: X } → routing field; collect the rest into props
+        // Map { route: X } → routing field
         if (b.route) { result.routing = b.route; delete b.route; }
+        // Map { anim: X } → animation field
+        if (b.anim)  { result.animation = b.anim;  delete b.anim;  }
         if (Object.keys(b).length > 0) result.props = b;
       }
       addLink(from, arrow, to, label ? label[1] : null, Object.keys(result).length > 0 ? result : null);

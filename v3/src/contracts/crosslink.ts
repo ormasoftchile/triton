@@ -79,6 +79,18 @@ export interface CrossLink {
    */
   readonly routing?: RouteStyle;
   /**
+   * Animation applied to the rendered connector.
+   *
+   * 'march'    — marching ants (stroke-dashoffset cycle). Only visible when
+   *              the edge style is dashed or dotted; silently ignored on solid.
+   * 'particle' — a dot travels along the path. Works on any edge style.
+   * 'none'     — explicitly suppresses the default animation for this edge.
+   *
+   * When omitted the renderer applies defaults:
+   *   dashed → 'march', dotted → 'march', solid → no animation.
+   */
+  readonly animation?: 'march' | 'particle' | 'none';
+  /**
    * If this link is part of a trace, the trace's ID.
    * Used to apply consistent styling (colour, grouping) across trace members.
    */

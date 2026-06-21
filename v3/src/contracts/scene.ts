@@ -55,13 +55,17 @@ export interface ScenePath {
   readonly markerStart?: string;
   readonly opacity?: number;
   /**
-   * When true and strokeDasharray is set, the SVG renderer emits a SMIL
-   * <animate> child on the <path> that cycles stroke-dashoffset by one full
-   * dash+gap period — producing a "marching ants" flow animation.
-   * Has no effect when strokeDasharray is absent.
-   * Degrades cleanly in rsvg-convert (SMIL ignored → static dashed line).
+   * When set, the SVG renderer emits a SMIL animation on this path.
+   *
+   * 'march'    — animates stroke-dashoffset by one full dash+gap period,
+   *              producing "marching ants" flow. Requires strokeDasharray;
+   *              silently ignored on solid paths.
+   * 'particle' — emits a sibling <circle> with <animateMotion> that travels
+   *              along the path. Works on any edge style.
+   *
+   * Both degrade cleanly in rsvg-convert (SMIL ignored → static line/dot).
    */
-  readonly animated?: boolean;
+  readonly animated?: 'march' | 'particle';
 }
 
 export interface SceneText {

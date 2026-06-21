@@ -63,10 +63,16 @@ function renderElement(el: SceneElement, depth: number): string {
       const fill    = el.fill            != null ? ` fill="${el.fill}"` : ' fill="none"';
       const opacity = el.opacity         != null ? ` opacity="${el.opacity}"` : '';
       const attrs   = `${pad}<path d="${el.d}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${fill}${dash}${mEnd}${mStart}${opacity}`;
-      if (el.animated && el.strokeDasharray) {
+      if (el.animated === 'march' && el.strokeDasharray) {
         const period  = parseDasharrayPeriod(el.strokeDasharray);
         const animate = `<animate attributeName="stroke-dashoffset" from="0" to="-${period}" dur="0.8s" repeatCount="indefinite"/>`;
         return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
+      }
+      if (el.animated === 'particle') {
+        // A filled circle travels along the path using animateMotion.
+        // The path data is inlined in the path= attribute — no id needed.
+        const circle = `${pad}<circle r="4" fill="${el.stroke}">\n${pad}  <animateMotion dur="1.5s" repeatCount="indefinite" rotate="auto" path="${el.d}"/>\n${pad}</circle>`;
+        return `${attrs} />\n${circle}`;
       }
       return `${attrs} />`;
     }

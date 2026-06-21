@@ -1,0 +1,27 @@
+poster "Flow Particles — Per-Connector Animation"
+  columns 3
+
+  cell SVC "Services" :: flow
+    flowchart LR
+      api[API Gateway] --> auth[Auth]
+      api --> orders[Orders]
+      orders --> billing[Billing]
+  end
+
+  cell DATA "Data Layer" :: flow
+    flowchart LR
+      pg[(Postgres)] --> replica[(Replica)]
+      cache[Redis] --> pg
+  end
+
+  cell OPS "Operations" :: flow
+    flowchart LR
+      monitor[Prometheus] --> alert[Alertmanager]
+      alert --> dash[Grafana]
+  end
+
+  link SVC.orders --> DATA.pg "writes"
+  link SVC.api --> DATA.cache "reads" { anim: particle }
+  link SVC.billing -.-> DATA.pg "reconciles" { anim: particle }
+  link SVC.auth ..> OPS.monitor "emits metrics" { anim: none }
+  link DATA.cache -.-> OPS.monitor "hit/miss rate"
