@@ -8,7 +8,9 @@
   <rect x="24" y="58" width="160" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="204" y="58" width="325.2" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <path d="M 158.28571428571428 196.1904761904762 L 223.6 196.1904761904762" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 268.5714285714286 L 313.6 268.5714285714286 L 313.6 196.1904761904762 L 327.6 196.1904761904762" stroke="#16A34A" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 268.5714285714286 L 313.6 268.5714285714286 L 313.6 196.1904761904762 L 327.6 196.1904761904762" stroke="#16A34A" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
   <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Frontend Services</text>
   <g transform="translate(28, 84.00000000000001) scale(0.9047619047619048)">
     <g id="ui">

@@ -62,7 +62,13 @@ function renderElement(el: SceneElement, depth: number): string {
       const mStart  = el.markerStart     != null ? ` marker-start="url(#${el.markerStart})"` : '';
       const fill    = el.fill            != null ? ` fill="${el.fill}"` : ' fill="none"';
       const opacity = el.opacity         != null ? ` opacity="${el.opacity}"` : '';
-      return `${pad}<path d="${el.d}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${fill}${dash}${mEnd}${mStart}${opacity} />`;
+      const attrs   = `${pad}<path d="${el.d}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${fill}${dash}${mEnd}${mStart}${opacity}`;
+      if (el.animated && el.strokeDasharray) {
+        const period  = parseDasharrayPeriod(el.strokeDasharray);
+        const animate = `<animate attributeName="stroke-dashoffset" from="0" to="-${period}" dur="0.8s" repeatCount="indefinite"/>`;
+        return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
+      }
+      return `${attrs} />`;
     }
 
     case 'group': {
@@ -79,6 +85,16 @@ function renderElement(el: SceneElement, depth: number): string {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Sum all values in a stroke-dasharray string — one full animation period. */
+function parseDasharrayPeriod(dasharray: string): number {
+  return dasharray
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number)
+    .filter(n => !isNaN(n) && n > 0)
+    .reduce((sum, n) => sum + n, 0);
+}
 
 function escapeXml(text: string): string {
   return text

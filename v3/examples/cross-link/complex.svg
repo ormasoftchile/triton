@@ -10,9 +10,13 @@
   <rect x="204" y="58" width="325.2" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="24" y="436" width="160" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="204" y="436" width="325.2" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <path d="M 306.6 288 L 282.6 288 L 282.6 428 L 17.714285714285715 428 L 17.714285714285715 646.5714285714286 L 49.714285714285715 646.5714285714286" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 306.6 288 L 282.6 288 L 282.6 428 L 17.714285714285715 428 L 17.714285714285715 646.5714285714286 L 49.714285714285715 646.5714285714286" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
   <path d="M 346.6 388 L 346.6 574.1904761904763 L 301.6 574.1904761904763" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 470.6 561.1904761904763 L 470.6 176 L 366.6 176 L 366.6 148" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)" />
+  <path d="M 470.6 561.1904761904763 L 470.6 176 L 366.6 176 L 366.6 148" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-7" dur="0.8s" repeatCount="indefinite"/>
+  </path>
   <path d="M 158.28571428571428 248 L 232.44285714285715 248 L 232.44285714285715 128 L 306.6 128" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <path d="M 386.6 388 L 386.6 443.8571428571429 L 104 443.8571428571429 L 104 483.7142857142857" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">UI Layer</text>

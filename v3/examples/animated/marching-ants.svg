@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 733.2 408.76190476190476" width="733.2" height="408.76190476190476">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Marching Ants — Cross-Link Animation</text>
+  <rect x="24" y="58" width="160" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="58" width="160" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="58" width="325.2" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 158.28571428571428 268.57142857142856 L 188 268.57142857142856 L 188 153.96825396825398 L 229.71428571428572 153.96825396825398" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 123.80952380952381 L 194 123.80952380952381 L 194 304.76190476190476 L 229.71428571428572 304.76190476190476" stroke="#16A34A" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.28571428571428 340.95238095238096 L 200 340.95238095238096 L 200 166.03174603174602 L 229.71428571428572 166.03174603174602" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.28571428571428 196.1904761904762 L 442.6 196.1904761904762 L 442.6 219.38095238095238" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-7" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 338.2857142857143 304.76190476190476 L 370.9428571428572 304.76190476190476 L 370.9428571428572 232.38095238095238 L 403.6 232.38095238095238" stroke="#CA8A04" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Services</text>
+  <g transform="translate(28, 84) scale(0.9047619047619048)">
+    <g id="api">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">API Gateway</text>
+    </g>
+    <g id="auth">
+      <rect x="24" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Auth</text>
+    </g>
+    <g id="orders">
+      <rect x="24" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Orders</text>
+    </g>
+    <g id="billing">
+      <rect x="24" y="264" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Billing</text>
+    </g>
+  </g>
+  <text x="212" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Data Layer</text>
+  <g transform="translate(208, 120.19047619047619) scale(0.9047619047619048)">
+    <g id="pg">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Postgres</text>
+    </g>
+    <g id="replica">
+      <rect x="24" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Replica</text>
+    </g>
+    <g id="cache">
+      <rect x="24" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Redis</text>
+    </g>
+  </g>
+  <text x="392" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Operations</text>
+  <g transform="translate(388, 203.78095238095239) scale(0.65)">
+    <path d="M 144 44 L 184 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 304 44 L 344 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <g id="monitor">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Prometheus</text>
+    </g>
+    <g id="alert">
+      <rect x="184" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="244" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Alertmanager</text>
+    </g>
+    <g id="dash">
+      <rect x="344" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="404" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Grafana</text>
+    </g>
+  </g>
+  <text x="188" y="195.77777777777777" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">writes</text>
+  <text x="194" y="217.77777777777777" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">reads</text>
+  <text x="184.71428571428572" y="244.47619047619048" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">reconciles</text>
+  <text x="300.4428571428572" y="196.09523809523807" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0891B2" text-anchor="middle" font-weight="bold">emits metrics</text>
+  <text x="370.9428571428572" y="268.4761904761905" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#CA8A04" text-anchor="middle" font-weight="bold">hit/miss rate</text>
+</svg>

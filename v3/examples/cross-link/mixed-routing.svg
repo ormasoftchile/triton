@@ -10,13 +10,21 @@
   <rect x="24" y="436" width="160" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="204" y="436" width="429.2" height="326.76190476190476" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <path d="M 158.28571428571428 356.57142857142856 L 258.4428571428572 356.57142857142856 L 258.4428571428572 128 L 358.6 128" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 284.1904761904762 C 238.4114285714286 284.1904761904762 278.4742857142857 368 358.6 368" stroke="#16A34A" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 284.1904761904762 C 238.4114285714286 284.1904761904762 278.4742857142857 368 358.6 368" stroke="#16A34A" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
   <path d="M 358.6 288 L 334.6 288 L 334.6 394.9047619047619 L 17.714285714285715 394.9047619047619 L 17.714285714285715 501.8095238095238 L 49.714285714285715 501.8095238095238" stroke="#9333EA" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 438.6 388 L 438.6 492.6904761904762 L 470.6 492.6904761904762 L 470.6 597.3809523809524" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 438.6 388 L 438.6 492.6904761904762 L 470.6 492.6904761904762 L 470.6 597.3809523809524" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
   <path d="M 158.28571428571428 574.1904761904761 L 190.94285714285712 574.1904761904761 L 190.94285714285712 610.3809523809524 L 223.6 610.3809523809524" stroke="#CA8A04" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 718.952380952381 C 330.4079179456788 795.8328603032998 407.7222036599645 687.2614317318712 535.6 610.3809523809524" stroke="#DC2626" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 718.952380952381 C 330.4079179456788 795.8328603032998 407.7222036599645 687.2614317318712 535.6 610.3809523809524" stroke="#DC2626" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
   <path d="M 366.6 597.3809523809524 L 366.6 492.6904761904762 L 398.6 492.6904761904762 L 398.6 388" stroke="#2563EB" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 104 229.9047619047619 L 104 253.9047619047619 L 191.3 253.9047619047619 L 191.3 573.3809523809524 L 262.6 573.3809523809524 L 262.6 597.3809523809524" stroke="#7C3AED" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 104 229.9047619047619 L 104 253.9047619047619 L 191.3 253.9047619047619 L 191.3 573.3809523809524 L 262.6 573.3809523809524 L 262.6 597.3809523809524" stroke="#7C3AED" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
   <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Authentication</text>
   <g transform="translate(28, 99.61904761904762) scale(0.9047619047619048)">
     <g id="login">

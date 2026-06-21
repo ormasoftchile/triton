@@ -197,7 +197,7 @@ export function renderCrossLinks(
       d: path,
       stroke: pr.color,
       strokeWidth: edgeTheme.strokeWidth + 0.5,
-      ...(pr.dash ? { strokeDasharray: pr.dash } : {}),
+      ...(pr.dash ? { strokeDasharray: pr.dash, animated: true } : {}),
       ...(pr.markerEnd ? { markerEnd: pr.markerEnd } : {}),
       ...(pr.markerStart ? { markerStart: pr.markerStart } : {}),
     };
