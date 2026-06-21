@@ -13,7 +13,7 @@ import { render } from '../../src/frontend/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const examples = ['basic.mmd', 'complex.mmd'];
+const examples = ['basic.mmd', 'complex.mmd', 'platform.mmd'];
 
 async function main() {
   mkdirSync(__dirname, { recursive: true });

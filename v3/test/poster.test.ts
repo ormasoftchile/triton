@@ -174,13 +174,12 @@ describe('poster grammar — cross-links', () => {
     expect(ir.traces![0]!.type).toBe('triggers');
     expect(ir.traces![0]!.hops).toHaveLength(4);
 
-    // Trace desugars to 3 directed links
+    // Trace desugars to cross-cell links only (intra-cell hops are skipped)
+    // A.start→A.mid and B.end1→B.done are intra-cell; only A.mid→B.end1 crosses cells
     const traceLinks = ir.links!.filter(l => l.traceId === ir.traces![0]!.id);
-    expect(traceLinks).toHaveLength(3);
-    expect(traceLinks[0]!.from.nodeId).toBe('start');
-    expect(traceLinks[0]!.to.nodeId).toBe('mid');
-    expect(traceLinks[2]!.from.nodeId).toBe('end1');
-    expect(traceLinks[2]!.to.nodeId).toBe('done');
+    expect(traceLinks).toHaveLength(1);
+    expect(traceLinks[0]!.from.nodeId).toBe('mid');
+    expect(traceLinks[0]!.to.nodeId).toBe('end1');
   });
 
   it('renders cross-links from parsed source end-to-end', async () => {

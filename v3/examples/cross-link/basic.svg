@@ -44,8 +44,8 @@
       <text x="404" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Message Queue</text>
     </g>
   </g>
-  <path d="M 158.28571428571428 196.1904761904762 L 223.6 196.1904761904762" stroke="#4A90D9" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <text x="190.94285714285712" y="190.1904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">routes to</text>
-  <path d="M 158.28571428571428 268.5714285714286 L 366.6 268.5714285714286 L 366.6 209.1904761904762" stroke="#4A90D9" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
-  <text x="262.4428571428572" y="232.8809523809524" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">validates</text>
+  <path d="M 158.28571428571428 196.1904761904762 L 223.6 196.1904761904762" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 268.5714285714286 L 366.6 268.5714285714286 L 366.6 209.1904761904762" stroke="#16A34A" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <text x="190.94285714285712" y="172.09523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">routes to</text>
+  <text x="262.4428571428572" y="262.5714285714286" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">validates</text>
 </svg>

@@ -41,7 +41,7 @@ export function resolveCrossLinks(
   const resolved: ResolvedCrossLink[] = [];
   const diagnostics: ResolutionDiagnostic[] = [];
 
-  // Collect all obstacle bounds for port selection
+  // Collect all obstacle bounds for port selection.
   const allBounds: Rect[] = Object.values(anchors).map(a => a.bounds);
 
   for (let i = 0; i < links.length; i++) {
@@ -61,12 +61,13 @@ export function resolveCrossLinks(
       continue;
     }
 
-    // Obstacles = all bounds EXCEPT the source and target themselves
-    const obstacles = allBounds.filter(b => b !== fromAnchor.bounds && b !== toAnchor.bounds);
-    const { fromPort, toPort, fromSide, toSide } = selectBestPorts(fromAnchor, toAnchor, obstacles);
+    const { fromPort, toPort, fromSide, toSide } = selectBestPorts(fromAnchor, toAnchor, allBounds);
 
     resolved.push({ link, fromAnchor, toAnchor, fromPort, toPort, fromSide, toSide });
   }
+
+  // ─── Port spreading: distribute multiple links on the same node+side ─────
+  spreadSharedPorts(resolved, anchors);
 
   return { resolved, diagnostics };
 }
@@ -91,7 +92,8 @@ const OBSTACLE_PENALTY = 1_000_000;
 
 /**
  * Select the port pair that minimises distance while avoiding obstacles.
- * Scores each pair as: euclidean² + OBSTACLE_PENALTY * crossings.
+ * Simulates the orthogonal route shape (not just straight line) when
+ * counting obstacle crossings, because the actual router produces bends.
  */
 function selectBestPorts(from: NodeAnchor, to: NodeAnchor, obstacles: Rect[]): {
   fromPort: Point;
@@ -113,7 +115,7 @@ function selectBestPorts(from: NodeAnchor, to: NodeAnchor, obstacles: Rect[]): {
       const dx = tPt.x - fPt.x;
       const dy = tPt.y - fPt.y;
       const dist = dx * dx + dy * dy;
-      const crossings = countSegmentObstacleCrossings(fPt, tPt, obstacles);
+      const crossings = countOrthogonalRouteCrossings(fPt, tPt, fSide, tSide, obstacles);
       const score = dist + crossings * OBSTACLE_PENALTY;
       if (score < bestScore) {
         bestScore = score;
@@ -126,6 +128,63 @@ function selectBestPorts(from: NodeAnchor, to: NodeAnchor, obstacles: Rect[]): {
   }
 
   return { fromPort: bestFrom, toPort: bestTo, fromSide: bestFromSide, toSide: bestToSide };
+}
+
+/**
+ * Simulate the orthogonal router's path shape and count obstacle crossings
+ * along ALL segments (not just the straight line between ports).
+ */
+function countOrthogonalRouteCrossings(
+  from: Point, to: Point,
+  fromSide: CardinalSide, toSide: CardinalSide,
+  obstacles: Rect[],
+): number {
+  // Simulate the orthogonal router's logic to get the actual waypoints
+  const segments = simulateOrthogonalRoute(from, to, fromSide, toSide);
+  let crossings = 0;
+  for (const [p1, p2] of segments) {
+    crossings += countSegmentObstacleCrossings(p1, p2, obstacles);
+  }
+  return crossings;
+}
+
+/**
+ * Produce the waypoint segments the orthogonal router would generate.
+ * Mirrors the logic in router.ts but returns segment pairs.
+ */
+function simulateOrthogonalRoute(from: Point, to: Point, fromSide: CardinalSide, toSide: CardinalSide): [Point, Point][] {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const midX = (from.x + to.x) / 2;
+  const midY = (from.y + to.y) / 2;
+
+  // Aligned — single segment
+  if (Math.abs(dx) < 1 || Math.abs(dy) < 1) {
+    return [[from, to]];
+  }
+
+  const exitH  = fromSide === 'E' || fromSide === 'W';
+  const entryH = toSide === 'E' || toSide === 'W';
+
+  if (exitH && entryH) {
+    // H → V → H (bend at midX)
+    const v1: Point = { x: midX, y: from.y };
+    const v2: Point = { x: midX, y: to.y };
+    return [[from, v1], [v1, v2], [v2, to]];
+  } else if (!exitH && !entryH) {
+    // V → H → V (bend at midY)
+    const v1: Point = { x: from.x, y: midY };
+    const v2: Point = { x: to.x,   y: midY };
+    return [[from, v1], [v1, v2], [v2, to]];
+  } else if (exitH && !entryH) {
+    // H then V — single corner
+    const corner: Point = { x: to.x, y: from.y };
+    return [[from, corner], [corner, to]];
+  } else {
+    // V then H — single corner
+    const corner: Point = { x: from.x, y: to.y };
+    return [[from, corner], [corner, to]];
+  }
 }
 
 /**
@@ -193,7 +252,10 @@ function segmentIntersectsRect(p1: Point, p2: Point, r: Rect): boolean {
     }
   }
 
-  return true;
+  // Strict interior crossing: tmin < tmax means the segment passes through
+  // the rect interior. tmin == tmax is just a boundary touch (e.g. departing
+  // from or arriving at a port on the rect edge) and should not count.
+  return tmin < tmax;
 }
 
 /**
@@ -216,4 +278,64 @@ function availablePorts(anchor: NodeAnchor): [CardinalSide, Point][] {
     side,
     anchor.ports?.[side] ?? defaults[side],
   ] as [CardinalSide, Point]);
+}
+
+// ─── Port Spreading ──────────────────────────────────────────────────────────
+
+/**
+ * When multiple links connect to the same side of the same node, spread
+ * their port coordinates evenly along that edge instead of all converging
+ * to the midpoint. Mutates the resolved links' fromPort/toPort in place.
+ */
+function spreadSharedPorts(resolved: ResolvedCrossLink[], anchors: NodeAnchorRegistry): void {
+  // Group by (nodeKey, side) — merge both incoming and outgoing on same edge
+  const groups = new Map<string, { index: number; isFrom: boolean }[]>();
+
+  for (let i = 0; i < resolved.length; i++) {
+    const r = resolved[i]!;
+    const fromKey = addressToKey(r.link.from);
+    const toKey   = addressToKey(r.link.to);
+    const fGroup = `${fromKey}.${r.fromSide}`;
+    const tGroup = `${toKey}.${r.toSide}`;
+
+    if (!groups.has(fGroup)) groups.set(fGroup, []);
+    groups.get(fGroup)!.push({ index: i, isFrom: true });
+
+    if (!groups.has(tGroup)) groups.set(tGroup, []);
+    groups.get(tGroup)!.push({ index: i, isFrom: false });
+  }
+
+  for (const [key, members] of groups) {
+    if (members.length < 2) continue;
+
+    // Extract node key and side from group key
+    const parts = key.split('.');
+    const side = parts[parts.length - 1] as CardinalSide;
+    const nodeKey = parts.slice(0, parts.length - 1).join('.');
+    const anchor = anchors[nodeKey];
+    if (!anchor) continue;
+
+    const { bounds } = anchor;
+    const n = members.length;
+
+    // Compute evenly-spaced positions along the edge
+    for (let i = 0; i < n; i++) {
+      const t = (i + 1) / (n + 1); // 1/(n+1), 2/(n+1), ... n/(n+1)
+      let pt: Point;
+      switch (side) {
+        case 'N': pt = { x: bounds.x + bounds.width * t, y: bounds.y }; break;
+        case 'S': pt = { x: bounds.x + bounds.width * t, y: bounds.y + bounds.height }; break;
+        case 'E': pt = { x: bounds.x + bounds.width, y: bounds.y + bounds.height * t }; break;
+        case 'W': pt = { x: bounds.x, y: bounds.y + bounds.height * t }; break;
+      }
+
+      const { index, isFrom } = members[i]!;
+      const r = resolved[index]! as { fromPort: Point; toPort: Point };
+      if (isFrom) {
+        r.fromPort = pt;
+      } else {
+        r.toPort = pt;
+      }
+    }
+  }
 }

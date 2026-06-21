@@ -67,9 +67,17 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
 
   // ── Build elements ────────────────────────────────────────────────────────
   const elements: SceneElement[] = [];
+  // Track text bounding rects so cross-link labels can avoid them
+  const textOccupied: Array<{ x: number; y: number; width: number; height: number }> = [];
+  // Track cell border edges as thin obstacles so connectors don't run along cell walls
+  const cellBorders: Array<{ x: number; y: number; width: number; height: number }> = [];
 
   if (ir.metadata.title) {
     elements.push({ type: 'text', content: ir.metadata.title, position: { x: padding, y: padding + typography.titleFontSize }, fontSize: typography.titleFontSize + 2, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+    // Estimate title bounding rect
+    const titleW = ir.metadata.title.length * (typography.titleFontSize + 2) * 0.6;
+    const titleH = typography.titleFontSize + 2;
+    textOccupied.push({ x: padding, y: padding, width: titleW, height: titleH + 4 });
   }
 
   // ── Build anchor registry (hierarchical, path-prefixed) ───────────────────
@@ -90,9 +98,22 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
     // Cell chrome
     elements.push({ type: 'rect', bounds: { x: cellX, y: cellY, width: cellW, height: cellH }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx: 6 });
 
+    // Record cell edges as thin obstacles (4px) so connectors avoid running along borders
+    const borderThick = 4;
+    cellBorders.push(
+      { x: cellX, y: cellY - borderThick / 2, width: cellW, height: borderThick },              // top edge
+      { x: cellX, y: cellY + cellH - borderThick / 2, width: cellW, height: borderThick },      // bottom edge
+      { x: cellX - borderThick / 2, y: cellY, width: borderThick, height: cellH },              // left edge
+      { x: cellX + cellW - borderThick / 2, y: cellY, width: borderThick, height: cellH },      // right edge
+    );
+
     const cellTitleH = cell.title ? typography.baseFontSize + unit : 0;
     if (cell.title) {
       elements.push({ type: 'text', content: cell.title, position: { x: cellX + unit, y: cellY + typography.baseFontSize + unit / 2 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+      // Estimate cell title bounding rect for label de-collision
+      const tw = cell.title.length * typography.baseFontSize * 0.65;
+      const th = typography.baseFontSize;
+      textOccupied.push({ x: cellX + unit, y: cellY + unit / 2 - 2, width: tw, height: th + 4 });
     }
 
     // Embed child scene
@@ -159,7 +180,7 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
     }
 
     if (resolved.length > 0) {
-      const { defs: linkDefs, elements: linkElements } = renderCrossLinks(resolved, traces, theme, mergedAnchors);
+      const { defs: linkDefs, elements: linkElements } = renderCrossLinks(resolved, traces, theme, mergedAnchors, textOccupied, cellBorders);
 
       // Add link defs
       for (const def of linkDefs) {
