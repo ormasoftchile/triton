@@ -20,6 +20,7 @@
 
 import type { Point, Color } from './primitives.js';
 import type { CardinalSide, NodeAnchor } from './anchors.js';
+import type { RouteStyle } from './routing.js';
 
 // ─── Cell Address ─────────────────────────────────────────────────────────────
 
@@ -73,10 +74,20 @@ export interface CrossLink {
   /** Optional label rendered at the route midpoint. */
   readonly label?: string;
   /**
+   * Geometric routing style for this edge.
+   * Defaults to 'orthogonal' when omitted.
+   */
+  readonly routing?: RouteStyle;
+  /**
    * If this link is part of a trace, the trace's ID.
    * Used to apply consistent styling (colour, grouping) across trace members.
    */
   readonly traceId?: string;
+  /**
+   * Optional property bag for future per-link overrides (tension, color, etc.).
+   * Parsed from `{ key: value }` blocks in the syntax.
+   */
+  readonly props?: Readonly<Record<string, string | number>>;
 }
 
 // ─── Trace ────────────────────────────────────────────────────────────────────

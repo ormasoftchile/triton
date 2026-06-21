@@ -11,11 +11,11 @@
 import type { SceneElement } from '../contracts/scene.js';
 import type { ResolvedCrossLink, TraceRecord, CrossLinkEdgeStyle } from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry } from '../contracts/anchors.js';
-import type { PortDirection } from '../contracts/routing.js';
+import type { PortDirection, RouteStyle } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
 import { getRouter } from '../routing/registry.js';
-import { defaultRouter } from '../routing/router.js';
+import { defaultRouter, createRouter } from '../routing/router.js';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -84,14 +84,6 @@ export function renderCrossLinks(
   }> = [];
 
   // Phase 1: Compute all routes
-  interface PendingRoute {
-    points: readonly Point[];
-    color: string;
-    dash: string | undefined;
-    markerEnd: string | undefined;
-    markerStart: string | undefined;
-    label: string | undefined;
-  }
   const pendingRoutes: PendingRoute[] = [];
 
   for (const rLink of resolved) {
@@ -107,15 +99,18 @@ export function renderCrossLinks(
 
     const fromDir = sideToPortDir(fromSide);
     const toDir   = sideToPortDir(toSide);
-    const router  = getRouter('orthogonal') ?? defaultRouter;
+    const routeStyle: RouteStyle = link.routing ?? 'orthogonal';
+    const router  = getRouter(routeStyle) ?? createRouter(routeStyle);
+    const tension = link.props?.tension as number | undefined;
     const route   = router.route({
       from: fromPort,
       to: toPort,
-      style: 'orthogonal',
+      style: routeStyle,
       obstacles,
       padding: 12,
       fromDir,
       toDir,
+      ...(tension != null ? { tension } : {}),
     });
 
     const dash = edgeStyleToDash(link.style);
@@ -133,6 +128,10 @@ export function renderCrossLinks(
 
     pendingRoutes.push({
       points: route.points,
+      routePath: routeStyle !== 'orthogonal' ? route.path : undefined,
+      routing: routeStyle,
+      fromDir,
+      toDir,
       color,
       dash,
       markerEnd,
@@ -141,18 +140,27 @@ export function renderCrossLinks(
     });
   }
 
-  // Phase 2: Nudge segments away from cell borders (avoid running along walls)
+  // Phase 2: Deflect straight routes that cross other routes
+  deflectCrossingStraightRoutes(pendingRoutes, obstacles);
+
+  // Phase 3: Nudge segments away from cell borders (orthogonal routes only)
   if (routingObstacles && routingObstacles.length > 0) {
-    nudgeOffBorders(pendingRoutes, routingObstacles);
+    const orthoRoutes = pendingRoutes.filter(r => r.routing === 'orthogonal');
+    nudgeOffBorders(orthoRoutes, routingObstacles);
   }
 
-  // Phase 3: Channel separation — offset overlapping parallel segments
+  // Phase 4a: Bezier separation — fan apart or fall back crossing beziers to orthogonal
+  // Runs BEFORE channel separation so any new orthogonal routes get included.
   const CHANNEL_GAP = 6;
-  separateOverlappingChannels(pendingRoutes, CHANNEL_GAP);
+  separateBezierCurves(pendingRoutes.filter(r => r.routing === 'bezier'), CHANNEL_GAP, obstacles, pendingRoutes);
 
-  // Phase 4: Emit path elements and collect labels
+  // Phase 4b: Channel separation — offset overlapping parallel segments (all orthogonal, including fallbacks)
+  separateOverlappingChannels(pendingRoutes.filter(r => r.routing === 'orthogonal'), CHANNEL_GAP);
+
+  // Phase 5: Emit path elements and collect labels
   for (const pr of pendingRoutes) {
-    const path = pr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    // Bezier/straight routes use the router's SVG path; orthogonal rebuilds from points
+    const path = pr.routePath ?? pr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 
     const pathEl: SceneElement = {
       type: 'path',
@@ -267,7 +275,7 @@ function longestSegmentMidpoint(points: readonly Point[]): Point {
  * De-collide label rectangles by pushing them vertically away from
  * fixed obstacles and from each other. Mutates labelRects in place.
  */
-function deCollideLabels(labelRects: Rect[], fixedRects: readonly Rect[]): void {
+function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number; height: number }>, fixedRects: readonly Rect[]): void {
   const MAX_PASSES = 20;
   const NUDGE = 2; // extra pixels gap after pushing
 
@@ -322,6 +330,519 @@ function deCollideLabels(labelRects: Rect[], fixedRects: readonly Rect[]): void 
 function rectsOverlap(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.width && a.x + a.width > b.x &&
          a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+// ─── Straight Route Crossing Deflection ──────────────────────────────────────
+
+/**
+ * Post-route pass: detect straight routes whose segments cross other routes,
+ * and deflect them by inserting a perpendicular waypoint.
+ *
+ * This handles the case where a straight line doesn't hit any node bounding box
+ * but still visually crosses other connector paths.
+ */
+function deflectCrossingStraightRoutes(routes: PendingRoute[], obstacles: readonly Rect[]): void {
+  const straightRoutes = routes.filter(r => r.routing === 'straight');
+  if (straightRoutes.length === 0) return;
+
+  // Collect all segments from OTHER routes for crossing checks.
+  // For bezier routes, sample the curve into a polyline (control points aren't line segments).
+  const BEZIER_SAMPLES = 16;
+  const otherSegments: Array<[Point, Point]> = [];
+  for (const r of routes) {
+    if (r.routing === 'bezier') {
+      const pts = r.points;
+      if (pts.length >= 4) {
+        const samples = sampleBezierToPolyline(pts[0]!, pts[1]!, pts[2]!, pts[3]!, BEZIER_SAMPLES);
+        for (let i = 0; i < samples.length - 1; i++) {
+          otherSegments.push([samples[i]!, samples[i + 1]!]);
+        }
+      }
+    } else {
+      const pts = r.points;
+      for (let i = 0; i < pts.length - 1; i++) {
+        otherSegments.push([pts[i]!, pts[i + 1]!]);
+      }
+    }
+  }
+
+  for (const sr of straightRoutes) {
+    const pts = sr.points as Point[];
+    if (pts.length !== 2) continue;
+
+    const from = pts[0]!, to = pts[1]!;
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 30) continue;
+
+    // Check if this straight line crosses any other route segment
+    const segsExcludingSelf = otherSegments.filter(
+      ([a, b]) => !(a === from && b === to),
+    );
+    const originalCrossings = segsExcludingSelf.filter(
+      ([a, b]) => straightSegmentsIntersect(from, to, a, b),
+    ).length;
+    if (originalCrossings === 0) continue;
+
+    // Try perpendicular waypoints at increasing offsets
+    const perpX = -dy / len, perpY = dx / len;
+    const mid: Point = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
+
+    let bestWp: Point | null = null;
+    let bestCrossings = Infinity;
+
+    for (let offset = len * 0.08; offset <= len * 0.5; offset += len * 0.06) {
+      for (const sign of [1, -1]) {
+        const wp: Point = { x: mid.x + perpX * offset * sign, y: mid.y + perpY * offset * sign };
+
+        let hitsNode = false;
+        for (const obs of obstacles) {
+          if (segIntersectsRectInterior(from, wp, obs) || segIntersectsRectInterior(wp, to, obs)) {
+            hitsNode = true;
+            break;
+          }
+        }
+        if (hitsNode) continue;
+
+        let crossings = 0;
+        for (const [a, b] of segsExcludingSelf) {
+          if (straightSegmentsIntersect(from, wp, a, b)) crossings++;
+          if (straightSegmentsIntersect(wp, to, a, b)) crossings++;
+        }
+        if (crossings < bestCrossings) {
+          bestCrossings = crossings;
+          bestWp = wp;
+          if (crossings === 0) break;
+        }
+      }
+      if (bestCrossings === 0) break;
+    }
+
+    if (bestWp && bestCrossings < originalCrossings) {
+      (sr.points as Point[]).splice(1, 0, bestWp);
+      sr.routePath = sr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    } else {
+      // Deflection failed — fall back to orthogonal routing for this link.
+      // This prevents ugly diagonal lines that cross everything.
+      const orthoRouter = createRouter('orthogonal');
+      const route = orthoRouter.route({
+        from, to,
+        style: 'orthogonal',
+        obstacles,
+        padding: 12,
+        ...(sr.fromDir ? { fromDir: sr.fromDir } : {}),
+        ...(sr.toDir ? { toDir: sr.toDir } : {}),
+      });
+      (sr as any).points = [...route.points];
+      sr.routePath = undefined; // let Phase 5 rebuild from points
+      sr.routing = 'orthogonal' as RouteStyle; // so post-route passes treat it correctly
+    }
+  }
+}
+
+/** Sample a cubic bezier [from, cp1, cp2, to] into a polyline of n+1 points. */
+function sampleBezierToPolyline(p0: Point, p1: Point, p2: Point, p3: Point, n: number): Point[] {
+  const pts: Point[] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const u = 1 - t;
+    pts.push({
+      x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
+      y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+    });
+  }
+  return pts;
+}
+
+/** Check if two segments properly cross (not just touch). */
+function straightSegmentsIntersect(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
+  const d1 = crossProduct(p3, p4, p1);
+  const d2 = crossProduct(p3, p4, p2);
+  const d3 = crossProduct(p1, p2, p3);
+  const d4 = crossProduct(p1, p2, p4);
+  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+         ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+}
+
+function crossProduct(a: Point, b: Point, c: Point): number {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+/** Check if a line segment crosses the interior of a rectangle (Liang-Barsky). */
+function segIntersectsRectInterior(p1: Point, p2: Point, r: Rect): boolean {
+  const dx = p2.x - p1.x, dy = p2.y - p1.y;
+  let tmin = 0, tmax = 1;
+  const edges = [
+    { p: -dx, q: p1.x - r.x },
+    { p: dx, q: r.x + r.width - p1.x },
+    { p: -dy, q: p1.y - r.y },
+    { p: dy, q: r.y + r.height - p1.y },
+  ];
+  for (const { p, q } of edges) {
+    if (Math.abs(p) < 1e-10) { if (q <= 0) return false; }
+    else {
+      const t = q / p;
+      if (p < 0) tmin = Math.max(tmin, t);
+      else tmax = Math.min(tmax, t);
+      if (tmin >= tmax) return false;
+    }
+  }
+  return tmin < tmax;
+}
+
+// ─── Bezier Separation ───────────────────────────────────────────────────────
+
+/**
+ * Fan apart bezier curves that share endpoints or cross each other.
+ *
+ * The BezierRouter stores points as [from, cp1, cp2, to].
+ *
+ * Phase A: Shared-endpoint fan-out — when multiple curves converge on
+ *   the same endpoint, offset each curve's nearby control point perpendicular
+ *   to the from→to axis so they fan apart.
+ *
+ * Phase B: Crossing resolution — for every pair of bezier curves, sample both
+ *   and detect segment crossings. If they cross, offset both curves' control
+ *   points to opposite sides of their respective from→to axes.
+ */
+function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: readonly Rect[], allRoutes: PendingRoute[]): void {
+  if (routes.length < 2) return;
+
+  const PROXIMITY = 20;
+
+  // ── Phase A: shared-endpoint fan-out ─────────────────────────────────────
+
+  type EndGroup = { routes: PendingRoute[]; end: 'from' | 'to' };
+  const groups: EndGroup[] = [];
+
+  const fromGroups = clusterByEndpoint(routes, 'from', PROXIMITY);
+  for (const cluster of fromGroups) {
+    if (cluster.length > 1) groups.push({ routes: cluster, end: 'from' });
+  }
+
+  const toGroups = clusterByEndpoint(routes, 'to', PROXIMITY);
+  for (const cluster of toGroups) {
+    if (cluster.length > 1) groups.push({ routes: cluster, end: 'to' });
+  }
+
+  for (const group of groups) {
+    const n = group.routes.length;
+    for (let i = 0; i < n; i++) {
+      const pr = group.routes[i]!;
+      const pts = pr.points as Point[];
+      if (pts.length < 4) continue;
+
+      const from = pts[0]!, to = pts[pts.length - 1]!;
+      const dx = to.x - from.x, dy = to.y - from.y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 1) continue;
+
+      const perpX = -dy / len, perpY = dx / len;
+      const offset = (i - (n - 1) / 2) * gap;
+
+      if (group.end === 'from') {
+        pts[1] = { x: pts[1]!.x + perpX * offset, y: pts[1]!.y + perpY * offset };
+      } else {
+        pts[pts.length - 2] = {
+          x: pts[pts.length - 2]!.x + perpX * offset,
+          y: pts[pts.length - 2]!.y + perpY * offset,
+        };
+      }
+
+      rebuildBezierPath(pr);
+    }
+  }
+
+  // ── Phase B: crossing resolution ─────────────────────────────────────────
+  // When two beziers cross, try offsetting one curve perpendicular to
+  // separate them. If no offset resolves the crossing (e.g. endpoints form
+  // an X pattern), fall back one curve to orthogonal routing.
+
+  const SAMPLES = 40;
+
+  for (let i = 0; i < routes.length; i++) {
+    for (let j = i + 1; j < routes.length; j++) {
+      const ri = routes[i]!, rj = routes[j]!;
+      const ptsI = ri.points as Point[];
+      const ptsJ = rj.points as Point[];
+      if (ptsI.length < 4 || ptsJ.length < 4) continue;
+
+      const sampI = sampleBezierCurve(ptsI[0]!, ptsI[1]!, ptsI[2]!, ptsI[3]!, SAMPLES);
+      const sampJ = sampleBezierCurve(ptsJ[0]!, ptsJ[1]!, ptsJ[2]!, ptsJ[3]!, SAMPLES);
+      if (!polylinesIntersect(sampI, sampJ)) continue;
+
+      // Compute perpendicular for each curve
+      const perpOf = (pts: Point[]) => {
+        const dx = pts[3]!.x - pts[0]!.x, dy = pts[3]!.y - pts[0]!.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        return len < 1 ? null : { px: -dy / len, py: dx / len, len };
+      };
+      const pI = perpOf(ptsI), pJ = perpOf(ptsJ);
+      if (!pI || !pJ) continue;
+
+      const origI1 = { ...ptsI[1]! }, origI2 = { ...ptsI[2]! };
+      const origJ1 = { ...ptsJ[1]! }, origJ2 = { ...ptsJ[2]! };
+
+      // Try offsetting one curve at a time, in both directions
+      type Solution = { moveRoute: 'I' | 'J'; off: number; px: number; py: number };
+      let best: Solution | null = null;
+      const stepSize = Math.max(gap * 3, 15);
+
+      for (const moveRoute of ['I', 'J'] as const) {
+        const p = moveRoute === 'I' ? pI : pJ;
+        const pts = moveRoute === 'I' ? ptsI : ptsJ;
+        const orig1 = moveRoute === 'I' ? origI1 : origJ1;
+        const orig2 = moveRoute === 'I' ? origI2 : origJ2;
+        const otherPts = moveRoute === 'I' ? ptsJ : ptsI;
+
+        for (const sign of [1, -1]) {
+          for (let step = 1; step <= 8; step++) {
+            const off = sign * step * stepSize;
+            pts[1] = { x: orig1.x + p.px * off, y: orig1.y + p.py * off };
+            pts[2] = { x: orig2.x + p.px * off, y: orig2.y + p.py * off };
+
+            const sA = sampleBezierCurve(pts[0]!, pts[1]!, pts[2]!, pts[3]!, SAMPLES);
+            const sB = sampleBezierCurve(otherPts[0]!, otherPts[1]!, otherPts[2]!, otherPts[3]!, SAMPLES);
+
+            if (!polylinesIntersect(sA, sB)) {
+              if (!best || Math.abs(off) < Math.abs(best.off)) {
+                best = { moveRoute, off, px: p.px, py: p.py };
+              }
+              break;
+            }
+          }
+          // Reset
+          pts[1] = { ...orig1 }; pts[2] = { ...orig2 };
+        }
+      }
+
+      if (best) {
+        // Apply smallest offset that resolves
+        const pts = best.moveRoute === 'I' ? ptsI : ptsJ;
+        const orig1 = best.moveRoute === 'I' ? origI1 : origJ1;
+        const orig2 = best.moveRoute === 'I' ? origI2 : origJ2;
+        pts[1] = { x: orig1.x + best.px * best.off, y: orig1.y + best.py * best.off };
+        pts[2] = { x: orig2.x + best.px * best.off, y: orig2.y + best.py * best.off };
+        rebuildBezierPath(ri);
+        rebuildBezierPath(rj);
+      } else {
+        // No offset resolves — endpoints form an X pattern (interleaved on
+        // parallel lines). Swap the ports on the shared node so both routes
+        // stay on the same side, then re-route as orthogonal.
+        swapInterleavedPortsAndReroute(ri, rj, obstacles);
+      }
+    }
+  }
+}
+
+/**
+ * Detect interleaved endpoints and swap ports on the shared line to
+ * un-interleave them. Then re-route both as orthogonal.
+ *
+ * Before: A.from(399,388) A.to(471,597)  B.from(367,597) B.to(439,388)
+ *   y=388: A=399(left) B=439(right)  y=597: B=367(left) A=471(right) → interleaved
+ * After swap on y=388: A.from↔B.to → A(439,388) B(399,388)
+ *   y=388: B=399(left) A=439(right)  y=597: B=367(left) A=471(right) → consistent
+ */
+function swapInterleavedPortsAndReroute(
+  ri: PendingRoute, rj: PendingRoute, obstacles: readonly Rect[],
+): void {
+  const fromI = ri.points[0]!, toI = ri.points[ri.points.length - 1]!;
+  const fromJ = rj.points[0]!, toJ = rj.points[rj.points.length - 1]!;
+
+  const TOLERANCE = 15;
+
+  // Check all pairings of endpoints that share a horizontal or vertical line
+  // and swap to un-interleave.
+  const pairs: Array<{
+    endI: 'from' | 'to'; ptI: Point;
+    endJ: 'from' | 'to'; ptJ: Point;
+    axis: 'x' | 'y';
+  }> = [];
+
+  // fromI near toJ? (same horizontal/vertical line)
+  if (Math.abs(fromI.y - toJ.y) < TOLERANCE) pairs.push({ endI: 'from', ptI: fromI, endJ: 'to', ptJ: toJ, axis: 'x' });
+  if (Math.abs(fromI.x - toJ.x) < TOLERANCE) pairs.push({ endI: 'from', ptI: fromI, endJ: 'to', ptJ: toJ, axis: 'y' });
+  // toI near fromJ?
+  if (Math.abs(toI.y - fromJ.y) < TOLERANCE) pairs.push({ endI: 'to', ptI: toI, endJ: 'from', ptJ: fromJ, axis: 'x' });
+  if (Math.abs(toI.x - fromJ.x) < TOLERANCE) pairs.push({ endI: 'to', ptI: toI, endJ: 'from', ptJ: fromJ, axis: 'y' });
+
+  // For each pair on a shared line, check if swapping un-interleaves
+  for (const pair of pairs) {
+    // Get the OTHER endpoints (the ones NOT on this shared line)
+    const otherI = pair.endI === 'from' ? toI : fromI;
+    const otherJ = pair.endJ === 'from' ? toJ : fromJ;
+
+    // Check interleaving on the shared axis
+    const coord = pair.axis; // 'x' means compare x-values on a shared y-line
+    const iOnShared = pair.ptI[coord];
+    const jOnShared = pair.ptJ[coord];
+    const iOther = otherI[coord];
+    const jOther = otherJ[coord];
+
+    // Interleaved = one is left/above on shared line but right/below on the other
+    const iLeftOnShared = iOnShared < jOnShared;
+    const iLeftOnOther = iOther < jOther;
+    if (iLeftOnShared === iLeftOnOther) continue; // Not interleaved, skip
+
+    // SWAP: exchange the positions on the shared line
+    const newPtI = { ...pair.ptJ }; // I takes J's position
+    const newPtJ = { ...pair.ptI }; // J takes I's position
+    // Keep the shared-line coordinate averaged (same y for horizontal line)
+    if (pair.axis === 'x') {
+      const avgY = (pair.ptI.y + pair.ptJ.y) / 2;
+      newPtI.y = avgY;
+      newPtJ.y = avgY;
+    } else {
+      const avgX = (pair.ptI.x + pair.ptJ.x) / 2;
+      newPtI.x = avgX;
+      newPtJ.x = avgX;
+    }
+
+    // Build new from/to for each route
+    const newFromI = pair.endI === 'from' ? newPtI : fromI;
+    const newToI = pair.endI === 'to' ? newPtI : toI;
+    const newFromJ = pair.endJ === 'from' ? newPtJ : fromJ;
+    const newToJ = pair.endJ === 'to' ? newPtJ : toJ;
+
+    // Re-route both as orthogonal and check crossing
+    const orthoRouter = createRouter('orthogonal');
+    const routeI = orthoRouter.route({ from: newFromI, to: newToI, style: 'orthogonal', obstacles, padding: 12 });
+    const routeJ = orthoRouter.route({ from: newFromJ, to: newToJ, style: 'orthogonal', obstacles, padding: 12 });
+
+    const polyI = routeI.points as Point[];
+    const polyJ = routeJ.points as Point[];
+    let crosses = false;
+    for (let a = 0; a < polyI.length - 1 && !crosses; a++)
+      for (let b = 0; b < polyJ.length - 1 && !crosses; b++)
+        if (straightSegmentsIntersect(polyI[a]!, polyI[a + 1]!, polyJ[b]!, polyJ[b + 1]!))
+          crosses = true;
+
+    if (!crosses) {
+      // Apply
+      (ri as any).points = [...routeI.points];
+      ri.routePath = undefined;
+      ri.routing = 'orthogonal' as RouteStyle;
+
+      (rj as any).points = [...routeJ.points];
+      rj.routePath = undefined;
+      rj.routing = 'orthogonal' as RouteStyle;
+      return;
+    }
+  }
+
+  // Fallback: just convert both to orthogonal with natural ports
+  convertToOrthogonal(ri, obstacles);
+  convertToOrthogonal(rj, obstacles);
+}
+
+/** Convert a PendingRoute to orthogonal routing. */
+function convertToOrthogonal(target: PendingRoute, obstacles: readonly Rect[]): void {
+  const from = target.points[0]!, to = target.points[target.points.length - 1]!;
+  const orthoRouter = createRouter('orthogonal');
+  const route = orthoRouter.route({
+    from, to,
+    style: 'orthogonal',
+    obstacles,
+    padding: 12,
+  });
+  (target as any).points = [...route.points];
+  target.routePath = undefined;
+  target.routing = 'orthogonal' as RouteStyle;
+}
+
+/** Rebuild the routePath string from [from, cp1, cp2, to] points. */
+function rebuildBezierPath(pr: PendingRoute): void {
+  const pts = pr.points;
+  pr.routePath = `M ${pts[0]!.x} ${pts[0]!.y} C ${pts[1]!.x} ${pts[1]!.y} ${pts[2]!.x} ${pts[2]!.y} ${pts[3]!.x} ${pts[3]!.y}`;
+}
+
+/** Offset both control points of a bezier curve perpendicular to its from→to axis. */
+function offsetBezierPerp(pts: Point[], offset: number): void {
+  const from = pts[0]!, to = pts[3]!;
+  const dx = to.x - from.x, dy = to.y - from.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) return;
+
+  const perpX = -dy / len, perpY = dx / len;
+  pts[1] = { x: pts[1]!.x + perpX * offset, y: pts[1]!.y + perpY * offset };
+  pts[2] = { x: pts[2]!.x + perpX * offset, y: pts[2]!.y + perpY * offset };
+}
+
+/** Sample a cubic bezier into a polyline of N+1 points. */
+function sampleBezierCurve(p0: Point, p1: Point, p2: Point, p3: Point, n: number): Point[] {
+  const pts: Point[] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const u = 1 - t;
+    pts.push({
+      x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
+      y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+    });
+  }
+  return pts;
+}
+
+/** Check if two polylines have any crossing segments. */
+function polylinesIntersect(a: Point[], b: Point[]): boolean {
+  for (let i = 0; i < a.length - 1; i++) {
+    for (let j = 0; j < b.length - 1; j++) {
+      if (segmentsIntersect(a[i]!, a[i+1]!, b[j]!, b[j+1]!)) return true;
+    }
+  }
+  return false;
+}
+
+/** Check if two line segments p1-p2 and p3-p4 intersect (proper crossing only). */
+function segmentsIntersect(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
+  const d1 = cross(p3, p4, p1);
+  const d2 = cross(p3, p4, p2);
+  const d3 = cross(p1, p2, p3);
+  const d4 = cross(p1, p2, p4);
+  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+      ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+    return true;
+  }
+  return false;
+}
+
+function cross(a: Point, b: Point, c: Point): number {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+/** Cluster bezier routes by proximity of their from or to endpoint. */
+function clusterByEndpoint(
+  routes: PendingRoute[],
+  end: 'from' | 'to',
+  proximity: number,
+): PendingRoute[][] {
+  const clusters: PendingRoute[][] = [];
+  const assigned = new Set<PendingRoute>();
+
+  for (let i = 0; i < routes.length; i++) {
+    const ri = routes[i]!;
+    if (assigned.has(ri)) continue;
+
+    const pi = end === 'from' ? ri.points[0]! : ri.points[ri.points.length - 1]!;
+    const cluster: PendingRoute[] = [ri];
+    assigned.add(ri);
+
+    for (let j = i + 1; j < routes.length; j++) {
+      const rj = routes[j]!;
+      if (assigned.has(rj)) continue;
+
+      const pj = end === 'from' ? rj.points[0]! : rj.points[rj.points.length - 1]!;
+      const dx = pi.x - pj.x, dy = pi.y - pj.y;
+      if (Math.sqrt(dx * dx + dy * dy) < proximity) {
+        cluster.push(rj);
+        assigned.add(rj);
+      }
+    }
+
+    clusters.push(cluster);
+  }
+
+  return clusters;
 }
 
 // ─── Border Nudging ──────────────────────────────────────────────────────────
@@ -396,6 +917,10 @@ function nudgeOffBorders(routes: PendingRoute[], borders: readonly Rect[]): void
 
 interface PendingRoute {
   points: readonly Point[];
+  routePath: string | undefined;
+  routing: RouteStyle;
+  fromDir: PortDirection | undefined;
+  toDir: PortDirection | undefined;
   color: string;
   dash: string | undefined;
   markerEnd: string | undefined;
@@ -428,7 +953,7 @@ function separateOverlappingChannels(routes: PendingRoute[], gap: number): void 
   }
 
   // Group segments that share the same axis, similar coord, and overlapping range
-  const COORD_TOLERANCE = 1;
+  const COORD_TOLERANCE = 10;
   const processed = new Set<number>();
 
   for (let i = 0; i < segments.length; i++) {

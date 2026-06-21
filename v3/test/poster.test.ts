@@ -153,6 +153,77 @@ describe('poster grammar — cross-links', () => {
     expect(l5!.style).toBe('dotted');
   });
 
+  it('parses @route annotation on links', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 2
+
+  cell A :: flow
+    flowchart LR
+      n1[N1] --> n2[N2]
+  end
+
+  cell B :: flow
+    flowchart LR
+      m1[M1] --> m2[M2]
+  end
+
+  link A.n1 --> B.m1 "default"
+  link A.n1 --> B.m1 "straight" @straight
+  link A.n1 -.-> B.m2 "bezier" @bezier
+  link A.n2 --> B.m2 "polyline" @polyline
+  link A.n2 --> B.m1 "ortho" @orthogonal
+`);
+    expect(ir.links).toHaveLength(5);
+    expect(ir.links![0]!.routing).toBeUndefined();
+    expect(ir.links![1]!.routing).toBe('straight');
+    expect(ir.links![2]!.routing).toBe('bezier');
+    expect(ir.links![3]!.routing).toBe('polyline');
+    expect(ir.links![4]!.routing).toBe('orthogonal');
+  });
+
+  it('parses { route: ..., key: val } property blocks on links', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 2
+
+  cell A :: flow
+    flowchart LR
+      n1[N1] --> n2[N2]
+  end
+
+  cell B :: flow
+    flowchart LR
+      m1[M1] --> m2[M2]
+  end
+
+  link A.n1 --> B.m1 "with route" { route: bezier, tension: 0.8 }
+  link A.n2 --> B.m2 "just props" { tension: 0.5 }
+`);
+    expect(ir.links).toHaveLength(2);
+    expect(ir.links![0]!.routing).toBe('bezier');
+    expect(ir.links![0]!.props).toEqual({ tension: 0.8 });
+    expect(ir.links![1]!.routing).toBeUndefined();
+    expect(ir.links![1]!.props).toEqual({ tension: 0.5 });
+  });
+
+  it('property block { route } overrides @annotation', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 2
+
+  cell A :: flow
+    flowchart LR
+      n1[N1] --> n2[N2]
+  end
+
+  cell B :: flow
+    flowchart LR
+      m1[M1] --> m2[M2]
+  end
+
+  link A.n1 --> B.m1 "override" @straight { route: bezier }
+`);
+    expect(ir.links![0]!.routing).toBe('bezier');
+  });
+
   it('parses trace declarations and desugars to links', () => {
     const ir = poster.parseMermaid(`poster "Test"
   columns 2

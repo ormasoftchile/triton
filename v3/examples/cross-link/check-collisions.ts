@@ -18,10 +18,35 @@ const files = args.length > 0
 function segmentsFromPath(d: string) {
   const parts = d.trim().split(/\s+/);
   const points: {x:number,y:number}[] = [];
-  for (let i = 0; i < parts.length; i++) {
-    if (parts[i] === 'M' || parts[i] === 'L') {
+  let i = 0;
+  while (i < parts.length) {
+    const cmd = parts[i];
+    if (cmd === 'M' || cmd === 'L') {
       points.push({ x: parseFloat(parts[i+1]!), y: parseFloat(parts[i+2]!) });
-      i += 2;
+      i += 3;
+    } else if (cmd === 'C') {
+      // Cubic bezier: C cp1x cp1y cp2x cp2y endx endy
+      // Linearize by sampling into line segments for collision checking
+      const cp1 = { x: parseFloat(parts[i+1]!), y: parseFloat(parts[i+2]!) };
+      const cp2 = { x: parseFloat(parts[i+3]!), y: parseFloat(parts[i+4]!) };
+      const end = { x: parseFloat(parts[i+5]!), y: parseFloat(parts[i+6]!) };
+      const start = points[points.length - 1];
+      if (start) {
+        const SAMPLES = 16;
+        for (let s = 1; s <= SAMPLES; s++) {
+          const t = s / SAMPLES;
+          const u = 1 - t;
+          points.push({
+            x: u*u*u*start.x + 3*u*u*t*cp1.x + 3*u*t*t*cp2.x + t*t*t*end.x,
+            y: u*u*u*start.y + 3*u*u*t*cp1.y + 3*u*t*t*cp2.y + t*t*t*end.y,
+          });
+        }
+      } else {
+        points.push(end);
+      }
+      i += 7;
+    } else {
+      i++;
     }
   }
   return points;

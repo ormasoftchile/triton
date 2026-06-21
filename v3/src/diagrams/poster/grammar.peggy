@@ -45,8 +45,8 @@
     cells.push({ id, title: title || undefined, kind, rawContent: rawContent.trim(), span });
   }
 
-  function addLink(from, arrow, to, label) {
-    links.push({ from, ...arrow, to, label: label || undefined });
+  function addLink(from, arrow, to, label, props) {
+    links.push({ from, ...arrow, to, label: label || undefined, ...(props ? props : {}) });
   }
 
   function addTrace(name, type, hops, color) {
@@ -122,10 +122,42 @@ CellKind
 // ─── Cross-Link Declarations ─────────────────────────────────────────────────
 
 LinkDecl
-  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef label:(_ QuotedString)? _ NL {
-      addLink(from, arrow, to, label ? label[1] : null);
+  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef label:(_ QuotedString)? ann:(_ "@" RouteAnnotation)? block:(_ PropBlock)? _ NL {
+      const result = {};
+      if (ann) result.routing = ann[2];
+      if (block) {
+        const b = block[1];
+        // Map { route: X } → routing field; collect the rest into props
+        if (b.route) { result.routing = b.route; delete b.route; }
+        if (Object.keys(b).length > 0) result.props = b;
+      }
+      addLink(from, arrow, to, label ? label[1] : null, Object.keys(result).length > 0 ? result : null);
       return { type: 'link' };
     }
+
+// ─── Annotations & Properties ────────────────────────────────────────────────
+
+RouteAnnotation
+  = "straight"   { return 'straight'; }
+  / "orthogonal" { return 'orthogonal'; }
+  / "bezier"     { return 'bezier'; }
+  / "polyline"   { return 'polyline'; }
+
+PropBlock
+  = "{" _ first:PropEntry rest:(_ "," _ PropEntry)* _ "}" {
+      const result = {};
+      result[first.key] = first.value;
+      for (const r of rest) { result[r[3].key] = r[3].value; }
+      return result;
+    }
+
+PropEntry
+  = key:Identifier _ ":" _ value:PropValue { return { key, value }; }
+
+PropValue
+  = num:$([0-9]+ ("." [0-9]+)?) { return parseFloat(num); }
+  / QuotedString
+  / Identifier
 
 // ─── Trace Declarations ──────────────────────────────────────────────────────
 

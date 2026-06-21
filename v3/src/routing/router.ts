@@ -4,13 +4,68 @@ import type { Point } from '../contracts/index.js';
 // ─── Straight ─────────────────────────────────────────────────────────────────
 
 class StraightRouter implements Router {
-  route({ from, to }: RouteRequest): Route {
+  route({ from, to, obstacles, padding }: RouteRequest): Route {
+    const pad = padding ?? 12;
+
+    // If no obstacles or no crossing, use a direct line
+    if (!obstacles || obstacles.length === 0 ||
+        !straightHitsObstacles(from, to, obstacles, pad)) {
+      return {
+        points: [from, to],
+        path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
+        labelPosition: midpoint(from, to),
+      };
+    }
+
+    // Deflect: find a waypoint that avoids all obstacles.
+    // Try perpendicular offsets of increasing magnitude in both directions.
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 1) {
+      return { points: [from, to], path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`, labelPosition: from };
+    }
+
+    const perpX = -dy / len, perpY = dx / len;
+    const mid = midpoint(from, to);
+
+    for (let offset = len * 0.1; offset <= len * 0.6; offset += len * 0.1) {
+      for (const sign of [1, -1]) {
+        const wp: Point = { x: mid.x + perpX * offset * sign, y: mid.y + perpY * offset * sign };
+        if (!straightHitsObstacles(from, wp, obstacles, pad) &&
+            !straightHitsObstacles(wp, to, obstacles, pad)) {
+          return {
+            points: [from, wp, to],
+            path: `M ${from.x} ${from.y} L ${wp.x} ${wp.y} L ${to.x} ${to.y}`,
+            labelPosition: wp,
+          };
+        }
+      }
+    }
+
+    // Fallback: direct line (best effort)
     return {
       points: [from, to],
       path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
       labelPosition: midpoint(from, to),
     };
   }
+}
+
+/** Check if a straight line from→to passes through any obstacle interior. */
+function straightHitsObstacles(
+  from: Point, to: Point,
+  obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
+  pad: number,
+): boolean {
+  for (const obs of obstacles) {
+    if (segCrossesInterior(from, to, {
+      x: obs.x - pad, y: obs.y - pad,
+      width: obs.width + 2 * pad, height: obs.height + 2 * pad,
+    }, 0)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // ─── Orthogonal ───────────────────────────────────────────────────────────────
@@ -476,24 +531,35 @@ function buildHHRouteWithStubs(
 // ─── Bezier ───────────────────────────────────────────────────────────────────
 
 class BezierRouter implements Router {
-  route({ from, to, tension }: RouteRequest): Route {
+  route({ from, to, tension, obstacles, padding }: RouteRequest): Route {
     const t  = tension ?? 0.4;
     const dx = to.x - from.x;
     const dy = to.y - from.y;
+    const pad = padding ?? 12;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Cap the control point pull to avoid exaggerated arcs on long routes.
+    // Pull scales with distance but is clamped to a sensible maximum.
+    const MAX_PULL = 150;
 
     let cp1: Point;
     let cp2: Point;
 
     if (Math.abs(dy) >= Math.abs(dx)) {
-      // Vertical-dominant: control points extend along Y
-      const pull = Math.abs(dy) * t;
-      cp1 = { x: from.x, y: from.y + pull };
-      cp2 = { x: to.x,   y: to.y   - pull };
+      const pull = Math.min(Math.abs(dy) * t, MAX_PULL);
+      cp1 = { x: from.x, y: from.y + (dy >= 0 ? pull : -pull) };
+      cp2 = { x: to.x,   y: to.y   + (dy >= 0 ? -pull : pull) };
     } else {
-      // Horizontal-dominant: control points extend along X
-      const pull = Math.abs(dx) * t;
-      cp1 = { x: from.x + pull, y: from.y };
-      cp2 = { x: to.x   - pull, y: to.y };
+      const pull = Math.min(Math.abs(dx) * t, MAX_PULL);
+      cp1 = { x: from.x + (dx >= 0 ? pull : -pull), y: from.y };
+      cp2 = { x: to.x   + (dx >= 0 ? -pull : pull), y: to.y };
+    }
+
+    // Check for obstacle collisions and adjust control points if needed
+    if (obstacles && obstacles.length > 0) {
+      const adjusted = avoidObstaclesBezier(from, to, cp1, cp2, obstacles, pad, t);
+      cp1 = adjusted.cp1;
+      cp2 = adjusted.cp2;
     }
 
     return {
@@ -502,6 +568,131 @@ class BezierRouter implements Router {
       labelPosition: midpoint(from, to),
     };
   }
+}
+
+/**
+ * Adjust bezier control points to avoid obstacles.
+ *
+ * Strategy: sample the curve and check for obstacle hits.
+ * If the default curve collides, try offsetting control points
+ * perpendicular to the from→to axis in both directions.
+ * Pick the direction with fewer collisions. If both still collide,
+ * increase the perpendicular offset until clear (up to a limit).
+ */
+function avoidObstaclesBezier(
+  from: Point, to: Point,
+  cp1: Point, cp2: Point,
+  obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
+  pad: number,
+  tension: number,
+): { cp1: Point; cp2: Point } {
+  const SAMPLES = 16;
+
+  // Check if default curve hits any obstacle
+  if (!bezierHitsObstacles(from, cp1, cp2, to, obstacles, pad, SAMPLES)) {
+    return { cp1, cp2 };
+  }
+
+  // Perpendicular to from→to
+  const dx = to.x - from.x, dy = to.y - from.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) return { cp1, cp2 };
+  const perpX = -dy / len;
+  const perpY = dx / len;
+
+  // The from→to midpoint — prefer curves that stay close to this
+  const mid = midpoint(from, to);
+
+  // Try increasing perpendicular offsets; at each step, try BOTH directions
+  // and prefer the one whose curve stays closer to the from→to midpoint (inner arc).
+  // Cap maximum offset to avoid pushing curves far outside the content area.
+  const MAX_OFFSET = Math.min(len * 0.5, 80);
+  for (let offset = len * 0.1; offset <= MAX_OFFSET; offset += len * 0.1) {
+    const cp1p: Point = { x: cp1.x + perpX * offset, y: cp1.y + perpY * offset };
+    const cp2p: Point = { x: cp2.x + perpX * offset, y: cp2.y + perpY * offset };
+    const clearP = !bezierHitsObstacles(from, cp1p, cp2p, to, obstacles, pad, SAMPLES);
+
+    const cp1n: Point = { x: cp1.x - perpX * offset, y: cp1.y - perpY * offset };
+    const cp2n: Point = { x: cp2.x - perpX * offset, y: cp2.y - perpY * offset };
+    const clearN = !bezierHitsObstacles(from, cp1n, cp2n, to, obstacles, pad, SAMPLES);
+
+    if (clearP && clearN) {
+      // Both clear — pick the one whose curve midpoint is closer to from→to midpoint
+      const midP = sampleBezier(from, cp1p, cp2p, to, 0.5);
+      const midN = sampleBezier(from, cp1n, cp2n, to, 0.5);
+      const distP = (midP.x - mid.x) ** 2 + (midP.y - mid.y) ** 2;
+      const distN = (midN.x - mid.x) ** 2 + (midN.y - mid.y) ** 2;
+      return distP <= distN ? { cp1: cp1p, cp2: cp2p } : { cp1: cp1n, cp2: cp2n };
+    }
+    if (clearP) return { cp1: cp1p, cp2: cp2p };
+    if (clearN) return { cp1: cp1n, cp2: cp2n };
+  }
+
+  // Fallback: return the least-colliding direction at capped offset, preferring inner
+  const maxOff = MAX_OFFSET;
+  const cp1p: Point = { x: cp1.x + perpX * maxOff, y: cp1.y + perpY * maxOff };
+  const cp2p: Point = { x: cp2.x + perpX * maxOff, y: cp2.y + perpY * maxOff };
+  const cp1n: Point = { x: cp1.x - perpX * maxOff, y: cp1.y - perpY * maxOff };
+  const cp2n: Point = { x: cp2.x - perpX * maxOff, y: cp2.y - perpY * maxOff };
+
+  const hitsP = countBezierHits(from, cp1p, cp2p, to, obstacles, pad, SAMPLES);
+  const hitsN = countBezierHits(from, cp1n, cp2n, to, obstacles, pad, SAMPLES);
+  if (hitsP === hitsN) {
+    const midP = sampleBezier(from, cp1p, cp2p, to, 0.5);
+    const midN = sampleBezier(from, cp1n, cp2n, to, 0.5);
+    const distP = (midP.x - mid.x) ** 2 + (midP.y - mid.y) ** 2;
+    const distN = (midN.x - mid.x) ** 2 + (midN.y - mid.y) ** 2;
+    return distP <= distN ? { cp1: cp1p, cp2: cp2p } : { cp1: cp1n, cp2: cp2n };
+  }
+  return hitsP < hitsN ? { cp1: cp1p, cp2: cp2p } : { cp1: cp1n, cp2: cp2n };
+}
+
+/** Sample a cubic bezier and check if any sample is inside an obstacle. */
+function bezierHitsObstacles(
+  p0: Point, p1: Point, p2: Point, p3: Point,
+  obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
+  pad: number, samples: number,
+): boolean {
+  for (let i = 1; i < samples; i++) {
+    const t = i / samples;
+    const pt = sampleBezier(p0, p1, p2, p3, t);
+    for (const obs of obstacles) {
+      if (
+        pt.x > obs.x - pad && pt.x < obs.x + obs.width + pad &&
+        pt.y > obs.y - pad && pt.y < obs.y + obs.height + pad
+      ) return true;
+    }
+  }
+  return false;
+}
+
+/** Count obstacle hits along a bezier curve. */
+function countBezierHits(
+  p0: Point, p1: Point, p2: Point, p3: Point,
+  obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
+  pad: number, samples: number,
+): number {
+  let count = 0;
+  for (let i = 1; i < samples; i++) {
+    const t = i / samples;
+    const pt = sampleBezier(p0, p1, p2, p3, t);
+    for (const obs of obstacles) {
+      if (
+        pt.x > obs.x - pad && pt.x < obs.x + obs.width + pad &&
+        pt.y > obs.y - pad && pt.y < obs.y + obs.height + pad
+      ) count++;
+    }
+  }
+  return count;
+}
+
+/** Evaluate a cubic bezier at parameter t ∈ [0, 1]. */
+function sampleBezier(p0: Point, p1: Point, p2: Point, p3: Point, t: number): Point {
+  const u = 1 - t;
+  return {
+    x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
+    y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+  };
 }
 
 // ─── Polyline ─────────────────────────────────────────────────────────────────
