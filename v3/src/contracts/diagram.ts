@@ -136,7 +136,8 @@ export type DiagramKind =
   | 'pie'
   | 'xychart'
   | 'quadrant'
-  | 'radar';
+  | 'radar'
+  | 'journey';
 
 /** The two input formats Triton accepts. */
 export type InputFormat = 'mermaid' | 'yaml';
