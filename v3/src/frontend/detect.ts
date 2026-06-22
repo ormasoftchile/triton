@@ -37,6 +37,10 @@ export function detect(input: string): DetectionResult {
     [/^packet/i,                                         'packet'],
     [/^block/i,                                          'block'],
     [/^architecture/i,                                   'architecture'],
+    [/^pie\b/i,                                          'pie'],
+    [/^xychart(-beta)?/i,                                'xychart'],
+    [/^quadrantChart/i,                                  'quadrant'],
+    [/^radar(-beta)?/i,                                  'radar'],
     [/^poster/i,                                         'poster'],
   ];
 

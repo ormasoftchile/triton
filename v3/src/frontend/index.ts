@@ -8,6 +8,10 @@ import { resolveTheme } from '../theme/resolver.js';
 import { flowchart } from '../diagrams/flowchart/index.js';
 import { timeline } from '../diagrams/timeline/index.js';
 import { poster } from '../diagrams/poster/index.js';
+import { pie } from '../diagrams/pie/index.js';
+import { xychart } from '../diagrams/xychart/index.js';
+import { quadrant } from '../diagrams/quadrant/index.js';
+import { radar } from '../diagrams/radar/index.js';
 import { svgRenderer } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
@@ -22,6 +26,10 @@ import {
 registerDiagram('flowchart', flowchart);
 registerDiagram('timeline', timeline);
 registerDiagram('poster', poster);
+registerDiagram('pie', pie);
+registerDiagram('xychart', xychart);
+registerDiagram('quadrant', quadrant);
+registerDiagram('radar', radar);
 registerRenderer(svgRenderer);
 registerRouter('straight', straightRouter);
 registerRouter('orthogonal', orthogonalRouter);

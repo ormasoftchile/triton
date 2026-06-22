@@ -132,7 +132,11 @@ export type DiagramKind =
   | 'gitgraph'
   | 'packet'
   | 'block'
-  | 'architecture';
+  | 'architecture'
+  | 'pie'
+  | 'xychart'
+  | 'quadrant'
+  | 'radar';
 
 /** The two input formats Triton accepts. */
 export type InputFormat = 'mermaid' | 'yaml';
