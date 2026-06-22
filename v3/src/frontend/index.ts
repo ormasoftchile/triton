@@ -3,7 +3,7 @@ import { ok, err } from '../contracts/index.js';
 import { detect } from './detect.js';
 import { registerDiagram, getModule } from './registry.js';
 import { registerRenderer, getRenderer } from '../render/registry.js';
-import { defaultTheme } from '../theme/preset.js';
+import { defaultTheme, getThemePreset } from '../theme/preset.js';
 import { resolveTheme } from '../theme/resolver.js';
 import { flowchart } from '../diagrams/flowchart/index.js';
 import { timeline } from '../diagrams/timeline/index.js';
@@ -54,8 +54,9 @@ export async function compile(
       ? module.parseYaml(input)
       : module.parseMermaid(input);
 
-    // Build theme: global → module defaults → per-IR frontmatter override
-    const base = resolveTheme(themeInput ?? {}, defaultTheme);
+    // Build theme: named preset (metadata.theme) → global input → module defaults → per-IR override
+    const themeName = typeof ir.metadata?.theme === 'string' ? ir.metadata.theme : undefined;
+    const base = resolveTheme(themeInput ?? {}, getThemePreset(themeName));
     const withModuleDefaults = module.defaultThemeOverride
       ? resolveTheme(module.defaultThemeOverride, base)
       : base;

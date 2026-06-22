@@ -39,10 +39,10 @@
     return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || '';
   }
 
-  function addCell(explicitId, title, kind, rawContent, span) {
+  function addCell(explicitId, title, kind, rawContent, span, theme) {
     cellCounter++;
     const id = explicitId || slugify(title) || `cell-${cellCounter}`;
-    cells.push({ id, title: title || undefined, kind, rawContent: rawContent.trim(), span });
+    cells.push({ id, title: title || undefined, kind, rawContent: rawContent.trim(), span, theme: theme || undefined });
   }
 
   function addLink(from, arrow, to, label, props) {
@@ -99,10 +99,10 @@ BodyItems
   = items:(CellBlock / LinkDecl / TraceDecl / BlankLine)* { return items.filter(Boolean); }
 
 CellBlock
-  = _ "cell" ids:CellIdTitle span:CellSpan? _ "::" _ kind:CellKind _ NL
+  = _ "cell" ids:CellIdTitle span:CellSpan? _ "::" _ kind:CellKind theme:(_ "@theme" __ t:Identifier { return t; })? _ NL
     content:CellContent
     _ "end" _ NL? {
-      addCell(ids.id, ids.title, kind, content, span || undefined);
+      addCell(ids.id, ids.title, kind, content, span || undefined, theme || undefined);
       return { type: 'cell' };
     }
 

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 494" width="1040" height="494">
+  <rect width="100%" height="100%" fill="#0D1B2A" />
+  <text x="520" y="26" font-size="18" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle" font-weight="bold">Customer Journey</text>
+  <path d="M 90 110 L 950 110 A 80 80 0 1 1 950 270 L 90 270 A 80 80 0 1 0 90 430 L 950 430" stroke="#3A86C8" stroke-width="14" fill="none" />
+  <circle cx="282.67" cy="110" r="10" fill="#0D1B2A" stroke="#2DD4BF" stroke-width="3" />
+  <text x="282.67" y="135.9" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Awareness</text>
+  <circle cx="668" cy="110" r="10" fill="#0D1B2A" stroke="#2DD4BF" stroke-width="3" />
+  <text x="668" y="135.9" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">First visit</text>
+  <circle cx="1026.9" cy="167.96" r="10" fill="#0D1B2A" stroke="#3A86C8" stroke-width="3" />
+  <text x="1026.9" y="193.86" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Onboarding</text>
+  <circle cx="712.67" cy="270" r="10" fill="#0D1B2A" stroke="#2DD4BF" stroke-width="3" />
+  <text x="712.67" y="252" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Sign up</text>
+  <circle cx="327.33" cy="270" r="10" fill="#0D1B2A" stroke="#3A86C8" stroke-width="3" />
+  <text x="327.33" y="252" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">First value</text>
+  <circle cx="13.1" cy="372.05" r="10" fill="#0D1B2A" stroke="#7986CB" stroke-width="3" />
+  <text x="13.1" y="354.05" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Habit formed</text>
+  <circle cx="372.01" cy="430" r="10" fill="#0D1B2A" stroke="#7986CB" stroke-width="3" />
+  <text x="372.01" y="455.9" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Upgrade</text>
+  <circle cx="757.34" cy="430" r="10" fill="#0D1B2A" stroke="#7986CB" stroke-width="3" />
+  <text x="757.34" y="455.9" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Advocacy</text>
+  <circle cx="90" cy="110" r="22" fill="#3A86C8" stroke="#3A86C8" stroke-width="2" />
+  <path d="M 84.5 99 L 101 110 L 84.5 121 Z" stroke="#0D1B2A" stroke-width="0" fill="#0D1B2A" />
+  <circle cx="950" cy="430" r="22" fill="#3A86C8" stroke="#3A86C8" stroke-width="2" />
+  <circle cx="950" cy="430" r="13.64" fill="none" stroke="#0D1B2A" stroke-width="2.5" />
+  <circle cx="950" cy="430" r="6.16" fill="#0D1B2A" stroke="#0D1B2A" stroke-width="0" />
+</svg>

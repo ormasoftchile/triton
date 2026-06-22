@@ -10,15 +10,15 @@
   <rect x="204" y="58" width="325.2" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="24" y="436" width="160" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="204" y="436" width="325.2" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <path d="M 306.6 288 L 282.6 288 L 282.6 428 L 17.714285714285715 428 L 17.714285714285715 646.5714285714286 L 49.714285714285715 646.5714285714286" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+  <path d="M 312.6 308 L 312.6 428 L 141.42857142857142 428 L 141.42857142857142 628.4761904761905" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
-  <path d="M 346.6 388 L 346.6 574.1904761904763 L 301.6 574.1904761904763" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 470.6 561.1904761904763 L 470.6 176 L 366.6 176 L 366.6 148" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)">
+  <path d="M 324.6 388 L 324.6 474.59523809523813 L 293.8 474.59523809523813 L 293.8 561.1904761904763" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 439.40000000000003 561.1904761904763 L 439.40000000000003 354.59523809523813 L 414.6 354.59523809523813 L 414.6 148" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="3 4" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)">
     <animate attributeName="stroke-dashoffset" from="0" to="-7" dur="0.8s" repeatCount="indefinite"/>
   </path>
-  <path d="M 158.28571428571428 248 L 232.44285714285715 248 L 232.44285714285715 128 L 306.6 128" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 386.6 388 L 386.6 443.8571428571429 L 104 443.8571428571429 L 104 483.7142857142857" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 233.52380952380952 L 232.44285714285715 233.52380952380952 L 232.44285714285715 144 L 306.6 144" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 306.6 384 L 153.42857142857142 384 L 153.42857142857142 483.7142857142857" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">UI Layer</text>
   <g transform="translate(28, 135.8095238095238) scale(0.9047619047619048)">
     <g id="app">
@@ -85,7 +85,7 @@
       <text x="404" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Metrics</text>
     </g>
   </g>
-  <text x="150.15714285714287" y="422" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">cache hit?</text>
-  <text x="346.6" y="475.09523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">publishes</text>
-  <text x="470.6" y="362.59523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">health</text>
+  <text x="186.7761904761905" y="426" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">cache hit?</text>
+  <text x="309.20000000000005" y="472.59523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">publishes</text>
+  <text x="427" y="342" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">health</text>
 </svg>

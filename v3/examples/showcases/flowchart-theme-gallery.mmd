@@ -1,0 +1,146 @@
+poster "Flowchart Theme Gallery"
+  columns 3
+
+  cell "Default" :: flow @theme default
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Executive" :: flow @theme executive
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Minimal" :: flow @theme minimal
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Consulting" :: flow @theme consulting
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Product" :: flow @theme product
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Release" :: flow @theme release
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "AI Timeline" :: flow @theme ai-timeline
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "ByteByteGo" :: flow @theme bytebytego
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Gitline" :: flow @theme gitline
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Our Timeline" :: flow @theme our-timeline
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Subject Timeline" :: flow @theme subject-timeline
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end
+
+  cell "Showcase" :: flow @theme showcase
+    flowchart TD
+      req([Request]) --> auth{Authed?}
+      auth -->|no| deny[Reject]
+      auth -->|yes| rate{Rate OK?}
+      rate -->|no| wait[Throttle]
+      rate -->|yes| proc[Process]
+      proc --> cache[(Cache)]
+      proc --> db[(Database)]
+      proc --> ok([Response])
+  end

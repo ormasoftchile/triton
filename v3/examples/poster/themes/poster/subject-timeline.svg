@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 598.8 467.79999999999995" width="598.8" height="467.79999999999995">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#22D3EE" /></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#1A1A2E" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" font-weight="bold">System Dashboard</text>
+  <rect x="24" y="58" width="366.8" height="190.2" fill="#1A1A2E" stroke="#3A3A5C" stroke-width="1" rx="6" />
+  <rect x="410.8" y="58" width="164" height="190.2" fill="#1A1A2E" stroke="#3A3A5C" stroke-width="1" rx="6" />
+  <rect x="24" y="268.2" width="366.8" height="175.6" fill="#1A1A2E" stroke="#3A3A5C" stroke-width="1" rx="6" />
+  <rect x="410.8" y="268.2" width="164" height="175.6" fill="#1A1A2E" stroke="#3A3A5C" stroke-width="1" rx="6" />
+  <rect x="174.9106" y="47.8" width="64.9788" height="20.4" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1" rx="10.2" />
+  <text x="207.4" y="62.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle" font-weight="bold">Services</text>
+  <g transform="translate(43.400000000000006, 76.2) scale(1)">
+    <path d="M 144 84 L 164 84 L 164 44 L 184 44" stroke="#22D3EE" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 144 84 L 164 84 L 164 124 L 184 124" stroke="#22D3EE" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <g id="api">
+      <rect x="24" y="64" width="120" height="40" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1.5" rx="2" />
+      <text x="84" y="88.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">API</text>
+    </g>
+    <g id="db">
+      <rect x="184" y="24" width="120" height="40" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1.5" rx="2" />
+      <text x="244" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Database</text>
+    </g>
+    <g id="cache">
+      <rect x="184" y="104" width="120" height="40" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1.5" rx="2" />
+      <text x="244" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Cache</text>
+    </g>
+  </g>
+  <rect x="464.19350000000003" y="47.8" width="57.212999999999994" height="20.4" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1" rx="10.2" />
+  <text x="492.8" y="62.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle" font-weight="bold">Uptime</text>
+  <g transform="translate(452.3, 127.9) scale(1)">
+    <text x="40.5" y="33.6" font-size="27" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#22D3EE" text-anchor="middle" font-weight="bold">99.95%</text>
+    <text x="40.5" y="50.400000000000006" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0" text-anchor="middle">availability</text>
+  </g>
+  <rect x="170.9738" y="258" width="72.85239999999999" height="20.4" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1" rx="10.2" />
+  <text x="207.4" y="272.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle" font-weight="bold">Roadmap</text>
+  <g transform="translate(28, 286.4) scale(0.65)">
+    <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" font-weight="bold">Milestones</text>
+    <path d="M 44 118 L 528 118" stroke="#3A3A5C" stroke-width="2" fill="none" />
+    <text x="24" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0">Default</text>
+    <rect x="44" y="136" width="60" height="32" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1" rx="4" />
+    <text x="74" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Alpha</text>
+    <rect x="310.66666666666663" y="136" width="60" height="32" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1" rx="4" />
+    <text x="340.66666666666663" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Beta</text>
+    <rect x="444" y="136" width="60" height="32" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1" rx="4" />
+    <text x="474" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">GA</text>
+  </g>
+  <rect x="468.0967" y="258" width="49.4066" height="20.4" fill="#2A2A48" stroke="#3A3A5C" stroke-width="1" rx="10.2" />
+  <text x="492.8" y="272.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle" font-weight="bold">Notes</text>
+  <g transform="translate(414.8, 348.92999999999995) scale(0.65)">
+    <text x="12" y="23.200000000000003" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4">All services operating normally.</text>
+  </g>
+</svg>

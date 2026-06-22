@@ -1,27 +1,27 @@
 poster "Flow Particles — Per-Connector Animation"
-  columns 3
+  columns 2
 
-  cell SVC "Services" :: flow
+  cell FE "Frontend" :: flow
     flowchart LR
-      api[API Gateway] --> auth[Auth]
-      api --> orders[Orders]
-      orders --> billing[Billing]
+      browser[Browser] --> spa[SPA]
   end
 
-  cell DATA "Data Layer" :: flow
+  cell BE "Backend" :: flow
+    flowchart LR
+      api[API] --> service[Service]
+  end
+
+  cell CACHE "Cache" :: flow
+    flowchart LR
+      redis[Redis] --> hot[Hot Keys]
+  end
+
+  cell DB "Database" :: flow
     flowchart LR
       pg[(Postgres)] --> replica[(Replica)]
-      cache[Redis] --> pg
   end
 
-  cell OPS "Operations" :: flow
-    flowchart LR
-      monitor[Prometheus] --> alert[Alertmanager]
-      alert --> dash[Grafana]
-  end
-
-  link SVC.orders --> DATA.pg "writes"
-  link SVC.api --> DATA.cache "reads" { anim: particle }
-  link SVC.billing -.-> DATA.pg "reconciles" { anim: particle }
-  link SVC.auth ..> OPS.monitor "emits metrics" { anim: none }
-  link DATA.cache -.-> OPS.monitor "hit/miss rate"
+  link FE.browser --> BE.api "requests" { anim: particle }
+  link BE.service --> DB.pg "writes"
+  link BE.api -.-> CACHE.redis "caches" { anim: particle }
+  link CACHE.redis ..> DB.pg "invalidates"

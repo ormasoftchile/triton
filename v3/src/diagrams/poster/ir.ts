@@ -18,6 +18,8 @@ export interface PosterCell {
   readonly col?: number;
   readonly rowSpan?: number;
   readonly colSpan?: number;
+  /** Optional per-cell theme name; falls back to the poster theme when absent. */
+  readonly theme?: string;
   readonly content: CellContent;
 }
 

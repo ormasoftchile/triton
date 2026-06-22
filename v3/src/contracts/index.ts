@@ -41,6 +41,7 @@ export type {
   ThemeTypography,
   ThemeSpacing,
   ThemeEdges,
+  ThemePanel,
   ResolvedTheme,
   ThemeInput,
 } from './theme.js';
@@ -88,6 +89,7 @@ export type {
   CardinalPorts,
   NodeAnchor,
   NodeAnchorRegistry,
+  OccupiedPort,
   LayoutResult,
   PortHint,
   LayoutOptions,

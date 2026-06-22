@@ -77,6 +77,30 @@ export interface ThemeEdges {
   readonly curveTension: number;
 }
 
+/**
+ * Titled-container chrome — how the title of a framed panel is placed and
+ * decorated. Applies to any diagram that draws a titled box: poster cells
+ * today, flowchart subgraphs / timeline sections tomorrow.
+ */
+export interface ThemePanel {
+  /** Horizontal alignment of the panel title within the panel width. */
+  readonly titleAlign: 'left' | 'center' | 'right';
+  /**
+   * Vertical placement of the title relative to the panel's top edge:
+   *   'inside'    — sits below the top edge, inside the panel (default).
+   *   'on-border' — straddles the top edge line (tab / caption look).
+   *   'above'     — floats just above the top edge, outside the panel.
+   */
+  readonly titlePosition: 'inside' | 'on-border' | 'above';
+  /**
+   * Decorative container drawn behind the title:
+   *   'none' — bare text.
+   *   'box'  — rounded rectangle.
+   *   'pill' — fully-rounded capsule.
+   */
+  readonly titleChrome: 'none' | 'box' | 'pill';
+}
+
 // ─── Resolved Theme (consumed by layout engines) ──────────────────────────────
 
 /** Fully resolved — every field is present and required. Layout engines receive this. */
@@ -86,6 +110,7 @@ export interface ResolvedTheme {
   readonly typography: ThemeTypography;
   readonly spacing: ThemeSpacing;
   readonly edges: ThemeEdges;
+  readonly panel: ThemePanel;
 }
 
 // ─── Theme Input (provided by callers) ────────────────────────────────────────
@@ -97,4 +122,5 @@ export type ThemeInput = {
   readonly typography?: Partial<ThemeTypography>;
   readonly spacing?: Partial<ThemeSpacing>;
   readonly edges?: Partial<ThemeEdges>;
+  readonly panel?: Partial<ThemePanel>;
 };

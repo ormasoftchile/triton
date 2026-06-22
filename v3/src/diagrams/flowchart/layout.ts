@@ -1,6 +1,7 @@
 import type { FlowDocument, FlowNode, FlowEdge, FlowDirection } from './ir.js';
-import type { Scene, SceneElement, Rect, Point, LayoutResult, NodeAnchorRegistry, NodeAnchor, LayoutOptions } from '../../contracts/index.js';
+import type { Scene, SceneElement, Rect, Point, LayoutResult, NodeAnchorRegistry, NodeAnchor, OccupiedPort, LayoutOptions } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
+import type { CardinalSide } from '../../contracts/index.js';
 import { getRouter } from '../../routing/registry.js';
 import { defaultRouter } from '../../routing/router.js';
 import { compileOverlays } from '../../overlay/compiler.js';
@@ -190,7 +191,29 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     };
   }
 
-  return { scene, anchors };
+  // ── Occupied ports: record which wall each edge exits/enters ──────────────
+  const occupiedPorts: OccupiedPort[] = [];
+  for (const edge of ir.edges) {
+    const fromRect = nodePos.get(edge.from);
+    const toRect   = nodePos.get(edge.to);
+    if (!fromRect || !toRect) continue;
+    const fromAnch = edgeAnchor(fromRect, ir.direction, 'exit',  toRect);
+    const toAnch   = edgeAnchor(toRect,   ir.direction, 'enter', fromRect);
+    occupiedPorts.push({
+      nodeKey: edge.from,
+      wall:    fromAnch.portDir as CardinalSide,
+      t:       wallT(fromRect, fromAnch.portDir as CardinalSide, fromAnch.point),
+      source:  'intra',
+    });
+    occupiedPorts.push({
+      nodeKey: edge.to,
+      wall:    toAnch.portDir as CardinalSide,
+      t:       wallT(toRect, toAnch.portDir as CardinalSide, toAnch.point),
+      source:  'intra',
+    });
+  }
+
+  return { scene, anchors, occupiedPorts };
 }
 
 // ─── Layer Assignment ─────────────────────────────────────────────────────────
@@ -333,4 +356,18 @@ function nodeStatusFill(node: FlowNode, palette: ResolvedTheme['palette']): stri
 function arrowMarkerDef(color: string, size: number): string {
   const s = size;
   return `<marker id="${ARROW_MARKER_ID}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="${s - 1}" refY="${s * 0.35}" orient="auto"><polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="${color}" /></marker>`;
+}
+
+/**
+ * Fractional position of a point along a node wall.
+ * N/S walls: fraction of width (0=left, 1=right).
+ * E/W walls: fraction of height (0=top, 1=bottom).
+ */
+function wallT(bounds: Rect, wall: CardinalSide, pt: Point): number {
+  switch (wall) {
+    case 'N': case 'S':
+      return bounds.width  > 0 ? Math.max(0, Math.min(1, (pt.x - bounds.x) / bounds.width))  : 0.5;
+    case 'E': case 'W':
+      return bounds.height > 0 ? Math.max(0, Math.min(1, (pt.y - bounds.y) / bounds.height)) : 0.5;
+  }
 }

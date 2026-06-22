@@ -74,6 +74,36 @@ export type NodeAnchorRegistry = Readonly<Record<string, NodeAnchor>>;
 
 // ─── Layout Result ────────────────────────────────────────────────────────────
 
+// ─── Occupied Ports ──────────────────────────────────────────────────────────
+
+/**
+ * A port position on a node wall that is already in use by an edge rendered
+ * within a diagram cell (intra) or by another cross-link (inter).
+ *
+ * The cross-link routing engine uses these to avoid stacking connectors
+ * at the same wall position. Intra-diagram ports carry a softer penalty
+ * than inter-crosslink ports so the global cost function can override them
+ * when necessary.
+ */
+export interface OccupiedPort {
+  /** Prefixed node key (same format as NodeAnchorRegistry keys). */
+  readonly nodeKey: string;
+  /** Which wall the port is on. */
+  readonly wall: CardinalSide;
+  /**
+   * Fractional position along the wall (0 = start, 1 = end).
+   * N/S walls: 0 = left edge, 1 = right edge.
+   * E/W walls: 0 = top edge, 1 = bottom edge.
+   */
+  readonly t: number;
+  /**
+   * Origin of the occupancy.
+   * 'intra' — edge produced by the cell's own diagram layout pass.
+   * 'inter' — cross-link committed by the cross-link routing engine.
+   */
+  readonly source: 'intra' | 'inter';
+}
+
 /**
  * The extended return type of a diagram layout pass.
  *
@@ -92,6 +122,13 @@ export interface LayoutResult {
    * Empty {} for non-linkable diagram types.
    */
   readonly anchors: NodeAnchorRegistry;
+  /**
+   * Port positions occupied by edges produced during this layout pass.
+   * The cross-link routing engine uses these to avoid stacking connectors
+   * on top of existing intra-diagram edges.
+   * Empty or absent for non-linkable diagram types.
+   */
+  readonly occupiedPorts?: readonly OccupiedPort[];
 }
 
 /**

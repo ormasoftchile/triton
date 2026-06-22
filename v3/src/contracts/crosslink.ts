@@ -79,6 +79,16 @@ export interface CrossLink {
    */
   readonly routing?: RouteStyle;
   /**
+   * Optional hint for which wall to exit from the source node.
+   * When set, the routing engine skips all other srcWall candidates.
+   */
+  readonly exitWall?: CardinalSide;
+  /**
+   * Optional hint for which wall to enter the destination node.
+   * When set, the routing engine skips all other dstWall candidates.
+   */
+  readonly entryWall?: CardinalSide;
+  /**
    * Animation applied to the rendered connector.
    *
    * 'march'    — marching ants (stroke-dashoffset cycle). Only visible when

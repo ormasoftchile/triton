@@ -3,11 +3,23 @@ import type { Scene, SceneElement, Rect, Point, LayoutResult } from '../../contr
 import type { ResolvedTheme } from '../../contracts/index.js';
 import { compileOverlays } from '../../overlay/compiler.js';
 import { layoutOverlays } from '../../overlay/layout.js';
+import { layoutVerticalSpine } from './vertical-spine.js';
+import { layoutSerpentine } from './serpentine.js';
+import { layoutRoadmap } from './roadmap.js';
+import { layoutTimelineColumns } from './timeline-columns.js';
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
 export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
   switch (ir.layout) {
+    case 'vertical-spine':
+      return layoutVerticalSpine(ir, theme);
+    case 'serpentine':
+      return layoutSerpentine(ir, theme);
+    case 'roadmap':
+      return layoutRoadmap(ir, theme);
+    case 'timeline-columns':
+      return layoutTimelineColumns(ir, theme);
     case 'horizontal':
     default:
       return layoutHorizontal(ir, theme);
@@ -133,11 +145,16 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutRes
   elements.push({ type: 'path', d: `M ${axisLeft} ${axisY} L ${axisRight} ${axisY}`, stroke: palette.border, strokeWidth: 2 });
 
   // ── Track labels ──────────────────────────────────────────────────────────
-  for (let i = 0; i < trackOrder.length; i++) {
-    const track = ir.tracks.find(t => t.id === trackOrder[i]);
-    if (!track) continue;
-    const laneY = axisY + milestoneR + trackPad + i * (trackHeight + trackPad);
-    elements.push({ type: 'text', content: track.label, position: { x: margin, y: laneY + trackHeight / 2 + typography.smallFontSize * 0.4 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted });
+  // Suppress the label for an implicit single "default" track — it's noise, not
+  // an authored lane name.
+  const showTrackLabels = !(trackOrder.length === 1 && trackOrder[0] === 'default');
+  if (showTrackLabels) {
+    for (let i = 0; i < trackOrder.length; i++) {
+      const track = ir.tracks.find(t => t.id === trackOrder[i]);
+      if (!track) continue;
+      const laneY = axisY + milestoneR + trackPad + i * (trackHeight + trackPad);
+      elements.push({ type: 'text', content: track.label, position: { x: margin, y: laneY + trackHeight / 2 + typography.smallFontSize * 0.4 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted });
+    }
   }
 
   // ── Activities ────────────────────────────────────────────────────────────

@@ -29,6 +29,7 @@ export interface Milestone {
   readonly date: TimelineDate;
   readonly track?: string;
   readonly icon?: string;
+  readonly description?: string;
 }
 
 export interface Section {

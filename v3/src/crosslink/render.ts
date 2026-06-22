@@ -188,14 +188,43 @@ export function renderCrossLinks(
 
   // Phase 4a: Bezier separation — fan apart or fall back crossing beziers to orthogonal
   // Runs BEFORE channel separation so any new orthogonal routes get included.
-  const CHANNEL_GAP = 6;
+  const CHANNEL_GAP = 12;
   separateBezierCurves(pendingRoutes.filter(r => r.routing === 'bezier'), CHANNEL_GAP, obstacles, pendingRoutes);
 
   // Phase 4b: Channel separation — offset overlapping parallel segments (all orthogonal, including fallbacks)
   separateOverlappingChannels(pendingRoutes.filter(r => r.routing === 'orthogonal'), CHANNEL_GAP);
 
+  // ─── Label position staggering ───────────────────────────────────────────
+  // Routes sharing the same corridor (same dominant-segment axis + close coord)
+  // would all land their labels at the same midpoint.  Distribute positions
+  // evenly along the route: 1/(n+1), 2/(n+1), …, n/(n+1).
+  const CORRIDOR_TOL = 20; // px — routes within this band share a corridor
+  const labelFractions = new Array<number>(pendingRoutes.length).fill(0.5);
+  const labeledIndices = pendingRoutes.map((pr, i) => pr.label ? i : -1).filter(i => i >= 0);
+  const staggerAssigned = new Set<number>();
+
+  for (const i of labeledIndices) {
+    if (staggerAssigned.has(i)) continue;
+    const infoI = dominantSegmentInfo(pendingRoutes[i]!.points);
+    const group = [i];
+    for (const j of labeledIndices) {
+      if (j === i || staggerAssigned.has(j)) continue;
+      const infoJ = dominantSegmentInfo(pendingRoutes[j]!.points);
+      if (infoI.axis === infoJ.axis && Math.abs(infoI.coord - infoJ.coord) < CORRIDOR_TOL) {
+        group.push(j);
+      }
+    }
+    if (group.length > 1) {
+      group.sort((a, b) => a - b); // consistent ordering by route index
+      const n = group.length;
+      group.forEach((idx, k) => { labelFractions[idx] = (k + 1) / (n + 1); });
+      group.forEach(idx => staggerAssigned.add(idx));
+    }
+  }
+
   // Phase 5: Emit path elements and collect labels
-  for (const pr of pendingRoutes) {
+  for (let prIdx = 0; prIdx < pendingRoutes.length; prIdx++) {
+    const pr = pendingRoutes[prIdx]!;
     // Bezier/straight routes use the router's SVG path; orthogonal rebuilds from points
     const path = pr.routePath ?? pr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 
@@ -212,7 +241,7 @@ export function renderCrossLinks(
     elements.push(pathEl);
 
     if (pr.label) {
-      const labelPos = longestSegmentMidpoint(pr.points);
+      const labelPos = pointAtFraction(pr.points, labelFractions[prIdx] ?? 0.5);
       pendingLabels.push({
         content: pr.label,
         x: labelPos.x,
@@ -307,6 +336,54 @@ function longestSegmentMidpoint(points: readonly Point[]): Point {
     }
   }
   return bestMid;
+}
+
+/**
+ * Returns the axis ('h'|'v') and fixed coordinate of the longest segment
+ * in a polyline — used to group routes sharing the same corridor.
+ */
+function dominantSegmentInfo(points: readonly Point[]): { axis: 'h' | 'v'; coord: number } {
+  let bestLen = 0, axis: 'h' | 'v' = 'h', coord = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i]!, b = points[i + 1]!;
+    const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+    const len = dx + dy;
+    if (len > bestLen) {
+      bestLen = len;
+      if (dy > dx) { axis = 'v'; coord = (a.x + b.x) / 2; }
+      else          { axis = 'h'; coord = (a.y + b.y) / 2; }
+    }
+  }
+  return { axis, coord };
+}
+
+/**
+ * Returns the point at fraction t (0..1) of total Euclidean path length.
+ */
+function pointAtFraction(points: readonly Point[], t: number): Point {
+  if (points.length === 0) return { x: 0, y: 0 };
+  if (points.length === 1) return points[0]!;
+  const lengths: number[] = [];
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i]!, b = points[i + 1]!;
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    lengths.push(len);
+    total += len;
+  }
+  if (total === 0) return points[0]!;
+  const target = total * Math.min(Math.max(t, 0), 1);
+  let acc = 0;
+  for (let i = 0; i < lengths.length; i++) {
+    const l = lengths[i]!;
+    if (acc + l >= target) {
+      const frac = l > 0 ? (target - acc) / l : 0;
+      const a = points[i]!, b = points[i + 1]!;
+      return { x: a.x + (b.x - a.x) * frac, y: a.y + (b.y - a.y) * frac };
+    }
+    acc += l;
+  }
+  return points[points.length - 1]!;
 }
 
 /**

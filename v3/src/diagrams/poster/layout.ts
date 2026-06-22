@@ -1,9 +1,15 @@
 import type { PosterDocument, PosterCell, CellContent } from './ir.js';
-import type { Scene, SceneElement, Rect, LayoutResult, NodeAnchor, NodeAnchorRegistry } from '../../contracts/index.js';
+import type { Scene, SceneElement, Rect, LayoutResult, NodeAnchor, NodeAnchorRegistry, OccupiedPort } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
 import { getModule } from '../../frontend/registry.js';
+import { getThemePreset } from '../../theme/preset.js';
 import { resolveCrossLinks } from '../../crosslink/resolve.js';
 import { renderCrossLinks } from '../../crosslink/render.js';
+import { routeAndRenderCrossLinks3 } from '../../crosslink/engine3.js';
+import { measureText } from '../../text/metrics.js';
+
+/** Set to true to use the v3 global cost-function routing engine. */
+const USE_ENGINE_V3 = true;
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
@@ -23,12 +29,12 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   // ── Assign row/col to cells that don't specify them ───────────────────────
   const positioned = assignPositions(cells, grid.columns);
 
-  // ── Layout each child into a LayoutResult ──────────────────────────────────
+  // ── Layout each child into a LayoutResult (per-cell theme) ─────────────────
   const cellResults = await Promise.all(
-    positioned.map(async cell => ({
-      cell,
-      result: await layoutCellContent(cell.content, theme),
-    })),
+    positioned.map(async cell => {
+      const cellTheme = cell.theme ? getThemePreset(cell.theme) : theme;
+      return { cell, cellTheme, result: await layoutCellContent(cell.content, cellTheme) };
+    }),
   );
 
   const numRows = grid.rows ??
@@ -49,11 +55,11 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
 
   // Row heights: proportional to column width, respecting MIN_EMBED_SCALE
   const rowHeights = new Array<number>(numRows).fill(MIN_CELL_H);
-  for (const { cell, result } of cellResults) {
+  for (const { cell, cellTheme, result } of cellResults) {
     if ((cell.rowSpan ?? 1) === 1) {
       const row = cell.row ?? 0;
       const col = cell.col ?? 0;
-      const cellTitleH = cell.title ? typography.baseFontSize + unit : 0;
+      const cellTitleH = cell.title ? reservedTitleHeight(cellTheme) : 0;
       const inset = unit / 2;
       const colW = colWidths[col] ?? MIN_CELL_W;
       const contentW = colW - inset * 2;
@@ -83,6 +89,8 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   // Full cell bounding boxes keyed by cell ID — used by the cross-link router
   // to treat intermediate cells as blocked zones (routes must use corridors).
   const cellRects = new Map<string, { x: number; y: number; width: number; height: number }>();
+  // Occupied ports from all child diagram layout passes (intra-diagram edges).
+  const allOccupiedPorts: OccupiedPort[] = [];
 
   if (ir.metadata.title) {
     headerElements.push({ type: 'text', content: ir.metadata.title, position: { x: padding, y: padding + typography.titleFontSize }, fontSize: typography.titleFontSize + 2, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
@@ -95,7 +103,8 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   // ── Build anchor registry (hierarchical, path-prefixed) ───────────────────
   const mergedAnchors: Record<string, NodeAnchor> = {};
 
-  for (const { cell, result } of cellResults) {
+  for (const { cell, cellTheme, result } of cellResults) {
+    const cellPalette = cellTheme.palette;
     const col     = cell.col ?? 0;
     const row     = cell.row ?? 0;
     const colSpan = cell.colSpan ?? 1;
@@ -107,8 +116,9 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
     const cellW = sumWithGaps(colWidths,  col, col + colSpan, gap) - gap;
     const cellH = sumWithGaps(rowHeights, row, row + rowSpan, gap) - gap;
 
-    // Cell chrome — background layer (connectors route behind this)
-    cellBg.push({ type: 'rect', bounds: { x: cellX, y: cellY, width: cellW, height: cellH }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx: 6 });
+    // Cell chrome — background layer (connectors route behind this).
+    // Uses the CELL's theme so a dark-themed cell shows a dark panel.
+    cellBg.push({ type: 'rect', bounds: { x: cellX, y: cellY, width: cellW, height: cellH }, fill: cellPalette.background, stroke: cellPalette.border, strokeWidth: 1, rx: 6 });
 
     // Record cell edges as thin obstacles (4px) so connectors avoid running along borders
     const borderThick = 4;
@@ -121,18 +131,16 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
     // Record the full cell bounding box for corridor-based cross-link routing.
     cellRects.set(cellId, { x: cellX, y: cellY, width: cellW, height: cellH });
 
-    const cellTitleH = cell.title ? typography.baseFontSize + unit : 0;
+    const reservedTop = cell.title ? reservedTitleHeight(cellTheme) : 0;
     if (cell.title) {
-      cellContent.push({ type: 'text', content: cell.title, position: { x: cellX + unit, y: cellY + typography.baseFontSize + unit / 2 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
-      // Estimate cell title bounding rect for label de-collision
-      const tw = cell.title.length * typography.baseFontSize * 0.65;
-      const th = typography.baseFontSize;
-      textOccupied.push({ x: cellX + unit, y: cellY + unit / 2 - 2, width: tw, height: th + 4 });
+      const t = buildCellTitle(cell.title, cellX, cellY, cellW, cellTheme);
+      cellContent.push(...t.elements);
+      textOccupied.push(t.occupied);
     }
 
     // Embed child scene — content layer (above cross-link paths)
     const inset = unit / 2;
-    const contentRect: Rect = { x: cellX + inset, y: cellY + cellTitleH + inset, width: cellW - inset * 2, height: cellH - cellTitleH - inset * 2 };
+    const contentRect: Rect = { x: cellX + inset, y: cellY + reservedTop + inset, width: cellW - inset * 2, height: cellH - reservedTop - inset * 2 };
     cellContent.push(embedScene(result.scene, contentRect));
 
     // Transform child anchors to poster coordinates and merge
@@ -162,6 +170,11 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
       };
       mergedAnchors[prefixedId] = transformed;
     }
+
+    // Collect occupied ports from child layout (t values are coordinate-invariant).
+    for (const op of (result.occupiedPorts ?? [])) {
+      allOccupiedPorts.push({ ...op, nodeKey: `${cellId}.${op.nodeKey}` });
+    }
   }
 
   const totalW = padding * 2 + sumWithGaps(colWidths,  0, grid.columns, gap) - gap;
@@ -190,15 +203,27 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   let finalH = totalH;
 
   if (links.length > 0) {
-    const { resolved, diagnostics } = resolveCrossLinks(links, mergedAnchors, cellRects);
+    let linkDefs: string[];
+    let linkElements: import('../../contracts/scene.js').SceneElement[];
 
-    // Log diagnostics (unresolvable links) — non-fatal
-    for (const diag of diagnostics) {
-      console.warn(`[poster:crosslink] Link ${diag.linkIndex}: ${diag.message}`);
+    if (USE_ENGINE_V3) {
+      const result = routeAndRenderCrossLinks3(links, traces, theme, mergedAnchors, allOccupiedPorts, textOccupied, cellBorders, cellRects);
+      linkDefs     = result.defs;
+      linkElements = result.elements;
+    } else {
+      const { resolved, diagnostics } = resolveCrossLinks(links, mergedAnchors, cellRects);
+      for (const diag of diagnostics) {
+        console.warn(`[poster:crosslink] Link ${diag.linkIndex}: ${diag.message}`);
+      }
+      if (resolved.length > 0) {
+        const result = renderCrossLinks(resolved, traces, theme, mergedAnchors, textOccupied, cellBorders, cellRects);
+        linkDefs     = result.defs;
+        linkElements = result.elements;
+      } else {
+        linkDefs     = [];
+        linkElements = [];
+      }
     }
-
-    if (resolved.length > 0) {
-      const { defs: linkDefs, elements: linkElements } = renderCrossLinks(resolved, traces, theme, mergedAnchors, textOccupied, cellBorders, cellRects);
 
       // Add link defs
       for (const def of linkDefs) {
@@ -236,7 +261,6 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
         },
         anchors: mergedAnchors,
       };
-    }
   }
 
   // No cross-links (or none resolved): flat assembly without link layers.
@@ -373,6 +397,94 @@ function embedScene(scene: Scene, into: Rect): SceneElement {
     transform: `translate(${offsetX}, ${offsetY}) scale(${scale})`,
     children:  scene.elements as SceneElement[],
   };
+}
+
+// ─── Cell Title (theme.panel) ─────────────────────────────────────────────────
+
+/**
+ * Interior height a cell must reserve at its top for the title, given the
+ * theme's panel placement. 'above' titles live outside the frame (0 reserved);
+ * 'on-border' titles straddle the edge (half reserved); 'inside' titles sit
+ * fully within the frame (full reserved).
+ */
+function reservedTitleHeight(theme: ResolvedTheme): number {
+  const { typography, spacing, panel } = theme;
+  const fs = typography.baseFontSize;
+  const boxH = titleBoxHeight(theme);
+  switch (panel.titlePosition) {
+    case 'above':     return 0;
+    case 'on-border': return boxH / 2 + spacing.unit * 0.5;
+    case 'inside':
+    default:          return fs + spacing.unit;
+  }
+}
+
+function titleBoxHeight(theme: ResolvedTheme): number {
+  const fs = theme.typography.baseFontSize;
+  const padY = theme.panel.titleChrome === 'none' ? 0 : theme.spacing.unit * 0.4;
+  return fs + padY * 2;
+}
+
+/**
+ * Build the SceneElements for a cell title (optional chrome rect + text),
+ * honouring the theme's panel alignment / vertical position / chrome. Returns
+ * the elements plus an occupied rect used for cross-link label de-collision.
+ */
+function buildCellTitle(
+  title: string,
+  cellX: number,
+  cellY: number,
+  cellW: number,
+  theme: ResolvedTheme,
+): { elements: SceneElement[]; occupied: Rect } {
+  const { palette, typography, panel, spacing } = theme;
+  const unit = spacing.unit;
+  const fs   = typography.baseFontSize;
+
+  const padX  = panel.titleChrome === 'none' ? 0 : unit * 0.75;
+  const padY  = panel.titleChrome === 'none' ? 0 : unit * 0.4;
+  const tw    = measureText(title, fs).width;
+  const boxW  = tw + padX * 2;
+  const boxH  = fs + padY * 2;
+  const wall  = unit; // inset of the title from the left/right wall
+
+  // Horizontal: box origin + text anchor point.
+  let boxX: number;
+  let anchorX: number;
+  let anchor: 'start' | 'middle' | 'end';
+  if (panel.titleAlign === 'center') {
+    boxX    = cellX + cellW / 2 - boxW / 2;
+    anchorX = cellX + cellW / 2;
+    anchor  = 'middle';
+  } else if (panel.titleAlign === 'right') {
+    boxX    = cellX + cellW - wall - boxW;
+    anchorX = boxX + boxW - padX;
+    anchor  = 'end';
+  } else {
+    boxX    = cellX + wall;
+    anchorX = boxX + padX;
+    anchor  = 'start';
+  }
+
+  // Vertical: top of the chrome box relative to the cell's top edge.
+  let boxTop: number;
+  if (panel.titlePosition === 'on-border') {
+    boxTop = cellY - boxH / 2;
+  } else if (panel.titlePosition === 'above') {
+    boxTop = cellY - boxH - unit * 0.25;
+  } else {
+    boxTop = cellY + unit * 0.5;
+  }
+  const baselineY = boxTop + padY + fs * 0.8;
+
+  const elements: SceneElement[] = [];
+  if (panel.titleChrome !== 'none') {
+    const rx = panel.titleChrome === 'pill' ? boxH / 2 : Math.min(6, boxH / 3);
+    elements.push({ type: 'rect', bounds: { x: boxX, y: boxTop, width: boxW, height: boxH }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx });
+  }
+  elements.push({ type: 'text', content: title, position: { x: anchorX, y: baselineY }, fontSize: fs, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text, anchor });
+
+  return { elements, occupied: { x: boxX, y: boxTop, width: boxW, height: boxH } };
 }
 
 // ─── Grid Helpers ─────────────────────────────────────────────────────────────

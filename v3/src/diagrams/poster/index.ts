@@ -13,7 +13,7 @@ export const poster: DiagramModule<PosterDocument> = {
     const raw = parser.parse(input) as any;
     const cells = raw.cells.map((c: any) => {
       const content = parseCell(c);
-      return { id: c.id, title: c.title, content, colSpan: c.span?.colSpan, rowSpan: c.span?.rowSpan };
+      return { id: c.id, title: c.title, content, colSpan: c.span?.colSpan, rowSpan: c.span?.rowSpan, theme: c.theme };
     });
 
     const traces: TraceRecord[] = raw.traces ?? [];

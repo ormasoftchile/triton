@@ -42,22 +42,24 @@
     return id;
   }
 
-  function addActivity(start, end, label, status, trackId) {
+  function addActivity(start, end, label, status, trackId, description) {
     actCounter++;
     activities.push({
       id: slugify(label) || `activity-${actCounter}`,
       label, track: ensureTrack(trackId),
       start, end: end || undefined,
       status: status || 'default',
+      ...(description ? { description } : {}),
     });
   }
 
-  function addMilestone(date, label, trackId) {
+  function addMilestone(date, label, trackId, description) {
     msCounter++;
     milestones.push({
       id: slugify(label) || `milestone-${msCounter}`,
       label, date,
       track: trackId ? ensureTrack(trackId) : undefined,
+      ...(description ? { description } : {}),
     });
   }
 
@@ -104,10 +106,17 @@ Document
   = fm:ExtFrontmatter? _ header:Header _ directives:Directive* _ body:Body _ {
       closeSection();
       const titleDir = directives.find(d => d && d.key === 'title');
+      const subtitleDir = directives.find(d => d && d.key === 'subtitle');
+      const themeDir = directives.find(d => d && d.key === 'theme');
       const layoutDir = directives.find(d => d && d.key === 'layout');
       return {
         version:  '1.0',
-        metadata: { ...(fm || {}), ...(titleDir ? { title: titleDir.value } : {}) },
+        metadata: {
+          ...(fm || {}),
+          ...(titleDir ? { title: titleDir.value } : {}),
+          ...(subtitleDir ? { subtitle: subtitleDir.value } : {}),
+          ...(themeDir ? { theme: themeDir.value } : {}),
+        },
         layout:   layoutDir ? layoutDir.value : 'horizontal',
         tracks:   tracks.size > 0 ? [...tracks.values()] : [{ id: 'default', label: 'Default' }],
         activities, milestones,
@@ -125,6 +134,8 @@ Directive = ExtDirective / MermaidDirective
 
 MermaidDirective
   = _ "title" __ value:$[^\n]+ _ NL { return { key: 'title', value: value.trim() }; }
+  / _ "subtitle" __ value:$[^\n]+ _ NL { return { key: 'subtitle', value: value.trim() }; }
+  / _ "theme" __ value:$[^\n]+ _ NL { return { key: 'theme', value: value.trim() }; }
 
 ExtDirective
   = &{ return ext; } _ key:("layout" / "axisUnit") __ value:$[^\n]+ _ NL { return { key, value: value.trim() }; }
@@ -174,8 +185,9 @@ ExtEntry
 ExtRangeActivity
   = start:DateToken _ "--" _ end:DateToken _ ":" _ label:ExtLabel
     status:(_ ":" _ s:ExtStatus { return s; })?
-    track:(_ "@" id:Identifier { return id; })? {
-      addActivity(start, end, label, status, track);
+    track:(_ "@" id:Identifier { return id; })?
+    desc:(_ "|" _ d:DescText { return d; })? {
+      addActivity(start, end, label, status, track, desc);
       updateSectionDate(start);
       updateSectionDate(end);
       return { type: 'activity', label };
@@ -183,14 +195,16 @@ ExtRangeActivity
 
 ExtPointEntry
   = date:DateToken _ ":" _ label:ExtLabel ":" _ kind:ExtEntryKind
-    track:(_ "@" id:Identifier { return id; })? {
-      if (kind === 'milestone') addMilestone(date, label, track);
-      else addActivity(date, null, label, kind, track);
+    track:(_ "@" id:Identifier { return id; })?
+    desc:(_ "|" _ d:DescText { return d; })? {
+      if (kind === 'milestone') addMilestone(date, label, track, desc);
+      else addActivity(date, null, label, kind, track, desc);
       updateSectionDate(date);
       return { type: kind === 'milestone' ? 'milestone' : 'activity', label };
     }
 
-ExtLabel     = text:$[^:\n@]+ { return text.trim(); }
+ExtLabel     = text:$[^:\n@|]+ { return text.trim(); }
+DescText     = text:$[^\n]+ { return text.trim(); }
 ExtEntryKind = "milestone" / ExtStatus
 ExtStatus    = "active" / "done" / "blocked" / "default"
 

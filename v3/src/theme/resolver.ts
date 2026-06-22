@@ -11,5 +11,6 @@ export function resolveTheme(input: ThemeInput, base: ResolvedTheme): ResolvedTh
     typography: { ...base.typography, ...input.typography },
     spacing:    { ...base.spacing,    ...input.spacing },
     edges:      { ...base.edges,      ...input.edges },
+    panel:      { ...base.panel,      ...input.panel },
   };
 }
