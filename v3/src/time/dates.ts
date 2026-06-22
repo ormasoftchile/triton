@@ -286,3 +286,42 @@ export function formatTickLabel(tick: TickDate, unit: AxisUnit, tickIndex: numbe
 export function formatMilestoneDate(year: number, month: number, day: number): string {
   return `${ordinalSuffix(day)} ${MONTH_FULL[month - 1] ?? ''} ${year}`;
 }
+
+// ─── Entry-date convenience helpers (shared by timeline layouts) ────────────────
+
+/** Day-ordinal of a date's period START (e.g. "2026-Q2" → 1 Apr 2026). 0 on parse error. */
+export function startOrdinal(date: IRDate): number {
+  try { const [y, m, d] = coerceLeft(parseIRDate(date)); return dateToOrdinal(y, m, d); }
+  catch { return 0; }
+}
+
+/** Day-ordinal of a date's period END (e.g. "2026-Q2" → 1 Jul 2026). 0 on parse error. */
+export function endOrdinal(date: IRDate): number {
+  try { const [y, m, d] = coerceRight(parseIRDate(date)); return dateToOrdinal(y, m, d); }
+  catch { return 0; }
+}
+
+/** Label style for {@link formatDate}. 'axis' shows "Jun 9" for days; 'full' shows "9th June 2026". */
+export type DateLabelStyle = 'axis' | 'full';
+
+/**
+ * Precision-aware human label for an IR date. Consolidates the per-layout
+ * formatters: months → "Jun 2026", quarters → "Q2 2026", halves → "H1 2026",
+ * years → "2026"; days depend on {@link DateLabelStyle}.
+ */
+export function formatDate(date: IRDate, style: DateLabelStyle = 'axis'): string {
+  try {
+    const p = parseIRDate(date);
+    switch (p.precision) {
+      case 'day':
+        return style === 'full'
+          ? formatMilestoneDate(p.year, p.month ?? 1, p.day ?? 1)
+          : `${MONTH_ABBR[(p.month ?? 1) - 1] ?? ''} ${p.day ?? 1}`;
+      case 'month':   return `${MONTH_ABBR[(p.month ?? 1) - 1] ?? ''} ${p.year}`;
+      case 'quarter': return `Q${p.quarter ?? ''} ${p.year}`;
+      case 'half':    return `H${p.half ?? ''} ${p.year}`;
+      case 'year':    return String(p.year);
+    }
+  } catch { /* fall through to raw */ }
+  return date;
+}

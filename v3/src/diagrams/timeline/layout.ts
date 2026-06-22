@@ -1,8 +1,9 @@
 import type { TimelineDocument, Activity, Milestone, Section, Track } from './ir.js';
 import type { Scene, SceneElement, Rect, Point, LayoutResult } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
-import { compileOverlays } from '../../overlay/compiler.js';
-import { layoutOverlays } from '../../overlay/layout.js';
+import { applyOverlays } from '../../overlay/apply.js';
+import { pen } from '../../scene/build.js';
+import { parseIRDate, coerceLeft, dateToOrdinal } from '../../time/dates.js';
 import { layoutVerticalSpine } from './vertical-spine.js';
 import { layoutSerpentine } from './serpentine.js';
 import { layoutRoadmap } from './roadmap.js';
@@ -30,6 +31,7 @@ export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): Layo
 
 function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
+  const p = pen(theme);
   const margin = spacing.diagramMargin;
   const elements: SceneElement[] = [];
 
@@ -109,7 +111,8 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutRes
   const dateX     = new Map<string, number>();
 
   // Walk left to right: each date gets x = max(proportional, previous + previous_width + gap)
-  const totalProportionalW = Math.max(400, dateMap.range * 80);
+  // range is in day-ordinals; ~80px per year keeps the prior visual density.
+  const totalProportionalW = Math.max(400, (dateMap.range / 365) * 80);
   let cursor = axisLeft;
 
   for (let i = 0; i < sortedDates.length; i++) {
@@ -125,7 +128,7 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutRes
 
   // ── Title ─────────────────────────────────────────────────────────────────
   if (ir.metadata.title) {
-    elements.push({ type: 'text', content: ir.metadata.title, position: { x: margin, y: margin + typography.titleFontSize }, fontSize: typography.titleFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+    elements.push(p.text(ir.metadata.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
   }
 
   // ── Section backgrounds (positioned from child date extents) ──────────────
@@ -136,13 +139,13 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutRes
       const endDateX = dateX.get(sec.end) ?? sx;
       const endSlotW = slotWidth.get(sec.end) ?? 0;
       const ex = endDateX + Math.max(endSlotW, 20);
-      elements.push({ type: 'rect', bounds: { x: sx - 8, y: axisY - 50, width: ex - sx + 16, height: bgHeight }, fill: palette.primary + '0A', stroke: palette.primary + '33', strokeWidth: 1, rx: 4 });
-      elements.push({ type: 'text', content: sec.label, position: { x: sx - 2, y: axisY - 36 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.primary, fontWeight: 'bold' });
+      elements.push(p.rect({ x: sx - 8, y: axisY - 50, width: ex - sx + 16, height: bgHeight }, palette.primary + '0A', palette.primary + '33', 1, { rx: 4 }));
+      elements.push(p.text(sec.label, sx - 2, axisY - 36, typography.smallFontSize, palette.primary, { weight: 'bold' }));
     }
   }
 
   // ── Axis line ─────────────────────────────────────────────────────────────
-  elements.push({ type: 'path', d: `M ${axisLeft} ${axisY} L ${axisRight} ${axisY}`, stroke: palette.border, strokeWidth: 2 });
+  elements.push(p.path(`M ${axisLeft} ${axisY} L ${axisRight} ${axisY}`, palette.border, 2));
 
   // ── Track labels ──────────────────────────────────────────────────────────
   // Suppress the label for an implicit single "default" track — it's noise, not
@@ -153,7 +156,7 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutRes
       const track = ir.tracks.find(t => t.id === trackOrder[i]);
       if (!track) continue;
       const laneY = axisY + milestoneR + trackPad + i * (trackHeight + trackPad);
-      elements.push({ type: 'text', content: track.label, position: { x: margin, y: laneY + trackHeight / 2 + typography.smallFontSize * 0.4 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted });
+      elements.push(p.text(track.label, margin, laneY + trackHeight / 2 + typography.smallFontSize * 0.4, typography.smallFontSize, palette.textMuted));
     }
   }
 
@@ -180,8 +183,8 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutRes
     const barY  = laneY + 2;
 
     const fill = activityFill(act, palette);
-    elements.push({ type: 'rect', bounds: { x: barX, y: barY, width: barW, height: barH }, fill, stroke: palette.border, strokeWidth: 1, rx: 4 });
-    elements.push({ type: 'text', content: act.label, position: { x: barX + barW / 2, y: barY + barH / 2 + typography.smallFontSize * 0.4 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.text, anchor: 'middle' });
+    elements.push(p.rect({ x: barX, y: barY, width: barW, height: barH }, fill, palette.border, 1, { rx: 4 }));
+    elements.push(p.text(act.label, barX + barW / 2, barY + barH / 2 + typography.smallFontSize * 0.4, typography.smallFontSize, palette.text, { anchor: 'middle' }));
   }
 
   // ── Milestones ────────────────────────────────────────────────────────────
@@ -190,27 +193,20 @@ function layoutHorizontal(ir: TimelineDocument, theme: ResolvedTheme): LayoutRes
     const my = axisY;
     const r  = milestoneR;
 
-    elements.push({ type: 'path', d: `M ${mx} ${my - r} L ${mx + r} ${my} L ${mx} ${my + r} L ${mx - r} ${my} Z`, fill: palette.primary, stroke: palette.background, strokeWidth: 1 });
-    elements.push({ type: 'text', content: ms.date, position: { x: mx, y: my - r - 6 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted, anchor: 'middle' });
-    elements.push({ type: 'text', content: ms.label, position: { x: mx, y: my + r + typography.baseFontSize + 2 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fill: palette.text, anchor: 'middle' });
+    elements.push(p.path(`M ${mx} ${my - r} L ${mx + r} ${my} L ${mx} ${my + r} L ${mx - r} ${my} Z`, palette.background, 1, { fill: palette.primary }));
+    elements.push(p.text(ms.date, mx, my - r - 6, typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));
+    elements.push(p.text(ms.label, mx, my + r + typography.baseFontSize + 2, typography.baseFontSize, palette.text, { anchor: 'middle' }));
   }
 
   // ── ViewBox ───────────────────────────────────────────────────────────────
   const numTracks = Math.max(trackOrder.length, 1);
   const totalH = axisY + milestoneR + trackPad + numTracks * (trackHeight + trackPad) + typography.baseFontSize + 20 + margin;
 
-  let scene: Scene = {
+  const scene: Scene = applyOverlays({
     viewBox: { x: 0, y: 0, width: axisRight + margin, height: totalH },
     background: palette.background,
     elements,
-  };
-
-  // ── Overlays ──────────────────────────────────────────────────────────────
-  if (ir.overlays && ir.overlays.length > 0) {
-    const compiled = compileOverlays(ir.overlays);
-    const { elements: overlayEls, viewBox } = layoutOverlays(compiled, scene, theme);
-    scene = { ...scene, elements: [...scene.elements, ...overlayEls], viewBox };
-  }
+  }, ir.overlays, theme);
 
   return { scene, anchors: {} };
 }
@@ -224,21 +220,28 @@ interface DateMapping {
   range: number;
 }
 
+/** Day-ordinal of a date's period start, or NaN when it isn't a real date. */
+function tryOrdinal(date: string): number {
+  try { const [y, m, d] = coerceLeft(parseIRDate(date)); return dateToOrdinal(y, m, d); }
+  catch { return NaN; }
+}
+
+/**
+ * Map IR dates to the shared day-ordinal axis (days since 2000-01-01). When no
+ * value parses as a date, fall back to a sequential index so plain-label
+ * timelines still lay out left→right.
+ */
 function buildDateMap(dates: string[]): DateMapping {
   const unique = [...new Set(dates)];
-  const nums   = unique.map(parseTimelineDate);
-  const hasNumeric = nums.some(n => !isNaN(n));
+  const ords   = unique.map(tryOrdinal);
+  const valid  = ords.filter(n => !isNaN(n));
 
-  if (hasNumeric) {
-    const validNums = nums.filter(n => !isNaN(n));
-    const min = Math.min(...validNums);
-    const max = Math.max(...validNums);
+  if (valid.length > 0) {
+    const min = Math.min(...valid);
+    const max = Math.max(...valid);
     const range = max - min || 1;
     return {
-      toNum: (d) => {
-        const n = parseTimelineDate(d);
-        return isNaN(n) ? min : n;
-      },
+      toNum: (d) => { const n = tryOrdinal(d); return isNaN(n) ? min : n; },
       min, max, range,
     };
   }
@@ -251,32 +254,6 @@ function buildDateMap(dates: string[]): DateMapping {
     max: unique.length - 1,
     range: unique.length,
   };
-}
-
-function parseTimelineDate(date: string): number {
-  // "2025"      → 2025.0
-  // "2025-01"   → 2025 + 0/12
-  // "2025-Q1"   → 2025 + 0/4
-  // "2025-H1"   → 2025 + 0/2
-  const year = date.match(/^(\d{4})$/);
-  if (year) return parseInt(year[1]!);
-
-  const ym = date.match(/^(\d{4})-(\d{2})$/);
-  if (ym) return parseInt(ym[1]!) + (parseInt(ym[2]!) - 1) / 12;
-
-  const yq = date.match(/^(\d{4})-Q([1-4])$/);
-  if (yq) return parseInt(yq[1]!) + (parseInt(yq[2]!) - 1) / 4;
-
-  const yh = date.match(/^(\d{4})-H([12])$/);
-  if (yh) return parseInt(yh[1]!) + (parseInt(yh[2]!) - 1) / 2;
-
-  return NaN;
-}
-
-function dateToX(date: string, map: DateMapping, axisLeft: number, axisWidth: number): number {
-  const n = map.toNum(date);
-  if (map.range === 0) return axisLeft;
-  return axisLeft + ((n - map.min) / map.range) * axisWidth;
 }
 
 function activityFill(act: Activity, palette: ResolvedTheme['palette']): string {

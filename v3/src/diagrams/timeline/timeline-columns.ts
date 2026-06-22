@@ -16,12 +16,11 @@
 import type { TimelineDocument, Activity, Milestone, Section } from './ir.js';
 import type { Scene, SceneElement, LayoutResult } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
-import { compileOverlays } from '../../overlay/compiler.js';
-import { layoutOverlays } from '../../overlay/layout.js';
+import { applyOverlays } from '../../overlay/apply.js';
+import { rhuInt } from '../../util/round.js';
+import { pen } from '../../scene/build.js';
 import { wrapText } from '../../text/wrap.js';
-import { parseIRDate, coerceLeft, dateToOrdinal } from '../../time/dates.js';
-
-function rhuInt(v: number): number { return Math.floor(v + 0.5); }
+import { startOrdinal, formatDate } from '../../time/dates.js';
 
 interface SectionColors {
   header: string; period: string; event: string;
@@ -39,8 +38,6 @@ const SECTION_PALETTE: SectionColors[] = [
   { header: '#2E6098', period: '#1E4878', event: '#D8E8F5', headerText: '#FFFFFF', eventText: '#102840', eventBorder: '#90B8D8' },
 ];
 
-const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 const SECTION_HDR_H = 38;
 const PERIOD_HDR_H  = 30;
 const EVENT_BOX_H   = 38;
@@ -50,22 +47,8 @@ const COL_PAD_H     = 5;
 const MIN_COL_W     = 120;
 const MARGIN        = 32;
 
-function leftOrd(date: string): number {
-  try { const [y, m, d] = coerceLeft(parseIRDate(date)); return dateToOrdinal(y, m, d); } catch { return 0; }
-}
-function fmtPeriod(date: string): string {
-  try {
-    const p = parseIRDate(date);
-    switch (p.precision) {
-      case 'day':     return `${MONTH_ABBR[(p.month ?? 1) - 1]} ${p.day}`;
-      case 'month':   return `${MONTH_ABBR[(p.month ?? 1) - 1]} ${p.year}`;
-      case 'quarter': return `Q${p.quarter} ${p.year}`;
-      case 'half':    return `H${p.half} ${p.year}`;
-      case 'year':    return String(p.year);
-    }
-  } catch { /* noop */ }
-  return date;
-}
+const leftOrd = startOrdinal;
+const fmtPeriod = (date: string): string => formatDate(date, 'axis');
 
 interface Period { date: string; ord: number; events: string[]; }
 interface Sec    { label: string; startOrd: number; periods: Period[]; }
@@ -121,15 +104,11 @@ export function layoutTimelineColumns(ir: TimelineDocument, theme: ResolvedTheme
   const canvasH         = rhuInt(axisLineY + eventAreaH + MARGIN);
 
   const elements: SceneElement[] = [];
+  const p = pen(theme);
 
   // ── Title ─────────────────────────────────────────────────────────────────
   if (ir.metadata.title) {
-    elements.push({
-      type: 'text', content: ir.metadata.title,
-      position: { x: rhuInt(canvasW / 2), y: MARGIN + typography.titleFontSize },
-      fontSize: typography.titleFontSize, fontFamily: typography.fontFamily,
-      fontWeight: 'bold', fill: palette.text, anchor: 'middle',
-    });
+    elements.push(p.text(ir.metadata.title, rhuInt(canvasW / 2), MARGIN + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
   }
 
   // ── Section bands + period columns + events ─────────────────────────────────
@@ -140,56 +119,29 @@ export function layoutTimelineColumns(ir: TimelineDocument, theme: ResolvedTheme
     const sectionW = rhuInt(colW * section.periods.length);
 
     // Section header band
-    elements.push({
-      type: 'rect', bounds: { x: cursorX, y: sectionBandTopY, width: sectionW, height: SECTION_HDR_H },
-      fill: colors.header, stroke: colors.header, strokeWidth: 0,
-    });
-    elements.push({
-      type: 'text', content: section.label,
-      position: { x: cursorX + sectionW / 2, y: sectionBandTopY + SECTION_HDR_H / 2 + eventFont * 0.35 },
-      fontSize: typography.baseFontSize, fontFamily: typography.fontFamily,
-      fontWeight: 'bold', fill: colors.headerText, anchor: 'middle',
-    });
+    elements.push(p.rect({ x: cursorX, y: sectionBandTopY, width: sectionW, height: SECTION_HDR_H }, colors.header, colors.header, 0));
+    elements.push(p.text(section.label, cursorX + sectionW / 2, sectionBandTopY + SECTION_HDR_H / 2 + eventFont * 0.35, typography.baseFontSize, colors.headerText, { weight: 'bold', anchor: 'middle' }));
 
     // Period columns
     section.periods.forEach((period, pi) => {
       const px = cursorX + pi * colW;
 
       // Period header box (touches neighbours; thin divider drawn between columns)
-      elements.push({
-        type: 'rect', bounds: { x: px, y: periodHdrTopY, width: colW, height: PERIOD_HDR_H },
-        fill: colors.period, stroke: colors.period, strokeWidth: 0,
-      });
+      elements.push(p.rect({ x: px, y: periodHdrTopY, width: colW, height: PERIOD_HDR_H }, colors.period, colors.period, 0));
       if (pi > 0) {
-        elements.push({
-          type: 'path', d: `M ${px} ${periodHdrTopY} L ${px} ${periodHdrTopY + PERIOD_HDR_H}`,
-          stroke: colors.header, strokeWidth: 1,
-        });
+        elements.push(p.path(`M ${px} ${periodHdrTopY} L ${px} ${periodHdrTopY + PERIOD_HDR_H}`, colors.header, 1));
       }
-      elements.push({
-        type: 'text', content: fmtPeriod(period.date),
-        position: { x: px + colW / 2, y: periodHdrTopY + PERIOD_HDR_H / 2 + eventFont * 0.35 },
-        fontSize: eventFont, fontFamily: typography.fontFamily,
-        fontWeight: 'bold', fill: colors.headerText, anchor: 'middle',
-      });
+      elements.push(p.text(fmtPeriod(period.date), px + colW / 2, periodHdrTopY + PERIOD_HDR_H / 2 + eventFont * 0.35, eventFont, colors.headerText, { weight: 'bold', anchor: 'middle' }));
 
       // Event boxes
       period.events.forEach((label, ei) => {
         const ey = eventsTopY + ei * (EVENT_BOX_H + EVENT_BOX_GAP);
-        elements.push({
-          type: 'rect', bounds: { x: px + COL_PAD_H, y: ey, width: colW - 2 * COL_PAD_H, height: EVENT_BOX_H },
-          fill: colors.event, stroke: colors.eventBorder, strokeWidth: 1, rx: 5,
-        });
+        elements.push(p.rect({ x: px + COL_PAD_H, y: ey, width: colW - 2 * COL_PAD_H, height: EVENT_BOX_H }, colors.event, colors.eventBorder, 1, { rx: 5 }));
         const lines = wrapText(label, eventFont, colW - 2 * COL_PAD_H - 8, 2).lines;
         const lineH = rhuInt(eventFont * 1.25);
         const startY = ey + EVENT_BOX_H / 2 - ((lines.length - 1) * lineH) / 2 + eventFont * 0.35;
         lines.forEach((ln, li) => {
-          elements.push({
-            type: 'text', content: ln,
-            position: { x: px + colW / 2, y: startY + li * lineH },
-            fontSize: eventFont, fontFamily: typography.fontFamily,
-            fill: colors.eventText, anchor: 'middle',
-          });
+          elements.push(p.text(ln, px + colW / 2, startY + li * lineH, eventFont, colors.eventText, { anchor: 'middle' }));
         });
       });
     });
@@ -199,27 +151,14 @@ export function layoutTimelineColumns(ir: TimelineDocument, theme: ResolvedTheme
 
   // ── Axis line with arrowhead ────────────────────────────────────────────────
   const axisEndX = cursorX;
-  elements.push({
-    type: 'path', d: `M ${MARGIN} ${axisLineY} L ${axisEndX} ${axisLineY}`,
-    stroke: palette.textMuted, strokeWidth: 2,
-  });
-  elements.push({
-    type: 'path',
-    d: `M ${axisEndX} ${axisLineY} L ${axisEndX - 8} ${axisLineY - 4} L ${axisEndX - 8} ${axisLineY + 4} Z`,
-    fill: palette.textMuted, stroke: palette.textMuted, strokeWidth: 0,
-  });
+  elements.push(p.path(`M ${MARGIN} ${axisLineY} L ${axisEndX} ${axisLineY}`, palette.textMuted, 2));
+  elements.push(p.path(`M ${axisEndX} ${axisLineY} L ${axisEndX - 8} ${axisLineY - 4} L ${axisEndX - 8} ${axisLineY + 4} Z`, palette.textMuted, 0, { fill: palette.textMuted }));
 
-  let scene: Scene = {
+  const scene: Scene = applyOverlays({
     viewBox: { x: 0, y: 0, width: canvasW, height: canvasH },
     background: palette.background,
     elements,
-  };
-
-  if (ir.overlays && ir.overlays.length > 0) {
-    const compiled = compileOverlays(ir.overlays);
-    const { elements: overlayEls, viewBox } = layoutOverlays(compiled, scene, theme);
-    scene = { ...scene, elements: [...scene.elements, ...overlayEls], viewBox };
-  }
+  }, ir.overlays, theme);
 
   return { scene, anchors: {} };
 }

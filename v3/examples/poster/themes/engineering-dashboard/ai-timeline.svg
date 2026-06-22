@@ -40,7 +40,6 @@
   <g transform="translate(62.3, 202) scale(1)">
     <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" font-weight="bold">Q3 Goals</text>
     <path d="M 44 118 L 224.6 118" stroke="#C0C4DF" stroke-width="2" fill="none" />
-    <text x="24" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A">Default</text>
     <rect x="44" y="136" width="60" height="32" fill="#FFFFFF" stroke="#C0C4DF" stroke-width="1" rx="4" />
     <text x="74" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" text-anchor="middle">API v2</text>
     <rect x="112" y="136" width="88.6" height="32" fill="#FFFFFF" stroke="#C0C4DF" stroke-width="1" rx="4" />

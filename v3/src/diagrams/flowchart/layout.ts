@@ -4,8 +4,8 @@ import type { ResolvedTheme } from '../../contracts/index.js';
 import type { CardinalSide } from '../../contracts/index.js';
 import { getRouter } from '../../routing/registry.js';
 import { defaultRouter } from '../../routing/router.js';
-import { compileOverlays } from '../../overlay/compiler.js';
-import { layoutOverlays } from '../../overlay/layout.js';
+import { applyOverlays } from '../../overlay/apply.js';
+import { pen } from '../../scene/build.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -17,6 +17,7 @@ const ARROW_MARKER_ID = 'triton-arrow';
 
 export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult {
   const { spacing, palette, typography, edges: edgeTheme } = theme;
+  const p = pen(theme);
   const margin = spacing.diagramMargin;
   const isLR = ir.direction === 'LR' || ir.direction === 'RL';
   const isReverse = ir.direction === 'RL' || ir.direction === 'BT';
@@ -62,15 +63,7 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
   // Title
   if (ir.metadata.title) {
-    elements.push({
-      type: 'text',
-      content: ir.metadata.title,
-      position: { x: margin, y: margin - 8 },
-      fontSize: typography.titleFontSize,
-      fontFamily: typography.fontFamily,
-      fontWeight: 'bold',
-      fill: palette.text,
-    });
+    elements.push(p.text(ir.metadata.title, margin, margin - 8, typography.titleFontSize, palette.text, { weight: 'bold' }));
   }
 
   // Subgraph backgrounds (drawn first — behind nodes)
@@ -84,8 +77,8 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     const minY = Math.min(...sgRects.map(r => r.y)) - pad - 20;
     const maxX = Math.max(...sgRects.map(r => r.x + r.width))  + pad;
     const maxY = Math.max(...sgRects.map(r => r.y + r.height)) + pad;
-    elements.push({ type: 'rect', bounds: { x: minX, y: minY, width: maxX - minX, height: maxY - minY }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx: 6, opacity: 0.6 });
-    elements.push({ type: 'text', content: sg.label, position: { x: minX + 8, y: minY + 14 }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted });
+    elements.push(p.rect({ x: minX, y: minY, width: maxX - minX, height: maxY - minY }, palette.surface, palette.border, 1, { rx: 6, opacity: 0.6 }));
+    elements.push(p.text(sg.label, minX + 8, minY + 14, typography.smallFontSize, palette.textMuted));
   }
 
   // Edges (drawn before nodes so nodes appear on top)
@@ -111,26 +104,14 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
     const dash = edge.style === 'dotted' ? '6 3' : edge.style === 'dashed' ? '8 4' : undefined;
 
-    elements.push({
-      type: 'path',
-      d: route.path,
-      stroke: edge.kind === 'async' ? palette.textMuted : palette.primary,
-      strokeWidth: edgeTheme.strokeWidth,
-      ...(dash !== undefined ? { strokeDasharray: dash } : {}),
+    elements.push(p.path(route.path, edge.kind === 'async' ? palette.textMuted : palette.primary, edgeTheme.strokeWidth, {
+      ...(dash !== undefined ? { dash } : {}),
       markerEnd: ARROW_MARKER_ID,
-    });
+    }));
 
     if (edge.label) {
       const lp = route.labelPosition;
-      elements.push({
-        type: 'text',
-        content: edge.label,
-        position: { x: lp.x, y: lp.y - 4 },
-        fontSize: edgeTheme.labelFontSize,
-        fontFamily: typography.fontFamily,
-        fill: palette.textMuted,
-        anchor: 'middle',
-      });
+      elements.push(p.text(edge.label, lp.x, lp.y - 4, edgeTheme.labelFontSize, palette.textMuted, { anchor: 'middle' }));
     }
   }
 
@@ -144,17 +125,9 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     const stroke = palette.border;
 
     nodeElements.push(...renderNodeShape(node, r, fill, stroke, edgeTheme.strokeWidth));
-    nodeElements.push({
-      type: 'text',
-      content: node.label,
-      position: { x: r.x + NODE_W / 2, y: r.y + NODE_H / 2 + typography.baseFontSize * 0.35 },
-      fontSize: typography.baseFontSize,
-      fontFamily: typography.fontFamily,
-      fill: palette.text,
-      anchor: 'middle',
-    });
+    nodeElements.push(p.text(node.label, r.x + NODE_W / 2, r.y + NODE_H / 2 + typography.baseFontSize * 0.35, typography.baseFontSize, palette.text, { anchor: 'middle' }));
 
-    elements.push({ type: 'group', id: node.id, children: nodeElements });
+    elements.push(p.group(nodeElements, { id: node.id }));
   }
 
   // ── Compute viewBox ────────────────────────────────────────────────────────
@@ -171,11 +144,7 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   };
 
   // ── Overlays ───────────────────────────────────────────────────────────────
-  if (ir.overlays && ir.overlays.length > 0) {
-    const compiled = compileOverlays(ir.overlays);
-    const { elements: overlayEls, viewBox } = layoutOverlays(compiled, scene, theme);
-    scene = { ...scene, elements: [...scene.elements, ...overlayEls], viewBox };
-  }
+  scene = applyOverlays(scene, ir.overlays, theme);
 
   // ── Build anchor registry ──────────────────────────────────────────────────
   const anchors: Record<string, NodeAnchor> = {};

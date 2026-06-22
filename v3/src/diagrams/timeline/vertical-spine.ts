@@ -15,20 +15,17 @@
  * Determinism: round-half-up coordinates, stable (ordinal, id) sort, no clock.
  */
 
-import type { TimelineDocument, Activity, Milestone } from './ir.js';
+import type { TimelineDocument } from './ir.js';
 import type { Scene, SceneElement, LayoutResult } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
-import { compileOverlays } from '../../overlay/compiler.js';
-import { layoutOverlays } from '../../overlay/layout.js';
+import { applyOverlays } from '../../overlay/apply.js';
+import { rhuInt } from '../../util/round.js';
+import { pen } from '../../scene/build.js';
 import { measureText } from '../../text/metrics.js';
 import { wrapText } from '../../text/wrap.js';
-import {
-  parseIRDate, coerceLeft, dateToOrdinal, formatMilestoneDate,
-} from '../../time/dates.js';
-
-const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-function rhuInt(v: number): number { return Math.floor(v + 0.5); }
+import { formatDate } from '../../time/dates.js';
+import { categoricalHue } from '../../palette/categorical.js';
+import { collectEntries } from './shared.js';
 
 interface SpineEntry {
   id: string;
@@ -41,68 +38,28 @@ interface SpineEntry {
   dotColor: string;
 }
 
-/** Distinct hues for a narrative spine (each entry visually separable). */
-const CATEGORICAL = [
-  '#7C3AED', '#0EA5A8', '#D97706', '#5B4FCF',
-  '#DB2777', '#2563EB', '#16A34A', '#CA8A04',
-];
-
-/** Day-ordinal of an IR date's period-start (for vertical ordering). */
-function startOrd(date: string): number {
-  try {
-    const [y, m, d] = coerceLeft(parseIRDate(date));
-    return dateToOrdinal(y, m, d);
-  } catch {
-    return 0;
-  }
-}
-
-/** Human date string, precision-aware. */
-function formatEntryDate(date: string): string {
-  try {
-    const p = parseIRDate(date);
-    switch (p.precision) {
-      case 'day':     return formatMilestoneDate(p.year, p.month ?? 1, p.day ?? 1);
-      case 'month':   return `${MONTH_ABBR[(p.month ?? 1) - 1] ?? ''} ${p.year}`;
-      case 'quarter': return `Q${p.quarter ?? ''} ${p.year}`;
-      case 'half':    return `H${p.half ?? ''} ${p.year}`;
-      case 'year':    return String(p.year);
-    }
-  } catch { /* fall through */ }
-  return date;
-}
+/** Human date string, precision-aware (milestone style: full day dates). */
+const formatEntryDate = (date: string): string => formatDate(date, 'full');
 
 export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
   const margin = spacing.diagramMargin;
 
-  // ── Build unified entry list ──────────────────────────────────────────────
-  const entries: SpineEntry[] = [];
-  for (const m of ir.milestones as readonly Milestone[]) {
-    entries.push({
-      id: m.id, label: m.label, dateStr: formatEntryDate(m.date),
-      ord: startOrd(m.date),
-      ...(m.description ? { description: m.description } : {}),
-      type: 'milestone', dotColor: palette.primary,
-    });
-  }
-  for (const a of ir.activities as readonly Activity[]) {
-    entries.push({
-      id: a.id, label: a.label, dateStr: formatEntryDate(a.start),
-      ord: startOrd(a.start),
-      ...(a.description ? { description: a.description } : {}),
-      ...(a.status ? { statusHint: a.status } : {}),
-      type: 'activity', dotColor: palette.primary,
-    });
-  }
-  entries.sort((p, q) => (p.ord - q.ord) || (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
+  // ── Build unified entry list (sorted by ordinal, id) ──────────────────────
+  const entries: SpineEntry[] = collectEntries(ir).map(e => ({
+    id: e.id, label: e.label, dateStr: formatEntryDate(e.date), ord: e.ord,
+    ...(e.description ? { description: e.description } : {}),
+    type: e.kind,
+    ...(e.status ? { statusHint: e.status } : {}),
+    dotColor: palette.primary,
+  }));
 
   // Assign colours after ordering: active/blocked keep semantic colour,
   // everything else cycles a categorical palette so each entry is distinct.
   entries.forEach((e, i) => {
     e.dotColor = e.statusHint === 'active'  ? palette.primary
                : e.statusHint === 'blocked' ? palette.error
-               : CATEGORICAL[i % CATEGORICAL.length]!;
+               : categoricalHue(i);
   });
 
   // ── Geometry constants ────────────────────────────────────────────────────
@@ -146,22 +103,13 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
   });
 
   const elements: SceneElement[] = [];
+  const p = pen(theme);
 
   // ── Title ─────────────────────────────────────────────────────────────────
   if (ir.metadata.title) {
-    elements.push({
-      type: 'text', content: ir.metadata.title,
-      position: { x: rhuInt(totalW / 2), y: margin + typography.titleFontSize },
-      fontSize: typography.titleFontSize, fontFamily: typography.fontFamily,
-      fontWeight: 'bold', fill: palette.text, anchor: 'middle',
-    });
+    elements.push(p.text(ir.metadata.title, rhuInt(totalW / 2), margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
     if (subtitle) {
-      elements.push({
-        type: 'text', content: subtitle,
-        position: { x: rhuInt(totalW / 2), y: margin + typography.titleFontSize + typography.baseFontSize + 8 },
-        fontSize: typography.baseFontSize, fontFamily: typography.fontFamily,
-        fill: palette.textMuted, anchor: 'middle',
-      });
+      elements.push(p.text(subtitle, rhuInt(totalW / 2), margin + typography.titleFontSize + typography.baseFontSize + 8, typography.baseFontSize, palette.textMuted, { anchor: 'middle' }));
     }
   }
 
@@ -175,50 +123,27 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
 
     // Connector (spine → card)
     const connX2 = onRight ? rightCardL : leftCardR;
-    elements.push({
-      type: 'path', d: `M ${spineX} ${nodeY} L ${connX2} ${nodeY}`,
-      stroke: palette.border, strokeWidth: 1.5,
-    });
+    elements.push(p.path(`M ${spineX} ${nodeY} L ${connX2} ${nodeY}`, palette.border, 1.5));
 
     // Card background
-    elements.push({
-      type: 'rect',
-      bounds: { x: cardX, y: cardY, width: cardW, height: e.cardH },
-      fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx: 8,
-    });
+    elements.push(p.rect({ x: cardX, y: cardY, width: cardW, height: e.cardH }, palette.surface, palette.border, 1, { rx: 8 }));
     // Status accent stripe on the spine-facing edge
     const stripeX = onRight ? cardX : cardX + cardW - 3;
-    elements.push({
-      type: 'rect',
-      bounds: { x: stripeX, y: cardY, width: 3, height: e.cardH },
-      fill: e.dotColor, stroke: e.dotColor, strokeWidth: 0,
-    });
+    elements.push(p.rect({ x: stripeX, y: cardY, width: 3, height: e.cardH }, e.dotColor, e.dotColor, 0));
 
     // Card text
     const textX = cardX + cardPad;
     let ty = cardY + cardPad + dateSize;
-    elements.push({
-      type: 'text', content: e.dateStr, position: { x: textX, y: ty },
-      fontSize: dateSize, fontFamily: typography.fontFamily,
-      fontWeight: 'bold', fill: e.dotColor, anchor: 'start',
-    });
+    elements.push(p.text(e.dateStr, textX, ty, dateSize, e.dotColor, { weight: 'bold', anchor: 'start' }));
     ty += 4 + titleLH - (titleLH - titleSize);
     for (const line of e.titleLines) {
-      elements.push({
-        type: 'text', content: line, position: { x: textX, y: ty },
-        fontSize: titleSize, fontFamily: typography.fontFamily,
-        fontWeight: 'bold', fill: palette.text, anchor: 'start',
-      });
+      elements.push(p.text(line, textX, ty, titleSize, palette.text, { weight: 'bold', anchor: 'start' }));
       ty += titleLH;
     }
     if (e.descLines.length) {
       ty += 2;
       for (const line of e.descLines) {
-        elements.push({
-          type: 'text', content: line, position: { x: textX, y: ty },
-          fontSize: descSize, fontFamily: typography.fontFamily,
-          fill: palette.textMuted, anchor: 'start',
-        });
+        elements.push(p.text(line, textX, ty, descSize, palette.textMuted, { anchor: 'start' }));
         ty += lineLH;
       }
     }
@@ -226,16 +151,9 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
     // Node marker on spine (diamond for milestone, circle for activity)
     if (e.type === 'milestone') {
       const r = dotR + 1;
-      elements.push({
-        type: 'path',
-        d: `M ${spineX} ${nodeY - r} L ${spineX + r} ${nodeY} L ${spineX} ${nodeY + r} L ${spineX - r} ${nodeY} Z`,
-        fill: e.dotColor, stroke: palette.background, strokeWidth: 2,
-      });
+      elements.push(p.path(`M ${spineX} ${nodeY - r} L ${spineX + r} ${nodeY} L ${spineX} ${nodeY + r} L ${spineX - r} ${nodeY} Z`, palette.background, 2, { fill: e.dotColor }));
     } else {
-      elements.push({
-        type: 'circle', center: { x: spineX, y: nodeY }, radius: dotR,
-        fill: e.dotColor, stroke: palette.background, strokeWidth: 2,
-      });
+      elements.push(p.circle({ x: spineX, y: nodeY }, dotR, e.dotColor, palette.background, 2));
     }
 
     lastNodeY = nodeY;
@@ -243,25 +161,15 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
   });
 
   // ── Spine line (drawn under everything via unshift) ───────────────────────
-  elements.unshift({
-    type: 'path', d: `M ${spineX} ${startY} L ${spineX} ${lastNodeY}`,
-    stroke: palette.border, strokeWidth: 2.5,
-  });
+  elements.unshift(p.path(`M ${spineX} ${startY} L ${spineX} ${lastNodeY}`, palette.border, 2.5));
 
   const totalH = rhuInt(y - rowGap + margin);
 
-  let scene: Scene = {
+  const scene: Scene = applyOverlays({
     viewBox: { x: 0, y: 0, width: totalW, height: totalH },
     background: palette.background,
     elements,
-  };
-
-  // ── Overlays ──────────────────────────────────────────────────────────────
-  if (ir.overlays && ir.overlays.length > 0) {
-    const compiled = compileOverlays(ir.overlays);
-    const { elements: overlayEls, viewBox } = layoutOverlays(compiled, scene, theme);
-    scene = { ...scene, elements: [...scene.elements, ...overlayEls], viewBox };
-  }
+  }, ir.overlays, theme);
 
   return { scene, anchors: {} };
 }

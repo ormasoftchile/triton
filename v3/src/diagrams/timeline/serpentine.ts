@@ -14,15 +14,13 @@
  * Determinism: round-half-up, stable (ordinal, id) sort, no clock.
  */
 
-import type { TimelineDocument, Activity, Milestone } from './ir.js';
+import type { TimelineDocument } from './ir.js';
 import type { Scene, SceneElement, LayoutResult } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
-import { compileOverlays } from '../../overlay/compiler.js';
-import { layoutOverlays } from '../../overlay/layout.js';
-import { parseIRDate, coerceLeft, dateToOrdinal } from '../../time/dates.js';
-
-function rhu(v: number, d = 2): number { const f = 10 ** d; return Math.floor(v * f + 0.5) / f; }
-function rhuInt(v: number): number { return Math.floor(v + 0.5); }
+import { applyOverlays } from '../../overlay/apply.js';
+import { rhu, rhuInt } from '../../util/round.js';
+import { pen } from '../../scene/build.js';
+import { statusColor, collectEntries } from './shared.js';
 
 interface Geo {
   xl: number; xr: number; pathStartY: number;
@@ -76,34 +74,17 @@ function buildPathD(geo: Geo): string {
   return parts.join(' ');
 }
 
-function startOrd(date: string): number {
-  try { const [y, m, d] = coerceLeft(parseIRDate(date)); return dateToOrdinal(y, m, d); }
-  catch { return 0; }
-}
-
 interface SerpEntry { id: string; label: string; ord: number; color: string; }
 
 export function layoutSerpentine(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography } = theme;
-
-  const statusColor = (s?: string): string => {
-    switch (s) {
-      case 'done':    return palette.success;
-      case 'active':  return palette.primary;
-      case 'blocked': return palette.error;
-      default:        return palette.secondary;
-    }
-  };
+  const p = pen(theme);
 
   // ── Entries ────────────────────────────────────────────────────────────────
-  const entries: SerpEntry[] = [];
-  for (const m of ir.milestones as readonly Milestone[]) {
-    entries.push({ id: m.id, label: m.label, ord: startOrd(m.date), color: palette.primary });
-  }
-  for (const a of ir.activities as readonly Activity[]) {
-    entries.push({ id: a.id, label: a.label, ord: startOrd(a.start), color: statusColor(a.status) });
-  }
-  entries.sort((p, q) => (p.ord - q.ord) || (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
+  const entries: SerpEntry[] = collectEntries(ir).map(e => ({
+    id: e.id, label: e.label, ord: e.ord,
+    color: e.kind === 'milestone' ? palette.primary : statusColor(palette, e.status),
+  }));
   const n = entries.length;
 
   // ── Geometry ─────────────────────────────────────────────────────────────
@@ -133,12 +114,7 @@ export function layoutSerpentine(ir: TimelineDocument, theme: ResolvedTheme): La
 
   // ── Title ─────────────────────────────────────────────────────────────────
   if (ir.metadata.title) {
-    elements.push({
-      type: 'text', content: ir.metadata.title,
-      position: { x: rhu(W / 2), y: rhuInt(typography.titleFontSize + 8) },
-      fontSize: typography.titleFontSize, fontFamily: typography.fontFamily,
-      fontWeight: 'bold', fill: palette.text, anchor: 'middle',
-    });
+    elements.push(p.text(ir.metadata.title, rhu(W / 2), rhuInt(typography.titleFontSize + 8), typography.titleFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
   }
 
   // ── Track ─────────────────────────────────────────────────────────────────
@@ -146,7 +122,7 @@ export function layoutSerpentine(ir: TimelineDocument, theme: ResolvedTheme): La
   const pathStart = pathPointAtS(0, geo);
   const pathEnd   = pathPointAtS(totalLength, geo);
 
-  elements.push({ type: 'path', d: pathD, fill: 'none', stroke: palette.primary, strokeWidth: trackWidth });
+  elements.push(p.path(pathD, palette.primary, trackWidth, { fill: 'none' }));
 
   // ── Nodes + labels ────────────────────────────────────────────────────────
   function rowForS(s: number): number {
@@ -165,62 +141,36 @@ export function layoutSerpentine(ir: TimelineDocument, theme: ResolvedTheme): La
     const pt = pathPointAtS(s, geo);
     const e  = entries[i]!;
 
-    elements.push({
-      type: 'circle', center: { x: pt.x, y: pt.y }, radius: nodeR,
-      fill: palette.background, stroke: e.color, strokeWidth: 3,
-    });
+    elements.push(p.circle({ x: pt.x, y: pt.y }, nodeR, palette.background, e.color, 3));
 
     const isEvenRow = rowForS(s) % 2 === 0;
     const labelY = isEvenRow
       ? rhu(pt.y + nodeR + 6 + labelFontSize * 0.9)
       : rhu(pt.y - nodeR - 8);
     const labelText = e.label.length > 18 ? `${e.label.slice(0, 16)}…` : e.label;
-    elements.push({
-      type: 'text', content: labelText, position: { x: pt.x, y: labelY },
-      fontSize: labelFontSize, fontFamily: typography.fontFamily,
-      fill: palette.text, anchor: 'middle',
-    });
+    elements.push(p.text(labelText, pt.x, labelY, labelFontSize, palette.text, { anchor: 'middle' }));
   }
 
   // ── Start cap (play triangle) ─────────────────────────────────────────────
-  elements.push({
-    type: 'circle', center: { x: pathStart.x, y: pathStart.y }, radius: badgeR,
-    fill: palette.primary, stroke: palette.primary, strokeWidth: 2,
-  });
+  elements.push(p.circle({ x: pathStart.x, y: pathStart.y }, badgeR, palette.primary, palette.primary, 2));
   {
     const cx = pathStart.x, cy = pathStart.y, t = badgeR * 0.5;
-    elements.push({
-      type: 'path',
-      d: `M ${rhu(cx - t * 0.5)} ${rhu(cy - t)} L ${rhu(cx + t)} ${rhu(cy)} L ${rhu(cx - t * 0.5)} ${rhu(cy + t)} Z`,
-      fill: palette.background, stroke: palette.background, strokeWidth: 0,
-    });
+    elements.push(p.path(
+      `M ${rhu(cx - t * 0.5)} ${rhu(cy - t)} L ${rhu(cx + t)} ${rhu(cy)} L ${rhu(cx - t * 0.5)} ${rhu(cy + t)} Z`,
+      palette.background, 0, { fill: palette.background },
+    ));
   }
 
   // ── End cap (target / bullseye) ───────────────────────────────────────────
-  elements.push({
-    type: 'circle', center: { x: pathEnd.x, y: pathEnd.y }, radius: badgeR,
-    fill: palette.primary, stroke: palette.primary, strokeWidth: 2,
-  });
-  elements.push({
-    type: 'circle', center: { x: pathEnd.x, y: pathEnd.y }, radius: rhu(badgeR * 0.62),
-    fill: 'none', stroke: palette.background, strokeWidth: 2.5,
-  });
-  elements.push({
-    type: 'circle', center: { x: pathEnd.x, y: pathEnd.y }, radius: rhu(badgeR * 0.28),
-    fill: palette.background, stroke: palette.background, strokeWidth: 0,
-  });
+  elements.push(p.circle({ x: pathEnd.x, y: pathEnd.y }, badgeR, palette.primary, palette.primary, 2));
+  elements.push(p.circle({ x: pathEnd.x, y: pathEnd.y }, rhu(badgeR * 0.62), 'none', palette.background, 2.5));
+  elements.push(p.circle({ x: pathEnd.x, y: pathEnd.y }, rhu(badgeR * 0.28), palette.background, palette.background, 0));
 
-  let scene: Scene = {
+  const scene: Scene = applyOverlays({
     viewBox: { x: 0, y: 0, width: W, height: canvasH },
     background: palette.background,
     elements,
-  };
-
-  if (ir.overlays && ir.overlays.length > 0) {
-    const compiled = compileOverlays(ir.overlays);
-    const { elements: overlayEls, viewBox } = layoutOverlays(compiled, scene, theme);
-    scene = { ...scene, elements: [...scene.elements, ...overlayEls], viewBox };
-  }
+  }, ir.overlays, theme);
 
   return { scene, anchors: {} };
 }

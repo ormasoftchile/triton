@@ -19,10 +19,10 @@
     <path d="M 44 118 L 468 118" stroke="#CBD5E1" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#22C55E33" stroke="#CBD5E1" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#4A90D933" stroke="#CBD5E1" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#EF444433" stroke="#CBD5E1" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#4A90D933" stroke="#CBD5E1" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#EF444433" stroke="#CBD5E1" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#FFFFFF" stroke-width="1" fill="#4A90D9" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Kickoff</text>
@@ -37,10 +37,10 @@
     <path d="M 44 118 L 468 118" stroke="#2A4060" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#2DD4BF33" stroke="#2A4060" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#3A86C833" stroke="#2A4060" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#E0525233" stroke="#2A4060" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#3A86C833" stroke="#2A4060" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#E0525233" stroke="#2A4060" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#0D1B2A" stroke-width="1" fill="#3A86C8" />
     <text x="44" y="104" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#8BAAC8" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Kickoff</text>
@@ -54,10 +54,10 @@
     <path d="M 44 118 L 468 118" stroke="#E5E5E5" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#73737333" stroke="#E5E5E5" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#52525233" stroke="#E5E5E5" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#40404033" stroke="#E5E5E5" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#52525233" stroke="#E5E5E5" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#40404033" stroke="#E5E5E5" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#FFFFFF" stroke-width="1" fill="#525252" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Kickoff</text>
@@ -71,10 +71,10 @@
     <path d="M 44 118 L 468 118" stroke="#D6DEE8" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#1F8A5B33" stroke="#D6DEE8" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#1F497D33" stroke="#D6DEE8" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#DC262633" stroke="#D6DEE8" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#1F497D33" stroke="#D6DEE8" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#DC262633" stroke="#D6DEE8" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#FFFFFF" stroke-width="1" fill="#1F497D" />
     <text x="44" y="104" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#555555" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111" text-anchor="middle">Kickoff</text>
@@ -89,10 +89,10 @@
     <path d="M 44 118 L 468 118" stroke="#E5E7EB" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#10B98133" stroke="#E5E7EB" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111827" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#3B82F633" stroke="#E5E7EB" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111827" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#EF444433" stroke="#E5E7EB" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111827" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#3B82F633" stroke="#E5E7EB" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111827" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#EF444433" stroke="#E5E7EB" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111827" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#FFFFFF" stroke-width="1" fill="#3B82F6" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#6B7280" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111827" text-anchor="middle">Kickoff</text>
@@ -107,10 +107,10 @@
     <path d="M 44 118 L 468 118" stroke="#E2E8F0" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#16A34A33" stroke="#E2E8F0" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#2563EB33" stroke="#E2E8F0" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#DC262633" stroke="#E2E8F0" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#2563EB33" stroke="#E2E8F0" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#DC262633" stroke="#E2E8F0" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#FFFFFF" stroke-width="1" fill="#2563EB" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#6B7280" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Kickoff</text>
@@ -124,10 +124,10 @@
     <path d="M 44 118 L 468 118" stroke="#C0C4DF" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#2D9E6733" stroke="#C0C4DF" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#5B4FCF33" stroke="#C0C4DF" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#E05B5B33" stroke="#C0C4DF" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#5B4FCF33" stroke="#C0C4DF" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#E05B5B33" stroke="#C0C4DF" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#F8F9FF" stroke-width="1" fill="#5B4FCF" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" text-anchor="middle">Kickoff</text>
@@ -142,10 +142,10 @@
     <path d="M 44 118 L 468 118" stroke="#374151" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#2DD4BF33" stroke="#374151" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F9FAFB" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#2DD4BF33" stroke="#374151" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F9FAFB" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#FF4D6D33" stroke="#374151" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F9FAFB" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#2DD4BF33" stroke="#374151" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F9FAFB" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#FF4D6D33" stroke="#374151" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F9FAFB" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#111827" stroke-width="1" fill="#2DD4BF" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9CA3AF" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F9FAFB" text-anchor="middle">Kickoff</text>
@@ -160,10 +160,10 @@
     <path d="M 44 118 L 468 118" stroke="#1C3558" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#3FB95033" stroke="#1C3558" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EDF5" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#4D9AFF33" stroke="#1C3558" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EDF5" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#F8514933" stroke="#1C3558" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EDF5" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#4D9AFF33" stroke="#1C3558" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EDF5" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#F8514933" stroke="#1C3558" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EDF5" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#0A1628" stroke-width="1" fill="#4D9AFF" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#6B8FAF" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EDF5" text-anchor="middle">Kickoff</text>
@@ -177,10 +177,10 @@
     <path d="M 44 118 L 468 118" stroke="#CCCCCC" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#1F8A5B33" stroke="#CCCCCC" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#1F497D33" stroke="#CCCCCC" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#DC262633" stroke="#CCCCCC" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#1F497D33" stroke="#CCCCCC" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#DC262633" stroke="#CCCCCC" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#FFFFFF" stroke-width="1" fill="#1F497D" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#555555" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#111111" text-anchor="middle">Kickoff</text>
@@ -195,10 +195,10 @@
     <path d="M 44 118 L 468 118" stroke="#3A3A5C" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#34D39933" stroke="#3A3A5C" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#22D3EE33" stroke="#3A3A5C" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#EC489933" stroke="#3A3A5C" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#22D3EE33" stroke="#3A3A5C" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#EC489933" stroke="#3A3A5C" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#1A1A2E" stroke-width="1" fill="#22D3EE" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Kickoff</text>
@@ -213,10 +213,10 @@
     <path d="M 44 118 L 468 118" stroke="#1E3A5A" stroke-width="2" fill="none" />
     <rect x="44" y="136" width="158.8" height="32" fill="#00CC8833" stroke="#1E3A5A" stroke-width="1" rx="4" />
     <text x="123.4" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5" text-anchor="middle">Discovery &amp; Design</text>
-    <rect x="202.8" y="136" width="107.86666666666662" height="32" fill="#00D4FF33" stroke="#1E3A5A" stroke-width="1" rx="4" />
-    <text x="256.73333333333335" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5" text-anchor="middle">Build</text>
-    <rect x="310.66666666666663" y="136" width="133.33333333333337" height="32" fill="#FF4D6D33" stroke="#1E3A5A" stroke-width="1" rx="4" />
-    <text x="377.3333333333333" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5" text-anchor="middle">Hardening</text>
+    <rect x="202.8" y="136" width="106.40146520146516" height="32" fill="#00D4FF33" stroke="#1E3A5A" stroke-width="1" rx="4" />
+    <text x="256.0007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5" text-anchor="middle">Build</text>
+    <rect x="309.20146520146517" y="136" width="134.79853479853483" height="32" fill="#FF4D6D33" stroke="#1E3A5A" stroke-width="1" rx="4" />
+    <text x="376.6007326007326" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5" text-anchor="middle">Hardening</text>
     <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#0D1B2A" stroke-width="1" fill="#00D4FF" />
     <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7AACCC" text-anchor="middle">2025-Q1</text>
     <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5" text-anchor="middle">Kickoff</text>
