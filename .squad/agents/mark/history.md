@@ -218,3 +218,7 @@ Three-pass audit:
 ## Learnings
 
 - 2026-06-23 (Wave-4 light realign): Swept 04/13/20/21/25/26 + 30b path stragglers to the corrected thesis. Pattern for LIGHT consistency edits: keep correct concepts (the "two-IR-layer" = Domain IR→Scene IR and the god-IR rejection are BOTH already thesis-consistent — only renamed headings/captions, didn't gut the section), and surgically replace stale tokens — five-families/22-types → family-taxonomy + Triton-native families (no hard counts); multi-backend SVG/Skia/PPTX/PDF + svgBackend/pngBackend → single `renderSVG` + resvg PNG rasterization; `packages/core/src/grammars/*` → real `src/diagrams/<kind>/`, Scene at `src/contracts/scene.ts`, poster at `src/diagrams/poster/`; data-ingestion "source adapters (ADO/GitHub)" → direct YAML/agent authoring. Gate: `grep -ciE "undefined (reference|citation)|multiply.defined" triton.log` = 0; only hbox over/underfull typography warnings remain. PDF 1.29 MiB.
+
+---
+
+**Cross-agent note (Scribe, 2026-06-23):** A VS Code extension now consumes `render()` (which composes IR→Scene→SVG). IR/`DiagramKind` changes propagate to the extension preview and to its planned P3 completion (curated `DiagramKind → string[]` map). The 35-kind `DiagramKind` union in `src/contracts/diagram.ts` is now also an extension-facing surface.

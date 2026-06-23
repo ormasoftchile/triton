@@ -98,34 +98,17 @@ For detailed context from earlier sessions, see `leslie/history-archive.md`.
 
 ## Learnings
 
-### Trace Abstraction — §30b Extension (2026-06-15)
+### Trace Abstraction — §30b Extension (2026-06-15) [summarized 2026-06-23]
 
-**What was added:** New subsection §30b.8 in `design/sections/30b-cross-diagram-links.tex` specifying the `trace` construct: a named, ordered, optionally-typed multi-hop path of cross-diagram links.
-
-**Core design decisions:**
-
-- **trace = link sequence + group record.** A trace with `n` hops desugars at composition time to `n−1` atomic `link`s **plus** a `TraceRecord` (name, type, ordered member list). The `link` primitive is unchanged; `trace` is sugar and grouping metadata.
-
-- **Typed-trace vocabulary confirmed against source.** The requirement-relationship group is the exact `RequirementRelKind` type from `packages/core/src/grammars/requirement/types.ts` (verified against `schema.ts` Zod enum): `satisfies`, `derives`, `verifies`, `refines`, `traces`, `contains`, `copies`. These seven tokens are shared verbatim with the `requirementDiagram` grammar — traceability semantics are uniform whether expressed inside a requirement cell or as a poster-level trace. The presentation-flow group (`calls`, `flowsTo`, `mapsTo`) is poster-layer only and deliberately excluded from `RequirementRelKind`.
-
-- **Per-trace colour from the §12 categorical data palette.** Traces are assigned colours in declaration order from `categorical[0]`, `categorical[1]`, … of the active contract theme (same sub-palette used by chart-family components for series colours). Palette wraps with 20% lightness offset if trace count exceeds palette length. The semantic role palette (diagram internals) and data palette (traces + chart series) are non-colliding within every theme by design.
-
-- **Trace legend auto-generated.** Swatch + name + «type» pill appended below the poster canvas; suppressed by `trace legend: off` frontmatter directive.
-
-- **Three presentation modes specified at design level:** highlight (one trace at full opacity, rest dimmed), dim (any edge hovered, bare links at 60%), filter (only selected trace(s) visible, multiple traces allowed simultaneously). Rendering detail deferred.
-
-- **Precise degradation contract:** one unresolvable hop → warn + render two sub-paths; all unresolvable → warn + skip; duplicate hop (cycle) → warn + loop arc; fewer than 2 resolvable hops → warn + skip. All non-fatal.
-
-- **Three worked examples:** (a) C4 drill-down across four abstraction levels (`calls`); (b) distributed request trace across flowchart + architecture + ER (sequence non-linkable v1, shown as context only); (c) requirements traceability with two `satisfies` traces and legend — the flagship use case.
-
-- **Agent IR type (`TraceRecord`).** Agents assert traceability by constructing `TraceRecord { name, type?, hops: TraceHop[], color? }` and pushing to `PosterDocument.traces`. Supports programmatic query (filter by type), filter-mode activation (`PosterRenderOptions.activeTraces`), and coverage-gap detection (requirements with no `satisfies`-trace origin).
-
-**Design tensions flagged:**
-1. Intra-cell hops within a trace are permitted (warn + loopback arc); bare intra-cell `link` statements remain wholly disallowed — slightly asymmetric but coherent within the path semantics.
-2. Vocabulary boundary: presentation-flow types are poster-layer only, not added to `RequirementRelKind` — right boundary; domain grammars should define their own vocabulary.
-3. Typed trace with no matching grammar cell is valid (type is presentational metadata at poster level; no semantic validation of origin node kind).
-
-**Artefacts:** `design/sections/30b-cross-diagram-links.tex` extended; `design/main.pdf` clean (exit 0, 2026-06-15); decision note at `.squad/decisions/inbox/leslie-trace-abstraction-spec.md`.
+Specified the `trace` construct (§30b.8): a named, ordered, optionally-typed multi-hop cross-diagram path. Key points:
+- **Desugaring:** `n` hops → `n−1` atomic `link`s + a `TraceRecord` (name, type, ordered members). `link` primitive unchanged; `trace` is sugar + grouping.
+- **Typed vocab:** reuses `RequirementRelKind` verbatim (`satisfies/derives/verifies/refines/traces/contains/copies`) from `src/grammars/requirement/types.ts`; presentation-flow group (`calls/flowsTo/mapsTo`) is poster-layer only, NOT in `RequirementRelKind`.
+- **Colour:** per-trace from §12 categorical data palette (declaration order, 20% lightness wrap). Role palette vs data palette non-colliding by design. Auto legend (swatch+name+«type» pill), suppressible via `trace legend: off`.
+- **3 presentation modes:** highlight / dim / filter (render detail deferred).
+- **Degradation (all non-fatal):** 1 bad hop → 2 sub-paths; all bad → skip; cycle → loop arc; <2 resolvable → skip.
+- **Agent IR:** `TraceRecord { name, type?, hops, color? }` pushed to `PosterDocument.traces`; supports query-by-type, filter-mode, coverage-gap detection.
+- Flagship example = requirements traceability with `satisfies` traces + legend.
+- Artefacts: `design/sections/30b-cross-diagram-links.tex`; clean PDF. Full decision in decisions.md.
 
 ---
 
@@ -144,3 +127,23 @@ For detailed context from earlier sessions, see `leslie/history-archive.md`.
 - 2026-06-23 (Wave-3 reviewer gate): Resolved all 4 dangling \ref in design/ — `principle:minimal-clutter` (18-aesthetics), `sec:family-nodelink`/`sec:corpus-comparison-matrix`/`sec:graph-grammar` (25-flow-grammar). None had a surviving target (the "Graph grammar"/"Comparison grammar"/"node-link family" sections never existed in the realigned doc), so the fix was rewrite-to-drop, except family-nodelink which repointed to `sec:family-taxonomy`. Lesson: when a ref points at a renamed *concept* not a moved section, dropping the clause is cleaner than forcing a repoint.
 - 2026-06-23 BUILD: `grep -ciE "undefined (reference|citation)|multiply.defined" triton.log` is the authoritative gate (returns 0 when clean). tectonic reruns BibTeX+TeX internally in one invocation. BibTeX gotcha: `@online`/`@misc` text inside a `%` comment in a .bib file still triggers "expecting { or (" errors — BibTeX ignores `%` and scans for `@`. Neutralize the `@` in comments. Also `@inproceedings` with both `volume` and `number` → style warning; drop `number`.
 - 2026-06-23 SCOPE DISCIPLINE: The grammar-spec group (04,13,20,21,25,26) was NOT in Wave-2 and still carries the old multi-backend (Skia/PPTX/PDF/Canvas) + "five families/22 types" + monorepo-path framing. As reviewer I flagged these for re-work (Mark/Barbara) rather than rewriting — reviewer-lockout. Verdict in .squad/decisions/inbox/leslie-realign-review.md.
+
+### VS Code Extension Plan (2026-06-23) — `design/extension-plan.md`
+
+**Repo location DECISION:** same-repo-first, as an `extension/` **satellite** with its own `package.json` but deliberately **NOT** a `pnpm-workspace.yaml` member. `pnpm-workspace.yaml` currently has NO `packages:` field (only `allowBuilds: esbuild: true`) — so the repo is a single-package repo, not a real workspace. Keeping the extension out of the workspace preserves the flat shape the user fought for (v3/ removal); it's one extra top-level folder, sibling to `design/`/`scripts/`. Migration-to-separate-repo trigger: release-cadence conflict, contributor divergence, `@vscode/test-electron` CI weight dominating the vitest loop, or install bloat.
+
+**File extension DECISION:** `.tri`, languageId `triton`. Collisions: `.tri` ↔ 3D/triangle-mesh (Bethesda FaceGen etc., binary, disjoint audience); `.trt` ↔ teletext/subtitle (dead on dev machines). Picked `.tri` for mnemonics (Tri-ton) because VS Code language association is **editor-scoped, not OS-level** → collision blast radius is small and `files.associations`-overridable. `.triton` is the true zero-collision option, surfaced as Open Question #2.
+
+**Bundling DECISION (ESM↔CJS tension):** esbuild-bundle the extension **from `src/`** (not `dist/`) into a single CJS file (`format: cjs`, `platform: node`, `external: ['vscode']`). Two frictions: (1) NodeNext source uses `.js` specifiers pointing at `.ts` → need a ~15-line esbuild resolve plugin mapping `.js`→`.ts`; (2) the **dist-sync quirk** (`tsc` does NOT copy generated `parser.js` into `dist/`; `design/figures/render.mjs` works around it with `cpSync`) is **sidestepped entirely** by bundling from `src/`, where `parser.js` are real files — precondition is `pnpm build:grammars` ran first.
+
+**Render reuse point (verified paths):**
+- Public entry: `src/frontend/index.ts` → `render(input, themeInput?, rendererName='svg') => Promise<Result<string>>` (returns SVG string, never throws — Result). Sole render path; extension must not reimplement.
+- `render()` composes detect→parse→layout→renderSVG and registers all 35 diagram modules.
+- Detection: `src/frontend/detect.ts` → pure `detect(input)` + `MERMAID_PATTERNS` header table (Mermaid + 13 Triton-only headers). This table + `DiagramKind` union drive IntelliSense (no second list).
+- `DiagramKind` union (35 kinds) + `DiagramModule` (`parseMermaid`/`parseYaml`+`layout`): `src/contracts/diagram.ts`.
+- Low-level `renderSVG(scene)`: `src/render/svg.ts` (not called directly by extension).
+- No `main`/`exports` in root `package.json` → extension imports by **relative path**, not `import 'triton'`.
+
+**Phases:** P1 = live debounced webview preview for `.tri`+`.mmd` (render()→SVG→webview, no native deps; resvg only needed for optional PNG export). P2 = markdown-it plugin for ` ```triton `/` ```mermaid ` fences (pre-render+cache-by-hash since render() is async, markdown-it sync). P3 = completion from DiagramKind/header table + diagnostics from Result errors + curated per-kind keyword map (Peggy grammars NOT introspectable for completion — separate keyword list, optionally seeded from grammar literals).
+
+**Peggy completion caveat:** generated parsers are recognizers, not queryable keyword models → IntelliSense keyword completion needs a hand-curated `DiagramKind → string[]` map, not live grammar introspection.

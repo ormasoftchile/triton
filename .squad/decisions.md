@@ -555,3 +555,45 @@ The chart kinds (`pie`, `xychart`, `quadrant`, `radar`) are **four independent `
 **Build note:** `cd design && tectonic triton.tex` must run UNSANDBOXED on macOS (tectonic's SCDynamicStore/network probe panics under the sandbox wrapper).
 
 ---
+
+# VS CODE EXTENSION — Phase 1 (live preview) shipped
+
+**Date:** 2026-06-23
+**Owners:** Leslie (Lead / Spec Architect — plan), Barbara (Semantics & Rendering — build)
+**Requested by:** ormasoftchile
+**Status:** Phase 1 IMPLEMENTED & VERIFIED (bundle builds 1.1 MB CJS, typecheck 0 errors). Artefacts: `design/extension-plan.md` (plan); `extension/` folder (code).
+
+---
+
+## Locked decisions (user-confirmed via coordinator)
+
+1. **File extension `.triton`, languageId `triton`.** Overrides Leslie's plan recommendation of `.tri`. `.triton` is the true zero-collision option. (Plan's `.tri`/`.trt` analysis retained below as rejected alternatives.)
+2. **Phase 1 supports BOTH `.triton` and `.mmd`.**
+3. **Mermaid coexistence:** the explicit **Triton: Open Preview** / **…to the Side** commands render **any** active file unconditionally (incl. `.mmd` and ```` ```mermaid ````). `triton`/`.triton`/```` ```triton ```` are always handled. **Passive** Mermaid pickup (auto-selecting a ```` ```mermaid ```` fence in Markdown) is gated behind **`triton.enableMermaid`**, default **false**, so Triton never stomps an installed Mermaid extension. Phase 1 never auto-opens a preview. Rule centralized in `pickRenderable(document, config, mode)`.
+4. **Repo location:** top-level **`extension/`** satellite folder with its own `package.json`, deliberately **NOT** a `pnpm-workspace.yaml` member (that file has no `packages:` field — repo is single-package, flat shape preserved). Extension imports the compiler by **relative path** (`../../src/frontend/index.js`) and esbuild-bundles it. Deps via `pnpm install --ignore-workspace`. Migration-to-own-repo trigger: release-cadence conflict, contributor divergence, `@vscode/test-electron` CI weight dominating the vitest loop, or install bloat for compiler-only users.
+5. **SVG-only for Phase 1 — no native deps** (no `@resvg/resvg-js`). resvg only needed for an optional later PNG-export command.
+
+---
+
+## What was built (Barbara)
+
+`extension/package.json`, `extension/esbuild.mjs`, `extension/src/extension.ts` (activate + `PreviewManager` + webview HTML), `extension/tsconfig.json`, `extension/README.md`, `extension/.gitignore`. Phase 1 = live, debounced webview preview that reuses the compiler's `render()` entry as the sole render path (never reimplements parse/layout/SVG). Parse errors show as a non-destructive banner over the last good diagram.
+
+**Bundling (as built):** esbuild bundles `extension/src/extension.ts` + the whole compiler graph into one CJS file `extension/dist/extension.cjs` (`platform:node`, `target:node20`, `external:['vscode']`, sourcemap). A ~15-line esbuild `onResolve` plugin rewrites NodeNext `*.js` specifiers to the sibling `*.ts` source (returns `undefined` for generated Peggy `parser.js` with no `.ts` sibling). `esbuild.mjs` runs `pnpm build:grammars` first, then verifies every `grammar.peggy` has a sibling `parser.js`. Bundling from `src/` sidesteps the `tsc`-doesn't-copy-`parser.js` dist-sync hack entirely.
+
+**Typecheck deviation (noted):** a CJS `extension.ts` statically importing ESM compiler source trips TS1479 under NodeNext, so `extension/tsconfig.json` uses `moduleResolution: "Bundler"` + `module: "ESNext"` (typecheck-only, `noEmit`). esbuild is the real bundler; documented in the tsconfig comment.
+
+**Verification:** `node extension/esbuild.mjs` → exit 0, 23 grammars compiled, no unresolved imports, output ≈1.1 MB (+2.2 MB map). `tsc -p extension/tsconfig.json --noEmit` → 0 errors. `render()` on `examples/flowchart/flowchart.mmd` → 2956-byte `<svg…`. Did NOT launch the Extension Development Host (no GUI); did NOT touch root `package.json`, root `tsconfig.json`, or `pnpm-workspace.yaml`.
+
+---
+
+## Plan reference & render reuse points (Leslie — `design/extension-plan.md`)
+
+- Public entry: `src/frontend/index.ts` → `render(input, themeInput?, rendererName='svg') => Promise<Result<string>>` (returns SVG, never throws — Result). Composes detect→parse→layout→renderSVG, registers all 35 modules.
+- Detection: `src/frontend/detect.ts` → pure `detect(input)` + `MERMAID_PATTERNS` header table (Mermaid + 13 Triton-only headers) — drives IntelliSense later.
+- `DiagramKind` union (35 kinds) + `DiagramModule`: `src/contracts/diagram.ts`. Low-level `renderSVG(scene)`: `src/render/svg.ts` (not called directly).
+- No `main`/`exports` in root `package.json` → extension imports by relative path.
+- **Phases:** P1 = live debounced webview preview (shipped). P2 = markdown-it plugin for ```` ```triton ````/```` ```mermaid ```` fences (pre-render + cache-by-hash, since render() is async and markdown-it is sync). P3 = completion from `DiagramKind`/header table + diagnostics from Result errors + curated per-kind keyword map.
+- **Peggy completion caveat:** generated parsers are recognizers, not queryable keyword models → IntelliSense keyword completion needs a hand-curated `DiagramKind → string[]` map, not live grammar introspection.
+
+**Rejected file-extension alternatives (from plan):** `.tri` (mnemonic but collides with 3D/triangle-mesh binary formats), `.trt` (lower-collision teletext/subtitle but reads as a typo). Both superseded by the user's `.triton` choice.
