@@ -26,6 +26,7 @@ import { mindmap } from '../diagrams/mindmap/index.js';
 import { gitgraph } from '../diagrams/gitgraph/index.js';
 import { c4 } from '../diagrams/c4/index.js';
 import { architecture } from '../diagrams/architecture/index.js';
+import { packet } from '../diagrams/packet/index.js';
 import { svgRenderer } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
@@ -58,6 +59,7 @@ registerDiagram('mindmap', mindmap);
 registerDiagram('gitgraph', gitgraph);
 registerDiagram('c4', c4);
 registerDiagram('architecture', architecture);
+registerDiagram('packet', packet);
 registerRenderer(svgRenderer);
 registerRouter('straight', straightRouter);
 registerRouter('orthogonal', orthogonalRouter);

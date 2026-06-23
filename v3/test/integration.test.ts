@@ -99,8 +99,8 @@ describe('compile', () => {
   });
 
   it('returns error result for unregistered diagram types', async () => {
-    // `packet` is a recognised kind but has no registered module yet.
-    const result = await compile('packet-beta\n0-15: "Header"\n');
+    // A YAML `type:` that maps to no registered module.
+    const result = await compile('type: nonexistentkind\nfoo: bar\n');
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('UNKNOWN_DIAGRAM');
