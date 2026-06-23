@@ -208,86 +208,105 @@ function shellHtml(webview: vscode.Webview, title: string): string {
 
 // ─── Preview manager ───────────────────────────────────────────────────────────
 
+/**
+ * Is this document a diagram the preview should FOLLOW when it becomes active?
+ *
+ * This is intentionally stricter than `pickRenderable`'s explicit mode: it only
+ * returns true for clearly-diagram documents, so switching the active editor to
+ * an unrelated file (a `.ts`, a plain Markdown note) leaves the last diagram on
+ * screen instead of replacing it with an error banner.
+ */
+function isDiagramDoc(doc: vscode.TextDocument, config: PreviewConfig): boolean {
+  const lang = doc.languageId;
+  const ext = extname(doc.uri);
+  if (lang === 'triton' || ext === '.triton') return true;
+  if (ext === '.mmd') return true;
+  if (lang === 'markdown' || ext === '.md' || ext === '.markdown') {
+    const text = doc.getText();
+    if (firstFence(text, 'triton') !== undefined) return true;
+    if (config.enableMermaid && firstFence(text, 'mermaid') !== undefined) return true;
+  }
+  return false;
+}
+
 interface Preview {
   readonly panel: vscode.WebviewPanel;
-  readonly docUri: vscode.Uri;
+  docUri: vscode.Uri;
 }
 
 class PreviewManager {
-  private readonly previews = new Map<string, Preview>();
-  private readonly debouncers = new Map<string, ReturnType<typeof setTimeout>>();
+  // A single live preview that FOLLOWS the active editor, like the built-in
+  // Markdown preview. Switching to another diagram file re-points it; switching
+  // to a non-diagram file leaves the last diagram untouched.
+  private preview: Preview | undefined;
+  private debounce: ReturnType<typeof setTimeout> | undefined;
   private readonly disposables: vscode.Disposable[] = [];
 
   constructor() {
     this.disposables.push(
       vscode.workspace.onDidChangeTextDocument((e) => this.onDocChange(e.document)),
-      vscode.workspace.onDidCloseTextDocument((doc) => {
-        // If the source document is gone there is nothing left to live-update.
-        const p = this.previews.get(doc.uri.toString());
-        if (p) p.panel.title = `Triton (closed): ${this.label(doc.uri)}`;
-      }),
+      vscode.window.onDidChangeActiveTextEditor((editor) => this.onActiveEditor(editor)),
     );
   }
 
-  /** Open or reveal a preview for the active editor's document. */
+  /** Open or reveal the preview, bound to the active editor's document. */
   show(editor: vscode.TextEditor | undefined, column: vscode.ViewColumn): void {
     if (!editor) {
       void vscode.window.showInformationMessage('Triton: open a file first, then run the preview.');
       return;
     }
     const doc = editor.document;
-    const key = doc.uri.toString();
-    const existing = this.previews.get(key);
-    if (existing) {
-      existing.panel.reveal(column, false);
-      void this.renderInto(existing, doc, 'explicit');
-      return;
+
+    if (!this.preview) {
+      const panel = vscode.window.createWebviewPanel(
+        'tritonPreview',
+        `Triton: ${this.label(doc.uri)}`,
+        { viewColumn: column, preserveFocus: true },
+        { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [] },
+      );
+      panel.webview.html = shellHtml(panel.webview, this.label(doc.uri));
+      this.preview = { panel, docUri: doc.uri };
+      panel.onDidDispose(() => {
+        if (this.debounce) clearTimeout(this.debounce);
+        this.debounce = undefined;
+        this.preview = undefined;
+      });
+    } else {
+      this.preview.docUri = doc.uri;
+      this.preview.panel.title = `Triton: ${this.label(doc.uri)}`;
+      this.preview.panel.reveal(column, true);
     }
 
-    const panel = vscode.window.createWebviewPanel(
-      'tritonPreview',
-      `Triton: ${this.label(doc.uri)}`,
-      { viewColumn: column, preserveFocus: true },
-      { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [] },
-    );
-    panel.webview.html = shellHtml(panel.webview, this.label(doc.uri));
+    void this.renderInto(doc, 'explicit');
+  }
 
-    const preview: Preview = { panel, docUri: doc.uri };
-    this.previews.set(key, preview);
-
-    panel.onDidDispose(() => {
-      this.previews.delete(key);
-      const t = this.debouncers.get(key);
-      if (t) clearTimeout(t);
-      this.debouncers.delete(key);
-    });
-
-    void this.renderInto(preview, doc, 'explicit');
+  /** Follow the active editor when it switches to another diagram document. */
+  private onActiveEditor(editor: vscode.TextEditor | undefined): void {
+    if (!this.preview || !editor) return; // nothing open, or focus moved to the webview
+    const doc = editor.document;
+    if (doc.uri.toString() === this.preview.docUri.toString()) return;
+    if (!isDiagramDoc(doc, readConfig())) return; // keep the last diagram on screen
+    this.preview.docUri = doc.uri;
+    this.preview.panel.title = `Triton: ${this.label(doc.uri)}`;
+    void this.renderInto(doc, 'explicit');
   }
 
   private onDocChange(doc: vscode.TextDocument): void {
-    const key = doc.uri.toString();
-    const preview = this.previews.get(key);
-    if (!preview) return; // only update documents that have an open preview
+    if (!this.preview) return;
+    if (doc.uri.toString() !== this.preview.docUri.toString()) return;
 
     const { debounceMs } = readConfig();
-    const prev = this.debouncers.get(key);
-    if (prev) clearTimeout(prev);
-    this.debouncers.set(
-      key,
-      setTimeout(() => {
-        this.debouncers.delete(key);
-        // An already-open preview keeps live-updating (explicit intent).
-        void this.renderInto(preview, doc, 'explicit');
-      }, Math.max(0, debounceMs)),
-    );
+    if (this.debounce) clearTimeout(this.debounce);
+    this.debounce = setTimeout(() => {
+      this.debounce = undefined;
+      void this.renderInto(doc, 'explicit');
+    }, Math.max(0, debounceMs));
   }
 
-  private async renderInto(
-    preview: Preview,
-    doc: vscode.TextDocument,
-    mode: RenderMode,
-  ): Promise<void> {
+  private async renderInto(doc: vscode.TextDocument, mode: RenderMode): Promise<void> {
+    const preview = this.preview;
+    if (!preview) return;
+
     const config = readConfig();
     const renderable = pickRenderable(doc, config, mode);
     if (!renderable) {
@@ -302,6 +321,9 @@ class PreviewManager {
 
     // render() returns a Result<string> and never throws.
     const result = await render(renderable.text);
+    // The active document may have changed while we awaited; only post if the
+    // preview is still bound to the document we rendered.
+    if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
     if (result.ok) {
       void preview.panel.webview.postMessage({ type: 'svg', svg: result.value });
     } else {
@@ -319,10 +341,10 @@ class PreviewManager {
   }
 
   dispose(): void {
-    for (const t of this.debouncers.values()) clearTimeout(t);
-    this.debouncers.clear();
-    for (const p of this.previews.values()) p.panel.dispose();
-    this.previews.clear();
+    if (this.debounce) clearTimeout(this.debounce);
+    this.debounce = undefined;
+    if (this.preview) this.preview.panel.dispose();
+    this.preview = undefined;
     for (const d of this.disposables) d.dispose();
   }
 }
