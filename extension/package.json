@@ -1,0 +1,82 @@
+{
+  "name": "triton-vscode",
+  "displayName": "Triton",
+  "description": "Live preview for Triton diagrams (and Mermaid) — deterministic SVG, rendered by the Triton compiler.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "triton-placeholder",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Visualization",
+    "Programming Languages"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "triton",
+        "aliases": [
+          "Triton"
+        ],
+        "extensions": [
+          ".triton"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "triton.openPreview",
+        "title": "Triton: Open Preview"
+      },
+      {
+        "command": "triton.openPreviewToSide",
+        "title": "Triton: Open Preview to the Side"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "triton.openPreviewToSide",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "navigation"
+        },
+        {
+          "command": "triton.openPreview",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Triton",
+      "properties": {
+        "triton.enableMermaid": {
+          "type": "boolean",
+          "default": false,
+          "description": "Passively handle Mermaid content (`.mmd` files and ```mermaid fenced blocks) for automatic preview. Defaults to OFF so Triton never stomps an already-installed Mermaid extension. The explicit 'Triton: Open Preview' command always renders the active file regardless of this setting; `.triton` files and ```triton blocks are always handled."
+        },
+        "triton.preview.debounceMs": {
+          "type": "number",
+          "default": 150,
+          "minimum": 0,
+          "description": "Delay (in milliseconds) after the last edit before the live preview re-renders."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.8.3"
+  }
+}
