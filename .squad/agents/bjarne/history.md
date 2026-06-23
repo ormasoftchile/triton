@@ -1,5 +1,36 @@
 # Bjarne — Ingestion Design
 
+## Learnings
+
+**Wave-2 design realign — front-end/architecture/packaging/layout (2026-06-23)**:
+Rewrote `15-frontend`, `40-architecture`, `41-packaging`, `42-layout-engines` to match
+shipped Triton. Key reality (grounded in code, blunt about the obsolete charter premise):
+- My charter's "data + prompt → IR" ingestion premise is DEAD. There is NO data ingestion
+  and NO NL pipeline. The real front end is pure text parsing: `src/frontend/detect.ts`
+  matches the source HEADER (ordered regex table, ~35 patterns) → `{format, diagramType}`;
+  `src/frontend/registry.ts` maps `DiagramKind` → `DiagramModule`; module `parseMermaid`
+  or `parseYaml` lowers text → per-kind Domain IR. YAML is just an alternate syntax for the
+  same IR (NO published JSON Schema, NO agent API, NO constrained decoding).
+- Architecture is 3 layers in ONE package via import direction (front-end → modules →
+  kernel), NOT separate artifacts and NOT two IRs. One render contract `Scene`, one
+  `renderSVG`. Held together by 3 in-process registries (diagram/renderer/router) populated
+  in `src/frontend/index.ts`. `layout(ir,theme)` is async → `LayoutResult{scene,anchors}`.
+- Packaging: single root package `triton` (pnpm, ESM, node>=20, only runtime dep `peggy`).
+  Build = `scripts/build-grammars.mjs` (peggy.generate per `src/diagrams/*/grammar.peggy`
+  → parser.js+parser.d.ts) then `tsc`. 318 vitest tests. NO `@diagram-compiler/*` monorepo,
+  NO Changesets/Turborepo/phased split — multi-package is a possible future only.
+- Layout: NO dagre/ELK/force-directed/orthogonal-TSM. Exactly 3 in-house engines in
+  `src/graph/`: `layered.ts` (longest-path Sugiyama-lite, used by class/state/er),
+  `tree.ts` (centered-parent tidy tree, used by tree/avl/rbtree/btree/radix/segtree/heap/plan),
+  `connect.ts` (borderPoint/slotAnchor/connectSlots edge helpers). Charts/strips/posters use
+  direct kind-specific geometry, no general engine. Kept "constraint as a feature" philosophy.
+- Dropped 3 stale figures (`dual-frontend`, two-IR `architecture`, `three-layers`) — their
+  .mmd sources depict the obsolete pipeline; dropping the `\ourdiagram` includes keeps the
+  doc compiling without shipping misleading figures.
+- Build gate PASSED: `cd design && tectonic triton.tex` → triton.pdf (1.88 MiB), only
+  cosmetic hbox warnings, no undefined refs/cites. tectonic panics under the sandbox
+  (macOS system-configuration network probe) — must run UNSANDBOXED.
+
 ## Current Status (2026-06-16)
 
 **Geometry-Quality Kernel: Feedback-Driven Layout + Post-Render Gate (2026-06-16)**: Barbara's deterministic kernel (detectors: edgeThroughNode/labelOverNode/labelLabelOverlap/outOfBounds) now consumed in two ways: (1) during overlay router layout — scores candidate routes, picks lowest-cost deterministically, no poisoned renders; (2) post-render gate — fails egregious defects, prints objective report. Validation caught real defect (state `__end__` stab) and fixed via pseudo-state exclusion from anchor registry. All 5 posters CLEAN (verdict matches visual). 2770 tests, determinism preserved. Committed b4b2f04.
@@ -35,3 +66,5 @@ See `history-archive.md` for detailed learnings on CLI rendering, Makefile pipel
 **Kernel obstacle set = all rendered nodes (pseudo-states included); blindness fixed + regression-tested (2026-06-16)**: Geometry-quality kernel was blind to pseudo-state nodes because obstacle registry excluded them (correct for link endpoints, wrong for collision detection). Separated `anchors` (addressable targets only) from `obstacles` (full rendered set). Router now scores against full set, routing cleanly around end-bullseye. Regression tests E1/E2 added. 2772 tests passing; only `link-poster.png` changed. Committed 6d8df80.
 
 **Aesthetic scorecard added (corpus-calibrated); objectively rates layout quality + feeds route-cost (2026-06-16)**: Barbara's geometry/aesthetics.ts adds five normalized metrics (gridBalance, congestion, alignment, spacingUniform, edgeCrossings) with corpus-calibrated conservative hard gates (gridBalance/congestion ≥ 0.30 so no existing example fails, rest soft scorecard). Scorecard objectively rates poster-trace MEDIOCRE (0.649), matching visual reality. Integrated into route-cost via congestion penalty (link-poster congestion 0.75→1.0). 2790 tests, goldens poster-trace updated. Committed 7f580e1.
+
+- 2026-06-23: Audited my assigned design/ LaTeX sections vs shipped Triton (plan-only, no prose rewrite). Verdicts (KEEP/REWRITE/DELETE) recorded in the consolidated "DESIGN-DOC AUDIT (2026-06-23)" block in decisions.md.

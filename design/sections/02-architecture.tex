@@ -1,0 +1,72 @@
+\section{Architecture}
+\label{sec:architecture}
+
+The compiler is a short pipeline with three contracts at its joints:
+\emph{detection}, the \texttt{DiagramModule}, and the \texttt{Scene}.
+
+\subsection{The pipeline}
+
+\begin{enumerate}
+  \item \textbf{Detect} (\texttt{src/frontend/detect.ts}). The source is
+        classified by its leading header into an input format
+        (\texttt{mermaid} text or \texttt{yaml}/JSON) and a \texttt{DiagramKind}
+        (e.g.\ a line starting \texttt{flowchart} $\to$ \texttt{flowchart}; a
+        line starting \texttt{avl} $\to$ \texttt{avl}).
+  \item \textbf{Dispatch} (\texttt{src/frontend/registry.ts}). The kind selects
+        a registered \texttt{DiagramModule}.
+  \item \textbf{Parse}. The module turns source into its own IR
+        (\texttt{parseMermaid} for text, \texttt{parseYaml} for the structured
+        alternate).
+  \item \textbf{Layout}. The module places its IR and returns a
+        \texttt{LayoutResult} --- a \texttt{Scene} plus a node-anchor registry.
+  \item \textbf{Render} (\texttt{src/render/svg.ts}). One renderer turns the
+        \texttt{Scene} into SVG; \texttt{resvg} optionally rasterises it to PNG.
+\end{enumerate}
+
+Text is the primary surface. The \texttt{yaml}/JSON path is a thin alternate
+input (each module's \texttt{parseYaml} accepts a pre-built IR); every example in
+this repository is authored as Mermaid-superset text (\texttt{.mmd}).
+
+\subsection{The \texttt{DiagramModule} contract}
+\label{sec:diagram-contract}
+
+Every diagram kind implements one interface
+(\texttt{src/contracts/diagram.ts}):
+
+\begin{lstlisting}[language=ts]
+interface DiagramModule<IR extends BaseIR> {
+  parseMermaid(input: string): IR;
+  parseYaml(input: string): IR;
+  layout(ir: IR, theme: ResolvedTheme): Promise<LayoutResult>;
+}
+\end{lstlisting}
+
+\texttt{BaseIR} carries only what the pipeline needs uniformly (version,
+metadata, optional overlays and per-diagram theme override). Each kind extends it
+with its own fields. \texttt{layout} returns:
+
+\begin{lstlisting}[language=ts]
+interface LayoutResult {
+  scene: Scene;                 // what the renderer draws
+  anchors: NodeAnchorRegistry;  // node bounds + cardinal ports
+}
+\end{lstlisting}
+
+The anchor registry is what makes a diagram \emph{linkable}: it exposes each
+node's bounding box (and optional N/S/E/W ports) in the diagram's local
+coordinate space, so a composition layer can draw arrows between nodes that live
+in different diagrams (\S\ref{sec:composition}).
+
+\subsection{Registries}
+
+Three small in-process registries hold the moving parts: diagram modules
+(\texttt{registerDiagram}), renderers (\texttt{registerRenderer}), and edge
+routers. Registration is the only wiring needed to add a kind; the rest of the
+system discovers it by contract.
+
+\subsection{Build}
+
+The project is a single package at the repository root. Grammars are written in
+Peggy (one \texttt{grammar.peggy} per diagram under
+\texttt{src/diagrams/<kind>/}); \texttt{scripts/build-grammars.mjs} compiles them
+to parsers, and \texttt{tsc} compiles the TypeScript. Tests run under Vitest.

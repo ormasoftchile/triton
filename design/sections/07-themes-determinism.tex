@@ -1,0 +1,48 @@
+\section{Themes and Determinism}
+\label{sec:themes-determinism}
+
+\subsection{Themes}
+
+Triton separates meaning from appearance. The grammar fixes what a diagram
+\emph{is}; the theme fixes how it \emph{looks}. A diagram never hard-codes a
+colour, and a theme never changes a diagram's structure.
+
+A theme is one resolved token set (\texttt{src/contracts/theme.ts}) ---
+\texttt{ResolvedTheme} --- with token groups for palette, typography, spacing,
+edges, and panel chrome:
+
+\begin{lstlisting}[language=ts]
+interface ResolvedTheme {
+  palette:    ThemePalette;     // primary, surface, border, text, success, ...
+  typography: ThemeTypography;  // font families, sizes, line height
+  spacing:    ThemeSpacing;
+  edges:      ThemeEdges;
+  panel:      ThemePanel;       // titled-container chrome
+}
+\end{lstlisting}
+
+A resolver merges a user override over a base preset; the codebase ships a dozen
+presets (\texttt{src/theme/preset.ts}). One resolved theme applies uniformly to
+\emph{every} diagram kind --- switching themes restyles a flowchart, a tree, and a
+poster identically, because they all read the same tokens through the
+\texttt{Pen}.
+
+\subsection{Determinism}
+
+The same source and theme always produce the same SVG, byte for byte. This is a
+property the whole pipeline is built to preserve, not an afterthought:
+
+\begin{itemize}
+  \item Layout is a pure function of the IR and theme --- no clocks, no random
+        numbers, no hash-order iteration over unordered maps.
+  \item Text measurement (\texttt{measureText}) is deterministic, so geometry does
+        not depend on a live font engine.
+  \item Numeric output is formatted at fixed precision, and elements are emitted
+        in a stable document order.
+  \item The value-driven builders are deterministic by construction: the same
+        \texttt{insert} list yields the same tree.
+\end{itemize}
+
+Byte-stable SVG is what makes the output diff-able, cacheable, and safe to commit
+beside its source --- which is exactly how the \texttt{examples/} directory is
+organised, each \texttt{.svg} regenerated from its \texttt{.mmd}.

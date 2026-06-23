@@ -1,0 +1,64 @@
+\section{The Scene Contract and Renderer}
+\label{sec:scene}
+
+The \texttt{Scene} is the single rendering contract. Diagram layout engines speak
+only \texttt{Scene}; the renderer understands only \texttt{Scene}. Neither knows
+about the other's specifics.
+
+\subsection{Scene and its elements}
+
+A \texttt{Scene} (\texttt{src/contracts/scene.ts}) is a viewBox, an optional
+background, a flat list of elements, and optional raw \texttt{defs} (e.g.\ arrow
+markers):
+
+\begin{lstlisting}[language=ts]
+interface Scene {
+  viewBox: { x: number; y: number; width: number; height: number };
+  background?: Color;
+  elements: SceneElement[];
+  defs?: string[];
+}
+\end{lstlisting}
+
+\texttt{SceneElement} is a five-variant union --- the entire vocabulary the
+renderer must support:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Variant & Carries \\
+\midrule
+\texttt{rect}   & bounds, fill, stroke, stroke width, optional corner radius \\
+\texttt{circle} & centre, radius, fill, stroke \\
+\texttt{path}   & SVG path \texttt{d}, stroke, fill, dash, markers, animation \\
+\texttt{text}   & content, position, font size/family, fill, anchor, weight \\
+\texttt{group}  & children, optional transform / id / opacity \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+That deliberately small surface is why one renderer covers every diagram: a tree,
+a slotted page, and a flowchart all reduce to rectangles, circles, paths, and
+text.
+
+\subsection{The Pen}
+
+Layout code does not build element objects by hand. A \texttt{Pen}
+(\texttt{src/scene/build.ts}), bound once to a theme, produces elements with the
+theme's font family defaulted and the \texttt{type} discriminant removed:
+
+\begin{lstlisting}[language=ts]
+const p = pen(theme);
+p.rect(bounds, fill, stroke, strokeWidth, { rx });
+p.circle(center, radius, fill, stroke, strokeWidth);
+p.path(d, stroke, strokeWidth, { dash, markerEnd, animated });
+p.text(content, x, y, size, fill, { anchor, weight });
+\end{lstlisting}
+
+\subsection{The renderer}
+
+\texttt{renderSVG(scene)} (\texttt{src/render/svg.ts}) emits the SVG string
+directly --- one element at a time, in document order, with XML-escaped text and
+fixed numeric formatting. There is exactly one backend. PNG, when needed, is the
+same SVG rasterised by \texttt{resvg}; there is no Skia, PPTX, PDF, or HTML
+backend.
