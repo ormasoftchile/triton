@@ -4,7 +4,7 @@ export type TimelineDate = string;
 export type AxisUnit = 'day' | 'week' | 'month' | 'quarter' | 'half' | 'year';
 export type TimelineLayout =
   | 'horizontal' | 'vertical-spine' | 'serpentine'
-  | 'roadmap' | 'gantt' | 'timeline-columns';
+  | 'roadmap' | 'gantt' | 'timeline-columns' | 'numbered';
 export type ActivityStatus = 'default' | 'active' | 'done' | 'blocked';
 
 export interface Track {

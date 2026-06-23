@@ -8,6 +8,7 @@ import { layoutVerticalSpine } from './vertical-spine.js';
 import { layoutSerpentine } from './serpentine.js';
 import { layoutRoadmap } from './roadmap.js';
 import { layoutTimelineColumns } from './timeline-columns.js';
+import { layoutNumbered } from './numbered.js';
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
@@ -21,6 +22,8 @@ export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): Layo
       return layoutRoadmap(ir, theme);
     case 'timeline-columns':
       return layoutTimelineColumns(ir, theme);
+    case 'numbered':
+      return layoutNumbered(ir, theme);
     case 'horizontal':
     default:
       return layoutHorizontal(ir, theme);

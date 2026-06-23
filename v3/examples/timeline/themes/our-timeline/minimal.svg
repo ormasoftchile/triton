@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 524 298" width="524" height="298">
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="262" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Our Timeline</text>
+  <text x="262" y="64" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">Admissions journey</text>
+  <path d="M 24 181 L 500 181" stroke="#E5E5E5" stroke-width="2" fill="none" />
+  <path d="M 82 215 L 82 231" stroke="#525252" stroke-width="1.5" fill="none" />
+  <circle cx="82" cy="181" r="34" fill="#FFFFFF" stroke="#525252" stroke-width="3" />
+  <text x="82" y="188" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">01</text>
+  <text x="82" y="244" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">15th May 2021</text>
+  <text x="82" y="262" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">Application Deadline</text>
+  <path d="M 262 147 L 262 131" stroke="#525252" stroke-width="1.5" fill="none" />
+  <circle cx="262" cy="181" r="34" fill="#525252" stroke="#525252" stroke-width="3" />
+  <text x="262" y="188" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">02</text>
+  <text x="262" y="125" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">15th May 2021</text>
+  <text x="262" y="112" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">Qualifying Exam</text>
+  <path d="M 442 215 L 442 231" stroke="#525252" stroke-width="1.5" fill="none" />
+  <circle cx="442" cy="181" r="34" fill="#FFFFFF" stroke="#525252" stroke-width="3" />
+  <text x="442" y="188" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">03</text>
+  <text x="442" y="244" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">18th May 2021</text>
+  <text x="442" y="262" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">Training Starts</text>
+</svg>
