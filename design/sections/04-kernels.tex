@@ -1,0 +1,49 @@
+\section{Shared Kernels}
+\label{sec:kernels}
+
+Diagrams do not each reinvent geometry. A small set of shared kernels under
+\texttt{src/graph}, \texttt{src/text}, and \texttt{src/style} does the reusable
+work; diagram layout engines compose them. This is what keeps the per-diagram
+layout code short.
+
+\subsection{Layout (\texttt{src/graph})}
+
+\begin{description}
+  \item[\texttt{layered.ts}] A Sugiyama-lite layered placement: longest-path
+        ranking plus size-aware coordinate assignment. Used by the node-link and
+        UML kinds (class, state, ER, flowchart) so they share rank assignment.
+  \item[\texttt{tree.ts}] A tidy hierarchical placement: every parent is
+        centred over the block its descendants occupy, sibling subtrees never
+        overlap, and node sizes may vary. Used by the whole tree family.
+  \item[\texttt{connect.ts}] Edge-endpoint helpers: \texttt{borderPoint} clips a
+        connector to a node's border; \texttt{connectSlots} clips both ends along
+        the line joining two boxes --- the \emph{slot-aware pointer} used for
+        cell-to-cell, node-to-node, and panel-to-panel arrows alike.
+\end{description}
+
+\subsection{Text (\texttt{src/text})}
+
+\texttt{measureText} gives deterministic width/height for a string at a font
+size (layout must not depend on a live font engine), and \texttt{wrap}/truncate
+helpers handle multi-line and overflow.
+
+\subsection{Cells and strips (\texttt{src/scene/strip.ts})}
+
+\texttt{buildStrip} produces a contiguous (or gapped) run of equal cells ---
+arrays, heap array-backings, B-tree key strips, slotted pages --- and returns the
+bounding rectangle of each cell as a \emph{slot} so pointers can clip to
+individual cells.
+
+\subsection{Cost tiers (\texttt{src/style/cost.ts})}
+
+A reusable styling layer maps a numeric edge weight (latency, hop distance, plan
+cost) onto a discrete visual tier --- colour plus dash pattern --- and builds a
+legend:
+
+\begin{lstlisting}[language=ts]
+classifyCost(scale, weight): CostTier   // bucket a weight into a tier
+buildLegend(pen, theme, scale, origin)  // render the tier legend
+\end{lstlisting}
+
+It is pure styling, no layout, and is consumed by the topology family
+(\S\ref{sec:families}).

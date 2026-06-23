@@ -1,14 +1,11 @@
 % =============================================================================
-% references.bib — Timeline Compiler Project Bibliography
-% Curator: David (Research Lead)
+% references.bib — Triton Project Bibliography
 % Last updated: 2026-06-09
 %
 % Cite-key conventions:
 %   <tool/author><year>      e.g., mermaid2023, vegalite2017
-%   All URL-based sources use @online or @misc.
+%   URL-based sources use online/misc entry types.
 %   Every key used in any section file must resolve here.
-%   Team members: use the keys listed in §10 and §12 freely; notify David
-%   to add new entries rather than editing this file directly.
 % =============================================================================
 
 % -----------------------------------------------------------------------------
@@ -88,18 +85,6 @@
                   timeline component.}
 }
 
-@misc{frappegantt,
-  author       = {{Frappe Technologies}},
-  title        = {Frappe Gantt: A modern, configurable Gantt library for
-                  the web},
-  year         = {2024},
-  howpublished          = {\url{https://github.com/frappe/gantt}},
-  urldate      = {2026-06-09},
-  note         = {MIT license. SVG-based interactive Gantt; used in ERPNext.
-                  No declarative text-format input; requires JavaScript
-                  task objects. No static file export built-in.}
-}
-
 @misc{thinkcell,
   author       = {{think-cell Software GmbH}},
   title        = {think-cell: Intelligent charting and slide automation
@@ -111,25 +96,6 @@
                   (2026 pricing). Industry standard for McKinsey/BCG-style
                   Gantt and waterfall charts. Not open source; not
                   source-control friendly.}
-}
-
-@misc{thinkcellgantt,
-  author       = {{SlideScience}},
-  title        = {Ultimate Guide to {Gantt} Charts (Timelines) in Think-Cell},
-  year         = {2024},
-  howpublished          = {\url{https://slidescience.co/gantt-charts-timelines-think-cell/}},
-  urldate      = {2026-06-09}
-}
-
-@misc{msproject,
-  author       = {{Microsoft Corporation}},
-  title        = {Microsoft Project: Project Management Software},
-  year         = {2024},
-  howpublished          = {\url{https://www.microsoft.com/en-us/microsoft-365/project/project-management-software}},
-  urldate      = {2026-06-09},
-  note         = {Proprietary. Exports to a custom XML schema (\texttt{Project.xsd})
-                  that is non-deterministic between saves (GUIDs, timestamps
-                  change). Not git-diffable without post-processing.}
 }
 
 @misc{msprojectxml,
@@ -151,14 +117,6 @@
   note         = {Open source (GPL). Input via Google Sheets or JSON.
                   Interactive web output; no native SVG/PDF/PPTX export.
                   Storytelling-oriented, not presentation-oriented.}
-}
-
-@misc{timelinejs-github,
-  author       = {{Knight Lab}},
-  title        = {{TimelineJS3} --- {GitHub} repository},
-  year         = {2024},
-  howpublished          = {\url{https://github.com/NUKnightLab/TimelineJS3}},
-  urldate      = {2026-06-09}
 }
 
 @misc{d2lang,
@@ -191,41 +149,6 @@
   note         = {MIT license. Supports Gantt/timeline charts via
                   horizontal bar charts. High-quality SVG export.
                   Requires programming; no declarative text format.}
-}
-
-% -----------------------------------------------------------------------------
-% SOURCE DATA FORMATS (ingestion targets)
-% -----------------------------------------------------------------------------
-
-@misc{ado-workitems,
-  author       = {{Microsoft Corporation}},
-  title        = {Work Items --- {Get} --- {Azure DevOps REST API} Reference},
-  year         = {2024},
-  howpublished          = {\url{https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/work-items/get?view=azure-devops-rest-7.1}},
-  urldate      = {2026-06-09},
-  note         = {Work items export fields include \texttt{System.IterationPath},
-                  \texttt{System.State}, \texttt{System.Title},
-                  \texttt{Microsoft.VSTS.Scheduling.Effort}, etc. Quarter/sprint
-                  granularity captured via \texttt{IterationPath}.}
-}
-
-@misc{github-projects,
-  author       = {{GitHub, Inc.}},
-  title        = {About {GitHub} Projects --- {GitHub} Documentation},
-  year         = {2024},
-  howpublished          = {\url{https://docs.github.com/en/issues/planning-and-tracking-with-projects/learning-about-projects/about-projects}},
-  urldate      = {2026-06-09},
-  note         = {ProjectV2 GraphQL API fields include \texttt{DATE},
-                  \texttt{ITERATION}, \texttt{SINGLE\_SELECT} custom fields
-                  for roadmap bars. Roadmap view became GA in March 2023.}
-}
-
-@misc{github-graphql-projectv2,
-  author       = {{GitHub, Inc.}},
-  title        = {{ProjectV2} --- {GitHub GraphQL API} Reference},
-  year         = {2024},
-  howpublished          = {\url{https://docs.github.com/en/graphql/reference/objects#projectv2}},
-  urldate      = {2026-06-09}
 }
 
 % -----------------------------------------------------------------------------
@@ -268,7 +191,6 @@
                   (Proc.\ InfoVis)},
   year         = {2017},
   volume       = {23},
-  number       = {1},
   pages        = {341--350},
   doi          = {10.1109/TVCG.2016.2599030},
   howpublished          = {\url{https://vega.github.io/vega-lite/}},
@@ -335,45 +257,8 @@
 }
 
 % -----------------------------------------------------------------------------
-% PRESENTATION AND CONSULTING VISUAL IDIOMS
-% -----------------------------------------------------------------------------
-
-@misc{thinkcell-charts,
-  author       = {{think-cell Software GmbH}},
-  title        = {Beautiful, impactful {PowerPoint} charts --- think-cell
-                  Charts},
-  year         = {2024},
-  howpublished          = {\url{https://www.think-cell.com/en/product/think-cell-charts}},
-  urldate      = {2026-06-09},
-  note         = {Over 40 chart types including Gantt/timeline, waterfall,
-                  Mekko. Excel data-link for live updates. Not open source.}
-}
-
-@misc{powerpoint-timeline,
-  author       = {{Microsoft Corporation}},
-  title        = {Create a timeline --- {Microsoft PowerPoint} Support},
-  year         = {2024},
-  howpublished          = {\url{https://support.microsoft.com/en-us/office/create-a-timeline-ec28c7c7-7b0a-40da-9b74-9a85f8ab4b97}},
-  urldate      = {2026-06-09},
-  note         = {Manual SmartArt-based timeline creation in PowerPoint.
-                  Not source-controlled; not deterministic; not agent-friendly.}
-}
-
-% -----------------------------------------------------------------------------
 % AGENT / LLM TOOLING ECOSYSTEM
 % -----------------------------------------------------------------------------
-
-@misc{mcp-spec,
-  author       = {{Anthropic}},
-  title        = {Model Context Protocol --- Specification},
-  year         = {2024},
-  howpublished          = {\url{https://spec.modelcontextprotocol.io/}},
-  urldate      = {2026-06-09},
-  note         = {Open protocol for LLM tool/resource access.
-                  Defines how agents invoke external tools and consume
-                  structured outputs. Timeline Compiler can expose MCP
-                  tools for plan-to-timeline generation.}
-}
 
 @misc{openai-structured-outputs,
   author       = {{OpenAI}},
@@ -386,18 +271,7 @@
                   agents to generate valid IR directly.}
 }
 
-@misc{json-schema2020,
-  author       = {{JSON Schema Organization}},
-  title        = {{JSON Schema}: A Media Type for Describing {JSON}
-                  Documents (2020-12)},
-  year         = {2020},
-  howpublished          = {\url{https://json-schema.org/specification}},
-  urldate      = {2026-06-09},
-  note         = {Draft specification for declarative constraints on {JSON}
-                  documents. Enables structured output validation in
-                  agent/LLM tooling. Used by function-calling schemas
-                  and agent integration.}
-}
+
 
 % -----------------------------------------------------------------------------
 % OPEN SOURCE STRATEGY AND ECOSYSTEM
@@ -414,28 +288,6 @@
                   open-core commercial model for diagram tooling.}
 }
 
-@misc{slidev,
-  author       = {{Anthony Fu and contributors}},
-  title        = {Slidev: Presentation Slides for Developers},
-  year         = {2024},
-  howpublished          = {\url{https://sli.dev/}},
-  urldate      = {2026-06-09},
-  note         = {MIT-licensed Markdown-first slide tool with Mermaid
-                  integration. Relevant as a downstream consumer of
-                  Timeline Compiler SVG output.}
-}
-
-@misc{obsidian,
-  author       = {{Obsidian}},
-  title        = {Obsidian: A second brain, for you, forever},
-  year         = {2024},
-  howpublished          = {\url{https://obsidian.md/}},
-  urldate      = {2026-06-09},
-  note         = {Popular Markdown knowledge-management tool with native
-                  Mermaid rendering. Potential embedding target for
-                  Timeline Compiler output.}
-}
-
 @misc{pandoc,
   author       = {{John MacFarlane}},
   title        = {Pandoc: A Universal Document Converter},
@@ -445,17 +297,6 @@
   note         = {MIT-licensed document converter. Pandoc filters could
                   be used to embed Timeline Compiler output in converted
                   documents.}
-}
-
-@misc{python-pptx,
-  author       = {{Scanny and contributors}},
-  title        = {python-pptx: Create and update {PowerPoint} files},
-  year         = {2024},
-  howpublished          = {\url{https://github.com/scanny/python-pptx}},
-  urldate      = {2026-06-09},
-  note         = {MIT license. Python library for programmatic PPTX
-                  generation. Candidate for the PPTX output target of
-                  Timeline Compiler.}
 }
 
 % -----------------------------------------------------------------------------
@@ -1107,7 +948,6 @@
   year      = {2021},
   journal   = {IEEE Transactions on Visualization and Computer Graphics},
   volume    = {27},
-  number    = {2},
   pages     = {369--379},
   doi       = {10.1109/TVCG.2020.3030378},
   note      = {NL query $\to$ Vega-Lite JSON spec pipeline. The Vega-Lite

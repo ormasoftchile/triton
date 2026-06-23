@@ -1,0 +1,103 @@
+\section{Diagram Families}
+\label{sec:families}
+
+A \texttt{DiagramKind} is one registered module. They fall into a Mermaid-compatible
+group and four Triton-native families. The detector recognises the Mermaid headers
+and the Triton-native ones alike (\texttt{src/frontend/detect.ts}).
+
+\subsection{Mermaid-compatible}
+
+These accept Mermaid syntax and render it unchanged, so existing diagrams migrate
+with zero edits:
+
+\begin{lstlisting}[language=triton]
+flowchart LR
+  start[Start] --> validate{Valid?}
+  validate -->|yes| process[Process]
+  validate -->|no|  reject[Reject]
+\end{lstlisting}
+
+\ourfig[0.6\linewidth]{flowchart}{A Mermaid flowchart, rendered unchanged through
+the \texttt{flowchart} module.}
+
+The set spans node-link (flowchart), UML/software (sequence, class, state, ER),
+project (gantt, timeline), and chart kinds. The charts (pie, xychart, quadrant,
+radar) are \emph{four separate modules}, not a single ``grammar of graphics'' ---
+each owns the IR that fits it.
+
+\subsection{Tree family}
+
+A single decorated \texttt{tree} engine underlies the family. Its IR is a
+\emph{flat, id-referenced node list} --- not recursively nested nodes --- where
+each node carries a small decoration vocabulary (shape, colour class, corner
+badge, sub-label, edge label). The tidy layout from \S\ref{sec:kernels} places it.
+
+On top of that engine sit \emph{value-driven} front-ends. Their source is a list
+of operations, and the builder computes a valid structure --- you cannot author an
+invalid one:
+
+\begin{lstlisting}[language=triton]
+avl insert 50 30 70 20 40 60 80 10
+\end{lstlisting}
+
+\ourfig[0.72\linewidth]{avl}{An AVL tree built from the \texttt{insert} list above.
+The balance-factor badge on each node is computed by running real insertion with
+rotations --- the structure cannot be authored unbalanced.}
+
+\noindent renders a balanced AVL tree with a balance-factor badge on every node,
+because the builder runs real insertion with rotations. The siblings work the
+same way: \texttt{rbtree} (red/black colouring), \texttt{btree order N} (multi-key
+strip nodes), \texttt{radix} (prefix-compressed tries with substring edge labels),
+\texttt{segtree over [\dots] reduce sum} (range-annotated nodes), \texttt{heap max}
+(sift-up). \texttt{plan} reuses the same engine for query-plan trees, inferring
+operator colour from the node label.
+
+\ourfig[0.78\linewidth]{radix}{A radix (Patricia) trie over a set of words: shared
+prefixes are compressed onto single labelled edges.}
+
+\subsection{Struct / memory family}
+
+These exercise the cell-strip and slot-aware pointer kernels:
+
+\begin{lstlisting}[language=triton]
+array
+  title int[] nums
+  cells 5 8 13 21 34
+  index
+  ptr i -> 2
+\end{lstlisting}
+
+\ourfig[0.7\linewidth]{array}{An array with an index row and a named pointer into
+a cell.}
+
+\texttt{linkedlist} draws a \texttt{head} chain of \texttt{[value|next]} nodes
+terminating in a null slash; \texttt{memory} lays out named regions (e.g.\ a stack
+and a heap) and routes a \emph{cross-region pointer} from a variable slot to a heap
+object via \texttt{connectSlots}; \texttt{page} draws a slotted storage page whose
+line pointers indirect to tuples.
+
+\ourfig[0.8\linewidth]{memory}{A memory model: a variable slot in one region holds a
+pointer that crosses into a heap object in another, routed by the slot-aware
+connector.}
+
+\subsection{Topology}
+
+A cost-weighted node graph. Edges are coloured and dashed by the tier their weight
+falls into, a legend is generated from the declared scale, and nodes may be nested
+inside group containers:
+
+\begin{lstlisting}[language=triton]
+topology
+  title NUMA interconnect
+  costs ns
+    tier local 90 #27ae60
+    tier hop1  140 #2f80ed
+    tier hop2  200 #e2574c 5 4
+  node N0 : Node 0
+  node N1 : Node 1
+  N0 -- N1 : 140
+\end{lstlisting}
+
+\ourfig{numa}{A NUMA topology with nested node groups: links are coloured and
+dashed by the cost tier their weight falls into, and the legend is generated from
+the declared scale.}

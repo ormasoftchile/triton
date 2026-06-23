@@ -1,0 +1,69 @@
+\section{Overview}
+\label{sec:overview}
+
+Triton is a deterministic diagram compiler. It takes a small textual source and
+produces a single, byte-stable SVG (optionally rasterised to PNG). Its surface
+syntax is a \emph{superset of Mermaid}: existing Mermaid sources render
+unchanged, and Triton adds diagram families Mermaid does not have.
+
+\subsection{The central claim}
+
+Every diagram kind --- whether a Mermaid flowchart or a Triton-native AVL tree
+--- is a \emph{\texttt{DiagramModule}}: a unit that parses its own source into
+its own intermediate representation (IR), lays that IR out, and emits a shared
+\texttt{Scene}. A single renderer turns any \texttt{Scene} into SVG. There is no
+``god IR'': each diagram owns the data model that fits it, and they meet only at
+the \texttt{Scene} contract.
+
+This contracts-first design is what makes the system both broad and consistent.
+Adding a diagram kind means writing a parser and a layout function against fixed
+contracts; it never means touching the renderer, the theme system, or other
+diagrams.
+
+\ourfig{sql-engine}{An ``SQL engine anatomy'' poster, authored as a single Triton
+source: a query plan, a B+tree index, a slotted storage page, and an in-memory
+row, composed in one grid and joined by cross-diagram links. This combination ---
+composing heterogeneous diagrams and linking nodes across them --- is what Triton
+adds beyond Mermaid.}
+
+\subsection{What Triton renders}
+
+\begin{itemize}
+  \item \textbf{Mermaid-compatible kinds} --- flowchart, sequence, state, class,
+        ER, gantt, journey, mindmap, gitgraph, pie, xychart, quadrant, radar,
+        sankey, kanban, requirement, block, c4, architecture, packet, timeline.
+  \item \textbf{Tree family} (Triton-native) --- a decorated \texttt{tree}
+        engine plus value-driven front-ends \texttt{plan}, \texttt{avl},
+        \texttt{rbtree}, \texttt{btree}, \texttt{radix}, \texttt{segtree},
+        \texttt{heap}. These build \emph{correct-by-construction} structures.
+  \item \textbf{Struct / memory family} --- \texttt{array}, \texttt{linkedlist},
+        \texttt{memory} (regions with cross-region pointers), \texttt{page}
+        (a slotted storage page).
+  \item \textbf{Topology} --- cost-tiered node graphs with legends and nested
+        groups.
+  \item \textbf{Poster composition} --- a grid that embeds any of the above as
+        cells, with cell spanning and \emph{cross-diagram links} between panels.
+\end{itemize}
+
+\subsection{Design properties}
+
+\begin{description}
+  \item[Contracts-first.] The \texttt{Scene} is the one rendering contract; the
+        \texttt{DiagramModule} is the one diagram contract.
+  \item[Per-diagram IR.] Each kind models its own domain; the god-IR is
+        explicitly rejected.
+  \item[Grammar = semantics, theme = style.] Source decides \emph{what} a
+        diagram means; the theme decides \emph{how} it looks. They never mix.
+  \item[Deterministic.] The same source plus theme always yields the same SVG,
+        byte for byte (\S\ref{sec:themes-determinism}).
+  \item[Correct-by-construction.] The value-driven builders (e.g.\ \texttt{avl})
+        compute valid structures from operations; you cannot author an invalid
+        one.
+\end{description}
+
+\subsection{What Triton is not}
+
+Triton is a text-to-SVG compiler, nothing more. It does \emph{not} ingest data
+sources, does \emph{not} construct diagrams from natural-language prompts, does
+\emph{not} export PPTX, and has no general animation pipeline. The full
+out-of-scope list is in \S\ref{sec:status}.

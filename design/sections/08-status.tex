@@ -1,0 +1,63 @@
+\section{Status and Scope}
+\label{sec:status}
+
+\subsection{What is built}
+
+\begin{itemize}
+  \item The full pipeline: detection, registry dispatch, the
+        \texttt{DiagramModule} contract, the \texttt{Scene} contract, and the SVG
+        renderer (PNG via \texttt{resvg}).
+  \item The Mermaid-compatible kinds and the four Triton-native families (tree,
+        struct/memory, topology, poster composition) --- roughly three dozen
+        registered \texttt{DiagramKind}s in total.
+  \item Poster composition with cell spanning and cross-diagram links.
+  \item A dozen theme presets over one unified \texttt{ResolvedTheme}.
+  \item A test suite of 318 passing tests covering grammars, layout invariants
+        (e.g.\ AVL balance, B-tree key bounds, heap order), rendering, and a smoke
+        test that renders every \texttt{examples/**/*.mmd} to valid SVG.
+\end{itemize}
+
+\subsection{What is explicitly out of scope}
+
+These are \emph{not} implemented and are not described elsewhere in this document
+as if they were:
+
+\begin{itemize}
+  \item \textbf{No natural-language input.} Triton compiles source; it does not
+        construct diagrams from prompts.
+  \item \textbf{No data ingestion.} There are no source adapters that crawl
+        external systems into an IR.
+  \item \textbf{No PPTX / PDF / HTML / Skia backends.} The single output is SVG
+        (rasterised to PNG when required).
+  \item \textbf{No general animation pipeline.} The only animated effects are two
+        SVG path overlays --- marching ants (\texttt{march}) and particles
+        (\texttt{particle}).
+  \item \textbf{No agent/MCP ingestion API} and \textbf{no multi-package
+        monorepo} --- the project is one package.
+\end{itemize}
+
+\subsection{Repository layout}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Path & Contents \\
+\midrule
+\texttt{src/contracts/} & Scene, DiagramModule, anchors/ports, theme contracts \\
+\texttt{src/frontend/}  & detect + registry dispatch \\
+\texttt{src/diagrams/}  & one folder per kind (grammar, IR, layout) \\
+\texttt{src/graph/}     & layered, tree, connect layout kernels \\
+\texttt{src/scene/}     & Pen builder, cell-strip builder \\
+\texttt{src/style/}     & cost-tier styling \\
+\texttt{src/theme/}     & presets + resolver \\
+\texttt{src/render/}    & the SVG renderer \\
+\texttt{examples/}      & \texttt{.mmd} sources beside rendered \texttt{.svg} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Possible future work}
+
+Honest candidates, none promised: a vector PDF backend, richer auto-layout for
+dense graphs, and a first-class JSON/YAML authoring schema to make the structured
+input path as ergonomic as the text one.
