@@ -137,7 +137,20 @@ export type DiagramKind =
   | 'xychart'
   | 'quadrant'
   | 'radar'
-  | 'journey';
+  | 'journey'
+  | 'tree'
+  | 'plan'
+  | 'avl'
+  | 'rbtree'
+  | 'btree'
+  | 'radix'
+  | 'segtree'
+  | 'heap'
+  | 'array'
+  | 'linkedlist'
+  | 'memory'
+  | 'page'
+  | 'topology';
 
 /** The two input formats Triton accepts. */
 export type InputFormat = 'mermaid' | 'yaml';

@@ -117,7 +117,7 @@ CellSpan
   / _ "[" _ cols:Integer _ "]"                       { return { colSpan: cols, rowSpan: 1   }; }
 
 CellKind
-  = "flowchart" / "flow" / "timeline" / "stat" / "text"
+  = "flowchart" / "flow" / "timeline" / "stat" / "text" / Identifier
 
 // ─── Cross-Link Declarations ─────────────────────────────────────────────────
 

@@ -489,13 +489,37 @@ function buildCellTitle(
 
 // ─── Grid Helpers ─────────────────────────────────────────────────────────────
 
-function assignPositions(cells: readonly PosterCell[], columns: number): PosterCell[] {
-  let col = 0;
-  let row = 0;
+/** Grid placement: assigns row/col to each cell, reserving spanned cells so
+ *  later cells skip slots already covered by a colSpan/rowSpan. Exported for tests. */
+export function assignPositions(cells: readonly PosterCell[], columns: number): PosterCell[] {
+  const occupied = new Set<string>();
+  const key = (r: number, c: number): string => `${r},${c}`;
+  const mark = (r: number, c: number, rs: number, cs: number): void => {
+    for (let rr = r; rr < r + rs; rr++) for (let cc = c; cc < c + cs; cc++) occupied.add(key(rr, cc));
+  };
+  const fits = (r: number, c: number, rs: number, cs: number): boolean => {
+    if (c + cs > columns) return false;
+    for (let rr = r; rr < r + rs; rr++) for (let cc = c; cc < c + cs; cc++) if (occupied.has(key(rr, cc))) return false;
+    return true;
+  };
+
+  let row = 0, col = 0;
   return cells.map(cell => {
-    if (cell.row !== undefined && cell.col !== undefined) return cell;
+    const cs = Math.min(cell.colSpan ?? 1, columns);
+    const rs = cell.rowSpan ?? 1;
+    // Explicitly placed cells are honoured as-is, but still reserve their footprint.
+    if (cell.row !== undefined && cell.col !== undefined) {
+      mark(cell.row, cell.col, rs, cs);
+      return cell;
+    }
+    // Scan row-major for the first free slot whose full span fits.
+    while (!fits(row, col, rs, cs)) {
+      col++;
+      if (col >= columns) { col = 0; row++; }
+    }
     const assigned = { ...cell, row, col };
-    col += cell.colSpan ?? 1;
+    mark(row, col, rs, cs);
+    col += cs;
     if (col >= columns) { col = 0; row++; }
     return assigned;
   });
