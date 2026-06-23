@@ -77,7 +77,7 @@ export function layoutNumbered(ir: TimelineDocument, theme: ResolvedTheme): Layo
   placed.forEach((_e, i) => {
     const x = nodeX(i);
     const lineAbove = i % 2 === 1;              // same side as the callout
-    const sweep = lineAbove ? 0 : 1;            // 0 = arc up/over, 1 = arc down/under
+    const sweep = lineAbove ? 1 : 0;            // 1 = arc up/over, 0 = arc down/under
     spine += ` L ${rhu(x - arcR)} ${rhu(axisY)} A ${arcR} ${arcR} 0 0 ${sweep} ${rhu(x + arcR)} ${rhu(axisY)}`;
     apexes.push({ x, y: lineAbove ? axisY - arcR : axisY + arcR });
   });
