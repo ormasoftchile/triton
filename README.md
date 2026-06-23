@@ -11,16 +11,15 @@ and rendering contracts).
 ## Layout
 
 ```
-v3/            — @triton/core-v3 — the active codebase (contracts-first rewrite)
-  src/         — contracts, kernel (graph/scene/text/style), diagrams, renderer
-  test/        — vitest suites
-  examples/    — *.mmd sources + rendered *.svg
-  scripts/     — build-grammars.mjs (Peggy), preview.mjs
+src/           — contracts, kernel (graph/scene/text/style), diagrams, renderer
+test/          — vitest suites
+examples/      — *.mmd sources + rendered *.svg
+scripts/       — build-grammars.mjs (Peggy), preview.mjs
 design/        — LaTeX design specification
 sample-images/ — reference imagery (cited by the design spec)
 ```
 
-> Earlier generations (`packages/` v1, `v2/`) were removed once superseded by v3.
+> Built as a contracts-first rewrite; earlier generations (`packages/` v1, `v2/`) were removed once superseded.
 
 ## Quick Start
 
@@ -30,9 +29,9 @@ corepack enable pnpm
 pnpm install
 
 # Generate parsers, type-check, and run the full test suite
-pnpm -r typecheck
-pnpm -r test
-pnpm -r build
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
 ## What it renders
@@ -48,7 +47,7 @@ pnpm -r build
   - **struct family** — `array`, `linkedlist`, `memory`, `page` (slotted page).
   - **topology** — cost-tiered node graphs with legends and nested groups (NUMA).
 
-Each diagram kind has runnable examples under [`v3/examples/`](v3/examples/)
+Each diagram kind has runnable examples under [`examples/`](examples/)
 (`.mmd` source beside its rendered `.svg`).
 
 ## Development
