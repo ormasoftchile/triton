@@ -1,0 +1,24 @@
+---
+title: Order Payment Lifecycle
+theme: default-state
+---
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing : order_placed
+    Processing --> Authorized : authorize [amount > 0]
+    Processing --> Failed : authorize [amount <= 0]
+    Failed --> [*]
+    state Processing {
+        [*] --> Validating
+        Validating --> Charging : valid
+        Charging --> [*]
+    }
+    state choice1 <<choice>>
+    Authorized --> choice1
+    choice1 --> Completed : [full payment]
+    choice1 --> PartialPay : [partial]
+    PartialPay --> Completed : remaining paid
+    Completed --> Refunding : refund_requested
+    Refunding --> Refunded : process_refund
+    Refunded --> [*]
+    Completed --> [*]

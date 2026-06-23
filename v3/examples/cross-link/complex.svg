@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 553.2 714.3809523809524" width="553.2" height="714.3809523809524">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
+    <marker id="triton-crosslink-arrow-both" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto"><polygon points="8 0, 0 2.8, 8 5.6" fill="currentColor" /></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Microservices Architecture — Cross-Link Map</text>
+  <rect x="24" y="58" width="160" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="58" width="325.2" height="358" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="436" width="160" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="436" width="325.2" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 312.6 308 L 312.6 428 L 141.42857142857142 428 L 141.42857142857142 628.4761904761905" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 324.6 388 L 324.6 474.59523809523813 L 293.8 474.59523809523813 L 293.8 561.1904761904763" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 439.40000000000003 561.1904761904763 L 439.40000000000003 354.59523809523813 L 414.6 354.59523809523813 L 414.6 148" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="3 4" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-7" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.28571428571428 233.52380952380952 L 232.44285714285715 233.52380952380952 L 232.44285714285715 144 L 306.6 144" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 306.6 384 L 153.42857142857142 384 L 153.42857142857142 483.7142857142857" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">UI Layer</text>
+  <g transform="translate(28, 135.8095238095238) scale(0.9047619047619048)">
+    <g id="app">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Mobile App</text>
+    </g>
+    <g id="bff">
+      <rect x="24" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">BFF</text>
+    </g>
+    <g id="web">
+      <rect x="24" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Web App</text>
+    </g>
+  </g>
+  <text x="212" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">API &amp; Orchestration</text>
+  <g transform="translate(282.6, 84) scale(1)">
+    <g id="gw">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">API Gateway</text>
+    </g>
+    <g id="auth">
+      <rect x="24" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Auth</text>
+    </g>
+    <g id="catalog">
+      <rect x="24" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Catalog</text>
+    </g>
+    <g id="orders">
+      <rect x="24" y="264" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Orders</text>
+    </g>
+  </g>
+  <text x="32" y="454" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Data Stores</text>
+  <g transform="translate(28, 462) scale(0.9047619047619048)">
+    <g id="pg">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Postgres</text>
+    </g>
+    <g id="replica">
+      <rect x="24" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Read Replica</text>
+    </g>
+    <g id="redis">
+      <rect x="24" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Redis Cache</text>
+    </g>
+  </g>
+  <text x="212" y="454" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Async &amp; Observability</text>
+  <g transform="translate(208, 545.5904761904762) scale(0.65)">
+    <path d="M 144 44 L 184 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 304 44 L 344 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <g id="kafka">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Kafka</text>
+    </g>
+    <g id="consumer">
+      <rect x="184" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="244" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Consumer</text>
+    </g>
+    <g id="metrics">
+      <rect x="344" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="404" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Metrics</text>
+    </g>
+  </g>
+  <text x="186.7761904761905" y="426" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">cache hit?</text>
+  <text x="309.20000000000005" y="472.59523809523813" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">publishes</text>
+  <text x="427" y="342" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">health</text>
+</svg>

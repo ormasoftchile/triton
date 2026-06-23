@@ -1,0 +1,21 @@
+{
+  "name": "@triton/core-v2",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Triton v2 — unified diagram compiler with EBNF-driven parsing",
+  "scripts": {
+    "build:grammars": "node scripts/build-grammars.mjs",
+    "build": "pnpm build:grammars && tsc --project tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "peggy": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0",
+    "@types/node": "^22.0.0"
+  }
+}

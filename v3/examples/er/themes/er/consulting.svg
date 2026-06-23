@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 402 603" width="402" height="603">
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111" font-weight="bold">E-Commerce Schema</text>
+  <path d="M 94 163 L 94 242.5" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 88 173 L 100 173" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 89 178 L 99 178" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 94 228.5 L 100 242.5" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 94 228.5 L 88 242.5" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 94 228.5 L 94 242.5" stroke="#555555" stroke-width="1.2" fill="none" />
+  <circle cx="94" cy="222.5" r="4" fill="#FFFFFF" stroke="#555555" stroke-width="1.2" />
+  <rect x="74.08" y="191.75" width="39.84" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="94" y="201.75" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#555555" text-anchor="middle">places</text>
+  <path d="M 119.93 349.5 L 158.46 429" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 118.89 361.12 L 129.69 355.88" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 121.97 365.18 L 130.97 360.82" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 152.36 416.4 L 163.86 426.38" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 152.36 416.4 L 153.07 431.62" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 152.36 416.4 L 158.46 429" stroke="#555555" stroke-width="1.2" fill="none" />
+  <rect x="114.37" y="378.25" width="49.65" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="139" y="388.25" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#555555" text-anchor="middle">contains</text>
+  <path d="M 253.46 359 L 219.54 429" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 243.7 365.38 L 254.5 370.62" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 242.42 370.32 L 251.42 374.68" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 225.64 416.4 L 224.93 431.62" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 225.64 416.4 L 214.14 426.38" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 225.64 416.4 L 219.54 429" stroke="#555555" stroke-width="1.2" fill="none" />
+  <circle cx="228.26" cy="411" r="4" fill="#FFFFFF" stroke="#555555" stroke-width="1.2" />
+  <rect x="207.67" y="383" width="57.66" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="237" y="393" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#555555" text-anchor="middle">ordered in</text>
+  <path d="M 148.5 163 L 219.82 233" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 158.5 172.81 L 144.3 167.28" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 158.5 172.81 L 152.71 158.72" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 158.5 172.81 L 148.5 163" stroke="#555555" stroke-width="1.2" fill="none" />
+  <circle cx="162.78" cy="177.01" r="4" fill="#FFFFFF" stroke="#555555" stroke-width="1.2" />
+  <path d="M 209.83 223.19 L 224.02 228.72" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 209.83 223.19 L 215.61 237.28" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 209.83 223.19 L 219.82 233" stroke="#555555" stroke-width="1.2" fill="none" />
+  <circle cx="205.54" cy="218.99" r="4" fill="#FFFFFF" stroke="#555555" stroke-width="1.2" />
+  <rect x="162.12" y="187" width="44.07" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="184" y="197" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#555555" text-anchor="middle">wishlist</text>
+  <path d="M 284 144 L 284 233" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 278 154 L 290 154" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 279 159 L 289 159" stroke="#555555" stroke-width="1.3" fill="none" />
+  <path d="M 284 219 L 290 233" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 284 219 L 278 233" stroke="#555555" stroke-width="1.2" fill="none" />
+  <path d="M 284 219 L 284 233" stroke="#555555" stroke-width="1.2" fill="none" />
+  <rect x="251.52" y="177.5" width="64.95" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="284" y="187.5" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#555555" text-anchor="middle">categorizes</text>
+  <rect x="24" y="56" width="140" height="107" fill="#F4F6FA" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <rect x="24" y="56" width="140" height="25" fill="#1F497D" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <text x="94" y="73.4" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">CUSTOMER</text>
+  <text x="32" y="95" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  id</text>
+  <text x="156" y="95" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#D97706" text-anchor="end" font-weight="bold">PK</text>
+  <text x="32" y="114" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  name</text>
+  <text x="32" y="133" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  email</text>
+  <text x="32" y="152" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  address</text>
+  <rect x="24" y="242.5" width="140" height="107" fill="#F4F6FA" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <rect x="24" y="242.5" width="140" height="25" fill="#1F497D" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <text x="94" y="259.9" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">ORDER</text>
+  <text x="32" y="281.5" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  id</text>
+  <text x="156" y="281.5" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#D97706" text-anchor="end" font-weight="bold">PK</text>
+  <text x="32" y="300.5" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  status</text>
+  <text x="32" y="319.5" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">date  created_at</text>
+  <text x="32" y="338.5" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">float  total</text>
+  <rect x="119" y="429" width="140" height="126" fill="#F4F6FA" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <rect x="119" y="429" width="140" height="25" fill="#1F497D" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <text x="189" y="446.4" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">LINE_ITEM</text>
+  <text x="127" y="468" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  id</text>
+  <text x="251" y="468" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#D97706" text-anchor="end" font-weight="bold">PK</text>
+  <text x="127" y="487" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  order_id</text>
+  <text x="251" y="487" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#D97706" text-anchor="end" font-weight="bold">FK</text>
+  <text x="127" y="506" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  product_id</text>
+  <text x="251" y="506" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#D97706" text-anchor="end" font-weight="bold">FK</text>
+  <text x="127" y="525" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  quantity</text>
+  <text x="127" y="544" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">float  unit_price</text>
+  <rect x="214" y="233" width="140" height="126" fill="#F4F6FA" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <rect x="214" y="233" width="140" height="25" fill="#1F497D" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <text x="284" y="250.4" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">PRODUCT</text>
+  <text x="222" y="272" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  id</text>
+  <text x="346" y="272" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#D97706" text-anchor="end" font-weight="bold">PK</text>
+  <text x="222" y="291" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  sku</text>
+  <text x="222" y="310" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  name</text>
+  <text x="222" y="329" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">float  price</text>
+  <text x="222" y="348" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  stock</text>
+  <rect x="214" y="75" width="140" height="69" fill="#F4F6FA" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <rect x="214" y="75" width="140" height="25" fill="#1F497D" stroke="#D6DEE8" stroke-width="1.4" rx="4" />
+  <text x="284" y="92.4" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">CATEGORY</text>
+  <text x="222" y="114" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">int  id</text>
+  <text x="346" y="114" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#D97706" text-anchor="end" font-weight="bold">PK</text>
+  <text x="222" y="133" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#111111">string  name</text>
+</svg>

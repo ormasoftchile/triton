@@ -1,0 +1,40 @@
+---
+title: E-Commerce Schema
+theme: default-er
+---
+erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    CUSTOMER {
+        string id PK
+        string name
+        string email
+        string address
+    }
+    ORDER ||--|{ LINE_ITEM : contains
+    ORDER {
+        int id PK
+        string status
+        date created_at
+        float total
+    }
+    LINE_ITEM {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int quantity
+        float unit_price
+    }
+    PRODUCT ||--o{ LINE_ITEM : "ordered in"
+    PRODUCT {
+        int id PK
+        string sku
+        string name
+        float price
+        int stock
+    }
+    CUSTOMER }o--o{ PRODUCT : "wishlist"
+    CATEGORY ||--|{ PRODUCT : categorizes
+    CATEGORY {
+        int id PK
+        string name
+    }
