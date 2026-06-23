@@ -1,4 +1,4 @@
 packages:
-  - 'packages/*'
+  - 'v3'
 allowBuilds:
   esbuild: true

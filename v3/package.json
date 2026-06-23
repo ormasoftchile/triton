@@ -7,8 +7,9 @@
   "scripts": {
     "build:grammars": "node scripts/build-grammars.mjs",
     "build": "pnpm build:grammars && tsc --project tsconfig.json",
+    "typecheck": "pnpm build:grammars && tsc --project tsconfig.json --noEmit",
     "preview": "node scripts/preview.mjs",
-    "test": "vitest run",
+    "test": "pnpm build:grammars && vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {

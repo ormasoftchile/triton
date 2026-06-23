@@ -1,66 +1,59 @@
-# Timeline Compiler
+# Triton
 
-Deterministic timeline renderer — produces byte-stable SVG, PNG, and PPTX from a
-declarative YAML/JSON IR. This repository is the implementation of the design spec
-in [`design/main.pdf`](design/main.pdf).
+Deterministic, contracts-first **diagram compiler** — turns declarative text into
+byte-stable SVG (and PNG). Triton renders a broad family of diagrams behind a
+single rendering kernel: a Mermaid-compatible surface plus Triton-only extensions
+(posters/composition, cross-diagram links, timelines, and a CS-structures family).
+
+The design spec lives in [`design/`](design/) (LaTeX source of truth for the IR
+and rendering contracts).
+
+## Layout
+
+```
+v3/            — @triton/core-v3 — the active codebase (contracts-first rewrite)
+  src/         — contracts, kernel (graph/scene/text/style), diagrams, renderer
+  test/        — vitest suites
+  examples/    — *.mmd sources + rendered *.svg
+  scripts/     — build-grammars.mjs (Peggy), preview.mjs
+design/        — LaTeX design specification
+examples/      — gallery / showcase assets
+sample-images/ — reference imagery
+```
+
+> Earlier generations (`packages/` v1, `v2/`) were removed once superseded by v3.
 
 ## Quick Start
 
 ```bash
-# Prerequisites: Node ≥ 20, pnpm (enabled via corepack or npm i -g pnpm)
-
-# Install dependencies
+# Prerequisites: Node >= 20, pnpm (via corepack)
+corepack enable pnpm
 pnpm install
 
-# Build all packages
-pnpm build
-
-# Run all tests
-pnpm test
-
-# Type-check without emitting
-pnpm typecheck
-
-# Lint
-pnpm lint
+# Generate parsers, type-check, and run the full test suite
+pnpm -r typecheck
+pnpm -r test
+pnpm -r build
 ```
 
-## CLI Usage
+## What it renders
 
-```bash
-# After build:
-node packages/cli/dist/index.js --help
-node packages/cli/dist/index.js --version
+- **Mermaid-compatible**: flowchart, sequence, state, class, ER, gantt, journey,
+  mindmap, gitgraph, pie, xychart, quadrant, radar, sankey, kanban, requirement,
+  block, c4, architecture, packet, timeline.
+- **Triton extensions**:
+  - **poster** — compose child diagrams in a grid (with `[cols]` / `[cols x rows]`
+    cell spanning) and **cross-diagram links** between panels.
+  - **tree family** — `tree` plus value-driven `plan`, `avl`, `rbtree`, `btree`,
+    `radix`, `segtree`, `heap` (structures are correct-by-construction).
+  - **struct family** — `array`, `linkedlist`, `memory`, `page` (slotted page).
+  - **topology** — cost-tiered node graphs with legends and nested groups (NUMA).
 
-# Render a timeline file
-node packages/cli/dist/index.js render path/to/timeline.yaml -o out.svg
-
-# Validate a timeline file
-node packages/cli/dist/index.js validate path/to/timeline.yaml
-
-# Print the JSON Schema
-node packages/cli/dist/index.js schema
-```
-
-## Repository Layout
-
-```
-packages/
-  core/       — @timeline-compiler/core  — pure library, public API types + stubs
-  cli/        — @timeline-compiler/cli   — commander-based CLI
-  schema/     — @timeline-compiler/schema — versioned JSON Schema artefacts
-design/       — LaTeX design specification (source of truth for IR contract)
-.squad/       — Team agent state
-```
-
-## Status
-
-**Phase 0 — Scaffold & Tooling** ✅  
-Core API stubs, Zod schema, CLI skeleton, and CI wired up. Phase 1 will implement
-the layout/validation/rendering pipeline.
+Each diagram kind has runnable examples under [`v3/examples/`](v3/examples/)
+(`.mmd` source beside its rendered `.svg`).
 
 ## Development
 
-The public API contract lives in [`packages/core/src/types.ts`](packages/core/src/types.ts)
-and [`packages/core/src/api.ts`](packages/core/src/api.ts). All packages are ESM-only,
-TypeScript-strict, and target Node ≥ 20 (ES2022).
+All code is ESM-only, TypeScript-strict, targeting Node >= 20 (ES2022).
+The architecture is contracts-first: every diagram implements a `DiagramModule`
+(parse → IR → layout → `Scene`), and a single renderer turns a `Scene` into SVG.
