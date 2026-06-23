@@ -73,14 +73,19 @@ export function layoutNumbered(ir: TimelineDocument, theme: ResolvedTheme): Layo
   //    alternating over/under (opposite the callout side) — the "edging line".
   const arcR = circleR + 5;
   let spine = `M ${rhu(margin)} ${rhu(axisY)}`;
+  const apexes: Array<{ x: number; y: number }> = [];
   placed.forEach((_e, i) => {
     const x = nodeX(i);
     const lineAbove = i % 2 === 0;              // opposite the callout side
     const sweep = lineAbove ? 0 : 1;            // 0 = arc up/over, 1 = arc down/under
     spine += ` L ${rhu(x - arcR)} ${rhu(axisY)} A ${arcR} ${arcR} 0 0 ${sweep} ${rhu(x + arcR)} ${rhu(axisY)}`;
+    apexes.push({ x, y: lineAbove ? axisY - arcR : axisY + arcR });
   });
   spine += ` L ${rhu(totalW - margin)} ${rhu(axisY)}`;
   elements.push(p.path(spine, palette.border, 2));
+
+  // Dot at each arc apex (the spine's min/max around each node).
+  for (const a of apexes) elements.push(p.circle({ x: rhu(a.x), y: rhu(a.y) }, 4, palette.primary, palette.background, 1.5));
 
   // ── Nodes + alternating callouts ───────────────────────────────────────────
   placed.forEach((e, i) => {
