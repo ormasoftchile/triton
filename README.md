@@ -15,8 +15,7 @@ src/           — contracts, kernel (graph/scene/text/style), diagrams, rendere
 test/          — vitest suites
 examples/      — *.mmd sources + rendered *.svg
 scripts/       — build-grammars.mjs (Peggy), preview.mjs
-design/        — LaTeX design specification
-sample-images/ — reference imagery (cited by the design spec)
+design/        — LaTeX design specification (figures rendered by Triton itself)
 ```
 
 > Built as a contracts-first rewrite; earlier generations (`packages/` v1, `v2/`) were removed once superseded.
