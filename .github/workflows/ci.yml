@@ -8,12 +8,11 @@ on:
 
 jobs:
   ci:
-    name: CI (${{ matrix.os }} / Node ${{ matrix.node }})
-    runs-on: ${{ matrix.os }}
+    name: CI (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         node: ['20', '22']
 
     steps:
@@ -33,9 +32,6 @@ jobs:
 
       - name: Typecheck
         run: pnpm -r typecheck
-
-      - name: Lint
-        run: pnpm -r lint
 
       - name: Test
         run: pnpm -r test

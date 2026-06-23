@@ -8,7 +8,7 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/coverage/**',
       '**/*.tsbuildinfo',
-      'packages/schema/v1/**',
+      '**/parser.js',
     ],
   },
   ...tseslint.configs.recommended,
