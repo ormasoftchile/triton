@@ -17,8 +17,7 @@ v3/            — @triton/core-v3 — the active codebase (contracts-first rewr
   examples/    — *.mmd sources + rendered *.svg
   scripts/     — build-grammars.mjs (Peggy), preview.mjs
 design/        — LaTeX design specification
-examples/      — gallery / showcase assets
-sample-images/ — reference imagery
+sample-images/ — reference imagery (cited by the design spec)
 ```
 
 > Earlier generations (`packages/` v1, `v2/`) were removed once superseded by v3.
