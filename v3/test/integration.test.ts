@@ -99,7 +99,8 @@ describe('compile', () => {
   });
 
   it('returns error result for unregistered diagram types', async () => {
-    const result = await compile('sequenceDiagram\nAlice ->> Bob: Hello\n');
+    // `sankey` is a recognised kind but has no registered module yet.
+    const result = await compile('sankey-beta\nA,B,10\n');
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('UNKNOWN_DIAGRAM');

@@ -1,0 +1,53 @@
+---
+title: E-Commerce Domain Model
+theme: default-class
+---
+classDiagram
+    class Customer {
+        +String id
+        +String name
+        +String email
+        +register()
+        +login() bool
+    }
+    class Order {
+        +String orderId
+        +Date createdAt
+        +float total
+        +submit()
+        +cancel() bool
+    }
+    class OrderItem {
+        +int quantity
+        +float unitPrice
+        +float subtotal()
+    }
+    class Product {
+        +String sku
+        +String name
+        +float price
+        +int stock
+    }
+    class Payment {
+        <<interface>>
+        +float amount
+        +process() bool
+        +refund() bool
+    }
+    class CreditCardPayment {
+        +String cardNumber
+        +String expiry
+        +process() bool
+        +refund() bool
+    }
+    class ShoppingCart {
+        +addItem(Product p)
+        +removeItem(String sku)
+        +checkout() Order
+    }
+    Customer "1" --> "*" Order : places
+    Order *-- OrderItem : contains
+    OrderItem --> Product : references
+    Payment <|.. CreditCardPayment
+    Customer --> ShoppingCart : has
+    ShoppingCart --> Order : creates

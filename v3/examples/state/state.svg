@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 294 952" width="294" height="952">
+  <defs>
+    <marker id="state-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="#64748B" /></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Order Payment Lifecycle</text>
+  <path d="M 126.42 78 L 83.97 134" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <path d="M 70.11 172 L 71.74 228" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="34.75" y="189" width="72.36" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="71" y="199" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">order_placed</text>
+  <path d="M 73.2 266 L 75.86 322" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="14.88" y="283" width="119.3" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="75" y="293" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">authorize [amount &gt; 0]</text>
+  <path d="M 98.65 266 L 176.34 322" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="74.62" y="283" width="125.74" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="137" y="293" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">authorize [amount &lt;= 0]</text>
+  <path d="M 200.36 360 L 136.11 882" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <path d="M 142.18 78 L 179.95 134" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <path d="M 194.84 172 L 200.98 228" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="182.59" y="189" width="30.64" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="198" y="199" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">valid</text>
+  <path d="M 201.05 266 L 135.92 882" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <path d="M 88.74 360 L 124.04 416" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <path d="M 134.76 450 L 134.76 600" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="97.66" y="514" width="74.2" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="135" y="524" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[full payment]</text>
+  <path d="M 134.76 450 L 134.76 506" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="112.38" y="467" width="44.77" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="135" y="477" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[partial]</text>
+  <path d="M 134.76 544 L 134.76 600" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="94.6" y="561" width="80.33" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="135" y="571" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">remaining paid</text>
+  <path d="M 134.76 638 L 134.76 694" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="87.23" y="655" width="95.06" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="135" y="665" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">refund_requested</text>
+  <path d="M 134.76 732 L 134.76 788" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <rect x="92.77" y="749" width="83.99" height="15" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" />
+  <text x="135" y="759" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">process_refund</text>
+  <path d="M 134.76 826 L 134.76 882" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <path d="M 134.76 638 L 134.76 882" stroke="#64748B" stroke-width="1.4" fill="none" marker-end="url(#state-arrow)" />
+  <circle cx="134.76" cy="67" r="8" fill="#1E293B" stroke="#1E293B" stroke-width="0" />
+  <rect x="31.56" y="134" width="76" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="70" y="157.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Idle</text>
+  <rect x="24" y="228" width="96.59" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="72" y="251.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Processing</text>
+  <rect x="28.83" y="322" width="95.87" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="77" y="345.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Authorized</text>
+  <rect x="164.69" y="322" width="76" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="203" y="345.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Failed</text>
+  <circle cx="134.76" cy="893" r="10" fill="none" stroke="#1E293B" stroke-width="1.5" />
+  <circle cx="134.76" cy="893" r="5" fill="#1E293B" stroke="#1E293B" stroke-width="0" />
+  <rect x="147.56" y="134" width="90.4" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="193" y="157.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Validating</text>
+  <rect x="160.59" y="228" width="84.93" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="203" y="251.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Charging</text>
+  <path d="M 134.76 416 L 151.76 433 L 134.76 450 L 117.76 433 Z" stroke="#CBD5E1" stroke-width="1.4" fill="#F8FAFC" />
+  <rect x="86.44" y="600" width="96.63" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="135" y="623.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Completed</text>
+  <rect x="89.19" y="506" width="91.15" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="135" y="529.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">PartialPay</text>
+  <rect x="88.78" y="694" width="91.97" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="135" y="717.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Refunding</text>
+  <rect x="90.33" y="788" width="88.87" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.4" rx="10" />
+  <text x="135" y="811.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Refunded</text>
+</svg>
