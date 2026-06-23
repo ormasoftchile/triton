@@ -36,37 +36,51 @@ const here = dirname(fileURLToPath(import.meta.url)); // extension/
 const repoRoot = resolve(here, '..'); // repo root
 const watch = process.argv.includes('--watch');
 
-// ── Precondition: generate the Peggy parsers ───────────────────────────────────
+// ── Precondition: generate the Peggy parsers (incrementally) ────────────────────
 // Bundling from src/ means the generated parser.js files are inlined directly —
-// but they only exist after `pnpm build:grammars`. Run it first, then verify.
+// but they only exist after the grammars are built. Regenerating all 23 grammars
+// on every bundle is the slow path (and shelling out to `pnpm` adds process
+// startup + sandbox-prompt overhead), so we ONLY run the generator when a
+// `grammar.peggy` is newer than its `parser.js` (or the parser is missing).
+// When you edit only `extension.ts`, this skips entirely and the bundle is ~100ms.
 function ensureGrammars() {
-  console.log('› build:grammars (generating Peggy parsers)…');
-  const r = spawnSync('pnpm', ['build:grammars'], {
+  const diagramsDir = join(repoRoot, 'src', 'diagrams');
+  const stale = [];
+  for (const d of readdirSync(diagramsDir)) {
+    const dir = join(diagramsDir, d);
+    if (!statSync(dir).isDirectory()) continue;
+    const grammar = join(dir, 'grammar.peggy');
+    if (!existsSync(grammar)) continue;
+    const parser = join(dir, 'parser.js');
+    if (!existsSync(parser) || statSync(parser).mtimeMs < statSync(grammar).mtimeMs) {
+      stale.push(d);
+    }
+  }
+
+  if (stale.length === 0) {
+    console.log('› parsers up to date — skipping build:grammars');
+    return;
+  }
+
+  console.log(`› build:grammars (${stale.length} stale: ${stale.join(', ')})…`);
+  // Call the generator directly with `node` — avoids pnpm startup + sandbox prompts.
+  const r = spawnSync(process.execPath, [join(repoRoot, 'scripts', 'build-grammars.mjs')], {
     cwd: repoRoot,
     stdio: 'inherit',
-    shell: process.platform === 'win32',
   });
   if (r.status !== 0) {
     console.error(
-      '\n✗ `pnpm build:grammars` failed. Run it manually in the repo root, then rebuild the extension.',
+      '\n✗ build-grammars.mjs failed. Run `pnpm build:grammars` in the repo root, then rebuild.',
     );
     process.exit(1);
   }
 
-  // Verify every diagram dir that has a grammar.peggy also has a parser.js.
-  const diagramsDir = join(repoRoot, 'src', 'diagrams');
-  const missing = [];
-  for (const d of readdirSync(diagramsDir)) {
-    const dir = join(diagramsDir, d);
-    if (!statSync(dir).isDirectory()) continue;
-    if (existsSync(join(dir, 'grammar.peggy')) && !existsSync(join(dir, 'parser.js'))) {
-      missing.push(`src/diagrams/${d}/parser.js`);
-    }
-  }
+  const missing = stale.filter((d) => !existsSync(join(diagramsDir, d, 'parser.js')));
   if (missing.length > 0) {
     console.error(
-      `\n✗ Missing generated parser(s) after build:grammars:\n  ${missing.join('\n  ')}\n` +
-        '  The esbuild bundle requires these. Re-run `pnpm build:grammars` in the repo root.',
+      `\n✗ Missing generated parser(s) after build:grammars:\n  ${missing
+        .map((d) => `src/diagrams/${d}/parser.js`)
+        .join('\n  ')}`,
     );
     process.exit(1);
   }
