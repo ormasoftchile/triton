@@ -14,8 +14,15 @@ export interface StateTransition {
   readonly label?: string;
 }
 
+export interface StateComposite {
+  readonly id: string;
+  readonly label: string;
+  readonly nodeIds: readonly string[];
+}
+
 export interface StateDocument extends BaseIR {
   readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
   readonly states: readonly StateNode[];
   readonly transitions: readonly StateTransition[];
+  readonly composites?: readonly StateComposite[];
 }

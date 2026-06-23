@@ -42,14 +42,41 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
   const elements: SceneElement[] = [];
   if (title) elements.push(p.text(title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
 
+  // ── Composite containers (bounding boxes around members) ──────────────────
+  const composites = ir.composites ?? [];
+  const containerRect = new Map<string, { x: number; y: number; width: number; height: number }>();
+  const hidden = new Set<string>();      // composite node ids hidden in favour of their container
+  for (const comp of composites) {
+    const rects = comp.nodeIds.map(id => laid.boxes.get(id)).filter((r): r is NonNullable<typeof r> => !!r);
+    if (rects.length === 0) continue;
+    const pad = 22;
+    const minX = Math.min(...rects.map(r => r.x)) - pad;
+    const minY = Math.min(...rects.map(r => r.y)) - pad - 14 + yOff;
+    const maxX = Math.max(...rects.map(r => r.x + r.width)) + pad;
+    const maxY = Math.max(...rects.map(r => r.y + r.height)) + pad + yOff;
+    const rect = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    containerRect.set(comp.id, rect);
+    hidden.add(comp.id);
+    elements.push(p.rect({ x: rhu(minX), y: rhu(minY), width: rhu(rect.width), height: rhu(rect.height) }, palette.surface, palette.primary, 1.4, { rx: 10, opacity: 0.5 }));
+    elements.push(p.text(comp.label, rhu(minX + 12), rhu(minY + 16), typography.smallFontSize, palette.text, { weight: 'bold' }));
+  }
+
+  // Resolve a node's effective rect (container for composites, box otherwise).
+  const rectFor = (id: string): { x: number; y: number; width: number; height: number } | undefined => {
+    const c = containerRect.get(id);
+    if (c) return c;
+    const b = laid.boxes.get(id);
+    return b ? { x: b.x, y: b.y + yOff, width: b.width, height: b.height } : undefined;
+  };
+
   // ── Transitions ────────────────────────────────────────────────────────────
   for (const t of ir.transitions) {
-    const a = laid.boxes.get(t.from), b = laid.boxes.get(t.to);
+    const a = rectFor(t.from), b = rectFor(t.to);
     if (!a || !b) continue;
-    const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 + yOff };
-    const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 + yOff };
-    const pa = borderPoint({ ...a, y: a.y + yOff }, bc.x, bc.y);
-    const pb = borderPoint({ ...b, y: b.y + yOff }, ac.x, ac.y);
+    const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 };
+    const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    const pa = borderPoint(a, bc.x, bc.y);
+    const pb = borderPoint(b, ac.x, ac.y);
     elements.push(p.path(`M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`, palette.textMuted, 1.4, { markerEnd: ARROW_ID }));
     if (t.label) {
       const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
@@ -61,6 +88,7 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
 
   // ── States ─────────────────────────────────────────────────────────────────
   for (const s of ir.states) {
+    if (hidden.has(s.id)) continue;
     const box = laid.boxes.get(s.id)!;
     const x = box.x, y = box.y + yOff;
     const cx = x + box.width / 2, cy = y + box.height / 2;

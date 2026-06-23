@@ -74,8 +74,8 @@ export function layoutArchitecture(ir: ArchitectureDocument, theme: ResolvedThem
     const hue = categoricalHue(i);
     elements.push(p.rect({ x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) }, palette.surface, palette.border, 1.4, { rx: 8 }));
     elements.push(p.rect({ x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: 8 }, hue, hue, 0, { rx: 4 }));
-    elements.push(p.text(s.label, rhuInt(r.x + r.width / 2), rhu(r.y + r.height / 2 + 6 + font * 0.35), font, palette.text, { weight: 'bold', anchor: 'middle' }));
-    elements.push(p.text(s.icon, rhuInt(r.x + r.width / 2), rhu(r.y + r.height - 6), typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));
+    elements.push(...iconGlyph(p, s.icon, r.x + r.width / 2, r.y + 24, hue, palette));
+    elements.push(p.text(s.label, rhuInt(r.x + r.width / 2), rhu(r.y + r.height - 9), font, palette.text, { weight: 'bold', anchor: 'middle' }));
   });
 
   const allR = ir.services.map(s => rectOf(s.id)!);
@@ -91,4 +91,36 @@ export function layoutArchitecture(ir: ArchitectureDocument, theme: ResolvedThem
   }, ir.overlays, theme);
 
   return { scene, anchors: {} };
+}
+
+/** A small line glyph for a service icon name (server/database/cloud/internet/disk). */
+function iconGlyph(
+  p: ReturnType<typeof pen>,
+  icon: string,
+  cx: number,
+  cy: number,
+  hue: string,
+  palette: ResolvedTheme['palette'],
+): SceneElement[] {
+  const name = icon.toLowerCase();
+  const out: SceneElement[] = [];
+  const stroke = hue;
+  if (name.includes('server') || name.includes('compute')) {
+    for (let i = 0; i < 3; i++) out.push(p.rect({ x: rhu(cx - 10), y: rhu(cy - 9 + i * 7), width: 20, height: 5 }, palette.surface, stroke, 1.3, { rx: 1 }));
+  } else if (name.includes('database') || name.includes('db') || name.includes('datastore') || name.includes('storage') || name.includes('disk')) {
+    out.push(p.rect({ x: rhu(cx - 9), y: rhu(cy - 9), width: 18, height: 18 }, palette.surface, stroke, 1.3, { rx: 5 }));
+    out.push(p.path(`M ${rhu(cx - 9)} ${rhu(cy - 3)} Q ${rhu(cx)} ${rhu(cy + 1)}, ${rhu(cx + 9)} ${rhu(cy - 3)}`, stroke, 1.3));
+  } else if (name.includes('cloud')) {
+    out.push(p.circle({ x: rhu(cx - 6), y: rhu(cy + 2) }, 6, palette.surface, stroke, 1.3));
+    out.push(p.circle({ x: rhu(cx + 6), y: rhu(cy + 2) }, 6, palette.surface, stroke, 1.3));
+    out.push(p.circle({ x: rhu(cx), y: rhu(cy - 3) }, 7, palette.surface, stroke, 1.3));
+    out.push(p.rect({ x: rhu(cx - 10), y: rhu(cy + 2), width: 20, height: 6 }, palette.surface, palette.surface, 0));
+  } else if (name.includes('internet') || name.includes('globe') || name.includes('web') || name.includes('client')) {
+    out.push(p.circle({ x: rhu(cx), y: rhu(cy) }, 9, palette.surface, stroke, 1.3));
+    out.push(p.path(`M ${rhu(cx)} ${rhu(cy - 9)} L ${rhu(cx)} ${rhu(cy + 9)} M ${rhu(cx - 9)} ${rhu(cy)} L ${rhu(cx + 9)} ${rhu(cy)}`, stroke, 1));
+    out.push(p.path(`M ${rhu(cx - 9)} ${rhu(cy)} Q ${rhu(cx)} ${rhu(cy - 11)}, ${rhu(cx + 9)} ${rhu(cy)} Q ${rhu(cx)} ${rhu(cy + 11)}, ${rhu(cx - 9)} ${rhu(cy)}`, stroke, 1));
+  } else {
+    out.push(p.rect({ x: rhu(cx - 9), y: rhu(cy - 9), width: 18, height: 18 }, palette.surface, stroke, 1.3, { rx: 4 }));
+  }
+  return out;
 }

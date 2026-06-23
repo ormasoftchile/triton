@@ -5,7 +5,7 @@
 // start/end pseudo-states; <<choice>> declares a choice node.
 
 {{
-  function collect(stmts, states, transitions) {
+  function collect(stmts, states, transitions, composites) {
     const ensure = (id, label, kind) => {
       let s = states.find(x => x.id === id);
       if (!s) { s = { id, label: label || id, kind: kind || 'normal' }; states.push(s); }
@@ -16,17 +16,25 @@
       if (r === '[*]') { const id = side === 'from' ? '__start__' : '__end__'; ensure(id, '', side === 'from' ? 'start' : 'end'); return id; }
       ensure(r); return r;
     };
+    const localIds = new Set();
     for (const st of stmts.filter(Boolean)) {
-      if (st.t === 'choice') ensure(st.id, st.id, 'choice');
-      else if (st.t === 'state') ensure(st.id, st.label || st.id, 'normal');
+      if (st.t === 'choice') { ensure(st.id, st.id, 'choice'); localIds.add(st.id); }
+      else if (st.t === 'state') { ensure(st.id, st.label || st.id, 'normal'); localIds.add(st.id); }
       else if (st.t === 'trans') {
         const f = ref(st.from, 'from'), to = ref(st.to, 'to');
         transitions.push({ from: f, to: to, ...(st.label ? { label: st.label } : {}) });
+        if (f !== '__start__' && f !== '__end__') localIds.add(f);
+        if (to !== '__start__' && to !== '__end__') localIds.add(to);
       } else if (st.t === 'block') {
         ensure(st.name, st.name, 'normal');
-        collect(st.inner, states, transitions);
+        const innerIds = collect(st.inner, states, transitions, composites);
+        const memberIds = [...innerIds].filter(id => id !== '__start__' && id !== '__end__');
+        composites.push({ id: st.name, label: st.name, nodeIds: memberIds });
+        for (const id of innerIds) localIds.add(id);
+        localIds.add(st.name);
       }
     }
+    return localIds;
   }
 }}
 
@@ -34,8 +42,9 @@ Document
   = fm:Frontmatter? _ "stateDiagram"i ("-v2")? LineEnd stmts:Statement* _ {
       const states = [];
       const transitions = [];
-      collect(stmts, states, transitions);
-      return { version: '1.0', metadata: { ...(fm || {}) }, states, transitions };
+      const composites = [];
+      collect(stmts, states, transitions, composites);
+      return { version: '1.0', metadata: { ...(fm || {}) }, states, transitions, ...(composites.length ? { composites } : {}) };
     }
 
 Frontmatter

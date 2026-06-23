@@ -15,7 +15,7 @@ import { categoricalHue } from '../../palette/categorical.js';
 import { measureText } from '../../text/metrics.js';
 import { rhu, rhuInt } from '../../util/round.js';
 
-interface Placed { label: string; depth: number; x: number; y: number; w: number; hue: string; children: Placed[]; }
+interface Placed { label: string; depth: number; x: number; y: number; w: number; hue: string; icon?: string; children: Placed[]; }
 
 export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
@@ -42,7 +42,7 @@ export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): Layout
     let y: number;
     if (kids.length === 0) { y = leafCursor; leafCursor += rowGap; }
     else { y = (kids[0]!.y + kids[kids.length - 1]!.y) / 2; }
-    return { label: node.label, depth, x: 0, y, w: widthFor(node.label, depth), hue, children: kids };
+    return { label: node.label, depth, x: 0, y, w: widthFor(node.label, depth), hue, ...(node.icon ? { icon: node.icon } : {}), children: kids };
   };
   const root = place(ir.root, 0, palette.primary);
 
@@ -83,6 +83,7 @@ export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): Layout
       elements.push(p.rect({ x: rhu(n.x), y: rhu(cy - h / 2), width: rhu(n.w), height: h }, palette.surface, n.hue, 1.4, { rx: 6 }));
       elements.push(p.text(n.label, rhuInt(n.x + n.w / 2), rhu(cy + smallFont * 0.35), smallFont, palette.text, { anchor: 'middle' }));
     }
+    if (n.icon) elements.push(p.circle({ x: rhu(n.x - 7), y: rhu(cy) }, 4, n.hue, palette.background, 1.5));
     for (const c of n.children) drawNode(c);
   };
   drawNode(root);

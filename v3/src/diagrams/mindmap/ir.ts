@@ -2,6 +2,7 @@ import type { BaseIR } from '../../contracts/index.js';
 
 export interface MindNode {
   readonly label: string;
+  readonly icon?: string;
   readonly children: readonly MindNode[];
 }
 
