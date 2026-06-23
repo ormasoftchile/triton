@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 670 256" width="670" height="256">
+  <defs>
+    <marker id="arch-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="250" y="16" width="390" height="160" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
+  <text x="262" y="32" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" font-weight="bold">Cloud Services</text>
+  <path d="M 180 128 L 225 128 L 225 128 L 270 128" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow)" />
+  <path d="M 400 128 L 445 128 L 445 78 L 490 78" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow)" />
+  <path d="M 335 156 L 335 153 L 555 153 L 555 150" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow)" />
+  <rect x="270" y="100" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="270" y="100" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <text x="335" y="138.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API Server</text>
+  <text x="335" y="150" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">server</text>
+  <rect x="490" y="50" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="490" y="50" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
+  <text x="555" y="88.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Database</text>
+  <text x="555" y="100" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">database</text>
+  <rect x="50" y="100" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="50" y="100" width="130" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
+  <text x="115" y="138.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Client</text>
+  <text x="115" y="150" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">internet</text>
+  <rect x="490" y="150" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="490" y="150" width="130" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
+  <text x="555" y="188.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Storage</text>
+  <text x="555" y="200" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">disk</text>
+</svg>

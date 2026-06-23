@@ -63,9 +63,10 @@ export function detect(input: string): DetectionResult {
     return { format: 'yaml', diagramType: (typeMatch?.[1] ?? 'flowchart') as DiagramKind };
   }
 
-  // YAML with a leading `type:` key.
-  if (/^type:\s/m.test(trimmed)) {
-    const typeMatch = trimmed.match(/^type:\s*(\w+)/m);
+  // YAML with a leading `type:` key (first line only — avoid matching a
+  // `type:` field inside a diagram body, e.g. requirement element blocks).
+  if (/^type:\s/.test(trimmed)) {
+    const typeMatch = trimmed.match(/^type:\s*(\w+)/);
     return { format: 'yaml', diagramType: (typeMatch?.[1] ?? 'flowchart') as DiagramKind };
   }
 

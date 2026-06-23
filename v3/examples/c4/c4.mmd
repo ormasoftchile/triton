@@ -1,0 +1,24 @@
+---
+title: System Context diagram for Internet Banking System
+theme: default-c4
+---
+C4Context
+  title System Context diagram for Internet Banking System
+  Enterprise_Boundary(b0, "BankBoundary0") {
+    Person(customerA, "Banking Customer A", "A customer of the bank, with personal bank accounts.")
+    Person(customerB, "Banking Customer B")
+    Person_Ext(customerC, "Banking Customer C", "A customer of the bank using an external partner portal.")
+    System(SystemAA, "Internet Banking System", "Allows customers to view information about their bank accounts, and make payments.")
+    Boundary(b1, "BankBoundary") {
+      System(SystemC, "Email System", "The internal Microsoft Exchange e-mail system.")
+      System_Ext(SystemE, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+    }
+  }
+  Person_Ext(customerD, "Banking Customer D", "A customer of the bank, <br/> with personal bank accounts.")
+  System_Ext(SystemF, "Authentication Provider", "The external Authentication Provider, Okta.")
+  Rel(customerA, SystemAA, "Uses")
+  Rel(customerB, SystemAA, "Uses")
+  Rel(customerC, SystemAA, "Uses")
+  Rel(SystemAA, SystemC, "Sends e-mails", "SMTP")
+  Rel(SystemAA, SystemE, "Uses")
+  Rel_Ext(customerD, SystemF, "Authenticate", "REST")

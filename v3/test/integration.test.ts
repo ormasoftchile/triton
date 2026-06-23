@@ -99,8 +99,8 @@ describe('compile', () => {
   });
 
   it('returns error result for unregistered diagram types', async () => {
-    // `sankey` is a recognised kind but has no registered module yet.
-    const result = await compile('sankey-beta\nA,B,10\n');
+    // `packet` is a recognised kind but has no registered module yet.
+    const result = await compile('packet-beta\n0-15: "Header"\n');
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('UNKNOWN_DIAGRAM');
