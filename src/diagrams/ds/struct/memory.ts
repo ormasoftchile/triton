@@ -14,11 +14,11 @@
 
 import type {
   DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry, Rect,
-} from '../../contracts/index.js';
-import { pen } from '../../scene/build.js';
-import { measureText } from '../../text/metrics.js';
-import { connectSlots } from '../../graph/connect.js';
-import { rhu } from '../../util/round.js';
+} from '../../../contracts/index.js';
+import { pen } from '../../../scene/build.js';
+import { measureText } from '../../../text/metrics.js';
+import { connectSlots } from '../../../graph/connect.js';
+import { rhu } from '../../../util/round.js';
 import { ARROW_ID, arrowDef, lines } from './shared.js';
 
 interface VarItem { kind: 'var'; name: string; target?: string; }

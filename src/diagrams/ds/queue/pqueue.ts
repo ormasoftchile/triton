@@ -15,10 +15,10 @@
 
 import type {
   DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry, Color,
-} from '../../contracts/index.js';
-import { pen } from '../../scene/build.js';
-import { buildStrip, type StripCell } from '../../scene/strip.js';
-import { measureText } from '../../text/metrics.js';
+} from '../../../contracts/index.js';
+import { pen } from '../../../scene/build.js';
+import { buildStrip, type StripCell } from '../../../scene/strip.js';
+import { measureText } from '../../../text/metrics.js';
 import { lines } from './shared.js';
 
 export interface PQItem {

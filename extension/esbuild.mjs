@@ -29,7 +29,7 @@
 import { build, context } from 'esbuild';
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url)); // extension/
@@ -45,15 +45,27 @@ const watch = process.argv.includes('--watch');
 // When you edit only `extension.ts`, this skips entirely and the bundle is ~100ms.
 function ensureGrammars() {
   const diagramsDir = join(repoRoot, 'src', 'diagrams');
+
+  // Recursively collect every directory under src/diagrams/ holding a
+  // `grammar.peggy` (any depth — families may be grouped under a parent such as
+  // src/diagrams/ds/<family>/). Mirrors scripts/build-grammars.mjs discovery.
+  function findGrammarDirs(dir) {
+    const out = [];
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const sub = join(dir, entry.name);
+      if (existsSync(join(sub, 'grammar.peggy'))) out.push(sub);
+      out.push(...findGrammarDirs(sub));
+    }
+    return out;
+  }
+
   const stale = [];
-  for (const d of readdirSync(diagramsDir)) {
-    const dir = join(diagramsDir, d);
-    if (!statSync(dir).isDirectory()) continue;
+  for (const dir of findGrammarDirs(diagramsDir)) {
     const grammar = join(dir, 'grammar.peggy');
-    if (!existsSync(grammar)) continue;
     const parser = join(dir, 'parser.js');
     if (!existsSync(parser) || statSync(parser).mtimeMs < statSync(grammar).mtimeMs) {
-      stale.push(d);
+      stale.push(relative(diagramsDir, dir)); // e.g. "ds/tree" or "flowchart"
     }
   }
 

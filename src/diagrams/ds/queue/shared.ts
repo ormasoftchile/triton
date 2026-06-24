@@ -9,9 +9,9 @@
  * helper. Pure + deterministic — geometry is a function of inputs only.
  */
 
-import type { SceneElement, ResolvedTheme, Rect } from '../../contracts/index.js';
-import type { Pen } from '../../scene/build.js';
-import { rhu } from '../../util/round.js';
+import type { SceneElement, ResolvedTheme, Rect } from '../../../contracts/index.js';
+import type { Pen } from '../../../scene/build.js';
+import { rhu } from '../../../util/round.js';
 
 export { lines } from '../struct/shared.js';
 

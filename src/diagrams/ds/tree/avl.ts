@@ -7,7 +7,7 @@
  * construction — you cannot author an unbalanced AVL tree.
  */
 
-import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../contracts/index.js';
+import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../contracts/index.js';
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 

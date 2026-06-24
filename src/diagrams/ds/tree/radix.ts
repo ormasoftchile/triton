@@ -6,7 +6,7 @@
  * branch nodes render as small dots, word-terminal nodes as filled pills.
  */
 
-import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../contracts/index.js';
+import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../contracts/index.js';
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 

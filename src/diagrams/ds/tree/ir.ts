@@ -7,7 +7,7 @@
  * down to this IR.
  */
 
-import type { BaseIR } from '../../contracts/index.js';
+import type { BaseIR } from '../../../contracts/index.js';
 
 export type TreeDirection = 'TB' | 'LR';
 
