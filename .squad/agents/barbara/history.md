@@ -121,3 +121,23 @@ Full pre-realignment rendering/layout detail moved to `history-archive.md` (+ `h
   `latex/examples/inline-demo.tex` (NEW dogfood), `latex/examples/triton.sty`
   (symlink), `latex/examples/.gitignore` (NEW), `latex/README.md` (leads with
   inline env now).
+
+## Learnings — design doc LaTeX chapter now documents inline env + caveats (2026-06-24)
+- `design/sections/09-latex-integration.tex` REFRAMED to lead with the inline
+  `triton` environment as the headline authoring mode (was precompile-and-commit
+  only). Format-gap section now presents two paths (inline via shell-escape =
+  default; precompiled-and-committed = Overleaf fallback). New subsection
+  "Inline authoring: the triton environment" describes the verbatim→hash→write18→
+  includegraphics pipeline + `\@currenvir` dispatch.
+- NEW "Caveats and limitations" subsection (three `\paragraph`s):
+  1. No optional `[width=]` on `\begin{triton}` (verbatim lookahead eats fancyvrb's
+     line-ending → swallows first source line; minted escapes only via its
+     mandatory `{lang}` arg). Workaround: `\tritonnext{}` / `\tritonsetup{}`.
+  2. `--shell-escape` required (needs Node + triton-latex CLI; clear `\PackageError`
+     otherwise; Overleaf → precompiled `\triton{name}` path).
+  3. Cyclic flowcharts hang core `renderSync` (known core bug, tracked separately;
+     use acyclic).
+- Also updated Workflow/portability prose (inline = no render step) and the path
+  table rows (triton.sty = env + macros; examples = inline-demo.tex). Uses only
+  existing preamble macros (lstlisting `triton`/`ts`, `\texttt`, `\textbackslash`,
+  `\paragraph`). Did NOT run tectonic (coordinator rebuilds the PDF). Core untouched.
