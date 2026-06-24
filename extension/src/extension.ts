@@ -5,7 +5,7 @@ import { dirname } from 'path';
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { render } from '../../src/frontend/index.js';
-import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock } from './markdown.js';
+import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 
 // ─── Mermaid coexistence reconciliation (LOCKED decision) ──────────────────────
 //
@@ -414,6 +414,20 @@ class PreviewManager {
 export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(md: unknown): unknown } {
   const manager = new PreviewManager();
   context.subscriptions.push(manager);
+
+  // Keep the markdown-it fallback baseDir pointed at the current Markdown file's
+  // folder, so relative `file:` embeds resolve in the built-in preview (whose
+  // markdown-it `env` usually omits the document path).
+  const updateBaseDir = (editor: vscode.TextEditor | undefined): void => {
+    const doc = editor?.document;
+    if (doc && isMarkdownDoc(doc) && doc.uri.scheme === 'file') {
+      setMarkdownBaseDir(dirname(doc.uri.fsPath));
+    }
+  };
+  updateBaseDir(vscode.window.activeTextEditor);
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((e) => updateBaseDir(e)),
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand('triton.openPreview', () => {

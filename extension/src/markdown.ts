@@ -78,10 +78,22 @@ export function extendMarkdownIt(md: MarkdownItLike): MarkdownItLike {
         : `<pre><code>${escapeHtml(token.content)}</code></pre>`;
     }
 
-    return renderFencedBlock(token.content, baseDirFromEnv(env));
+    // VS Code's built-in preview often doesn't expose the document path through
+    // `env`, so fall back to the last active Markdown file's folder (set by the
+    // extension) so relative `file:` embeds still resolve.
+    return renderFencedBlock(token.content, baseDirFromEnv(env) ?? fallbackBaseDir);
   };
 
   return md;
+}
+
+// Folder of the most recently active Markdown file, used as the `baseDir`
+// fallback for the built-in preview when markdown-it's `env` lacks the path.
+let fallbackBaseDir: string | undefined;
+
+/** Record the folder to resolve relative `file:` embeds against in the built-in preview. */
+export function setMarkdownBaseDir(dir: string | undefined): void {
+  fallbackBaseDir = dir;
 }
 
 // ─── Public: shared block rendering ────────────────────────────────────────────
