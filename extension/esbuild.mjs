@@ -141,6 +141,10 @@ ensureGrammars();
 
 if (watch) {
   const ctx = await context(options);
+  // Guarantee a fresh bundle BEFORE entering watch mode, so the extension host
+  // never loads a stale dist/extension.cjs (e.g. after pulling new diagram kinds).
+  await ctx.rebuild();
+  console.log('✓ bundled extension/dist/extension.cjs');
   await ctx.watch();
   console.log('› watching for changes…');
 } else {
