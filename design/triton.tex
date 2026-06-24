@@ -23,6 +23,14 @@
 \usepackage{hyperref}
 \hypersetup{hidelinks}
 
+% ── Triton inline figures ───────────────────────────────────────────────────
+% The spec dogfoods Triton: every diagram below is authored INLINE as Triton
+% source inside a \begin{triton}…\end{triton} block and rendered to a vector PDF
+% at compile time (needs shell-escape — see the Makefile). Point the inline
+% renderer at this repo's freshly-built CLI bundle (relative to this build dir).
+\usepackage{triton}
+\tritoncli{node ../latex/dist/cli.cjs}
+
 % ── Listings ────────────────────────────────────────────────────────────────
 \lstset{
   basicstyle=\ttfamily\small,
@@ -65,16 +73,6 @@
 
 % ── Metadata ────────────────────────────────────────────────────────────────
 
-% Figure rendered by Triton itself from an example source.
-%   \ourfig[<width>]{<figure-name>}{<caption>}
-\newcommand{\ourfig}[3][\linewidth]{%
-  \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=#1]{figures/#2.png}
-    \caption{#3}
-  \end{figure}%
-}
-
 \title{Triton\\[0.4em]\Large A Contracts-First, Deterministic\\
   Mermaid-Superset Diagram Compiler\\[0.3em]\normalsize Architecture \& Specification}
 \author{Triton Project}
@@ -92,8 +90,9 @@ shipped code under \texttt{src/} and runnable sources under \texttt{examples/}
 short: where the implementation is the source of truth, the document points at
 it rather than restating it. Features that are not built are listed explicitly in
 \S\ref{sec:status}, not described as if they were. \textbf{The figures are
-dogfooded:} every diagram below is rendered by Triton itself from an example
-source (regenerate with \texttt{pnpm figures}).
+dogfooded:} every diagram below is authored \emph{inline} as Triton source and
+rendered by Triton itself at \LaTeX{} compile time (compile with shell-escape ---
+see \texttt{design/Makefile}).
 \end{quote}
 
 \tableofcontents

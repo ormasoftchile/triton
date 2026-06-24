@@ -15,7 +15,6 @@
     "test": "pnpm build:grammars && vitest run",
     "test:watch": "vitest",
     "preview": "node scripts/preview.mjs",
-    "figures": "pnpm build && node design/figures/render.mjs",
     "format": "prettier --write \"**/*.{ts,js,json,yaml,yml,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{ts,js,json,yaml,yml,md}\" --ignore-path .gitignore"
   },
