@@ -81,4 +81,52 @@ describe('flowchart cycles terminate and render', () => {
     // A, B, C on three distinct rows
     expect(new Set(ys).size).toBe(3);
   });
+
+  it('back-edges are bowed (curved) while forward edges stay straight', () => {
+    // A → B is a forward edge; B → A closes the cycle (a back-edge). The forward
+    // edge keeps its orthogonal straight-segment route ('M…L…', no curve); the
+    // back-edge is rerouted as a cubic Bézier ('C') so it bows around the column.
+    const doc: FlowDocument = {
+      version: '1.0',
+      metadata: {},
+      direction: 'TD',
+      nodes: [
+        { id: 'A', label: 'A', shape: 'rect' },
+        { id: 'B', label: 'B', shape: 'rect' },
+      ],
+      edges: [
+        { from: 'A', to: 'B', kind: 'sync', style: 'solid' }, // forward
+        { from: 'B', to: 'A', kind: 'sync', style: 'solid' }, // back-edge
+      ],
+      subgraphs: [],
+    };
+    const { scene } = layoutFlowchart(doc, defaultTheme);
+    const paths = scene.elements.filter(e => e.type === 'path') as Array<{ d: string }>;
+    expect(paths.length).toBe(2);
+    const [forward, back] = paths;
+    expect(forward!.d).not.toContain('C'); // straight orthogonal route
+    expect(back!.d).toContain('C');        // bowed cubic Bézier (feedback route)
+  });
+
+  it('self-loop produces a non-degenerate looped path (not a zero-length line)', () => {
+    const doc: FlowDocument = {
+      version: '1.0',
+      metadata: {},
+      direction: 'TD',
+      nodes: [{ id: 'A', label: 'A', shape: 'rect' }],
+      edges: [{ from: 'A', to: 'A', kind: 'sync', style: 'solid' }],
+      subgraphs: [],
+    };
+    const { scene } = layoutFlowchart(doc, defaultTheme);
+    const paths = scene.elements.filter(e => e.type === 'path') as Array<{ d: string }>;
+    expect(paths.length).toBe(1);
+    const d = paths[0]!.d;
+    expect(d).toContain('C'); // a small loop, not a straight degenerate segment
+    const nums = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+    const xs = nums.filter((_, i) => i % 2 === 0);
+    const ys = nums.filter((_, i) => i % 2 === 1);
+    // The loop has real 2-D extent (non-degenerate in both axes).
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(0);
+    expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(0);
+  });
 });

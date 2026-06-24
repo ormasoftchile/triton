@@ -81,12 +81,56 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     elements.push(p.text(sg.label, minX + 8, minY + 14, typography.smallFontSize, palette.textMuted));
   }
 
-  // Edges (drawn before nodes so nodes appear on top)
-  for (const edge of ir.edges) {
+  // Edges (drawn before nodes so nodes appear on top).
+  //
+  // Back-edges (the cycle-closing edges identified by `findBackEdges`, the same
+  // set excluded from layer ranks) and self-loops are routed specially so they
+  // read as "feedback" instead of cutting straight back through the node column.
+  // Every OTHER (forward / acyclic) edge takes the unchanged orthogonal-router
+  // path below, so acyclic diagrams render byte-identically.
+  const backEdges = findBackEdges(ir.nodes, ir.edges);
+  let bowMaxX = -Infinity;
+  let bowMaxY = -Infinity;
+
+  for (let ei = 0; ei < ir.edges.length; ei++) {
+    const edge = ir.edges[ei]!;
     const fromRect = nodePos.get(edge.from);
     const toRect   = nodePos.get(edge.to);
     if (!fromRect || !toRect) continue;
 
+    const dash = edge.style === 'dotted' ? '6 3' : edge.style === 'dashed' ? '8 4' : undefined;
+
+    // Self-loop (A → A): a small loop off one side, never a zero-length line.
+    if (edge.from === edge.to) {
+      const loop = selfLoopRoute(fromRect, isLR);
+      elements.push(p.path(loop.path, edge.kind === 'async' ? palette.textMuted : palette.primary, edgeTheme.strokeWidth, {
+        ...(dash !== undefined ? { dash } : {}),
+        markerEnd: ARROW_MARKER_ID,
+      }));
+      bowMaxX = Math.max(bowMaxX, loop.maxX);
+      bowMaxY = Math.max(bowMaxY, loop.maxY);
+      if (edge.label) {
+        elements.push(p.text(edge.label, loop.labelPos.x, loop.labelPos.y - 4, edgeTheme.labelFontSize, palette.textMuted, { anchor: 'middle' }));
+      }
+      continue;
+    }
+
+    // Back-edge (feedback): bow out to one side around the intervening nodes.
+    if (backEdges.has(ei)) {
+      const bow = backEdgeRoute(fromRect, toRect, isLR);
+      elements.push(p.path(bow.path, edge.kind === 'async' ? palette.textMuted : palette.primary, edgeTheme.strokeWidth, {
+        ...(dash !== undefined ? { dash } : {}),
+        markerEnd: ARROW_MARKER_ID,
+      }));
+      bowMaxX = Math.max(bowMaxX, bow.maxX);
+      bowMaxY = Math.max(bowMaxY, bow.maxY);
+      if (edge.label) {
+        elements.push(p.text(edge.label, bow.labelPos.x, bow.labelPos.y - 4, edgeTheme.labelFontSize, palette.textMuted, { anchor: 'middle' }));
+      }
+      continue;
+    }
+
+    // Forward edge — UNCHANGED orthogonal route (preserves byte-identical output).
     const fromAnchor = edgeAnchor(fromRect, ir.direction, 'exit',  toRect);
     const toAnchor   = edgeAnchor(toRect,   ir.direction, 'enter', fromRect);
 
@@ -101,8 +145,6 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
       fromDir: fromAnchor.portDir,
       toDir: toAnchor.portDir,
     });
-
-    const dash = edge.style === 'dotted' ? '6 3' : edge.style === 'dashed' ? '8 4' : undefined;
 
     elements.push(p.path(route.path, edge.kind === 'async' ? palette.textMuted : palette.primary, edgeTheme.strokeWidth, {
       ...(dash !== undefined ? { dash } : {}),
@@ -132,8 +174,11 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
   // ── Compute viewBox ────────────────────────────────────────────────────────
   const allRects = [...nodePos.values()];
-  const right  = Math.max(...allRects.map(r => r.x + r.width))  + margin;
-  const bottom = Math.max(...allRects.map(r => r.y + r.height)) + margin;
+  const nodeRight  = Math.max(...allRects.map(r => r.x + r.width));
+  const nodeBottom = Math.max(...allRects.map(r => r.y + r.height));
+  // Grow only for back-edge / self-loop bows; with none, this is byte-identical.
+  const right  = (Number.isFinite(bowMaxX) ? Math.max(nodeRight,  bowMaxX) : nodeRight)  + margin;
+  const bottom = (Number.isFinite(bowMaxY) ? Math.max(nodeBottom, bowMaxY) : nodeBottom) + margin;
   const titleOffset = ir.metadata.title ? typography.titleFontSize + 12 : 0;
 
   let scene: Scene = {
@@ -367,6 +412,89 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
       ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
       : { point: { x: cx, y: r.y },             portDir: 'N' };
   }
+}
+
+/** Feedback / self-loop route result: a path plus its extent and label anchor. */
+interface EdgeRoute {
+  path: string;
+  labelPos: Point;
+  maxX: number;
+  maxY: number;
+}
+
+/**
+ * Back-edge ("feedback") route. A back-edge runs against the layer flow (a lower
+ * layer back up to an ancestor); drawn like a forward edge it slices straight
+ * through the intervening node column. Instead we bow it out to one lateral side
+ * with a cubic Bézier: endpoints sit on the side wall (East for vertical flow,
+ * South for horizontal flow) and the control points push further out, so the arc
+ * stays clear of the centered node column. The arrowhead still lands on the
+ * target wall (the tangent at the end points back into the node).
+ *
+ * This is intentionally a simple offset arc, not an obstacle-avoiding router:
+ * the bar is "reads as feedback and doesn't cut through a node".
+ */
+function backEdgeRoute(from: Rect, to: Rect, isLR: boolean): EdgeRoute {
+  if (isLR) {
+    // Horizontal flow → bow downward, off the South walls.
+    const start: Point = { x: from.x + from.width / 2, y: from.y + from.height };
+    const end:   Point = { x: to.x   + to.width   / 2, y: to.y   + to.height };
+    const span = Math.abs(end.x - start.x);
+    const bow = Math.max(NODE_H * 0.9, span * 0.35);
+    const c1: Point = { x: start.x, y: start.y + bow };
+    const c2: Point = { x: end.x,   y: end.y   + bow };
+    return {
+      path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`,
+      labelPos: { x: (start.x + end.x) / 2, y: Math.max(start.y, end.y) + bow * 0.75 },
+      maxX: Math.max(start.x, end.x),
+      maxY: Math.max(c1.y, c2.y),
+    };
+  }
+  // Vertical flow → bow to the right, off the East walls.
+  const start: Point = { x: from.x + from.width, y: from.y + from.height / 2 };
+  const end:   Point = { x: to.x   + to.width,   y: to.y   + to.height   / 2 };
+  const span = Math.abs(end.y - start.y);
+  const bow = Math.max(NODE_W * 0.75, span * 0.35);
+  const c1: Point = { x: start.x + bow, y: start.y };
+  const c2: Point = { x: end.x   + bow, y: end.y };
+  return {
+    path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`,
+    labelPos: { x: Math.max(start.x, end.x) + bow * 0.75, y: (start.y + end.y) / 2 },
+    maxX: Math.max(c1.x, c2.x),
+    maxY: Math.max(start.y, end.y),
+  };
+}
+
+/**
+ * Self-loop (A → A) route. A small cubic loop hung off one side of the node
+ * (East for vertical flow, South for horizontal flow) so it never degenerates
+ * into a zero-length line drawn through the node. The arrowhead re-enters the
+ * same wall a little below/right of where it left.
+ */
+function selfLoopRoute(r: Rect, isLR: boolean): EdgeRoute {
+  const loop = 28;
+  if (isLR) {
+    // Loop hangs below the node (South wall).
+    const x1 = r.x + r.width * 0.35;
+    const x2 = r.x + r.width * 0.65;
+    const sy = r.y + r.height;
+    return {
+      path: `M ${x1} ${sy} C ${x1 - loop} ${sy + loop}, ${x2 + loop} ${sy + loop}, ${x2} ${sy}`,
+      labelPos: { x: r.x + r.width / 2, y: sy + loop + 4 },
+      maxX: x2 + loop,
+      maxY: sy + loop,
+    };
+  }
+  // Loop sits to the right of the node (East wall).
+  const y1 = r.y + r.height * 0.3;
+  const y2 = r.y + r.height * 0.7;
+  const ex = r.x + r.width;
+  return {
+    path: `M ${ex} ${y1} C ${ex + loop} ${y1 - loop}, ${ex + loop} ${y2 + loop}, ${ex} ${y2}`,
+    labelPos: { x: ex + loop, y: r.y + r.height / 2 },
+    maxX: ex + loop,
+    maxY: y2 + loop,
+  };
 }
 
 function nodeStatusFill(node: FlowNode, palette: ResolvedTheme['palette']): string {
