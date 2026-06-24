@@ -1,0 +1,18 @@
+# LaTeX build artifacts from compiling the demos
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.xdv
+
+# Triton inline-render outputs (regenerated at compile time)
+*.triton-cache/
+*.triton-src.triton
+inline-demo.pdf
+demo.pdf
+
+# scratch
+.scratch/
+.scratch-*
