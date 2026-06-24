@@ -159,6 +159,9 @@ export type DiagramKind =
   | 'stack'
   | 'hashmap'
   | 'matrix'
+  | 'trie'
+  | 'nodegraph'
+  | 'unionfind'
   | 'topology';
 
 /** The two input formats Triton accepts. */

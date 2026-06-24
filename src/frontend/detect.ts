@@ -56,6 +56,13 @@ const MERMAID_PATTERNS: [RegExp, DiagramKind][] = [
   [/^stack\b/i,                                        'stack'],
   [/^hashmap\b/i,                                      'hashmap'],
   [/^matrix\b/i,                                       'matrix'],
+  [/^trie\b/i,                                         'trie'],
+  // `graph` is owned by Mermaid flowchart (`graph TD`), so the data-structure
+  // graph uses a distinct, unambiguous keyword instead.
+  [/^nodegraph\b/i,                                    'nodegraph'],
+  [/^dsgraph\b/i,                                      'nodegraph'],
+  [/^unionfind\b/i,                                    'unionfind'],
+  [/^dsu\b/i,                                          'unionfind'],
   [/^topology\b/i,                                     'topology'],
 ];
 
