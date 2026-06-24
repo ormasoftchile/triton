@@ -156,6 +156,9 @@ export type DiagramKind =
   | 'cqueue'
   | 'deque'
   | 'pqueue'
+  | 'stack'
+  | 'hashmap'
+  | 'matrix'
   | 'topology';
 
 /** The two input formats Triton accepts. */

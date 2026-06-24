@@ -45,13 +45,18 @@ const MERMAID_PATTERNS: [RegExp, DiagramKind][] = [
   [/^radix\b/i,                                         'radix'],
   [/^segtree\b/i,                                       'segtree'],
   [/^heap\b/i,                                          'heap'],
-  [/^array\b/i,                                         'array'],
-  [/^linkedlist\b/i,                                    'linkedlist'],
-  [/^memory\b/i,                                        'memory'],
-  [/^page\b/i,                                          'page'],  [/^cqueue\b/i,                                       'cqueue'],
+  [/^array\b/i,                                        'array'],
+  [/^linkedlist\b/i,                                   'linkedlist'],
+  [/^memory\b/i,                                       'memory'],
+  [/^page\b/i,                                         'page'],
+  [/^cqueue\b/i,                                       'cqueue'],
   [/^deque\b/i,                                        'deque'],
   [/^pqueue\b/i,                                       'pqueue'],
-  [/^queue\b/i,                                        'queue'],  [/^topology\b/i,                                      'topology'],
+  [/^queue\b/i,                                        'queue'],
+  [/^stack\b/i,                                        'stack'],
+  [/^hashmap\b/i,                                      'hashmap'],
+  [/^matrix\b/i,                                       'matrix'],
+  [/^topology\b/i,                                     'topology'],
 ];
 
 function matchMermaid(text: string): DiagramKind | undefined {
