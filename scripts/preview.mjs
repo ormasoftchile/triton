@@ -11,8 +11,8 @@
 
 import { execSync }                                          from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync,
-         readFileSync, writeFileSync }                       from 'node:fs';
-import { join, dirname, basename }                           from 'node:path';
+         readFileSync, statSync, writeFileSync }            from 'node:fs';
+import { join, dirname, basename, relative }                 from 'node:path';
 import { fileURLToPath }                                     from 'node:url';
 import { createRequire }                                     from 'node:module';
 
@@ -31,16 +31,22 @@ execSync('npx tsc --noEmit false', { cwd: root, stdio: 'inherit' });
 
 // ─── Step 3: Copy generated parsers into dist ─────────────────────────────────
 
-const diagramDirs = ['flowchart', 'timeline', 'poster'];
-for (const dir of diagramDirs) {
-  const src = join(root, 'src/diagrams', dir, 'parser.js');
-  const dst = join(root, 'dist/diagrams', dir, 'parser.js');
-  if (existsSync(src)) {
-    mkdirSync(dirname(dst), { recursive: true });
-    copyFileSync(src, dst);
-    console.log(`  ✓ parser copied: ${dir}`);
+// Generated Peggy parsers (parser.js) are not .ts, so tsc does not copy them to
+// dist. Mirror every src/diagrams/**/parser.js into the matching dist path.
+// (Discovered recursively so nested families like ds/tree are covered.)
+function copyParsers(srcDir, dstDir) {
+  for (const entry of readdirSync(srcDir)) {
+    const srcPath = join(srcDir, entry);
+    if (statSync(srcPath).isDirectory()) {
+      copyParsers(srcPath, join(dstDir, entry));
+    } else if (entry === 'parser.js') {
+      mkdirSync(dstDir, { recursive: true });
+      copyFileSync(srcPath, join(dstDir, entry));
+      console.log(`  ✓ parser copied: ${relative(join(root, 'src/diagrams'), srcPath)}`);
+    }
   }
 }
+copyParsers(join(root, 'src/diagrams'), join(root, 'dist/diagrams'));
 
 // ─── Step 4: Render examples ──────────────────────────────────────────────────
 
