@@ -6,6 +6,7 @@ import { dirname } from 'path';
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { render } from '../../src/frontend/index.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
+import { editorThemeInput } from './editor-theme.js';
 
 // ─── Mermaid coexistence reconciliation (LOCKED decision) ──────────────────────
 //
@@ -265,6 +266,9 @@ class PreviewManager {
     this.disposables.push(
       vscode.workspace.onDidChangeTextDocument((e) => this.onDocChange(e.document)),
       vscode.window.onDidChangeActiveTextEditor((editor) => this.onActiveEditor(editor)),
+      // Re-render when the editor's color theme changes so the transparent
+      // background and light/dark palette track the editor.
+      vscode.window.onDidChangeActiveColorTheme(() => this.onColorThemeChange()),
     );
   }
 
@@ -310,6 +314,18 @@ class PreviewManager {
     void this.renderInto(doc, 'explicit');
   }
 
+  /** Re-render the current preview when the editor's color theme changes. */
+  private onColorThemeChange(): void {
+    const preview = this.preview;
+    if (!preview) return;
+    const editor = vscode.window.activeTextEditor;
+    const doc =
+      editor && editor.document.uri.toString() === preview.docUri.toString()
+        ? editor.document
+        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+    if (doc) void this.renderInto(doc, 'explicit');
+  }
+
   private onDocChange(doc: vscode.TextDocument): void {
     if (!this.preview) return;
     if (doc.uri.toString() !== this.preview.docUri.toString()) return;
@@ -348,7 +364,7 @@ class PreviewManager {
     }
 
     // render() returns a Result<string> and never throws.
-    const result = await render(renderable.text);
+    const result = await render(renderable.text, editorThemeInput());
     // The active document may have changed while we awaited; only post if the
     // preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
@@ -387,8 +403,9 @@ class PreviewManager {
     }
 
     const baseDir = doc.uri.scheme === 'file' ? dirname(doc.uri.fsPath) : undefined;
+    const theme = editorThemeInput();
     const html = blocks
-      .map((b, i) => labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir)))
+      .map((b, i) => labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, theme)))
       .join('\n');
 
     void preview.panel.webview.postMessage({ type: 'svg', svg: html });

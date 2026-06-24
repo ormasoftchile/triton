@@ -38,6 +38,14 @@ flowchart TD
   B -->|no| D[default code block]
 ```
 
+```triton
+flowchart TD
+  A[Start] --> B{Enabled?}
+  B -->|yes| C[Triton renders it]
+  B -->|no| D[default code block]
+```
+
+
 ## File-reference embed
 
 Instead of inlining the source, a block can point at an external diagram file
