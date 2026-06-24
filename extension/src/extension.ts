@@ -194,7 +194,7 @@ function shellHtml(webview: vscode.Webview, title: string): string {
       if (msg.type === 'svg') {
         content.innerHTML = msg.svg;
         errorBox.classList.remove('show');
-        vscodeApi.setState({ svg: msg.svg });
+        vscodeApi.setState({ svg: msg.svg, docUri: msg.docUri });
       } else if (msg.type === 'error') {
         // Keep the last good SVG visible; show the error as a non-destructive banner.
         errorBox.textContent = msg.message;
@@ -204,6 +204,10 @@ function shellHtml(webview: vscode.Webview, title: string): string {
 
     const prev = vscodeApi.getState();
     if (prev && prev.svg) content.innerHTML = prev.svg;
+    // Tell the extension the webview is loaded and listening, so it can flush a
+    // render that was produced before this script attached its listener (the
+    // synchronous Markdown path would otherwise race the webview load).
+    vscodeApi.postMessage({ type: 'ready' });
   </script>
 </body>
 </html>`;
@@ -252,7 +256,15 @@ function labelBlock(index: number, total: number, lang: string, html: string): s
 interface Preview {
   readonly panel: vscode.WebviewPanel;
   docUri: vscode.Uri;
+  /** True once the webview has signalled it is loaded and listening. */
+  ready: boolean;
+  /** The most recent message to deliver once the webview becomes ready. */
+  pending: WebviewMessage | undefined;
 }
+
+type WebviewMessage =
+  | { readonly type: 'svg'; readonly svg: string; readonly docUri: string }
+  | { readonly type: 'error'; readonly message: string };
 
 class PreviewManager {
   // A single live preview that FOLLOWS the active editor, like the built-in
@@ -288,12 +300,7 @@ class PreviewManager {
         { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [] },
       );
       panel.webview.html = shellHtml(panel.webview, this.label(doc.uri));
-      this.preview = { panel, docUri: doc.uri };
-      panel.onDidDispose(() => {
-        if (this.debounce) clearTimeout(this.debounce);
-        this.debounce = undefined;
-        this.preview = undefined;
-      });
+      this.bindPanel(panel, doc.uri);
     } else {
       this.preview.docUri = doc.uri;
       this.preview.panel.title = `Triton: ${this.label(doc.uri)}`;
@@ -301,6 +308,60 @@ class PreviewManager {
     }
 
     void this.renderInto(doc, 'explicit');
+  }
+
+  /**
+   * Adopt a webview panel into the manager: wire the ready handshake and
+   * disposal. Used by `show()` and by the serializer that restores a panel
+   * after a window reload.
+   */
+  private bindPanel(panel: vscode.WebviewPanel, docUri: vscode.Uri): Preview {
+    const preview: Preview = { panel, docUri, ready: false, pending: undefined };
+    this.preview = preview;
+    panel.webview.onDidReceiveMessage((msg: { type?: string }) => {
+      if (msg && msg.type === 'ready') {
+        preview.ready = true;
+        if (preview.pending) {
+          void panel.webview.postMessage(preview.pending);
+          preview.pending = undefined;
+        }
+      }
+    });
+    panel.onDidDispose(() => {
+      if (this.debounce) clearTimeout(this.debounce);
+      this.debounce = undefined;
+      if (this.preview === preview) this.preview = undefined;
+    });
+    return preview;
+  }
+
+  /** Post to the webview now if it is ready, else stash the latest message. */
+  private post(message: WebviewMessage): void {
+    const preview = this.preview;
+    if (!preview) return;
+    if (preview.ready) {
+      void preview.panel.webview.postMessage(message);
+    } else {
+      preview.pending = message; // coalesce — only the latest render matters
+    }
+  }
+
+  /** Restore a preview panel after a window reload (WebviewPanelSerializer). */
+  async restore(panel: vscode.WebviewPanel, state: unknown): Promise<void> {
+    panel.webview.html = shellHtml(panel.webview, 'Triton');
+    const docUri =
+      state && typeof state === 'object' && typeof (state as { docUri?: unknown }).docUri === 'string'
+        ? (state as { docUri: string }).docUri
+        : undefined;
+    if (!docUri) return; // webview repaints its last SVG from getState()
+    const uri = vscode.Uri.parse(docUri);
+    this.bindPanel(panel, uri);
+    try {
+      const doc = await vscode.workspace.openTextDocument(uri);
+      await this.renderInto(doc, 'explicit');
+    } catch {
+      // Document no longer available; the webview keeps its restored SVG.
+    }
   }
 
   /** Follow the active editor when it switches to another diagram document. */
@@ -354,7 +415,7 @@ class PreviewManager {
 
     const renderable = pickRenderable(doc, config, mode);
     if (!renderable) {
-      void preview.panel.webview.postMessage({
+      this.post({
         type: 'error',
         message:
           'Nothing to preview here. Triton previews `.triton` files, ```triton fences, ' +
@@ -369,12 +430,9 @@ class PreviewManager {
     // preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
     if (result.ok) {
-      void preview.panel.webview.postMessage({ type: 'svg', svg: result.value });
+      this.post({ type: 'svg', svg: result.value, docUri: doc.uri.toString() });
     } else {
-      void preview.panel.webview.postMessage({
-        type: 'error',
-        message: `[${result.error.code}] ${result.error.message}`,
-      });
+      this.post({ type: 'error', message: `[${result.error.code}] ${result.error.message}` });
     }
   }
 
@@ -395,7 +453,7 @@ class PreviewManager {
 
     const blocks = extractFencedBlocks(doc.getText(), langs);
     if (blocks.length === 0) {
-      void preview.panel.webview.postMessage({
+      this.post({
         type: 'error',
         message: 'No ```triton (or ```mermaid) blocks found in this Markdown document.',
       });
@@ -408,7 +466,7 @@ class PreviewManager {
       .map((b, i) => labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, theme)))
       .join('\n');
 
-    void preview.panel.webview.postMessage({ type: 'svg', svg: html });
+    this.post({ type: 'svg', svg: html, docUri: doc.uri.toString() });
   }
 
   private label(uri: vscode.Uri): string {
@@ -452,6 +510,14 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(m
     }),
     vscode.commands.registerCommand('triton.openPreviewToSide', () => {
       manager.show(vscode.window.activeTextEditor, vscode.ViewColumn.Beside);
+    }),
+    // Reclaim and re-render the preview panel after a window reload, so the
+    // diagram redraws from the live document (Mermaid included) instead of
+    // showing only the webview's last restored paint.
+    vscode.window.registerWebviewPanelSerializer('tritonPreview', {
+      async deserializeWebviewPanel(panel: vscode.WebviewPanel, state: unknown) {
+        await manager.restore(panel, state);
+      },
     }),
   );
 
