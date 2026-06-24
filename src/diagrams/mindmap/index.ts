@@ -50,7 +50,7 @@ export const mindmap: DiagramModule<MindmapDocument> = {
     return JSON.parse(input) as MindmapDocument;
   },
 
-  async layout(ir: MindmapDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: MindmapDocument, theme: ResolvedTheme): LayoutResult {
     return layoutMindmap(ir, theme);
   },
 };

@@ -15,7 +15,7 @@ export const quadrant: DiagramModule<QuadrantDocument> = {
     return JSON.parse(input) as QuadrantDocument;
   },
 
-  async layout(ir: QuadrantDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: QuadrantDocument, theme: ResolvedTheme): LayoutResult {
     return layoutQuadrant(ir, theme);
   },
 };

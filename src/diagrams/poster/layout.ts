@@ -13,7 +13,7 @@ const USE_ENGINE_V3 = true;
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
-export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutResult {
   const { spacing, palette, typography } = theme;
   const { grid, cells } = ir;
 
@@ -30,12 +30,12 @@ export async function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): Pr
   const positioned = assignPositions(cells, grid.columns);
 
   // ── Layout each child into a LayoutResult (per-cell theme) ─────────────────
-  const cellResults = await Promise.all(
-    positioned.map(async cell => {
-      const cellTheme = cell.theme ? getThemePreset(cell.theme) : theme;
-      return { cell, cellTheme, result: await layoutCellContent(cell.content, cellTheme) };
-    }),
-  );
+  // Child layouts are synchronous (every Triton layout engine is), so a plain
+  // map suffices — no Promise.all needed.
+  const cellResults = positioned.map(cell => {
+    const cellTheme = cell.theme ? getThemePreset(cell.theme) : theme;
+    return { cell, cellTheme, result: layoutCellContent(cell.content, cellTheme) };
+  });
 
   const numRows = grid.rows ??
     Math.max(...positioned.map(c => (c.row ?? 0) + (c.rowSpan ?? 1)));
@@ -321,7 +321,7 @@ function crossLinkExtents(elements: readonly SceneElement[]): { maxX: number; ma
 // ─── Cell Content Dispatch ────────────────────────────────────────────────────
 
 
-async function layoutCellContent(content: CellContent, theme: ResolvedTheme): Promise<LayoutResult> {
+function layoutCellContent(content: CellContent, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
   const unit = spacing.unit;
   const pad  = spacing.nodePadding;

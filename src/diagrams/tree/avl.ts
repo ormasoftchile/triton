@@ -74,7 +74,7 @@ export const avl: DiagramModule<TreeDocument> = {
   parseYaml(input: string): TreeDocument {
     return JSON.parse(input) as TreeDocument;
   },
-  async layout(ir: TreeDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: TreeDocument, theme: ResolvedTheme): LayoutResult {
     return layoutTree(ir, theme);
   },
 };

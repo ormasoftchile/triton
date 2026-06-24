@@ -75,17 +75,19 @@ export interface DiagramLayoutEngine<IR extends BaseIR> {
    * Returns both the renderable Scene and the node anchor registry.
    * Non-linkable diagram types return an empty anchors registry {}.
    *
-   * Async to support layout engines that require deferred operations
-   * (font metric measurement, WASM, external data fetching).
-   * Sync implementations simply return Promise.resolve(result).
+   * Synchronous: every Triton layout engine computes its geometry in-process
+   * with no deferred work (no font-metric I/O, no WASM, no fetching). Keeping
+   * layout sync lets the frontend expose a synchronous render path
+   * (renderSync) for hosts that need it (e.g. the markdown-it preview plugin),
+   * while the async render() wrapper remains for existing callers.
    *
    * The returned Scene is complete — all overlay geometry has been
-   * incorporated into Scene.elements before the promise resolves.
+   * incorporated into Scene.elements before it is returned.
    *
    * @param options - Optional layout constraints (port hints) from the
    *   composition layer during negotiation passes. Absent on first pass.
    */
-  layout(ir: IR, theme: ResolvedTheme, options?: LayoutOptions): Promise<LayoutResult>;
+  layout(ir: IR, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult;
 }
 
 // ─── Full Module ──────────────────────────────────────────────────────────────

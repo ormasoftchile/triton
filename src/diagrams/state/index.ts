@@ -15,7 +15,7 @@ export const state: DiagramModule<StateDocument> = {
     return JSON.parse(input) as StateDocument;
   },
 
-  async layout(ir: StateDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: StateDocument, theme: ResolvedTheme): LayoutResult {
     return layoutState(ir, theme);
   },
 };

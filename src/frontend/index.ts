@@ -95,17 +95,21 @@ registerRouter('polyline', polylineRouter);
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Compile input text to a LayoutResult (Scene + anchor registry).
+ * Compile input text to a LayoutResult (Scene + anchor registry) — synchronous.
+ *
+ * Every Triton layout engine is synchronous (no font I/O, WASM, or fetching),
+ * so the whole parse → theme → layout pipeline runs without promises. This is
+ * the canonical implementation; the async `compile()` is a thin wrapper.
  *
  * Theme resolution order (later overrides earlier):
  *   defaultTheme ← themeInput ← module.defaultThemeOverride ← ir.themeOverride
  *
  * Returns a Result — never throws.
  */
-export async function compile(
+export function compileSync(
   input: string,
   themeInput?: ThemeInput,
-): Promise<Result<LayoutResult>> {
+): Result<LayoutResult> {
   const { format, diagramType } = detect(input);
 
   const module = getModule(diagramType);
@@ -128,7 +132,7 @@ export async function compile(
       ? resolveTheme(ir.themeOverride, withModuleDefaults)
       : withModuleDefaults;
 
-    const result = await module.layout(ir, finalTheme);
+    const result = module.layout(ir, finalTheme);
     return ok(result);
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
@@ -137,17 +141,18 @@ export async function compile(
 }
 
 /**
- * Render input text to an output string (default: SVG).
+ * Render input text to an output string (default: SVG) — synchronous.
  *
+ * This is the canonical render path; the async `render()` is a thin wrapper.
  * Returns a Result — never throws.
  * Pass rendererName to use a non-default registered renderer.
  */
-export async function render(
+export function renderSync(
   input: string,
   themeInput?: ThemeInput,
   rendererName = 'svg',
-): Promise<Result<string>> {
-  const compileResult = await compile(input, themeInput);
+): Result<string> {
+  const compileResult = compileSync(input, themeInput);
   if (!compileResult.ok) return compileResult;
 
   const renderer = getRenderer<string>(rendererName);
@@ -161,5 +166,39 @@ export async function render(
     const message = cause instanceof Error ? cause.message : String(cause);
     return err('LAYOUT_ERROR', message, cause);
   }
+}
+
+/**
+ * Compile input text to a LayoutResult (Scene + anchor registry).
+ *
+ * Async wrapper over {@link compileSync} — the signature and behavior are
+ * unchanged for existing callers. Theme resolution order (later overrides
+ * earlier):
+ *   defaultTheme ← themeInput ← module.defaultThemeOverride ← ir.themeOverride
+ *
+ * Returns a Result — never throws.
+ */
+export async function compile(
+  input: string,
+  themeInput?: ThemeInput,
+): Promise<Result<LayoutResult>> {
+  return compileSync(input, themeInput);
+}
+
+/**
+ * Render input text to an output string (default: SVG).
+ *
+ * Async wrapper over {@link renderSync} — the signature and behavior are
+ * unchanged for existing callers.
+ *
+ * Returns a Result — never throws.
+ * Pass rendererName to use a non-default registered renderer.
+ */
+export async function render(
+  input: string,
+  themeInput?: ThemeInput,
+  rendererName = 'svg',
+): Promise<Result<string>> {
+  return renderSync(input, themeInput, rendererName);
 }
 

@@ -151,7 +151,7 @@ export const memory: DiagramModule<MemoryDoc & { version: string; metadata: Reco
   parseYaml(input: string) {
     return JSON.parse(input);
   },
-  async layout(ir, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir, theme: ResolvedTheme): LayoutResult {
     return layoutMemory(ir, theme);
   },
 };

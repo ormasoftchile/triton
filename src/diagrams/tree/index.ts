@@ -20,7 +20,7 @@ export const tree: DiagramModule<TreeDocument> = {
     return JSON.parse(input) as TreeDocument;
   },
 
-  async layout(ir: TreeDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: TreeDocument, theme: ResolvedTheme): LayoutResult {
     return layoutTree(ir, theme);
   },
 };

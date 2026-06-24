@@ -15,7 +15,7 @@ export const sankey: DiagramModule<SankeyDocument> = {
     return JSON.parse(input) as SankeyDocument;
   },
 
-  async layout(ir: SankeyDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: SankeyDocument, theme: ResolvedTheme): LayoutResult {
     return layoutSankey(ir, theme);
   },
 };

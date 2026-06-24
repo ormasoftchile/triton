@@ -15,7 +15,7 @@ export const kanban: DiagramModule<KanbanDocument> = {
     return JSON.parse(input) as KanbanDocument;
   },
 
-  async layout(ir: KanbanDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: KanbanDocument, theme: ResolvedTheme): LayoutResult {
     return layoutKanban(ir, theme);
   },
 };

@@ -15,7 +15,7 @@ export const block: DiagramModule<BlockDocument> = {
     return JSON.parse(input) as BlockDocument;
   },
 
-  async layout(ir: BlockDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: BlockDocument, theme: ResolvedTheme): LayoutResult {
     return layoutBlock(ir, theme);
   },
 };

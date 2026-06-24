@@ -15,7 +15,7 @@ export const xychart: DiagramModule<XYChartDocument> = {
     return JSON.parse(input) as XYChartDocument;
   },
 
-  async layout(ir: XYChartDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: XYChartDocument, theme: ResolvedTheme): LayoutResult {
     return layoutXYChart(ir, theme);
   },
 };

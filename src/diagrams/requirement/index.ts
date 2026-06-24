@@ -15,7 +15,7 @@ export const requirement: DiagramModule<RequirementDocument> = {
     return JSON.parse(input) as RequirementDocument;
   },
 
-  async layout(ir: RequirementDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: RequirementDocument, theme: ResolvedTheme): LayoutResult {
     return layoutRequirement(ir, theme);
   },
 };

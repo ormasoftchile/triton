@@ -74,9 +74,9 @@ describe('poster layout', () => {
     expect(allTexts.some(t => t === 'All systems nominal.')).toBe(true);
   });
 
-  it('auto-assigns row/col to cells without explicit position', async () => {
+  it('auto-assigns row/col to cells without explicit position', () => {
     // All cells lack row/col → auto-assigned; should not throw
-    await expect(layoutPoster(posterDoc, defaultTheme)).resolves.toBeDefined();
+    expect(layoutPoster(posterDoc, defaultTheme)).toBeDefined();
   });
 
   it('theme change propagates to all child diagrams', async () => {

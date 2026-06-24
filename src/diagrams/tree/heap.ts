@@ -46,5 +46,5 @@ export function buildHeap(input: string): TreeDocument {
 export const heap: DiagramModule<TreeDocument> = {
   parseMermaid: buildHeap,
   parseYaml: (input) => JSON.parse(input) as TreeDocument,
-  layout: async (ir: TreeDocument, theme: ResolvedTheme): Promise<LayoutResult> => layoutTree(ir, theme),
+  layout: (ir: TreeDocument, theme: ResolvedTheme): LayoutResult => layoutTree(ir, theme),
 };

@@ -15,7 +15,7 @@ export const er: DiagramModule<ErDocument> = {
     return JSON.parse(input) as ErDocument;
   },
 
-  async layout(ir: ErDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: ErDocument, theme: ResolvedTheme): LayoutResult {
     return layoutEr(ir, theme);
   },
 };

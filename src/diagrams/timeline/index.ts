@@ -25,7 +25,7 @@ export const timeline: DiagramModule<TimelineDocument> = {
     return JSON.parse(input) as TimelineDocument;
   },
 
-  async layout(ir: TimelineDocument, theme: ResolvedTheme, options?: LayoutOptions): Promise<LayoutResult> {
+  layout(ir: TimelineDocument, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult {
     return layoutTimeline(ir, theme);
   },
 };
