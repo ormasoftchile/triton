@@ -89,7 +89,7 @@ export const gantt: DiagramModule<GanttDocument> = {
     return JSON.parse(input) as GanttDocument;
   },
 
-  async layout(ir: GanttDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: GanttDocument, theme: ResolvedTheme): LayoutResult {
     return layoutGantt(ir, theme);
   },
 };

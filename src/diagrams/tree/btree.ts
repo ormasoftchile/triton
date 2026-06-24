@@ -76,5 +76,5 @@ export function buildBtree(input: string): TreeDocument {
 export const btree: DiagramModule<TreeDocument> = {
   parseMermaid: buildBtree,
   parseYaml: (input) => JSON.parse(input) as TreeDocument,
-  layout: async (ir: TreeDocument, theme: ResolvedTheme): Promise<LayoutResult> => layoutTree(ir, theme),
+  layout: (ir: TreeDocument, theme: ResolvedTheme): LayoutResult => layoutTree(ir, theme),
 };

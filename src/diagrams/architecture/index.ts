@@ -15,7 +15,7 @@ export const architecture: DiagramModule<ArchitectureDocument> = {
     return JSON.parse(input) as ArchitectureDocument;
   },
 
-  async layout(ir: ArchitectureDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: ArchitectureDocument, theme: ResolvedTheme): LayoutResult {
     return layoutArchitecture(ir, theme);
   },
 };

@@ -52,5 +52,5 @@ export function buildSegtree(input: string): TreeDocument {
 export const segtree: DiagramModule<TreeDocument> = {
   parseMermaid: buildSegtree,
   parseYaml: (input) => JSON.parse(input) as TreeDocument,
-  layout: async (ir: TreeDocument, theme: ResolvedTheme): Promise<LayoutResult> => layoutTree(ir, theme),
+  layout: (ir: TreeDocument, theme: ResolvedTheme): LayoutResult => layoutTree(ir, theme),
 };

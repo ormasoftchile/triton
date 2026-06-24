@@ -103,7 +103,7 @@ export const page: DiagramModule<PageDoc & { version: string; metadata: Record<s
   parseYaml(input: string) {
     return JSON.parse(input);
   },
-  async layout(ir, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir, theme: ResolvedTheme): LayoutResult {
     return layoutPage(ir, theme);
   },
 };

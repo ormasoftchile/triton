@@ -63,7 +63,7 @@ export const poster: DiagramModule<PosterDocument> = {
     return JSON.parse(input) as PosterDocument;
   },
 
-  async layout(ir: PosterDocument, theme: ResolvedTheme, options?: LayoutOptions): Promise<LayoutResult> {
+  layout(ir: PosterDocument, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult {
     return layoutPoster(ir, theme);
   },
 };

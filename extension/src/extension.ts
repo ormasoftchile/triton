@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
+import { dirname } from 'path';
 // The Triton compiler is imported by RELATIVE PATH (the repo has no package
 // `main`/`exports`, so `import 'triton'` is impossible). esbuild bundles this
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { render } from '../../src/frontend/index.js';
+import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock } from './markdown.js';
 
 // ─── Mermaid coexistence reconciliation (LOCKED decision) ──────────────────────
 //
@@ -229,6 +231,23 @@ function isDiagramDoc(doc: vscode.TextDocument, config: PreviewConfig): boolean 
   return false;
 }
 
+/** Is this document Markdown (where we render fenced blocks, not the whole file)? */
+function isMarkdownDoc(doc: vscode.TextDocument): boolean {
+  const ext = extname(doc.uri);
+  return doc.languageId === 'markdown' || ext === '.md' || ext === '.markdown';
+}
+
+/** Wrap a rendered block with a caption when a document has more than one. */
+function labelBlock(index: number, total: number, lang: string, html: string): string {
+  if (total <= 1) return html;
+  const caption = `Block ${index + 1} of ${total}${lang === 'mermaid' ? ' · mermaid' : ''}`;
+  return (
+    `<figure style="margin:0 0 1.5em;">` +
+    `<figcaption style="font:600 12px var(--vscode-font-family,sans-serif);opacity:.65;margin:0 0 4px;">` +
+    `${escapeHtml(caption)}</figcaption>${html}</figure>`
+  );
+}
+
 interface Preview {
   readonly panel: vscode.WebviewPanel;
   docUri: vscode.Uri;
@@ -308,6 +327,15 @@ class PreviewManager {
     if (!preview) return;
 
     const config = readConfig();
+
+    // Markdown documents render ALL eligible fenced blocks, stacked. This uses
+    // the synchronous render path (renderSync, via renderFencedBlock) so there's
+    // no await race with concurrent edits.
+    if (isMarkdownDoc(doc)) {
+      this.renderMarkdownInto(doc, config, mode);
+      return;
+    }
+
     const renderable = pickRenderable(doc, config, mode);
     if (!renderable) {
       void preview.panel.webview.postMessage({
@@ -334,6 +362,38 @@ class PreviewManager {
     }
   }
 
+  /**
+   * Render every ```triton (and, per the coexistence rule, ```mermaid) fenced
+   * block in a Markdown document, stacked top-to-bottom and labelled when there
+   * is more than one. Fully synchronous (renderSync under the hood), so no
+   * stale-document guard is needed.
+   */
+  private renderMarkdownInto(doc: vscode.TextDocument, config: PreviewConfig, mode: RenderMode): void {
+    const preview = this.preview;
+    if (!preview) return;
+
+    // ```triton is always ours; ```mermaid joins it under the explicit command
+    // OR when triton.enableMermaid is on (mirrors pickRenderable's gate).
+    const langs = new Set<string>(['triton']);
+    if (mode === 'explicit' || config.enableMermaid) langs.add('mermaid');
+
+    const blocks = extractFencedBlocks(doc.getText(), langs);
+    if (blocks.length === 0) {
+      void preview.panel.webview.postMessage({
+        type: 'error',
+        message: 'No ```triton (or ```mermaid) blocks found in this Markdown document.',
+      });
+      return;
+    }
+
+    const baseDir = doc.uri.scheme === 'file' ? dirname(doc.uri.fsPath) : undefined;
+    const html = blocks
+      .map((b, i) => labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir)))
+      .join('\n');
+
+    void preview.panel.webview.postMessage({ type: 'svg', svg: html });
+  }
+
   private label(uri: vscode.Uri): string {
     const path = uri.path;
     const slash = path.lastIndexOf('/');
@@ -351,7 +411,7 @@ class PreviewManager {
 
 // ─── Activation ────────────────────────────────────────────────────────────────
 
-export function activate(context: vscode.ExtensionContext): void {
+export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(md: unknown): unknown } {
   const manager = new PreviewManager();
   context.subscriptions.push(manager);
 
@@ -363,6 +423,15 @@ export function activate(context: vscode.ExtensionContext): void {
       manager.show(vscode.window.activeTextEditor, vscode.ViewColumn.Beside);
     }),
   );
+
+  // Contributed to the built-in Markdown preview (contributes.markdown.
+  // markdownItPlugins). Overrides the fence renderer so ```triton (always) and
+  // ```mermaid (when triton.enableMermaid) blocks compile to inline SVG.
+  return {
+    extendMarkdownIt(md: unknown): unknown {
+      return extendMarkdownIt(md as Parameters<typeof extendMarkdownIt>[0]);
+    },
+  };
 }
 
 export function deactivate(): void {

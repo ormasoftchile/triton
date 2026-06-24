@@ -15,7 +15,7 @@ export const classDiagram: DiagramModule<ClassDocument> = {
     return JSON.parse(input) as ClassDocument;
   },
 
-  async layout(ir: ClassDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: ClassDocument, theme: ResolvedTheme): LayoutResult {
     return layoutClass(ir, theme);
   },
 };

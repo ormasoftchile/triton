@@ -15,7 +15,7 @@ export const journey: DiagramModule<JourneyDocument> = {
     return JSON.parse(input) as JourneyDocument;
   },
 
-  async layout(ir: JourneyDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: JourneyDocument, theme: ResolvedTheme): LayoutResult {
     return layoutJourney(ir, theme);
   },
 };

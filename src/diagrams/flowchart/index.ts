@@ -25,7 +25,7 @@ export const flowchart: DiagramModule<FlowDocument> = {
     return JSON.parse(input) as FlowDocument;
   },
 
-  async layout(ir: FlowDocument, theme: ResolvedTheme, options?: LayoutOptions): Promise<LayoutResult> {
+  layout(ir: FlowDocument, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult {
     return layoutFlowchart(ir, theme, options);
   },
 };

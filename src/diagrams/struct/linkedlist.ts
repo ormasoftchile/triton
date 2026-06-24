@@ -103,7 +103,7 @@ export const linkedlist: DiagramModule<ListDoc & { version: string; metadata: Re
   parseYaml(input: string) {
     return JSON.parse(input);
   },
-  async layout(ir, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir, theme: ResolvedTheme): LayoutResult {
     return layoutList(ir, theme);
   },
 };

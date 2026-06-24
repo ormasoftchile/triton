@@ -15,7 +15,7 @@ export const pie: DiagramModule<PieDocument> = {
     return JSON.parse(input) as PieDocument;
   },
 
-  async layout(ir: PieDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: PieDocument, theme: ResolvedTheme): LayoutResult {
     return layoutPie(ir, theme);
   },
 };

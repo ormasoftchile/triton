@@ -100,7 +100,7 @@ export const array: DiagramModule<ArrayDoc & { version: string; metadata: Record
   parseYaml(input: string) {
     return JSON.parse(input);
   },
-  async layout(ir, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir, theme: ResolvedTheme): LayoutResult {
     return layoutArray(ir, theme);
   },
 };

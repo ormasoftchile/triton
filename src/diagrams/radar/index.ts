@@ -15,7 +15,7 @@ export const radar: DiagramModule<RadarDocument> = {
     return JSON.parse(input) as RadarDocument;
   },
 
-  async layout(ir: RadarDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: RadarDocument, theme: ResolvedTheme): LayoutResult {
     return layoutRadar(ir, theme);
   },
 };

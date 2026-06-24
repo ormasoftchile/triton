@@ -200,7 +200,7 @@ export const topology: DiagramModule<TopologyDoc & { version: string; metadata: 
   parseYaml(input: string) {
     return JSON.parse(input);
   },
-  async layout(ir, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir, theme: ResolvedTheme): LayoutResult {
     return layoutTopology(ir, theme);
   },
 };

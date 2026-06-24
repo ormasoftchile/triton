@@ -15,7 +15,7 @@ export const sequence: DiagramModule<SequenceDocument> = {
     return JSON.parse(input) as SequenceDocument;
   },
 
-  async layout(ir: SequenceDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: SequenceDocument, theme: ResolvedTheme): LayoutResult {
     return layoutSequence(ir, theme);
   },
 };

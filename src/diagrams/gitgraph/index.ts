@@ -55,7 +55,7 @@ export const gitgraph: DiagramModule<GitgraphDocument> = {
     return JSON.parse(input) as GitgraphDocument;
   },
 
-  async layout(ir: GitgraphDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: GitgraphDocument, theme: ResolvedTheme): LayoutResult {
     return layoutGitgraph(ir, theme);
   },
 };

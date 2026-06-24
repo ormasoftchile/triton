@@ -15,7 +15,7 @@ export const packet: DiagramModule<PacketDocument> = {
     return JSON.parse(input) as PacketDocument;
   },
 
-  async layout(ir: PacketDocument, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: PacketDocument, theme: ResolvedTheme): LayoutResult {
     return layoutPacket(ir, theme);
   },
 };

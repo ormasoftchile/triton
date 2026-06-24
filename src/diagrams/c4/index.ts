@@ -15,7 +15,7 @@ export const c4: DiagramModule<C4Document> = {
     return JSON.parse(input) as C4Document;
   },
 
-  async layout(ir: C4Document, theme: ResolvedTheme): Promise<LayoutResult> {
+  layout(ir: C4Document, theme: ResolvedTheme): LayoutResult {
     return layoutC4(ir, theme);
   },
 };
