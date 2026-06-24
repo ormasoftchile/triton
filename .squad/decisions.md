@@ -1,5 +1,104 @@
 # Squad Decisions — Recent & Current (2026-06-23)
 
+# LATEX INLINE ENVIRONMENT + DESIGN DOGFOOD (2026-06-24)
+
+**Author:** Barbara (Semantics & Rendering) · **Requested by:** ormasoftchile
+**Status:** COMPLETE — merged to `main` as PR #25 (inline env) + PR #27 (design dogfood).
+Consolidates inbox notes `barbara-latex-inline`, `barbara-design-inline-figures`, and the
+superseded intermediate `barbara-design-dogfood` (PDF-via-CLI `\ourfig` step, now replaced
+by inline figures).
+
+## Inline `triton` environment (PR #25) — `@triton/latex`
+
+- Users author Triton source **directly in `.tex`** between `\begin{triton} … \end{triton}`;
+  it renders to a vector PDF at compile time via shell-escape and drops in via
+  `\includegraphics` (the TikZ/minted model). The bare `\triton{name}` precompile +
+  `\includegraphics` path is **kept as the Overleaf / no-shell-escape fallback**.
+- **Mechanism:** verbatim capture (`fancyvrb` `VerbatimOut`) → temp file → content hash
+  (`pdftexcmds` `\pdf@filemdfivesum`) → `\write18` to the `triton-latex` CLI (only if the
+  hash-named PDF is absent) → `\includegraphics`. Guarded by `\pdf@shellescape`; clear
+  `\PackageError` if shell-escape is off or the CLI is missing. Command/env name collision
+  resolved by dispatching on `\@currenvir`.
+- **Constraints discovered (verified):**
+  1. **No inline optional arg on the verbatim env** — `\begin{triton}[width=…]` is impossible
+     (the `[`-lookahead consumes the line break `fancyvrb` needs, swallowing the first body
+     line). Per-diagram sizing is `\tritonnext{opts}` (one-shot) + `\tritonsetup{opts}` (global).
+  2. **graphicx + macro opts** — `\includegraphics[\macro]{…}` with `\macro=width=\linewidth`
+     throws "Missing \endcsname"; fixed by expanding once with `\expandafter`.
+  3. **tectonic** needs `-Z shell-escape -Z shell-escape-cwd=.`, must run unsandboxed, and only
+     finds local `.sty` in the input dir (→ symlink `examples/triton.sty`).
+- **Verify (gate):** `latex/examples/inline-demo.tex` → tectonic EXIT 0 → `inline-demo.pdf`
+  (24 KB) with **2 Form XObjects, 0 Image XObjects** (pure vector). Core untouched
+  (`git diff package.json pnpm-workspace.yaml tsconfig.json src/` empty); changes confined to `latex/`.
+
+## Design spec dogfoods inline figures (PR #27)
+
+- Replaced all **8 pregenerated-PNG `\ourfig{name}` figures** in `design/` with inline
+  `\begin{triton}` source rendered by Triton at LaTeX compile time — the spec's own figures
+  are authored in-place and compiled by the very compiler the document describes.
+- `design/triton.sty` → symlink to `../latex/triton.sty`; `\usepackage{triton}`;
+  `\tritoncli{node ../latex/dist/cli.cjs}` so the inline env's shell-out resolves the bundled
+  CLI from the `design/` build dir. Per-figure widths via `\tritonnext{width=…}`; captions
+  identical (no figures were `\ref`'d, no cross-refs broke).
+- `design/Makefile`: `cli` target → `pnpm -C latex build`; `pdf` target →
+  `tectonic -Z shell-escape -Z shell-escape-cwd=. triton.tex`. **Removed dead pipeline:**
+  `design/figures/*.png`, `design/figures/render.mjs`, the root `figures` npm script, and the
+  `\ourfig` macro. Added `design/.gitignore` for the render cache.
+- **8 acyclic sources** (sql-engine, spanning posters, flowchart DAG, avl, radix trees, array,
+  memory struct, numa topology) — at the time, chosen acyclic to avoid the cyclic-`renderSync`
+  hang (since FIXED in PR #28; see next block).
+- **Verify (gate):** clean `tectonic -Z shell-escape -Z shell-escape-cwd=. triton.tex` →
+  **exit 0, 21 pages, no hang**; 8 content-hashed vector PDFs cached (2.4–9.2 KB each);
+  `design/triton.pdf` ≈134 KiB; `git diff src/` empty.
+- **Dependency:** the design build now **requires shell-escape + Node + built `latex/dist/cli.cjs`**.
+  Plain `tectonic triton.tex` errors on the inline env; locked-down/Overleaf → the precompile
+  `\triton{name}` fallback remains.
+
+---
+
+# CORE FIX: flowchart cycle breaking — cyclic diagrams no longer hang `renderSync` (2026-06-24)
+
+**Author:** Barbara (Semantics & Rendering) · **Requested by:** ormasoftchile
+**Status:** COMPLETE — merged to `main` as PR #28. Scope: core layout only
+(`src/diagrams/flowchart/layout.ts` + new test). No `latex/`, `extension/`, or other-diagram changes.
+Consolidates inbox note `barbara-cycle-fix`. (Found during the LaTeX dogfood work, fixed separately.)
+
+## The bug
+
+A flowchart with a **cycle reached from a root** made core `renderSync()` HANG (never returns).
+- **Location:** `assignLayers()` in `src/diagrams/flowchart/layout.ts` — flowchart has its OWN
+  longest-path layering; it does NOT use `src/graph/layered.ts` (whose `assignLayers` already caps
+  cycles — a red herring).
+- **Cause:** the layer-assignment BFS re-pushes a successor whenever it finds a strictly greater
+  layer; on a cycle reachable from a root, layer numbers grow without bound → the queue never
+  drains → infinite loop.
+- **Precise trigger:** a ROOT feeding a cycle (e.g. `S→A; A→B; B→C; C→A`). Pure cycles where every
+  node is in the cycle (2-cycle, 3-cycle, self-loop) already terminated (empty BFS queue → layer-0 fallback).
+
+## The fix — cycle breaking (Sugiyama-standard)
+
+- Added `findBackEdges(nodes, edges)`: iterative (explicit-stack) DFS with WHITE/GRAY/BLACK colouring,
+  returns the indices of edges that close a cycle (GRAY target; self-loops included). Removing a DFS's
+  back-edge set always yields a DAG.
+- `assignLayers` now removes those back-edges and runs the SAME longest-path BFS over the forward
+  (acyclic) subset → provably terminates on ANY graph; deterministic (nodes/edges visited in given order).
+- **Back-edges are still DRAWN** — the edge-drawing loop iterates all `ir.edges` independently of
+  layering, so the cyclic edge renders source→target (self-loops too).
+- **Acyclic is byte-identical:** with no back-edges, `forwardEdges === edges`; the common case is unchanged.
+
+## Verification (hard gate)
+
+- 2-cycle / 3-cycle / self-loop / root-into-cycle all `renderSync` to valid `<svg …>` and terminate
+  in <1 ms (the root-into-cycle case that previously hung now returns an 1877-byte SVG).
+- New regression test `test/flowchart-cycle.test.ts` (7 tests). `pnpm build:grammars && pnpm typecheck`
+  → 0 errors (23 grammars). `pnpm test` → **385 pass (was 378, +7)**, all green.
+- **Tooling note:** vitest `--testTimeout` cannot interrupt a synchronous infinite loop (timer never
+  fires while the JS thread is stuck); use a process-level hard kill
+  (`perl -e 'alarm N; exec @ARGV' node …`). Node 25 `--experimental-strip-types` does not rewrite
+  `.js`→`.ts` import specifiers → build to `dist/` (or use vitest) to run the compiler standalone.
+
+---
+
 # LATEX INTEGRATION — vector PDF, isolated package (2026-06-24)
 
 **Authors:** David (Research Lead, Phase 1) · Barbara (Semantics & Rendering, Phase 2)

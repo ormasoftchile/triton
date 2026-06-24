@@ -536,3 +536,32 @@ Verified end-to-end pipeline stages and key entry-point files for the team's ref
 - **Trade-offs:** Straight routing COULD cross obstacles if source/target aren't cleanly separated (not an issue in link-poster due to grid layout, but could be problematic in denser posters with overlapping cells). Orthogonal routing ALWAYS respects cell boundaries via gutters, but adds extra path length and visual complexity (3 segments vs 1).
 
 **Earlier (2026-06-17):** Wall-centered connector exit/entry points fix; greedy-switch crossing minimization; Brandes-Köpf structure; A* pathfinding; aesthetic metrics. See earlier notes below.
+
+---
+
+## Archived 2026-06-24 by Scribe — verbose 2026-06-24 LaTeX inline + cycle-fix learnings (canonical detail now in decisions.md)
+
+### Learnings — inline LaTeX authoring (triton env, like TikZ)
+- **Goal delivered**: write Triton diagram SOURCE directly in `.tex` inside `\begin{triton}…\end{triton}` → renders to vector PDF at compile time and is `\includegraphics`'d, exactly like `tikzpicture`. Verified END-TO-END: `latex/examples/inline-demo.tex` compiles under tectonic (EXIT 0) → 24 KB `inline-demo.pdf` containing 2 Form XObjects, 0 Image XObjects (pure vector), path ops l=67/m=24/c=56/re=6 + textShow=27.
+- **Mechanism** (`latex/triton.sty` v0.2.0): `\RequirePackage{graphicx,fancyvrb,pdftexcmds}`. 1. `fancyvrb` `VerbatimOut` captures the env body BYTE-EXACT to `\jobname.triton-src.triton`. 2. `\pdf@filemdfivesum{file}` content-hashes it (UPPERCASE hex). 3. `\IfFileExists` cache check on `\jobname.triton-cache/<hash>.pdf`; if absent, `\immediate\write18{\triton@cli space render "src" -o "pdf" --scale N --theme T}`. 4. `\includegraphics` the PDF. Guarded by `\ifnum\pdf@shellescape=\@ne`.
+- **`\@currenvir` dispatch trick**: a command `\triton` and environment `triton` can't coexist directly; branch on `\@currenvir`: inside `\begin{triton}` → verbatim capture; bare `\triton[opts]{name}` → precompiled-PDF include (Overleaf fallback).
+- **VERIFIED-IMPOSSIBLE**: a verbatim env CANNOT take an inline optional arg. ANY lookahead for `[` consumes the line-ending `^^M` fancyvrb needs → swallows the first body line. Workaround: one-shot `\tritonnext{opts}` + global `\tritonsetup{opts}`.
+- **graphicx gotcha**: `\includegraphics[\opts]{...}` with `\opts`=`width=\linewidth` throws "Missing \endcsname". FIX: expand once — `\expandafter\includegraphics\expandafter[\triton@curopts]{\triton@pdf}`.
+- **CLI fix**: `renderFile` now `mkdirSync(dirname(resolve(outPath)),{recursive:true})` so single-file `render` creates the content-hashed cache dir. Rebuilt `dist/cli.cjs` (1.2 MB).
+- **tectonic flags**: `-Z shell-escape -Z shell-escape-cwd=.`, UNSANDBOXED, network on first run. tectonic searches ONLY the input dir for local `.sty` → `latex/examples/triton.sty` is a SYMLINK to `../triton.sty`. `pdflatex` honours TEXINPUTS so the symlink is unneeded there.
+- **Scope honoured**: root `git diff package.json pnpm-workspace.yaml tsconfig.json src/` EMPTY.
+
+### Learnings — design doc LaTeX chapter documents inline env + caveats (2026-06-24)
+- `design/sections/09-latex-integration.tex` REFRAMED to lead with the inline `triton` env as the headline authoring mode. Format-gap section presents two paths (inline via shell-escape = default; precompiled-and-committed = Overleaf fallback). NEW "Inline authoring: the triton environment" subsection (verbatim→hash→write18→includegraphics + `\@currenvir` dispatch) + "Caveats and limitations" subsection. Uses only existing preamble macros. Core untouched.
+
+### Learnings (2026-06-24) — design doc dogfoods Triton via inline figures
+- Converted all 8 `\ourfig{name}` PNG includes in design/ to inline `\begin{triton}` figures. Figure→source map: sql-engine→poster/sql-engine.mmd, flowchart→flowchart/flowchart.mmd, avl→ds/tree/avl.mmd, radix→ds/tree/radix.mmd, array→ds/struct/array.mmd, memory→ds/struct/memory.mmd, numa→topology/numa-detail.mmd (NOT numa.mmd), spanning→poster/spanning.mmd. All 8 acyclic.
+- sty discoverability: symlink `design/triton.sty -> ../latex/triton.sty`, `\usepackage{triton}`. CLI path: `\tritoncli{node ../latex/dist/cli.cjs}` (cwd = build dir). Per-figure width via `\tritonnext{width=…}` just before `\begin{triton}`.
+- Build: `tectonic -Z shell-escape -Z shell-escape-cwd=. triton.tex`, unsandboxed → EXIT 0, 21 pages, triton.pdf ~134 KiB, 8 content-hashed cache PDFs (2.4–9.2 KB).
+- Removed dead pipeline: design/figures/*.png + render.mjs, root `figures` npm script, `\ourfig` macro; added design/.gitignore; rewrote design/Makefile (cli+pdf targets). `\tritonnext` resets after each render → repeat per figure.
+
+### Learnings (2026-06-24) — FIXED the cyclic-flowchart `renderSync` hang (core layout)
+- Infinite loop in `assignLayers()` in `src/diagrams/flowchart/layout.ts` (flowchart has its OWN longest-path layering; does NOT use `src/graph/layered.ts` — red herring). BFS re-pushes a successor on any strictly greater layer; on a cycle reachable from a root the layer grows without bound → queue never drains.
+- Trigger: pure cycles (2-cycle/3-cycle/self-loop) terminate (no root ⇒ empty BFS queue ⇒ layer-0 fallback). The HANG needs a ROOT feeding a cycle (`S→A; A→B; B→C; C→A`).
+- Fix (Sugiyama cycle breaking, ~70 lines): `findBackEdges(nodes,edges)` iterative explicit-stack DFS WHITE/GRAY/BLACK returns edge indices closing a cycle (GRAY target; self-loops). `assignLayers` removes them and runs the SAME longest-path BFS over the forward DAG → provably terminates, deterministic. Back-edges still DRAWN (edge loop iterates all `ir.edges`). Acyclic byte-identical (`forwardEdges === edges`).
+- Regression test `test/flowchart-cycle.test.ts` (7 tests). Repro tooling: vitest `--testTimeout` can't interrupt a sync infinite loop → use `perl -e 'alarm N; exec @ARGV' node …`; Node 25 `--experimental-strip-types` doesn't rewrite `.js`→`.ts` specifiers → build to `dist/`. Scope: ONLY that file + test. Gate: typecheck 0, `pnpm test` 378 → 385 (+7), build:grammars 23.
