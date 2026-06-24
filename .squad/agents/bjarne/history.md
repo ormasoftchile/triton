@@ -2,6 +2,34 @@
 
 ## Learnings
 
+**Extension Phase 3 — IntelliSense (completion + diagnostics) (2026-06-24)**:
+Built two providers, confined to `extension/` (core `src/` untouched — verified `git diff src package.json` empty).
+- **Completion source = `src/frontend/detect.ts` MERMAID_PATTERNS, not invented.** Authored
+  `extension/src/keywords.ts` with `DIAGRAM_HEADERS` (50 header entries) mirroring the real
+  detect table — each `insert` token feeds back through core `detect()` to the expected
+  `DiagramKind` (sanity check: 50 checked, 0 mismatches). `flowchart`/`graph` alone reach
+  'flowchart' via detect's DEFAULT (patterns need trailing `\s`), still the correct kind.
+  Per-kind body keywords (`KIND_KEYWORDS`) are a MODEST hand-curated set grounded in real
+  `examples/*.mmd` and `grammar.peggy` literals (verified c4/sequence literals via grep);
+  Peggy grammars are NOT introspectable for completion (per the plan), so curation is expected.
+- **Diagnostics error→range mapping: core `DiagramError` carries NO position** (just
+  `{code, message}` in `src/contracts/result.ts`). BUT parse failures wrap the thrown Peggy
+  `SyntaxError` as `error.cause`, and that DOES carry `.location.start/end {line, column}`
+  (1-based; confirmed in generated `parser.js` `peg$SyntaxError`). So `diagnostics.ts` maps to
+  the precise Range when `cause.location` is present (1-based→0-based, zero-width widened to
+  line end), else FALLS BACK to underlining the first non-blank line. `renderSync` returns a
+  Result and never throws (broken `flowchart LR\n A --> ` → PARSE_ERROR, loc 2:9). Debounced
+  by `triton.preview.debounceMs` (default 150). Severity Error; `diag.code` = error code.
+- **Markdown ```triton fences supported for BOTH providers** via `extension/src/triton-fences.ts`
+  (`findTritonFences`/`tritonFenceAt` — line-offset aware, unlike markdown.ts `extractFencedBlocks`
+  which only returns body text). `extension/src/source-shape.ts` shares frontmatter/header-line
+  logic between completion (header-vs-body) and diagnostics (fallback range).
+- Files: `extension/src/{keywords,completion,diagnostics,triton-fences,source-shape}.ts`;
+  registered in `extension/src/extension.ts` `activate()` via `registerCompletion(context)` +
+  `registerDiagnostics(context)`. Build: `node extension/esbuild.mjs` → 1.2 MB (1,278,181 bytes),
+  exit 0. `tsc -p extension/tsconfig.json --noEmit` → 0 errors. Decision note:
+  `.squad/decisions/inbox/bjarne-extension-intellisense.md`.
+
 **Wave-2 design realign — front-end/architecture/packaging/layout (2026-06-23)**:
 Rewrote `15-frontend`, `40-architecture`, `41-packaging`, `42-layout-engines` to match
 shipped Triton. Key reality (grounded in code, blunt about the obsolete charter premise):
