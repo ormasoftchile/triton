@@ -1,0 +1,53 @@
+% triton.sty — include precompiled Triton diagrams as vector PDF figures.
+%
+% Triton renders diagrams to vector PDF (via the @triton/latex CLI:
+% `triton-latex render-dir`). This package wraps `\includegraphics` so a diagram
+% is dropped in by NAME, resolved against a configurable output directory.
+%
+% Engine-agnostic: works on pdfLaTeX, XeLaTeX, and LuaLaTeX — it only depends on
+% graphicx, because by the time `\includegraphics` runs the asset is already a
+% PDF. Because the PDFs are precompiled and committed, this also works on
+% Overleaf with NO Node/Triton toolchain on the LaTeX side.
+%
+% Usage:
+%   \usepackage{triton}
+%   \tritondir{figures}            % where the *.pdf live (default: triton-figures)
+%   \triton{flowchart}             % \includegraphics[width=\linewidth]{figures/flowchart.pdf}
+%   \triton[width=0.6\linewidth]{avl}
+%   \tritonfig{flowchart}{An order-validation flow.}   % wrapped in a figure
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{triton}[2026/06/24 v0.1.0 Include Triton diagrams as vector PDF]
+
+\RequirePackage{graphicx}
+
+% ── Diagram output directory ────────────────────────────────────────────────
+% Default directory holding the rendered <name>.pdf files. Override with
+% \tritondir{<path>} (no trailing slash needed).
+\def\triton@dir{triton-figures}
+\newcommand{\tritondir}[1]{\def\triton@dir{#1}}
+
+% ── Default \includegraphics options ────────────────────────────────────────
+% Applied when \triton is called without an optional argument. Override per-call
+% with \triton[<opts>]{...}, or globally with \tritonsetup{<opts>}.
+\def\triton@opts{width=\linewidth}
+\newcommand{\tritonsetup}[1]{\def\triton@opts{#1}}
+
+% ── \triton[<includegraphics opts>]{<name>} ─────────────────────────────────
+% Include the diagram <name>.pdf from \triton@dir.
+\newcommand{\triton}[2][\triton@opts]{%
+  \includegraphics[#1]{\triton@dir/#2.pdf}%
+}
+
+% ── \tritonfig[<opts>]{<name>}{<caption>} ───────────────────────────────────
+% Convenience: a centered figure environment around \triton, with a caption.
+% The optional argument forwards \includegraphics options.
+\newcommand{\tritonfig}[3][\triton@opts]{%
+  \begin{figure}[htbp]%
+    \centering
+    \triton[#1]{#2}%
+    \caption{#3}%
+  \end{figure}%
+}
+
+\endinput

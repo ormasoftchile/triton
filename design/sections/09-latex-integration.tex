@@ -1,0 +1,88 @@
+\section{LaTeX Integration}
+\label{sec:latex-integration}
+
+Triton diagrams can be embedded in \LaTeX{} documents as \emph{vector} PDF
+figures. The integration lives in its own satellite package, \texttt{latex/}
+(\texttt{@triton/latex}), and is purely additive: it changes no core behaviour and
+adds \textbf{zero} dependencies to the \texttt{triton} package.
+
+\subsection{The format gap}
+
+\LaTeX{}'s \texttt{\textbackslash includegraphics} ingests PDF, PNG, or JPG ---
+never SVG --- on every engine (pdf\LaTeX{}, Xe\LaTeX{}, Lua\LaTeX{}). Triton emits
+SVG (\S\ref{sec:scene}: \texttt{renderSync} $\rightarrow$ \texttt{renderSVG}). The
+integration therefore converts each diagram to a PDF \emph{ahead of time}, and the
+document includes the committed PDF. This ``precompile and commit'' model is the
+only one that also works on Overleaf, where no Node or Triton toolchain is
+available at compile time.
+
+\subsection{SVG \texorpdfstring{$\rightarrow$}{->} vector PDF, pure-JS}
+
+The converter is pure JavaScript with \textbf{no system binaries} (no Inkscape, no
+\texttt{rsvg-convert}, no headless browser). It feeds Triton's SVG through
+\texttt{pdfkit} + \texttt{svg-to-pdfkit}, producing a single-page PDF whose page
+box equals the diagram's \texttt{viewBox}. The output is genuinely vector:
+
+\begin{itemize}
+  \item shapes become PDF path operators (\texttt{re}, \texttt{l}, \texttt{c});
+  \item the \texttt{Scene}'s five element types and the arrowhead
+        \texttt{<marker>} definitions all replay faithfully;
+  \item text becomes real vector glyphs in the embedded base-14 fonts
+        (Helvetica / Times / Courier) --- so there is \emph{no font drift}
+        between author, CI, and Overleaf, and no external font file to ship.
+\end{itemize}
+
+The SMIL animation overlays (\texttt{march}, \texttt{particle}) are dropped: a PDF
+is static, and the first frame is the correct print representation.
+
+\subsection{The CLI}
+
+The package ships a \texttt{triton-latex} command (esbuild-bundled from
+\texttt{latex/src/cli.ts}, which imports the compiler by relative path from
+\texttt{../src} --- the same satellite pattern as the VS Code extension):
+
+\begin{lstlisting}[language=ts, basicstyle=\small\ttfamily]
+triton-latex render <input.triton|.mmd> -o <out.pdf|.svg> [--theme N] [--scale S]
+triton-latex render-dir <srcDir>        -o <outDir>        [--theme N] [--scale S]
+\end{lstlisting}
+
+\texttt{render} converts one source to vector PDF (or passes SVG through);
+\texttt{render-dir} batch-renders every \texttt{*.triton}/\texttt{*.mmd} in a
+directory to \texttt{<name>.pdf}. Both reuse the core \texttt{renderSync()} path
+and surface its \texttt{Result} as a clean exit code.
+
+\subsection{The \texttt{triton.sty} package}
+
+A thin \LaTeX{} package wraps \texttt{\textbackslash includegraphics}, resolving a
+diagram by name against a configurable directory. It depends only on
+\texttt{graphicx}, so it is engine-agnostic.
+
+\begin{lstlisting}[language=ts]
+\usepackage{triton}
+\tritondir{figures}                 % where the rendered <name>.pdf live
+\triton{flowchart}                  % includegraphics figures/flowchart.pdf
+\tritonfig[width=0.6\linewidth]{avl}{An AVL tree rendered by Triton.}
+\end{lstlisting}
+
+\subsection{Workflow and portability}
+
+The authoring loop mirrors the design doc's own \texttt{pnpm figures} /
+\texttt{\textbackslash ourfig} convention: render sources to PDF, commit them,
+include by name, and regenerate when a diagram changes. Because the assets are
+committed vector PDFs, the same project compiles unchanged on macOS, Linux,
+Windows, and Overleaf --- the engine axis is irrelevant, since the asset is
+already a PDF by the time \texttt{\textbackslash includegraphics} runs.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Path & Contents \\
+\midrule
+\texttt{latex/src/cli.ts}   & the \texttt{triton-latex} CLI (render / render-dir) \\
+\texttt{latex/src/pdf.ts}   & SVG $\rightarrow$ vector PDF (pdfkit + svg-to-pdfkit) \\
+\texttt{latex/triton.sty}   & the \texttt{\textbackslash triton} / \texttt{\textbackslash tritonfig} macros \\
+\texttt{latex/esbuild.mjs}  & bundles the CLI + compiler graph from \texttt{src/} \\
+\texttt{latex/examples/}    & \texttt{diagrams/} sources, committed \texttt{figures/} PDFs, \texttt{demo.tex} \\
+\bottomrule
+\end{tabular}
+\end{center}

@@ -1,0 +1,27 @@
+{
+  "name": "@triton/latex",
+  "description": "LaTeX integration for Triton — render diagrams to vector PDF for \\includegraphics.",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "triton-latex": "./dist/cli.cjs"
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "render": "node dist/cli.cjs render",
+    "render-dir": "node dist/cli.cjs render-dir",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "pdfkit": "^0.15.0",
+    "svg-to-pdfkit": "^0.1.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pdfkit": "^0.13.4",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.8.3"
+  }
+}

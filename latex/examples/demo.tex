@@ -1,0 +1,52 @@
+% demo.tex — minimal, self-contained example of the Triton LaTeX integration.
+%
+% Build the figures first, then compile this file:
+%
+%   make figures        # ../dist/cli.cjs render-dir diagrams/ -o figures/
+%   make pdf            # tectonic demo.tex   (or pdflatex demo.tex)
+%
+% On Overleaf: just upload this folder. The figures/*.pdf are committed, so no
+% Node/Triton toolchain is needed — graphicx includes the vector PDFs directly.
+
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{triton}
+
+% Point at the committed, precompiled vector PDFs.
+\tritondir{figures}
+
+\title{Triton --- LaTeX Integration Demo}
+\author{The \texttt{@triton/latex} package}
+\date{}
+
+\begin{document}
+\maketitle
+
+Triton diagrams are precompiled to \emph{vector} PDF and dropped in by name with
+\verb|\triton{<name>}|. The assets below are committed to the repository, so this
+document compiles on pdf\LaTeX{}, Xe\LaTeX{}, Lua\LaTeX{}, and Overleaf with no
+external toolchain.
+
+\section{Inline include}
+
+A flowchart, scaled to the text width:
+
+\begin{center}
+  \triton{flowchart}
+\end{center}
+
+\section{Figure with caption}
+
+The \verb|\tritonfig| helper wraps a diagram in a \texttt{figure} with a caption:
+
+\tritonfig[width=0.5\linewidth]{avl}{An AVL tree rendered by Triton.}
+
+\section{A composed poster}
+
+Span and scale like any other graphic:
+
+\begin{center}
+  \triton[width=\linewidth]{ds-poster}
+\end{center}
+
+\end{document}
