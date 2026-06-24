@@ -58,7 +58,8 @@ precompiled PDF.
 The converter is pure JavaScript with \textbf{no system binaries} (no Inkscape, no
 \texttt{rsvg-convert}, no headless browser). It feeds Triton's SVG through
 \texttt{pdfkit} + \texttt{svg-to-pdfkit}, producing a single-page PDF whose page
-box equals the diagram's \texttt{viewBox}. The output is genuinely vector:
+box equals the diagram's \texttt{viewBox} (multiplied by the optional
+\texttt{--scale} factor, default~1). The output is genuinely vector:
 
 \begin{itemize}
   \item shapes become PDF path operators (\texttt{re}, \texttt{l}, \texttt{c});
