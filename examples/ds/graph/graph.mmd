@@ -1,0 +1,11 @@
+nodegraph
+  directed
+  title Build dependency graph
+  node A : parse
+  node B : resolve
+  node C : typecheck
+  node D : emit
+  A -> B : ast
+  B -> C : symbols
+  B -> D
+  C -> D : checked
