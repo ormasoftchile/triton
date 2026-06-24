@@ -1,5 +1,76 @@
 # Squad Decisions — Recent & Current (2026-06-23)
 
+# LATEX INTEGRATION — vector PDF, isolated package (2026-06-24)
+
+**Authors:** David (Research Lead, Phase 1) · Barbara (Semantics & Rendering, Phase 2)
+**Requested by:** ormasoftchile · **Status:** COMPLETE — merged to `main` as PR #24 (commit 771573c).
+Consolidates inbox notes `david-latex-integration` (research/recommendation) and `barbara-latex-phase2` (build).
+
+## User decisions (ratified)
+
+- **Vector PDF, not PNG** — `\includegraphics` consumes a true vector PDF (no raster).
+- **Core Triton gains ZERO new dependencies** — non-negotiable. `git diff` of root `package.json`,
+  `pnpm-workspace.yaml`, `tsconfig.json` is EMPTY. Core `src/`, `detect.ts`, registry untouched (purely additive).
+- **All PDF deps isolated in a SEPARATE `latex/` package** — user is willing to add deps *there*, never in core.
+- **Overleaf is a HARD requirement** — only precompiled, committed assets work on Overleaf, so the model is
+  precompile-and-commit (rendered figures are committed to the repo).
+- **Precompile-only authoring for v1** — no inline shell-escape / `--shell-escape` mode (rejected: ❌ Overleaf).
+
+## Phase 1 — research (David, `latex/RESEARCH.md`)
+
+- Found the **SVG→PDF format gap**: Triton emits SVG; `\includegraphics` never accepts SVG → a converter is required.
+- Recommended **precompile + `\includegraphics`** via a thin `triton.sty`, driven by a CLI (mirrors the repo's
+  existing `pnpm figures` + `\ourfig` precedent). Rejected inline shell-escape (Overleaf-hostile) and the
+  `svg`-package/Inkscape route (heavy per-machine dep).
+- **Flagged that NO Triton CLI existed** — `package.json` had no `bin`/`main`/`exports`; a CLI is a hard prerequisite.
+
+## Phase 2 — build (Barbara, `latex/` = `@triton/latex`)
+
+- **Isolated satellite package** mirroring `extension/` — own `node_modules`/`pnpm-workspace.yaml`/lockfile,
+  NOT a member of the root workspace, esbuild keeps PDF deps `external` (resolved at runtime).
+- **Converter = `pdfkit` + `svg-to-pdfkit` (pure-JS, NO system binaries)** — no Inkscape, no rsvg-convert,
+  no Chromium/puppeteer. **Fidelity gate PASSED** on flowchart (arrowhead `<marker>`s), AVL tree, and the 9-cell
+  ds-poster: valid PDF (header+`%%EOF`), **0 raster image XObjects** (genuinely vector), text = real glyphs
+  (`<hex> Tj`) in EMBEDDED base-14 fonts (Helvetica + Helvetica-Bold) → **no font drift, no external TTF**
+  (the key win over resvg/rsvg/cairo, which resolve fonts by name at convert time). `<marker>` arrowheads +
+  `orient="auto"`, `text-anchor`, font-family fallback all rendered correctly. SMIL animation overlays dropped
+  (a PDF is static; first frame is correct).
+- **CLI `triton-latex`** (`latex/src/cli.ts` → `dist/cli.cjs`): `render <in> -o <out.pdf|.svg>` (+ `--theme`,
+  `--scale`) and `render-dir <srcDir> -o <outDir>` (batch). Reuses core `renderSync()` (`src/frontend/index.ts`) —
+  this is the SOLE render path; hand-rolled argv (no commander dep).
+- **`triton.sty`** depends only on `graphicx` (engine-agnostic): `\triton`, `\tritonfig`, `\tritondir`, `\tritonsetup`.
+- **Committed assets**: `latex/examples/{demo.tex, diagrams/*.mmd, figures/*.pdf}` + `Makefile` (figures via
+  `render-dir`, pdf via tectonic/pdflatex). `dist/`+`node_modules/` gitignored; the example `figures/*.pdf` ARE committed.
+- **Design doc**: new `design/sections/09-latex-integration.tex`, `\input` after `08-status`; design PDF rebuilt clean.
+- **Gate**: esbuild exit 0 (1.2 MB bundle); 3 examples → valid vector PDFs; `render-dir` 3/3; latex typecheck 0;
+  **root `pnpm test` = 378 pass (unchanged)**; core deps diff EMPTY.
+
+## Downstream contract note
+
+The LaTeX CLI's only render path is core `renderSync()` → SVG string. Any change to that signature / the
+`Result<string>` SVG contract, or to the Scene/SVG element set (`rect`, `circle`, `path`, `text`, `group`,
+`defs` markers), is now ALSO a dependency for LaTeX PDF output — keep stable or update `latex/src/{cli,pdf}.ts`
+in the same PR.
+
+---
+
+# DS GALLERY POSTER — `examples/gallery/ds-poster.mmd` (2026-06-24)
+
+**Author:** Barbara (Semantics & Rendering) · **Requested by:** ormasoftchile · **Status:** COMPLETE.
+
+- Added ONE composition showcase `examples/gallery/ds-poster.mmd` (+ rendered `ds-poster.svg`) titled "Data
+  Structures", composing 9 DS kinds (array, stack, queue, unionfind, hashmap, matrix, heap, trie, nodegraph)
+  into a fully-filled 4×3 poster grid via the poster family's occupancy-aware `assignPositions`.
+- **New `examples/gallery/` directory** (the task named it; real poster showcases live in `examples/poster/` +
+  `examples/showcases/`). `examples.test` recursively globs `examples/**/*.mmd`, so location does not affect coverage.
+- **Occupancy-aware filled grid**: `[1x2]` rowSpan on the two tallest cells (heap, trie) + a `[2]` colSpan
+  nodegraph on the next row → hole-free rectangle. `CellKind = … / Identifier` already accepts any registered
+  kind verbatim — no poster/module/registry changes (purely additive).
+- **Gate**: build:grammars 23; **378 tests pass** (was 377, +1); typecheck 0; SVG viewBox 893×803, 9 cell groups,
+  all titles embedded (no blank cells). (The 2 failing suites are in the untracked `v3/` scratch tree — pre-existing, unrelated.)
+
+---
+
 # DATA-STRUCTURE FAMILY: `ds/` regroup + 6 new kinds (2026-06-23)
 
 **Author:** Barbara (Semantics & Rendering) · **Requested by:** ormasoftchile
