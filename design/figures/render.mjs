@@ -21,10 +21,10 @@ const { Resvg } = await import(pathToFileURL(join(root, 'node_modules/@resvg/res
 // figure name -> example source
 const figs = {
   flowchart:    'examples/flowchart/flowchart.mmd',
-  avl:          'examples/tree/avl.mmd',
-  radix:        'examples/tree/radix.mmd',
-  array:        'examples/struct/array.mmd',
-  memory:       'examples/struct/memory.mmd',
+  avl:          'examples/ds/tree/avl.mmd',
+  radix:        'examples/ds/tree/radix.mmd',
+  array:        'examples/ds/struct/array.mmd',
+  memory:       'examples/ds/struct/memory.mmd',
   numa:         'examples/topology/numa-detail.mmd',
   'sql-engine': 'examples/poster/sql-engine.mmd',
   spanning:     'examples/poster/spanning.mmd',

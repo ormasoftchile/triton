@@ -6,7 +6,7 @@
  * construction (every non-root node holds between ⌈order/2⌉−1 and order−1 keys).
  */
 
-import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../contracts/index.js';
+import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../contracts/index.js';
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 

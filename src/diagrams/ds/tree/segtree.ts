@@ -6,7 +6,7 @@
  * Supported reducers: sum (default), min, max.
  */
 
-import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../contracts/index.js';
+import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../contracts/index.js';
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 

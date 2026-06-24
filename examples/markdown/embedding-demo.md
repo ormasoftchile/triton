@@ -55,3 +55,57 @@ file and restricted to the open workspace:
 ```triton
 file: ../flowchart/flowchart.mmd
 ```
+
+## Poster
+
+```triton
+poster "Cell Spanning"
+    columns 3
+
+    cell hero "Query plan — spans all 3 columns" [3] :: plan
+        plan
+            Hash Join {rows: 980}
+                Seq Scan orders {rows: 10000}
+                Hash
+                    Index Scan customers {idx: idx_cust}
+    end
+
+    cell idx "B+tree index — spans 2 columns" [2] :: btree
+        btree order 3 insert 10 20 30 40 50 60 25 55
+    end
+    cell kinds "Family" :: stat
+        13 | new diagram kinds
+    end
+
+    cell arr "Array" :: array
+        array 5 8 13 21 34
+    end
+    cell list "Linked list" :: linkedlist
+        linkedlist 3 7 9
+    end
+    cell bal "AVL tree" :: avl
+        avl insert 50 30 70 20 40 60
+    end
+```
+
+```triton
+poster "Row Spanning"
+    columns 3
+
+    cell tall "AVL — spans 2 rows" [1x2] :: avl
+        avl insert 50 30 70 20 40 60 80 10
+    end
+    cell up "Uptime" :: stat
+        99.9% | uptime
+    end
+    cell lat "Latency" :: stat
+        42ms | p99
+    end
+
+    cell arr "Array" :: array
+        array 5 8 13 21
+    end
+    cell list "Linked list" :: linkedlist
+        linkedlist 3 7 9
+    end
+```

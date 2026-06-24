@@ -11,13 +11,13 @@
 import type { TreeDocument, TreeNode } from './ir.js';
 import type {
   Scene, SceneElement, LayoutResult, NodeAnchorRegistry, ResolvedTheme, Color,
-} from '../../contracts/index.js';
-import { pen } from '../../scene/build.js';
-import { treeLayout, type TreeNodeInput } from '../../graph/tree.js';
-import { connectSlots } from '../../graph/connect.js';
-import { measureText } from '../../text/metrics.js';
-import { applyOverlays } from '../../overlay/apply.js';
-import { rhu } from '../../util/round.js';
+} from '../../../contracts/index.js';
+import { pen } from '../../../scene/build.js';
+import { treeLayout, type TreeNodeInput } from '../../../graph/tree.js';
+import { connectSlots } from '../../../graph/connect.js';
+import { measureText } from '../../../text/metrics.js';
+import { applyOverlays } from '../../../overlay/apply.js';
+import { rhu } from '../../../util/round.js';
 
 const RED = '#d64545', BLACK = '#2b2b2b', SCAN = '#2f80ed', JOIN = '#9b51e0';
 

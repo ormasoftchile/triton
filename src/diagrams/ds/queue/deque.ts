@@ -14,11 +14,11 @@
 
 import type {
   DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry,
-} from '../../contracts/index.js';
-import { pen } from '../../scene/build.js';
-import { buildStrip, type StripCell } from '../../scene/strip.js';
-import { measureText } from '../../text/metrics.js';
-import { rhu } from '../../util/round.js';
+} from '../../../contracts/index.js';
+import { pen } from '../../../scene/build.js';
+import { buildStrip, type StripCell } from '../../../scene/strip.js';
+import { measureText } from '../../../text/metrics.js';
+import { rhu } from '../../../util/round.js';
 import { ARROW_FWD, ARROW_REV, arrowDefs, lines, pointerBelow } from './shared.js';
 
 export interface DequeDoc {

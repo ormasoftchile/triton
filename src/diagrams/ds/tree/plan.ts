@@ -6,7 +6,7 @@
  * every node by hand.
  */
 
-import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../contracts/index.js';
+import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../contracts/index.js';
 import type { TreeDocument } from './ir.js';
 import { layoutTree } from './layout.js';
 import { parseLines, buildNodes } from './build.js';

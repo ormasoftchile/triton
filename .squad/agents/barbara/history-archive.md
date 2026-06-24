@@ -494,3 +494,18 @@ Verified end-to-end pipeline stages and key entry-point files for the team's ref
 - Back-end: `render/svg.ts` + `render/png.ts` + `render/skia.ts` (Scene IR → SVG/PNG)
 
 
+
+---
+
+## Current Status (2026-06-17) — archived from history.md by Scribe 2026-06-24
+
+
+**STRAIGHT ROUTING IMPLEMENTED — VISUAL COMPARISON COMPLETE.** Added configurable routing styles for poster overlay connectors: `routingStyle: 'orthogonal'` (default, Manhattan routing with horizontal/vertical segments) vs `routingStyle: 'straight'` (direct diagonal lines). Implementation: (1) Added 'direct' routing candidate to `enumerateHopCandidates()` that creates single-segment paths from source to target, selecting exit/entry ports based on predominant direction (horizontal vs vertical). (2) Added `routingStyle` field to PosterDocument interface, parsed from frontmatter. (3) Filter candidates based on style: 'straight' keeps ONLY direct candidates, 'orthogonal' (default) filters out direct candidates to preserve existing Manhattan routing. (4) Created link-poster-orthogonal.mmd and link-poster-straight.mmd for side-by-side comparison. **All 2790/2790 tests pass.**
+
+**VISUAL COMPARISON RESULTS:**
+- **Orthogonal (Manhattan):** Uses 3-segment paths (horizontal-vertical-horizontal) via intermediate vertical gutters. Example: Payment→PaymentGateway goes right to x=489, down to target y, then right to target. Clean 90° turns, respects grid structure, feels intentional and structured. Label boxes sit on vertical gutter segments.
+- **Straight (Direct):** Uses 1-segment diagonal paths. Example: Payment→PaymentGateway goes directly from (416.93,171.11)→(579.04,203.60). Minimal ink, shorter paths, more organic feel. Labels sit on diagonal midpoints.
+- **Which looks better?** DEPENDS ON INTENT. Orthogonal feels more **architectural and intentional** — connectors follow the implicit grid, creating visual alignment and regularity (gutters at x=489, x=509, x=726.5 create vertical rhythm). Straight feels more **organic and minimal** — fewer bends, less visual clutter, direct "as the crow flies" connections. For diagrams emphasizing flow/causality (traces, data pipelines), straight may be cleaner. For architectural/structural diagrams (system boundaries, layered architectures), orthogonal maintains grid discipline.
+- **Trade-offs:** Straight routing COULD cross obstacles if source/target aren't cleanly separated (not an issue in link-poster due to grid layout, but could be problematic in denser posters with overlapping cells). Orthogonal routing ALWAYS respects cell boundaries via gutters, but adds extra path length and visual complexity (3 segments vs 1).
+
+**Earlier (2026-06-17):** Wall-centered connector exit/entry points fix; greedy-switch crossing minimization; Brandes-Köpf structure; A* pathfinding; aesthetic metrics. See earlier notes below.

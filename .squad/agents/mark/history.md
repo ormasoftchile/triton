@@ -222,3 +222,5 @@ Three-pass audit:
 ---
 
 **Cross-agent note (Scribe, 2026-06-23):** A VS Code extension now consumes `render()` (which composes IR→Scene→SVG). IR/`DiagramKind` changes propagate to the extension preview and to its planned P3 completion (curated `DiagramKind → string[]` map). The 35-kind `DiagramKind` union in `src/contracts/diagram.ts` is now also an extension-facing surface.
+
+**Cross-agent note (Scribe, 2026-06-24):** Barbara added 4 `DiagramKind`s — `queue`/`cqueue`/`deque`/`pqueue` (queue family) — to the union in `src/contracts/diagram.ts` (+`detect.ts` +`frontend/index.ts`). Hand-parsed, struct-style (no peggy), reuses `scene/strip`. Bumps the extension-facing kind count.

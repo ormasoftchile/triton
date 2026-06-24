@@ -12,11 +12,11 @@
 
 import type {
   DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry,
-} from '../../contracts/index.js';
-import { pen } from '../../scene/build.js';
-import { buildStrip, type StripCell } from '../../scene/strip.js';
-import { measureText } from '../../text/metrics.js';
-import { rhu } from '../../util/round.js';
+} from '../../../contracts/index.js';
+import { pen } from '../../../scene/build.js';
+import { buildStrip, type StripCell } from '../../../scene/strip.js';
+import { measureText } from '../../../text/metrics.js';
+import { rhu } from '../../../util/round.js';
 import { ARROW_ID, arrowDef, lines } from './shared.js';
 
 interface ArrayDoc {

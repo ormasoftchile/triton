@@ -6,7 +6,7 @@
  * (children of i are 2i+1, 2i+2) as circle nodes.
  */
 
-import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../contracts/index.js';
+import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../contracts/index.js';
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 
