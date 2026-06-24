@@ -105,7 +105,7 @@ diagram by name against a configurable directory:
 
 \subsection{Caveats and limitations}
 
-Three limitations are worth stating plainly so the inline mode is used correctly.
+Two limitations are worth stating plainly so the inline mode is used correctly.
 
 \paragraph{No optional \texttt{[width=\ldots]} on \texttt{\textbackslash begin\{triton\}}.}
 A verbatim environment cannot carry an inline optional argument: peeking for a
@@ -126,12 +126,6 @@ shell-escape is off or the CLI is missing, the environment raises a clear
 \texttt{\textbackslash PackageError} stating exactly what to fix --- it never silently emits a
 blank. Overleaf disallows arbitrary shell-escape, so there you must use the
 precompiled \texttt{\textbackslash triton\{name\}} path instead.
-
-\paragraph{Cyclic diagrams hang the renderer.}
-A flowchart containing a cycle (a back-edge) currently hangs the core
-\texttt{renderSync} path --- a known core bug tracked separately, not specific to
-the \LaTeX{} integration. Until it is fixed, use acyclic diagrams in inline
-blocks.
 
 \subsection{Workflow and portability}
 
