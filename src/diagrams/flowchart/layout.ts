@@ -187,15 +187,73 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
 // ─── Layer Assignment ─────────────────────────────────────────────────────────
 
+/**
+ * Identify back-edges (the edges that close a cycle) via an iterative DFS.
+ *
+ * Removing a DFS's back-edge set always yields a DAG, so the longest-path
+ * layering below is guaranteed to terminate on ANY graph. The back-edges are
+ * still drawn in their original direction by the edge loop in
+ * {@link layoutFlowchart}; they are only excluded from rank assignment.
+ *
+ * Returns a set of indices into `edges`. Deterministic: nodes and edges are
+ * visited in their given order. Iterative (explicit stack) to stay safe on
+ * deep graphs.
+ */
+function findBackEdges(nodes: readonly FlowNode[], edges: readonly FlowEdge[]): Set<number> {
+  const adj = new Map<string, Array<{ to: string; idx: number }>>();
+  for (const n of nodes) adj.set(n.id, []);
+  edges.forEach((e, idx) => { adj.get(e.from)?.push({ to: e.to, idx }); });
+
+  const WHITE = 0, GRAY = 1, BLACK = 2;
+  const color = new Map<string, number>();
+  for (const n of nodes) color.set(n.id, WHITE);
+
+  const backEdges = new Set<number>();
+
+  for (const start of nodes) {
+    if (color.get(start.id) !== WHITE) continue;
+    const stack: Array<{ id: string; i: number }> = [{ id: start.id, i: 0 }];
+    color.set(start.id, GRAY);
+
+    while (stack.length > 0) {
+      const frame = stack[stack.length - 1]!;
+      const neighbors = adj.get(frame.id)!;
+      if (frame.i < neighbors.length) {
+        const { to, idx } = neighbors[frame.i]!;
+        frame.i++;
+        const c = color.get(to);
+        // GRAY target (incl. a self-loop, where target === current) closes a cycle.
+        if (c === GRAY) {
+          backEdges.add(idx);
+        } else if (c === WHITE) {
+          color.set(to, GRAY);
+          stack.push({ id: to, i: 0 });
+        }
+        // BLACK target → forward/cross edge: keep it.
+      } else {
+        color.set(frame.id, BLACK);
+        stack.pop();
+      }
+    }
+  }
+
+  return backEdges;
+}
+
 function assignLayers(nodes: readonly FlowNode[], edges: readonly FlowEdge[]): Map<string, number> {
+  // Cycle breaking: drop back-edges so layering runs on a DAG and terminates.
+  // (Back-edges are still rendered by the edge loop — only excluded from ranks.)
+  const backEdges = findBackEdges(nodes, edges);
+  const forwardEdges = edges.filter((_, i) => !backEdges.has(i));
+
   const predecessors = new Map<string, Set<string>>();
   for (const n of nodes) predecessors.set(n.id, new Set());
-  for (const e of edges) predecessors.get(e.to)?.add(e.from);
+  for (const e of forwardEdges) predecessors.get(e.to)?.add(e.from);
 
   const layers = new Map<string, number>();
   const queue: Array<{ id: string; layer: number }> = [];
 
-  // Roots: nodes with no predecessors
+  // Roots: nodes with no predecessors (in the acyclic edge subset)
   for (const n of nodes) {
     if ((predecessors.get(n.id)?.size ?? 0) === 0) {
       queue.push({ id: n.id, layer: 0 });
@@ -207,7 +265,7 @@ function assignLayers(nodes: readonly FlowNode[], edges: readonly FlowEdge[]): M
     const current = layers.get(item.id) ?? -1;
     if (item.layer <= current) continue;
     layers.set(item.id, item.layer);
-    for (const e of edges) {
+    for (const e of forwardEdges) {
       if (e.from === item.id) queue.push({ id: e.to, layer: item.layer + 1 });
     }
   }
