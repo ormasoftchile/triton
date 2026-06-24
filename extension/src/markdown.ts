@@ -21,7 +21,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import type { ThemeInput } from '../../src/contracts/index.js';
 import { renderSync } from '../../src/frontend/index.js';
+import { editorThemeInput } from './editor-theme.js';
 
 // markdown-it is provided by VS Code's Markdown preview at runtime; we never
 // bundle it. Type it structurally with just the surface we touch.
@@ -80,8 +82,9 @@ export function extendMarkdownIt(md: MarkdownItLike): MarkdownItLike {
 
     // VS Code's built-in preview often doesn't expose the document path through
     // `env`, so fall back to the last active Markdown file's folder (set by the
-    // extension) so relative `file:` embeds still resolve.
-    return renderFencedBlock(token.content, baseDirFromEnv(env) ?? fallbackBaseDir);
+    // extension) so relative `file:` embeds still resolve. The theme overlay is
+    // recomputed per render so it tracks the editor's light/dark theme.
+    return renderFencedBlock(token.content, baseDirFromEnv(env) ?? fallbackBaseDir, editorThemeInput());
   };
 
   return md;
@@ -109,7 +112,11 @@ export function setMarkdownBaseDir(dir: string | undefined): void {
  * @param baseDir Folder to resolve relative `file:` paths against (the Markdown
  *   document's folder). Absent when the host gives us no document path.
  */
-export function renderFencedBlock(rawBody: string, baseDir: string | undefined): string {
+export function renderFencedBlock(
+  rawBody: string,
+  baseDir: string | undefined,
+  theme?: ThemeInput,
+): string {
   let source = rawBody;
 
   const fileRef = parseFileDirective(rawBody);
@@ -119,7 +126,7 @@ export function renderFencedBlock(rawBody: string, baseDir: string | undefined):
     source = read.text;
   }
 
-  const result = renderSync(source);
+  const result = renderSync(source, theme);
   if (result.ok) return svgContainer(result.value);
   return errorBlock(`[${result.error.code}] ${result.error.message}`);
 }
