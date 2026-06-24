@@ -137,9 +137,10 @@ blocks.
 
 In the inline workflow there is no separate render step: author the source in the
 \texttt{triton} environment, compile with \texttt{-{}-shell-escape}, and the
-cached vector PDF is regenerated only when the source changes. For locked-down
-targets the precompile loop mirrors the design doc's own \texttt{pnpm figures} /
-\texttt{\textbackslash ourfig} convention: render sources to PDF, commit them,
+cached vector PDF is regenerated only when the source changes. This is how this
+very document is built --- its figures are authored inline and rendered by Triton
+at compile time (\texttt{tectonic -Z shell-escape}). For locked-down targets the
+precompile loop is the fallback: render sources to PDF, commit them,
 include by name with \texttt{\textbackslash triton\{name\}}, and regenerate when a diagram
 changes. Because those assets are committed vector PDFs, the project compiles
 unchanged on macOS, Linux, Windows, and Overleaf --- the engine axis is

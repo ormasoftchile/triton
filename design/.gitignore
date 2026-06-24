@@ -1,0 +1,15 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
+*.log
+*.xdv
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Triton inline-render outputs (regenerated at compile time)
+*.triton-cache/
+*.triton-src.triton

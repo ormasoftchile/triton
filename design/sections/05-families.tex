@@ -17,8 +17,20 @@ flowchart LR
   validate -->|no|  reject[Reject]
 \end{lstlisting}
 
-\ourfig[0.6\linewidth]{flowchart}{A Mermaid flowchart, rendered unchanged through
+\begin{figure}[htbp]
+  \centering
+  \tritonnext{width=0.6\linewidth}
+\begin{triton}
+flowchart LR
+  start[Start] --> validate{Validate}
+  validate -->|valid| process[Process]
+  validate -->|invalid| reject[Reject]
+  process --> notify(Notify User)
+  notify --> done([Done])
+\end{triton}
+  \caption{A Mermaid flowchart, rendered unchanged through
 the \texttt{flowchart} module.}
+\end{figure}
 
 The set spans node-link (flowchart), UML/software (sequence, class, state, ER),
 project (gantt, timeline), and chart kinds. The charts (pie, xychart, quadrant,
@@ -40,9 +52,16 @@ invalid one:
 avl insert 50 30 70 20 40 60 80 10
 \end{lstlisting}
 
-\ourfig[0.72\linewidth]{avl}{An AVL tree built from the \texttt{insert} list above.
+\begin{figure}[htbp]
+  \centering
+  \tritonnext{width=0.72\linewidth}
+\begin{triton}
+avl insert 50 30 70 20 40 60 80 10 5
+\end{triton}
+  \caption{An AVL tree built from the \texttt{insert} list above.
 The balance-factor badge on each node is computed by running real insertion with
 rotations --- the structure cannot be authored unbalanced.}
+\end{figure}
 
 \noindent renders a balanced AVL tree with a balance-factor badge on every node,
 because the builder runs real insertion with rotations. The siblings work the
@@ -52,8 +71,15 @@ strip nodes), \texttt{radix} (prefix-compressed tries with substring edge labels
 (sift-up). \texttt{plan} reuses the same engine for query-plan trees, inferring
 operator colour from the node label.
 
-\ourfig[0.78\linewidth]{radix}{A radix (Patricia) trie over a set of words: shared
+\begin{figure}[htbp]
+  \centering
+  \tritonnext{width=0.78\linewidth}
+\begin{triton}
+radix insert cat car card dog do
+\end{triton}
+  \caption{A radix (Patricia) trie over a set of words: shared
 prefixes are compressed onto single labelled edges.}
+\end{figure}
 
 \subsection{Struct / memory family}
 
@@ -67,8 +93,19 @@ array
   ptr i -> 2
 \end{lstlisting}
 
-\ourfig[0.7\linewidth]{array}{An array with an index row and a named pointer into
+\begin{figure}[htbp]
+  \centering
+  \tritonnext{width=0.7\linewidth}
+\begin{triton}
+array
+  title int[] nums
+  cells 5 8 13 21 34
+  index
+  ptr i -> 2
+\end{triton}
+  \caption{An array with an index row and a named pointer into
 a cell.}
+\end{figure}
 
 \texttt{linkedlist} draws a \texttt{head} chain of \texttt{[value|next]} nodes
 terminating in a null slash; \texttt{memory} lays out named regions (e.g.\ a stack
@@ -76,9 +113,21 @@ and a heap) and routes a \emph{cross-region pointer} from a variable slot to a h
 object via \texttt{connectSlots}; \texttt{page} draws a slotted storage page whose
 line pointers indirect to tuples.
 
-\ourfig[0.8\linewidth]{memory}{A memory model: a variable slot in one region holds a
+\begin{figure}[htbp]
+  \centering
+  \tritonnext{width=0.8\linewidth}
+\begin{triton}
+memory
+  title stack reference → heap object
+  region STACK
+    var p -> obj
+  region HEAP
+    object obj : Point : x=1, y=2
+\end{triton}
+  \caption{A memory model: a variable slot in one region holds a
 pointer that crosses into a heap object in another, routed by the slot-aware
 connector.}
+\end{figure}
 
 \subsection{Topology}
 
@@ -98,6 +147,30 @@ topology
   N0 -- N1 : 140
 \end{lstlisting}
 
-\ourfig{numa}{A NUMA topology with nested node groups: links are coloured and
+\begin{figure}[htbp]
+  \centering
+\begin{triton}
+topology
+  title NUMA node detail
+  costs ns
+    tier local 90 #27ae60
+    tier remote 200 #e2574c 5 4
+  group N0 : NUMA Node 0
+    node C0 : Core 0
+    node C1 : Core 1
+    node MC0 : Mem Ctrl
+    node RAM0 : Local DRAM : 64 GB
+  group N1 : NUMA Node 1
+    node C2 : Core 2
+    node C3 : Core 3
+    node MC1 : Mem Ctrl
+    node RAM1 : Local DRAM : 64 GB
+  MC0 -- RAM0 : 90
+  MC1 -- RAM1 : 90
+  N0 -- N1 : 140
+  MC0 -- RAM1 : 200
+\end{triton}
+  \caption{A NUMA topology with nested node groups: links are coloured and
 dashed by the cost tier their weight falls into, and the legend is generated from
 the declared scale.}
+\end{figure}
