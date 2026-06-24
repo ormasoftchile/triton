@@ -152,6 +152,10 @@ export type DiagramKind =
   | 'linkedlist'
   | 'memory'
   | 'page'
+  | 'queue'
+  | 'cqueue'
+  | 'deque'
+  | 'pqueue'
   | 'topology';
 
 /** The two input formats Triton accepts. */
