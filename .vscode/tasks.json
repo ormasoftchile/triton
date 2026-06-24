@@ -9,6 +9,24 @@
       "group": "build",
       "problemMatcher": [],
       "presentation": { "reveal": "silent", "clear": true }
+    },
+    {
+      "label": "watch-extension",
+      "type": "shell",
+      "command": "node extension/esbuild.mjs --watch",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "runOptions": { "runOn": "folderOpen" },
+      "presentation": { "reveal": "silent", "panel": "dedicated" },
+      "problemMatcher": {
+        "owner": "esbuild",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "build:grammars|\\[watch\\] build started",
+          "endsPattern": "watching for changes|\\[watch\\] build finished"
+        }
+      }
     }
   ]
 }
