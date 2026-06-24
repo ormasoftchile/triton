@@ -199,7 +199,26 @@ function isWithin(root: string, target: string): boolean {
 // ─── HTML fragments ─────────────────────────────────────────────────────────────
 
 function svgContainer(svg: string): string {
-  return `<div class="triton-diagram" style="margin:1em 0;overflow:auto;">${svg}</div>\n`;
+  return `<div class="triton-diagram" style="margin:1em 0;">${makeResponsive(svg)}</div>\n`;
+}
+
+/**
+ * Make a rendered SVG scale to fit its container width instead of clipping.
+ * Every Scene SVG carries a `viewBox`, so neutralising the fixed pixel
+ * `width`/`height` with `max-width:100%;height:auto` lets wide diagrams shrink
+ * to the viewport (keeping aspect ratio) while smaller ones stay at natural size.
+ */
+function makeResponsive(svg: string): string {
+  const m = /<svg\b([^>]*)>/.exec(svg);
+  if (!m) return svg;
+  const extra = 'max-width:100%;height:auto;display:block';
+  let attrs = m[1] ?? '';
+  if (/\bstyle\s*=\s*"/.test(attrs)) {
+    attrs = attrs.replace(/\bstyle\s*=\s*"([^"]*)"/, (_s, css) => `style="${css};${extra}"`);
+  } else {
+    attrs = `${attrs} style="${extra}"`;
+  }
+  return svg.replace(m[0], `<svg${attrs}>`);
 }
 
 function errorBlock(message: string): string {
