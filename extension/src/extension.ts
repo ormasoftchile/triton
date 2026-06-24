@@ -148,6 +148,11 @@ function shellHtml(webview: vscode.Webview, title: string): string {
     #stage.fit { padding: 0; }
     #content svg { display: block; height: auto; max-width: none; }
     #stage.fit #content svg { max-width: 100%; max-height: 100%; }
+    /* Document mode: stacked Markdown blocks flow top-to-bottom and scroll,
+       instead of being flex-centered (which collapses multiple responsive SVGs
+       on top of each other). The inline per-SVG styles handle fit + centering. */
+    body.doc-mode #stage { display: block; }
+    body.doc-mode #toolbar { display: none; }
     #error {
       position: absolute; left: 0; right: 0; bottom: 0;
       margin: 0; padding: 10px 14px;
@@ -192,9 +197,12 @@ function shellHtml(webview: vscode.Webview, title: string): string {
     window.addEventListener('message', (event) => {
       const msg = event.data;
       if (msg.type === 'svg') {
+        const doc = !!msg.doc;
+        document.body.classList.toggle('doc-mode', doc);
+        stage.classList.toggle('fit', !doc);
         content.innerHTML = msg.svg;
         errorBox.classList.remove('show');
-        vscodeApi.setState({ svg: msg.svg, docUri: msg.docUri });
+        vscodeApi.setState({ svg: msg.svg, docUri: msg.docUri, doc: doc });
       } else if (msg.type === 'error') {
         // Keep the last good SVG visible; show the error as a non-destructive banner.
         errorBox.textContent = msg.message;
@@ -203,7 +211,11 @@ function shellHtml(webview: vscode.Webview, title: string): string {
     });
 
     const prev = vscodeApi.getState();
-    if (prev && prev.svg) content.innerHTML = prev.svg;
+    if (prev && prev.svg) {
+      document.body.classList.toggle('doc-mode', !!prev.doc);
+      stage.classList.toggle('fit', !prev.doc);
+      content.innerHTML = prev.svg;
+    }
     // Tell the extension the webview is loaded and listening, so it can flush a
     // render that was produced before this script attached its listener (the
     // synchronous Markdown path would otherwise race the webview load).
@@ -263,7 +275,7 @@ interface Preview {
 }
 
 type WebviewMessage =
-  | { readonly type: 'svg'; readonly svg: string; readonly docUri: string }
+  | { readonly type: 'svg'; readonly svg: string; readonly docUri: string; readonly doc: boolean }
   | { readonly type: 'error'; readonly message: string };
 
 class PreviewManager {
@@ -430,7 +442,7 @@ class PreviewManager {
     // preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
     if (result.ok) {
-      this.post({ type: 'svg', svg: result.value, docUri: doc.uri.toString() });
+      this.post({ type: 'svg', svg: result.value, docUri: doc.uri.toString(), doc: false });
     } else {
       this.post({ type: 'error', message: `[${result.error.code}] ${result.error.message}` });
     }
@@ -466,7 +478,7 @@ class PreviewManager {
       .map((b, i) => labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, theme)))
       .join('\n');
 
-    this.post({ type: 'svg', svg: html, docUri: doc.uri.toString() });
+    this.post({ type: 'svg', svg: html, docUri: doc.uri.toString(), doc: true });
   }
 
   private label(uri: vscode.Uri): string {
