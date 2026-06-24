@@ -33,3 +33,17 @@ Full prior-art / research detail moved to `history-archive.md`. ⚠️ Much of i
 - `tectonic --print` shows FIRST-pass undefined cite/ref warnings before convergence — misleading. Authoritative check = full build then grep `triton.log` for "Citation/Reference ... undefined" (final pass). My sections: 0 undefined.
 - An orphaned BibTeX entry causes NO build error, so the bib-prune risk is one-directional: only removing a still-cited key breaks the build. Always grep-before-delete; never delete a key cited by another agent's surviving section.
 - Remaining undefined refs in the log (`sec:agent-integration` ×4 in §30b, etc.) are OTHER agents' repoint tasks (Barbara owns 30b per the Wave-2 plan) — not mine to touch.
+
+### 2026-06-24 — LaTeX integration research (Phase 1, RESEARCH-only) → latex/RESEARCH.md
+
+**Task:** options analysis for authoring/embedding Triton diagrams in LaTeX, optimized for ubiquity (pdf/Xe/LuaLaTeX × macOS/Linux/Windows/Overleaf). No .sty/.tex/build glue built.
+
+**Core format gap (SVG→PDF):** Triton's public API (`renderSync` → `renderSVG`) emits an **SVG string**; `\includegraphics` accepts **PDF/PNG/JPG, never SVG** on any engine. So every path is "how does SVG become a PDF/PNG LaTeX can include." Triton already ships the PNG half: `@resvg/resvg-js` (devDep) in `design/figures/render.mjs` → and `\ourfig` already does precompile + `\includegraphics{figures/<name>.png}` — i.e. approach (A) applied to the spec itself. SVG→PDF converter candidates: `rsvg-convert` (librsvg, fast, not on Overleaf), `inkscape --export-type=pdf` (what the `svg` pkg uses; heavy/slow; text→path avoids font drift), `cairosvg`, in-process JS (`svg2pdf.js` — partial fidelity, risky), or a **native Triton Scene→PDF backend** (Scene is only 5 element types → tractable; zero external binary, no font drift). Font drift is the cross-cutting risk for every name-based-font converter (resvg/rsvg/cairo).
+
+**CLI:** **NONE exists** — `package.json` has no `bin`, no `main`/`exports`; only dev scripts (build/test/preview/figures) + the library API. Any integration requires adding a `triton render in.triton -o out.{svg,pdf,png}` CLI first — keystone prerequisite.
+
+**Candidate approaches:** (A) precompile + `\includegraphics` via `\triton{name}` — portable, Overleaf-friendly when assets committed, mirrors existing `pnpm figures`/`\ourfig`; (B) inline shell-escape `triton.sty` (minted-style, hash cache) — best ergonomics, needs `--shell-escape`+Node, ❌ Overleaf; (C) `svg` pkg/`\includesvg` via Inkscape — reuses mature pkg but heavy per-machine dep.
+
+**Recommendation headline:** **(A) Precompile + `\includegraphics`, PNG-via-resvg default (zero deps, ✅ everywhere incl. Overleaf), vector PDF (rsvg-convert) opt-in, native Triton PDF backend as Phase-3 endgame; add a CLI now.** Folder: `latex/{RESEARCH.md,README.md,triton.sty,bin/,examples/,Makefile}`. Phase 2 adds the `design/sections/` "LaTeX integration" section (currently ends at 08-status) — noted, not written.
+
+**Lessons:** the ubiquity matrix collapses to one fact — only *precompiled, committed* assets are ✅ on Overleaf, and PNG-via-resvg / a native PDF backend need *no LaTeX-side dependency at all*. Ubiquity ⇒ approach A + committed asset. The engine axis (pdf/Xe/Lua) barely matters because by `\includegraphics` time it's already a PDF/PNG.

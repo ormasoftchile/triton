@@ -1,0 +1,10 @@
+# Isolates @triton/latex from the repo-root pnpm workspace.
+#
+# Like extension/, this satellite package keeps its OWN node_modules and lockfile
+# so the PDF toolchain (pdfkit, svg-to-pdfkit) never touches the core `triton`
+# dependency tree. Core triton gains ZERO new dependencies from this package.
+#
+# It imports the compiler by RELATIVE PATH from ../src (esbuild bundles it in),
+# so it does not need to be a workspace member of the root.
+allowBuilds:
+  esbuild: true
