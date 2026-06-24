@@ -109,3 +109,7 @@ poster "Row Spanning"
         linkedlist 3 7 9
     end
 ```
+
+```triton
+file: ../poster/ds-poster.mmd
+```
