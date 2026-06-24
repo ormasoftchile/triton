@@ -126,3 +126,5 @@ Full verbose detail moved to `history-archive.md`; canonical detail in decisions
     has non-zero extent in BOTH axes (non-degenerate). `pnpm test` 385 → **387**, typecheck 0,
     build:grammars 23. Confined to `src/diagrams/flowchart/` + test — core/latex/extension untouched.
 
+
+- 2026-06-24: Made design build portable — removed the committed `design/triton.sty` symlink (broke on Windows checkouts as a plain text file). Tectonic does NOT honor TEXINPUTS for .sty resolution (tested: `File triton.sty not found`), so the Makefile now COPYs `../latex/triton.sty` into `design/` as a build step (`pdf: triton.sty` prereq) and `.gitignore` excludes the copy. Full `make clean && make` → exit 0, triton.pdf 133 KiB with inline figures rendered.

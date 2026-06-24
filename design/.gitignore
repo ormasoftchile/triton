@@ -13,3 +13,7 @@
 # Triton inline-render outputs (regenerated at compile time)
 *.triton-cache/
 *.triton-src.triton
+
+# Package source copied in from ../latex at build time (see Makefile).
+# Not committed: a symlink breaks on Windows, so we copy instead.
+triton.sty
