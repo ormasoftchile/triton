@@ -1,5 +1,40 @@
 # Squad Decisions — Recent & Current (2026-06-23)
 
+# DATA-STRUCTURE FAMILY: `ds/` regroup + 6 new kinds (2026-06-23)
+
+**Author:** Barbara (Semantics & Rendering) · **Requested by:** ormasoftchile
+**Status:** COMPLETE — merged to `main` as PR #18 (Phase A), #19 (Phase B1), #20 (Phase B2). Test count **337 → 377**, 0 tsc errors, `build:grammars` = 23 throughout (no new `.peggy`).
+
+Consolidates three inbox notes (`barbara-ds-regroup`, `barbara-ds-b1`, `barbara-ds-b2`). All six new kinds are hand-parsed (single self-contained file per kind → `parse()` → `layout*()` → `DiagramModule`), themeable (resolved palette only), and registered via the canonical **3 edits**: `DiagramKind` union (`contracts/diagram.ts`), `MERMAID_PATTERNS` (`frontend/detect.ts`), `registerDiagram` (`frontend/index.ts`).
+
+## Phase A (PR #18) — pure regroup, NO behavior change
+
+- `git mv` the three CS data-structure families under a new parent folder (history preserved as renames): `src/diagrams/{struct,tree,queue}` → `src/diagrams/ds/{struct,tree,queue}`; examples likewise → `examples/ds/{struct,tree,queue}/`.
+- `src/diagrams/topology/` **deliberately stays put** — it is a systems/cost diagram, not a pure data structure.
+- **All `DiagramKind` names and ```` ``` ```` header keywords are UNCHANGED** (array, linkedlist, memory, page, tree, plan, avl, rbtree, btree, radix, segtree, heap, queue, cqueue, deque, pqueue). `detect.ts` MERMAID_PATTERNS untouched — folder-only change; routing/grammars/IR/layouts byte-identical.
+- **Tooling consequence:** grammar discovery is now **RECURSIVE** in both `scripts/build-grammars.mjs` and `extension/esbuild.mjs` (`ensureGrammars`) — they walk `src/diagrams/` at any depth for `grammar.peggy`, keyed by path relative to `src/diagrams/` (e.g. `ds/tree`). Output unchanged. Any future nested family needs no build-script edit. (Relative-import depth: families one level deeper use `../../../<srcModule>`; intra-`ds` sibling imports stay single-dot.)
+- **Verify (gate):** build:grammars = 23 (incl. `ds/tree`); typecheck 0; test **337**; extension bundle exit 0; git = 58 renames (no delete+add).
+
+## Phase B1 (PR #19) — stack, hashmap, matrix (strip/slot kernel)
+
+- **`stack`** (`ds/stack/`) — LIFO; VERTICAL `buildStrip`, last-pushed cell is the top (smallest y), empty `capacity` slots above; `top` pointer from the left + `push/pop` caption at the top edge. Anchors `c0..cn`.
+- **`hashmap`** (`ds/hashmap/`) — separate chaining; vertical bucket-index column, each non-empty bucket arrows right into a horizontal chain of `key:value` boxes (linkedlist idiom). `buckets N` + `bucket i: k->v,…`; auto-grows to highest index. Anchors `b{i}` + `b{i}e{j}`. **IR keeps `chains` as a plain array (never a Map)** so the IR stays JSON-serializable — a reusable rule.
+- **`matrix`** (`ds/matrix/`) — 2D grid; one horizontal strip per `row`, stacked; column indices on top, row indices on the left (`noindex` hides); `matrix RxC` shorthand for an empty grid; ragged rows padded rectangular. Anchors `r{i}c{j}`.
+- **Infra fix (in scope):** `scripts/preview.mjs` Step-3 parser copy was stale after Phase A (hardcoded `['flowchart','timeline','poster']` never copied `dist/diagrams/ds/tree/parser.js`, breaking full-frontend dist renders). Replaced with a recursive `copyParsers()` mirroring every `src/diagrams/**/parser.js` into dist. Regenerate examples with `node scripts/preview.mjs examples/ds/<name>/`.
+- **Verify:** `test/ds-b1.test.ts` (17) + 3 example renders → **357 pass**, 0 tsc errors.
+
+## Phase B2 (PR #20) — trie, nodegraph, unionfind (tree/graph kernels)
+
+- **`trie`** (`ds/trie/`) — prefix tree; compiles to the shared decorated-tree IR (`ds/tree/ir.ts`) + reuses `layoutTree`; like `radix` but uncompressed (one char per edge). Terminal (end-of-word) nodes = filled pills labelled with the full word; a node may be BOTH terminal and have children. Anchors `n0..nk`.
+- **`nodegraph`** (`ds/graph/`) — generic node/edge graph on `graph/layered.ts` + `connectSlots`. `directed` → arrowheads + `defs` marker; `undirected` (default) → none. Edges `->`/`--`/`<->`; nodes auto-register. Anchors = node ids.
+- **`unionfind`** (`ds/unionfind/`) — DSU forest; compiles to the tree IR + reuses `layoutTree` (which already lays out a forest → sets render side by side). `parent …` array or `union a b` ops; representatives (`parent[i]==i`) marked filled. IR exposes `parent[]`/`roots[]`/`count`. Anchors `e0..e{n-1}`.
+- **⚠️ GRAPH-KEYWORD COLLISION (locked decision):** Mermaid flowchart OWNS `graph` (`detect.ts` first pattern matches `graph TD`). The DS graph therefore uses **`nodegraph`** (primary) + **`dsgraph`** (alias), both → kind `'nodegraph'`. A **regression test** asserts `detect('graph TD …') === 'flowchart'`. NEVER add a bare `^graph` pattern. `unionfind` also accepts alias `dsu`; both → `'unionfind'`. (The graph module is exported as `graph` but registered under kind string `'nodegraph'`.)
+- **Verify:** `test/ds-b2.test.ts` (17, incl. the flowchart regression) + 3 example renders → **377 pass**, 0 tsc errors. SVGs valid: trie 258×442, nodegraph 164×456, unionfind 230×314.
+
+**Net:** 6 new data-structure diagrams, all grouped under `src/diagrams/ds/`, completing the CS data-structure expansion (B1 strip kernel: stack/hashmap/matrix; B2 graph/tree kernels: trie/nodegraph/unionfind).
+
+---
+
 # Decision: DESIGN-DOC AUDIT — Realign design/ LaTeX spec to shipped Triton (2026-06-23)
 
 **Agents:** Leslie (framing), Mark (IR/grammar), Barbara (rendering/themes/composition), David (positioning/strategy), Bjarne (frontend/architecture/packaging)

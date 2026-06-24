@@ -2,6 +2,33 @@
 
 ---
 
+## Archived 2026-06-24 by Scribe — VS Code extension Phase 1 + Queue family (2026-06-23)
+
+> Moved out of `history.md` to keep it under the size gate. Both are also captured in `.squad/decisions.md` (the "VS CODE EXTENSION — Phase 1" and "QUEUE DIAGRAM FAMILY" blocks). Durable facts retained here.
+
+### VS Code extension (Phase 1 live preview) — `extension/` satellite
+
+- **Files:** `extension/package.json` (name `triton-vscode`, private, `main: ./dist/extension.cjs`, no `type` field, `engines.vscode ^1.90.0`), `extension/esbuild.mjs` (bundler + `.js`→`.ts` plugin + `build:grammars` precondition), `extension/src/extension.ts` (activate + `PreviewManager` + webview HTML, one file), `extension/tsconfig.json` (typecheck-only, `noEmit`), `README.md`, `.gitignore`.
+- **render() Result shape:** `render(text) → Promise<Result<string>>`, `Result = {ok:true,value} | {ok:false,error:{code,message,cause?}}`, NEVER throws. Import path from `extension/src/extension.ts` is `../../src/frontend/index.js`. Returns a ~2956-byte `<svg…` for examples/flowchart.
+- **esbuild `.js`→`.ts` plugin:** `onResolve({filter:/\.js$/})` → resolve to sibling `.ts` IF it exists, else return `undefined` so esbuild handles the REAL generated Peggy `parser.js` (no `.ts` sibling). Bundling from `src/` (not `dist/`) inlines parsers and sidesteps the tsc-doesn't-copy-parser.js dist-sync hack. Output ≈1.1 MB CJS (+2.2 MB map), build ~85ms, exit 0.
+- **build:grammars precondition:** `esbuild.mjs` runs `pnpm build:grammars` in repo root first (23 grammars), then verifies every `grammar.peggy` has a sibling `parser.js`, failing loudly otherwise.
+- **TS gotcha:** CJS `extension.ts` statically importing ESM compiler source trips **TS1479** under NodeNext → use `moduleResolution:"Bundler"` + `module:"ESNext"` (typecheck-only; esbuild is the real bundler). typecheck = 0 errors.
+- **deps:** esbuild + @types/vscode + @types/node + typescript via `pnpm install --ignore-workspace` (extension is NOT a workspace member — keeps repo flat).
+- **Mermaid coexistence (LOCKED):** `.triton`/```` ```triton ```` always handled; explicit Open Preview renders ANY active file unconditionally; passive Mermaid (`.mmd`/```` ```mermaid ````-in-markdown) gated behind `triton.enableMermaid` (default false); Phase 1 never auto-opens. Logic in `pickRenderable(document, config, mode)`.
+- **Sandbox quirk:** VS Code terminal sandbox re-quotes `!` → `\!` inside heredocs — avoid `!` in heredoc'd JS (use `=== false`).
+
+### Queue family (queue / cqueue / deque / pqueue) — PR #17, 337 tests
+
+- **The struct family does NOT use peggy.** Each kind is ONE self-contained file under `src/diagrams/queue/` hand-parsing with the `lines()` helper → `parse()` → `layout*()` → `export const <kind>: DiagramModule`. Only flowchart/timeline/poster own `parser.js`. Files: `src/diagrams/queue/{shared,queue,cqueue,deque,pqueue}.ts`; `shared.ts` re-exports `lines` from `../struct/shared.js` + owns the arrowhead markers + `pointerBelow()`.
+- **One header per variant** (content-detectable): `queue`/`cqueue`/`deque`/`pqueue`. Canonical 3-edit registration (DiagramKind union, detect.ts MERMAID_PATTERNS, frontend/index.ts) — miss one and it silently routes to flowchart.
+- **Kernel reuse:** all four use `buildStrip` (`scene/strip.ts`) for cell rects + per-cell `slots` → `c0..cn` anchors. Linear/circular/deque horizontal; pqueue vertical.
+- **Deque double-head:** SVG `markerStart`+`orient="auto"` does NOT reverse (no `auto-start-reverse` — resvg may not honor). `shared.ts` defines TWO fixed markers `ARROW_FWD` (apex +x, markerEnd) + `ARROW_REV` (apex −x, markerStart); a deque end segment carries both.
+- **Circular wrap:** single cubic-bezier arc rear→front over the strip, `mod N` caption at apex; front/rear inferred from occupancy (`_`/`.`/`-` empty) unless explicit `front i`/`rear i`; padded/clamped to `capacity`.
+- **Priority shading (no cost.ts):** pqueue sorts desc stable `(b.p-a.p)||(a.i-b.i)`, highest at top; shade = deterministic hex lerp via a LOCAL `mixHex(palette.primary, palette.surface, t)` — the repo has NO color-mix util (`palette/categorical.ts` = fixed hue cycle; `style/cost.ts` = discrete tiers). Solid tint (buildStrip takes per-cell `fill`, not opacity).
+- **Example regen:** `tsx` is NOT installed + registry network-blocked (`npm 403`); `node -e` top-level await also fails. The working path is **`node scripts/preview.mjs examples/queue/`** (build:grammars + tsc-emit + parser copy + render from `dist/`).
+
+---
+
 ## 2025 — Even-Horizontal Layout Mode (Barbara)
 
 **Date:** 2025  

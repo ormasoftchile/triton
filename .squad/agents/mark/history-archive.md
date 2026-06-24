@@ -4,6 +4,19 @@ This archive contains Mark's IR specification and reconciliation work from proje
 
 ---
 
+## Archived 2026-06-24 by Scribe — pre-realignment Scribe summaries (2026-06-13 → 2026-06-17, `packages/core` era)
+
+> Moved out of `history.md` to keep it under the size gate. ⚠️ These reference the OLD `packages/core/...` monorepo tree and the pre-pivot framing (5 families / 22 types / dual Mermaid-DSL+agent-IR / ThemeContract / Skia). The 2026-06-23 design-doc realignment SUPERSEDES this framing — see the realignment block in `.squad/decisions.md` and the live `history.md` Learnings. Kept for provenance only.
+
+- **2026-06-13 Schema Validation Hardening (SHIPPED):** All grammars (sequence/tree/flow) + composition + axis_breaks enforce exhaustive constraints via Zod `superRefine` — message-order uniqueness, activation/fragment bounds, tree root-required + acyclicity, duplicate-edge id check, composition rowSpan ≤ grid.rows, axis_breaks from<to + within-range + no-overlap. `packages/core/test/schema-validation.test.ts` (55 tests); 790 total, goldens byte-identical. IR date compare via `parseIrDateToMs()` (ISO/year-month/year/quarter/half → UTC ms).
+- **2026-06-13 Composition CellContent extensions (ADOPTED):** `RefCellContent{kind:'ref',grammar,ir_file}` (resolver reads/parses/validates/inlines sibling YAML/JSON) + `TimelineCellContent{kind:'timeline',doc}` (symmetric inline variant). `composition/schema.ts` validators; example `examples/gallery/poster-refs/`; 795 tests, goldens byte-identical.
+- **2026-06-13 STRATEGIC PIVOT — Mermaid-superset positioning (LOCKED, later refined):** product framed as full Mermaid superset (22 types → 5 families), dual input (Mermaid DSL + structured IR), UML Tier-1 (class/state/ER/C4 IRs), charts Tier-2 (grammar-of-graphics), IR-as-API agent path. ⚠️ The agent-IR/MCP and god-chart-IR parts were later REJECTED in the realignment (charts are 4 separate sibling IRs; no NL/agent ingestion).
+- **2026-06-13/14 Tier kickoffs:** class domain IR (6 UML relationship union types) → pattern for state/ER/C4; Tier-2 ChartDocument IR + Linear/BandScale (pie + xychart-beta), 1361 tests; real-Mermaid fidelity pass on gitGraph/journey/mindmap/sankey/gantt/timeline; Mermaid front-end Tier-0 (`parseFlowchart()` → FlowDocument; IDs sanitized to kebab-case at parse).
+- **2026-06-15 Theme-Contract migration COMPLETE:** all 21 Mermaid types adopt Tier-2 `ThemeContract`; `executive` theme renders all coherently; opt-in, legacy byte-identical; 1976 tests. Superset surface (config keys + 7 themes + poster keyword), dimension guard, Excel poster addressing, cross-diagram linking spec'd §30b, dogfood doc-figure pipeline. ⚠️ `ThemeContract` later unified into `ResolvedTheme` (12 presets) in the realignment.
+- **2026-06-17 Dead-code audit (READ-ONLY):** `knip` + eslint `no-unused-vars` + grep verification → 21 high-confidence dead items (unused imports `measureText`/`CONTRACT_THEMES`/`pathLength`/`pathBends`/`parseMermaid`…, dead fns `countIndent`/`flattenPoint`, dead consts `REQUIREMENT_KEYWORDS`/`groupById`, 5 duplicate imports in architecture/tree grammars), 5 review-needed, 3 unused root devDeps; `canvaskit-wasm` flagged = FALSE POSITIVE (dynamic `createRequire`). Merged to decisions; was awaiting removal priority.
+
+---
+
 ## Project Context
 
 - **Owner:** ormasoftchile
