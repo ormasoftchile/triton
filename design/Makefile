@@ -20,9 +20,18 @@ all: cli pdf
 cli:
 	cd $(REPO_ROOT) && pnpm -C latex build
 
-pdf:
+# triton.sty lives in ../latex (the package source). We do NOT commit a symlink
+# here: a git symlink degrades to a plain text file on checkouts without symlink
+# support (e.g. Windows), which breaks \usepackage{triton}. We also can't rely on
+# TEXINPUTS — tectonic does not honor it for .sty resolution. So we COPY the
+# package in as a build step (gitignored) — a plain file copy is portable
+# everywhere a symlink isn't.
+pdf: triton.sty
 	tectonic -Z shell-escape -Z shell-escape-cwd=. triton.tex
 
+triton.sty: ../latex/triton.sty
+	cp $< $@
+
 clean:
-	rm -f *.aux *.bbl *.blg *.out *.toc *.log *.xdv
+	rm -f *.aux *.bbl *.blg *.out *.toc *.log *.xdv triton.sty
 	rm -rf *.triton-cache *.triton-src.triton
