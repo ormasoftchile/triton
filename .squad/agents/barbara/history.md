@@ -90,3 +90,39 @@ Full verbose detail moved to `history-archive.md`; canonical detail in decisions
 - Tooling: vitest `--testTimeout` can't interrupt a sync infinite loop → `perl -e 'alarm N;
   exec @ARGV' node …`; Node 25 `--experimental-strip-types` doesn't rewrite `.js`→`.ts`
   specifiers → build to `dist/`.
+
+- 2026-06-24 BACK-EDGE VISUAL ROUTING (follow-up to PR #28). PR #28 made cyclic flowcharts
+  terminate but drew back-edges like forward edges (orthogonal router) → they sliced straight
+  back through the node column. Now the flowchart edge loop in `src/diagrams/flowchart/layout.ts`
+  classifies each edge BEFORE drawing and routes three ways:
+  - **Self-loop** (`from === to`) → `selfLoopRoute()`: a small cubic loop off the East wall
+    (vertical flow) or South wall (LR), `loop = 28`. Previously the orthogonal router turned
+    A→A into a zero-length/degenerate vertical line straight through the node.
+  - **Back-edge** (the SAME `findBackEdges()` set already excluded from ranks) →
+    `backEdgeRoute()`: a cubic Bézier that bows OUT to one lateral side — endpoints on the side
+    wall (East for vertical flow, South for LR), control points pushed further out by
+    `bow = max(NODE_W*0.75 | NODE_H*0.9, span*0.35)`. The endpoints sit OUTSIDE the centered
+    node column, so the arc clears the nodes without any obstacle-avoiding router. Arrowhead
+    still lands on the target wall (tangent at the cubic's end points back into the node, so
+    `markerEnd orient="auto"` is correct).
+  - **Forward edge** → UNCHANGED orthogonal-router code path (kept character-identical).
+  Durable facts / gotchas:
+  - **Byte-identical guarantee for acyclic:** the viewBox now grows only for bow extents via
+    `bowMaxX/bowMaxY` (init `-Infinity`); when there are no back-edges/self-loops the
+    `Number.isFinite(...) ? Math.max(...) : nodeRight` falls through to the original
+    `nodeRight + margin`, so acyclic output is identical. PROVEN: regenerated all 3 acyclic
+    flowchart examples (+ theme variants) with `node scripts/preview.mjs examples/flowchart/`
+    → `git status --porcelain examples/flowchart/` EMPTY (zero diff).
+  - Without the viewBox growth, cyclic bows would be CLIPPED (viewBox was node-rects only).
+  - The edge loop switched `for…of` → indexed `for (let ei…)` to pass the index to
+    `backEdges.has(ei)`; `dash`/stroke colour computed once at top, forward branch kept verbatim.
+  - SVG renderer (`src/render/svg.ts`) emits `path.d` VERBATIM, so cubic `C x y, x y, x y`
+    strings render fine — no escaping/normalization. The orthogonal router only ever emits
+    `M…L…` (no `C`), which is what the new test keys on to tell forward vs back-edge apart.
+  - `occupiedPorts` left UNCHANGED (still edgeAnchor-based) — it's only consumed by overlays
+    and isn't part of the scene SVG, so it doesn't affect the byte-identical guarantee.
+  - Tests: extended `test/flowchart-cycle.test.ts` (+2 → 9 there): a 2-cycle asserts the forward
+    path has no `C` while the back-edge path does; a self-loop asserts its `d` contains `C` and
+    has non-zero extent in BOTH axes (non-degenerate). `pnpm test` 385 → **387**, typecheck 0,
+    build:grammars 23. Confined to `src/diagrams/flowchart/` + test — core/latex/extension untouched.
+
