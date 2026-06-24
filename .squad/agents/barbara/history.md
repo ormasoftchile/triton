@@ -69,3 +69,55 @@ Full pre-realignment rendering/layout detail moved to `history-archive.md` (+ `h
   - **`triton.sty`** graphicx-only (engine-agnostic): `\tritondir`/`\triton[opts]{name}`→`\includegraphics`/`\tritonfig`/`\tritonsetup`. Committed `latex/examples/figures/*.pdf` (Overleaf needs them). svg-to-pdfkit ships no types → added ambient `svg-to-pdfkit.d.ts`; tsconfig `moduleResolution:"Bundler"`.
   - **Design doc**: NEW `design/sections/09-latex-integration.tex`, `\input` after `08-status`.
   - **Gate**: esbuild exit 0 (1.2 MB); 3 examples → valid vector PDFs (2796/3424/12279 B); `render-dir` 3/3; latex typecheck 0; **root `pnpm test` = 378 pass** (unchanged); **root `git diff package.json pnpm-workspace.yaml tsconfig.json` EMPTY** (core ZERO new deps); latex NOT in root workspace. Merged PR #24 (771573c). Files: `latex/**`, `design/sections/09-latex-integration.tex`, `design/triton.tex` (+1 `\input`).
+
+## Learnings — inline LaTeX authoring (triton env, like TikZ)
+- **Goal delivered**: write Triton diagram SOURCE directly in `.tex` inside
+  `\begin{triton}…\end{triton}` → renders to vector PDF at compile time and is
+  `\includegraphics`'d, exactly like `tikzpicture`. Verified END-TO-END:
+  `latex/examples/inline-demo.tex` compiles under tectonic (EXIT 0) → 24 KB
+  `inline-demo.pdf` containing **2 Form XObjects, 0 Image XObjects** (pure
+  vector), path ops l=67/m=24/c=56/re=6 + textShow=27. Both cache PDFs hold real
+  geometry (2510 B: l=43 c=32; 2122 B: l=24 c=24 — curves are glyph outlines).
+- **Mechanism** (`latex/triton.sty` v0.2.0): `\RequirePackage{graphicx,fancyvrb,pdftexcmds}`.
+  1. `fancyvrb` `VerbatimOut` captures the env body BYTE-EXACT to
+     `\jobname.triton-src.triton`. 2. `\pdf@filemdfivesum{file}` (pdftexcmds)
+     content-hashes it (UPPERCASE hex). 3. `\IfFileExists` cache check on
+     `\jobname.triton-cache/<hash>.pdf`; if absent, `\immediate\write18{\triton@cli
+     space render "src" -o "pdf" --scale N --theme T}`. 4. `\includegraphics` the PDF.
+     Guarded by `\ifnum\pdf@shellescape=\@ne` → clear `\PackageError` if off/CLI missing.
+- **`\@currenvir` dispatch trick**: a command `\triton` and an environment `triton`
+  can't coexist directly (`\begin{triton}` just calls `\triton`). Resolve by
+  branching on `\@currenvir`: inside `\begin{triton}` → verbatim capture; bare
+  `\triton[opts]{name}` → precompiled-PDF include (Overleaf fallback). Same name,
+  two behaviours.
+- **VERIFIED-IMPOSSIBLE**: a verbatim env CANNOT take an inline optional arg
+  (`\begin{triton}[width=…]`). ANY lookahead for `[` (`\@ifnextchar` OR
+  `\futurelet`) consumes the line-ending `^^M` that fancyvrb needs to delimit the
+  begin line → "FancyVerb Error: Extraneous input … between \begin{…} and line
+  end", swallowing the first body line. Probe A (optional-only) failed on no-arg;
+  Probe B (no-optional) captured byte-exact. `minted` only escapes this via its
+  MANDATORY `{lang}` arg on the same line. Workaround: one-shot `\tritonnext{opts}`
+  (`\newif\iftriton@nextset`, reset in `\endtriton`) + global `\tritonsetup{opts}`.
+- **graphicx gotcha**: `\includegraphics[\opts]{...}` where `\opts` is a `\def`
+  macro = `width=\linewidth` throws "\! Missing \endcsname inserted / <to be read
+  again> \linewidth". Literal `[width=\linewidth]` works; the unexpanded key-list
+  MACRO in the optional arg breaks keyval on the dimen. FIX: expand once first —
+  `\expandafter\includegraphics\expandafter[\triton@curopts]{\triton@pdf}`.
+- **CLI fix**: `latex/src/cli.ts` `renderFile` now `mkdirSync(dirname(resolve(outPath)),
+  {recursive:true})` so single-file `render` creates the content-hashed cache dir.
+  Rebuilt `dist/cli.cjs` (1.2 MB), typecheck clean.
+- **tectonic flags**: MUST run `-Z shell-escape -Z shell-escape-cwd=.`,
+  UNSANDBOXED (panics in VS Code sandbox: macOS SCDynamicStore), network on first
+  run (package/font fetch). tectonic searches ONLY the input file's own dir for
+  local `.sty` (ignores TEXINPUTS) → `latex/examples/triton.sty` is a SYMLINK to
+  `../triton.sty` (committable, standard). `pdflatex` honours TEXINPUTS so the
+  symlink is unneeded there.
+- **CORE renderer bug found (NOT mine to fix — left core untouched)**: a CYCLIC
+  flowchart (`D --> B` back-edge) HANGS core layout indefinitely (`renderSync`
+  never returns). Acyclic flowcharts render fine. Demo uses acyclic diagrams.
+- **Scope honoured**: root `git diff package.json pnpm-workspace.yaml tsconfig.json
+  src/` EMPTY — core triton zero changes.
+- **Files**: `latex/triton.sty` (rewrite v0.2.0), `latex/src/cli.ts` (mkdir),
+  `latex/examples/inline-demo.tex` (NEW dogfood), `latex/examples/triton.sty`
+  (symlink), `latex/examples/.gitignore` (NEW), `latex/README.md` (leads with
+  inline env now).

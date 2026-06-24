@@ -14,7 +14,7 @@
  */
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync } from 'node:fs';
-import { basename, extname, join, resolve } from 'node:path';
+import { basename, dirname, extname, join, resolve } from 'node:path';
 
 import { renderSync } from '../../src/frontend/index.js';
 import { getThemePreset } from '../../src/theme/preset.js';
@@ -104,6 +104,11 @@ async function renderFile(
 ): Promise<void> {
   const source = readFileSync(inputPath, 'utf8');
   const svg = renderToSvg(source, themeName);
+
+  // The inline LaTeX environment renders into a content-hashed cache dir
+  // (e.g. `\jobname.triton-cache/<hash>.pdf`) that may not exist yet — single
+  // `render` must create the parent directory, not just `render-dir`.
+  mkdirSync(dirname(resolve(outPath)), { recursive: true });
 
   if (extname(outPath).toLowerCase() === '.svg') {
     writeFileSync(outPath, svg, 'utf8');

@@ -1,0 +1,59 @@
+% inline-demo.tex — author Triton diagrams INLINE, like TikZ.
+%
+% The diagram SOURCE lives right here in the .tex. Compiling this file (with
+% shell-escape) renders each \begin{triton}…\end{triton} block to a vector PDF
+% and drops it in — no pre-render step, no figure files to manage.
+%
+% Build (run from this directory):
+%   tectonic -Z shell-escape -Z shell-escape-cwd=. inline-demo.tex
+%   pdflatex -shell-escape inline-demo.tex
+%
+% Prereq: build the CLI once →  (cd .. && node esbuild.mjs)   # → ../dist/cli.cjs
+
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{triton}
+
+% Dogfood: point the inline renderer at this repo's freshly-built CLI. On a real
+% install where `triton-latex` is on PATH, delete this line (it is the default).
+\tritoncli{node ../dist/cli.cjs}
+
+\title{Triton --- Inline Authoring in \LaTeX}
+\author{The \texttt{triton} environment}
+\date{}
+
+\begin{document}
+\maketitle
+
+The diagram below is written as \emph{source} directly in this \texttt{.tex}
+file, inside a \verb|\begin{triton}…\end{triton}| environment, and rendered to a
+vector PDF at compile time --- exactly like \texttt{tikzpicture}.
+
+\section{A flowchart, authored inline}
+
+\begin{center}
+\begin{triton}
+flowchart LR
+  A[Start] --> B{Choice}
+  B -->|yes| C[Ship it]
+  B -->|no| D[Fix it]
+  D --> E[Review]
+\end{triton}
+\end{center}
+
+\section{Per-diagram sizing}
+
+A verbatim environment cannot carry an inline optional argument, so the
+\verb|\includegraphics| options for the next diagram are set just before it with
+\verb|\tritonnext|:
+
+\begin{center}
+\tritonnext{width=0.55\linewidth}
+\begin{triton}
+flowchart TD
+  P[Parse] --> L[Layout]
+  L --> R[Render]
+\end{triton}
+\end{center}
+
+\end{document}
