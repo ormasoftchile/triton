@@ -7,6 +7,8 @@ import { dirname } from 'path';
 import { render } from '../../src/frontend/index.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
+import { registerCompletion } from './completion.js';
+import { registerDiagnostics } from './diagnostics.js';
 
 // ─── Mermaid coexistence reconciliation (LOCKED decision) ──────────────────────
 //
@@ -501,6 +503,11 @@ class PreviewManager {
 export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(md: unknown): unknown } {
   const manager = new PreviewManager();
   context.subscriptions.push(manager);
+
+  // Phase 3 — IntelliSense: diagram-header + per-kind keyword completion, plus
+  // live parse/render diagnostics. Both are self-contained and disposable.
+  registerCompletion(context);
+  registerDiagnostics(context);
 
   // Keep the markdown-it fallback baseDir pointed at the current Markdown file's
   // folder, so relative `file:` embeds resolve in the built-in preview (whose
