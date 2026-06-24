@@ -2,19 +2,56 @@
 \label{sec:latex-integration}
 
 Triton diagrams can be embedded in \LaTeX{} documents as \emph{vector} PDF
-figures. The integration lives in its own satellite package, \texttt{latex/}
-(\texttt{@triton/latex}), and is purely additive: it changes no core behaviour and
-adds \textbf{zero} dependencies to the \texttt{triton} package.
+figures. The headline authoring mode is an \textbf{inline \texttt{triton}
+environment}: you write the diagram \emph{source} directly in the \texttt{.tex}
+--- exactly as you would a \texttt{tikzpicture} --- and it renders to a vector PDF
+at compile time. The integration lives in its own satellite package,
+\texttt{latex/} (\texttt{@triton/latex}), and is purely additive: it changes no
+core behaviour and adds \textbf{zero} dependencies to the \texttt{triton} package.
 
 \subsection{The format gap}
 
 \LaTeX{}'s \texttt{\textbackslash includegraphics} ingests PDF, PNG, or JPG ---
 never SVG --- on every engine (pdf\LaTeX{}, Xe\LaTeX{}, Lua\LaTeX{}). Triton emits
 SVG (\S\ref{sec:scene}: \texttt{renderSync} $\rightarrow$ \texttt{renderSVG}). The
-integration therefore converts each diagram to a PDF \emph{ahead of time}, and the
-document includes the committed PDF. This ``precompile and commit'' model is the
-only one that also works on Overleaf, where no Node or Triton toolchain is
-available at compile time.
+integration therefore converts each diagram to a vector PDF and includes
+\emph{that}. It does so in one of two ways: \emph{inline} at compile time (the
+default, via shell-escape), or \emph{precompiled} ahead of time and committed ---
+the fallback for Overleaf, where no Node or Triton toolchain is available at
+compile time.
+
+\subsection{Inline authoring: the \texttt{triton} environment}
+
+The \texttt{triton} environment lets you author a diagram where it appears,
+with no separate render step and no figure files to manage:
+
+\begin{lstlisting}[language=triton]
+\usepackage{triton}
+...
+\begin{triton}
+flowchart LR
+  A[Start] --> B{Choice}
+  B -->|yes| C[Ship it]
+  B -->|no|  D[Fix it]
+\end{triton}
+\end{lstlisting}
+
+When \LaTeX{} reaches \texttt{\textbackslash begin\{triton\}}, the package (a) captures the
+body \emph{verbatim} via \texttt{fancyvrb}'s \texttt{VerbatimOut} to a temp file;
+(b) content-hashes that source with \texttt{pdftexcmds} (\texttt{\textbackslash pdf@filemdfivesum});
+(c) shells out (\texttt{\textbackslash write18}) to the \texttt{triton-latex} CLI to render a
+vector PDF into a cache directory --- but \emph{only} when that hash is not
+already cached, so unchanged diagrams are never re-rendered; and (d)
+\texttt{\textbackslash includegraphics} the result. Because rendering is keyed on the source
+hash, recompiles are cheap and deterministic.
+
+This requires \texttt{-{}-shell-escape} (see Caveats). For Overleaf and other
+locked-down compiles, the precompiled \texttt{\textbackslash triton\{name\}} command (below) is
+the fallback: it includes a committed PDF and needs no toolchain at compile time.
+The two share the name \texttt{triton} and dispatch on context
+(\texttt{\textbackslash @currenvir}): inside \texttt{\textbackslash begin\{triton\}\ldots\textbackslash end\{triton\}} it
+authors inline; used as a bare \texttt{\textbackslash triton[opts]\{name\}} it includes a
+precompiled PDF.
 
 \subsection{SVG \texorpdfstring{$\rightarrow$}{->} vector PDF, pure-JS}
 
@@ -53,9 +90,11 @@ and surface its \texttt{Result} as a clean exit code.
 
 \subsection{The \texttt{triton.sty} package}
 
-A thin \LaTeX{} package wraps \texttt{\textbackslash includegraphics}, resolving a
-diagram by name against a configurable directory. It depends only on
-\texttt{graphicx}, so it is engine-agnostic.
+The \LaTeX{} package provides both the inline \texttt{triton} environment and the
+precompiled-include macros. It depends only on \texttt{graphicx},
+\texttt{fancyvrb}, and \texttt{pdftexcmds}, so it is engine-agnostic
+(pdf\LaTeX{} / Xe\LaTeX{} / Lua\LaTeX{} / tectonic). The precompiled path resolves a
+diagram by name against a configurable directory:
 
 \begin{lstlisting}[language=ts]
 \usepackage{triton}
@@ -64,14 +103,48 @@ diagram by name against a configurable directory. It depends only on
 \tritonfig[width=0.6\linewidth]{avl}{An AVL tree rendered by Triton.}
 \end{lstlisting}
 
+\subsection{Caveats and limitations}
+
+Three limitations are worth stating plainly so the inline mode is used correctly.
+
+\paragraph{No optional \texttt{[width=\ldots]} on \texttt{\textbackslash begin\{triton\}}.}
+A verbatim environment cannot carry an inline optional argument: peeking for a
+\texttt{[} on the \texttt{\textbackslash begin\{triton\}} line tokenises the line break that
+\texttt{fancyvrb} needs to find the end of that line, which swallows the diagram's
+\emph{first} source line. (\texttt{minted} avoids this only because of its
+mandatory \texttt{\{language\}} argument, which absorbs the lookahead.) So
+\texttt{\textbackslash begin\{triton\}[width=\ldots]} is \textbf{not} supported. Set the
+\texttt{\textbackslash includegraphics} options just \emph{before} the environment with
+\texttt{\textbackslash tritonnext\{width=\ldots\}} (applies to the next diagram only), or change
+the default globally with \texttt{\textbackslash tritonsetup\{width=\ldots\}}.
+
+\paragraph{\texttt{-{}-shell-escape} is required for inline rendering.}
+The inline environment shells out, so it needs shell-escape enabled and both
+Node and the \texttt{triton-latex} CLI available at compile time
+(\texttt{pdflatex -shell-escape}, or \texttt{tectonic -Z shell-escape}). If
+shell-escape is off or the CLI is missing, the environment raises a clear
+\texttt{\textbackslash PackageError} stating exactly what to fix --- it never silently emits a
+blank. Overleaf disallows arbitrary shell-escape, so there you must use the
+precompiled \texttt{\textbackslash triton\{name\}} path instead.
+
+\paragraph{Cyclic diagrams hang the renderer.}
+A flowchart containing a cycle (a back-edge) currently hangs the core
+\texttt{renderSync} path --- a known core bug tracked separately, not specific to
+the \LaTeX{} integration. Until it is fixed, use acyclic diagrams in inline
+blocks.
+
 \subsection{Workflow and portability}
 
-The authoring loop mirrors the design doc's own \texttt{pnpm figures} /
+In the inline workflow there is no separate render step: author the source in the
+\texttt{triton} environment, compile with \texttt{-{}-shell-escape}, and the
+cached vector PDF is regenerated only when the source changes. For locked-down
+targets the precompile loop mirrors the design doc's own \texttt{pnpm figures} /
 \texttt{\textbackslash ourfig} convention: render sources to PDF, commit them,
-include by name, and regenerate when a diagram changes. Because the assets are
-committed vector PDFs, the same project compiles unchanged on macOS, Linux,
-Windows, and Overleaf --- the engine axis is irrelevant, since the asset is
-already a PDF by the time \texttt{\textbackslash includegraphics} runs.
+include by name with \texttt{\textbackslash triton\{name\}}, and regenerate when a diagram
+changes. Because those assets are committed vector PDFs, the project compiles
+unchanged on macOS, Linux, Windows, and Overleaf --- the engine axis is
+irrelevant, since the asset is already a PDF by the time
+\texttt{\textbackslash includegraphics} runs.
 
 \begin{center}
 \begin{tabular}{ll}
@@ -80,9 +153,9 @@ Path & Contents \\
 \midrule
 \texttt{latex/src/cli.ts}   & the \texttt{triton-latex} CLI (render / render-dir) \\
 \texttt{latex/src/pdf.ts}   & SVG $\rightarrow$ vector PDF (pdfkit + svg-to-pdfkit) \\
-\texttt{latex/triton.sty}   & the \texttt{\textbackslash triton} / \texttt{\textbackslash tritonfig} macros \\
+\texttt{latex/triton.sty}   & the \texttt{triton} environment + \texttt{\textbackslash triton} / \texttt{\textbackslash tritonfig} macros \\
 \texttt{latex/esbuild.mjs}  & bundles the CLI + compiler graph from \texttt{src/} \\
-\texttt{latex/examples/}    & \texttt{diagrams/} sources, committed \texttt{figures/} PDFs, \texttt{demo.tex} \\
+\texttt{latex/examples/}    & \texttt{inline-demo.tex} (inline env), plus precompile sources / \texttt{figures/} PDFs \\
 \bottomrule
 \end{tabular}
 \end{center}
