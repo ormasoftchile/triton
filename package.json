@@ -11,6 +11,8 @@
   "scripts": {
     "build:grammars": "node scripts/build-grammars.mjs",
     "build": "pnpm build:grammars && tsc --project tsconfig.json",
+    "build:core": "node esbuild-core.mjs",
+    "build:latex": "cd latex && node esbuild.mjs",
     "typecheck": "pnpm build:grammars && tsc --project tsconfig.json --noEmit",
     "test": "pnpm build:grammars && vitest run",
     "test:watch": "vitest",
@@ -26,6 +28,7 @@
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
+    "esbuild": "^0.28.1",
     "eslint": "^9.27.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
