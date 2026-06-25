@@ -5096,3 +5096,132 @@ The P5 failure from review `ken-verdict-dagre-port.md` was:
 
 The column snap fix is correct. "has" and "creates" are straight verticals. "places" routes cleanly via laneX≈181.63 in 5 segments. No regressions introduced. Pre-existing "places" label cosmetic clip remains (non-blocking, pre-dates this commit).
 
+# C4 CONNECTOR ROUTING ANALYSIS — Five properties that make C4 read well (2026-06-25)
+
+**Author:** Barbara (Semantics & Rendering) · **Requested by:** ormasoftchile
+**Status:** ANALYSIS ONLY — comparative study delivered. No source changes.
+
+## Finding: C4 routing is a near-optimal pattern that combines five properties
+
+C4 uses a five-property combination that makes its connectors read well. Most properties are individually present in other families — but C4 is the only diagram that combines all five consistently.
+
+### The Five Properties
+
+1. **Straight-line routing via `borderPoint`** (`src/graph/connect.ts:16`).  
+   - `borderPoint(box, tx, ty)` clips the source-center→target-center ray at the box boundary.  
+   - Result: connectors communicate actual direction (diagonal = lateral, vertical = hierarchical). No elbow bends means no visual noise.
+
+2. **Generous inter-layer gap (80 px)** — the largest of all TB diagrams (state=56, class=64, er=70, req=60).  
+   - `layeredLayout(nodes, edges, { direction: 'TB', layerGap: 80, … })` (`src/diagrams/c4/layout.ts:43`).  
+   - Spacing ensures straight lines don't clip through intermediate nodes.
+
+3. **Wide, variable-height nodes (NODE_W=180)**.  
+   - Largest fixed-width node in the codebase (architecture=130, block=150).  
+   - Large bounding boxes give `borderPoint` a wide range of exit/entry coordinates; connectors don't bunch.
+
+4. **Semantically muted connector color (`palette.textMuted`, strokeWidth=1.4)**.  
+   - Architecture and block both use `palette.primary` (strong blue). C4 uses muted grey — connectors are supporting structure, not the headline.  
+   - Visual hierarchy: colored boxes draw the eye; arrows guide it.
+
+5. **Label background erasure** (lines 80–82 in `src/diagrams/c4/layout.ts`).  
+   - A zero-stroke `palette.background`-filled rect placed at the midpoint before every connector label.  
+   - C4 benefits most because labels can include both verb and technology tag (e.g. `[SMTP]`), long enough to collide with crossing lines.
+
+### What C4 does NOT do: bypasses the routing registry
+
+C4 **bypasses** `src/routing/registry.ts` entirely — no call to `getRouter()`, no `RouteRequest`/`Route` machinery. Only `flowchart` (forward edges) and cross-links use the registry. All other box-diagram families route bespoke.
+
+C4's bespoke approach is simpler and better for its use case: the registry router was designed for obstacle-aware routing, but C4 nodes are well-separated by `layeredLayout` and never need obstacle avoidance.
+
+---
+
+## Recommendation: Port C4 treatment to three diagram families
+
+These changes are purely additive, confined to each `layout.ts`, and have no IR or registry impact.
+
+### Priority 1 — Architecture (`src/diagrams/architecture/layout.ts`)
+- Switch connector color from `palette.primary` to `palette.textMuted`.
+- Add optional `label?: string` to `ArchEdge` IR + render with the label background rect.
+- Feasibility: High. Architecture uses `layeredLayout` and has the same box+relationship structure as C4.
+
+### Priority 2 — Class (`src/diagrams/class/layout.ts`)
+- Add the label background rect behind each edge label (three lines of code, copy from C4 lines 80–82).
+- Feasibility: Trivial.
+
+### Priority 3 — Block (`src/diagrams/block/layout.ts`)
+- Switch connector color to `palette.textMuted`.
+- Add label background rect to the `e.label` branch.
+- Feasibility: Trivial.
+
+### Observation — Flowchart
+- **Keep** orthogonal routing — straight lines would cross intermediate nodes in a layered diagram.
+- ONE C4 property transfers: the label background rect (flowchart labels currently float and can collide).
+
+---
+
+# BACK-EDGE VISUAL ROUTING — Flowchart feedback arcs + self-loops (2026-06-24)
+
+**Author:** Barbara (Semantics & Rendering) · **Requested by:** ormasoftchile
+**Status:** COMPLETE — merged to `main` as PR #29. Follow-up to PR #28 (cycle-breaking).
+
+## Overview
+
+Back-edges and self-loops in flowcharts are now routed distinctly from forward edges so cyclic diagrams read as "feedback" instead of slicing back through the node column.
+
+- **Self-loop** (`from === to`) → `selfLoopRoute()`: small cubic loop off the side wall (East for vertical flow, South for LR), `loop = 28`.
+- **Back-edge** (same `findBackEdges()` set excluded from layers) → `backEdgeRoute()`: cubic Bézier bowing to one lateral side, control points pushed out by `bow = max(NODE_W*0.75 | NODE_H*0.9, span*0.35)`.
+- **Forward edge** → unchanged orthogonal-router path.
+
+## Constraints honored
+
+- **Acyclic output is byte-identical**: viewBox grows only via `bowMaxX/bowMaxY` (init `-Infinity`); with no back-edges/self-loops falls back to original size. PROVEN: `node scripts/preview.mjs examples/flowchart/` → all acyclic examples unchanged.
+- Deliberately a simple offset arc, not an obstacle-avoiding router — bar is "reads as feedback and doesn't cut through a node".
+- `occupiedPorts` unchanged (overlay-only, not in the SVG).
+
+## Verification
+
+- All cyclic cases render valid SVG and terminate in <1 ms.
+- New tests: `test/flowchart-cycle.test.ts` (9 tests).
+- `pnpm test` → 385 → **387** (added 2 tests). All green.
+- Core, latex, extension untouched.
+
+---
+
+# EXTENSION PHASE 3 — IntelliSense (completion + diagnostics) (2026-06-24)
+
+**Author:** Bjarne (Ingestion Design) · **Requested by:** ormasoftchile
+**Status:** COMPLETE — confined to `extension/`. Core `src/` and root package untouched.
+
+## What was built
+
+1. **Completion** (`extension/src/completion.ts`, `extension/src/keywords.ts`):
+   - Diagram-header completion at the top of documents, sourced from a table mirroring `src/frontend/detect.ts` MERMAID_PATTERNS (50 entries).
+   - Every header's insert token round-trips through core `detect()` → validated: 50 checked, 0 mismatches.
+   - Below the header: per-kind keyword/snippet set (`KIND_KEYWORDS`), grounded in real `examples/*.mmd` and `grammar.peggy` literals.
+   - Per-kind completion resolved with core `detect()` so it never drifts from what actually parses.
+
+2. **Diagnostics** (`extension/src/diagnostics.ts`):
+   - Debounced (`triton.preview.debounceMs`, default 150) compile via core `renderSync` on open/change.
+   - Failing `Result` → one Error diagnostic; success clears diagnostics.
+   - Parse failures wrap Peggy `SyntaxError.location` (1-based line/column). Mapped to precise Range (zero-width widened to line end), else fall back to first non-blank line.
+   - `renderSync` returns a Result and never throws.
+
+3. **Shared helpers:**
+   - `extension/src/triton-fences.ts` — line-offset-aware ` ```triton ` fence scanner (used by both providers).
+   - `extension/src/source-shape.ts` — frontmatter/header-line shape.
+
+Both registered in `extension/src/extension.ts` `activate()` and added to `context.subscriptions` (disposable).
+
+## Decision locked
+
+- Completion source: real `detect.ts` header set + curated, examples-grounded per-kind lists — never invented syntax.
+- Diagnostics: precise ranges from `error.cause.location` (Peggy); graceful first-line fallback.
+- Markdown ` ```triton ` fences are first-class for completion AND diagnostics (not just preview), via shared offset-aware scanner.
+- Scope: header + keyword + diagnostics only (no language-server-grade context sensitivity), per the plan.
+
+## Verification
+
+- `node extension/esbuild.mjs` → exit 0, bundle 1.2 MB (1,278,181 bytes).
+- `tsc -p extension/tsconfig.json --noEmit` → 0 errors.
+- 50 headers / 0 detect mismatches; broken source → PARSE_ERROR with Peggy location; valid source → ok.
+- Core untouched.
