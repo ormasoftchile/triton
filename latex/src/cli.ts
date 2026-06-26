@@ -161,7 +161,7 @@ async function main(): Promise<number> {
 
   if (args.help || !args.command) {
     console.log(USAGE);
-    return args.command ? 0 : 1;
+    return args.help ? 0 : 1;
   }
 
   if (args.command === 'render') {

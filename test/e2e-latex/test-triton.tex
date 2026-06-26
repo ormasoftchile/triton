@@ -1,0 +1,60 @@
+% test-triton.tex — end-to-end test of @cristianormazabal/triton-latex
+% This file must compile on a clean machine with ONLY:
+%   1. npm i -g @cristianormazabal/triton-latex
+%   2. triton.sty copied to the project
+%   3. pdflatex -shell-escape test-triton.tex
+
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{triton}
+
+\title{Triton LaTeX --- End-to-End Test}
+\author{Clean Install Verification}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Test 1: Inline flowchart}
+
+\begin{center}
+\begin{triton}
+flowchart LR
+  A[Start] --> B{OK?}
+  B -->|yes| C[Done]
+  B -->|no| D[Retry]
+\end{triton}
+\end{center}
+
+\section{Test 2: Inline sequence diagram}
+
+\begin{center}
+\begin{triton}
+sequenceDiagram
+  Alice->>Bob: Hello
+  Bob-->>Alice: Hi back
+\end{triton}
+\end{center}
+
+\section{Test 3: Inline pie chart}
+
+\begin{center}
+\tritonnext{width=0.5\linewidth}
+\begin{triton}
+pie title Pets
+  "Dogs" : 45
+  "Cats" : 30
+  "Birds" : 25
+\end{triton}
+\end{center}
+
+\section{Test 4: Precompiled include}
+
+This should include a precompiled PDF rendered by \texttt{triton-latex render-dir}:
+
+\begin{center}
+\tritondir{figures}
+\triton[width=0.8\linewidth]{tree}
+\end{center}
+
+\end{document}
