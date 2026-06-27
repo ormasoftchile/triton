@@ -480,6 +480,32 @@ function assignCoordinatesBK4(
     });
   }
 
+  // ── Dummy-protection conflicts ─────────────────────────────────────────────
+  // BK type-1 conflict detection only protects inner segments (dummy→dummy) in
+  // skip chains spanning ≥3 layers. For a 2-layer skip (real→dummy→real) there
+  // is no inner segment, so a real node u in the same intermediate layer can
+  // "steal" the dummy's alignment slot in reversed sweeps, causing the dummy to
+  // land off-axis and producing a Z-shaped edge route.
+  //
+  // Fix: whenever a dummy d and a real node u in the same layer share the same
+  // direct predecessor p (or successor s), mark (p, u) and (u, s) as conflicts
+  // so u cannot claim that alignment slot in any sweep direction. The dummy then
+  // aligns cleanly in all four sweeps.
+  for (const [, ns] of byLayer) {
+    for (const dn of ns) {
+      if (!isDummy(dn.id)) continue;
+      const dPreds = predMap.get(dn.id) ?? [];
+      const dSuccs = succMap.get(dn.id) ?? [];
+      for (const rn of ns) {
+        if (isDummy(rn.id)) continue;
+        const rPreds = predMap.get(rn.id) ?? [];
+        const rSuccs = succMap.get(rn.id) ?? [];
+        for (const p of dPreds) if (rPreds.includes(p)) addConflict(p, rn.id);
+        for (const s of dSuccs) if (rSuccs.includes(s)) addConflict(rn.id, s);
+      }
+    }
+  }
+
   // ── BK Step 2: Vertical Alignment ────────────────────────────────────────────
   function verticalAlignment(
     sweepLayers: readonly string[][],
