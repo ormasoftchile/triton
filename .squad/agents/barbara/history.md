@@ -128,3 +128,17 @@ Full verbose detail moved to `history-archive.md`; canonical detail in decisions
 
 
 - 2026-06-24: Made design build portable — removed the committed `design/triton.sty` symlink (broke on Windows checkouts as a plain text file). Tectonic does NOT honor TEXINPUTS for .sty resolution (tested: `File triton.sty not found`), so the Makefile now COPYs `../latex/triton.sty` into `design/` as a build step (`pdf: triton.sty` prereq) and `.gitignore` excludes the copy. Full `make clean && make` → exit 0, triton.pdf 133 KiB with inline figures rendered.
+
+- 2026-06-27 PHASE 1 — Flowchart Full Sugiyama Upgrade (commit 23cee08, PR pending). Added Sugiyama phases 3 and 4 to `src/diagrams/flowchart/layout.ts`. Gate: `pnpm test` **387/387**. Decision written: `.squad/decisions/inbox/barbara-phase1-complete.md`.
+
+  **Phase 3 — `minimizeCrossings()`:** Barycentric bi-directional sweeps, MAX_PASSES=4. Nodes without anchoring neighbours in the reference layer use current position index as barycenter (keeps relative order). Stable sort: equal barycenters tie-break on original insertion index. Back-edges and self-loops excluded.
+
+  **Phase 4 — `assignCoordinatesBK()`:** Two-pass simplified B-K. Pass1 top-down (predecessor-aligned), Pass2 bottom-up (successor-aligned). Preference = mean cross-axis position of forward-edge neighbours (mean gives centred result for symmetric trees, matching dagre). Nodes with no neighbours fall back to the OLD centering formula (`margin + (maxNodesInLayer-count)*crossStep/2 + i*crossStep`) so roots/leaves remain stable. Block start = `max(margin, medianOfPrefs - ½·totalSpan)`. Final position = average of the two passes — proven non-overlapping because both passes use uniform crossStep and averaging uniform sequences preserves spacing. Back-edges/self-loops excluded.
+
+  **Durable gotchas:**
+  - `findBackEdges()` was previously called INSIDE the edge-drawing loop (line 91). Moved it earlier (right after `groupByLayer`) so the same `Set<number>` is reused by crossing-min, B-K, and the edge router — one DFS instead of two.
+  - Averaging two passes eliminates the need for a forward+backward pass correction loop; the algebra guarantees no overlaps.
+  - `scripts/preview.mjs` had a stale dist path (`../dist/frontend/index.js`). The tsconfig `outDir` is `./packages/core/dist`. Fixed import + parser-copy destination in the same commit.
+  - Vitest doesn't need the compiled output (uses TypeScript directly), so `pnpm test` was always passing. The stale path only affected the preview script.
+  - Phase 2: same `minimizeCrossings` + `assignCoordinatesBK` should be lifted into `src/graph/layered.ts` so class/state/ER/C4/block/requirement inherit it (Leslie's phase plan §Phase 2).
+
