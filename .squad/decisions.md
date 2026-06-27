@@ -383,3 +383,477 @@ A new Triton-native data-structure family, **one distinct content-detectable hea
 - Source: `src/diagrams/queue/{shared,queue,cqueue,deque,pqueue}.ts`
 - Examples: `examples/queue/{linear,circular,deque,priority}.mmd` + `.svg` + `render.ts` (rendered through the real pipeline)
 - Tests: `test/queue.test.ts` (15) + 4 auto-discovered example renders → 318 → **337 pass**
+
+---
+
+### 2026-06-27: Layout Algorithm Improvement Initiative — Phase Plan
+
+**Author:** Leslie (Lead / Spec Architect)  
+**Requested by:** ormasoftchile  
+**Date:** 2026-06-27T09:30:17-04:00  
+**Status:** ACTIVE — gates all downstream layout work  
+
+---
+
+## Preamble
+
+This document is the authoritative phase plan for the Layout Algorithm Improvement Initiative. All
+agents must read it before touching any layout code, routing code, or design-doc sections related
+to algorithm selection.  No layout algorithm change may be merged without passing the visual
+verification workflow defined in §3.  The scope decisions in §4 are binding until explicitly
+superseded by a new decision from Leslie.
+
+---
+
+## 1. Phase List
+
+### Phase 0 — Research & Algorithm Catalog
+**Goal:** Produce a definitive catalog mapping algorithm → diagram type, with enough depth that
+Phase 1–4 implementers have a concrete reference rather than re-researching mid-implementation.
+
+**Responsible agents:** David (Research Lead), Scribe (produces first draft of design section)  
+**Key deliverables:**  
+- `design/sections/10-layout-algorithms.tex` — new design section covering:
+  - Sugiyama framework (4 phases; crossing minimization; Brandes–Köpf coordinate assignment)
+  - Buchheim–Jünger–Leipert O(n) tree tidy algorithm (already used; document it properly)
+  - ELK / elk.js algorithm set (layered, force, stress, radial, box, fixed, disco)
+  - Dagre (JS port of Graphviz-style layered; relevant because it is the Mermaid baseline)
+  - D3-force and D3-dag (DAG layered) for reference
+  - Academic references for each: Sugiyama 1981, Gansner 1993 (dot), Brandes–Köpf 2001,
+    Buchheim 2002, Schulze 2017 (ELK layered)
+  - Catalog table: each Triton diagram kind → layout algorithm family → current implementation
+    status (IMPLEMENTED / NEEDS UPGRADE / OPTIMAL)
+- `design/triton.bib` updated with all algorithm papers cited in §10
+- No code changes in Phase 0
+
+**Dependencies:** none  
+**Estimated scope:** Medium
+
+---
+
+### Phase 1 — Flowchart: Full Sugiyama Upgrade
+**Goal:** Replace the flowchart's ad-hoc BFS layering + centered coordinate assignment with a
+proper four-phase Sugiyama pipeline: (1) cycle breaking (already done, PR #28), (2) proper
+longest-path ranking, (3) barycenter crossing minimization, (4) Brandes–Köpf coordinate
+assignment.
+
+**Responsible agents:** Barbara (Semantics & Rendering)  
+**Key deliverables:**  
+- `src/diagrams/flowchart/layout.ts` upgraded in place — Phases 2–4 of Sugiyama added; Phase 1
+  (cycle breaking) is already done. The existing `assignLayers` is adequate for ranking; it only
+  needs crossing minimization and improved coordinate assignment.
+- Barycenter heuristic for crossing minimization: one or two up-down sweeps of barycentre
+  ordering within each layer. Deterministic: break ties by stable insertion order.
+- Brandes–Köpf (or a simplified Gansner-style) coordinate assignment: compute four alignments,
+  take coordinate as median. Must remain deterministic.
+- All flowchart examples in `examples/flowchart/` must pass visual verification (§3).
+- `pnpm test` green throughout; golden updates permitted when layout visually improves.
+
+**Dependencies:** Phase 0 catalog (informative, not a hard gate — implementation may begin in
+parallel after David delivers the algorithm summaries)  
+**Estimated scope:** Medium
+
+---
+
+### Phase 2 — Shared Layered Kernel Upgrade
+**Goal:** Generalize the Sugiyama improvements from Phase 1 into `src/graph/layered.ts`, so that
+every diagram that uses the shared kernel (class, state, ER, C4, block, requirement, ds/nodegraph)
+inherits crossing minimization and improved coordinate assignment automatically.
+
+**Responsible agents:** Barbara (Semantics & Rendering)  
+**Key deliverables:**  
+- `src/graph/layered.ts` upgraded: barycenter crossing minimization + Brandes–Köpf coordinate
+  assignment added to the exported `layoutLayered` function (or equivalent entry point).
+- All affected diagram kinds validated visually (§3): class, state, er, c4, block, requirement.
+- Golden updates for those diagram kinds as needed.
+- `pnpm test` green.
+
+**Dependencies:** Phase 1 (the Sugiyama implementation in flowchart.ts is the reference; Phase 2
+lifts it into the shared kernel — do not duplicate, refactor upward)  
+**Estimated scope:** Medium
+
+---
+
+### Phase 3 — Simple & Deterministic Diagrams: Audit & Targeted Fixes
+**Goal:** Walk every remaining diagram layout file, confirm that static algorithm dispatch is
+correct (see §4.1 for the decision), and apply targeted fixes where the current implementation
+has identifiable geometry defects.
+
+**Responsible agents:** Barbara (Semantics & Rendering), with Leslie review on any non-trivial
+algorithm change  
+**Diagram groups and audit verdicts (initial assessment — Barbara must confirm):**
+
+| Group | Diagrams | Algorithm family | Expected verdict |
+|-------|----------|-----------------|-----------------|
+| **Temporal/linear** | gantt, timeline, gitgraph, sequence | Positional by time/order — no graph algorithm needed | AUDIT ONLY: spacing, label collision, axis alignment |
+| **Chart/polar** | pie, radar, quadrant, xychart | Polar / Cartesian math — no graph algorithm | AUDIT ONLY: angular distribution, tick placement |
+| **Structural** | kanban, packet, sankey | Strip or flow-channel placement | TARGETED FIXES if notable defects |
+| **Hierarchical** | mindmap | Already uses `src/graph/tree.ts` (B–J–L O(n)) | CONFIRM correct, add depth limit if needed |
+| **Specialised** | architecture, journey, block | Custom placements | AUDIT ONLY |
+
+**Key deliverables:**  
+- Audit report as a comment block in the PR (not a separate file) for each diagram group
+- Targeted fixes (no rewrites) for any diagram with confirmed geometry defects
+- Visual verification for every diagram where a fix was applied (§3)
+- `pnpm test` green
+
+**Dependencies:** Phase 2 complete (so the shared kernel is stable before auditing consumers)  
+**Estimated scope:** Small–Medium (mostly confirming existing correctness; fixes are targeted)
+
+---
+
+### Phase 4 — Poster: Cross-Diagram Routing Deep Work
+**Goal:** Comprehensively improve poster layout and cross-diagram connector routing.  The poster
+is architecturally distinct from all other diagrams: it composes independent diagram cells into a
+grid, and cross-diagram connectors must route through the inter-cell space without entering any
+cell's content region, without crossing each other unnecessarily, and with correct coordinate
+transforms between cells.
+
+**This phase is the hardest in the initiative.** See §4.2 for the specific complexity statement.
+
+**Responsible agents:** Barbara (Semantics & Rendering) — implementation; Leslie — architectural
+review before merge  
+**Key deliverables:**  
+
+*Sub-phase 4A — Cell placement:*  
+- Audit `src/diagrams/poster/layout.ts`: grid cell placement, occupancy tracking, span handling.
+  Identify any cases where cells of different heights/widths produce misaligned grid rows or
+  wasted whitespace.
+- Targeted improvements to cell placement (e.g., row-height normalization, improved gap
+  distribution). Static grid dispatch: no dynamic bin-packing.
+
+*Sub-phase 4B — Cross-link routing upgrade:*  
+- Deep review of `src/crosslink/engine3.ts` against the aesthetic scorecard (current MEDIOCRE
+  0.649; gridBalance / congestion both borderline). Identify the top 2–3 root causes of the poor
+  score.
+- Targeted fixes: likely candidates are (1) port selection when multiple links share a cell wall,
+  (2) channel separation when parallel links exit the same port cluster, (3) the cost-function
+  weights for W_CROSS / W_BEND / W_ALIGN.
+- The coordinate-system transform between diagram-cell-local space and poster-global space must be
+  made explicit and tested — the current implementation routes in poster-global space after
+  transforming anchor points; confirm this is correct for all cell-span configurations.
+- Visual verification against ALL examples in `examples/poster/` and `examples/showcases/` (§3).
+- Aesthetic scorecard must improve from MEDIOCRE to GOOD (≥ 0.75 target; exact threshold to be
+  confirmed by Barbara after baseline audit).
+- `pnpm test` green; golden updates expected.
+
+**Dependencies:** Phases 2 and 3 complete (so that intra-diagram layouts are stable before the
+cross-diagram routing layer is tuned — avoid moving targets in the obstacle set)  
+**Estimated scope:** Large
+
+---
+
+### Phase 5 — Design Doc Consolidation
+**Goal:** Ensure the design document fully reflects the completed initiative: algorithm catalog,
+per-diagram algorithm choices, static dispatch architecture, poster routing architecture, and
+all academic references.
+
+**Responsible agents:** Scribe (drafts), Leslie (reviews), Barbara (fact-checks algorithm claims)  
+**Key deliverables:**  
+- `design/sections/10-layout-algorithms.tex` — completed from Phase 0 draft, now incorporating
+  all confirmed implementation decisions from Phases 1–4.
+- `design/sections/04-kernels.tex` — update the `layered.ts` subsection to describe the full
+  Sugiyama pipeline (crossing minimization, Brandes–Köpf) per the Phase 2 implementation.
+- `design/sections/06-composition.tex` — update to describe the cross-link routing architecture
+  (engine3 passes, cost function, coordinate-transform model) per Phase 4 findings.
+- `design/triton.bib` — all algorithm papers cited and confirmed (no undefined citations).
+- `tectonic -Z shell-escape -Z shell-escape-cwd=. triton.tex` → exit 0, no undefined references.
+
+**Dependencies:** Phases 0–4 complete (doc must describe what was actually built, not aspirations)  
+**Estimated scope:** Medium
+
+---
+
+## 2. Phase Dependency Graph
+
+```
+Phase 0 (Research)
+    │
+    ├──▶ Phase 1 (Flowchart Sugiyama)      [may start during Phase 0]
+    │        │
+    │        └──▶ Phase 2 (Shared Kernel)
+    │                  │
+    │                  └──▶ Phase 3 (Simple Diagrams Audit)
+    │                              │
+    │                              └──▶ Phase 4 (Poster)
+    │                                         │
+    └─────────────────────────────────────────┴──▶ Phase 5 (Design Doc)
+```
+
+Phases 1 and 0 may run in parallel (Phase 0 is informative for Phase 1 but not a hard gate).
+Phases 3 and 4 have strict sequencing on Phase 2 (stable shared kernel first).
+Phase 5 is a hard gate: all code phases must be complete and merged.
+
+---
+
+## 3. Visual Verification Workflow
+
+### Command
+
+```bash
+node scripts/preview.mjs examples/<diagram-type>/
+```
+
+Where `<diagram-type>` is the examples subdirectory for the diagram being changed. Examples:
+
+```bash
+node scripts/preview.mjs examples/flowchart/     # Phase 1
+node scripts/preview.mjs examples/class/         # Phase 2
+node scripts/preview.mjs examples/state/         # Phase 2
+node scripts/preview.mjs examples/er/            # Phase 2
+node scripts/preview.mjs examples/poster/        # Phase 4
+node scripts/preview.mjs examples/showcases/     # Phase 4 cross-check
+```
+
+The command runs three steps internally: build grammars → compile TypeScript → render all `.mmd`
+files in the target directory to `.svg`. After running, open or reload the SVGs in a browser.
+
+### What to verify (visual checklist)
+
+Every agent making a layout change MUST check all of the following before considering the work
+done:
+
+1. **No overlapping nodes** — no two node bounding boxes intersect.
+2. **Edge crossings minimized** — after a Sugiyama upgrade, the number of visible crossings must
+   be demonstrably lower than before (no regression allowed; improvement required for the diagram
+   types that motivated the change).
+3. **Labels readable** — node labels do not overflow their bounding boxes; edge labels do not
+   overlap nodes.
+4. **Consistent spacing** — gaps between nodes within a layer and between layers are uniform
+   (not ragged).
+5. **Direction respected** — TB / LR direction setting produces a correctly oriented layout.
+6. **Cycles draw cleanly** — back edges render without overlapping forward-edge segments.
+7. **Poster-specific:** cross-diagram connectors do not enter any cell's content area; parallel
+   connectors on the same wall are separated by at least `CHANNEL_GAP` pixels; no connector
+   crosses another unnecessarily.
+
+### Gate: tests must remain green
+
+```bash
+pnpm test
+```
+
+Must pass throughout all phases. Golden updates are permitted when layout visually improves, but
+must be committed alongside the change (never silently broken goldens).
+
+### Aesthetic scorecard (Phase 4 only)
+
+```bash
+# The scorecard is computed by src/geometry/aesthetics.ts and logged during poster render.
+# Check the logged score; it must reach ≥ 0.75 before Phase 4 is considered complete.
+node scripts/preview.mjs examples/poster/
+# Inspect console output for the aesthetics score line.
+```
+
+---
+
+## 4. Scope Decisions
+
+### 4.1 Selection Method: Static Dispatch — DECIDED
+
+**Decision: Static dispatch per diagram type. No dynamic or adaptive algorithm selection.**
+
+The algorithm for a diagram kind is a *semantic* property of that kind, not a runtime property
+of a specific instance. A flowchart is always a directed flow and always benefits from Sugiyama
+layered layout, regardless of whether it has 3 nodes or 300. Switching algorithms based on
+graph metrics (node count, density, cycle count) would:
+
+1. Violate Triton's core determinism contract — the same source must produce the same layout.
+   An algorithm switch at a threshold (e.g., n > 50 nodes → use force-directed) means that
+   adding one node can produce a completely different visual arrangement.
+2. Introduce combinatorial testing burden — every diagram type would need test coverage at both
+   sides of each threshold.
+3. Create author confusion — the user cannot predict what their diagram will look like until it
+   crosses an invisible threshold.
+
+**Implementation:** The selection is implemented as a static mapping in each diagram's
+`layout.ts` (already the existing pattern). No registry or runtime selector is needed.
+
+**Deferred (not in this initiative):** Performance fallbacks for pathologically large graphs
+(e.g., thousands of nodes) may be addressed in a separate performance initiative. That work
+would use the same algorithm but with approximation heuristics (e.g., fewer crossing-min
+sweeps), not a different algorithm family — so it preserves visual continuity.
+
+**Confirmed scope of static dispatch:**
+
+| Diagram kind | Algorithm family | Selection |
+|---|---|---|
+| flowchart | Sugiyama 4-phase layered | Static (TB or LR from diagram direction) |
+| class, state, er, c4, block, requirement | Sugiyama-lite layered (`layered.ts`) | Static |
+| mindmap | B–J–L tidy tree (`tree.ts`) | Static |
+| ds/tree, trie, unionfind | B–J–L tidy tree (`tree.ts`) | Static |
+| ds/nodegraph | Sugiyama-lite layered (`layered.ts`) | Static |
+| sequence, gantt, gitgraph, timeline | Positional by order/time | No algorithm; static positional |
+| kanban, packet | Strip placement | Static strip |
+| pie, radar, quadrant, xychart | Polar / Cartesian math | Static math |
+| sankey | Flow-channel placement | Static custom |
+| architecture, block (top-level), journey | Custom | Static custom |
+| poster (cell placement) | Grid occupancy assignment | Static grid |
+| poster (cross-link routing) | engine3 cost-function | Static engine selection |
+
+### 4.2 Poster Treatment: Dedicated Phase — CONFIRMED
+
+The poster is architecturally distinct from all other diagram types and must be treated in its
+own dedicated phase (Phase 4) for the following reasons:
+
+**The core problem:** Poster cross-diagram connectors must route through the inter-cell space of
+a grid of independently-rendered diagram cells. Each cell has its own coordinate space and
+internal layout; the cross-link router (engine3) operates in poster-global space after
+transforming anchor points. The key difficulties are:
+
+1. **Obstacle heterogeneity.** The obstacle set for a poster connector consists of the bounding
+   boxes of ALL cells (not just the source and target cell). Routing cannot be solved per
+   diagram — it requires global knowledge of all cell positions and sizes.
+2. **Coordinate space transforms.** Each diagram cell produces anchors in its own local
+   coordinate space. The engine must transform those anchors to poster-global space before
+   routing, and the transform is non-trivial for row-span or column-span cells (the cell's
+   origin shifts based on grid placement).
+3. **Port clustering.** Multiple connectors may share the same cell wall. Port ordering on a
+   wall must be globally coherent — a connector that enters the left wall of cell (2,1) must
+   not cross a connector that enters the left wall of cell (2,1) at a different port if they
+   connect to different directions.
+4. **Scale independence.** Connectors should route cleanly regardless of how many cells are in
+   the grid or how varied the cell sizes are.
+
+This is a hard cross-diagram routing problem that is NOT solved by the intra-diagram layout
+improvements in Phases 1–3. It requires deep engagement with engine3.ts (1073 lines) and the
+poster layout kernel (548 lines). Attempting to interleave this work with the simpler diagram
+upgrades would create a moving-target situation.
+
+**Phase 4 is a mandatory gate for Phase 5** (design doc must describe the finalized
+architecture).
+
+### 4.3 What Is Out of Scope
+
+The following are explicitly **deferred** and not part of this initiative:
+
+- **External library integration (elk.js, dagre-D3, d3-force):** The catalog (Phase 0) will
+  describe these as academic references and identify where their algorithms map to Triton kinds.
+  Triton will NOT adopt them as runtime dependencies. The algorithms will be implemented in
+  TypeScript in the existing kernel files. Rationale: Triton's determinism contract and
+  zero-external-dependency rule for core conflict with these libraries' design.
+- **Adaptive / runtime algorithm switching:** See §4.1.
+- **3D or radial layout for general graphs:** Not a Triton use case in this initiative.
+- **Animation/transition between layouts:** Out of scope for a compiler; belongs to a renderer.
+- **Force-directed layouts for any current diagram kind:** No Triton diagram benefits from
+  non-deterministic force convergence. Force-directed is documented in the catalog but not
+  adopted.
+- **New diagram kinds:** This initiative improves existing layouts only. New kinds go through the
+  normal grammar spec process.
+
+---
+
+## 5. Risk Flags
+
+| Risk | Severity | Mitigation |
+|------|----------|-----------|
+| **Brandes–Köpf introduces layout discontinuity** — existing goldens will change significantly for flowchart/class/state/er. Users relying on deterministic exact pixel positions will notice. | Medium | Golden updates are expected and permitted. Communicate to ormasoftchile before Phase 1 merge that golden SVGs will change. The new layout should be strictly better visually. |
+| **Crossing minimization is NP-hard; barycenter is a heuristic** — results may differ from Mermaid's dagre output by large amounts on complex graphs. | Low–Medium | Acceptable: Triton is explicitly better-than-Mermaid. But run `examples/flowchart/` visual check on the most complex example before merge. |
+| **engine3 cost weights are corpus-calibrated to current (suboptimal) layouts** — re-tuning the weights in Phase 4 may cause regressions in currently-passing poster examples. | High | Phase 4 must audit ALL poster examples in `examples/poster/` and `examples/showcases/`. Aesthetic score is the objective gate; do not merge if any existing poster degrades below its current score. |
+| **Coordinate-space transform bugs in poster** — a cell at grid position (row=2, col=1) with a row-span may have an offset that differs from a simple `row × rowHeight` computation. Off-by-one in the transform would cause connectors to attach to the wrong wall point. | High | Phase 4B must add explicit unit tests for anchor→global coordinate transforms covering span cells. |
+
+---
+
+### 2026-06-27: Layout Algorithm Research — David
+
+# Layout Algorithm Research
+
+**Author:** David (Research Lead)
+**Date:** 2026-06-27
+**Status:** COMPLETE — Phase 0 deliverable for the Layout Algorithm Improvement Initiative
+**Requested by:** ormasoftchile
+
+All claims are backed by direct code reading of Triton's `src/` tree, the
+elkjs/dagre/d3-dag GitHub READMEs and source, and primary-literature citations.
+
+This is a comprehensive research catalog examining:
+- ELK.js (Eclipse Layout Kernel) with its 8-algorithm suite
+- Dagre's full Sugiyama pipeline implementation
+- D3 layout modules (hierarchy, force, dag)
+- Academic foundations (Sugiyama 1981, Gansner 1993, Brandes–Köpf 2002, Buchheim 2002)
+- Routing algorithms (orthogonal, bézier, port-based)
+- Applicability matrix covering all 21 Triton diagram types
+- Current Triton inventory of layouts and gaps
+
+[Full research document with all algorithm details, complexity analysis, code examples, and BibTeX references — see design/triton.bib for citation details]
+
+**Key findings:**
+- Crossing minimization is **missing from all layered layouts** (class, state, ER, C4, architecture, requirement, flowchart).
+- Coordinate assignment uses naive centering, not Brandes–Köpf.
+- ER uses a directed layered algorithm but should use an undirected stress/force algorithm.
+- ELK.js, dagre, and d3-dag are mature reference implementations but Triton will not adopt them as runtime dependencies — algorithms will be implemented natively in TypeScript.
+
+---
+
+### 2026-06-27: Layout Algorithm Audit — Edsger
+
+# Layout Algorithm Audit
+
+**Author:** Edsger (Layout Algorithms) · **Date:** 2026-06-27
+
+## Per-Diagram Audit Summary
+
+A full per-diagram quality audit across all 21 Triton diagram types, assessing algorithm family, current implementation quality (1–5 scale), key weaknesses, and priority for improvement.
+
+**Key findings:**
+- **Shared kernel (`src/graph/layered.ts`):** No crossing minimization; nodes assigned to layers in insertion order (gap: **highest-leverage single fix**)
+- **Flowchart (`src/diagrams/flowchart/layout.ts`):** Hardcoded node sizes; no crossing minimization; overlapping in dense diagrams
+- **Poster cross-link routing:** 5-class problem
+  1. Routes pass through cells they shouldn't enter (small-cell CELL_SHRINK=12px bug produces zero/negative obstacles for ≤24px wide cells)
+  2. Port crowding on shared nodes; phase-0 port assignment doesn't fix this in repair pass
+  3. Channel separation produces visual clumps; parallel routes not redistributed across full gap width
+  4. Single repair pass insufficient for 3+ mutually crossing routes
+  5. No corridor pre-planning; routes detour around 3+ intermediate cell obstacles instead of threading through inter-cell gaps
+
+**Visual verification protocol:**
+- Command: `node scripts/preview.mjs examples/<diagram-type>/`
+- 7-point universal checklist (no overlaps, edge crossings minimized, labels readable, etc.)
+- Diagram-specific checks per type
+- Pass criteria: all universal checks + no diagram-specific failures
+- Note: `resvg` not installed; open SVG files directly in browser
+
+**Optimal poster routing algorithm (5 steps):**
+1. Pre-compute corridor graph of inter-cell gaps with available width
+2. Route planning: Dijkstra over grid graph to find cell traversal sequence
+3. Port assignment per corridor boundary (non-crossing fans)
+4. Coordinate routing: rectilinear path within corridor sequence
+5. Crossing minimization within corridors (linear extension per corridor)
+
+**Improvement recommendations ranked by priority and impact:**
+1. Add crossing minimization to `layered.ts` (barycentric/median heuristic)
+2. Poster cross-link corridor routing (pre-compute cell adjacency, fix small-cell shrink bug)
+3. Flowchart variable node sizes (measure label width, derive dimensions)
+4. Sankey ribbon ordering (barycentric reordering per adjacent layer pair)
+5. Architecture/topology adaptive grid
+6. Mindmap bidirectional growth
+7. Long-edge dummy nodes in `layered.ts`
+8. Various hardcoded dimension parameters (quadrant, xychart, gantt, pie, radar, journey, sequence)
+
+---
+
+### 2026-06-27: Library Source Roots — Coordinator
+
+### Library source roots — added to workspace by ormasoftchile
+
+**By:** Coordinator (via ormasoftchile)
+**What:** Four layout library source trees are available locally for direct reading.
+
+## Source Locations
+
+| Library | Root | Key Source |
+|---------|------|------------|
+| **ELK.js** | `/Volumes/Projects/elkjs/` | `src/js/` (JS wrapper), `src/java/` (algorithm implementations in Java) |
+| **dagre** | `/Volumes/Projects/dagre/` | `lib/rank/network-simplex.ts` (Network Simplex ranking), `lib/order/` (barycenter crossing minimization), `lib/position/bk.ts` (Brandes–Köpf coord assignment) |
+| **d3-force** | `/Volumes/Projects/d3-force/` | `src/simulation.js`, `src/manyBody.js`, `src/link.js`, `src/collide.js` |
+| **cytoscape.js** | `/Volumes/Projects/cytoscape.js/` | `src/extensions/layout/cose.mjs` (CoSE force-directed), `src/extensions/layout/breadthfirst.mjs`, `src/extensions/layout/concentric.mjs`, `src/extensions/layout/grid.mjs` |
+
+## Key Confirmed Findings (from coordinator inspection)
+
+- **dagre** implements the full Sugiyama pipeline: Network Simplex (rank) → barycenter crossing minimization → Brandes–Köpf (coord assignment)
+- **cytoscape.js CoSE** (Compound Spring Embedder) is a force-directed algorithm designed for compound/nested graphs — directly relevant to poster cross-link layout
+- **d3-force** uses Barnes-Hut approximation for O(n log n) many-body simulation
+- **ELK.js** Java algorithms are compiled to JS via GWT — the JS wrapper is thin; the substance is in `src/java/`
+
+**David:** Read these sources directly instead of web-fetching. Prioritize dagre `lib/` and cytoscape CoSE source.
+**Edsger:** The dagre Brandes–Köpf implementation at `lib/position/bk.ts` is a direct reference for improving `src/graph/layered.ts` coordinate assignment.
+

@@ -47,3 +47,44 @@ Full prior-art / research detail moved to `history-archive.md`. ⚠️ Much of i
 **Recommendation headline:** **(A) Precompile + `\includegraphics`, PNG-via-resvg default (zero deps, ✅ everywhere incl. Overleaf), vector PDF (rsvg-convert) opt-in, native Triton PDF backend as Phase-3 endgame; add a CLI now.** Folder: `latex/{RESEARCH.md,README.md,triton.sty,bin/,examples/,Makefile}`. Phase 2 adds the `design/sections/` "LaTeX integration" section (currently ends at 08-status) — noted, not written.
 
 **Lessons:** the ubiquity matrix collapses to one fact — only *precompiled, committed* assets are ✅ on Overleaf, and PNG-via-resvg / a native PDF backend need *no LaTeX-side dependency at all*. Ubiquity ⇒ approach A + committed asset. The engine axis (pdf/Xe/Lua) barely matters because by `\includegraphics` time it's already a PDF/PNG.
+
+### 2026-06-27 — Layout Algorithm Research (Phase 0 of Layout Improvement Initiative)
+
+**Task:** Produce a thorough catalog of layout and routing algorithms for the Layout Algorithm Improvement Initiative, covering ELK.js, dagre, d3 layout modules, academic foundations, routing algorithms, and an applicability matrix for all Triton diagram types.
+
+**Deliverable:** `.squad/decisions/inbox/david-layout-research.md`
+
+**Key findings from direct code reading of `src/`:**
+
+- **`src/graph/layered.ts`** is the shared layout kernel used by class, state, ER, C4, architecture, and requirement diagrams. It implements only: (1) longest-path ranking (Bellman-Ford relaxation with cycle cap), (2) centered coordinate assignment. **No crossing minimization. No Brandes–Köpf.** This is a "Sugiyama-lite" that omits phases 3 and 4.
+- **Flowchart** (`src/diagrams/flowchart/layout.ts`) uses its own `assignLayers` + centering — same deficiency, separate code. It does not use `layeredLayout`.
+- Diagrams with **correct, optimal layouts** for their types: sequence, gantt, timeline, gitgraph, sankey, kanban, journey, pie, radar, quadrant, xychart (all custom arithmetic/lane layouts — no graph algorithm needed).
+- Mindmap and tree use custom post-order centering that approximates (but is not) the full Buchheim–Jünger–Leipert O(n) algorithm.
+- ER is using a **directed** layered algorithm but should use an **undirected** stress/force approach (ELK `stress` or Kamada–Kawai).
+
+**Library findings:**
+
+- **ELK.js**: 9 algorithms. Flagship is `layered` (full 5-phase Sugiyama + ports + compound graphs + orthogonal routing). API: `elk.layout(graph)` returns a Promise of the mutated JSON graph with `x`/`y` on each node and `sections[].bendPoints` on each edge. ~500 KB bundle.
+- **Dagre**: 4-phase Sugiyama; barycenter crossing min (not median, not ILP); Brandes–Köpf coordinate assignment (`lib/position/bk.js`); polyline edge routing only (no orthogonal). Largely abandoned (2020). d3-dag provides a drop-in shim.
+- **d3-dag** (erikbrinkman): TypeScript-first; ILP-optimal crossing minimization (`decrossOpt`); `coordQuad` quadratic coordinate assignment; Zherebko and Grid layouts not available elsewhere; `~50×` smaller than elkjs. Drop-in dagre replacement.
+- **d3-hierarchy**: 5 layouts; `tree()` uses Buchheim O(n) tidy tree; `cluster()` is tidy with uniform leaf depth; `treemap()` uses squarify; `pack()` greedy circle packing.
+- **d3-force**: physics simulation; non-deterministic by default (random init); Barnes-Hut N-body. Unsuitable for byte-stable rendering.
+
+**Algorithm recommendations per diagram type** (full table in research report):
+
+- Flowchart / class / state / C4 / requirement: → full Sugiyama (d3-dag `sugiyama()` medium quality preset or ELK `layered`)
+- ER: → ELK `stress` (Kamada–Kawai geodesic distance preservation) or ELK `layered` if hierarchy present
+- Architecture: → ELK `layered` with compound-graph groups
+- Mindmap / tree: → d3-hierarchy `tree()` (Buchheim O(n))
+- Poster cross-links: → ELK `box` + orthogonal routing with channel allocation
+- All chart types (gantt, pie, radar, etc.): → keep custom arithmetic layouts
+
+**BibTeX keys added to research report** (not yet in `design/triton.bib` — awaiting Scribe/LaTeX agent integration):
+`sugiyama1981`, `gansner1993`, `reingold1981`, `buchheim2002`, `brandeskoepf2002`, `kamada1989`, `tamassia1987`, `froehlich1997`, `elkjs2024`, `dagre2020`, `d3hierarchy2024`, `d3dag2024`, `d3force2024`
+
+**Naming convention note:** Leslie's phase plan references `Schulze 2017 (ELK layered)` — this is the ELK layered algorithm's paper by Schulze & Rüegg; I was unable to locate the precise citation during this research session. Recommend a follow-up search for `Schulze Rüegg 2017 ELK layered` to complete the bib.
+
+**Lessons:**
+- The biggest layout gap in Triton is the **missing crossing minimization phase** — the shared `layeredLayout` kernel was clearly built as a placeholder. Adding barycenter sweeps + Brandes–Köpf is Phase 1 of the improvement initiative.
+- d3-dag is the pragmatic upgrade for the JS/TS world: smaller bundle than elkjs, TypeScript-native, ILP crossing min available, dagre API compatible.
+- ELK.js is the right choice if Triton needs compound graph layout (groups in architecture diagrams) or orthogonal edge routing with port awareness.

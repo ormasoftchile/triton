@@ -154,3 +154,29 @@ Specified the `trace` construct (§30b.8): a named, ordered, optionally-typed mu
 **Cross-agent note (Scribe, 2026-06-24):** A new ISOLATED `latex/` package (`@triton/latex`, mirrors `extension/`) now renders diagrams to **vector PDF** for LaTeX `\includegraphics` via a `triton-latex` CLI that reuses core `renderSync()` → SVG → `pdfkit`+`svg-to-pdfkit` (pure-JS, no system binaries). Constraint to respect across the composition/contract layer: **core Triton gains ZERO new dependencies** (all PDF deps live in `latex/`'s own workspace, kept `external`; root package/workspace/tsconfig diffs are EMPTY). The Scene contract (element set rect/circle/path/text/group + defs markers) and the `renderSync()` `Result<string>` SVG signature are now ALSO a downstream dependency of LaTeX PDF output — keep stable or update `latex/src/{cli,pdf}.ts` in the same PR. Merged as PR #24.
 
 **Cross-agent note (Scribe, 2026-06-24):** Two LaTeX follow-ups landed. (1) **Inline `triton` env (PR #25)** — Triton source authored DIRECTLY in `.tex` between `\begin{triton}…\end{triton}` (TikZ-style, shell-escape → vector PDF at compile time); `\triton{name}` precompile = Overleaf fallback. Inline is the new headline mode. (2) **Design spec dogfoods it (PR #27)** — all 8 design figures are inline `\begin{triton}` blocks (PNG pipeline + `\ourfig` deleted). Caveats: no inline `[width=]` (use `\tritonnext`/`\tritonsetup`); shell-escape + Node + CLI required. The earlier "cyclic flowcharts hang" caveat is GONE — fixed in core PR #28.
+
+---
+
+## Learnings
+
+### Layout Algorithm Improvement Initiative — Phase Plan (2026-06-27)
+
+Produced formal phase plan `.squad/decisions/inbox/leslie-layout-phases.md` governing all layout algorithm work.
+
+**Key decisions made:**
+
+- **Static dispatch is the selection method** — algorithm selection is a semantic property of each diagram kind, hardcoded in that kind's `layout.ts`. No dynamic/adaptive switching. Rationale: violates determinism contract (same source must produce same layout); adds combinatorial test burden; creates invisible thresholds that confuse authors. Performance fallbacks (approximate heuristics for huge graphs) are explicitly deferred.
+
+- **Five phases:** (0) Research & catalog (David/Scribe), (1) Flowchart full Sugiyama upgrade (Barbara), (2) Shared layered.ts kernel upgrade (Barbara), (3) Simple diagrams audit (Barbara), (4) Poster cross-diagram routing deep work (Barbara + Leslie review), (5) Design doc consolidation (Scribe/Leslie).
+
+- **Flowchart needs Brandes–Köpf + barycenter** — the current implementation has its own layering (with cycle breaking from PR #28) but has no crossing minimization and no proper coordinate assignment. This is Phase 1's sole job. Phase 2 generalizes those gains into `src/graph/layered.ts` for class/state/er/c4/block/requirement/ds/nodegraph.
+
+- **Poster gets its own dedicated phase (Phase 4)** because cross-diagram routing is fundamentally different: heterogeneous obstacle set, coordinate-space transforms per cell, global port-clustering on shared walls. engine3.ts (1073 lines) already sophisticated but aesthetic score is MEDIOCRE (0.649); Phase 4 targets GOOD (≥ 0.75).
+
+- **Visual verification workflow defined:** `node scripts/preview.mjs examples/<type>/` → open SVGs; 7-point visual checklist (no overlaps, crossings minimized, labels readable, spacing consistent, direction respected, cycles clean, poster-specific connector separation). `pnpm test` green is a hard gate throughout.
+
+- **Out of scope:** elk.js/dagre-D3/d3-force as runtime dependencies (catalog only, internal TS implementations); adaptive algorithm switching; force-directed layout; new diagram kinds.
+
+- **Top risk:** engine3 cost weights are calibrated to current (suboptimal) layouts — Phase 4 must not allow any poster to degrade below its current aesthetic score while improving the overall target.
+
+- **Design doc:** new `design/sections/10-layout-algorithms.tex` (Phase 0 draft → Phase 5 final); `design/sections/04-kernels.tex` updated for full Sugiyama after Phase 2; `design/sections/06-composition.tex` updated for engine3 architecture after Phase 4.
