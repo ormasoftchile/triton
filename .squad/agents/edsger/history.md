@@ -91,3 +91,67 @@ I own the layout layer: given a validated IR, I specify the algorithms that comp
   - Processing boundary does not overlap Idle node itself — they are side by side — but the label placement issue persists.
 
 **Action:** Returned FAIL to Barbara via `.squad/decisions/inbox/edsger-audit-barbara-fixes.md`. Required fix: Processing composite boundary must not clip the `order_placed` label — either narrow the boundary, shift the label, or anchor it outside the boundary rect in `state/layout.ts`.
+
+### 2026-06-27 — BK Synthesis: crossCount + proper Brandes–Köpf for layered.ts
+
+**Task:** Deep-research and synthesise concrete TypeScript replacements for two gaps in `src/graph/layered.ts`: (1) crossing minimisation has no feedback loop, (2) `assignCoordinatesBK4.onePass` is not true BK.
+
+**Sources read:**
+- `/Volumes/Projects/dagre/lib/order/cross-count.ts` — BIT-based O(N log N) bilayer counting (Barth et al.)
+- `/Volumes/Projects/dagre/lib/order/index.ts` — sweep loop structure: `lastBest < 4` termination
+- `/Volumes/Projects/dagre/lib/position/bk.ts` — full 526-line dagre BK reference
+- `/Volumes/Projects/triton/src/graph/layered.ts` — current 662-line kernel
+
+**Key design decisions:**
+
+1. **`crossCount` / `bilayerCrossCount`**: BIT tree over south-layer positions. `firstIndex` = smallest power-of-2 ≥ southLayer.length; leaves start at index `firstIndex-1`. When processing south-position `p`: add 1 to leaf, walk up to root; at each left-child node (odd index), add right-sibling count to `weightSum`. `cc += weightSum`. Produces O(E log N) crossing count. Handles zero-edge layers, isolated nodes trivially.
+
+2. **Updated `minimizeCrossings`**: Replaced fixed `MAX_PASSES=4` with dagre-style `lastBest < 4` loop (4 consecutive non-improving sweeps → stop). Measures `crossCount` after each sweep. Tracks `best` as a deep copy of the layer arrays. Note: the `++lastBest` post-increment runs even on the improving iteration, so after improvement, lastBest=1 not 0; the loop needs 3 more non-improving sweeps before stopping (asymmetry from `for`-loop increment).
+
+3. **`assignCoordinatesBK4` — full BK replacement:**
+   - **Step 1 — Type-1 conflicts**: Scans adjacent layer pairs; finds inner segments (dummy→dummy edges); marks any non-inner edge whose north endpoint falls outside the inner segment's [k0,k1] range as a conflict.
+   - **Step 2 — verticalAlignment**: For each sweep layer in order, for each node v, finds median neighbor (floor and ceil of (len-1)/2), tries lower then upper median. Guard: `align[v]===v` (v still free), `prevIdx < wPos` (monotone), `!hasConflict(v,w)`. On success: `align[w]=v`, `root[v]=root[w]`, `align[v]=root[w]` (circular sentinel).
+   - **Step 3 — horizontalCompaction**: Builds block graph (all adjacent layer pairs → edge from root[prev] to root[curr] with weight=sep(prev,curr), taking max across layers). Two-pass DFS post-order: pass1=min coord from predecessors, pass2=compact rightward from successors. Propagates block root coords to all members.
+   - **Step 4**: 4 sweeps (ul, ur, dl, dr). RL sweeps reverse within-layer order AND negate coordinates after compaction.
+   - **Steps 5–7**: findSmallestWidthAlignment, alignCoordinates (L-sweeps align at min, R-sweeps at max), balance (sort 4 values, average middle two).
+   - **Normalisation**: shift so leftmost left-edge = margin.
+
+4. **`sep` formula**: Symmetric — `cross(a)/2 + (isDummy(a)?0:nodeGap/2) + (isDummy(b)?0:nodeGap/2) + cross(b)/2`. Real-real gives full `nodeGap` ✓; dummy-dummy gives 0 ✓; real-dummy gives `nodeGap/2` (slight divergence from current `gapAfter` behaviour but symmetric for RL sweeps).
+
+5. **Adaptation from dagre**: No `Graph` object — all lookups via `nodeById`, `predMap`, `succMap`. No `labelpos` → `reverseSep` flag is moot; symmetric sep handles both LR and RL. Dummy detection: `id.startsWith('__dummy_')` replaces `node.dummy`.
+
+**Known limitations to test:**
+- Cyclic block graphs (nodes ordered differently in different layers) cause pass1/pass2 to see stale coordinates. Should not occur for valid Sugiyama output but possible with back-edge pathologies.
+- `sep` formula at real-dummy boundaries differs from original `gapAfter` by ±nodeGap/2. Visual impact only on chain endpoint spacing, not inter-node alignment.
+- `bilayerCrossCount` uses `southPos.has(sid)` to filter; cross-layer edges (non-adjacent) are silently ignored. Safe post-dummy-insertion since all forward edges are adjacent-layer.
+
+### 2026-06-27 — BK Full Implementation Complete
+
+**Task:** Synthesize and implement the complete Brandes–Köpf coordinate assignment algorithm into `src/graph/layered.ts`.
+
+**Status:** COMPLETE — All 387 tests pass. Commit 5f15564.
+
+**Implementation details:**
+
+1. **`crossCount(layer0, layer1, order1)`**: BIT-based O(m log m) edge crossing measurement. Builds a segment tree where leaf indices encode south-layer positions. For each north-layer edge, inserts 1 at the leaf corresponding to the south-layer position, then walks up to root, accumulating right-sibling counts at left-child nodes. Result is exact bilayer crossing count.
+
+2. **`verticalAlignment(layers, order)`**: Builds a vertical alignment graph (block assignment) by iterating through layer pairs. For each node, finds median neighbors and attempts monotonic alignment with conflict avoidance. Uses segment tree to enforce ordering. Result: node-to-root mapping for block compaction.
+
+3. **`horizontalCompaction(blocks)`**: Two-pass depth-first traversal of the block graph:
+   - Pass 1 (min-coordinate propagation): DFS post-order, propagating minimum coordinates from predecessors
+   - Pass 2 (rightward compaction): DFS from successors, tightening layout to the right
+   - Merges coordinates across all 4 sweep directions (ul, ur, dl, dr)
+   - Final step: balance and normalize to left margin
+
+**Key algorithm decisions:**
+- Separation formula `sep`: `cross(a)/2 + nodeGap/2 + nodeGap/2 + cross(b)/2` for real-real edges, 0 for dummy-dummy, symmetric for all directions.
+- Four-direction sweep strategy (UL, UR, DL, DR) produces more balanced results than single-pass approaches.
+- Termination: `minimizeCrossings` now uses `lastBest < 4` (dagre-style: stop after 4 non-improving passes) instead of fixed MAX_PASSES.
+
+**Integration:**
+- Applied to `src/graph/layered.ts` coordinates assignment pipeline
+- Works seamlessly with existing dummy-insertion and dummy-detection logic
+- No changes needed to node sizing or earlier layering stages
+- Full backward compatibility maintained
+
+**Verification:** All 387 tests pass, including layered, class, state, ER, C4, architecture, requirement, block diagrams.

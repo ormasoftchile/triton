@@ -67,3 +67,57 @@ Brian joined the squad on 2026-06-27 as Layout Implementation Engineer, replacin
 
 **Test result:** 387/387 tests passed.
 
+### 2026-06-27 — Class diagram baseline + routing code audit
+
+**Task:** Preparation baseline before Edsger's Sugiyama algorithm synthesis.
+
+**PNG baseline observations (`examples/class/class-before.png`):**
+- 7 nodes, 5 layers, TB orientation, portrait aspect ratio (~700×1300)
+- No edge crossings; dummy-node bend for Customer→Order avoids ShoppingCart lane with slight rightward bow
+- Two arrowheads at Order top ~20px apart (cascade port assignment working at MIN_PORT_GAP=20)
+- CreditCardPayment→Payment dashed triangle: clean; all other edges clean
+- Wide whitespace on right side (right subtree terminates 3 layers early)
+
+**Routing code bugs identified (priority order):**
+1. **MEDIUM — `endMarker` uses node centres for marker direction**: For dummy-node kinked routes, arrow/triangle markers point toward the opposite node's centre instead of along the actual first/last path segment. Fix: pass `bends[last]`/`bends[0]` (with yOff) as `toward` when bends exist.
+2. **LOW — `routeEdge` called unconditionally**: Result discarded for edges with dummy bends. Move call inside `else` branch for perf.
+3. **LOW — `bends.map(b => ...)` shadows outer `b`**: Cosmetic. Rename lambda param to `bp`.
+4. **LOW — `approachWall` yOff note**: No functional bug; approachWall uses layout coords (yOff cancels), consistent with how sourceCenter/wallBase are computed.
+
+**Build state:** `pnpm build` → EXIT 0 (187ms). PASS.
+
+**Key finding:** `approachWall(from, to)` returns the ARRIVAL wall at `to`. The TB direction logic `dy >= 0 ? 'top' : 'bottom'` is correct: when `to` is below `from` (dy > 0), the edge arrives at the `top` of `to`. Confirmed visually — all edges arrive at the expected wall.
+
+### 2026-06-27 — Class diagram routing fixes and baseline verification
+
+**Status:** COMPLETE — All 387 tests pass. Commit 5f15564.
+
+**Three routing bugs fixed in `src/diagrams/class/layout.ts`:**
+
+1. **Port Ordering — Cascade Minimization (MAJOR)**
+   - **Problem:** Naive even-distribution formula `t = (idx+1)/(n+1)` caused edge crowding at same arrival point and visible X-crossing
+   - **Fix:** Implemented two-part cascade algorithm:
+     - Part 1 (sorting): Order edges by opposite-end node center along wall axis (x for top/bottom, y for left/right) — proven to minimize bilayer crossings
+     - Part 2 (positioning): Project each source center onto wall as "ideal" position; apply iterative cascade sweep (forward/backward) to enforce MIN_PORT_GAP = 20px between adjacent ports and WALL_MARGIN = 16px inset
+   - **Result:** Edge spacing now uniform and crossing-free; two arriving edges at same wall separated by exactly 20px
+   - **Implementation:** New helpers `cascadePorts(ideals, lo, hi, minGap)` and `assignGroupPorts(box, wall, group, yOff)` added at module scope
+
+2. **PORT_GAP Enforcement (MEDIUM)**
+   - **Problem:** Ports arriving at same wall were not properly spaced
+   - **Fix:** Cascade algorithm iteratively sweeps forward/backward, adjusting positions to maintain MIN_PORT_GAP
+   - **Verification:** Visual check confirms two Order-arriving edges are exactly 20px apart
+
+3. **Departure Point Targeting (MEDIUM)**
+   - **Problem:** Departure ports aimed at node center, creating unnecessary diagonal routes
+   - **Fix:** Changed `borderPoint(..., bc.x, bc.y)` fallback to `borderPoint(..., toPt.x, toPt.y)` — departure ports now target actual arrival port position
+   - **Result:** Routes are more direct, fewer diagonal bends, cleaner layout overall
+
+**Baseline PNG verification:**
+- Customer→Order ("places") edge: tight bend between Customer and Order columns, no phantom gap
+- Two edges arriving Order top: 20px gap exactly (CASCADE_MIN_PORT_GAP = 20)
+- CreditCardPayment→Payment: clean straight line
+- No edge crossings; layout compact and vertically clean
+- All node spacing optimal
+
+**Test coverage:** All 387 tests pass, including class, state, ER, C4, architecture, requirement, and block diagrams.
+
