@@ -226,8 +226,29 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     let labelMid: { x: number; y: number };
 
     if (bends && bends.length > 0) {
-      const laneX  = bends[0]!.x;
+      let laneX    = bends[0]!.x;
       const exitY  = bends[0]!.y + yOff;
+
+      // Degenerate case: dummy landed in the same block chain as source/target,
+      // collapsing the skip lane to the same x as both endpoints. The 5-segment
+      // path would draw a straight vertical line through intermediate nodes.
+      const LANE_DEGENERATE_THRESHOLD = 8;
+      const laneIsDegenerate = Math.abs(laneX - fromPt.x) < LANE_DEGENERATE_THRESHOLD
+                            && Math.abs(laneX - toPt.x)   < LANE_DEGENERATE_THRESHOLD;
+      if (laneIsDegenerate) {
+        // Collect boxes that sit strictly between source and target vertically.
+        const minY = Math.min(fromPt.y, toPt.y);
+        const maxY = Math.max(fromPt.y, toPt.y);
+        const intermediateBoxes = allBoxes.filter(bx => {
+          const boxTop    = bx.y + yOff;
+          const boxBottom = bx.y + yOff + bx.height;
+          return boxTop > minY && boxBottom < maxY;
+        });
+        if (intermediateBoxes.length > 0) {
+          laneX = Math.max(...intermediateBoxes.map(bx => bx.x + bx.width)) + 16;
+        }
+        // else: no intermediate nodes — straight vertical is fine, keep fromPt.x
+      }
       const entryY = toPt.y - LAYER_GAP / 2;
       safePath = [
         `M ${rhu(fromPt.x)} ${rhu(fromPt.y)}`,
