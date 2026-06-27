@@ -120,7 +120,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   const nodes: GraphNode[] = ir.classes.map(c => ({ id: c.name, width: sizes.get(c.name)!.w, height: sizes.get(c.name)!.h }));
   const edges: GraphEdge[] = ir.relations.map(r =>
     r.leftHead === 'triangle' ? { from: r.right, to: r.left } : { from: r.left, to: r.right });
-  const laid = layeredLayout(nodes, edges, { direction: 'TB', layerGap: 64, nodeGap: 46, margin });
+  const LAYER_GAP = 64;
+  const laid = layeredLayout(nodes, edges, { direction: 'TB', layerGap: LAYER_GAP, nodeGap: 46, margin });
 
   const title  = ir.metadata.title;
   const titleH = title ? typography.titleFontSize + 14 : 0;
@@ -223,12 +224,27 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const bends = laid.edgeBends.get(ri);
     let safePath: string;
     let labelMid: { x: number; y: number };
+
     if (bends && bends.length > 0) {
-      // Skip edge: route a clean 3-segment V→H→V path through the vertical midpoint
-      // so the path is visually distinct from direct single-hop edges.
-      const midY = (fromPt.y + toPt.y) / 2;
-      safePath = `M ${rhu(fromPt.x)} ${rhu(fromPt.y)} L ${rhu(fromPt.x)} ${rhu(midY)} L ${rhu(toPt.x)} ${rhu(midY)} L ${rhu(toPt.x)} ${rhu(toPt.y)}`;
-      labelMid = { x: (fromPt.x + toPt.x) / 2, y: midY };
+      // Skip edge: 5-segment bypass corridor outside all node bounding boxes.
+      // Ensures no visual overlap with direct-hop edges in shared vertical corridors.
+      const rightX    = Math.max(...allBoxes.map(b => b.x + b.width)) + 20;
+      const leftX     = Math.min(...allBoxes.map(b => b.x))           - 20;
+      const travelR   = Math.abs(fromPt.x - rightX) + Math.abs(toPt.x - rightX);
+      const travelL   = Math.abs(fromPt.x - leftX)  + Math.abs(toPt.x - leftX);
+      const bypassX   = travelR <= travelL ? rightX : leftX;
+      const exitY     = fromPt.y + LAYER_GAP / 2;   // midpoint of gap below source
+      const entryY    = toPt.y   - LAYER_GAP / 2;   // midpoint of gap above target
+      safePath = [
+        `M ${rhu(fromPt.x)} ${rhu(fromPt.y)}`,
+        `L ${rhu(fromPt.x)} ${rhu(exitY)}`,
+        `L ${rhu(bypassX)}  ${rhu(exitY)}`,
+        `L ${rhu(bypassX)}  ${rhu(entryY)}`,
+        `L ${rhu(toPt.x)}   ${rhu(entryY)}`,
+        `L ${rhu(toPt.x)}   ${rhu(toPt.y)}`,
+      ].join(' ');
+      // Label on the long vertical bypass segment, vertically centred.
+      labelMid = { x: bypassX, y: (exitY + entryY) / 2 };
     } else {
       const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
       safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
