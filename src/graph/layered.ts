@@ -5,9 +5,11 @@
  *   1. Longest-path layer assignment
  *   2a. DFS back-edge detection (proper cycle identification)
  *   2b. Dummy node insertion for skip edges (spans > 1 layer)
- *   3. Barycentric crossing minimisation — bi-directional sweeps, MAX_PASSES = 4
- *   4. Full 4-layout Brandes–Köpf coordinate assignment — median of 4 independent
- *      sweeps (TD+LR, TD+RL, BU+LR, BU+RL), per-node variable sizes
+ *   3. Barycentric crossing minimisation — bi-directional sweeps with BIT-based
+ *      cross-count feedback loop (Barth et al.); keeps best ordering seen
+ *   4. Full Brandes–Köpf coordinate assignment — type-1 conflict detection,
+ *      vertical alignment (block chains), horizontal compaction (block graph,
+ *      two-pass), 4 sweep directions, smallest-width selection, balance
  *   5. Dummy node removal + bend point extraction (edgeBends on LayeredResult)
  *
  * Shared by the node-link / UML diagram layouts (class, state, er, c4,
@@ -16,7 +18,7 @@
  * callers (they connect the returned boxes via the routing module).
  *
  * Deterministic: stable insertion order within a layer, no clock, no randomness.
- * Termination guaranteed: crossing-min pass cap = 4; layer-assignment cap = N passes.
+ * Termination guaranteed: crossing-min loop exits after 4 non-improving sweeps.
  */
 
 import { orthogonalRouter } from '../routing/router.js';
@@ -227,6 +229,77 @@ function insertDummyNodes(
   return { newNodes, newEdges, newBackEdgeSet, dummyChains };
 }
 
+// ─── Phase 3 Helper: BIT-Based Crossing Count ────────────────────────────────
+
+/**
+ * Count weighted edge crossings across all adjacent layer pairs.
+ * Uses the O(E log N) BIT algorithm from Barth et al., "Bilayer Cross Counting."
+ * All edge weights are uniform (1). Back-edges and self-loops are excluded.
+ */
+function crossCount(
+  byLayer: Map<number, GraphNode[]>,
+  edges: readonly GraphEdge[],
+  backEdgeSet: Set<number>,
+): number {
+  const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
+
+  const succList = new Map<string, string[]>();
+  for (const [, ns] of byLayer) for (const n of ns) succList.set(n.id, []);
+  edges.forEach((e, i) => {
+    if (backEdgeSet.has(i) || e.from === e.to) return;
+    succList.get(e.from)?.push(e.to);
+  });
+
+  let cc = 0;
+  for (let i = 1; i < layerKeys.length; i++) {
+    cc += bilayerCrossCount(
+      byLayer.get(layerKeys[i - 1]!)!,
+      byLayer.get(layerKeys[i]!)!,
+      succList,
+    );
+  }
+  return cc;
+}
+
+function bilayerCrossCount(
+  northLayer: GraphNode[],
+  southLayer: GraphNode[],
+  succList: Map<string, string[]>,
+): number {
+  if (southLayer.length === 0) return 0;
+
+  const southPos = new Map<string, number>();
+  southLayer.forEach((n, i) => southPos.set(n.id, i));
+
+  const positions: number[] = northLayer.flatMap(n =>
+    (succList.get(n.id) ?? [])
+      .filter(sid => southPos.has(sid))
+      .map(sid => southPos.get(sid)!)
+      .sort((a, b) => a - b),
+  );
+  if (positions.length === 0) return 0;
+
+  let firstIndex = 1;
+  while (firstIndex < southLayer.length) firstIndex <<= 1;
+  const treeSize = 2 * firstIndex - 1;
+  firstIndex    -= 1;
+  const tree = new Array<number>(treeSize).fill(0);
+
+  let cc = 0;
+  for (const pos of positions) {
+    let idx = pos + firstIndex;
+    tree[idx] = (tree[idx] ?? 0) + 1;
+    let weightSum = 0;
+    while (idx > 0) {
+      if (idx % 2 === 1) weightSum += tree[idx + 1]!;
+      idx = (idx - 1) >> 1;
+      tree[idx] = (tree[idx] ?? 0) + 1;
+    }
+    cc += weightSum;
+  }
+  return cc;
+}
+
 // ─── Phase 3: Barycentric Crossing Minimisation ───────────────────────────────
 
 /**
@@ -237,14 +310,14 @@ function insertDummyNodes(
  * - Nodes without neighbours in the reference layer keep their current relative
  *   order (their current position index is used as the barycenter).
  * - Tie-breaking uses the original insertion index — deterministic and stable.
- * - At most MAX_PASSES (4) bi-directional passes — provably terminates.
+ * - Sweeps continue until no strict improvement for 4 consecutive passes
+ *   (measured via BIT-based cross-count); best ordering is returned.
  */
 function minimizeCrossings(
   byLayer: Map<number, GraphNode[]>,
   edges: readonly GraphEdge[],
   backEdgeSet: Set<number>,
 ): Map<number, GraphNode[]> {
-  // Build forward-edge predecessor and successor maps.
   const pred = new Map<string, string[]>();
   const succ = new Map<string, string[]>();
   for (const [, nodes] of byLayer) {
@@ -258,15 +331,12 @@ function minimizeCrossings(
 
   const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
 
-  // Original insertion index — stable tie-break preserved across all passes.
   const origOrder = new Map<string, number>();
   for (const [, nodes] of byLayer) nodes.forEach((n, i) => origOrder.set(n.id, i));
 
-  // Working layer arrays starting from insertion order.
   const order = new Map<number, GraphNode[]>();
   for (const k of layerKeys) order.set(k, [...byLayer.get(k)!]);
 
-  // Position of each node in its current layer (rebuilt after every reorder).
   const posInLayer = new Map<string, number>();
   function rebuildPos(): void {
     for (const [, nodes] of order) nodes.forEach((n, i) => posInLayer.set(n.id, i));
@@ -278,50 +348,48 @@ function minimizeCrossings(
     const bary = curr.map((node, i) => {
       const nbrs = neighborMap.get(node.id) ?? [];
       if (nbrs.length === 0) {
-        // No anchoring neighbours: preserve current relative order.
         return { node, b: i, orig: origOrder.get(node.id) ?? i };
       }
       const sum = nbrs.reduce((s, nid) => s + (posInLayer.get(nid) ?? 0), 0);
       return { node, b: sum / nbrs.length, orig: origOrder.get(node.id) ?? i };
     });
-    // Stable sort: primary = barycenter, secondary = original insertion order.
-    bary.sort((a, b) => (a.b !== b.b ? a.b - b.b : a.orig - b.orig));
+    bary.sort((a, b) => a.b !== b.b ? a.b - b.b : a.orig - b.orig);
     order.set(layerIdx, bary.map(e => e.node));
     rebuildPos();
   }
 
-  const MAX_PASSES = 4;
-  for (let pass = 0; pass < MAX_PASSES; pass++) {
+  let bestCC = crossCount(order, edges, backEdgeSet);
+  const best = new Map<number, GraphNode[]>();
+  for (const [k, v] of order) best.set(k, [...v]);
+
+  // Sweep until no strict improvement for 4 consecutive passes.
+  for (let pass = 0, lastBest = 0; lastBest < 4; pass++, lastBest++) {
     if (pass % 2 === 0) {
-      // Downward sweep: reorder each layer using predecessor positions.
       for (let li = 1; li < layerKeys.length; li++) reorderLayer(layerKeys[li]!, pred);
     } else {
-      // Upward sweep: reorder each layer using successor positions.
       for (let li = layerKeys.length - 2; li >= 0; li--) reorderLayer(layerKeys[li]!, succ);
+    }
+    const cc = crossCount(order, edges, backEdgeSet);
+    if (cc < bestCC) {
+      lastBest = 0;
+      bestCC = cc;
+      for (const [k, v] of order) best.set(k, [...v]);
     }
   }
 
-  return order;
+  return best;
 }
 
-// ─── Phase 4: Full 4-Layout Brandes–Köpf Coordinate Assignment ───────────────
+// ─── Phase 4: Full Brandes–Köpf Coordinate Assignment ────────────────────────
 
 /**
- * Assign cross-axis positions using the full 4-layout Brandes–Köpf approach
- * (Sugiyama Phase 4), adapted for variable per-node sizes.
+ * Assign cross-axis positions using the full Brandes–Köpf algorithm adapted for
+ * Triton's data structures (Map<number, GraphNode[]>, no Graph object).
  *
- * Four independent sweeps are computed:
- *   1. Top-down  + Left-to-right  (TD+LR): align to predecessors, left priority
- *   2. Top-down  + Right-to-left  (TD+RL): align to predecessors, right priority
- *   3. Bottom-up + Left-to-right  (BU+LR): align to successors,  left priority
- *   4. Bottom-up + Right-to-left  (BU+RL): align to successors,  right priority
- *
- * For each node, the final cross-axis centre is the **median** of the 4 values
- * (sort the 4, average the middle two). This dramatically reduces the impact
- * of any single sweep's quirks.
- *
- * Back-edges and self-loops are excluded from preference computation.
- * Returns a NodeBox map with all nodes (including dummies) placed.
+ * Steps: (1) type-1 conflict detection, (2) vertical alignment (block chains),
+ * (3) horizontal compaction (block graph, two-pass min then compact) — run for
+ * 4 sweep directions (ul, ur, dl, dr). Then (4) pick tightest layout, (5) align
+ * all 4 to share its min/max, (6) balance each node as median of 4 aligned values.
  */
 function assignCoordinatesBK4(
   byLayer: Map<number, GraphNode[]>,
@@ -332,21 +400,32 @@ function assignCoordinatesBK4(
   layerGap: number,
   margin: number,
 ): Map<string, NodeBox> {
-  // cross(n): size in the cross-axis (width for TB, height for LR).
-  // along(n): size in the flow-axis.
-  const cross = (n: GraphNode) => isLR ? n.height : n.width;
-  const along = (n: GraphNode) => isLR ? n.width  : n.height;
+  const cross   = (n: GraphNode) => isLR ? n.height : n.width;
+  const along   = (n: GraphNode) => isLR ? n.width  : n.height;
+  const isDummy = (id: string)   => id.startsWith('__dummy_');
 
-  // Dummy nodes (invisible bend points) get zero spacing; real nodes get nodeGap.
-  const DUMMY_GAP = 0;
-  const isDummy = (n: GraphNode) => n.id.startsWith('__dummy_');
-  const gapAfter = (n: GraphNode) => isDummy(n) ? DUMMY_GAP : nodeGap;
+  const nodeById = new Map<string, GraphNode>();
+  for (const [, ns] of byLayer) for (const n of ns) nodeById.set(n.id, n);
 
-  // Forward-edge predecessor and successor maps.
+  // Minimum centre-to-centre separation between adjacent nodes in a layer.
+  function sep(a: string, b: string): number {
+    const an = nodeById.get(a)!;
+    const bn = nodeById.get(b)!;
+    return cross(an) / 2
+      + (isDummy(a) ? 0 : nodeGap / 2)
+      + (isDummy(b) ? 0 : nodeGap / 2)
+      + cross(bn) / 2;
+  }
+
+  const layerKeys  = [...byLayer.keys()].sort((a, b) => a - b);
+  const numLayers  = layerKeys.length;
+  const baseLayers: string[][] = layerKeys.map(lk => byLayer.get(lk)!.map(n => n.id));
+
   const predMap = new Map<string, string[]>();
   const succMap = new Map<string, string[]>();
-  for (const [, ns] of byLayer) {
-    for (const n of ns) { predMap.set(n.id, []); succMap.set(n.id, []); }
+  for (const [, ns] of byLayer) for (const n of ns) {
+    predMap.set(n.id, []);
+    succMap.set(n.id, []);
   }
   edges.forEach((e, i) => {
     if (backEdgeSet.has(i) || e.from === e.to) return;
@@ -354,97 +433,248 @@ function assignCoordinatesBK4(
     succMap.get(e.from)?.push(e.to);
   });
 
-  const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
-  const numLayers = layerKeys.length;
+  // ── BK Step 1: Type-1 Conflict Detection ─────────────────────────────────────
+  // A type-1 conflict: a non-inner edge crosses an inner segment (dummy→dummy).
+  const conflicts = new Set<string>();
+  const ck          = (u: string, v: string) => u < v ? `${u}\0${v}` : `${v}\0${u}`;
+  const addConflict = (u: string, v: string) => conflicts.add(ck(u, v));
+  const hasConflict = (u: string, v: string) => conflicts.has(ck(u, v));
 
-  // Precompute total cross span of each layer (sum of cross sizes + gaps).
-  const layerSpan = new Map<number, number>();
-  for (const lk of layerKeys) {
-    const ns = byLayer.get(lk)!;
-    layerSpan.set(lk, ns.reduce((s, n, i) => s + cross(n) + (i > 0 ? gapAfter(n) : 0), 0));
-  }
-  const maxSpan = Math.max(0, ...[...layerSpan.values()]);
+  for (let li = 1; li < numLayers; li++) {
+    const prevLayer = baseLayers[li - 1]!;
+    const layer     = baseLayers[li]!;
 
-  /**
-   * Run one sweep and return the cross-axis centre for each node.
-   *
-   * @param topDown   true → iterate layers top→bottom, use predecessors;
-   *                  false → bottom→top, use successors.
-   * @param leftToRight  true → within each layer enforce gaps left→right;
-   *                     false → right→left.
-   */
-  function onePass(topDown: boolean, leftToRight: boolean): Map<string, number> {
-    const crossCentre = new Map<string, number>();
-    const neighborMap = topDown ? predMap : succMap;
+    const prevPos = new Map<string, number>();
+    prevLayer.forEach((id, i) => prevPos.set(id, i));
 
-    const layerIndices = topDown
-      ? Array.from({ length: numLayers }, (_, i) => i)
-      : Array.from({ length: numLayers }, (_, i) => numLayers - 1 - i);
+    let k0      = 0;
+    let scanPos = 0;
+    const lastNode = layer[layer.length - 1];
 
-    for (const li of layerIndices) {
-      const layerIdx = layerKeys[li]!;
-      const ns = byLayer.get(layerIdx)!;
-      if (ns.length === 0) continue;
-
-      const span = layerSpan.get(layerIdx)!;
-
-      // Centering fallback: centre this layer within the widest layer.
-      const centeredStart = margin + (maxSpan - span) / 2;
-      let cursor = centeredStart;
-      const idealPos = new Map<string, number>();
-      for (const n of ns) {
-        const nbrs = neighborMap.get(n.id) ?? [];
-        const placed = nbrs
-          .map(nid => crossCentre.get(nid))
-          .filter((c): c is number => c !== undefined);
-        idealPos.set(
-          n.id,
-          placed.length === 0
-            ? cursor + cross(n) / 2  // no placed neighbours → centred fallback
-            : placed.reduce((s, c) => s + c, 0) / placed.length,
-        );
-        cursor += cross(n) + gapAfter(n);
-      }
-
-      // Place nodes in sweep order, enforcing minimum separation.
-      if (leftToRight) {
-        let placeCursor = margin;
-        for (const n of ns) {
-          const half = cross(n) / 2;
-          const ideal = idealPos.get(n.id)!;
-          const pos = Math.max(placeCursor + half, ideal);
-          crossCentre.set(n.id, pos);
-          placeCursor = pos + half + gapAfter(n);
+    layer.forEach((v, i) => {
+      let innerPredPos: number | undefined;
+      if (isDummy(v)) {
+        for (const u of (predMap.get(v) ?? [])) {
+          if (isDummy(u) && prevPos.has(u)) { innerPredPos = prevPos.get(u)!; break; }
         }
-      } else {
-        let placeCursor = margin + maxSpan;
-        for (const n of [...ns].reverse()) {
-          const half = cross(n) / 2;
-          const ideal = idealPos.get(n.id)!;
-          const pos = Math.min(placeCursor - half, ideal);
-          crossCentre.set(n.id, pos);
-          placeCursor = pos - half - gapAfter(n);
+      }
+      const k1 = innerPredPos !== undefined ? innerPredPos : prevLayer.length;
+
+      if (innerPredPos !== undefined || v === lastNode) {
+        for (let si = scanPos; si <= i; si++) {
+          const sn = layer[si]!;
+          for (const u of (predMap.get(sn) ?? [])) {
+            if (!prevPos.has(u)) continue;
+            const uPos = prevPos.get(u)!;
+            if ((uPos < k0 || uPos > k1) && !(isDummy(u) && isDummy(sn))) {
+              addConflict(u, sn);
+            }
+          }
+        }
+        scanPos = i + 1;
+        k0      = k1;
+      }
+    });
+  }
+
+  // ── BK Step 2: Vertical Alignment ────────────────────────────────────────────
+  function verticalAlignment(
+    sweepLayers: readonly string[][],
+    neighborFn:  (v: string) => string[],
+  ): { root: Map<string, string>; align: Map<string, string> } {
+    const root  = new Map<string, string>();
+    const align = new Map<string, string>();
+    const pos   = new Map<string, number>();
+
+    for (const layer of sweepLayers) {
+      layer.forEach((v, i) => { root.set(v, v); align.set(v, v); pos.set(v, i); });
+    }
+
+    for (const layer of sweepLayers) {
+      let prevIdx = -1;
+      for (const v of layer) {
+        const nbrs = neighborFn(v).filter(w => pos.has(w));
+        if (nbrs.length === 0) continue;
+
+        nbrs.sort((a, b) => pos.get(a)! - pos.get(b)!);
+
+        const mp = (nbrs.length - 1) / 2;
+        for (let mi = Math.floor(mp); mi <= Math.ceil(mp); mi++) {
+          const w    = nbrs[mi]!;
+          const wPos = pos.get(w)!;
+          if (align.get(v) === v && prevIdx < wPos && !hasConflict(v, w)) {
+            align.set(w, v);
+            const rw = root.get(w)!;
+            root.set(v, rw);
+            align.set(v, rw);
+            prevIdx = wPos;
+          }
+        }
+      }
+    }
+    return { root, align };
+  }
+
+  // ── BK Step 3: Horizontal Compaction ─────────────────────────────────────────
+  function horizontalCompaction(
+    sweepLayers: readonly string[][],
+    root:        Map<string, string>,
+  ): Map<string, number> {
+    const blockSucc = new Map<string, Map<string, number>>();
+    const blockPred = new Map<string, Map<string, number>>();
+
+    function ensureBlock(r: string): void {
+      if (!blockSucc.has(r)) { blockSucc.set(r, new Map()); blockPred.set(r, new Map()); }
+    }
+
+    for (const layer of sweepLayers) {
+      let prevId: string | undefined;
+      for (const v of layer) {
+        const rv = root.get(v)!;
+        ensureBlock(rv);
+        if (prevId !== undefined) {
+          const rp = root.get(prevId)!;
+          if (rp !== rv) {
+            const w    = sep(prevId, v);
+            const curW = blockSucc.get(rp)!.get(rv) ?? 0;
+            if (w > curW) {
+              blockSucc.get(rp)!.set(rv, w);
+              blockPred.get(rv)!.set(rp, w);
+            }
+          }
+        }
+        prevId = v;
+      }
+    }
+
+    const xs = new Map<string, number>();
+
+    function iterate(
+      applyFn: (elem: string) => void,
+      nextFn:  (elem: string) => Iterable<string>,
+    ): void {
+      const stack   = [...blockSucc.keys()];
+      const visited = new Set<string>();
+      while (stack.length > 0) {
+        const elem = stack[stack.length - 1]!;
+        if (visited.has(elem)) {
+          stack.pop();
+          applyFn(elem);
+        } else {
+          visited.add(elem);
+          for (const nxt of nextFn(elem)) stack.push(nxt);
         }
       }
     }
 
-    return crossCentre;
+    // Pass 1: assign minimum coordinates.
+    iterate(
+      elem => {
+        let max = 0;
+        for (const [from, w] of (blockPred.get(elem) ?? new Map()))
+          max = Math.max(max, (xs.get(from) ?? 0) + w);
+        xs.set(elem, max);
+      },
+      elem => blockPred.get(elem)?.keys() ?? [],
+    );
+
+    // Pass 2: compact rightward (remove slack).
+    iterate(
+      elem => {
+        const succs = blockSucc.get(elem);
+        if (succs && succs.size > 0) {
+          let min = Infinity;
+          for (const [to, w] of succs) min = Math.min(min, (xs.get(to) ?? 0) - w);
+          if (min !== Infinity) xs.set(elem, Math.max(xs.get(elem) ?? 0, min));
+        }
+      },
+      elem => blockSucc.get(elem)?.keys() ?? [],
+    );
+
+    // Propagate block-root coordinates to all member nodes.
+    for (const layer of sweepLayers) {
+      for (const v of layer) xs.set(v, xs.get(root.get(v)!)!);
+    }
+    return xs;
   }
 
-  // Run the 4 independent layouts.
-  const p1 = onePass(true,  true);   // TD + LR
-  const p2 = onePass(true,  false);  // TD + RL
-  const p3 = onePass(false, true);   // BU + LR
-  const p4 = onePass(false, false);  // BU + RL
+  // ── BK Step 4: Run 4 independent sweeps ──────────────────────────────────────
+  const xss = new Map<string, Map<string, number>>();
 
-  // Median of 4: sort, average middle two.
-  function median4(a: number, b: number, c: number, d: number): number {
-    const s = [a, b, c, d].sort((x, y) => x - y);
-    return (s[1]! + s[2]!) / 2;
+  for (const vert of ['u', 'd'] as const) {
+    const vertLayers = vert === 'u' ? baseLayers : [...baseLayers].reverse();
+    for (const horiz of ['l', 'r'] as const) {
+      const sweepLayers = horiz === 'r'
+        ? vertLayers.map(layer => [...layer].reverse())
+        : vertLayers;
+      const neighborFn = vert === 'u'
+        ? (v: string) => predMap.get(v) ?? []
+        : (v: string) => succMap.get(v) ?? [];
+
+      const { root } = verticalAlignment(sweepLayers, neighborFn);
+      let xs = horizontalCompaction(sweepLayers, root);
+
+      if (horiz === 'r') {
+        // RL compaction works in a reversed coordinate space; negate to restore.
+        const neg = new Map<string, number>();
+        for (const [k, v] of xs) neg.set(k, -v);
+        xs = neg;
+      }
+      xss.set(vert + horiz, xs);
+    }
   }
 
-  // Build NodeBox entries using median cross-axis and layer-order flow-axis.
-  const nodePos = new Map<string, NodeBox>();
+  // ── BK Step 5: Find smallest-width alignment ──────────────────────────────────
+  let minSpan    = Infinity;
+  let smallestXs = xss.get('ul')!;
+  for (const [, xs] of xss) {
+    let lo = Infinity, hi = -Infinity;
+    for (const [id, x] of xs) {
+      const n = nodeById.get(id);
+      if (!n) continue;
+      const half = cross(n) / 2;
+      lo = Math.min(lo, x - half);
+      hi = Math.max(hi, x + half);
+    }
+    if (hi - lo < minSpan) { minSpan = hi - lo; smallestXs = xs; }
+  }
+
+  // ── BK Step 6: Align all 4 layouts to the smallest-width one ─────────────────
+  const refVals = [...smallestXs.values()];
+  const refMin  = Math.min(...refVals);
+  const refMax  = Math.max(...refVals);
+
+  for (const [key, xs] of xss) {
+    if (xs === smallestXs) continue;
+    const vals    = [...xs.values()];
+    const isRight = key.endsWith('r');
+    const delta   = isRight
+      ? refMax - Math.max(...vals)
+      : refMin - Math.min(...vals);
+    if (delta !== 0) {
+      const shifted = new Map<string, number>();
+      for (const [id, x] of xs) shifted.set(id, x + delta);
+      xss.set(key, shifted);
+    }
+  }
+
+  // ── BK Step 7: Balance — per-node median of the 4 aligned values ─────────────
+  const balanced = new Map<string, number>();
+  for (const [id] of xss.get('ul')!) {
+    const vals = ([...xss.values()].map(xs => xs.get(id) ?? 0)).sort((a, b) => a - b);
+    balanced.set(id, ((vals[1] ?? 0) + (vals[2] ?? 0)) / 2);
+  }
+
+  // Shift so the leftmost node's left edge sits at `margin`.
+  let minLeft = Infinity;
+  for (const [id, cx] of balanced) {
+    const n = nodeById.get(id);
+    if (n) minLeft = Math.min(minLeft, cx - cross(n) / 2);
+  }
+  const shift = margin - (isFinite(minLeft) ? minLeft : 0);
+
+  // ── Build NodeBox results ─────────────────────────────────────────────────────
+  const nodePos   = new Map<string, NodeBox>();
   let alongCursor = margin;
 
   for (let li = 0; li < numLayers; li++) {
@@ -453,14 +683,9 @@ function assignCoordinatesBK4(
     const layerSize = ns.length > 0 ? Math.max(...ns.map(along)) : 0;
 
     for (const node of ns) {
-      const fallback   = margin + cross(node) / 2;
-      const c1         = p1.get(node.id) ?? fallback;
-      const c2         = p2.get(node.id) ?? fallback;
-      const c3         = p3.get(node.id) ?? fallback;
-      const c4         = p4.get(node.id) ?? fallback;
-      const crossCentr = median4(c1, c2, c3, c4);
-      const crossLeft  = crossCentr - cross(node) / 2;
-      const alongPos   = alongCursor + (layerSize - along(node)) / 2;
+      const cx        = (balanced.get(node.id) ?? 0) + shift;
+      const crossLeft = cx - cross(node) / 2;
+      const alongPos  = alongCursor + (layerSize - along(node)) / 2;
 
       nodePos.set(node.id, {
         id:     node.id,

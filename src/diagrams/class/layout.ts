@@ -199,9 +199,6 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
     if (!a || !b) continue;
 
-    const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 + yOff };
-    const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 + yOff };
-
     // Arrival port: cascade-assigned position on target wall.
     const toWall = approachWall(a, b);
     const toPt = toPortMap2.get(`${b.id}:${toWall}`)?.get(ri) ?? wallPoint(b, toWall, 0.5, yOff);
@@ -211,25 +208,28 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const fromPt = fromPortMap2.get(`${a.id}:${fromWall}`)?.get(ri)
       ?? borderPoint({ ...a, y: a.y + yOff }, toPt.x, toPt.y);
 
-    const { path, labelMidpoint } = routeEdge(a, b, allBoxes, yOff, fromPt, toPt);
-    // Use dummy-chain bend points if available, otherwise fall back to obstacle router.
     const bends = laid.edgeBends.get(ri);
     let safePath: string;
     let labelMid: { x: number; y: number };
     if (bends && bends.length > 0) {
       // Route through dummy-node waypoints (already in layout coords; add yOff).
-      const pts = [fromPt, ...bends.map(b => ({ x: b.x, y: b.y + yOff })), toPt];
+      const pts = [fromPt, ...bends.map(bp => ({ x: bp.x, y: bp.y + yOff })), toPt];
       safePath = pts.map((pt, k) => (k === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`)).join(' ');
       labelMid = pts[Math.floor(pts.length / 2)]!;
     } else {
-      safePath = path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
-      labelMid = labelMidpoint;
+      const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt);
+      safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
+      labelMid = routed.labelMidpoint;
     }
     elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
 
-    // End markers at the actual attachment points (not re-derived from borderPoint).
-    elements.push(...endMarker(p, fromPt, bc, r.leftHead, palette));
-    elements.push(...endMarker(p, toPt, ac, r.rightHead, palette));
+    // Use first/last path segment for marker direction (correct on kinked routes).
+    const bendPts = bends?.map(bp => ({ x: bp.x, y: bp.y + yOff })) ?? [];
+    const allPts  = [fromPt, ...bendPts, toPt];
+    const fromToward = allPts[1] ?? toPt;
+    const toToward   = allPts[allPts.length - 2] ?? fromPt;
+    elements.push(...endMarker(p, fromPt, fromToward, r.leftHead, palette));
+    elements.push(...endMarker(p, toPt,   toToward,   r.rightHead, palette));
 
     const mx = labelMid.x, my = labelMid.y;
     if (r.label) elements.push(p.text(r.label, rhuInt(mx), rhuInt(my - 4), memFont, palette.textMuted, { anchor: 'middle' }));
