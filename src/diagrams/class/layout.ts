@@ -21,7 +21,7 @@ import { rhu, rhuInt } from '../../util/round.js';
 
 type Wall = 'top' | 'bottom' | 'left' | 'right';
 
-const MIN_PORT_GAP = 20;
+const MIN_PORT_GAP = 32;
 const WALL_MARGIN  = 16;
 
 /**
@@ -220,9 +220,20 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const fromPt = fromPortMap2.get(`${a.id}:${fromWall}`)?.get(ri)
       ?? borderPoint({ ...a, y: a.y + yOff }, toPt.x, toPt.y);
 
-    const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
-    const safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
-    const labelMid = routed.labelMidpoint;
+    const bends = laid.edgeBends.get(ri);
+    let safePath: string;
+    let labelMid: { x: number; y: number };
+    if (bends && bends.length > 0) {
+      // Skip edge: route a clean 3-segment V→H→V path through the vertical midpoint
+      // so the path is visually distinct from direct single-hop edges.
+      const midY = (fromPt.y + toPt.y) / 2;
+      safePath = `M ${rhu(fromPt.x)} ${rhu(fromPt.y)} L ${rhu(fromPt.x)} ${rhu(midY)} L ${rhu(toPt.x)} ${rhu(midY)} L ${rhu(toPt.x)} ${rhu(toPt.y)}`;
+      labelMid = { x: (fromPt.x + toPt.x) / 2, y: midY };
+    } else {
+      const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
+      safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
+      labelMid = routed.labelMidpoint;
+    }
     elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
 
     // Arrowhead direction from wall: axis-aligned, independent of path geometry.
@@ -231,8 +242,16 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
     const mx = labelMid.x, my = labelMid.y;
     if (r.label) elements.push(p.text(r.label, rhuInt(mx), rhuInt(my - 4), memFont, palette.textMuted, { anchor: 'middle' }));
-    if (r.leftCard)  elements.push(p.text(r.leftCard,  rhu(fromPt.x + 6), rhu(fromPt.y - 4), memFont, palette.textMuted));
-    if (r.rightCard) elements.push(p.text(r.rightCard, rhu(toPt.x + 6),   rhu(toPt.y - 4),   memFont, palette.textMuted));
+    const cardOffset = (wall: Wall, pt: { x: number; y: number }): { cx: number; cy: number } => {
+      switch (wall) {
+        case 'top':    return { cx: pt.x + 10, cy: pt.y - 10 };
+        case 'bottom': return { cx: pt.x + 10, cy: pt.y + 10 };
+        case 'left':   return { cx: pt.x - 10, cy: pt.y - 10 };
+        default:       return { cx: pt.x + 10, cy: pt.y - 10 };
+      }
+    };
+    if (r.leftCard)  { const o = cardOffset(fromWall, fromPt); elements.push(p.text(r.leftCard,  rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
+    if (r.rightCard) { const o = cardOffset(toWall,   toPt);   elements.push(p.text(r.rightCard, rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
   }
 
   // ── Class boxes ────────────────────────────────────────────────────────────
