@@ -25,38 +25,25 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   // ── Layer assignment ───────────────────────────────────────────────────────
   const layers = assignLayers(ir.nodes, ir.edges);
   const byLayer = groupByLayer(ir.nodes, layers);
-  const numLayers = byLayer.size;
 
-  // ── Coordinate assignment ──────────────────────────────────────────────────
+  // ── Phase 3: Crossing minimisation ────────────────────────────────────────
+  // Back-edges computed once; reused by both layout phases and the edge-drawing
+  // loop below (avoids a second DFS).
+  const backEdges = findBackEdges(ir.nodes, ir.edges);
+  const orderedByLayer = minimizeCrossings(byLayer, ir.edges, backEdges);
+
+  // ── Phase 4: Brandes–Köpf coordinate assignment ───────────────────────────
   const colGap = spacing.nodeGap;
   const rowGap = spacing.nodeGap;
 
-  // Compute how wide/tall the layout is to center nodes within layers
   let maxNodesInLayer = 0;
-  for (const [, nodes] of byLayer) maxNodesInLayer = Math.max(maxNodesInLayer, nodes.length);
+  for (const [, nodes] of orderedByLayer) maxNodesInLayer = Math.max(maxNodesInLayer, nodes.length);
 
-  const nodePos = new Map<string, Rect>();
-
-  for (const [layerIdx, layerNodes] of byLayer) {
-    const layer = isReverse ? numLayers - 1 - layerIdx : layerIdx;
-    const count = layerNodes.length;
-
-    for (let i = 0; i < count; i++) {
-      const node = layerNodes[i]!;
-      let x: number;
-      let y: number;
-
-      if (isLR) {
-        x = margin + layer * (NODE_W + colGap);
-        y = margin + i * (NODE_H + rowGap) + ((maxNodesInLayer - count) * (NODE_H + rowGap)) / 2;
-      } else {
-        x = margin + i * (NODE_W + colGap) + ((maxNodesInLayer - count) * (NODE_W + colGap)) / 2;
-        y = margin + layer * (NODE_H + rowGap);
-      }
-
-      nodePos.set(node.id, { x, y, width: NODE_W, height: NODE_H });
-    }
-  }
+  const nodePos = assignCoordinatesBK(
+    orderedByLayer, ir.edges, backEdges,
+    isLR, isReverse, maxNodesInLayer,
+    NODE_W, NODE_H, colGap, rowGap, margin,
+  );
 
   // ── Build scene elements ───────────────────────────────────────────────────
   const elements: SceneElement[] = [];
@@ -88,7 +75,7 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   // read as "feedback" instead of cutting straight back through the node column.
   // Every OTHER (forward / acyclic) edge takes the unchanged orthogonal-router
   // path below, so acyclic diagrams render byte-identically.
-  const backEdges = findBackEdges(ir.nodes, ir.edges);
+  // (backEdges was computed in the layout phase above — reused here.)
   let bowMaxX = -Infinity;
   let bowMaxY = -Infinity;
 
@@ -331,6 +318,215 @@ function groupByLayer(nodes: readonly FlowNode[], layers: Map<string, number>): 
     groups.get(l)!.push(node);
   }
   return new Map([...groups.entries()].sort(([a], [b]) => a - b));
+}
+
+// ─── Phase 3: Barycentric Crossing Minimisation ──────────────────────────────
+
+/**
+ * Reorder nodes within each layer to reduce edge crossings using the
+ * barycentric heuristic with bi-directional sweeps (Sugiyama Phase 3).
+ *
+ * - Back-edges and self-loops are excluded from barycenter computation.
+ * - Nodes without neighbors in the reference layer keep their current relative
+ *   order (their current position index is used as the barycenter).
+ * - Tie-breaking uses the original insertion index (deterministic / stable).
+ * - At most MAX_PASSES (4) bi-directional passes — provably terminates.
+ */
+function minimizeCrossings(
+  byLayer: Map<number, FlowNode[]>,
+  edges: readonly FlowEdge[],
+  backEdgeSet: Set<number>,
+): Map<number, FlowNode[]> {
+  // Build forward-edge predecessor and successor maps.
+  const pred = new Map<string, string[]>();
+  const succ = new Map<string, string[]>();
+  for (const [, nodes] of byLayer) {
+    for (const n of nodes) { pred.set(n.id, []); succ.set(n.id, []); }
+  }
+  edges.forEach((e, i) => {
+    if (backEdgeSet.has(i) || e.from === e.to) return;
+    pred.get(e.to)?.push(e.from);
+    succ.get(e.from)?.push(e.to);
+  });
+
+  const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
+
+  // Original insertion index — stable tie-break preserved across all passes.
+  const origOrder = new Map<string, number>();
+  for (const [, nodes] of byLayer) nodes.forEach((n, i) => origOrder.set(n.id, i));
+
+  // Working layer arrays starting from insertion order.
+  const order = new Map<number, FlowNode[]>();
+  for (const k of layerKeys) order.set(k, [...byLayer.get(k)!]);
+
+  // Position of each node in its current layer (rebuilt after every reorder).
+  const posInLayer = new Map<string, number>();
+  function rebuildPos(): void {
+    for (const [, nodes] of order) nodes.forEach((n, i) => posInLayer.set(n.id, i));
+  }
+  rebuildPos();
+
+  function reorderLayer(layerIdx: number, neighborMap: Map<string, string[]>): void {
+    const curr = order.get(layerIdx)!;
+    const bary = curr.map((node, i) => {
+      const nbrs = neighborMap.get(node.id) ?? [];
+      if (nbrs.length === 0) {
+        // No anchoring neighbors: use current position so relative order is kept.
+        return { node, b: i, orig: origOrder.get(node.id) ?? i };
+      }
+      const sum = nbrs.reduce((s, nid) => s + (posInLayer.get(nid) ?? 0), 0);
+      return { node, b: sum / nbrs.length, orig: origOrder.get(node.id) ?? i };
+    });
+    // Stable sort: primary = barycenter, secondary = original insertion order.
+    bary.sort((a, b) => (a.b !== b.b ? a.b - b.b : a.orig - b.orig));
+    order.set(layerIdx, bary.map(e => e.node));
+    rebuildPos();
+  }
+
+  const MAX_PASSES = 4;
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
+    if (pass % 2 === 0) {
+      // Downward sweep: reorder each layer using predecessor positions.
+      for (let li = 1; li < layerKeys.length; li++) reorderLayer(layerKeys[li]!, pred);
+    } else {
+      // Upward sweep: reorder each layer using successor positions.
+      for (let li = layerKeys.length - 2; li >= 0; li--) reorderLayer(layerKeys[li]!, succ);
+    }
+  }
+
+  return order;
+}
+
+// ─── Phase 4: Simplified Brandes–Köpf Coordinate Assignment ──────────────────
+
+/**
+ * Assign cross-axis coordinates (x for TB, y for LR) using a two-pass
+ * simplified Brandes–Köpf style approach (Sugiyama Phase 4).
+ *
+ * Each pass places every layer as a uniform block:
+ *   - Each node's "preference" is the MEAN cross-axis position of its
+ *     forward-edge neighbors in the adjacent layer (mean gives a centred
+ *     result, matching what dagre does with weighted edges).
+ *   - Nodes with no neighbors fall back to the same centering formula the
+ *     old code used (keeps root/leaf layers stable when no anchor exists).
+ *   - The block's start is max(margin, medianOfPrefs − ½·totalSpan) so the
+ *     whole layer is centred on its collective preference, clamped to margin.
+ *
+ * Pass 1 (top-down) aligns each layer with its predecessors.
+ * Pass 2 (bottom-up) aligns each layer with its successors.
+ * Final positions = average of the two passes.
+ *
+ * Both passes independently produce non-overlapping layouts (uniform step
+ * ≥ crossSize + gap), and the average of two such arrangements with the same
+ * step is also non-overlapping — so no extra collision check is needed.
+ *
+ * Back-edges and self-loops are excluded from preference computation.
+ */
+function assignCoordinatesBK(
+  byLayer: Map<number, FlowNode[]>,
+  edges: readonly FlowEdge[],
+  backEdgeSet: Set<number>,
+  isLR: boolean,
+  isReverse: boolean,
+  maxNodesInLayer: number,
+  nodeW: number,
+  nodeH: number,
+  colGap: number,
+  rowGap: number,
+  margin: number,
+): Map<string, Rect> {
+  // Forward-edge predecessor and successor maps.
+  const predMap = new Map<string, string[]>();
+  const succMap = new Map<string, string[]>();
+  for (const [, nodes] of byLayer) {
+    for (const n of nodes) { predMap.set(n.id, []); succMap.set(n.id, []); }
+  }
+  edges.forEach((e, i) => {
+    if (backEdgeSet.has(i) || e.from === e.to) return;
+    predMap.get(e.to)?.push(e.from);
+    succMap.get(e.from)?.push(e.to);
+  });
+
+  const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
+  const numLayers = layerKeys.length;
+
+  // Cross-axis = x for TB layout, y for LR layout.
+  const crossSize = isLR ? nodeH : nodeW;
+  const mainSize  = isLR ? nodeW : nodeH;
+  const crossGap  = isLR ? rowGap : colGap;
+  const mainGap   = isLR ? colGap : rowGap;
+  const crossStep = crossSize + crossGap;
+  const mainStep  = mainSize  + mainGap;
+
+  /**
+   * Run one coordinate pass (top-down or bottom-up).
+   * Returns a map of node id → cross-axis left-edge position.
+   */
+  function onePass(topDown: boolean): Map<string, number> {
+    const crossPos = new Map<string, number>();
+    const neighborMap = topDown ? predMap : succMap;
+    const indices = topDown
+      ? Array.from({ length: numLayers }, (_, i) => i)
+      : Array.from({ length: numLayers }, (_, i) => numLayers - 1 - i);
+
+    for (const li of indices) {
+      const layerIdx = layerKeys[li]!;
+      const nodes    = byLayer.get(layerIdx)!;
+      const count    = nodes.length;
+      if (count === 0) continue;
+
+      // Default (centering) start — same formula as the old algorithm so that
+      // layers with no anchoring neighbors fall back to a centred arrangement.
+      const centeredStart = margin + ((maxNodesInLayer - count) * crossStep) / 2;
+
+      // Compute preference for each node: mean of neighbor cross-axis positions.
+      const pref: number[] = nodes.map((node, i) => {
+        const nbrs = neighborMap.get(node.id) ?? [];
+        const nbrPos = nbrs
+          .map(nid => crossPos.get(nid))
+          .filter((p): p is number => p !== undefined);
+        if (nbrPos.length === 0) return centeredStart + i * crossStep;
+        return nbrPos.reduce((s, p) => s + p, 0) / nbrPos.length;
+      });
+
+      // Block centre = median of individual preferences.
+      const sortedPrefs = [...pref].sort((a, b) => a - b);
+      const medianPref  = sortedPrefs[Math.floor((sortedPrefs.length - 1) / 2)]!;
+
+      // Centre block on medianPref; clamp so nothing goes left/above margin.
+      const blockStart = Math.max(margin, medianPref - ((count - 1) * crossStep) / 2);
+      for (let i = 0; i < count; i++) {
+        crossPos.set(nodes[i]!.id, blockStart + i * crossStep);
+      }
+    }
+    return crossPos;
+  }
+
+  const pass1 = onePass(true);   // predecessor-aligned (top-down)
+  const pass2 = onePass(false);  // successor-aligned   (bottom-up)
+
+  // Average the two passes and emit Rect entries.
+  const nodePos = new Map<string, Rect>();
+  for (let li = 0; li < numLayers; li++) {
+    const layerIdx = layerKeys[li]!;
+    const layerNum = isReverse ? numLayers - 1 - li : li;
+    const nodes    = byLayer.get(layerIdx)!;
+    const mainPos  = margin + layerNum * mainStep;
+
+    for (const node of nodes) {
+      const c1 = pass1.get(node.id) ?? margin;
+      const c2 = pass2.get(node.id) ?? margin;
+      const crossP = (c1 + c2) / 2;
+      nodePos.set(node.id, {
+        x:      isLR ? mainPos : crossP,
+        y:      isLR ? crossP  : mainPos,
+        width:  nodeW,
+        height: nodeH,
+      });
+    }
+  }
+
+  return nodePos;
 }
 
 // ─── Node Shape Rendering ─────────────────────────────────────────────────────

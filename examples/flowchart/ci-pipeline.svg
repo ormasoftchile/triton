@@ -9,12 +9,12 @@
   <text x="124" y="240" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">yes</text>
   <path d="M 164 224 L 164 244 L 244 244 L 244 264" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="204" y="240" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">no</text>
-  <path d="M 84 304 L 84 324 L 164 324 L 164 344" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 164 384 L 164 404 L 84 404 L 84 424" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="124" y="400" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">yes</text>
-  <path d="M 164 384 L 164 404 L 244 404 L 244 424" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="204" y="400" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">no</text>
-  <path d="M 84 464 L 84 484 L 164 484 L 164 504" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 84 304 L 84 324 L 124 324 L 124 344" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 124 384 L 124 404 L 84 404 L 84 424" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="104" y="400" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">yes</text>
+  <path d="M 184 364 L 184 444" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="184" y="400" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">no</text>
+  <path d="M 84 464 L 84 484 L 124 484 L 124 504" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="commit">
     <rect x="104" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
     <text x="164" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Commit Pushed</text>
@@ -36,8 +36,8 @@
     <text x="244" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Notify Author</text>
   </g>
   <g id="approve">
-    <path d="M 164 344 L 224 364 L 164 384 L 104 364 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
-    <text x="164" y="368.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Approved?</text>
+    <path d="M 124 344 L 184 364 L 124 384 L 64 364 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+    <text x="124" y="368.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Approved?</text>
   </g>
   <g id="prod">
     <rect x="24" y="424" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="20" />
@@ -48,7 +48,7 @@
     <text x="244" y="448.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Hold for Review</text>
   </g>
   <g id="live">
-    <circle cx="164" cy="524" r="20" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" />
-    <text x="164" y="528.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Live</text>
+    <circle cx="124" cy="524" r="20" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" />
+    <text x="124" y="528.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Live</text>
   </g>
 </svg>

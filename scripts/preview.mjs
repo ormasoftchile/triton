@@ -46,14 +46,14 @@ function copyParsers(srcDir, dstDir) {
     }
   }
 }
-copyParsers(join(root, 'src/diagrams'), join(root, 'dist/diagrams'));
+copyParsers(join(root, 'src/diagrams'), join(root, 'packages/core/dist/diagrams'));
 
 // ─── Step 4: Render examples ──────────────────────────────────────────────────
 
 // Dynamic import from dist so we get the freshly compiled code.
 // Cache-bust with a timestamp query param to force Node to re-load after recompile.
 const bust = `?t=${Date.now()}`;
-const { render } = await import(`../dist/frontend/index.js${bust}`);
+const { render } = await import(`../packages/core/dist/frontend/index.js${bust}`);
 
 const targetDir = join(root, process.argv[2] ?? 'examples/cross-link');
 const mmdFiles  = readdirSync(targetDir).filter(f => f.endsWith('.mmd'));
