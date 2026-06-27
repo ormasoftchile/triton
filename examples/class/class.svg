@@ -1,74 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 394 925" width="394" height="925">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 438 925" width="438" height="925">
   <rect width="100%" height="100%" fill="#FFFFFF" />
   <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">E-Commerce Domain Model</text>
-  <path d="M 149.724375 184 L 192.6325 301.5 L 141.5203125 419" stroke="#64748B" stroke-width="1.3" fill="none" />
-  <path d="M 144.66 407.42 L 141.52 419 L 135.4 408.68" stroke="#64748B" stroke-width="1.4" fill="none" />
-  <text x="193" y="298" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">places</text>
-  <text x="155.72" y="180" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B">1</text>
-  <text x="147.52" y="415" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B">*</text>
-  <path d="M 170.5203125 547 L 170.5203125 611" stroke="#64748B" stroke-width="1.3" fill="none" />
-  <path d="M 170.52 547 L 164.25 551.97 L 170.52 558 L 176.79 551.97 Z" stroke="#64748B" stroke-width="1.3" fill="#64748B" />
-  <text x="171" y="575" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">contains</text>
-  <path d="M 170.5203125 703 L 170.5203125 767" stroke="#64748B" stroke-width="1.3" fill="none" />
-  <path d="M 175.19 755.95 L 170.52 767 L 165.85 755.95" stroke="#64748B" stroke-width="1.4" fill="none" />
-  <text x="171" y="731" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">references</text>
-  <path d="M 276.724375 248 L 280.6325 175" stroke="#64748B" stroke-width="1.3" fill="none" stroke-dasharray="6 4" />
-  <path d="M 276.72 248 L 282.81 235.39 L 270.63 235.39 Z" stroke="#64748B" stroke-width="1.3" fill="#FFFFFF" />
-  <path d="M 96.81625 184 L 100.724375 255.5" stroke="#64748B" stroke-width="1.3" fill="none" />
-  <path d="M 105.4 244.45 L 100.72 255.5 L 96.05 244.45" stroke="#64748B" stroke-width="1.4" fill="none" />
-  <text x="99" y="216" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">has</text>
-  <path d="M 153.6325 347.5 L 121.52031249999999 419" stroke="#64748B" stroke-width="1.3" fill="none" />
-  <path d="M 123.82 407.22 L 121.52 419 L 114.67 409.15" stroke="#64748B" stroke-width="1.4" fill="none" />
-  <text x="138" y="379" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">creates</text>
-  <rect x="35.72" y="56" width="130" height="128" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
-  <text x="101" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Customer</text>
-  <path d="M 35.72 78 L 165.72 78" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="43.72" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String id</text>
-  <text x="43.72" y="110" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String name</text>
-  <text x="43.72" y="128" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String email</text>
-  <path d="M 35.72 140 L 165.72 140" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="43.72" y="154" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+register()</text>
-  <text x="43.72" y="172" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+login() bool</text>
-  <rect x="105.52" y="419" width="130" height="128" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
-  <text x="171" y="439" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Order</text>
-  <path d="M 105.52 441 L 235.52 441" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="113.52" y="455" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String orderId</text>
-  <text x="113.52" y="473" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+Date createdAt</text>
-  <text x="113.52" y="491" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float total</text>
-  <path d="M 105.52 503 L 235.52 503" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="113.52" y="517" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+submit()</text>
-  <text x="113.52" y="535" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+cancel() bool</text>
-  <rect x="105.52" y="611" width="130" height="92" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
-  <text x="171" y="631" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">OrderItem</text>
-  <path d="M 105.52 633 L 235.52 633" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="113.52" y="647" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+int quantity</text>
-  <text x="113.52" y="665" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float unitPrice</text>
-  <path d="M 105.52 677 L 235.52 677" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="113.52" y="691" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float subtotal()</text>
-  <rect x="105.52" y="767" width="130" height="110" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
-  <text x="171" y="787" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Product</text>
-  <path d="M 105.52 789 L 235.52 789" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="113.52" y="803" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String sku</text>
-  <text x="113.52" y="821" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String name</text>
-  <text x="113.52" y="839" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float price</text>
-  <text x="113.52" y="857" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+int stock</text>
-  <path d="M 105.52 869 L 235.52 869" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <rect x="215.63" y="248" width="130" height="107" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
-  <text x="281" y="268" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Payment</text>
-  <text x="281" y="281" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">«interface»</text>
-  <path d="M 215.63 285 L 345.63 285" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="223.63" y="299" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float amount</text>
-  <path d="M 215.63 311 L 345.63 311" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="223.63" y="325" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+process() bool</text>
-  <text x="223.63" y="343" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+refund() bool</text>
-  <rect x="211.72" y="65" width="130" height="110" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
-  <text x="277" y="85" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">CreditCardPayment</text>
-  <path d="M 211.72 87 L 341.72 87" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="219.72" y="101" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String cardNumber</text>
-  <text x="219.72" y="119" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String expiry</text>
-  <path d="M 211.72 131 L 341.72 131" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="219.72" y="145" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+process() bool</text>
-  <text x="219.72" y="163" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+refund() bool</text>
+  <path d="M 144.72437499999995 184 L 144.72437499999995 419" stroke="#64748B" stroke-width="1.3" fill="none" />
+  <path d="M 149.4 407.95 L 144.72 419 L 140.05 407.95" stroke="#64748B" stroke-width="1.4" fill="none" />
+  <text x="145" y="298" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">places</text>
+  <text x="150.72" y="180" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B">1</text>
+  <text x="150.72" y="415" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B">*</text>
+  <path d="M 144.72437499999995 547 L 144.72437499999995 611" stroke="#64748B" stroke-width="1.3" fill="none" />
+  <path d="M 144.72 547 L 138.46 551.97 L 144.72 558 L 150.99 551.97 Z" stroke="#64748B" stroke-width="1.3" fill="#64748B" />
+  <text x="145" y="575" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">contains</text>
+  <path d="M 144.72437499999995 703 L 144.72437499999995 767" stroke="#64748B" stroke-width="1.3" fill="none" />
+  <path d="M 149.4 755.95 L 144.72 767 L 140.05 755.95" stroke="#64748B" stroke-width="1.4" fill="none" />
+  <text x="145" y="731" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">references</text>
+  <path d="M 324.63249999999994 248 L 324.63249999999994 175" stroke="#64748B" stroke-width="1.3" fill="none" stroke-dasharray="6 4" />
+  <path d="M 324.63 248 L 330.72 235.39 L 318.54 235.39 Z" stroke="#64748B" stroke-width="1.3" fill="#FFFFFF" />
+  <path d="M 96.81624999999998 184 L 96.81624999999998 219.75 L 144.72437499999995 219.75 L 144.72437499999995 255.5" stroke="#64748B" stroke-width="1.3" fill="none" />
+  <path d="M 149.4 244.45 L 144.72 255.5 L 140.05 244.45" stroke="#64748B" stroke-width="1.4" fill="none" />
+  <text x="121" y="216" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">has</text>
+  <path d="M 144.72437499999995 347.5 L 144.72437499999995 383.25 L 96.81624999999998 383.25 L 96.81624999999998 419" stroke="#64748B" stroke-width="1.3" fill="none" />
+  <path d="M 101.49 407.95 L 96.82 419 L 92.14 407.95" stroke="#64748B" stroke-width="1.4" fill="none" />
+  <text x="121" y="379" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">creates</text>
+  <rect x="79.72" y="56" width="130" height="128" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
+  <text x="145" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Customer</text>
+  <path d="M 79.72 78 L 209.72 78" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="87.72" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String id</text>
+  <text x="87.72" y="110" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String name</text>
+  <text x="87.72" y="128" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String email</text>
+  <path d="M 79.72 140 L 209.72 140" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="87.72" y="154" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+register()</text>
+  <text x="87.72" y="172" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+login() bool</text>
+  <rect x="79.72" y="419" width="130" height="128" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
+  <text x="145" y="439" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Order</text>
+  <path d="M 79.72 441 L 209.72 441" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="87.72" y="455" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String orderId</text>
+  <text x="87.72" y="473" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+Date createdAt</text>
+  <text x="87.72" y="491" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float total</text>
+  <path d="M 79.72 503 L 209.72 503" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="87.72" y="517" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+submit()</text>
+  <text x="87.72" y="535" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+cancel() bool</text>
+  <rect x="79.72" y="611" width="130" height="92" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
+  <text x="145" y="631" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">OrderItem</text>
+  <path d="M 79.72 633 L 209.72 633" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="87.72" y="647" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+int quantity</text>
+  <text x="87.72" y="665" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float unitPrice</text>
+  <path d="M 79.72 677 L 209.72 677" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="87.72" y="691" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float subtotal()</text>
+  <rect x="79.72" y="767" width="130" height="110" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
+  <text x="145" y="787" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Product</text>
+  <path d="M 79.72 789 L 209.72 789" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="87.72" y="803" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String sku</text>
+  <text x="87.72" y="821" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String name</text>
+  <text x="87.72" y="839" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float price</text>
+  <text x="87.72" y="857" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+int stock</text>
+  <path d="M 79.72 869 L 209.72 869" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <rect x="259.63" y="248" width="130" height="107" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
+  <text x="325" y="268" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Payment</text>
+  <text x="325" y="281" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">«interface»</text>
+  <path d="M 259.63 285 L 389.63 285" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="267.63" y="299" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+float amount</text>
+  <path d="M 259.63 311 L 389.63 311" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="267.63" y="325" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+process() bool</text>
+  <text x="267.63" y="343" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+refund() bool</text>
+  <rect x="259.63" y="65" width="130" height="110" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
+  <text x="325" y="85" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">CreditCardPayment</text>
+  <path d="M 259.63 87 L 389.63 87" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="267.63" y="101" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String cardNumber</text>
+  <text x="267.63" y="119" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+String expiry</text>
+  <path d="M 259.63 131 L 389.63 131" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="267.63" y="145" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+process() bool</text>
+  <text x="267.63" y="163" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">+refund() bool</text>
   <rect x="24" y="255.5" width="145.63" height="92" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="4" />
   <text x="97" y="275.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ShoppingCart</text>
   <path d="M 24 277.5 L 169.63 277.5" stroke="#CBD5E1" stroke-width="1" fill="none" />
