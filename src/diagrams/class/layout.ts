@@ -226,21 +226,18 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     let labelMid: { x: number; y: number };
 
     if (bends && bends.length > 0) {
-      // Skip edge: 5-segment bypass corridor to the RIGHT of all node bounding boxes.
-      // Always routes right so the bypass lane stays within the canvas (never left of margin=32).
-      const bypassX   = Math.max(...allBoxes.map(b => b.x + b.width)) + 32;
-      const exitY     = fromPt.y + LAYER_GAP / 2;   // midpoint of gap below source
-      const entryY    = toPt.y   - LAYER_GAP / 2;   // midpoint of gap above target
+      const laneX  = bends[0]!.x;
+      const exitY  = bends[0]!.y + yOff;
+      const entryY = toPt.y - LAYER_GAP / 2;
       safePath = [
         `M ${rhu(fromPt.x)} ${rhu(fromPt.y)}`,
         `L ${rhu(fromPt.x)} ${rhu(exitY)}`,
-        `L ${rhu(bypassX)}  ${rhu(exitY)}`,
-        `L ${rhu(bypassX)}  ${rhu(entryY)}`,
+        `L ${rhu(laneX)}    ${rhu(exitY)}`,
+        `L ${rhu(laneX)}    ${rhu(entryY)}`,
         `L ${rhu(toPt.x)}   ${rhu(entryY)}`,
         `L ${rhu(toPt.x)}   ${rhu(toPt.y)}`,
       ].join(' ');
-      // Label on the long vertical bypass segment, vertically centred.
-      labelMid = { x: bypassX, y: (exitY + entryY) / 2 };
+      labelMid = { x: laneX, y: (exitY + entryY) / 2 };
     } else {
       const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
       safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;

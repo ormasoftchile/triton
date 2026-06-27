@@ -501,6 +501,7 @@ function assignCoordinatesBK4(
         const mp = (nbrs.length - 1) / 2;
         for (let mi = Math.floor(mp); mi <= Math.ceil(mp); mi++) {
           const w    = nbrs[mi]!;
+          if (isDummy(v) !== isDummy(w)) continue;
           const wPos = pos.get(w)!;
           if (align.get(v) === v && prevIdx < wPos && !hasConflict(v, w)) {
             align.set(w, v);
