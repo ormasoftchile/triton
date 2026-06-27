@@ -27,3 +27,6 @@ coverage/
 *.tsbuildinfo
 .turbo/
 .pnpm-store/
+
+# codetopo index (auto-generated)
+.codetopo/

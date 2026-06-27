@@ -9,7 +9,9 @@ How to decide who handles what.
 | Scope, spec structure, design decisions | Leslie | What's in/out of the spec, how the design is organized, trade-offs |
 | Research & prior art | David | Survey existing timeline/IR/temporal formats, build `references.bib`, real-data crawls |
 | IR schema, grammar, type system | Mark | Define the IR's entities, fields, invariants, validity rules |
-| Rendering semantics & IR→render mapping | Barbara | What IR constructs mean visually, temporal edge cases, render validation |
+| Layout algorithms, placement geometry, spatial contracts | Edsger | Specify layout algorithms, collision resolution, aspect-ratio bounds, degenerate cases |
+| Rendering semantics & IR→render mapping | Barbara (retired) | — |
+| Layout algorithm implementation (TypeScript) | Brian | `src/graph/layered.ts`, `src/diagrams/*/layout.ts`, `src/routing/router.ts` |
 | Ingestion design (data + prompt → IR) | Bjarne | Transformation pipeline design, prompt-driven IR construction, input contracts |
 | Design review / reviewer gate | Leslie | Review IR/design/research artifacts; enforce revision lockout on rejection |
 | LaTeX design assembly & bibliography | Scribe / David | Scribe assembles the LaTeX doc; David curates `references.bib` |
@@ -44,6 +46,7 @@ How to decide who handles what.
 
 The design separates three concerns — route detail work accordingly:
 
+- **Layout algorithms** (IR → geometry) → Edsger
 - **Ingestion** (data + prompt → IR) → Bjarne
 - **The IR** (schema, grammar, invariants) → Mark
 - **Rendering semantics** (IR → render) → Barbara

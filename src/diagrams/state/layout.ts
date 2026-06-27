@@ -12,7 +12,7 @@ import type { ResolvedTheme } from '../../contracts/index.js';
 import { pen } from '../../scene/build.js';
 import { applyOverlays } from '../../overlay/apply.js';
 import { measureText } from '../../text/metrics.js';
-import { layeredLayout, type GraphNode, type GraphEdge } from '../../graph/layered.js';
+import { layeredLayout, routeEdge, type GraphNode, type GraphEdge } from '../../graph/layered.js';
 import { borderPoint } from '../../graph/connect.js';
 import { rhu, rhuInt } from '../../util/round.js';
 
@@ -47,13 +47,39 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
   const containerRect = new Map<string, { x: number; y: number; width: number; height: number }>();
   const hidden = new Set<string>();      // composite node ids hidden in favour of their container
   for (const comp of composites) {
+    const memberIdSet = new Set(comp.nodeIds);
     const rects = comp.nodeIds.map(id => laid.boxes.get(id)).filter((r): r is NonNullable<typeof r> => !!r);
     if (rects.length === 0) continue;
-    const pad = 22;
-    const minX = Math.min(...rects.map(r => r.x)) - pad;
-    const minY = Math.min(...rects.map(r => r.y)) - pad - 14 + yOff;
-    const maxX = Math.max(...rects.map(r => r.x + r.width)) + pad;
-    const maxY = Math.max(...rects.map(r => r.y + r.height)) + pad + yOff;
+    const pad = 16;
+    let minX = Math.min(...rects.map(r => r.x)) - pad;
+    let minY = Math.min(...rects.map(r => r.y)) - pad - 14 + yOff;
+    let maxX = Math.max(...rects.map(r => r.x + r.width)) + pad;
+    let maxY = Math.max(...rects.map(r => r.y + r.height)) + pad + yOff;
+
+    // Clamp boundary so it does not encroach on non-member nodes that share the
+    // same y-range. This prevents the container from overlapping sibling nodes.
+    for (const [id, box] of laid.boxes) {
+      if (memberIdSet.has(id) || hidden.has(id)) continue;
+      const nmMinY = box.y;
+      const nmMaxY = box.y + box.height;
+      const rawMinY = Math.min(...rects.map(r => r.y)) - pad;
+      const rawMaxY = Math.max(...rects.map(r => r.y + r.height)) + pad;
+      // Skip if no y-overlap with the composite boundary range.
+      if (nmMaxY <= rawMinY || nmMinY >= rawMaxY) continue;
+      // Non-member overlaps in y — ensure the x boundary stays clear.
+      const nmLeft = box.x, nmRight = box.x + box.width;
+      const memberCentreX = (Math.min(...rects.map(r => r.x)) + Math.max(...rects.map(r => r.x + r.width))) / 2;
+      if (nmLeft < maxX && nmRight > minX) {
+        if (nmRight <= memberCentreX) {
+          // Non-member is left of members — push our left boundary right.
+          minX = Math.max(minX, nmRight + 4);
+        } else {
+          // Non-member is right of members — push our right boundary left.
+          maxX = Math.min(maxX, nmLeft - 4);
+        }
+      }
+    }
+
     const rect = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     containerRect.set(comp.id, rect);
     hidden.add(comp.id);
@@ -70,6 +96,7 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
   };
 
   // ── Transitions ────────────────────────────────────────────────────────────
+  const allBoxes = [...laid.boxes.values()];
   for (const t of ir.transitions) {
     const a = rectFor(t.from), b = rectFor(t.to);
     if (!a || !b) continue;
@@ -77,9 +104,34 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
     const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
     const pa = borderPoint(a, bc.x, bc.y);
     const pb = borderPoint(b, ac.x, ac.y);
-    elements.push(p.path(`M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`, palette.textMuted, 1.4, { markerEnd: ARROW_ID }));
+    // Use routed path for obstacle avoidance; fall back to straight for
+    // composite-to-member transitions where one endpoint is inside a container.
+    const fromBox = laid.boxes.get(t.from), toBox = laid.boxes.get(t.to);
+    let edgePath: string;
+    if (fromBox && toBox) {
+      ({ path: edgePath } = routeEdge(fromBox, toBox, allBoxes, yOff));
+    } else {
+      edgePath = `M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`;
+    }
+    elements.push(p.path(edgePath, palette.textMuted, 1.4, { markerEnd: ARROW_ID }));
     if (t.label) {
-      const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+      let mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+      // Only shift label outside a composite boundary if exactly one endpoint
+      // belongs to that composite (cross-boundary edge). Inner transitions
+      // (both endpoints inside) keep their labels inside the boundary.
+      for (const [compId, cr] of containerRect) {
+        const comp = composites.find(c => c.id === compId);
+        if (!comp) continue;
+        const fromInside = comp.nodeIds.includes(t.from);
+        const toInside   = comp.nodeIds.includes(t.to);
+        if (fromInside && toInside) continue;   // inner: no shift needed
+        if (!fromInside && !toInside) continue; // unrelated: no shift needed
+        // Cross-boundary: shift label outside if midpoint landed inside.
+        if (mx > cr.x && mx < cr.x + cr.width && my > cr.y && my < cr.y + cr.height) {
+          my = cr.y - typography.smallFontSize - 4;
+          break;
+        }
+      }
       const w = measureText(t.label, typography.smallFontSize).width + 8;
       elements.push(p.rect({ x: rhu(mx - w / 2), y: rhu(my - typography.smallFontSize), width: rhu(w), height: typography.smallFontSize + 4 }, palette.background, palette.background, 0));
       elements.push(p.text(t.label, rhuInt(mx), rhu(my - 1), typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));

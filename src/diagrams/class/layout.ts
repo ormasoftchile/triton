@@ -13,9 +13,87 @@ import type { ResolvedTheme } from '../../contracts/index.js';
 import { pen } from '../../scene/build.js';
 import { applyOverlays } from '../../overlay/apply.js';
 import { measureText } from '../../text/metrics.js';
-import { layeredLayout, type GraphNode, type GraphEdge } from '../../graph/layered.js';
+import { layeredLayout, routeEdge, type GraphNode, type GraphEdge, type NodeBox } from '../../graph/layered.js';
 import { borderPoint } from '../../graph/connect.js';
 import { rhu, rhuInt } from '../../util/round.js';
+
+// ── Port-assignment helpers (module-level) ─────────────────────────────────
+
+type Wall = 'top' | 'bottom' | 'left' | 'right';
+
+const MIN_PORT_GAP = 20;
+const WALL_MARGIN  = 16;
+
+/**
+ * Cascade algorithm: given N ideal positions (pre-sorted ascending) in [lo, hi],
+ * return N positions that respect minGap while staying as close to ideals as possible.
+ * Falls back to even distribution when the required span exceeds the available space.
+ */
+function cascadePorts(ideals: number[], lo: number, hi: number, minGap: number): number[] {
+  const n = ideals.length;
+  if (n === 0) return [];
+  if (n === 1) return [Math.max(lo, Math.min(hi, ideals[0]!))];
+  if ((n - 1) * minGap > hi - lo) {
+    const step = (hi - lo) / (n + 1);
+    return Array.from({ length: n }, (_, i) => lo + step * (i + 1));
+  }
+  const pos = ideals.map(v => Math.max(lo, Math.min(hi, v)));
+  for (let iter = 0; iter < 5; iter++) {
+    let changed = false;
+    for (let i = 1; i < n; i++) {
+      const minI = pos[i - 1]! + minGap;
+      if (pos[i]! < minI) { pos[i] = minI; changed = true; }
+    }
+    for (let i = n - 1; i >= 0; i--) {
+      const maxI = i === n - 1 ? hi : pos[i + 1]! - minGap;
+      if (pos[i]! > maxI) { pos[i] = maxI; changed = true; }
+    }
+    if (pos[0]! < lo) { pos[0] = lo; changed = true; }
+    if (!changed) break;
+  }
+  return pos;
+}
+
+/**
+ * Compute port points for one (box, wall) group of edges.
+ * Edges are sorted by their opposite-end node centre along the wall axis
+ * (crossing-minimisation), then spread via cascade to enforce MIN_PORT_GAP.
+ * Returns Map<relationIndex, {x,y}>.
+ */
+function assignGroupPorts(
+  box: NodeBox,
+  wall: Wall,
+  group: Array<{ ri: number; sourceCenter: number }>,
+  yOff: number,
+): Map<number, { x: number; y: number }> {
+  const result = new Map<number, { x: number; y: number }>();
+  if (group.length === 0) return result;
+
+  const sorted = [...group].sort((a, b) => a.sourceCenter - b.sourceCenter);
+
+  let wallBase: number, wallLen: number, fixedCoord: number, isHorizontal: boolean;
+  switch (wall) {
+    case 'top':
+      wallBase = box.x; wallLen = box.width; fixedCoord = box.y + yOff; isHorizontal = true; break;
+    case 'bottom':
+      wallBase = box.x; wallLen = box.width; fixedCoord = box.y + yOff + box.height; isHorizontal = true; break;
+    case 'left':
+      wallBase = box.y + yOff; wallLen = box.height; fixedCoord = box.x; isHorizontal = false; break;
+    default: // 'right'
+      wallBase = box.y + yOff; wallLen = box.height; fixedCoord = box.x + box.width; isHorizontal = false; break;
+  }
+
+  const lo = wallBase + WALL_MARGIN;
+  const hi = wallBase + wallLen - WALL_MARGIN;
+  const ideals = sorted.map(e => Math.max(lo, Math.min(hi, e.sourceCenter)));
+  const positions = cascadePorts(ideals, lo, hi, MIN_PORT_GAP);
+
+  for (let i = 0; i < sorted.length; i++) {
+    const p = positions[i]!;
+    result.set(sorted[i]!.ri, isHorizontal ? { x: p, y: fixedCoord } : { x: fixedCoord, y: p });
+  }
+  return result;
+}
 
 export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
@@ -52,20 +130,111 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   if (title) elements.push(p.text(title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
 
   // ── Relationships (under boxes) ────────────────────────────────────────────
-  for (const r of ir.relations) {
+  const allBoxes = [...laid.boxes.values()];
+
+  const approachWall = (from: NodeBox, to: NodeBox): Wall => {
+    const dx = (to.x + to.width / 2) - (from.x + from.width / 2);
+    const dy = (to.y + to.height / 2) - (from.y + from.height / 2);
+    if (Math.abs(dy) >= Math.abs(dx)) return dy >= 0 ? 'top' : 'bottom';
+    return dx >= 0 ? 'left' : 'right';
+  };
+
+  const wallPoint = (box: NodeBox, wall: Wall, t: number, yOff_: number): { x: number; y: number } => {
+    const bx = box.x, by = box.y + yOff_, bw = box.width, bh = box.height;
+    switch (wall) {
+      case 'top':    return { x: bx + t * bw, y: by };
+      case 'bottom': return { x: bx + t * bw, y: by + bh };
+      case 'left':   return { x: bx,           y: by + t * bh };
+      case 'right':  return { x: bx + bw,      y: by + t * bh };
+    }
+  };
+
+  // ── Port assignment: arrival ports (toPortMap2) ────────────────────────────
+  // Group edges by (targetId, wall). Sort each group by source-center along the
+  // wall axis → crossing-free order. Spread with cascade to enforce MIN_PORT_GAP.
+  const toGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
+  for (let ri = 0; ri < ir.relations.length; ri++) {
+    const r = ir.relations[ri]!;
     const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
     if (!a || !b) continue;
+    const wall = approachWall(a, b);
+    const key = `${b.id}:${wall}`;
+    const sourceCenter = (wall === 'top' || wall === 'bottom')
+      ? a.x + a.width / 2
+      : a.y + a.height / 2 + yOff;
+    if (!toGroupAccum.has(key)) toGroupAccum.set(key, []);
+    toGroupAccum.get(key)!.push({ ri, sourceCenter });
+  }
+  const toPortMap2 = new Map<string, Map<number, { x: number; y: number }>>();
+  for (const [key, group] of toGroupAccum) {
+    const nodeId = key.split(':')[0]!;
+    const wall = key.split(':')[1] as Wall;
+    toPortMap2.set(key, assignGroupPorts(laid.boxes.get(nodeId)!, wall, group, yOff));
+  }
+
+  // ── Port assignment: departure ports (fromPortMap2) ────────────────────────
+  // Departure wall of A toward B = approachWall(b, a). Sort by target-center.
+  const fromGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
+  for (let ri = 0; ri < ir.relations.length; ri++) {
+    const r = ir.relations[ri]!;
+    const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
+    if (!a || !b) continue;
+    const wall = approachWall(b, a);
+    const key = `${a.id}:${wall}`;
+    const targetCenter = (wall === 'top' || wall === 'bottom')
+      ? b.x + b.width / 2
+      : b.y + b.height / 2 + yOff;
+    if (!fromGroupAccum.has(key)) fromGroupAccum.set(key, []);
+    fromGroupAccum.get(key)!.push({ ri, sourceCenter: targetCenter });
+  }
+  const fromPortMap2 = new Map<string, Map<number, { x: number; y: number }>>();
+  for (const [key, group] of fromGroupAccum) {
+    const nodeId = key.split(':')[0]!;
+    const wall = key.split(':')[1] as Wall;
+    fromPortMap2.set(key, assignGroupPorts(laid.boxes.get(nodeId)!, wall, group, yOff));
+  }
+
+  for (let ri = 0; ri < ir.relations.length; ri++) {
+    const r = ir.relations[ri]!;
+    const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
+    if (!a || !b) continue;
+
     const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 + yOff };
     const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 + yOff };
-    const pa = borderPoint({ ...a, y: a.y + yOff }, bc.x, bc.y);
-    const pb = borderPoint({ ...b, y: b.y + yOff }, ac.x, ac.y);
-    elements.push(p.path(`M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
-    elements.push(...endMarker(p, pa, bc, r.leftHead, palette));
-    elements.push(...endMarker(p, pb, ac, r.rightHead, palette));
-    const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+
+    // Arrival port: cascade-assigned position on target wall.
+    const toWall = approachWall(a, b);
+    const toPt = toPortMap2.get(`${b.id}:${toWall}`)?.get(ri) ?? wallPoint(b, toWall, 0.5, yOff);
+
+    // Departure port: cascade-assigned position on source wall, aimed at toPt.
+    const fromWall = approachWall(b, a);
+    const fromPt = fromPortMap2.get(`${a.id}:${fromWall}`)?.get(ri)
+      ?? borderPoint({ ...a, y: a.y + yOff }, toPt.x, toPt.y);
+
+    const { path, labelMidpoint } = routeEdge(a, b, allBoxes, yOff, fromPt, toPt);
+    // Use dummy-chain bend points if available, otherwise fall back to obstacle router.
+    const bends = laid.edgeBends.get(ri);
+    let safePath: string;
+    let labelMid: { x: number; y: number };
+    if (bends && bends.length > 0) {
+      // Route through dummy-node waypoints (already in layout coords; add yOff).
+      const pts = [fromPt, ...bends.map(b => ({ x: b.x, y: b.y + yOff })), toPt];
+      safePath = pts.map((pt, k) => (k === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`)).join(' ');
+      labelMid = pts[Math.floor(pts.length / 2)]!;
+    } else {
+      safePath = path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
+      labelMid = labelMidpoint;
+    }
+    elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
+
+    // End markers at the actual attachment points (not re-derived from borderPoint).
+    elements.push(...endMarker(p, fromPt, bc, r.leftHead, palette));
+    elements.push(...endMarker(p, toPt, ac, r.rightHead, palette));
+
+    const mx = labelMid.x, my = labelMid.y;
     if (r.label) elements.push(p.text(r.label, rhuInt(mx), rhuInt(my - 4), memFont, palette.textMuted, { anchor: 'middle' }));
-    if (r.leftCard)  elements.push(p.text(r.leftCard, rhu(pa.x + 6), rhu(pa.y - 4), memFont, palette.textMuted));
-    if (r.rightCard) elements.push(p.text(r.rightCard, rhu(pb.x + 6), rhu(pb.y - 4), memFont, palette.textMuted));
+    if (r.leftCard)  elements.push(p.text(r.leftCard,  rhu(fromPt.x + 6), rhu(fromPt.y - 4), memFont, palette.textMuted));
+    if (r.rightCard) elements.push(p.text(r.rightCard, rhu(toPt.x + 6),   rhu(toPt.y - 4),   memFont, palette.textMuted));
   }
 
   // ── Class boxes ────────────────────────────────────────────────────────────

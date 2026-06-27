@@ -32,6 +32,16 @@ Full pre-realignment rendering/layout detail moved to `history-archive.md` (+ `h
 
 ## Learnings
 
+- 2026-06-27 CASCADE PORT ASSIGNMENT — `src/diagrams/class/layout.ts`:
+  - Replaced naive even-distribution (`t = (idx+1)/(n+1)`) with two-part port assignment: (1) sort each wall group by opposite-end node center → crossing-free ordering; (2) project source centers as ideal positions, then spread with a cascade/iterative algorithm enforcing MIN_PORT_GAP=20px and WALL_MARGIN=16px.
+  - `cascadePorts(ideals, lo, hi, minGap)` does a forward pass (enforce min gap) + backward pass (enforce hi bound) repeated until stable, with fallback to even distribution when span exceeds available space.
+  - `assignGroupPorts(box, wall, group, yOff)` is a module-level helper that sorts, computes lo/hi in absolute coords (including yOff for left/right walls), calls cascade, returns `Map<ri, {x,y}>`.
+  - For LEFT/RIGHT walls, wallBase must include yOff (absolute y-coordinates); for TOP/BOTTOM walls, wallBase is box.x (x unchanged by yOff). sourceCenter for left/right also adds yOff to stay in the same coordinate space.
+  - Departure ports built with `fromPortMap2`: departure wall of A toward B = `approachWall(b, a)`; sort by TARGET center (not source) for crossing minimisation on departure side.
+  - Fallback for departure: `borderPoint({...a, y:a.y+yOff}, toPt.x, toPt.y)` — aim toward the ASSIGNED arrival port, not the target box center.
+  - Result on `examples/class/class.svg`: Customer→Order and ShoppingCart→Order arrive at Order's top at x=96.82 and x=116.82 (20px apart, previously coincident). No X crossing above Order. Build: `pnpm -C /Volumes/Projects/triton build`. Preview: `node scripts/preview.mjs examples/class/`. Rasterize: `rsvg-convert -f png -w 1400 -o examples/class/class.png examples/class/class.svg`.
+  - KEY COORD FACT: In `examples/class`, both Customer and ShoppingCart happen to have center_x=96.82 (same x), while Order has center_x=138.86. Since both sources have identical x-center, cascade spreads them at [96.82, 116.82] (left bound + 20px gap). The crossing fix comes from the ROUTING algorithm going around ShoppingCart, not from the ports themselves being far apart — but the 20px spread ensures they don't pile on one point.
+
 - 2026-06-23: Executed the design-doc realignment for my 7 assigned sections (11-backends, 14-animation, 22-rendering, 19-render-contract, 12-themes, 30-composition, 30b cross-links). Grounded every claim in real `src/` files. Key corrections that recur across the whole doc:
   - Backend reality = ONE `renderSVG(scene)` in `src/render/svg.ts` (+ optional resvg PNG). NO Skia/PPTX/PDF/HTML — those were aspirational. Dropped fidelity-tier/backend-selection narrative everywhere.
   - Animation reality = exactly two effects via `ScenePath.animated?: 'march' | 'particle'` (SMIL: `<animate stroke-dashoffset>` and sibling `<circle><animateMotion>`). The old hint taxonomy (FlowingDashes/DrawOn/DotAlongPath/Pulse/FadeIn) does not exist.
@@ -129,6 +139,21 @@ Full verbose detail moved to `history-archive.md`; canonical detail in decisions
 
 - 2026-06-24: Made design build portable — removed the committed `design/triton.sty` symlink (broke on Windows checkouts as a plain text file). Tectonic does NOT honor TEXINPUTS for .sty resolution (tested: `File triton.sty not found`), so the Makefile now COPYs `../latex/triton.sty` into `design/` as a build step (`pdf: triton.sty` prereq) and `.gitignore` excludes the copy. Full `make clean && make` → exit 0, triton.pdf 133 KiB with inline figures rendered.
 
+- 2026-06-27 PHASE 2 — Lift Sugiyama into `src/graph/layered.ts` kernel (387/387). All 7 callers (class/state/er/c4/architecture/requirement/ds-nodegraph) inherit crossing minimisation + B–K coordinate assignment automatically — zero caller changes. Key adaptations vs Phase 1 flowchart version: (a) `detectBackEdges` uses layer heuristic (`layer[v] ≤ layer[u]`) instead of DFS — correct for kernel use case (no edge routing); (b) `assignCoordinatesBK` uses per-node `width`/`height` variable sizes (not fixed NODE_W/NODE_H), positions nodes by cross-axis **centre** (not left edge), uses `maxSpan` (total cross span of widest layer) instead of `maxNodesInLayer × crossStep` for centering fallback; (c) `layeredLayout` now computes `width`/`height` from placed box extents rather than analytically. `byLayer` changed from `GraphNode[][]` to `Map<number, GraphNode[]>` internally. Decision: `.squad/decisions/inbox/barbara-phase2-complete.md`. Golden tests passed unchanged — simple test examples converge to same order as insertion order.
+
+- 2026-06-27 PHASE 2 BUG FIXES — Composite boundary clamping + obstacle-avoiding edge routing (387/387).
+
+  **Bug 1 (state composite boundary too wide):** After computing the member-node bounding box, iterate all non-member `laid.boxes` entries. For any whose y-range overlaps the composite's y-range AND whose x-range intersects the initial padded rect, clamp `maxX = nmLeft − 4` (non-member right of members) or `minX = nmRight + 4` (non-member left). Pad reduced 22→16px. For edge labels: only cross-boundary transitions (exactly one endpoint is in the composite's `nodeIds`) get shifted above the composite boundary if the midpoint lands inside. Inner transitions keep labels inside.
+
+  **Bug 2 (edges cut through unrelated nodes):** Added `routeEdge(fromBox, toBox, allBoxes, yOff)` to `src/graph/layered.ts` — infers port directions from geometry (dominant axis), builds obstacle list from all boxes except from/to (applying yOff), delegates to `orthogonalRouter`. Updated callers: `class`, `state`, `er`, `c4`, `requirement` use `routeEdge`; `architecture` uses `orthogonalRouter` directly with its explicit L/R/T/B port directions. End-markers (triangles/diamonds/arrows) and crow's-foot markers still computed from `borderPoint` on the raw box rects for clean arrowhead placement.
+
+  **Durable gotchas:**
+  - Composite `containerRect` is in WORLD coords (with yOff); `laid.boxes` is in LAYOUT coords (no yOff). The clamping must use layout coords throughout (compare `box.y` against `rects[].y`, not against `cr.y`).
+  - `routeEdge` must pass `yOff` to shift all obstacle rects into world coords matching the from/to `borderPoint` computation.
+  - The `routeEdge` return path comes from the router without rounding — callers that previously applied `rhu()` on the path now use the raw router path string directly. Labels still use `rhuInt(labelMidpoint.x)` for text placement.
+  - Architecture: keep explicit port anchors (`port(r, e.fromSide)`) as `from`/`to` points so the router respects the declared exit/entry side, then let obstacle avoidance handle bends.
+
+
 - 2026-06-27 PHASE 1 — Flowchart Full Sugiyama Upgrade (commit 23cee08, PR pending). Added Sugiyama phases 3 and 4 to `src/diagrams/flowchart/layout.ts`. Gate: `pnpm test` **387/387**. Decision written: `.squad/decisions/inbox/barbara-phase1-complete.md`.
 
   **Phase 3 — `minimizeCrossings()`:** Barycentric bi-directional sweeps, MAX_PASSES=4. Nodes without anchoring neighbours in the reference layer use current position index as barycenter (keeps relative order). Stable sort: equal barycenters tie-break on original insertion index. Back-edges and self-loops excluded.
@@ -142,3 +167,33 @@ Full verbose detail moved to `history-archive.md`; canonical detail in decisions
   - Vitest doesn't need the compiled output (uses TypeScript directly), so `pnpm test` was always passing. The stale path only affected the preview script.
   - Phase 2: same `minimizeCrossings` + `assignCoordinatesBK` should be lifted into `src/graph/layered.ts` so class/state/ER/C4/block/requirement inherit it (Leslie's phase plan §Phase 2).
 
+
+---
+
+## 2026-06-27 — Class Diagram Visual Fixes
+
+Received four-problem audit from ormasoftchile on `examples/class/class.svg`. Read `src/diagrams/class/layout.ts` and `src/graph/layered.ts` in full before touching anything.
+
+### Fix 1 — Straight edges for unobstructed paths (`src/graph/layered.ts`)
+
+Added `straightLineObstacleFree(p1, p2, obstacles, padding)` using Liang–Barsky clipping. In `routeEdge`, before calling `orthogonalRouter`, now checks whether the direct segment from `pa` to `pb` clears all padded obstacles. If clear → `M x1 y1 L x2 y2` (no bends). Also added `path || fallbackStraight` guard for empty router results.
+
+### Fix 2 — B–K alignment snap (`src/graph/layered.ts`)
+
+Added `snapAlignedPairs` called after `assignCoordinatesBK` in `layeredLayout`. For each forward edge between adjacent layers whose cross-axis centres differ by < `nodeGap`, snaps the upper node to match the lower node's x-centre — only if no sibling overlap results. Works for TB and LR.
+
+### Fix 3 & 4 — Port fan-out, Customer→Order visibility (`src/diagrams/class/layout.ts`)
+
+Extended `routeEdge` with optional `fromPt?` / `toPt?` parameters (backward-compatible). In `layout.ts`, precomputed a `toPortMap: Map<"nodeId:wall", number[]>` before the relations loop. Each edge gets t-value `(idx+1)/(n+1)` distributed across its arrival wall via `wallPoint(box, wall, t, yOff)`. End markers updated to use the same attachment points. `safePath` fallback ensures no edge silently disappears.
+
+### Visual confirmation
+
+- `Customer→ShoppingCart (has)` and `ShoppingCart→Order (creates)`: clean straight diagonal lines, no bends.
+- `CreditCardPayment` and `Payment`: x-aligned, vertical dashed connector.
+- `Order` top: two arrows at t≈0.33 and t≈0.67 — visibly fanned apart.
+- `Customer→Order (places)`: fully visible diagonal, "places" label rendered, cardinality marks readable.
+- State diagram: no regression, Processing boundary clear of Idle, all labels visible.
+
+### Tests
+
+`pnpm test` — 387/387 passed.

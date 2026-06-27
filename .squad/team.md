@@ -15,8 +15,10 @@
 | 🏗️ Leslie (he/him) | Lead / Spec Architect | `.squad/agents/leslie/charter.md` | active |
 | 🔬 David | Research Lead | `.squad/agents/david/charter.md` | active |
 | 📐 Mark | IR & Data Modeling | `.squad/agents/mark/charter.md` | active |
-| 🎨 Barbara | Semantics & Rendering | `.squad/agents/barbara/charter.md` | active |
+| 🎨 Barbara | Semantics & Rendering | `.squad/agents/_alumni/barbara/charter.md` | retired |
+| 🔧 Brian | Layout Implementation Engineer | `.squad/agents/brian/charter.md` | active |
 | 🔧 Bjarne | Ingestion Design | `.squad/agents/bjarne/charter.md` | active |
+| 📐 Edsger | Layout Algorithms | `.squad/agents/edsger/charter.md` | active |
 | 📋 Scribe | Memory & Logs (silent) | `.squad/agents/scribe/charter.md` | active |
 | 🔄 Ralph | Work Monitor | — | 🔄 Monitor |
 

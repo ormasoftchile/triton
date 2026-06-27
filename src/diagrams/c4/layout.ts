@@ -13,7 +13,7 @@ import { pen } from '../../scene/build.js';
 import { applyOverlays } from '../../overlay/apply.js';
 import { measureText } from '../../text/metrics.js';
 import { wrapText } from '../../text/wrap.js';
-import { layeredLayout, type GraphNode, type GraphEdge } from '../../graph/layered.js';
+import { layeredLayout, routeEdge, type GraphNode, type GraphEdge } from '../../graph/layered.js';
 import { borderPoint } from '../../graph/connect.js';
 import { rhu, rhuInt } from '../../util/round.js';
 
@@ -65,6 +65,7 @@ export function layoutC4(ir: C4Document, theme: ResolvedTheme): LayoutResult {
   }
 
   // ── Relationships ──────────────────────────────────────────────────────────
+  const allBoxes = [...laid.boxes.values()];
   for (const r of ir.rels) {
     const a = laid.boxes.get(r.from), b = laid.boxes.get(r.to);
     if (!a || !b) continue;
@@ -73,8 +74,9 @@ export function layoutC4(ir: C4Document, theme: ResolvedTheme): LayoutResult {
     const bc = { x: bo.x + bo.width / 2, y: bo.y + bo.height / 2 };
     const pa = borderPoint(ao, bc.x, bc.y);
     const pb = borderPoint(bo, ac.x, ac.y);
-    elements.push(p.path(`M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`, palette.textMuted, 1.4, { ...(r.ext ? { dash: '6 4' } : {}), markerEnd: ARROW_ID }));
-    const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+    const { path, labelMidpoint } = routeEdge(a, b, allBoxes, yOff);
+    elements.push(p.path(path, palette.textMuted, 1.4, { ...(r.ext ? { dash: '6 4' } : {}), markerEnd: ARROW_ID }));
+    const mx = labelMidpoint.x, my = labelMidpoint.y;
     const lbl = r.tech ? `${r.label ?? ''} [${r.tech}]` : (r.label ?? '');
     if (lbl) {
       const w = measureText(lbl, font).width + 8;

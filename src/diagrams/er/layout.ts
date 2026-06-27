@@ -12,7 +12,7 @@ import type { ResolvedTheme } from '../../contracts/index.js';
 import { pen } from '../../scene/build.js';
 import { applyOverlays } from '../../overlay/apply.js';
 import { measureText } from '../../text/metrics.js';
-import { layeredLayout, type GraphNode, type GraphEdge } from '../../graph/layered.js';
+import { layeredLayout, routeEdge, type GraphNode, type GraphEdge } from '../../graph/layered.js';
 import { borderPoint } from '../../graph/connect.js';
 import { rhu, rhuInt } from '../../util/round.js';
 
@@ -45,6 +45,7 @@ export function layoutEr(ir: ErDocument, theme: ResolvedTheme): LayoutResult {
   if (title) elements.push(p.text(title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
 
   // ── Relationships ──────────────────────────────────────────────────────────
+  const allBoxes = [...laid.boxes.values()];
   for (const r of ir.relations) {
     const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
     if (!a || !b) continue;
@@ -52,7 +53,8 @@ export function layoutEr(ir: ErDocument, theme: ResolvedTheme): LayoutResult {
     const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 + yOff };
     const pa = borderPoint({ ...a, y: a.y + yOff }, bc.x, bc.y);
     const pb = borderPoint({ ...b, y: b.y + yOff }, ac.x, ac.y);
-    elements.push(p.path(`M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
+    const { path } = routeEdge(a, b, allBoxes, yOff);
+    elements.push(p.path(path, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
     elements.push(...crowFoot(p, pa, bc, r.leftCard, palette));
     elements.push(...crowFoot(p, pb, ac, r.rightCard, palette));
     if (r.label) {

@@ -13,8 +13,7 @@ import { pen } from '../../scene/build.js';
 import { applyOverlays } from '../../overlay/apply.js';
 import { measureText } from '../../text/metrics.js';
 import { wrapText } from '../../text/wrap.js';
-import { layeredLayout, type GraphNode, type GraphEdge } from '../../graph/layered.js';
-import { borderPoint } from '../../graph/connect.js';
+import { layeredLayout, routeEdge, type GraphNode, type GraphEdge } from '../../graph/layered.js';
 import { rhu, rhuInt } from '../../util/round.js';
 
 const ARROW_ID = 'req-arrow';
@@ -50,15 +49,13 @@ export function layoutRequirement(ir: RequirementDocument, theme: ResolvedTheme)
   const elements: SceneElement[] = [];
 
   // ── Relationships ──────────────────────────────────────────────────────────
+  const allBoxes = [...laid.boxes.values()];
   for (const r of ir.relations) {
     const a = laid.boxes.get(r.from), b = laid.boxes.get(r.to);
     if (!a || !b) continue;
-    const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 };
-    const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
-    const pa = borderPoint(a, bc.x, bc.y);
-    const pb = borderPoint(b, ac.x, ac.y);
-    elements.push(p.path(`M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`, palette.textMuted, 1.3, { dash: '6 4', markerEnd: ARROW_ID }));
-    const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+    const { path, labelMidpoint } = routeEdge(a, b, allBoxes);
+    elements.push(p.path(path, palette.textMuted, 1.3, { dash: '6 4', markerEnd: ARROW_ID }));
+    const mx = labelMidpoint.x, my = labelMidpoint.y;
     const w = measureText(`«${r.type}»`, fieldFont).width + 8;
     elements.push(p.rect({ x: rhu(mx - w / 2), y: rhu(my - fieldFont), width: rhu(w), height: fieldFont + 4 }, palette.background, palette.background, 0));
     elements.push(p.text(`«${r.type}»`, rhuInt(mx), rhu(my - 1), fieldFont, palette.secondary, { anchor: 'middle' }));

@@ -39,6 +39,26 @@ I own the layout layer: given a validated IR, I specify the algorithms that comp
 
 **Topology note:** topology.ts uses a self-contained layout (not a shared kernel) — sqrt-grid for ungrouped nodes, column-of-groups for grouped nodes. Cost-tier edge coloring is clean and production-ready.
 
+### 2026-06-27 — Visual Audit Phase 1 & 2
+
+**Task:** Verify rendered output of Phase 1 (flowchart Sugiyama upgrade) and Phase 2 (shared layered.ts kernel) by actually viewing PNGs.
+
+**Method:** `node scripts/preview.mjs examples/<type>/` → `rsvg-convert -f png` → `view` PNG → score against checklist.
+
+**Findings:**
+
+- **Phase 1 PASS:** All 3 flowchart examples (ci-pipeline, flowchart, order-processing) render cleanly. TB and LR directions correct. No overlaps, labels readable.
+
+- **Phase 2 FAIL — 2 bugs found:**
+
+  1. **state diagram:** Edge label "order_placed" (Idle→Processing) is clipped by the Processing composite state boundary rect. Text placed at x=149 (no text-anchor) runs into the composite state's right edge. Fix: place transition labels outside the composite state bounding box.
+
+  2. **ds/graph diagram:** (a) Title "Build dependency graph" is clipped — viewBox width (163.9px) is sized to fit node content only, not the title text (~200px needed at font-size 18). Fix: `width = max(graph_width, title_text_width + margin)`. (b) The `B->D` skip edge (resolve→emit) is invisible because it's drawn as a straight line at the same x as all chain edges (x=69.95). Fix: offset skip edges horizontally or use a bowed bezier.
+
+- **Phase 2 PASS (5/7):** class, er, c4, architecture, requirement all rendered correctly.
+
+**Protocol confirmed:** `rsvg-convert` IS available (`/opt/homebrew/bin/rsvg-convert` v2.60.0). Standard audit loop: preview.mjs → rsvg-convert → view PNG.
+
 ### 2026-06-27 — Phase 0 Audit Complete
 - Audited all 21 diagram layout.ts files. layered.ts (used by 7 types) has no crossing minimisation — single highest-leverage fix.
 - Poster engine3: 6-pass greedy cost router. Gap: no corridor pre-planning. Routes diagonal links around intermediate cells instead of through inter-cell gaps.
@@ -47,3 +67,27 @@ I own the layout layer: given a validated IR, I specify the algorithms that comp
 - Visual verification: node scripts/preview.mjs examples/<dir>/. resvg not installed; open SVG in browser. Pass criteria documented.
 - Library sources at /Volumes/Projects/{elkjs,dagre,d3-force,cytoscape.js}.
 - dagre Brandes–Köpf: /Volumes/Projects/dagre/lib/position/bk.ts — direct reference for layered.ts upgrade.
+
+### 2026-06-27 — Visual Audit of Barbara's Class/State Fixes
+
+**Task:** Independent visual inspection of Barbara's fixes to `class/layout.ts` and `state/layout.ts`.
+
+**Method:** `node scripts/preview.mjs examples/class/` and `examples/state/` → `rsvg-convert -f png -w 1400` → `view` PNGs → scored against checklist.
+
+**Findings:**
+
+- **CLASS DIAGRAM — PASS:**
+  - `Customer→ShoppingCart (has)` edge: clean single-segment diagonal, no unnecessary bends.
+  - `CreditCardPayment→Payment`: both x-aligned, dashed realization connector is straight vertical. Correct.
+  - Two edges arriving at `Order` (from Customer and from ShoppingCart "creates") arrive at visually separated x-positions across the top border — not crowded.
+  - `Customer→Order` edge: visible, single diagonal segment from Customer's lower-right to Order's top, clear and unambiguous.
+  - No other unnecessary bends observed anywhere in the diagram.
+  - Overall: clean, professional, readable.
+
+- **STATE DIAGRAM — FAIL:**
+  - The `order_placed` transition label (on the initial-state → Idle arrow) is **still partially clipped** by the right edge of the Processing composite boundary rectangle. Only "order_pla" is visible; the remaining "ced" is cut off.
+  - This is the **same bug** identified in the Phase 2 audit (see entry above). Barbara's fix did not fully resolve it.
+  - All other labels (`valid`, `authorize [amount > 0]`, `authorize [amount <= 0]`, `remaining paid`, `refund_requested`, `process_refund`) are readable.
+  - Processing boundary does not overlap Idle node itself — they are side by side — but the label placement issue persists.
+
+**Action:** Returned FAIL to Barbara via `.squad/decisions/inbox/edsger-audit-barbara-fixes.md`. Required fix: Processing composite boundary must not clip the `order_placed` label — either narrow the boundary, shift the label, or anchor it outside the boundary rect in `state/layout.ts`.

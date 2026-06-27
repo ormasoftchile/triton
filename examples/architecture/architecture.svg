@@ -5,7 +5,7 @@
   <rect width="100%" height="100%" fill="#FFFFFF" />
   <rect x="250" y="16" width="390" height="160" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
   <text x="262" y="32" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" font-weight="bold">Cloud Services</text>
-  <path d="M 180 128 L 225 128 L 225 128 L 270 128" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow)" />
+  <path d="M 180 128 L 270 128" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow)" />
   <path d="M 400 128 L 445 128 L 445 78 L 490 78" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow)" />
   <path d="M 335 156 L 335 153 L 555 153 L 555 150" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow)" />
   <rect x="270" y="100" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />

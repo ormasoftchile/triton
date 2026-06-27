@@ -14,12 +14,12 @@
   <path d="M 69.95 304 L 69.95 368" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
   <rect x="45.43359999999999" y="327" width="49.03439999999999" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
   <text x="69.95079999999999" y="339" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">checked</text>
-  <rect x="37.950799999999994" y="56" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <rect x="37.95079999999999" y="56" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
   <text x="69.95079999999999" y="80.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">parse</text>
-  <rect x="33.3513" y="160" width="73.19899999999998" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <rect x="33.351299999999995" y="160" width="73.19899999999998" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
   <text x="69.95079999999999" y="184.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">resolve</text>
-  <rect x="24" y="264" width="91.90159999999999" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <rect x="23.999999999999993" y="264" width="91.90159999999999" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
   <text x="69.95079999999999" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">typecheck</text>
-  <rect x="37.950799999999994" y="368" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <rect x="37.95079999999999" y="368" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
   <text x="69.95079999999999" y="392.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">emit</text>
 </svg>

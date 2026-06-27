@@ -6,13 +6,14 @@
  */
 
 import type { ArchitectureDocument } from './ir.js';
-import type { Scene, SceneElement, LayoutResult, Rect } from '../../contracts/index.js';
+import type { Scene, SceneElement, LayoutResult, Rect, PortDirection } from '../../contracts/index.js';
 import type { ResolvedTheme } from '../../contracts/index.js';
 import { pen } from '../../scene/build.js';
 import { applyOverlays } from '../../overlay/apply.js';
 import { categoricalHue } from '../../palette/categorical.js';
 import { measureText } from '../../text/metrics.js';
 import { layeredLayout, type GraphNode, type GraphEdge } from '../../graph/layered.js';
+import { orthogonalRouter } from '../../routing/router.js';
 import { rhu, rhuInt } from '../../util/round.js';
 
 const ARROW_ID = 'arch-arrow';
@@ -58,14 +59,27 @@ export function layoutArchitecture(ir: ArchitectureDocument, theme: ResolvedThem
     elements.push(p.text(g.label, rhu(minX + 12), rhu(minY + 16), typography.smallFontSize, hue, { weight: 'bold' }));
   });
 
-  // ── Edges (side-anchored) ──────────────────────────────────────────────────
+  // ── Edges (side-anchored, obstacle-avoiding) ───────────────────────────────
+  const allBoxes = [...laid.boxes.values()];
   for (const e of ir.edges) {
     const a = rectOf(e.from), b = rectOf(e.to);
     if (!a || !b) continue;
     const pa = port(a, e.fromSide), pb = port(b, e.toSide);
-    const horiz = e.fromSide.toUpperCase() === 'L' || e.fromSide.toUpperCase() === 'R';
-    const mid = horiz ? `L ${rhu((pa.x + pb.x) / 2)} ${rhu(pa.y)} L ${rhu((pa.x + pb.x) / 2)} ${rhu(pb.y)}` : `L ${rhu(pa.x)} ${rhu((pa.y + pb.y) / 2)} L ${rhu(pb.x)} ${rhu((pa.y + pb.y) / 2)}`;
-    elements.push(p.path(`M ${rhu(pa.x)} ${rhu(pa.y)} ${mid} L ${rhu(pb.x)} ${rhu(pb.y)}`, palette.primary, 1.6, { markerEnd: ARROW_ID }));
+    const fromDir: PortDirection = e.fromSide.toUpperCase() === 'L' ? 'W'
+      : e.fromSide.toUpperCase() === 'R' ? 'E'
+      : e.fromSide.toUpperCase() === 'T' ? 'N' : 'S';
+    const toDir: PortDirection = e.toSide.toUpperCase() === 'L' ? 'W'
+      : e.toSide.toUpperCase() === 'R' ? 'E'
+      : e.toSide.toUpperCase() === 'T' ? 'N' : 'S';
+    const obstacles: Rect[] = allBoxes
+      .filter(bx => bx.id !== e.from && bx.id !== e.to)
+      .map(bx => ({ x: bx.x, y: bx.y + yOff, width: bx.width, height: bx.height }));
+    const route = orthogonalRouter.route({
+      from: pa, to: pb, style: 'orthogonal',
+      obstacles, padding: 10,
+      fromDir, toDir,
+    });
+    elements.push(p.path(route.path, palette.primary, 1.6, { markerEnd: ARROW_ID }));
   }
 
   // ── Service nodes ──────────────────────────────────────────────────────────
