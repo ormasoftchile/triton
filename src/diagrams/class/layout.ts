@@ -196,25 +196,15 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     fromPortMap2.set(key, assignGroupPorts(laid.boxes.get(nodeId)!, wall, group, yOff));
   }
 
-  function orthogonalPolyline(pts: ReadonlyArray<{ x: number; y: number }>): string {
-    if (pts.length < 2) return '';
-    const parts: string[] = [`M ${pts[0]!.x} ${pts[0]!.y}`];
-    const last = pts.length - 1;
-    for (let i = 1; i <= last; i++) {
-      const prev = pts[i - 1]!;
-      const curr = pts[i]!;
-      const dx = Math.abs(curr.x - prev.x);
-      const dy = Math.abs(curr.y - prev.y);
-      if (dx < 0.5 || dy < 0.5) {
-        parts.push(`L ${curr.x} ${curr.y}`);
-      } else if (i === last) {
-        parts.push(`L ${curr.x} ${prev.y} L ${curr.x} ${curr.y}`);
-      } else {
-        parts.push(`L ${prev.x} ${curr.y} L ${curr.x} ${curr.y}`);
-      }
+  // Arrowhead direction: point just outside the wall in the edge's travel direction.
+  const wallDir = (wall: Wall, pt: { x: number; y: number }): { x: number; y: number } => {
+    switch (wall) {
+      case 'top':    return { x: pt.x,     y: pt.y - 1 };
+      case 'bottom': return { x: pt.x,     y: pt.y + 1 };
+      case 'left':   return { x: pt.x - 1, y: pt.y     };
+      case 'right':  return { x: pt.x + 1, y: pt.y     };
     }
-    return parts.join(' ');
-  }
+  };
 
   for (let ri = 0; ri < ir.relations.length; ri++) {
     const r = ir.relations[ri]!;
@@ -230,28 +220,14 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const fromPt = fromPortMap2.get(`${a.id}:${fromWall}`)?.get(ri)
       ?? borderPoint({ ...a, y: a.y + yOff }, toPt.x, toPt.y);
 
-    const bends = laid.edgeBends.get(ri);
-    let safePath: string;
-    let labelMid: { x: number; y: number };
-    if (bends && bends.length > 0) {
-      // Route through dummy-node waypoints (already in layout coords; add yOff).
-      const pts = [fromPt, ...bends.map(bp => ({ x: bp.x, y: bp.y + yOff })), toPt];
-      safePath = orthogonalPolyline(pts);
-      labelMid = pts[Math.floor(pts.length / 2)]!;
-    } else {
-      const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
-      safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
-      labelMid = routed.labelMidpoint;
-    }
+    const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
+    const safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
+    const labelMid = routed.labelMidpoint;
     elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
 
-    // Use first/last path segment for marker direction (correct on kinked routes).
-    const bendPts = bends?.map(bp => ({ x: bp.x, y: bp.y + yOff })) ?? [];
-    const allPts  = [fromPt, ...bendPts, toPt];
-    const fromToward = allPts[1] ?? toPt;
-    const toToward   = allPts[allPts.length - 2] ?? fromPt;
-    elements.push(...endMarker(p, fromPt, fromToward, r.leftHead, palette));
-    elements.push(...endMarker(p, toPt,   toToward,   r.rightHead, palette));
+    // Arrowhead direction from wall: axis-aligned, independent of path geometry.
+    elements.push(...endMarker(p, fromPt, wallDir(fromWall, fromPt), r.leftHead, palette));
+    elements.push(...endMarker(p, toPt,   wallDir(toWall,   toPt),   r.rightHead, palette));
 
     const mx = labelMid.x, my = labelMid.y;
     if (r.label) elements.push(p.text(r.label, rhuInt(mx), rhuInt(my - 4), memFont, palette.textMuted, { anchor: 'middle' }));
