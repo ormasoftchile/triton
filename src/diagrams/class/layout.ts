@@ -194,6 +194,26 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     fromPortMap2.set(key, assignGroupPorts(laid.boxes.get(nodeId)!, wall, group, yOff));
   }
 
+  function orthogonalPolyline(pts: ReadonlyArray<{ x: number; y: number }>): string {
+    if (pts.length < 2) return '';
+    const parts: string[] = [`M ${pts[0]!.x} ${pts[0]!.y}`];
+    const last = pts.length - 1;
+    for (let i = 1; i <= last; i++) {
+      const prev = pts[i - 1]!;
+      const curr = pts[i]!;
+      const dx = Math.abs(curr.x - prev.x);
+      const dy = Math.abs(curr.y - prev.y);
+      if (dx < 0.5 || dy < 0.5) {
+        parts.push(`L ${curr.x} ${curr.y}`);
+      } else if (i === last) {
+        parts.push(`L ${curr.x} ${prev.y} L ${curr.x} ${curr.y}`);
+      } else {
+        parts.push(`L ${prev.x} ${curr.y} L ${curr.x} ${curr.y}`);
+      }
+    }
+    return parts.join(' ');
+  }
+
   for (let ri = 0; ri < ir.relations.length; ri++) {
     const r = ir.relations[ri]!;
     const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
@@ -214,10 +234,10 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     if (bends && bends.length > 0) {
       // Route through dummy-node waypoints (already in layout coords; add yOff).
       const pts = [fromPt, ...bends.map(bp => ({ x: bp.x, y: bp.y + yOff })), toPt];
-      safePath = pts.map((pt, k) => (k === 0 ? `M ${pt.x} ${pt.y}` : `L ${pt.x} ${pt.y}`)).join(' ');
+      safePath = orthogonalPolyline(pts);
       labelMid = pts[Math.floor(pts.length / 2)]!;
     } else {
-      const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt);
+      const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
       safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
       labelMid = routed.labelMidpoint;
     }

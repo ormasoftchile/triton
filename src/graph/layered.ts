@@ -831,6 +831,7 @@ export function routeEdge(
   yOff = 0,
   fromPt?: { x: number; y: number },
   toPt?: { x: number; y: number },
+  forceOrthogonal = false,
 ): { path: string; labelMidpoint: { x: number; y: number } } {
   const fromRect: Rect = { x: fromBox.x, y: fromBox.y + yOff, width: fromBox.width, height: fromBox.height };
   const toRect:   Rect = { x: toBox.x,   y: toBox.y   + yOff, width: toBox.width,   height: toBox.height   };
@@ -865,7 +866,9 @@ export function routeEdge(
     .map(b => ({ x: b.x, y: b.y + yOff, width: b.width, height: b.height }));
 
   // Fast path: use a straight line when no obstacle blocks it.
-  if (obstacles.length === 0 || straightLineObstacleFree(pa, pb, obstacles, 10)) {
+  // Skipped when forceOrthogonal=true (e.g. class diagrams require rectilinear routing).
+  if (!forceOrthogonal &&
+      (obstacles.length === 0 || straightLineObstacleFree(pa, pb, obstacles, 10))) {
     return {
       path: `M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}`,
       labelMidpoint: { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 },
@@ -882,6 +885,10 @@ export function routeEdge(
   });
 
   // Fallback: if the router produces an empty path, use a straight line.
-  const path = route.path || `M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}`;
+  // When forceOrthogonal is set, prefer a degenerate orthogonal path (V+H) over diagonal.
+  const path = route.path
+    || (forceOrthogonal
+        ? `M ${pa.x} ${pa.y} L ${pa.x} ${pb.y} L ${pb.x} ${pb.y}`
+        : `M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}`);
   return { path, labelMidpoint: route.labelPosition };
 }
