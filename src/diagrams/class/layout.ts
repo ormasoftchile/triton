@@ -133,6 +133,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   const allBoxes = [...laid.boxes.values()];
 
   const approachWall = (from: NodeBox, to: NodeBox): Wall => {
+    if (from.y + from.height <= to.y) return 'top';
+    if (to.y + to.height     <= from.y) return 'bottom';
     const dx = (to.x + to.width / 2) - (from.x + from.width / 2);
     const dy = (to.y + to.height / 2) - (from.y + from.height / 2);
     if (Math.abs(dy) >= Math.abs(dx)) return dy >= 0 ? 'top' : 'bottom';

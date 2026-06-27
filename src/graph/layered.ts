@@ -685,7 +685,9 @@ function assignCoordinatesBK4(
     for (const node of ns) {
       const cx        = (balanced.get(node.id) ?? 0) + shift;
       const crossLeft = cx - cross(node) / 2;
-      const alongPos  = alongCursor + (layerSize - along(node)) / 2;
+      const alongPos = (isDummy(node.id) && li > 0)
+        ? alongCursor - layerGap / 2
+        : alongCursor + (layerSize - along(node)) / 2;
 
       nodePos.set(node.id, {
         id:     node.id,
@@ -756,6 +758,51 @@ export function layeredLayout(
   const boxes = new Map<string, NodeBox>();
   for (const [id, box] of allBoxesMap) {
     if (!id.startsWith('__dummy_')) boxes.set(id, box);
+  }
+
+  // Phase 6: Compact gaps between disconnected subgraphs.
+  if (boxes.size > 1) {
+    const uf = new Map<string, string>(nodes.map(n => [n.id, n.id]));
+    const find = (x: string): string => {
+      while (uf.get(x) !== x) { uf.set(x, uf.get(uf.get(x)!)!); x = uf.get(x)!; }
+      return x;
+    };
+    for (const e of edges) {
+      if (boxes.has(e.from) && boxes.has(e.to)) {
+        const ra = find(e.from), rb = find(e.to);
+        if (ra !== rb) uf.set(ra, rb);
+      }
+    }
+    const comps = new Map<string, string[]>();
+    for (const id of boxes.keys()) {
+      const r = find(id);
+      if (!comps.has(r)) comps.set(r, []);
+      comps.get(r)!.push(id);
+    }
+    if (comps.size > 1) {
+      const compInfos = [...comps.values()].map(ids => ({
+        ids,
+        left:  Math.min(...ids.map(id => boxes.get(id)!.x)),
+        right: Math.max(...ids.map(id => boxes.get(id)!.x + boxes.get(id)!.width)),
+      })).sort((a, b) => a.left - b.left);
+
+      let cursor = compInfos[0]!.right;
+      for (let ci = 1; ci < compInfos.length; ci++) {
+        const comp = compInfos[ci]!;
+        const gap = comp.left - cursor;
+        const targetGap = nodeGap * 2;
+        if (gap > targetGap) {
+          const dx = -(gap - targetGap);
+          for (const id of comp.ids) {
+            const b = boxes.get(id)!;
+            boxes.set(id, { id: b.id, x: b.x + dx, y: b.y, width: b.width, height: b.height });
+          }
+          comp.left  += dx;
+          comp.right += dx;
+        }
+        cursor = comp.right;
+      }
+    }
   }
 
   // Compute total diagram dimensions from placed real boxes.
