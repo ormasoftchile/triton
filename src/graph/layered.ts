@@ -343,7 +343,7 @@ function minimizeCrossings(
   }
   rebuildPos();
 
-  function reorderLayer(layerIdx: number, neighborMap: Map<string, string[]>): void {
+  function reorderLayer(layerIdx: number, neighborMap: Map<string, string[]>, biasRight: boolean): void {
     const curr = order.get(layerIdx)!;
     const bary = curr.map((node, i) => {
       const nbrs = neighborMap.get(node.id) ?? [];
@@ -353,7 +353,7 @@ function minimizeCrossings(
       const sum = nbrs.reduce((s, nid) => s + (posInLayer.get(nid) ?? 0), 0);
       return { node, b: sum / nbrs.length, orig: origOrder.get(node.id) ?? i };
     });
-    bary.sort((a, b) => a.b !== b.b ? a.b - b.b : a.orig - b.orig);
+    bary.sort((a, b) => a.b !== b.b ? a.b - b.b : biasRight ? b.orig - a.orig : a.orig - b.orig);
     order.set(layerIdx, bary.map(e => e.node));
     rebuildPos();
   }
@@ -364,15 +364,18 @@ function minimizeCrossings(
 
   // Sweep until no strict improvement for 4 consecutive passes.
   for (let pass = 0, lastBest = 0; lastBest < 4; pass++, lastBest++) {
+    const biasRight = pass % 4 >= 2;
     if (pass % 2 === 0) {
-      for (let li = 1; li < layerKeys.length; li++) reorderLayer(layerKeys[li]!, pred);
+      for (let li = 1; li < layerKeys.length; li++) reorderLayer(layerKeys[li]!, pred, biasRight);
     } else {
-      for (let li = layerKeys.length - 2; li >= 0; li--) reorderLayer(layerKeys[li]!, succ);
+      for (let li = layerKeys.length - 2; li >= 0; li--) reorderLayer(layerKeys[li]!, succ, biasRight);
     }
     const cc = crossCount(order, edges, backEdgeSet);
     if (cc < bestCC) {
       lastBest = 0;
       bestCC = cc;
+      for (const [k, v] of order) best.set(k, [...v]);
+    } else if (cc === bestCC) {
       for (const [k, v] of order) best.set(k, [...v]);
     }
   }
@@ -501,7 +504,6 @@ function assignCoordinatesBK4(
         const mp = (nbrs.length - 1) / 2;
         for (let mi = Math.floor(mp); mi <= Math.ceil(mp); mi++) {
           const w    = nbrs[mi]!;
-          if (isDummy(v) !== isDummy(w)) continue;
           const wPos = pos.get(w)!;
           if (align.get(v) === v && prevIdx < wPos && !hasConflict(v, w)) {
             align.set(w, v);
