@@ -66,7 +66,8 @@ function rectsOverlapLength(a: RoutedSegment, b: RoutedSegment): number {
   return Math.max(ox, oy);
 }
 
-const CLEARANCE = 12;
+const CLEARANCE      = 12;  // obstacle avoidance (right-side, inter-column)
+const LANE_CLEARANCE = 32;  // visual breathing room for left/right margin lanes
 
 // ── Port-assignment helpers (module-level) ─────────────────────────────────
 
@@ -425,12 +426,12 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         return (srcMidY_ > ny && srcMidY_ < ny + nh) || (tgtMidY_ > ny && tgtMidY_ < ny + nh);
       });
       const adaptiveLeftX_BD = blockingBD.length > 0
-        ? Math.min(...blockingBD.map(nb => nb.x)) - CLEARANCE
-        : realMinX - CLEARANCE;
+        ? Math.min(...blockingBD.map(nb => nb.x)) - LANE_CLEARANCE
+        : realMinX - LANE_CLEARANCE;
 
       // Adaptive right-margin for C/E strategies (right-side lanes)
       const adaptiveRightX_CE = blockingBD.length > 0
-        ? Math.max(...blockingBD.map(nb => nb.x + nb.width)) + CLEARANCE
+        ? Math.max(...blockingBD.map(nb => nb.x + nb.width)) + LANE_CLEARANCE
         : rightMarginX;
 
       // Adaptive left-margin for F strategy (checks exitY and tgtMidY rows)
@@ -439,8 +440,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
                (tgtMidY_ > nb.y && tgtMidY_ < nb.y + nb.height);
       });
       const adaptiveLeftX_F = blockingF.length > 0
-        ? Math.min(...blockingF.map(nb => nb.x)) - CLEARANCE
-        : realMinX - CLEARANCE;
+        ? Math.min(...blockingF.map(nb => nb.x)) - LANE_CLEARANCE
+        : realMinX - LANE_CLEARANCE;
 
       // ── Segment builder functions ──────────────────────────────────────────
       function buildSegmentsA(laneX: number): Array<[number, number, number, number]> {
@@ -512,8 +513,13 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         });
       }
 
-      const laneXsB = [adaptiveLeftX_BD, realMinX - CLEARANCE, ...sweepCandidates]
-        .filter(x => x < Math.min(srcLeft_, tgtLeft_));
+      const laneXsB = [
+        adaptiveLeftX_BD,                        // min-clearance (32px from nearest box)
+        realMinX - LANE_CLEARANCE * 1.5,         // 48px
+        realMinX - LANE_CLEARANCE * 2,           // 64px
+        realMinX - LANE_CLEARANCE * 3,           // 96px
+        ...sweepCandidates,                       // BK sweep positions
+      ].filter(x => x < Math.min(srcLeft_, tgtLeft_));
       for (const laneX of laneXsB) {
         allCandidates.push({
           strategy: 'B', laneX, isMixed: false,
@@ -522,8 +528,13 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         });
       }
 
-      const laneXsC = [adaptiveRightX_CE, rightMarginX, ...sweepCandidates]
-        .filter(x => x > Math.max(srcRight_, tgtRight_));
+      const laneXsC = [
+        adaptiveRightX_CE,
+        rightMarginX,
+        rightMarginX + LANE_CLEARANCE * 0.5,
+        rightMarginX + LANE_CLEARANCE,
+        ...sweepCandidates,
+      ].filter(x => x > Math.max(srcRight_, tgtRight_));
       for (const laneX of laneXsC) {
         allCandidates.push({
           strategy: 'C', laneX, isMixed: false,
