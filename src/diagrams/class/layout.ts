@@ -159,8 +159,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
   // ── Box sizing ─────────────────────────────────────────────────────────────
   const sizeOf = (c: ClassBox): { w: number; h: number; attrH: number } => {
-    const texts = [c.name, ...(c.stereotype ? [`«${c.stereotype}»`] : []), ...c.attributes.map(m => m.text), ...c.methods.map(m => m.text)];
-    const w = Math.max(130, ...texts.map(t => measureText(t, memFont).width + 24));
+    const memberTexts = [...(c.stereotype ? [`«${c.stereotype}»`] : []), ...c.attributes.map(m => m.text), ...c.methods.map(m => m.text)];
+    const nameW = measureText(c.name, nameFont).width + 24;
+    const w = Math.max(130, nameW, ...memberTexts.map(t => measureText(t, memFont).width + 24));
     const stereoH = c.stereotype ? memFont + 4 : 0;
     const attrH = c.attributes.length * lineH + 8;
     const methH = c.methods.length * lineH + 8;
@@ -694,8 +695,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const x = box.x, y = box.y + yOff;
     elements.push(p.rect({ x: rhu(x), y: rhu(y), width: rhu(s.w), height: rhu(s.h) }, palette.surface, palette.border, 1.4, { rx: 4 }));
 
-    // Header
-    let ty = y + nameFont + 6;
+    // Header — title vertically centered in headH band
+    const headerMidY = y + headH / 2;
+    let ty = headerMidY + nameFont * 0.35; // 0.35 ≈ half cap-height for baseline offset
     elements.push(p.text(c.name, rhuInt(x + s.w / 2), rhu(ty), nameFont, palette.text, { weight: 'bold', anchor: 'middle' }));
     if (c.stereotype) { ty += memFont + 2; elements.push(p.text(`«${c.stereotype}»`, rhuInt(x + s.w / 2), rhu(ty), memFont, palette.textMuted, { anchor: 'middle' })); }
     const headerBottom = y + headH + (c.stereotype ? memFont + 4 : 0);

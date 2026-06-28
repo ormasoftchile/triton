@@ -537,3 +537,180 @@ All other edges ("has", "creates", "contains", "references") and relationship ma
 ### Verdict: **PASS**
 Visually identical to prior PASS (e2a9d04). Additive optimizer changes (adaptive left-margin candidate + expansion penalty) produced no net visual effect. No regressions on any edge or label.
 
+
+---
+
+## Review: commit 2e259cd — "places" left-side routing (Strategy B)
+**Date:** 2026-06-28T11:00:25-04:00
+**Requested by:** ormasoftchile
+**Artifact:** `examples/class/class-ken-leftroute.png`
+
+### SVG Geometry (measured)
+| Item | Value | Expected | Match |
+|------|-------|----------|-------|
+| Customer box | y=56, h=128 | — | — |
+| Customer mid-height | y=120.0 | y=120 | ✅ exact |
+| Order box | y=419, h=128 | — | — |
+| Order mid-height | y=483.0 | y=483 | ✅ exact |
+| ShoppingCart mid-height | y=301.5 | — | — |
+| Route exit point | (31.82, 120) | Customer left wall, mid | ✅ |
+| Lane x | 19.82 | ≈19.82 | ✅ |
+| Route entry point | (31.82, 483) | Order left wall, mid | ✅ |
+| Arrowhead tip | (31.82, 483) | Order left wall mid | ✅ |
+| Label x/anchor | x=16, text-anchor=end | left of lane | ✅ |
+| Label y | 298 | ≈301.5 (ShoppingCart mid) | ≈ (Δ3.5px) |
+| Label left clearance | ≈6px SVG / ≈20px PNG | >0 | ✅ |
+
+### Route Path (SVG line 4)
+```
+M 31.82 120 L 19.82 120 L 19.82 483 L 31.82 483
+```
+Three segments: Customer-left exit → lane entry → vertical descent → Order-left entry. ✅
+
+### Arrowhead (SVG line 5)
+```
+M 20.76 478.33 L 31.82 483 L 20.76 487.67
+```
+Open chevron, tip at Order left wall (31.82, 483), pointing right (→). Correct direction for Customer→Order. ✅
+
+### "has" (SVG line 17–19)
+`M 96.81625 184 L 96.81625 255.5` — pure vertical, x constant. ✅
+
+### "creates" (SVG line 20–22)
+`M 96.81625 347.5 L 96.81625 419` — pure vertical, x constant. ✅
+
+### 15-Principle Audit
+1. **Visibility** — "places" fully legible in rendered PNG. ✅
+2. **Correctness** — Route follows Strategy B spec (Left→Left). ✅
+3. **Precision** — Entry/exit at exact mid-heights (pixel-perfect). ✅
+4. **Label placement** — Right-edge at x=16, left of lane at x=19.82, anchor=end. ✅
+5. **Label vertical alignment** — y=298 vs ShoppingCart center y=301.5 (Δ3.5px). Acceptable. ⚠️ minor
+6. **Arrowhead direction** — Points right into Order. ✅
+7. **Arrowhead type** — Open chevron (association/navigation). Consistent with "has"/"creates"/"references". ✅
+8. **Arrowhead position** — Tip touches Order left wall exactly. ✅
+9. **No overlap** — Left margin lane (x=19.82) does not intersect any box (Customer/ShoppingCart/Order all start at x=31.82). ✅
+10. **Straight verticals preserved** — "has" and "creates" unchanged. ✅
+11. **Canvas left margin** — No clipping; label clears viewBox left (x=-24) with ≈6px SVG margin. ✅
+12. **Stroke consistency** — stroke="#64748B", stroke-width=1.3/1.4, matches all other edges. ✅
+13. **Color consistency** — "#64748B" label fill matches all relation labels. ✅
+14. **Font consistency** — Inter, 11px, same as "has"/"creates"/"contains"/"references". ✅
+15. **No artifacts** — No stray lines or ghost paths in left margin. ✅
+
+### Verdict
+**PASS** — All five routing requirements satisfied. One minor note: label y=298 is 3.5px above ShoppingCart mid-height (301.5) — sub-threshold, no visual impact.
+
+---
+
+## Review: commit 2c245f7 — breathing room and label fix
+**Date:** 2026-06-28T11:13:04-04:00
+**Requested by:** ormasoftchile
+**Artifact:** `examples/class/class-ken-breathing.png` (1400px wide)
+
+### What Changed (per diff)
+- `LANE_CLEARANCE`: 32 → 48 (wider breathing gap from boxes to lane rail)
+- `expansionPenalty`: 1.0 → 0.05 (canvas expansion no longer penalised heavily)
+- `LABEL_EXTRA = 48`: viewBox expanded 48 extra SVG units leftward to ensure "places" label is never clipped
+
+### SVG Geometry (measured)
+
+| Item | SVG Value | Rendered px @ 1400w |
+|------|-----------|---------------------|
+| Lane rail x | 7.82 | — |
+| Customer/Order box left | 31.82 | — |
+| Lane-to-box gap | **24 SVG units** | **~72.7 px** |
+| ShoppingCart box left | 24.00 | — |
+| Lane-to-ShoppingCart gap | 16.18 SVG units | ~49 px |
+| "places" text right edge (text-anchor=end, x=4) | x=4 | — |
+| Gap: label right → lane rail | **3.82 SVG units** | **~11.6 px** |
+| ViewBox left edge | x=−72 | — |
+| Label left extent (6 chars × ~6.5 SVG) | x≈−35 | — |
+| Canvas left clearance for label | ~37 SVG units | ~112 px ✅ |
+| "1" cardinal position | x=21.82, y=110 | 42 px right of rail |
+| "*" cardinal position | x=21.82, y=473 | 42 px right of rail |
+
+### Point-by-Point Assessment
+
+**"places" label — fully visible?**
+Yes. Text right edge at x=4 with text-anchor=end. ViewBox starts at x=−72, so there is ~112px of rendered canvas to the left of the label — no clipping. LABEL_EXTRA=48 fully resolved the prior canvas-clip risk. Gap to the lane rail is 11.6px — tight but identical to prior PASS commit (2e259cd), consistent, and legible at 1400px render.
+
+**Lane-to-box distance — rendered pixels?**
+~72.7px to Customer/Order (left edge x=31.82 − lane x=7.82 = 24 SVG × 3.03).
+~49px to ShoppingCart (left edge x=24 − lane x=7.82 = 16.18 SVG × 3.03).
+Clear improvement over prior commit where the gap was ~36px.
+
+**"1" and "*" cardinality — readable and adjacent?**
+Both at x=21.82 — midway between lane rail (x=7.82) and box left wall (x=31.82). "1" sits 10px below the top horizontal connector bracket; "*" sits 10px above the arrowhead terminus. Both are legible and unambiguous at render size.
+
+**Any clipping?**
+None. All connector paths, arrowheads, labels, and node content are within the expanded viewBox. The CreditCardPayment title fits tightly in its 130-wide box (pre-existing, not introduced by this commit).
+
+### 15-Principle Assessment
+
+| # | Status | Note |
+|---|--------|------|
+| P1 — Clarity of intent | ✅ | Domain model reads cleanly top-to-bottom |
+| P2 — Label legibility | ✅ | "places" fully unclipped; canvas clearance ~112px |
+| P3 — Node-edge separation | ✅ | Lane rail at x=7.82 clears all boxes |
+| P4 — Routing efficiency | ✅ | 3-segment bracket is the minimal correct form |
+| P5 — Vertical plumb | ✅ | Left-column vertical spine (x=96.82) unchanged |
+| P6 — Label positioning | ✅ | "places" at y=298, midpoint of vertical span (y=120–483) |
+| P7 — Label/node overlap | ✅ | Label in left margin, outside all node bounding boxes |
+| P8 — Visual hierarchy | ✅ | Top-to-bottom flow maintained |
+| P9 — Multiplicity legibility | ✅ | "1" and "*" readable, adjacent to connector ends |
+| P10 — Semantic correctness | ✅ | Association with 1-to-many multiplicity correctly rendered |
+| P11 — Consistent styling | ✅ | stroke #64748B, weight 1.3/1.4, font Inter 11px |
+| P12 — Whitespace management | ✅ | Lane is in left margin; ~72px gap from box; no excess |
+| P13 — Arrowhead clarity | ✅ | Open chevron pointing right (→) into Order left wall |
+| P14 — Reading direction | ✅ | Customer→Order south flow unambiguous |
+| P15 — Overall composition | ✅ | No regressions; right column clean; no artifacts |
+
+**Score: 15 ✅ / 0 ⚠️ / 0 ❌**
+
+### Verdict: ✅ PASS
+
+Both commit objectives achieved:
+1. **Label fix**: "places" is fully visible with ~112px canvas clearance left (LABEL_EXTRA=48 worked).
+2. **Breathing room**: Lane-to-box gap is now ~72.7px (up from ~36px prior) — comfortable and unambiguous.
+
+The 11.6px label-to-rail gap is tight but unchanged from prior PASS commit (2e259cd); not a regression. CreditCardPayment box label tightness is pre-existing and out of scope for this commit.
+
+Full verdict: `.squad/decisions/inbox/ken-verdict-breathing.md`
+
+---
+
+## Review #4 — commit a9312ce · 2026-06-28T11:18:23-04:00
+**Task:** "final breathing room fix"
+**Artifact:** `examples/class/class-ken-final.png`
+
+### Key Measurements
+- viewBox: `-90 0 480 925`
+- laneX = `-16.18`
+- ShoppingCart left edge (widest box): `x=24` → gap **40 px** ✅
+- Customer / Order left edges: `x=31.82` → gap **48 px** ✅
+- "places" label at `x=-20, text-anchor=end` → ~35 px margin to canvas edge ✅
+
+### Principle Scorecard
+
+| # | Status | Note |
+|---|--------|------|
+| P1 — Clarity of intent | ✅ | E-Commerce domain model reads cleanly |
+| P2 — Label legibility | ✅ | All edge labels unclipped, legible |
+| P3 — Node-edge separation | ✅ | 40 px gap (min) between rail and box edge |
+| P4 — Routing efficiency | ✅ | 3-segment bracket; single-segment all other edges |
+| P5 — Vertical plumb | ✅ | Left-column spine x≈96.82 unchanged |
+| P6 — Label positioning | ✅ | "places" at y=298, midpoint of 120–483 span |
+| P7 — Label/node overlap | ✅ | "places" entirely in left margin, x=−20 |
+| P8 — Visual hierarchy | ✅ | Bold title → bold class names → regular members |
+| P9 — Multiplicity legibility | ✅ | "1" and "*" adjacent to bracket arm endpoints |
+| P10 — Semantic correctness | ✅ | Association, composition diamond, realization triangle all correct |
+| P11 — Consistent styling | ✅ | Uniform stroke #64748B / Inter 11px throughout |
+| P12 — Whitespace management | ✅ | 40–48 px breathing room; 90 px expansion used efficiently |
+| P13 — Arrowhead clarity | ✅ | Open chevron, filled diamond, open triangle semantically distinct |
+| P14 — Reading direction | ✅ | Top-to-bottom main flow; rightward arrowhead into Order for "places" |
+| P15 — Overall composition | ✅ | No overlap, no artefacts, clean two-column layout |
+
+**Score: 15 ✅ / 0 ⚠️ / 0 ❌**
+
+### Verdict: ✅ PASS
+
+Both commit objectives confirmed: 40 px breathing room between bracket rail and box edge; "places" label fully visible with ~35 px canvas margin. No regressions. Full verdict: `.squad/decisions/inbox/ken-verdict-final.md`

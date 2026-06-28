@@ -355,3 +355,41 @@ Additive commit introducing adaptive left-margin candidate and expansion penalty
 
 Byte-for-byte SVG path match with prior PASS. Five new multi-wall routing strategies integrated cleanly; Strategy A (bottom→top) remains winner at laneX=186.77. All 15 visual principles satisfied; 1 pre-existing ⚠️ (P9 ∗ multiplicity cramped). Net effect: zero visual regression. Approved for merge.
 
+---
+
+## Decision: Ken QA Verdict — "places" Left-Route (commit 2e259cd)
+
+**Date:** 2026-06-28T11:00:25-04:00  
+**Reviewer:** Ken (Visual QA)  
+**Artifact:** `examples/class/class-ken-leftroute.png`  
+**Commit:** 2e259cd
+
+**Verdict:** ✅ PASS
+
+All five routing requirements for Strategy B (Left→Left) are satisfied. The "places" edge routes down the left margin with 3.82px gap to lane rail. Label fully visible with ~6px SVG margin from viewBox left. All 15 visual principles satisfied; 1 minor observation (label y=298 vs ShoppingCart center y=301.5 is 3.5px offset, sub-threshold at render scale). Exit/entry points pixel-perfect at Customer/Order left-wall mid-heights. Approved for merge.
+
+---
+
+## Decision: Ken QA Verdict — commit 2c245f7 — Breathing Room and Label Fix
+
+**Date:** 2026-06-28T11:13:04-04:00  
+**Reviewer:** Ken (Visual QA)  
+**Commit:** `2c245f7` — fix(class): LANE_CLEARANCE=48, expansion penalty 0.05, label viewBox extra margin
+
+**Verdict:** ✅ PASS
+
+Objectives achieved: (1) Label fix: LABEL_EXTRA=48 provides ~112px canvas clearance to left of "places" label, fully visible with zero clipping risk. (2) Breathing room: LANE_CLEARANCE increased 32→48; rendered lane-to-box gap now ~72.7px (up from ~36px). Rendered gaps: Customer/Order 72.7px, ShoppingCart 49px — all comfortable and visually unambiguous. All 15 principles satisfied; "*" multiplicity no longer cramped. Comparison with prior PASS (2e259cd): improved +36px lane-to-box, +92px label clearance, no regressions.
+
+---
+
+## Decision: Ken QA Verdict — commit a9312ce — Final Breathing Room Fix
+
+**Date:** 2026-06-28T11:18:23-04:00  
+**Reviewer:** Ken (Visual QA)  
+**Artifact:** `examples/class/class-ken-final.png` (1400px wide)  
+**Commit:** a9312ce
+
+**Verdict:** ✅ PASS
+
+Geometry: viewBox −90 to 390; lane rail at x=−16.18; ShoppingCart left x=24 (widest box) → **40.18px gap**; Customer/Order left x=31.82 → **48px gap**. "places" label at x=−20 (text-anchor end) with ~35px canvas margin to viewBox edge — zero clipping risk. All 15 visual principles satisfied; no regressions from prior PASS verdicts. Arrowhead semantically correct (open chevron →); all edges stroke #64748B 1.3/1.4pt; vertical plumb maintained (spine x≈96.82). Net effect: comfortable 40px bracket-to-box separation without wasting canvas; left margin occupies ~74px of 90px expansion — efficient.
+
