@@ -192,6 +192,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     interBoxes:  NodeBox[],
     routed:      RoutedSegment[],
     canvasW:     number,
+    realMinX:    number,
   ): number {
     if (laneX < 0 || laneX > canvasW) return Infinity;
 
@@ -214,15 +215,20 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       }
     }
 
-    const leftMarginX = Math.min(...allRealBoxes.map(b => b.x)) - CLEARANCE;
-    const dirPenalty  = laneX <= leftMarginX ? 0 : 5;
+    const dirPenalty = laneX <= realMinX - CLEARANCE ? 0 : 5;
+
+    // Canvas expansion penalty: proportional to how far left we push the origin.
+    // 1 point per px of leftward expansion. Penalises left-margin candidates
+    // relative to in-diagram lanes, but doesn't disqualify them.
+    const expansionPenalty = laneX < realMinX ? (realMinX - laneX) * 1.0 : 0;
 
     return (
       0.3   * pathLength  +
       10.0  * segCount    +
       1000  * boxHits     +
       50    * overlapHits +
-      dirPenalty
+      dirPenalty          +
+      expansionPenalty
     );
   }
 
@@ -352,21 +358,35 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         ? (laid.dummySweepXs.get(firstDummyId) ?? [])
         : [];
 
-      const leftMarginX  = Math.min(...allRealBoxes.map(b => b.x))          - CLEARANCE;
       const rightMarginX = Math.max(...allRealBoxes.map(b => b.x + b.width)) + CLEARANCE;
       const sourceX      = fromPt.x;
-
-      const candidates: number[] = [
-        ...sweepCandidates,
-        leftMarginX,
-        rightMarginX,
-        sourceX,
-        ...interColMidpoints,
-      ];
+      const realMinX     = Math.min(...allRealBoxes.map(b => b.x));
 
       // ── Compute route for each candidate ──────────────────────────────────
       const exitY  = bends[0]!.y + yOff;
       const entryY = toPt.y - LAYER_GAP / 2;
+
+      // Adaptive left-margin: push far enough left that horizontal segments at
+      // exitY and entryY clear ALL intermediate boxes.
+      // safeX = min(fromPt.x, toPt.x) - max(intermediate box right edge that
+      // would be crossed by a horizontal from laneX to fromPt.x) - CLEARANCE.
+      // Equivalently: laneX must satisfy laneX < min(interBox.left) for all
+      // interBoxes whose y range overlaps exitY or entryY.
+      const blockingAtExit  = interBoxes.filter(b => exitY  > b.y && exitY  < b.y + b.height);
+      const blockingAtEntry = interBoxes.filter(b => entryY > b.y && entryY < b.y + b.height);
+      const allBlocking     = [...blockingAtExit, ...blockingAtEntry];
+
+      const adaptiveLeftX = allBlocking.length > 0
+        ? Math.min(...allBlocking.map(b => b.x)) - CLEARANCE
+        : realMinX - CLEARANCE;
+
+      const candidates: number[] = [
+        ...sweepCandidates,
+        adaptiveLeftX,
+        rightMarginX,
+        sourceX,
+        ...interColMidpoints,
+      ];
 
       function buildSegments(laneX: number): Array<[number, number, number, number]> {
         const fx = fromPt.x, fy = fromPt.y;
@@ -390,7 +410,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
       for (const laneX of candidates) {
         const segs  = buildSegments(laneX);
-        const score = scoreLane(laneX, segs, interBoxes, routedSegments, canvasWidth);
+        const score = scoreLane(laneX, segs, interBoxes, routedSegments, canvasWidth, realMinX);
         if (score < bestScore) {
           bestScore = score;
           bestLaneX = laneX;
