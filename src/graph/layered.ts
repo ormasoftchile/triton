@@ -1,15 +1,18 @@
 /**
  * @file graph/layered.ts — Sugiyama layered graph placement kernel.
  *
- * Implements the full Sugiyama framework:
+ * Implements the full Sugiyama framework, with Phase 3 and Phase 4 ported
+ * faithfully from dagre (https://github.com/dagrejs/dagre):
  *   1. Longest-path layer assignment
  *   2a. DFS back-edge detection (proper cycle identification)
  *   2b. Dummy node insertion for skip edges (spans > 1 layer)
- *   3. Barycentric crossing minimisation — bi-directional sweeps with BIT-based
- *      cross-count feedback loop (Barth et al.); keeps best ordering seen
- *   4. Full Brandes–Köpf coordinate assignment — type-1 conflict detection,
- *      vertical alignment (block chains), horizontal compaction (block graph,
- *      two-pass), 4 sweep directions, smallest-width selection, balance
+ *   3. Dagre-faithful crossing minimisation — DFS initOrder, bi-directional
+ *      barycenter sweeps with biasRight, dagre's sort() with unsortable-node
+ *      interleaving, BIT-based cross-count feedback loop; keeps best ordering seen
+ *   4. Dagre-faithful Brandes–Köpf coordinate assignment — type-1 conflict
+ *      detection, vertical alignment with NO isDummy guard (real↔dummy blocks),
+ *      horizontal compaction (block graph, two-pass), 4 sweep directions,
+ *      smallest-width selection, balance; plus our obstacle-aware dummy snap
  *   5. Dummy node removal + bend point extraction (edgeBends on LayeredResult)
  *
  * Shared by the node-link / UML diagram layouts (class, state, er, c4,
@@ -313,48 +316,112 @@ function bilayerCrossCount(
  * - Sweeps continue until no strict improvement for 4 consecutive passes
  *   (measured via BIT-based cross-count); best ordering is returned.
  */
+/**
+ * Port of dagre's order() — barycentric crossing minimisation.
+ *
+ * Uses DFS-based initOrder (from dagre's init-order.ts) then bi-directional
+ * barycenter sweeps with dagre's sort logic: nodes without neighbours in the
+ * reference layer ("unsortable") are re-inserted at their original index rather
+ * than being sorted with an arbitrary barycenter value.
+ */
 function minimizeCrossings(
   byLayer: Map<number, GraphNode[]>,
   edges: readonly GraphEdge[],
   backEdgeSet: Set<number>,
 ): Map<number, GraphNode[]> {
-  const pred = new Map<string, string[]>();
-  const succ = new Map<string, string[]>();
-  for (const [, nodes] of byLayer) {
-    for (const n of nodes) { pred.set(n.id, []); succ.set(n.id, []); }
+  const predIds = new Map<string, string[]>();
+  const succIds = new Map<string, string[]>();
+  for (const [, ns] of byLayer) {
+    for (const n of ns) { predIds.set(n.id, []); succIds.set(n.id, []); }
   }
   edges.forEach((e, i) => {
     if (backEdgeSet.has(i) || e.from === e.to) return;
-    pred.get(e.to)?.push(e.from);
-    succ.get(e.from)?.push(e.to);
+    predIds.get(e.to)?.push(e.from);
+    succIds.get(e.from)?.push(e.to);
   });
 
   const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
 
-  const origOrder = new Map<string, number>();
-  for (const [, nodes] of byLayer) nodes.forEach((n, i) => origOrder.set(n.id, i));
+  const nodeById2  = new Map<string, GraphNode>();
+  const nodeLayer2 = new Map<string, number>();
+  for (const [lk, ns] of byLayer) for (const n of ns) {
+    nodeById2.set(n.id, n);
+    nodeLayer2.set(n.id, lk);
+  }
 
-  const order = new Map<number, GraphNode[]>();
-  for (const k of layerKeys) order.set(k, [...byLayer.get(k)!]);
+  // initOrder: DFS-based initial ordering (port of dagre's init-order.ts).
+  // Nodes visited first via DFS end up earlier in their layer, correlating
+  // initial order with edge directions and reducing starting crossings.
+  function initOrder(): Map<number, GraphNode[]> {
+    const visited = new Set<string>();
+    const layers  = new Map<number, GraphNode[]>();
+    for (const k of layerKeys) layers.set(k, []);
 
+    function dfs(v: string): void {
+      if (visited.has(v)) return;
+      visited.add(v);
+      const lk = nodeLayer2.get(v);
+      if (lk !== undefined) layers.get(lk)?.push(nodeById2.get(v)!);
+      for (const w of (succIds.get(v) ?? [])) dfs(w);
+    }
+
+    // Visit all nodes sorted by layer (ascending) so DFS starts from roots first.
+    const allNodes = [...nodeById2.keys()].sort(
+      (a, b) => (nodeLayer2.get(a) ?? 0) - (nodeLayer2.get(b) ?? 0),
+    );
+    for (const v of allNodes) dfs(v);
+    return layers;
+  }
+
+  const order      = initOrder();
   const posInLayer = new Map<string, number>();
   function rebuildPos(): void {
-    for (const [, nodes] of order) nodes.forEach((n, i) => posInLayer.set(n.id, i));
+    for (const [, ns] of order) ns.forEach((n, i) => posInLayer.set(n.id, i));
   }
   rebuildPos();
 
-  function reorderLayer(layerIdx: number, neighborMap: Map<string, string[]>, biasRight: boolean): void {
+  // Port of dagre's sort() — separates sortable (have barycenter) from unsortable
+  // (no neighbours) entries, then interleaves unsortable nodes at their original
+  // positions rather than lumping them at arbitrary barycenters.
+  function sortLayer(layerIdx: number, neighborMap: Map<string, string[]>, biasRight: boolean): void {
     const curr = order.get(layerIdx)!;
-    const bary = curr.map((node, i) => {
-      const nbrs = neighborMap.get(node.id) ?? [];
-      if (nbrs.length === 0) {
-        return { node, b: i, orig: origOrder.get(node.id) ?? i };
-      }
-      const sum = nbrs.reduce((s, nid) => s + (posInLayer.get(nid) ?? 0), 0);
-      return { node, b: sum / nbrs.length, orig: origOrder.get(node.id) ?? i };
+
+    const entries = curr.map((node, origIdx) => {
+      const nbrs = (neighborMap.get(node.id) ?? []).filter(w => posInLayer.has(w));
+      if (nbrs.length === 0) return { node, barycenter: undefined as number | undefined, origIdx };
+      const sum = nbrs.reduce((s, nid) => s + posInLayer.get(nid)!, 0);
+      return { node, barycenter: sum / nbrs.length, origIdx };
     });
-    bary.sort((a, b) => a.b !== b.b ? a.b - b.b : biasRight ? b.orig - a.orig : a.orig - b.orig);
-    order.set(layerIdx, bary.map(e => e.node));
+
+    const sortable   = entries.filter(e => e.barycenter !== undefined);
+    const unsortable = entries
+      .filter(e => e.barycenter === undefined)
+      .sort((a, b) => b.origIdx - a.origIdx); // descending → pop from end gives ascending
+
+    sortable.sort((a, b) => {
+      if (a.barycenter! !== b.barycenter!) return a.barycenter! - b.barycenter!;
+      return biasRight ? b.origIdx - a.origIdx : a.origIdx - b.origIdx;
+    });
+
+    const result: GraphNode[] = [];
+    let vsIndex = 0;
+
+    // Re-insert unsortable nodes at their original position indices (dagre's consumeUnsortable).
+    function consumeUnsortable(): void {
+      while (unsortable.length && unsortable[unsortable.length - 1]!.origIdx <= vsIndex) {
+        result.push(unsortable.pop()!.node);
+        vsIndex++;
+      }
+    }
+
+    consumeUnsortable();
+    for (const entry of sortable) {
+      result.push(entry.node);
+      vsIndex++;
+      consumeUnsortable();
+    }
+
+    order.set(layerIdx, result);
     rebuildPos();
   }
 
@@ -362,18 +429,19 @@ function minimizeCrossings(
   const best = new Map<number, GraphNode[]>();
   for (const [k, v] of order) best.set(k, [...v]);
 
-  // Sweep until no strict improvement for 4 consecutive passes.
   for (let pass = 0, lastBest = 0; lastBest < 4; pass++, lastBest++) {
     const biasRight = pass % 4 >= 2;
     if (pass % 2 === 0) {
-      for (let li = 1; li < layerKeys.length; li++) reorderLayer(layerKeys[li]!, pred, biasRight);
+      // Down sweep: fix each layer using its predecessors.
+      for (let li = 1; li < layerKeys.length; li++) sortLayer(layerKeys[li]!, predIds, biasRight);
     } else {
-      for (let li = layerKeys.length - 2; li >= 0; li--) reorderLayer(layerKeys[li]!, succ, biasRight);
+      // Up sweep: fix each layer using its successors.
+      for (let li = layerKeys.length - 2; li >= 0; li--) sortLayer(layerKeys[li]!, succIds, biasRight);
     }
     const cc = crossCount(order, edges, backEdgeSet);
     if (cc < bestCC) {
       lastBest = 0;
-      bestCC = cc;
+      bestCC   = cc;
       for (const [k, v] of order) best.set(k, [...v]);
     } else if (cc === bestCC) {
       for (const [k, v] of order) best.set(k, [...v]);
@@ -481,6 +549,9 @@ function assignCoordinatesBK4(
   }
 
   // ── BK Step 2: Vertical Alignment ────────────────────────────────────────────
+  // ── BK Step 2: Vertical Alignment (port of dagre's bk.ts verticalAlignment) ──
+  // Dagre has NO isDummy guard here — real↔dummy alignment is intentional:
+  // it forms the block chains that make skip-edge segments travel in straight lines.
   function verticalAlignment(
     sweepLayers: readonly string[][],
     neighborFn:  (v: string) => string[],
@@ -496,24 +567,21 @@ function assignCoordinatesBK4(
     for (const layer of sweepLayers) {
       let prevIdx = -1;
       for (const v of layer) {
-        // Dummy nodes free-float; they are not aligned with real neighbours.
-        // Their final x is set by the post-balance snap step.
-        if (isDummy(v)) continue;
+        // All nodes participate — dummies form blocks with real nodes to straighten skip edges.
+        const wsRaw = neighborFn(v);
+        if (!wsRaw.length) continue;
 
-        const nbrs = neighborFn(v).filter(w => pos.has(w) && !isDummy(w));
-        if (nbrs.length === 0) continue;
+        const ws = wsRaw.filter(w => pos.has(w)).sort((a, b) => pos.get(a)! - pos.get(b)!);
+        if (ws.length === 0) continue;
 
-        nbrs.sort((a, b) => pos.get(a)! - pos.get(b)!);
-
-        const mp = (nbrs.length - 1) / 2;
-        for (let mi = Math.floor(mp); mi <= Math.ceil(mp); mi++) {
-          const w    = nbrs[mi]!;
+        const mp = (ws.length - 1) / 2;
+        for (let mi = Math.floor(mp), mEnd = Math.ceil(mp); mi <= mEnd; mi++) {
+          const w    = ws[mi]!;
           const wPos = pos.get(w)!;
           if (align.get(v) === v && prevIdx < wPos && !hasConflict(v, w)) {
             align.set(w, v);
-            const rw = root.get(w)!;
-            root.set(v, rw);
-            align.set(v, rw);
+            root.set(v, root.get(w)!);
+            align.set(v, root.get(v)!);
             prevIdx = wPos;
           }
         }
