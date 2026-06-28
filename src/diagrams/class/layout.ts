@@ -27,7 +27,7 @@ interface RoutedSegment {
 
 /** A scored routing candidate carrying full path geometry for one wall-pair strategy. */
 interface RouteCandidate {
-  strategy: 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+  strategy: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'V' | 'X1' | 'X2';
   laneX:    number;
   segments: Array<[number, number, number, number]>;
   labelMid: { x: number; y: number };
@@ -69,9 +69,58 @@ function rectsOverlapLength(a: RoutedSegment, b: RoutedSegment): number {
 const CLEARANCE      = 12;  // obstacle avoidance (right-side, inter-column)
 const LANE_CLEARANCE = 48;  // visual breathing room for left/right margin lanes
 
+/** True if point (lx, ly) falls inside any of the given boxes. */
+function labelInBox(lx: number, ly: number, boxes: NodeBox[]): boolean {
+  return boxes.some(b =>
+    lx > b.x && lx < b.x + b.width &&
+    ly > b.y && ly < b.y + b.height
+  );
+}
+
+/** Remove values within tol pixels of each other (keep first occurrence). */
+function dedup(arr: number[], tol: number): number[] {
+  const result: number[] = [];
+  for (const v of arr) {
+    if (!result.some(r => Math.abs(r - v) < tol)) result.push(v);
+  }
+  return result;
+}
+
+/** Render a segment list to an SVG path string. */
+function segmentsToPath(segs: Array<[number, number, number, number]>): string {
+  if (segs.length === 0) return '';
+  if (segs.length === 1) {
+    return `M ${rhu(segs[0]![0])} ${rhu(segs[0]![1])} L ${rhu(segs[0]![2])} ${rhu(segs[0]![3])}`;
+  }
+  const pts: string[] = [`M ${rhu(segs[0]![0])} ${rhu(segs[0]![1])}`];
+  for (const [,, x2, y2] of segs) pts.push(`L ${rhu(x2)} ${rhu(y2)}`);
+  return pts.join(' ');
+}
+
 // ── Port-assignment helpers (module-level) ─────────────────────────────────
 
 type Wall = 'top' | 'bottom' | 'left' | 'right';
+
+// ── Edge classification (module-level) ────────────────────────────────────
+
+type EdgeClass =
+  | 'direct-same-column'
+  | 'direct-cross-column'
+  | 'skip-same-column'
+  | 'skip-cross-column';
+
+function classifyEdge(
+  a: NodeBox,
+  b: NodeBox,
+  bends: Array<{ x: number; y: number }> | undefined,
+): EdgeClass {
+  const cxA = a.x + a.width / 2;
+  const cxB = b.x + b.width / 2;
+  const sameCol = Math.abs(cxA - cxB) < 8;
+  const isSkip  = bends != null && bends.length > 0;
+  if (isSkip) return sameCol ? 'skip-same-column' : 'skip-cross-column';
+  return sameCol ? 'direct-same-column' : 'direct-cross-column';
+}
 
 const MIN_PORT_GAP = 32;
 const WALL_MARGIN  = 16;
@@ -194,7 +243,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   }
 
   /**
-   * Score a candidate lane x for a skip edge.
+   * Score a candidate lane x for a skip or direct edge.
    * Lower score = better. Returns Infinity if the candidate is out-of-bounds.
    */
   function scoreLane(
@@ -206,6 +255,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     realMinX:        number,
     wallPairPenalty: number = 0,
     sameWallBonus:   number = 0,
+    straightBonus:   number = 0,
+    labelMid:        { x: number; y: number } | null = null,
   ): number {
     if (laneX > canvasW) return Infinity;  // only hard-clip on the right
 
@@ -234,6 +285,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     // to win over tight spacing, not be penalised for it.
     const expansionPenalty = laneX < realMinX ? (realMinX - laneX) * 0.05 : 0;
 
+    const labelPenalty = (labelMid != null && labelInBox(labelMid.x, labelMid.y, allRealBoxes))
+      ? 200 : 0;
+
     return (
       0.3   * pathLength  +
       10.0  * segCount    +
@@ -242,7 +296,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       dirPenalty          +
       expansionPenalty    +
       wallPairPenalty     -
-      sameWallBonus           // bonus for same-wall same-column routing (B/C)
+      sameWallBonus       -   // bonus for same-wall same-column routing (B/C)
+      straightBonus       +   // reward for single-segment straight vertical
+      labelPenalty            // penalty when label mid falls inside a box
     );
   }
 
@@ -337,7 +393,32 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     }
   };
 
-  for (let ri = 0; ri < ir.relations.length; ri++) {
+  // ── Edge classification + processing-order sort ────────────────────────────
+  // Classify all edges; sort most-constrained first (skip-cross, then skip-same,
+  // then direct-cross, then direct-same). Within each class, longest span first.
+  interface EdgeEntry { ri: number; cls: EdgeClass; span: number; }
+  const edgeEntries: EdgeEntry[] = [];
+  for (let ri_ = 0; ri_ < ir.relations.length; ri_++) {
+    const r_ = ir.relations[ri_]!;
+    const a_ = laid.boxes.get(r_.left), b_ = laid.boxes.get(r_.right);
+    if (!a_ || !b_) continue;
+    const bends_ = laid.edgeBends.get(ri_);
+    const cls_ = classifyEdge(a_, b_, bends_);
+    const span_ = Math.abs((a_.x + a_.width / 2) - (b_.x + b_.width / 2)) +
+                  Math.abs((a_.y + a_.height / 2) - (b_.y + b_.height / 2));
+    edgeEntries.push({ ri: ri_, cls: cls_, span: span_ });
+  }
+  const classOrder: Record<EdgeClass, number> = {
+    'skip-cross-column':   0,
+    'skip-same-column':    1,
+    'direct-cross-column': 2,
+    'direct-same-column':  3,
+  };
+  edgeEntries.sort((ea, eb) =>
+    classOrder[ea.cls] - classOrder[eb.cls] || eb.span - ea.span
+  );
+
+  for (const { ri, cls } of edgeEntries) {
     const r = ir.relations[ri]!;
     const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
     if (!a || !b) continue;
@@ -594,6 +675,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
           canvasWidth, realMinX,
           c.isMixed ? 2.0 : 0,
           sameWallBonus,
+          0,
+          c.labelMid,
         );
         if (score < bestScore) {
           bestScore     = score;
@@ -653,15 +736,135 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       elements.push(...endMarker(p, effectiveFromPt, wallDir(effectiveFromWall, effectiveFromPt), r.leftHead,  palette));
       elements.push(...endMarker(p, effectiveToPt,   wallDir(effectiveToWall,   effectiveToPt),   r.rightHead, palette));
     } else {
-      const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
-      safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
-      labelMid = routed.labelMidpoint;
+      // ── Direct-edge optimizer (X1/X2 for cross-column; V/B/C for same-column) ──
+      const fx = fromPt.x, fy = fromPt.y, tx = toPt.x, ty = toPt.y;
+      const realMinX_d     = Math.min(...allRealBoxes.map(nb => nb.x));
+      const rightMarginX_d = Math.max(...allRealBoxes.map(nb => nb.x + nb.width)) + CLEARANCE;
+      // All real boxes except source and target are obstacles.
+      const interBoxesDirect = allRealBoxes.filter(nb => nb.id !== a.id && nb.id !== b.id);
+
+      const directCandidates: RouteCandidate[] = [];
+
+      if (cls === 'direct-same-column') {
+        // V: straight vertical (or near-vertical) — gets a straightBonus
+        directCandidates.push({
+          strategy: 'V', laneX: fx, isMixed: false,
+          segments: [[fx, fy, tx, ty]],
+          labelMid: { x: fx, y: (fy + ty) / 2 },
+        });
+        // B/C: left/right wall lanes (same builders as skip edges)
+        const srcMidY_d  = a.y + a.height / 2 + yOff;
+        const tgtMidY_d  = b.y + b.height / 2 + yOff;
+        const srcLeft_d  = a.x;
+        const srcRight_d = a.x + a.width;
+        const tgtLeft_d  = b.x;
+        const tgtRight_d = b.x + b.width;
+        const blockingBD_d = allRealBoxes.filter(nb => {
+          const ny = nb.y, nh = nb.height;
+          return (srcMidY_d > ny && srcMidY_d < ny + nh) ||
+                 (tgtMidY_d > ny && tgtMidY_d < ny + nh);
+        });
+        const adaptiveLeftX_BD_d = blockingBD_d.length > 0
+          ? Math.min(...blockingBD_d.map(nb => nb.x)) - LANE_CLEARANCE
+          : realMinX_d - LANE_CLEARANCE;
+        const adaptiveRightX_CE_d = blockingBD_d.length > 0
+          ? Math.max(...blockingBD_d.map(nb => nb.x + nb.width)) + LANE_CLEARANCE
+          : rightMarginX_d;
+        if (adaptiveLeftX_BD_d < srcLeft_d) {
+          directCandidates.push({
+            strategy: 'B', laneX: adaptiveLeftX_BD_d, isMixed: false,
+            segments: [
+              [srcLeft_d,  srcMidY_d, adaptiveLeftX_BD_d,  srcMidY_d],
+              [adaptiveLeftX_BD_d, srcMidY_d, adaptiveLeftX_BD_d, tgtMidY_d],
+              [adaptiveLeftX_BD_d, tgtMidY_d, tgtLeft_d,  tgtMidY_d],
+            ],
+            labelMid: { x: adaptiveLeftX_BD_d, y: (srcMidY_d + tgtMidY_d) / 2 },
+          });
+        }
+        if (adaptiveRightX_CE_d > srcRight_d) {
+          directCandidates.push({
+            strategy: 'C', laneX: adaptiveRightX_CE_d, isMixed: false,
+            segments: [
+              [srcRight_d,  srcMidY_d, adaptiveRightX_CE_d,  srcMidY_d],
+              [adaptiveRightX_CE_d, srcMidY_d, adaptiveRightX_CE_d, tgtMidY_d],
+              [adaptiveRightX_CE_d, tgtMidY_d, tgtRight_d,  tgtMidY_d],
+            ],
+            labelMid: { x: adaptiveRightX_CE_d, y: (srcMidY_d + tgtMidY_d) / 2 },
+          });
+        }
+      } else {
+        // direct-cross-column: X1 (V-then-H) and X2 (H-then-V) families
+        // ── X1 candidates ──
+        const midYRaw = [
+          (fy + ty) / 2,
+          fy + LAYER_GAP / 2,
+          ty - LAYER_GAP / 2,
+        ];
+        for (const midY of dedup(midYRaw, 2)) {
+          const segsX1: Array<[number, number, number, number]> = Math.abs(fx - tx) < 1
+            ? [[fx, fy, tx, ty]]
+            : [[fx, fy, fx, midY], [fx, midY, tx, midY], [tx, midY, tx, ty]];
+          directCandidates.push({
+            strategy: 'X1', laneX: (fx + tx) / 2, isMixed: false,
+            segments: segsX1,
+            labelMid: { x: (fx + tx) / 2, y: midY },
+          });
+        }
+        // ── X2 candidates ──
+        const midXRaw = [
+          ...interColMidpoints.filter(x => x > Math.min(fx, tx) && x < Math.max(fx, tx)),
+          realMinX_d - CLEARANCE,
+          rightMarginX_d,
+        ];
+        for (const midX of dedup(midXRaw, 2)) {
+          const segsX2: Array<[number, number, number, number]> = Math.abs(fy - ty) < 1
+            ? [[fx, fy, tx, ty]]
+            : [[fx, fy, midX, fy], [midX, fy, midX, ty], [midX, ty, tx, ty]];
+          directCandidates.push({
+            strategy: 'X2', laneX: midX, isMixed: false,
+            segments: segsX2,
+            labelMid: { x: midX, y: (fy + ty) / 2 },
+          });
+        }
+      }
+
+      // ── Score all direct candidates and pick best ──────────────────────────
+      let bestScoreDirect = Infinity;
+      let bestDirect: RouteCandidate | null = directCandidates[0] ?? null;
+      for (const c of directCandidates) {
+        const straightBns = c.strategy === 'V' ? 40 : 0;
+        const score = scoreLane(
+          c.laneX, c.segments, interBoxesDirect, routedSegments,
+          canvasWidth, realMinX_d,
+          c.isMixed ? 2.0 : 0,
+          0,
+          straightBns,
+          c.labelMid,
+        );
+        if (score < bestScoreDirect) {
+          bestScoreDirect = score;
+          bestDirect = c;
+        }
+      }
+
+      if (bestScoreDirect === Infinity || bestDirect == null) {
+        // Fallback: routeEdge()
+        console.warn(`[layout] direct edge ${a.id}→${b.id}: all candidates Infinity, falling back`);
+        const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
+        safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
+        labelMid = routed.labelMidpoint;
+      } else {
+        // Register winning segments so later edges see claimed corridors.
+        for (const [x1, y1, x2, y2] of bestDirect.segments) {
+          routedSegments.push(toRect(x1, y1, x2, y2));
+        }
+        safePath = segmentsToPath(bestDirect.segments);
+        labelMid = bestDirect.labelMid;
+      }
 
       elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
-
-      // Arrowhead direction from wall: axis-aligned, independent of path geometry.
-      elements.push(...endMarker(p, fromPt, wallDir(fromWall, fromPt), r.leftHead, palette));
-      elements.push(...endMarker(p, toPt,   wallDir(toWall,   toPt),   r.rightHead, palette));
+      elements.push(...endMarker(p, effectiveFromPt, wallDir(effectiveFromWall, effectiveFromPt), r.leftHead, palette));
+      elements.push(...endMarker(p, effectiveToPt,   wallDir(effectiveToWall,   effectiveToPt),   r.rightHead, palette));
     }
 
     const mx = labelMid.x, my = labelMid.y;
