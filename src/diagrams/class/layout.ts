@@ -340,7 +340,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   const toGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
   for (let ri = 0; ri < ir.relations.length; ri++) {
     const r = ir.relations[ri]!;
-    const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
+    const isFlipped = r.leftHead === 'triangle';
+    const a = laid.boxes.get(isFlipped ? r.right : r.left),
+          b = laid.boxes.get(isFlipped ? r.left  : r.right);
     if (!a || !b) continue;
     const wall = approachWall(a, b);
     const key = `${b.id}:${wall}`;
@@ -365,7 +367,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   const fromGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
   for (let ri = 0; ri < ir.relations.length; ri++) {
     const r = ir.relations[ri]!;
-    const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
+    const isFlipped = r.leftHead === 'triangle';
+    const a = laid.boxes.get(isFlipped ? r.right : r.left),
+          b = laid.boxes.get(isFlipped ? r.left  : r.right);
     if (!a || !b) continue;
     const wall = approachWall(b, a);
     const key = `${a.id}:${wall}`;
@@ -400,7 +404,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   const edgeEntries: EdgeEntry[] = [];
   for (let ri_ = 0; ri_ < ir.relations.length; ri_++) {
     const r_ = ir.relations[ri_]!;
-    const a_ = laid.boxes.get(r_.left), b_ = laid.boxes.get(r_.right);
+    const isFlipped_ = r_.leftHead === 'triangle';
+    const a_ = laid.boxes.get(isFlipped_ ? r_.right : r_.left),
+          b_ = laid.boxes.get(isFlipped_ ? r_.left  : r_.right);
     if (!a_ || !b_) continue;
     const bends_ = laid.edgeBends.get(ri_);
     const cls_ = classifyEdge(a_, b_, bends_);
@@ -420,7 +426,11 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
   for (const { ri, cls } of edgeEntries) {
     const r = ir.relations[ri]!;
-    const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
+    // When leftHead='triangle', the graph edge was flipped (from=r.right, to=r.left)
+    // for layout — rendering must match that direction.
+    const isFlipped = r.leftHead === 'triangle';
+    const a = laid.boxes.get(isFlipped ? r.right : r.left),
+          b = laid.boxes.get(isFlipped ? r.left  : r.right);
     if (!a || !b) continue;
 
     // Arrival port: cascade-assigned position on target wall.
@@ -733,8 +743,11 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
       elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
 
-      elements.push(...endMarker(p, effectiveFromPt, wallDir(effectiveFromWall, effectiveFromPt), r.leftHead,  palette));
-      elements.push(...endMarker(p, effectiveToPt,   wallDir(effectiveToWall,   effectiveToPt),   r.rightHead, palette));
+      // When edge is flipped, leftHead belongs at toPt (b=r.left) and rightHead at fromPt (a=r.right).
+      const headFrom = isFlipped ? r.rightHead : r.leftHead;
+      const headTo   = isFlipped ? r.leftHead  : r.rightHead;
+      elements.push(...endMarker(p, effectiveFromPt, wallDir(effectiveFromWall, effectiveFromPt), headFrom, palette));
+      elements.push(...endMarker(p, effectiveToPt,   wallDir(effectiveToWall,   effectiveToPt),   headTo,   palette));
     } else {
       // ── Direct-edge optimizer (X1/X2 for cross-column; V/B/C for same-column) ──
       const fx = fromPt.x, fy = fromPt.y, tx = toPt.x, ty = toPt.y;
@@ -871,8 +884,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       }
 
       elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
-      elements.push(...endMarker(p, effectiveFromPt, wallDir(effectiveFromWall, effectiveFromPt), r.leftHead, palette));
-      elements.push(...endMarker(p, effectiveToPt,   wallDir(effectiveToWall,   effectiveToPt),   r.rightHead, palette));
+      elements.push(...endMarker(p, effectiveFromPt, wallDir(effectiveFromWall, effectiveFromPt), isFlipped ? r.rightHead : r.leftHead,  palette));
+      elements.push(...endMarker(p, effectiveToPt,   wallDir(effectiveToWall,   effectiveToPt),   isFlipped ? r.leftHead  : r.rightHead, palette));
     }
 
     const mx = labelMid.x, my = labelMid.y;
@@ -895,8 +908,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         default:       return { cx: pt.x + 10, cy: pt.y - 10 };
       }
     };
-    if (r.leftCard)  { const o = cardOffset(effectiveFromWall, effectiveFromPt); elements.push(p.text(r.leftCard,  rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
-    if (r.rightCard) { const o = cardOffset(effectiveToWall,   effectiveToPt);   elements.push(p.text(r.rightCard, rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
+    if (r.leftCard)  { const o = cardOffset(isFlipped ? effectiveToWall   : effectiveFromWall, isFlipped ? effectiveToPt   : effectiveFromPt); elements.push(p.text(r.leftCard,  rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
+    if (r.rightCard) { const o = cardOffset(isFlipped ? effectiveFromWall : effectiveToWall,   isFlipped ? effectiveFromPt : effectiveToPt);   elements.push(p.text(r.rightCard, rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
   }
 
   // ── Class boxes ────────────────────────────────────────────────────────────
