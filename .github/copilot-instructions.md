@@ -25,6 +25,10 @@ This project is indexed with codetopo, a structural code intelligence MCP server
 
 **Constructor internals:** `method_fields(symbol)` lists `this.X` field accesses and outgoing calls for a constructor or method — faster than reading source to understand data model.
 
+**Field access tracing (impact analysis):** `code_search(".fieldName", file_pattern="/abs/path/**")` finds every read and write of a field across all files including workspace roots.
+
+**Callers in HOF-heavy codebases:** `callers_approx` / `callees_approx` may return empty results when code uses HOF wrappers (`time("label", () => fn(g))`), prototype assignment (`Obj.method = function(){}`), or `forEach` dynamic dispatch. Use `code_search` for direct text search in those cases — it's more reliable for call-site discovery in JS/TS libraries.
+
 **Targeted source reads:** prefer `source_at(file, start_line, end_line)` over reading whole files.
 
 **Avoid re-resolving:** `node_id`s are stable session handles. Never re-run `symbol_search` for a symbol you already have a `node_id` for.
