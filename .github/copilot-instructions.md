@@ -31,7 +31,9 @@ This project is indexed with codetopo, a structural code intelligence MCP server
 
 ## Symbol kinds
 
-codetopo indexes these kinds: `function`, `class`, `method`, `interface`, `enum`, `type`, `macro`, `field`, `variable`, `namespace`, `constructor_fn`.
+codetopo indexes these kinds: `function`, `class`, `method`, `interface`, `enum`, `type`, `type_alias`, `macro`, `field`, `variable`, `namespace`, `constructor_fn`.
+
+**`type_alias`** — TypeScript `type X = ...` declarations. Use `symbols_in_path(kind=["type_alias"])` to find all type aliases. Note: `type` and `type_alias` are separate kinds — query both when needed.
 
 **`constructor_fn`** — pre-ES6 JavaScript factory pattern: `let Foo = function() { this.x = ...; }`. Use `symbols_in_path(kind=["constructor_fn"], compact=true)` to find all factory classes in a JS codebase. Use `method_fields` to inspect their `this.X` surface.
 
