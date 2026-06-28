@@ -156,6 +156,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   // Group edges by (targetId, wall). Sort each group by source-center along the
   // wall axis → crossing-free order. Spread with cascade to enforce MIN_PORT_GAP.
   // All edges (including skip edges) participate so ports are always separated.
+  // For skip edges, use laneX as the ideal arrival position so cascade sees a
+  // distinct ideal and doesn't tie with direct-edge ideals.
   const toGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
   for (let ri = 0; ri < ir.relations.length; ri++) {
     const r = ir.relations[ri]!;
@@ -163,8 +165,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     if (!a || !b) continue;
     const wall = approachWall(a, b);
     const key = `${b.id}:${wall}`;
+    const bends = laid.edgeBends.get(ri);
     const sourceCenter = (wall === 'top' || wall === 'bottom')
-      ? a.x + a.width / 2
+      ? (bends && bends.length > 0 ? bends[0]!.x : a.x + a.width / 2)
       : a.y + a.height / 2 + yOff;
     if (!toGroupAccum.has(key)) toGroupAccum.set(key, []);
     toGroupAccum.get(key)!.push({ ri, sourceCenter });
@@ -178,6 +181,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
   // ── Port assignment: departure ports (fromPortMap2) ────────────────────────
   // Departure wall of A toward B = approachWall(b, a). Sort by target-center.
+  // For skip edges, use laneX as the ideal departure position so cascade sees a
+  // distinct ideal and doesn't tie with direct-edge ideals.
   const fromGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
   for (let ri = 0; ri < ir.relations.length; ri++) {
     const r = ir.relations[ri]!;
@@ -185,8 +190,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     if (!a || !b) continue;
     const wall = approachWall(b, a);
     const key = `${a.id}:${wall}`;
+    const bends = laid.edgeBends.get(ri);
     const targetCenter = (wall === 'top' || wall === 'bottom')
-      ? b.x + b.width / 2
+      ? (bends && bends.length > 0 ? bends[0]!.x : b.x + b.width / 2)
       : b.y + b.height / 2 + yOff;
     if (!fromGroupAccum.has(key)) fromGroupAccum.set(key, []);
     fromGroupAccum.get(key)!.push({ ri, sourceCenter: targetCenter });
