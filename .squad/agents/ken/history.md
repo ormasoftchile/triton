@@ -423,3 +423,117 @@ P7 ⚠️ / P12 ⚠️: "places" label partially clipped by ShoppingCart right b
 
 ### Verdict: **PASS**
 Previous P5 ❌ (column misalignment jog) is resolved. All spec paths confirmed correct.
+
+---
+
+## Review: commit e2a9d04 — routing optimizer
+**Date:** 2026-06-28T10:20:09-04:00
+**Requested by:** ormasoftchile
+**Artifact:** `examples/class/class-ken-optimizer.png`
+
+### Path data extracted from SVG
+- **"places":** `M 145.82 184 L 145.82 216 L 186.77 216 L 186.77 387 L 145.82 387 L 145.82 419` — 5-segment via interColMidpoint laneX=186.77 ✅
+- **Label:** `<text x="187" y="298" text-anchor="middle">places</text>` — centered on vertical bypass segment ✅
+- **Multiplicity `1`:** `(155.82, 194)` — 10px right of exit segment, 10px below source ✅
+- **Multiplicity `*`:** `(155.82, 409)` — 10px right of arrival segment, 10px above arrowhead ⚠️ (slightly cramped)
+- **Arrowhead:** `M 150.49 407.95 L 145.82 419 L 141.14 407.95` — open arrow, arriving at Order ✅
+
+### Visual findings
+"places" routes from ShoppingCart's right-side exit (x=145.82, y=184), drops 32px vertically, jogs 40.95px right into the inter-column bypass lane at x=186.77, travels 171px south, jogs 40.95px left back to x=145.82, then drops 32px into Order's top (y=419). The label is placed at (187, 298) — the precise midpoint of the vertical bypass segment — with `text-anchor="middle"`, sitting squarely in the column gap whitespace. **This resolves the hairline-clip ⚠️ from commit 3448628** where laneX=181.63 caused the leading "p" of "places" to be obscured by ShoppingCart's right border.
+
+The `*` multiplicity at (155.82, 409) sits 10px above the arrowhead terminus (419), leaving minimal breathing room but remaining legible. All other edges ("has", "creates", "contains", "references") are unaffected.
+
+### 15-Principle Assessment
+| # | Principle | Status |
+|---|-----------|--------|
+| P1 | Clarity of intent (ShoppingCart→Order places) | ✅ |
+| P2 | Label legibility — "places" fully unclipped, clear | ✅ |
+| P3 | Node-edge separation — exits cleanly at (145.82, 184) | ✅ |
+| P4 | Routing efficiency — 5-seg bypass is necessary (avoids "creates" conflict) | ✅ |
+| P5 | Vertical plumb — source x=145.82 = destination x=145.82 exactly | ✅ |
+| P6 | Label positioning — midpoint of vertical bypass, text-anchor=middle | ✅ |
+| P7 | Label overlap — x=187 is clear of right-column nodes (~x≥228) and all edges | ✅ |
+| P8 | Visual hierarchy — top-to-bottom flow maintained | ✅ |
+| P9 | Multiplicity legibility — `1` clear; `*` at y=409 slightly cramped near arrowhead | ⚠️ |
+| P10 | Semantic correctness — ShoppingCart "places" Order is domain-correct | ✅ |
+| P11 | Consistent styling — stroke #64748B w=1.3, same as all other edges | ✅ |
+| P12 | Whitespace management — bypass lane x≈186.77 occupies clear inter-column gap | ✅ |
+| P13 | Arrowhead clarity — open-chevron arrow, direction unambiguous | ✅ |
+| P14 | Reading direction — South flow ShoppingCart→Order is canonical | ✅ |
+| P15 | Overall composition — diagram reads cleanly; bypass adds no confusion | ✅ |
+
+**Score: 14 ✅ / 1 ⚠️ / 0 ❌**
+
+### Verdict: **PASS**
+The optimizer's recalculation of interColMidpoint to laneX=186.77 (from 181.63) resolves the label-clip regression. "places" is now fully visible, correctly positioned, and non-overlapping. The only residual issue (P9 `*` cramped near arrowhead) is minor cosmetic and pre-existing in nature. No regressions on other edges.
+
+---
+
+## Review: commit b9b7eda — multi-wall routing
+**Date:** 2026-06-28T10:43:14-04:00  
+**Requested by:** ormasoftchile  
+**Artifact:** `examples/class/class-ken-multiwall.png` (1400px wide)
+
+### Context
+Additive commit on top of 89e7b36. Added 5 new routing strategies to the candidate pool (multi-wall routing variants). "places" edge expected to route identically to prior PASS via Strategy A (laneX=186.77). Net visual effect: zero.
+
+### Path data — byte-for-byte match with prior PASS
+- **"places":** `M 145.82 184 L 145.82 216 L 186.77 216 L 186.77 387 L 145.82 387 L 145.82 419` ✅
+- **Label:** `<text x="187" y="298" text-anchor="middle">places</text>` ✅
+- **"has":** `M 96.81625 184 L 96.81625 255.5` ✅
+- **"creates":** `M 96.81625 347.5 L 96.81625 419` ✅
+- All other edges unchanged ✅
+
+The 5 new multi-wall candidates were not elected for this diagram's geometry. Strategy A (laneX=186.77) remained optimal.
+
+### 15-Principle Assessment
+1 ✅ 2 ✅ 3 ✅ 4 ✅ 5 ✅ 6 ✅ 7 ✅ 8 ✅ **9 ⚠️** 10 ✅ 11 ✅ 12 ✅ 13 ✅ 14 ✅ 15 ✅
+
+P9 ⚠️: `*` multiplicity cramped near arrowhead (pre-existing, non-blocking).
+
+**Score: 14 ✅ / 1 ⚠️ / 0 ❌**
+
+### Verdict: **PASS** ✅
+Zero regression from 89e7b36. Geometry identical. Multi-wall strategies integrate cleanly without displacing winning Strategy A.
+
+Full verdict: `.squad/decisions/inbox/ken-verdict-multiwall.md`
+
+---
+
+## Review: commit 89e7b36 — Adaptive left-margin candidate + expansion penalty
+**Date:** 2026-06-28T10:32:00-04:00
+**Requested by:** ormasoftchile
+**Artifact:** `examples/class/class-ken-leftmargin.png` (1400px wide)
+
+### Context
+Additive commit on top of e2a9d04 (prior PASS). Adds adaptive left-margin candidate and expansion penalty to the lane optimizer. "places" edge still routes via `interColMidpoint` at laneX=186.77 — net visual effect should be identical to prior PASS.
+
+### Visual findings
+Rasterization confirmed. "places" routes identically to e2a9d04: ShoppingCart right-side exit → inter-column bypass at laneX≈186.77 → Order top. Label positioned at midpoint of vertical bypass segment, fully unclipped and legible. No visual change from the new optimizer logic — the adaptive left-margin candidate and expansion penalty were not elected for this diagram's geometry.
+
+All other edges ("has", "creates", "contains", "references") and relationship markers (filled diamond on "contains", dashed realization CreditCardPayment→Payment, hollow triangle arrowhead) are unchanged and correct.
+
+### 15-Principle Assessment
+| # | Principle | Status |
+|---|-----------|--------|
+| P1 | Clarity of intent — domain model readable at a glance | ✅ |
+| P2 | Label legibility — "places" fully unclipped, laneX=186.77 preserved | ✅ |
+| P3 | Node-edge separation — clean exits on all nodes | ✅ |
+| P4 | Routing efficiency — 5-seg bypass unchanged from prior PASS | ✅ |
+| P5 | Vertical plumb — left-column spine alignment maintained | ✅ |
+| P6 | Label positioning — "places" at bypass midpoint, text-anchor=middle | ✅ |
+| P7 | Label overlap — no label/node/edge overlap detected | ✅ |
+| P8 | Visual hierarchy — top-to-bottom flow maintained | ✅ |
+| P9 | Multiplicity legibility — `1` clear; `*` slightly cramped near arrowhead (pre-existing ⚠️) | ⚠️ |
+| P10 | Semantic correctness — all relationship labels domain-correct | ✅ |
+| P11 | Consistent styling — stroke, color, font uniform across all nodes/edges | ✅ |
+| P12 | Whitespace management — bypass lane in clear inter-column gap | ✅ |
+| P13 | Arrowhead clarity — open chevron, hollow triangle, filled diamond all correct | ✅ |
+| P14 | Reading direction — south flow canonical and unambiguous | ✅ |
+| P15 | Overall composition — diagram reads cleanly, no regression introduced | ✅ |
+
+**Score: 14 ✅ / 1 ⚠️ / 0 ❌**
+
+### Verdict: **PASS**
+Visually identical to prior PASS (e2a9d04). Additive optimizer changes (adaptive left-margin candidate + expansion penalty) produced no net visual effect. No regressions on any edge or label.
+

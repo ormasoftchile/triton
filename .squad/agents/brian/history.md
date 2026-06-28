@@ -317,3 +317,91 @@ Brian joined the squad on 2026-06-27 as Layout Implementation Engineer, replacin
 **Build/test:** pnpm build ✓, pnpm test 387/387 ✓
 
 **Commit:** `23c3c84` — fix(class): use laneX as cascade ideal for skip edges — preserves straight verticals on direct edges
+
+---
+
+## 2026-06-28 — Skip-Edge Routing Optimizer
+
+**Task:** Implement multi-candidate lane selection for skip-edge dummy chains (spec: `edsger-skip-routing-optimizer.md`)
+
+**Changes:**
+- `src/graph/layered.ts`: Added `dummySweepXs` and `dummyChainIds` to `LayeredResult`; updated `assignCoordinatesBK4` to return both; captured 4 pre-balance sweep x-values per dummy node; **deleted** obstacle-snap block (BK Step 7b)
+- `src/diagrams/class/layout.ts`: Added `RoutedSegment`, `segmentIntersectsBox`, `toRect`, `rectsOverlapLength` module-level helpers; `CLEARANCE=12`; `scoreLane` local function; replaced hardcoded `bends[0].x` lane with multi-candidate optimizer scoring 4 sweeps + leftMargin + rightMargin + sourceX + inter-column midpoints
+
+**"places" edge result:**
+- **Winning laneX:** `186.77`
+- **Candidate type:** `interColMidpoint` (midpoint between column centres 96.82 and 276.72)
+- **d= path:** `M 145.82 184 L 145.82 216 L 186.77 216 L 186.77 387 L 145.82 387 L 145.82 419`
+- **Why it won:** straight-vertical (sourceX≈145.82) hits ShoppingCart (+1000), leftMarginX=12 horizontal segment crosses ShoppingCart at exitY (+1000); interColMidpoint routes cleanly in the gap (dirPenalty=5, no box hits)
+
+**Build/test:** pnpm build ✓, pnpm test 387/387 ✓
+
+**Commit:** `e2a9d04` — feat(layout): multi-candidate skip-edge routing optimizer — score and pick best lane
+
+---
+
+## 2026-06-28 — Adaptive left-margin candidate + canvas-expansion penalty
+
+**Task:** Replace static `leftMarginX` candidate in skip-edge routing optimizer with an adaptive one, and add canvas-expansion penalty to `scoreLane`.
+
+**Changes made (`src/diagrams/class/layout.ts`, commit `89e7b36`):**
+
+1. **`scoreLane` signature** — added `realMinX: number` parameter; replaced inline `leftMarginX` computation with `realMinX - CLEARANCE`; added `expansionPenalty = laneX < realMinX ? (realMinX - laneX) * 1.0 : 0` term to weighted sum.
+
+2. **Candidate generation** — moved `exitY` / `entryY` declarations before the candidates array; replaced `leftMarginX` with `adaptiveLeftX` that filters `interBoxes` whose y-range overlaps `exitY` or `entryY`, then takes `min(blocking.x) - CLEARANCE` (falls back to `realMinX - CLEARANCE` when no blocker found).
+
+3. **`scoreLane` call** — passes `realMinX` as the new sixth argument.
+
+**Result for "places" edge (ShoppingCart → Order skip):**
+- Winning laneX: **186.77** (interColMidpoint between left and right columns)
+- Candidate type: `interColMidpoints`
+- d= path: `M 145.82 184 L 145.82 216 L 186.77 216 L 186.77 387 L 145.82 387 L 145.82 419`
+- The adaptive left candidate is geometrically valid but scores higher due to `expansionPenalty`; the column-gap route wins cleanly.
+
+**Build/test:** pnpm build ✓, pnpm test 387/387 ✓
+
+**Commit:** `89e7b36` — fix(layout): adaptive left-margin candidate + canvas-expansion penalty in routing optimizer
+
+---
+
+## 2026-06-28 — Multi-Wall Skip-Edge Routing (all wall pairs as scored candidates)
+
+**Task:** Implement Edsger's multi-wall routing spec — replace `candidates: number[]` + `buildSegments(laneX)` with `candidates: RouteCandidate[]` covering six wall-pair strategies (A–F).
+
+**Spec file:** `.squad/decisions/inbox/edsger-multiwall-routing.md`
+
+**Changes made (`src/diagrams/class/layout.ts`, commit `b9b7eda`):**
+
+1. **Added `RouteCandidate` interface** (module-level, after `RoutedSegment`): fields `strategy`, `laneX`, `segments`, `labelMid`, `isMixed`.
+
+2. **Extended `scoreLane`** — added `wallPairPenalty: number = 0` parameter; appended to weighted sum (+2.0 for D/E/F mixed strategies).
+
+3. **Six segment builder functions** (`buildSegmentsA`–`buildSegmentsF`) defined inside the skip-edge `if` block:
+   - A: Bottom→Top (existing, unchanged geometry)
+   - B: Left→Left (3 segments: H→V→H)
+   - C: Right→Right (3 segments: H→V→H)
+   - D: Left→Top (4 segments: H→V→H→V, mixed)
+   - E: Right→Top (4 segments: H→V→H→V, mixed)
+   - F: Bottom→Left (4 segments: V→H→V→H, mixed)
+
+4. **Flat candidate pool** — six strategy loops produce `allCandidates: RouteCandidate[]`; each strategy uses its own lane candidate set (left-adaptive, right-adaptive, sweepCandidates filtered by geometric constraint).
+
+5. **Extended blocking set** (`interBoxesExt`) — covers B/C/D/E/F horizontal segments hitting boxes at srcMidY/tgtMidY rows outside the strict inter-layer band; used uniformly across all strategies.
+
+6. **Port override block** — after picking `bestCandidate`, set `effectiveFromPt/Wall`, `effectiveToPt/Wall` per strategy.
+
+7. **Segment-driven SVG path renderer** — replaced hardcoded Strategy-A template with loop over `bestCandidate.segments`.
+
+8. **Arrowhead calls** — updated to use `effectiveFromPt`/`effectiveToPt`/`effectiveFromWall`/`effectiveToWall`.
+
+9. **Structural fix** — path and arrowhead rendering split inside `if (bends)` / `else` branches to avoid double-rendering.
+
+**"places" edge result (Customer→Order):**
+- **Winning strategy:** A (Bottom→Top)
+- **Winning laneX:** `186.77` (inter-column midpoint)
+- **d= path:** `M 145.82 184 L 145.82 216 L 186.77 216 L 186.77 387 L 145.82 387 L 145.82 419`
+- No left-wall or right-wall route was selected — Strategy A remains optimal as the inter-column midpoint routes cleanly between nodes with no box hits.
+
+**Build/test:** `pnpm build` ✓, `pnpm test` 387/387 ✓
+
+**Commit:** `b9b7eda` — feat(layout): multi-wall skip-edge routing — all wall pairs as scored candidates

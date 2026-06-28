@@ -266,3 +266,92 @@ packages/core/src/index.ts  (added front-end exports)
 - Gallery PNG self-check: dark navy background, correct shapes (stadium/rect/diamond),
   teal curved edges, labeled edges, dotted async edge, back-edge arc.
   Visually superior to Mermaid's default (explicit project pitch criterion met).
+## Decision: Routing Optimizer Implementation Complete
+
+**Author:** Brian (Layout Implementation Engineer)  
+**Date:** 2026-06-28  
+**Status:** COMPLETE  
+**Commit:** `e2a9d04`
+
+The skip-edge routing optimizer selects optimal lane x from candidates (BK sweep x values, margins, source x, inter-column midpoints) by scoring for path length, segment count, box intersections, and directional preference. The "places" edge wins with laneX=186.77 (inter-column midpoint), routing via 5-segment bypass with no box hits.
+
+---
+
+## Decision: Adaptive Left-Margin Routing Candidate
+
+**Author:** Brian (Layout Implementation Engineer)  
+**Date:** 2026-06-28  
+**Status:** COMPLETE  
+**Commit:** `89e7b36`
+
+Introduced adaptive left-margin lane candidate (filtered for intermediate boxes at edge exit/entry y-coords) and expansion penalty term in lane scoring. The candidate provides a valid left-side route when column-gap lanes are blocked. Existing "places" edge continues routing via inter-column midpoint (laneX=186.77) with no regression.
+
+---
+
+## Decision: Multi-Wall Skip-Edge Routing Implementation Complete
+
+**Author:** Brian (Layout Implementation Engineer)  
+**Date:** 2026-06-28  
+**Status:** COMPLETE  
+**Commit:** `b9b7eda`  
+**Spec:** `.squad/decisions/inbox/edsger-multiwall-routing.md`
+
+Implemented six wall-pair routing strategies (A–F) via RouteCandidate interface. Strategy A (bottom→top) remains optimal for "places" edge at laneX=186.77. All new B–F strategies (left-wall, right-wall, mixed) integrated into candidate pool; geometry scored dynamically with wallPairPenalty (+2.0 for mixed strategies). No regression; 387/387 tests pass.
+
+---
+
+## Decision: Skip-Edge Routing Optimizer — Implementation Spec
+
+**Author:** Edsger (Layout Algorithms)  
+**Date:** 2026-06-28  
+**Status:** SPEC WRITTEN  
+**Target:** `src/diagrams/class/layout.ts` + `src/graph/layered.ts`
+
+Comprehensive spec for multi-candidate skip-edge lane selection optimizer in TB layouts. Defines:
+- `LayeredResult` extensions: `dummySweepXs` (pre-balance x values per dummy node across 4 BK sweeps) and `dummyChainIds` (original-edge-index → dummy-chain mapping)
+- `RoutedSegment` interface for overlap-detection
+- Candidate generation from BK sweeps, margins, source x, inter-column midpoints
+- Scoring function: `pathLength * 0.3 + segmentCount * 10.0 + boxHits * 1000 + overlapHits * 50 + dirPenalty`
+- Edge processing in descending-span order to build dense routed-segment registry
+- Degenerate-case handlers: all candidates blocked (margins always win), straight vertical, ties
+- Complexity analysis: O((K+R) · S · (B+P)) per skip edge; negligible for diagrams ≤50 nodes
+- Non-goals: LR optimization (deferred), curved paths (out of scope)
+
+---
+
+## Decision: Ken QA Verdict — commit e2a9d04 (routing optimizer)
+
+**Date:** 2026-06-28T10:20:09-04:00  
+**Reviewer:** Ken (Visual QA)  
+**Artifact:** `examples/class/class-ken-optimizer.png`
+
+**Verdict:** ✅ PASS
+
+The "places" edge routes via 5-segment bypass at laneX=186.77 with label fully unclipped in inter-column whitespace. All 15 visual principles satisfied; 1 pre-existing cosmetic issue (∗ multiplicity 10px above arrowhead, non-blocking). Commit approved for merge.
+
+---
+
+## Decision: Ken QA Verdict — commit 89e7b36 (adaptive left-margin)
+
+**Date:** 2026-06-28T10:32:00-04:00  
+**Reviewer:** Ken (Visual QA)  
+**Commit:** 89e7b36  
+**Prior baseline:** e2a9d04
+
+**Verdict:** ✅ PASS — No Regression
+
+Additive commit introducing adaptive left-margin candidate and expansion penalty. "places" edge continues routing identically (laneX=186.77, inter-column midpoint). New optimizer logic not elected for this diagram's geometry. All 15 principles satisfied; 1 pre-existing ⚠️ (P9 ∗ multiplicity cramped, non-blocking). Safe to merge.
+
+---
+
+## Decision: Ken QA Verdict — commit b9b7eda (multi-wall routing)
+
+**Date:** 2026-06-28T10:43:14-04:00  
+**Requested by:** ormasoftchile  
+**Artifact:** `examples/class/class-ken-multiwall.png` (1400px wide)  
+**Prior PASS:** commit 89e7b36
+
+**Verdict:** ✅ PASS — Zero Regression
+
+Byte-for-byte SVG path match with prior PASS. Five new multi-wall routing strategies integrated cleanly; Strategy A (bottom→top) remains winner at laneX=186.77. All 15 visual principles satisfied; 1 pre-existing ⚠️ (P9 ∗ multiplicity cramped). Net effect: zero visual regression. Approved for merge.
+

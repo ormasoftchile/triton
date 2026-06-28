@@ -606,3 +606,63 @@ before shift calculation).
 
 **Build/test:** `pnpm build` ✓ | `pnpm test` 387/387 ✓  
 **Commit:** `3448628`
+## 2026-06-28 — Multi-Wall Skip-Edge Routing Spec
+
+**Task:** Spec all-wall-pair candidate pool for skip-edge routing optimizer  
+**Requested by:** ormasoftchile  
+**Output:** `.squad/decisions/inbox/edsger-multiwall-routing.md`
+
+**Summary:**
+
+Produced a complete implementation-ready spec extending the skip-edge routing candidate
+pool from Strategy A only (Bottom→Top) to six wall-pair strategies (A–F).
+
+**Key decisions:**
+
+1. **`RouteCandidate` interface** replaces `candidates: number[]`. Each candidate carries
+   `strategy`, `laneX`, `segments`, `labelMid`, and `isMixed`. All strategies produce
+   candidates into a single flat array; the optimizer scores uniformly.
+
+2. **Six strategies:**
+   - A: Bottom→Top (existing, 5 segments, cascade ports unchanged)
+   - B: Left→Left (3 segments H→V→H, mid-wall ports, laneX < min(srcLeft, tgtLeft))
+   - C: Right→Right (3 segments H→V→H, mid-wall ports, laneX > max(srcRight, tgtRight))
+   - D: Left→Top (4 segments H→V→H→V, mixed ports, isMixed=true)
+   - E: Right→Top (4 segments H→V→H→V, mixed ports, isMixed=true)
+   - F: Bottom→Left (4 segments V→H→V→H, mixed ports, isMixed=true)
+
+3. **`wallPairPenalty`** — new parameter to `scoreLane` (default 0). Mixed strategies
+   (D/E/F) carry +2.0. Keeps same-wall routes preferred in tie situations.
+
+4. **Port override block** between optimizer and render: selects `effectiveFromPt`,
+   `effectiveToPt`, `effectiveFromWall`, `effectiveToWall` based on winning strategy.
+   Strategy A uses cascade-assigned ports; B–F use mid-wall geometric ports.
+
+5. **SVG path rendered directly from `bestCandidate.segments`** — replaces hardcoded
+   Strategy-A-specific path template.
+
+6. **Only `src/diagrams/class/layout.ts` changes.** No changes to `layered.ts`.
+
+---
+
+## 2026-06-28 — Skip-Edge Routing Optimizer Spec
+
+**Task:** Spec multi-candidate skip-edge routing optimizer  
+**Requested by:** ormasoftchile  
+**Output:** `.squad/decisions/inbox/edsger-skip-routing-optimizer.md`
+
+**Summary:**
+
+Produced a complete implementation-ready spec for replacing the ad-hoc right-only obstacle snap (lines 881–934 `layered.ts`) with a principled multi-candidate optimizer.
+
+**Key decisions:**
+- Expose 4 BK sweep x values per dummy node via new `LayeredResult.dummySweepXs: Map<string, number[]>` — free because sweeps are already computed, just previously discarded after balance
+- Expose `LayeredResult.dummyChainIds: Map<number, string[]>` to let `layout.ts` resolve which dummy id maps to which original edge
+- Candidate pool: 4 sweeps + left margin + right margin + sourceX + inter-column midpoints (7–10 total)
+- Weighted scoring: box-intersection (1000×), edge-overlap (50×), segment-count (10×), path-length (0.3×), direction-preference (5×); left-margin preferred for TB
+- Segment registry updated after each skip edge so later edges avoid earlier lanes
+- Processing order: skip edges sorted by descending span (longest first)
+- Left/right margin candidates are always unblocked → optimizer always terminates with a finite winner
+- LR layout excluded from scope; existing snap in `layered.ts` retained for LR
+
+**Files specified to change:** `src/graph/layered.ts` (LayeredResult, assignCoordinatesBK4, layeredLayout) and `src/diagrams/class/layout.ts` (skip-edge rendering block + helper functions)
