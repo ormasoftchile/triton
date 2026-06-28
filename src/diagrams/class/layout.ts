@@ -70,10 +70,10 @@ const CLEARANCE      = 12;  // obstacle avoidance (right-side, inter-column)
 const LANE_CLEARANCE = 48;  // visual breathing room for left/right margin lanes
 
 /** True if point (lx, ly) falls inside any of the given boxes. */
-function labelInBox(lx: number, ly: number, boxes: NodeBox[]): boolean {
+function labelInBox(lx: number, ly: number, boxes: NodeBox[], padding = 8): boolean {
   return boxes.some(b =>
-    lx > b.x && lx < b.x + b.width &&
-    ly > b.y && ly < b.y + b.height
+    lx > b.x - padding && lx < b.x + b.width + padding &&
+    ly > b.y - padding && ly < b.y + b.height + padding
   );
 }
 
@@ -833,8 +833,13 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       let bestDirect: RouteCandidate | null = directCandidates[0] ?? null;
       for (const c of directCandidates) {
         const straightBns = c.strategy === 'V' ? 40 : 0;
+        // For X1/X2 cross-column routes, use ALL boxes (including src/tgt)
+        // so segments that clip through the source or target body are penalised.
+        const boxesForScoring = (c.strategy === 'X1' || c.strategy === 'X2')
+          ? allRealBoxes
+          : interBoxesDirect;
         const score = scoreLane(
-          c.laneX, c.segments, interBoxesDirect, routedSegments,
+          c.laneX, c.segments, boxesForScoring, routedSegments,
           canvasWidth, realMinX_d,
           c.isMixed ? 2.0 : 0,
           0,
@@ -847,12 +852,15 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         }
       }
 
-      if (bestScoreDirect === Infinity || bestDirect == null) {
-        // Fallback: routeEdge()
-        console.warn(`[layout] direct edge ${a.id}→${b.id}: all candidates Infinity, falling back`);
+      if (bestScoreDirect === Infinity || bestDirect == null || cls === 'direct-same-column') {
+        // Same-column direct edges: always use routeEdge() — cascade ports
+        // already handle port spreading; the V candidate deviates from them.
+        // Cross-column fallback when all candidates score Infinity.
         const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
         safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
         labelMid = routed.labelMidpoint;
+        // Register routeEdge segments so later edges see claimed corridors.
+        routedSegments.push(toRect(fromPt.x, fromPt.y, toPt.x, toPt.y));
       } else {
         // Register winning segments so later edges see claimed corridors.
         for (const [x1, y1, x2, y2] of bestDirect.segments) {
