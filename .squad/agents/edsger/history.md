@@ -538,3 +538,71 @@ The edge still does **not** route as a straight vertical line. Customer and Orde
 - "places" path: `M 96.82 184 L 96.82 216 L 181.63 216 L 181.63 387 L 96.82 387 L 96.82 419` — 5-segment route at laneX=181.63, past ShoppingCart right edge (169.6+12=181.6) ✓
 - `pnpm build` ✓  `pnpm test` 387/387 ✓
 - Commit: `b254d5d`
+
+---
+
+## 2026-06-27: Dagre-faithful port (normalize + order + BK)
+
+**Task:** Replace hand-rolled Sugiyama with faithful ports of dagre's algorithms.
+
+**Changes made to `src/graph/layered.ts`:**
+
+1. **`minimizeCrossings`** — replaced with dagre-faithful port:
+   - DFS-based `initOrder` (correlates initial layer order with edge directions)
+   - `sortLayer` uses dagre's `sort()` logic: separates sortable (have barycenter)
+     from unsortable (no neighbours) entries; unsortable nodes interleaved at their
+     original position indices via `consumeUnsortable()` instead of being lumped
+     with an arbitrary `b: i` proxy barycenter
+   - biasRight toggling (`pass % 4 >= 2`) unchanged
+
+2. **`verticalAlignment`** (inside `assignCoordinatesBK4`) — **CRITICAL FIX**:
+   - Removed `if (isDummy(v)) continue;` — all nodes including dummies now
+     participate in alignment
+   - Removed `!isDummy(w)` filter on neighbours — real↔dummy alignment allowed
+   - These guards prevented dummy nodes from joining block chains, breaking
+     the straight-line property of skip-edge inner segments
+
+**Visual results:**
+- Class diagram: "has" and "creates" are nearly-vertical orthogonal paths (~x=97–100).
+  "places" routes right to laneX≈181.63 (past ShoppingCart right edge 165.72+~12),
+  then down, then back — correct obstacle-aware routing.
+- State diagram: clean layered layout, all nodes well-spaced, convergent edges to
+  final state properly routed.
+
+**Build/test:** `pnpm build` ✓ | `pnpm test` 387/387 ✓  
+**Commit:** `ea3e43c`
+
+### 2026-06-27 — Column Snap: Eliminate Z-kink on Adjacent-Layer Chains
+
+**Problem:** Commit `ea3e43c` left "has" (Customer→ShoppingCart) and "creates"
+(ShoppingCart→Order) as Z-shaped edges instead of straight verticals. Ken measured
+a 3.91px horizontal jog (14px visible at rendered size). Root cause: BK balance
+assigns Customer.cx=100.72, ShoppingCart.cx=96.82 — different half-widths cause
+misalignment between adjacent-layer nodes.
+
+**Fix:** Post-balance column snap in `assignCoordinatesBK4` (after BK Step 7,
+before shift calculation).
+
+**Algorithm:**
+- Build `nodeLayerIdx` (node → layer position index) from `baseLayers`.
+- Union-find over direct, non-skip, non-dummy edges between adjacent-layer nodes
+  where `|fromX - toX| ≤ COLUMN_SNAP_EPSILON (6px)`.
+- For each chain (component ≥ 2 nodes), compute median of balanced x values and
+  snap all chain members to that median.
+
+**Why union-find/chain-based, not per-edge:**
+- A per-edge loop processes Customer→ShoppingCart then ShoppingCart→Order.
+  ShoppingCart gets updated twice with different partners — the second snap
+  overwrites the first, so Customer and ShoppingCart end up misaligned again.
+- Chain-based approach collects all members first, computes one median, applies once.
+
+**Results:**
+- Customer.cx = 96.82 (x=31.82, w=130)
+- ShoppingCart.cx = 96.815 (x=24.00, w=145.63) — 0.005px float rounding
+- Order.cx = 96.82 (x=31.82, w=130)
+- "has" path: `M 96.81625 184 L 96.81625 255.5` — STRAIGHT ✓
+- "creates" path: `M 96.81625 347.5 L 96.81625 419` — STRAIGHT ✓
+- "places" (skip edge, span=2): routes via laneX≈181.63 — NOT snapped ✓
+
+**Build/test:** `pnpm build` ✓ | `pnpm test` 387/387 ✓  
+**Commit:** `3448628`
