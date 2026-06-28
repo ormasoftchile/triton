@@ -203,6 +203,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     canvasW:         number,
     realMinX:        number,
     wallPairPenalty: number = 0,
+    sameWallBonus:   number = 0,
   ): number {
     if (laneX < 0 || laneX > canvasW) return Infinity;
 
@@ -228,8 +229,6 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const dirPenalty = laneX <= realMinX - CLEARANCE ? 0 : 5;
 
     // Canvas expansion penalty: proportional to how far left we push the origin.
-    // 1 point per px of leftward expansion. Penalises left-margin candidates
-    // relative to in-diagram lanes, but doesn't disqualify them.
     const expansionPenalty = laneX < realMinX ? (realMinX - laneX) * 1.0 : 0;
 
     return (
@@ -239,7 +238,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       50    * overlapHits +
       dirPenalty          +
       expansionPenalty    +
-      wallPairPenalty
+      wallPairPenalty     -
+      sameWallBonus           // bonus for same-wall same-column routing (B/C)
     );
   }
 
@@ -351,6 +351,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     const bends = laid.edgeBends.get(ri);
     let safePath: string;
     let labelMid: { x: number; y: number };
+    let skipEdgeLateralStrategy = false;
 
     if (bends && bends.length > 0) {
       // ── Build candidate lane x positions ──────────────────────────────────
@@ -566,10 +567,15 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       };
 
       for (const c of allCandidates) {
+        // Same-wall bonus: Strategy B (left→left) and C (right→right) are
+        // the canonical routing style for skip edges in the same column.
+        // 20-point bonus ensures they win over A when geometry is clean.
+        const sameWallBonus = (c.strategy === 'B' || c.strategy === 'C') ? 20 : 0;
         const score = scoreLane(
           c.laneX, c.segments, interBoxesExt, routedSegments,
           canvasWidth, realMinX,
           c.isMixed ? 2.0 : 0,
+          sameWallBonus,
         );
         if (score < bestScore) {
           bestScore     = score;
@@ -581,6 +587,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       for (const [x1, y1, x2, y2] of bestCandidate.segments) {
         routedSegments.push(toRect(x1, y1, x2, y2));
       }
+      skipEdgeLateralStrategy = bestCandidate.strategy === 'B' || bestCandidate.strategy === 'C';
 
       // ── Determine effective port points and walls for arrowheads ──────────
       let effectiveFromPt:   { x: number; y: number } = fromPt;
@@ -645,7 +652,17 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     }
 
     const mx = labelMid.x, my = labelMid.y;
-    if (r.label) elements.push(p.text(r.label, rhuInt(mx), rhuInt(my - 4), memFont, palette.textMuted, { anchor: 'middle' }));
+    if (r.label) {
+      let labelX: number, labelAnchor: 'start' | 'middle' | 'end';
+      if (skipEdgeLateralStrategy && labelMid.x < Math.min(...allRealBoxes.map(b => b.x))) {
+        labelX = mx - 4; labelAnchor = 'end';
+      } else if (skipEdgeLateralStrategy) {
+        labelX = mx + 8; labelAnchor = 'start';
+      } else {
+        labelX = mx; labelAnchor = 'middle';
+      }
+      elements.push(p.text(r.label, rhuInt(labelX), rhuInt(my - 4), memFont, palette.textMuted, { anchor: labelAnchor }));
+    }
     const cardOffset = (wall: Wall, pt: { x: number; y: number }): { cx: number; cy: number } => {
       switch (wall) {
         case 'top':    return { cx: pt.x + 10, cy: pt.y - 10 };
@@ -686,8 +703,13 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   const totalW = rhuInt(laid.width + margin);
   const totalH = rhuInt(laid.height + yOff + margin);
 
+  // If any skip-edge routing went left of x=margin (Strategy B lateral lanes),
+  // expand the viewBox leftward so the lane and its label aren't clipped.
+  const routingMinX = Math.min(0, ...routedSegments.map(s => s.x1));
+  const leftOvershoot = routingMinX < margin ? Math.ceil(margin - routingMinX) : 0;
+
   const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: totalW, height: totalH },
+    viewBox: { x: -leftOvershoot, y: 0, width: totalW + leftOvershoot, height: totalH },
     background: palette.background,
     elements,
   }, ir.overlays, theme);
