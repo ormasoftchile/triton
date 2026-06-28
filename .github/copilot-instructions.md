@@ -6,31 +6,34 @@ This project is indexed with codetopo, a structural code intelligence MCP server
 
 ## Primary workflow
 
-1. `symbols_in_path` — list all symbols under a directory in one call (replaces repeated dir+file queries)
-2. `context_by_name` — get full context for a symbol by name (merges symbol_search + context_for)
-3. `dir_tree` — browse directory structure with file sizes (use instead of ls/glob)
-4. `file_overview` — top-level symbols in a file without reading the body
-5. `symbol_search` — find any symbol by name, get its `node_id`
-6. `context_for` — given a `node_id`, get source + callers + callees in one call
-7. `code_search` — full-text search across all source
-8. `callers_approx` / `callees_approx` — call graph traversal
-9. `impact_of` — blast radius of a change
+1. `symbols_in_path(path, kind=[...], compact=true)` — list all symbols under a directory in one call
+2. `context_by_name(name)` — get full context for a symbol by name (merges symbol_search + context_for)
+3. `dir_tree(path, depth=1)` — browse directory structure with file sizes (use instead of ls/glob)
+4. `file_overview(path)` — top-level symbols in a file without reading the body
+5. `method_fields(symbol, file)` — list a method's field accesses and outgoing calls without reading source
+6. `symbol_search(query, kind)` — find any symbol by name, get its `node_id`
+7. `context_for(node_id)` — given a `node_id`, get source + callers + callees in one call
+8. `code_search(query)` — full-text search across all source
+9. `callers_approx` / `callees_approx` — call graph traversal
+10. `impact_of` — blast radius of a change
 
 ## Token-efficient patterns
 
-**Enumeration (survey first):** `symbols_in_path` is compact by default — returns `node_id`, `name`, `kind`, `span` only. Use the returned `node_id`s for follow-up calls; they stay valid across the session.
+**Enumeration:** `symbols_in_path` is compact by default — pass `compact=true` explicitly for clarity. Returns only `node_id`, `name`, `kind`, `span`. Use the `node_id`s for all follow-up calls.
 
-**Call graph work:** use `context_for(node_id, include_source=false)` to get callers/callees without the source body (~90% fewer tokens). Then fetch source only for the specific lines you need with `source_at`.
+**Call graph without source:** `context_for(node_id, include_source=false)` returns callers/callees only (~90% fewer tokens). Follow up with `source_at(file, start_line, end_line)` for specific lines.
 
-**Targeted source reads:** prefer `source_at(file, start_line, end_line)` over reading whole files. A single function body is typically 20-80 lines; reading the whole file wastes tokens.
+**Constructor internals:** `method_fields(symbol)` lists `this.X` field accesses and outgoing calls for a constructor or method — faster than reading source to understand data model.
 
-**Avoid re-reading:** `node_id`s returned by any tool are reusable handles. Never re-run `symbol_search` for a symbol you already have a `node_id` for.
+**Targeted source reads:** prefer `source_at(file, start_line, end_line)` over reading whole files.
+
+**Avoid re-resolving:** `node_id`s are stable session handles. Never re-run `symbol_search` for a symbol you already have a `node_id` for.
 
 ## Symbol kinds
 
 codetopo indexes these kinds: `function`, `class`, `method`, `interface`, `enum`, `type`, `macro`, `field`, `variable`, `namespace`, `constructor_fn`.
 
-**`constructor_fn`** — pre-ES6 JavaScript factory pattern: `let Foo = function() { this.x = ...; }`. Use `symbols_in_path(kind=["constructor_fn"])` to find all factory classes in a JS codebase.
+**`constructor_fn`** — pre-ES6 JavaScript factory pattern: `let Foo = function() { this.x = ...; }`. Use `symbols_in_path(kind=["constructor_fn"], compact=true)` to find all factory classes in a JS codebase. Use `method_fields` to inspect their `this.X` surface.
 
 ## Multi-root workspace
 
