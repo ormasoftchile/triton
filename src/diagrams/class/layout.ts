@@ -206,7 +206,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     wallPairPenalty: number = 0,
     sameWallBonus:   number = 0,
   ): number {
-    if (laneX < 0 || laneX > canvasW) return Infinity;
+    if (laneX > canvasW) return Infinity;  // only hard-clip on the right
 
     let pathLength  = 0;
     let segCount    = segments.length;
@@ -514,13 +514,14 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         });
       }
 
+      const minAllowedLaneX = Math.min(srcLeft_, tgtLeft_) - LANE_CLEARANCE;
       const laneXsB = [
-        adaptiveLeftX_BD,                        // min-clearance (32px from nearest box)
-        realMinX - LANE_CLEARANCE * 1.5,         // 48px
-        realMinX - LANE_CLEARANCE * 2,           // 64px
-        realMinX - LANE_CLEARANCE * 3,           // 96px
-        ...sweepCandidates,                       // BK sweep positions
-      ].filter(x => x < Math.min(srcLeft_, tgtLeft_));
+        adaptiveLeftX_BD,                        // LANE_CLEARANCE from nearest box
+        realMinX - LANE_CLEARANCE * 1.5,
+        realMinX - LANE_CLEARANCE * 2,
+        realMinX - LANE_CLEARANCE * 3,
+        ...sweepCandidates,
+      ].filter(x => x <= minAllowedLaneX);      // must have at least LANE_CLEARANCE gap
       for (const laneX of laneXsB) {
         allCandidates.push({
           strategy: 'B', laneX, isMixed: false,
@@ -585,8 +586,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       for (const c of allCandidates) {
         // Same-wall bonus: Strategy B (left→left) and C (right→right) are
         // the canonical routing style for skip edges in the same column.
-        // 20-point bonus ensures they win over A when geometry is clean.
-        const sameWallBonus = (c.strategy === 'B' || c.strategy === 'C') ? 20 : 0;
+        // 30-point bonus ensures they win over A when geometry is clean.
+        const sameWallBonus = (c.strategy === 'B' || c.strategy === 'C') ? 30 : 0;
         const score = scoreLane(
           c.laneX, c.segments, interBoxesExt, routedSegments,
           canvasWidth, realMinX,
