@@ -405,3 +405,44 @@ Brian joined the squad on 2026-06-27 as Layout Implementation Engineer, replacin
 **Build/test:** `pnpm build` ✓, `pnpm test` 387/387 ✓
 
 **Commit:** `b9b7eda` — feat(layout): multi-wall skip-edge routing — all wall pairs as scored candidates
+
+---
+
+## 2026-06-28 — Generalized Edge Routing Optimizer (edsger-general-routing.md)
+
+**Task:** Extend the multi-candidate routing optimizer to ALL edges (not just skip edges).
+
+**Spec:** `.squad/decisions/inbox/edsger-general-routing.md`
+
+**Changes made to `src/diagrams/class/layout.ts` only:**
+
+1. **RouteCandidate.strategy** extended: added `'V' | 'X1' | 'X2'` to the union.
+
+2. **Module-level helpers added:**
+   - `labelInBox(lx, ly, boxes)` — true if point falls inside any box
+   - `dedup(arr, tol)` — removes values within tol pixels of each other
+   - `segmentsToPath(segs)` — renders segment list to SVG path string
+
+3. **`EdgeClass` type + `classifyEdge()` function** added module-level:
+   - Uses |cx_a − cx_b| < 8 threshold for same-column detection
+   - Returns `direct-same-column | direct-cross-column | skip-same-column | skip-cross-column`
+
+4. **`scoreLane()` extended** with two new optional params:
+   - `straightBonus: number = 0` — subtracted from score (reward)
+   - `labelMid: { x, y } | null = null` — checked against allRealBoxes via labelInBox; adds 200 if inside any box
+   - Existing skip-edge call updated: passes `0, c.labelMid`
+
+5. **Processing-order sort** before main relation loop:
+   - skip-cross-column → skip-same-column → direct-cross-column → direct-same-column
+   - Within class: longest span first
+
+6. **Direct-edge optimizer** (new `else` block replacing `routeEdge()` fallback):
+   - `direct-same-column`: V candidate (straightBonus=40) + B/C left/right wall candidates
+   - `direct-cross-column`: X1 (V→H→V, 3 midY candidates) + X2 (H→V→H, inter-column midpoints + margins)
+   - Falls back to `routeEdge()` with `console.warn` only if all candidates score Infinity
+
+7. **`routedSegments` registration** for ALL edges (direct + skip) — key change.
+
+**Build/test:** `pnpm build` ✓, `pnpm test` 388/388 ✓
+
+**Commit:** `c6f18a6` — feat(class): generalized edge routing optimizer — all edges, all candidates, label overlap penalty

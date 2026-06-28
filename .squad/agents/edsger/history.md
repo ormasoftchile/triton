@@ -666,3 +666,35 @@ Produced a complete implementation-ready spec for replacing the ad-hoc right-onl
 - LR layout excluded from scope; existing snap in `layered.ts` retained for LR
 
 **Files specified to change:** `src/graph/layered.ts` (LayeredResult, assignCoordinatesBK4, layeredLayout) and `src/diagrams/class/layout.ts` (skip-edge rendering block + helper functions)
+
+### 2026-06-28 — Generalized Edge Routing Optimizer Spec
+
+**Task:** Spec multi-candidate routing optimizer for ALL edges (not just skip edges)  
+**Requested by:** ormasoftchile  
+**Output:** `.squad/decisions/inbox/edsger-general-routing.md`
+
+**Diagnosis of class2.mmd:**
+
+Rendered `examples/class2/class2.png` (Online Learning Platform, 8 classes, 5 layers, 3 column groups) and identified:
+
+1. **`Instructor --> Course` (teaches) — skip-cross-column, BROKEN:** Current Strategy A wins at laneX=353, placing the "teaches" label at (353, 290) — 23px from User's left wall — floating in the inter-column dead space. The `labelOverlapPenalty` addition to `scoreLane` would penalise this route, forcing a better lane selection.
+
+2. **`User <|-- Student` (inheritance) — direct-cross-column, NO OPTIMIZATION:** `routeEdge()` produces a single L-shape at x=351.7 (same dead-zone corridor). No `routedSegments` check. In class2 the corridor is clear, but in denser diagrams this path would cut through intermediate boxes undetected.
+
+3. **`Student --> Certificate` (earns) / `Certificate --> Course` (from) — direct-cross-column, NO OPTIMIZATION:** `routeEdge()` produces correct L-shapes by heuristic but with no candidate evaluation, no `routedSegments` registration, and no label placement check.
+
+4. **`Enrollment --> Course` (for), `Course *-- Module`, `Module *-- Lesson` — direct-same-column, OK:** Near-straight verticals. Would trivially win via `straightBonus=40`.
+
+**Key design decisions:**
+
+- **Edge classification** into 4 types: `direct-same-column`, `direct-cross-column`, `skip-same-column`, `skip-cross-column`
+- **Processing order:** skip-cross → skip-same → direct-cross → direct-same (most constrained first)
+- **Route families X1 (V-then-H) and X2 (H-then-V)** for direct-cross-column, with multiple midY/midX candidates
+- **`straightBonus=40`** added to `scoreLane` for direct-same-column straight vertical winners
+- **`labelOverlapPenalty=200`** added to `scoreLane` — penalises any candidate whose `labelMid` falls inside any real box
+- **New helper:** `labelInBox(lx, ly, boxes)` — geometry check for label placement
+- **`RouteCandidate.strategy`** extended with `'X1'`, `'X2'`, `'V'`
+- **`routeEdge()` retained** as fallback only when all candidates score Infinity
+- **No changes** to `layered.ts`, `LayeredResult`, port assignment, or skip-edge strategies A–F
+
+**Files to change:** `src/diagrams/class/layout.ts` only
