@@ -751,26 +751,57 @@ export function layeredLayout(
     isLR, nodeGap, layerGap, margin,
   );
 
-  // ── BK Step 7b: Snap dummy nodes to their skip-edge's natural lane ──────────
-  // After balance, a dummy's x may differ from its source/target due to
-  // alignment competition. Snap each dummy to (realSource.x + realTarget.x) / 2.
-  // This keeps real nodes in their natural positions and ensures skip edges
-  // route through the correct lane.
+  // ── BK Step 7b: Obstacle-aware dummy snap ────────────────────────────────────
+  // After balance, snap each skip-edge dummy chain to the natural midpoint lane
+  // (srcCenter + tgtCenter) / 2. If any real node in an intermediate layer
+  // straddles that midpoint, offset the lane just past the rightmost blocker.
+  const SKIP_LANE_CLEARANCE = 12; // px clearance past intermediate box right edge
+  const snapLayerKeys = [...orderedByLayer.keys()].sort((a, b) => a - b);
+
   for (const [edgeIdx, chain] of dummyChains) {
     const edge = edges[edgeIdx]!;
     const srcBox = allBoxesMap.get(edge.from);
     const tgtBox = allBoxesMap.get(edge.to);
     if (!srcBox || !tgtBox) continue;
+
     const srcCenter = isLR ? srcBox.y + srcBox.height / 2 : srcBox.x + srcBox.width / 2;
     const tgtCenter = isLR ? tgtBox.y + tgtBox.height / 2 : tgtBox.x + tgtBox.width / 2;
-    const snapCenter = (srcCenter + tgtCenter) / 2;
+    const baseX = (srcCenter + tgtCenter) / 2;
+
+    const srcLayerIdx = layer.get(edge.from)!;
+    const tgtLayerIdx = layer.get(edge.to)!;
+    const minLI = Math.min(srcLayerIdx, tgtLayerIdx);
+    const maxLI = Math.max(srcLayerIdx, tgtLayerIdx);
+    const intermediateLayers = snapLayerKeys.filter(lk => lk > minLI && lk < maxLI);
+
+    // Collect bounding intervals of real nodes in intermediate layers.
+    const intermediateBoxes: Array<{ left: number; right: number }> = [];
+    for (const lk of intermediateLayers) {
+      for (const node of (orderedByLayer.get(lk) ?? [])) {
+        if (node.id.startsWith('__dummy_')) continue;
+        const nb = allBoxesMap.get(node.id);
+        if (!nb) continue;
+        if (isLR) {
+          intermediateBoxes.push({ left: nb.y, right: nb.y + nb.height });
+        } else {
+          intermediateBoxes.push({ left: nb.x, right: nb.x + nb.width });
+        }
+      }
+    }
+
+    // If baseX would thread through a real node box, push the lane past it.
+    const blocking = intermediateBoxes.filter(b => b.left <= baseX && baseX <= b.right);
+    const snapX = blocking.length > 0
+      ? Math.max(...blocking.map(b => b.right)) + SKIP_LANE_CLEARANCE
+      : baseX;
+
     for (const dummyId of chain) {
       const box = allBoxesMap.get(dummyId);
       if (!box) continue;
       if (isLR) {
-        allBoxesMap.set(dummyId, { ...box, y: snapCenter - box.height / 2 });
+        allBoxesMap.set(dummyId, { ...box, y: snapX - box.height / 2 });
       } else {
-        allBoxesMap.set(dummyId, { ...box, x: snapCenter - box.width / 2 });
+        allBoxesMap.set(dummyId, { ...box, x: snapX - box.width / 2 });
       }
     }
   }
