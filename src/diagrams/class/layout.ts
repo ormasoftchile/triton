@@ -67,7 +67,7 @@ function rectsOverlapLength(a: RoutedSegment, b: RoutedSegment): number {
 }
 
 const CLEARANCE      = 12;  // obstacle avoidance (right-side, inter-column)
-const LANE_CLEARANCE = 32;  // visual breathing room for left/right margin lanes
+const LANE_CLEARANCE = 48;  // visual breathing room for left/right margin lanes
 
 // ── Port-assignment helpers (module-level) ─────────────────────────────────
 
@@ -229,8 +229,9 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
     const dirPenalty = laneX <= realMinX - CLEARANCE ? 0 : 5;
 
-    // Canvas expansion penalty: proportional to how far left we push the origin.
-    const expansionPenalty = laneX < realMinX ? (realMinX - laneX) * 1.0 : 0;
+    // Canvas expansion penalty: very small — we want comfortable spacing
+    // to win over tight spacing, not be penalised for it.
+    const expansionPenalty = laneX < realMinX ? (realMinX - laneX) * 0.05 : 0;
 
     return (
       0.3   * pathLength  +
@@ -714,9 +715,10 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   const totalH = rhuInt(laid.height + yOff + margin);
 
   // If any skip-edge routing went left of x=margin (Strategy B lateral lanes),
-  // expand the viewBox leftward so the lane and its label aren't clipped.
+  // expand the viewBox leftward. Add extra margin for the label text width (~48px).
+  const LABEL_EXTRA = 48;
   const routingMinX = Math.min(0, ...routedSegments.map(s => s.x1));
-  const leftOvershoot = routingMinX < margin ? Math.ceil(margin - routingMinX) : 0;
+  const leftOvershoot = routingMinX < margin ? Math.ceil(margin - routingMinX) + LABEL_EXTRA : 0;
 
   const scene: Scene = applyOverlays({
     viewBox: { x: -leftOvershoot, y: 0, width: totalW + leftOvershoot, height: totalH },
