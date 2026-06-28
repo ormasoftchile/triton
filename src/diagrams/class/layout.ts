@@ -17,6 +17,48 @@ import { layeredLayout, routeEdge, type GraphNode, type GraphEdge, type NodeBox 
 import { borderPoint } from '../../graph/connect.js';
 import { rhu, rhuInt } from '../../util/round.js';
 
+// ── Skip-edge routing helpers (module-level) ───────────────────────────────
+
+/** Axis-aligned segment stored as an inflated rect for overlap detection. */
+interface RoutedSegment {
+  x1: number; y1: number;   // top-left
+  x2: number; y2: number;   // bottom-right (x2 >= x1, y2 >= y1)
+}
+
+/** True if axis-aligned segment (x1,y1)→(x2,y2) passes through box interior. */
+function segmentIntersectsBox(
+  x1: number, y1: number, x2: number, y2: number,
+  box: NodeBox,
+): boolean {
+  const bx1 = box.x, bx2 = box.x + box.width;
+  const by1 = box.y, by2 = box.y + box.height;
+  if (y1 === y2) {
+    const lx = Math.min(x1, x2), rx = Math.max(x1, x2);
+    return y1 > by1 && y1 < by2 && lx < bx2 && rx > bx1;
+  }
+  const ty = Math.min(y1, y2), by = Math.max(y1, y2);
+  return x1 > bx1 && x1 < bx2 && ty < by2 && by > by1;
+}
+
+/** Convert a segment to a 2px-wide axis-aligned rect. */
+function toRect(x1: number, y1: number, x2: number, y2: number): RoutedSegment {
+  const W = 1;
+  return {
+    x1: Math.min(x1, x2) - W, y1: Math.min(y1, y2) - W,
+    x2: Math.max(x1, x2) + W, y2: Math.max(y1, y2) + W,
+  };
+}
+
+/** Returns the shared axis length between two RoutedSegment rects. */
+function rectsOverlapLength(a: RoutedSegment, b: RoutedSegment): number {
+  const ox = Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1);
+  const oy = Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1);
+  if (ox <= 0 || oy <= 0) return 0;
+  return Math.max(ox, oy);
+}
+
+const CLEARANCE = 12;
+
 // ── Port-assignment helpers (module-level) ─────────────────────────────────
 
 type Wall = 'top' | 'bottom' | 'left' | 'right';
@@ -122,6 +164,67 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     r.leftHead === 'triangle' ? { from: r.right, to: r.left } : { from: r.left, to: r.right });
   const LAYER_GAP = 64;
   const laid = layeredLayout(nodes, edges, { direction: 'TB', layerGap: LAYER_GAP, nodeGap: 46, margin });
+
+  const canvasWidth  = laid.width + margin * 2;
+  const allRealBoxes = [...laid.boxes.values()];
+
+  // Segment registry: updated after each skip edge is routed.
+  const routedSegments: RoutedSegment[] = [];
+
+  // Real-node x-centre values, deduplicated and sorted.
+  const realColumnXs = [...new Set(
+    allRealBoxes.map(b => b.x + b.width / 2)
+  )].sort((a, b) => a - b);
+
+  // Midpoint between each adjacent pair of real-node columns.
+  const interColMidpoints: number[] = [];
+  for (let ci = 0; ci < realColumnXs.length - 1; ci++) {
+    interColMidpoints.push((realColumnXs[ci]! + realColumnXs[ci + 1]!) / 2);
+  }
+
+  /**
+   * Score a candidate lane x for a skip edge.
+   * Lower score = better. Returns Infinity if the candidate is out-of-bounds.
+   */
+  function scoreLane(
+    laneX:       number,
+    segments:    Array<[number, number, number, number]>,
+    interBoxes:  NodeBox[],
+    routed:      RoutedSegment[],
+    canvasW:     number,
+  ): number {
+    if (laneX < 0 || laneX > canvasW) return Infinity;
+
+    let pathLength  = 0;
+    let segCount    = segments.length;
+    let boxHits     = 0;
+    let overlapHits = 0;
+
+    for (const [x1, y1, x2, y2] of segments) {
+      const dx = x2 - x1, dy = y2 - y1;
+      pathLength += Math.sqrt(dx * dx + dy * dy);
+
+      for (const nb of interBoxes) {
+        if (segmentIntersectsBox(x1, y1, x2, y2, nb)) boxHits++;
+      }
+
+      const segRect = toRect(x1, y1, x2, y2);
+      for (const rs of routed) {
+        if (rectsOverlapLength(segRect, rs) >= 10) overlapHits++;
+      }
+    }
+
+    const leftMarginX = Math.min(...allRealBoxes.map(b => b.x)) - CLEARANCE;
+    const dirPenalty  = laneX <= leftMarginX ? 0 : 5;
+
+    return (
+      0.3   * pathLength  +
+      10.0  * segCount    +
+      1000  * boxHits     +
+      50    * overlapHits +
+      dirPenalty
+    );
+  }
 
   const title  = ir.metadata.title;
   const titleH = title ? typography.titleFontSize + 14 : 0;
@@ -233,17 +336,85 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     let labelMid: { x: number; y: number };
 
     if (bends && bends.length > 0) {
-      const laneX  = bends[0]!.x;
+      // ── Build candidate lane x positions ──────────────────────────────────
+      const srcLayerY = a.y;
+      const tgtLayerY = b.y;
+      const minY = Math.min(srcLayerY, tgtLayerY);
+      const maxY = Math.max(srcLayerY, tgtLayerY);
+      const interBoxes = allRealBoxes.filter(nb => {
+        const cy = nb.y + nb.height / 2;
+        return cy > minY && cy < maxY;
+      });
+
+      // Seed from BK sweeps: the 4 per-dummy x values from the first dummy in chain
+      const firstDummyId = laid.dummyChainIds.get(ri)?.[0] ?? null;
+      const sweepCandidates: number[] = firstDummyId
+        ? (laid.dummySweepXs.get(firstDummyId) ?? [])
+        : [];
+
+      const leftMarginX  = Math.min(...allRealBoxes.map(b => b.x))          - CLEARANCE;
+      const rightMarginX = Math.max(...allRealBoxes.map(b => b.x + b.width)) + CLEARANCE;
+      const sourceX      = fromPt.x;
+
+      const candidates: number[] = [
+        ...sweepCandidates,
+        leftMarginX,
+        rightMarginX,
+        sourceX,
+        ...interColMidpoints,
+      ];
+
+      // ── Compute route for each candidate ──────────────────────────────────
       const exitY  = bends[0]!.y + yOff;
       const entryY = toPt.y - LAYER_GAP / 2;
-      safePath = [
-        `M ${rhu(fromPt.x)} ${rhu(fromPt.y)}`,
-        `L ${rhu(fromPt.x)} ${rhu(exitY)}`,
-        `L ${rhu(laneX)}    ${rhu(exitY)}`,
-        `L ${rhu(laneX)}    ${rhu(entryY)}`,
-        `L ${rhu(toPt.x)}   ${rhu(entryY)}`,
-        `L ${rhu(toPt.x)}   ${rhu(toPt.y)}`,
-      ].join(' ');
+
+      function buildSegments(laneX: number): Array<[number, number, number, number]> {
+        const fx = fromPt.x, fy = fromPt.y;
+        const tx = toPt.x,   ty = toPt.y;
+        if (Math.abs(laneX - fx) < 1 && Math.abs(laneX - tx) < 1) {
+          return [[fx, fy, tx, ty]];
+        }
+        return [
+          [fx, fy,    fx,    exitY ],
+          [fx, exitY, laneX, exitY ],
+          [laneX, exitY,  laneX, entryY],
+          [laneX, entryY, tx,    entryY],
+          [tx,    entryY, tx,    ty    ],
+        ];
+      }
+
+      // ── Score each candidate and pick best ────────────────────────────────
+      let bestScore = Infinity;
+      let bestLaneX = bends[0]!.x;
+      let bestSegs:  Array<[number, number, number, number]> = buildSegments(bestLaneX);
+
+      for (const laneX of candidates) {
+        const segs  = buildSegments(laneX);
+        const score = scoreLane(laneX, segs, interBoxes, routedSegments, canvasWidth);
+        if (score < bestScore) {
+          bestScore = score;
+          bestLaneX = laneX;
+          bestSegs  = segs;
+        }
+      }
+
+      // ── Register winning segments ──────────────────────────────────────────
+      for (const [x1, y1, x2, y2] of bestSegs) {
+        routedSegments.push(toRect(x1, y1, x2, y2));
+      }
+
+      // ── Render ────────────────────────────────────────────────────────────
+      const laneX  = bestLaneX;
+      safePath = bestSegs.length === 1
+        ? `M ${rhu(bestSegs[0]![0])} ${rhu(bestSegs[0]![1])} L ${rhu(bestSegs[0]![2])} ${rhu(bestSegs[0]![3])}`
+        : [
+            `M ${rhu(fromPt.x)} ${rhu(fromPt.y)}`,
+            `L ${rhu(fromPt.x)} ${rhu(exitY)}`,
+            `L ${rhu(laneX)}    ${rhu(exitY)}`,
+            `L ${rhu(laneX)}    ${rhu(entryY)}`,
+            `L ${rhu(toPt.x)}   ${rhu(entryY)}`,
+            `L ${rhu(toPt.x)}   ${rhu(toPt.y)}`,
+          ].join(' ');
       labelMid = { x: laneX, y: (exitY + entryY) / 2 };
     } else {
       const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);

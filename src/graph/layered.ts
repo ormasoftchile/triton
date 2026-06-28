@@ -77,6 +77,18 @@ export interface LayeredResult {
    *  Key = index into the original `edges` array passed to `layeredLayout`.
    *  Value = ordered list of bend points in layout coordinates (no yOff applied). */
   readonly edgeBends: Map<number, Array<{ x: number; y: number }>>;
+  /**
+   * Per-dummy node x values from each of the 4 BK sweeps, BEFORE balance.
+   * Key = dummy node id. Value = [ul_x, ur_x, dl_x, dr_x].
+   * Only populated for dummy nodes that belong to skip-edge chains.
+   * Used by the skip-routing optimizer in layout.ts as seed candidates.
+   */
+  readonly dummySweepXs: Map<string, number[]>;
+  /**
+   * Map from original edge index → ordered dummy node ids forming the skip chain.
+   * Empty for direct (non-skip) edges.
+   */
+  readonly dummyChainIds: Map<number, string[]>;
 }
 
 // ─── Phase 1: Layer Assignment ────────────────────────────────────────────────
@@ -470,7 +482,7 @@ function assignCoordinatesBK4(
   nodeGap: number,
   layerGap: number,
   margin: number,
-): Map<string, NodeBox> {
+): { boxes: Map<string, NodeBox>; dummySweepXs: Map<string, number[]> } {
   const cross   = (n: GraphNode) => isLR ? n.height : n.width;
   const along   = (n: GraphNode) => isLR ? n.width  : n.height;
   const isDummy = (id: string)   => id.startsWith('__dummy_');
@@ -705,6 +717,16 @@ function assignCoordinatesBK4(
     }
   }
 
+  // Capture pre-balance x values for every dummy node across the 4 sweeps.
+  // Sweep key order: ul=0, ur=1, dl=2, dr=3.
+  const SWEEP_KEYS = ['ul', 'ur', 'dl', 'dr'] as const;
+  const dummySweepXs = new Map<string, number[]>();
+  for (const id of nodeById.keys()) {
+    if (!isDummy(id)) continue;
+    const vals = SWEEP_KEYS.map(k => xss.get(k)?.get(id) ?? 0);
+    dummySweepXs.set(id, vals);
+  }
+
   // ── BK Step 5: Find smallest-width alignment ──────────────────────────────────
   let minSpan    = Infinity;
   let smallestXs = xss.get('ul')!;
@@ -834,7 +856,7 @@ function assignCoordinatesBK4(
     alongCursor += layerSize + layerGap;
   }
 
-  return nodePos;
+  return { boxes: nodePos, dummySweepXs };
 }
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
@@ -850,7 +872,7 @@ export function layeredLayout(
   const margin     = options.margin ?? 32;
   const isLR       = direction === 'LR';
 
-  if (nodes.length === 0) return { boxes: new Map(), width: margin * 2, height: margin * 2, edgeBends: new Map() };
+  if (nodes.length === 0) return { boxes: new Map(), width: margin * 2, height: margin * 2, edgeBends: new Map(), dummySweepXs: new Map(), dummyChainIds: new Map() };
 
   // Phase 1: Layer assignment.
   const layer    = assignLayers(nodes, edges);
@@ -873,65 +895,10 @@ export function layeredLayout(
   const orderedByLayer = minimizeCrossings(byLayerArr, newEdges, newBackEdgeSet);
 
   // Phase 4: Full 4-layout B–K coordinate assignment (variable node sizes).
-  const allBoxesMap = assignCoordinatesBK4(
+  const { boxes: allBoxesMap, dummySweepXs } = assignCoordinatesBK4(
     orderedByLayer, newEdges, newBackEdgeSet,
     isLR, nodeGap, layerGap, margin,
   );
-
-  // ── BK Step 7b: Obstacle-aware dummy snap ────────────────────────────────────
-  // After balance, snap each skip-edge dummy chain to the natural midpoint lane
-  // (srcCenter + tgtCenter) / 2. If any real node in an intermediate layer
-  // straddles that midpoint, offset the lane just past the rightmost blocker.
-  const SKIP_LANE_CLEARANCE = 12; // px clearance past intermediate box right edge
-  const snapLayerKeys = [...orderedByLayer.keys()].sort((a, b) => a - b);
-
-  for (const [edgeIdx, chain] of dummyChains) {
-    const edge = edges[edgeIdx]!;
-    const srcBox = allBoxesMap.get(edge.from);
-    const tgtBox = allBoxesMap.get(edge.to);
-    if (!srcBox || !tgtBox) continue;
-
-    const srcCenter = isLR ? srcBox.y + srcBox.height / 2 : srcBox.x + srcBox.width / 2;
-    const tgtCenter = isLR ? tgtBox.y + tgtBox.height / 2 : tgtBox.x + tgtBox.width / 2;
-    const baseX = (srcCenter + tgtCenter) / 2;
-
-    const srcLayerIdx = layer.get(edge.from)!;
-    const tgtLayerIdx = layer.get(edge.to)!;
-    const minLI = Math.min(srcLayerIdx, tgtLayerIdx);
-    const maxLI = Math.max(srcLayerIdx, tgtLayerIdx);
-    const intermediateLayers = snapLayerKeys.filter(lk => lk > minLI && lk < maxLI);
-
-    // Collect bounding intervals of real nodes in intermediate layers.
-    const intermediateBoxes: Array<{ left: number; right: number }> = [];
-    for (const lk of intermediateLayers) {
-      for (const node of (orderedByLayer.get(lk) ?? [])) {
-        if (node.id.startsWith('__dummy_')) continue;
-        const nb = allBoxesMap.get(node.id);
-        if (!nb) continue;
-        if (isLR) {
-          intermediateBoxes.push({ left: nb.y, right: nb.y + nb.height });
-        } else {
-          intermediateBoxes.push({ left: nb.x, right: nb.x + nb.width });
-        }
-      }
-    }
-
-    // If baseX would thread through a real node box, push the lane past it.
-    const blocking = intermediateBoxes.filter(b => b.left <= baseX && baseX <= b.right);
-    const snapX = blocking.length > 0
-      ? Math.max(...blocking.map(b => b.right)) + SKIP_LANE_CLEARANCE
-      : baseX;
-
-    for (const dummyId of chain) {
-      const box = allBoxesMap.get(dummyId);
-      if (!box) continue;
-      if (isLR) {
-        allBoxesMap.set(dummyId, { ...box, y: snapX - box.height / 2 });
-      } else {
-        allBoxesMap.set(dummyId, { ...box, x: snapX - box.width / 2 });
-      }
-    }
-  }
 
   // Phase 5: Extract bend points from dummy node positions.
   const edgeBends = new Map<number, Array<{ x: number; y: number }>>();
@@ -1003,7 +970,7 @@ export function layeredLayout(
     ? Math.max(...allBoxes.map(b => b.y + b.height)) + margin
     : margin * 2;
 
-  return { boxes, width, height, edgeBends };
+  return { boxes, width, height, edgeBends, dummySweepXs, dummyChainIds: dummyChains };
 }
 
 // ─── Straight-line obstacle check ────────────────────────────────────────────
