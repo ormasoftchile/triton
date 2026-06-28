@@ -492,6 +492,12 @@ function assignCoordinatesBK4(
   const numLayers  = layerKeys.length;
   const baseLayers: string[][] = layerKeys.map(lk => byLayer.get(lk)!.map(n => n.id));
 
+  // Map each node id → its layer position index (0-based).
+  const nodeLayerIdx = new Map<string, number>();
+  for (let li = 0; li < numLayers; li++) {
+    for (const id of baseLayers[li]!) nodeLayerIdx.set(id, li);
+  }
+
   const predMap = new Map<string, string[]>();
   const succMap = new Map<string, string[]>();
   for (const [, ns] of byLayer) for (const n of ns) {
@@ -738,6 +744,59 @@ function assignCoordinatesBK4(
   for (const [id] of xss.get('ul')!) {
     const vals = ([...xss.values()].map(xs => xs.get(id) ?? 0)).sort((a, b) => a - b);
     balanced.set(id, ((vals[1] ?? 0) + (vals[2] ?? 0)) / 2);
+  }
+
+  // ── Column snap: align directly-connected adjacent-layer node chains ─────────
+  // Build chains (union-find) over direct edges between adjacent layers where the
+  // BK misalignment is small. Then snap each chain to the median balanced x of its
+  // members. Running per-edge would cause double-snap interference on multi-node
+  // chains (e.g. A→B and B→C would shift B twice with different partners).
+  const COLUMN_SNAP_EPSILON = 6; // px — only snap if misalignment is smaller than this
+
+  const csParent = new Map<string, string>();
+  const csFind = (id: string): string => {
+    let r = csParent.get(id) ?? id;
+    while (csParent.get(r) !== undefined && csParent.get(r) !== r) r = csParent.get(r)!;
+    csParent.set(id, r);
+    return r;
+  };
+  const csUnion = (a: string, b: string): void => {
+    const ra = csFind(a), rb = csFind(b);
+    if (ra !== rb) csParent.set(ra, rb);
+  };
+
+  edges.forEach((edge, i) => {
+    if (backEdgeSet.has(i) || edge.from === edge.to) return;
+    if (isDummy(edge.from) || isDummy(edge.to)) return;
+
+    const fromLayer = nodeLayerIdx.get(edge.from);
+    const toLayer   = nodeLayerIdx.get(edge.to);
+    if (fromLayer === undefined || toLayer === undefined) return;
+    if (Math.abs(toLayer - fromLayer) !== 1) return;
+
+    const fromX = balanced.get(edge.from);
+    const toX   = balanced.get(edge.to);
+    if (fromX === undefined || toX === undefined) return;
+    if (Math.abs(fromX - toX) > COLUMN_SNAP_EPSILON) return;
+
+    csUnion(edge.from, edge.to);
+  });
+
+  // Group chain members and snap each chain to its median balanced x.
+  const csGroups = new Map<string, string[]>();
+  for (const id of balanced.keys()) {
+    if (isDummy(id)) continue;
+    const root = csFind(id);
+    if (!csGroups.has(root)) csGroups.set(root, []);
+    csGroups.get(root)!.push(id);
+  }
+  for (const members of csGroups.values()) {
+    if (members.length < 2) continue;
+    const xs = members.map(id => balanced.get(id)!).sort((a, b) => a - b);
+    const medX = xs.length % 2 === 1
+      ? xs[Math.floor(xs.length / 2)]!
+      : (xs[xs.length / 2 - 1]! + xs[xs.length / 2]!) / 2;
+    for (const id of members) balanced.set(id, medX);
   }
 
   // Shift so the leftmost node's left edge sits at `margin`.
