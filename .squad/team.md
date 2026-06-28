@@ -20,6 +20,7 @@
 | 🔧 Bjarne | Ingestion Design | `.squad/agents/bjarne/charter.md` | active |
 | 📐 Edsger | Layout Algorithms | `.squad/agents/edsger/charter.md` | active |
 | 📋 Scribe | Memory & Logs (silent) | `.squad/agents/scribe/charter.md` | active |
+| 🔍 Ken | Visual QA Reviewer | `.squad/agents/ken/charter.md` | active |
 | 🔄 Ralph | Work Monitor | — | 🔄 Monitor |
 
 ## Project Context
