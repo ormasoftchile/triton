@@ -411,13 +411,13 @@ function assignCoordinatesBK4(
   for (const [, ns] of byLayer) for (const n of ns) nodeById.set(n.id, n);
 
   // Minimum centre-to-centre separation between adjacent nodes in a layer.
+  // Zero-width dummy nodes are invisible waypoints; they impose no gap on
+  // neighbouring real nodes so that real nodes can align freely.
   function sep(a: string, b: string): number {
+    if (isDummy(a) || isDummy(b)) return 0;
     const an = nodeById.get(a)!;
     const bn = nodeById.get(b)!;
-    return cross(an) / 2
-      + (isDummy(a) ? 0 : nodeGap / 2)
-      + (isDummy(b) ? 0 : nodeGap / 2)
-      + cross(bn) / 2;
+    return cross(an) / 2 + nodeGap + cross(bn) / 2;
   }
 
   const layerKeys  = [...byLayer.keys()].sort((a, b) => a - b);
@@ -480,32 +480,6 @@ function assignCoordinatesBK4(
     });
   }
 
-  // ── Dummy-protection conflicts ─────────────────────────────────────────────
-  // BK type-1 conflict detection only protects inner segments (dummy→dummy) in
-  // skip chains spanning ≥3 layers. For a 2-layer skip (real→dummy→real) there
-  // is no inner segment, so a real node u in the same intermediate layer can
-  // "steal" the dummy's alignment slot in reversed sweeps, causing the dummy to
-  // land off-axis and producing a Z-shaped edge route.
-  //
-  // Fix: whenever a dummy d and a real node u in the same layer share the same
-  // direct predecessor p (or successor s), mark (p, u) and (u, s) as conflicts
-  // so u cannot claim that alignment slot in any sweep direction. The dummy then
-  // aligns cleanly in all four sweeps.
-  for (const [, ns] of byLayer) {
-    for (const dn of ns) {
-      if (!isDummy(dn.id)) continue;
-      const dPreds = predMap.get(dn.id) ?? [];
-      const dSuccs = succMap.get(dn.id) ?? [];
-      for (const rn of ns) {
-        if (isDummy(rn.id)) continue;
-        const rPreds = predMap.get(rn.id) ?? [];
-        const rSuccs = succMap.get(rn.id) ?? [];
-        for (const p of dPreds) if (rPreds.includes(p)) addConflict(p, rn.id);
-        for (const s of dSuccs) if (rSuccs.includes(s)) addConflict(rn.id, s);
-      }
-    }
-  }
-
   // ── BK Step 2: Vertical Alignment ────────────────────────────────────────────
   function verticalAlignment(
     sweepLayers: readonly string[][],
@@ -522,7 +496,11 @@ function assignCoordinatesBK4(
     for (const layer of sweepLayers) {
       let prevIdx = -1;
       for (const v of layer) {
-        const nbrs = neighborFn(v).filter(w => pos.has(w));
+        // Dummy nodes free-float; they are not aligned with real neighbours.
+        // Their final x is set by the post-balance snap step.
+        if (isDummy(v)) continue;
+
+        const nbrs = neighborFn(v).filter(w => pos.has(w) && !isDummy(w));
         if (nbrs.length === 0) continue;
 
         nbrs.sort((a, b) => pos.get(a)! - pos.get(b)!);
@@ -772,6 +750,30 @@ export function layeredLayout(
     orderedByLayer, newEdges, newBackEdgeSet,
     isLR, nodeGap, layerGap, margin,
   );
+
+  // ── BK Step 7b: Snap dummy nodes to their skip-edge's natural lane ──────────
+  // After balance, a dummy's x may differ from its source/target due to
+  // alignment competition. Snap each dummy to (realSource.x + realTarget.x) / 2.
+  // This keeps real nodes in their natural positions and ensures skip edges
+  // route through the correct lane.
+  for (const [edgeIdx, chain] of dummyChains) {
+    const edge = edges[edgeIdx]!;
+    const srcBox = allBoxesMap.get(edge.from);
+    const tgtBox = allBoxesMap.get(edge.to);
+    if (!srcBox || !tgtBox) continue;
+    const srcCenter = isLR ? srcBox.y + srcBox.height / 2 : srcBox.x + srcBox.width / 2;
+    const tgtCenter = isLR ? tgtBox.y + tgtBox.height / 2 : tgtBox.x + tgtBox.width / 2;
+    const snapCenter = (srcCenter + tgtCenter) / 2;
+    for (const dummyId of chain) {
+      const box = allBoxesMap.get(dummyId);
+      if (!box) continue;
+      if (isLR) {
+        allBoxesMap.set(dummyId, { ...box, y: snapCenter - box.height / 2 });
+      } else {
+        allBoxesMap.set(dummyId, { ...box, x: snapCenter - box.width / 2 });
+      }
+    }
+  }
 
   // Phase 5: Extract bend points from dummy node positions.
   const edgeBends = new Map<number, Array<{ x: number; y: number }>>();

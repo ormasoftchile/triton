@@ -155,8 +155,10 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
   // ── Port assignment: arrival ports (toPortMap2) ────────────────────────────
   // Group edges by (targetId, wall). Sort each group by source-center along the
   // wall axis → crossing-free order. Spread with cascade to enforce MIN_PORT_GAP.
+  // Skip edges (those with bend points) are excluded — their port is the lane x.
   const toGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
   for (let ri = 0; ri < ir.relations.length; ri++) {
+    if (laid.edgeBends.has(ri)) continue;   // skip edges use laneX directly
     const r = ir.relations[ri]!;
     const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
     if (!a || !b) continue;
@@ -177,8 +179,10 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
 
   // ── Port assignment: departure ports (fromPortMap2) ────────────────────────
   // Departure wall of A toward B = approachWall(b, a). Sort by target-center.
+  // Skip edges are excluded — their departure point is computed from laneX.
   const fromGroupAccum = new Map<string, Array<{ ri: number; sourceCenter: number }>>();
   for (let ri = 0; ri < ir.relations.length; ri++) {
+    if (laid.edgeBends.has(ri)) continue;   // skip edges use laneX directly
     const r = ir.relations[ri]!;
     const a = laid.boxes.get(r.left), b = laid.boxes.get(r.right);
     if (!a || !b) continue;
