@@ -25,6 +25,15 @@ interface RoutedSegment {
   x2: number; y2: number;   // bottom-right (x2 >= x1, y2 >= y1)
 }
 
+/** A scored routing candidate carrying full path geometry for one wall-pair strategy. */
+interface RouteCandidate {
+  strategy: 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+  laneX:    number;
+  segments: Array<[number, number, number, number]>;
+  labelMid: { x: number; y: number };
+  isMixed:  boolean;  // true for D, E, F — wall-pair penalty applies
+}
+
 /** True if axis-aligned segment (x1,y1)→(x2,y2) passes through box interior. */
 function segmentIntersectsBox(
   x1: number, y1: number, x2: number, y2: number,
@@ -187,12 +196,13 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
    * Lower score = better. Returns Infinity if the candidate is out-of-bounds.
    */
   function scoreLane(
-    laneX:       number,
-    segments:    Array<[number, number, number, number]>,
-    interBoxes:  NodeBox[],
-    routed:      RoutedSegment[],
-    canvasW:     number,
-    realMinX:    number,
+    laneX:           number,
+    segments:        Array<[number, number, number, number]>,
+    interBoxes:      NodeBox[],
+    routed:          RoutedSegment[],
+    canvasW:         number,
+    realMinX:        number,
+    wallPairPenalty: number = 0,
   ): number {
     if (laneX < 0 || laneX > canvasW) return Infinity;
 
@@ -228,7 +238,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       1000  * boxHits     +
       50    * overlapHits +
       dirPenalty          +
-      expansionPenalty
+      expansionPenalty    +
+      wallPairPenalty
     );
   }
 
@@ -380,7 +391,7 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         ? Math.min(...allBlocking.map(b => b.x)) - CLEARANCE
         : realMinX - CLEARANCE;
 
-      const candidates: number[] = [
+      const candidates_A: number[] = [
         ...sweepCandidates,
         adaptiveLeftX,
         rightMarginX,
@@ -388,64 +399,250 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         ...interColMidpoints,
       ];
 
-      function buildSegments(laneX: number): Array<[number, number, number, number]> {
+      // ── Mid-wall port coords for non-A strategies ──────────────────────────
+      const srcMidY_  = a.y  + a.height  / 2 + yOff;
+      const tgtMidY_  = b.y  + b.height  / 2 + yOff;
+      const srcLeft_  = a.x;
+      const srcRight_ = a.x  + a.width;
+      const tgtLeft_  = b.x;
+      const tgtRight_ = b.x  + b.width;
+
+      // Extended blocking set: covers B/C/D/E/F horizontal segments that may
+      // hit boxes at srcMidY or tgtMidY rows outside the strict inter-layer band.
+      const interBoxesExt = allRealBoxes.filter(nb => {
+        const cy = nb.y + nb.height / 2;
+        return cy > a.y && cy < b.y + b.height && nb.id !== a.id && nb.id !== b.id;
+      });
+
+      // Adaptive left-margin for B/D strategies (left-side lanes)
+      const blockingBD = allRealBoxes.filter(nb => {
+        const ny = nb.y, nh = nb.height;
+        return (srcMidY_ > ny && srcMidY_ < ny + nh) || (tgtMidY_ > ny && tgtMidY_ < ny + nh);
+      });
+      const adaptiveLeftX_BD = blockingBD.length > 0
+        ? Math.min(...blockingBD.map(nb => nb.x)) - CLEARANCE
+        : realMinX - CLEARANCE;
+
+      // Adaptive right-margin for C/E strategies (right-side lanes)
+      const adaptiveRightX_CE = blockingBD.length > 0
+        ? Math.max(...blockingBD.map(nb => nb.x + nb.width)) + CLEARANCE
+        : rightMarginX;
+
+      // Adaptive left-margin for F strategy (checks exitY and tgtMidY rows)
+      const blockingF = allRealBoxes.filter(nb => {
+        return (exitY   > nb.y && exitY   < nb.y + nb.height) ||
+               (tgtMidY_ > nb.y && tgtMidY_ < nb.y + nb.height);
+      });
+      const adaptiveLeftX_F = blockingF.length > 0
+        ? Math.min(...blockingF.map(nb => nb.x)) - CLEARANCE
+        : realMinX - CLEARANCE;
+
+      // ── Segment builder functions ──────────────────────────────────────────
+      function buildSegmentsA(laneX: number): Array<[number, number, number, number]> {
         const fx = fromPt.x, fy = fromPt.y;
         const tx = toPt.x,   ty = toPt.y;
         if (Math.abs(laneX - fx) < 1 && Math.abs(laneX - tx) < 1) {
           return [[fx, fy, tx, ty]];
         }
         return [
-          [fx, fy,    fx,    exitY ],
-          [fx, exitY, laneX, exitY ],
-          [laneX, exitY,  laneX, entryY],
-          [laneX, entryY, tx,    entryY],
-          [tx,    entryY, tx,    ty    ],
+          [fx,    fy,     fx,    exitY  ],
+          [fx,    exitY,  laneX, exitY  ],
+          [laneX, exitY,  laneX, entryY ],
+          [laneX, entryY, tx,    entryY ],
+          [tx,    entryY, tx,    ty     ],
         ];
       }
 
-      // ── Score each candidate and pick best ────────────────────────────────
-      let bestScore = Infinity;
-      let bestLaneX = bends[0]!.x;
-      let bestSegs:  Array<[number, number, number, number]> = buildSegments(bestLaneX);
+      function buildSegmentsB(laneX: number): Array<[number, number, number, number]> {
+        return [
+          [srcLeft_,  srcMidY_, laneX,    srcMidY_],
+          [laneX,     srcMidY_, laneX,    tgtMidY_],
+          [laneX,     tgtMidY_, tgtLeft_, tgtMidY_],
+        ];
+      }
 
-      for (const laneX of candidates) {
-        const segs  = buildSegments(laneX);
-        const score = scoreLane(laneX, segs, interBoxes, routedSegments, canvasWidth, realMinX);
+      function buildSegmentsC(laneX: number): Array<[number, number, number, number]> {
+        return [
+          [srcRight_,  srcMidY_, laneX,     srcMidY_],
+          [laneX,      srcMidY_, laneX,     tgtMidY_],
+          [laneX,      tgtMidY_, tgtRight_, tgtMidY_],
+        ];
+      }
+
+      function buildSegmentsD(laneX: number): Array<[number, number, number, number]> {
+        return [
+          [srcLeft_, srcMidY_, laneX,  srcMidY_],
+          [laneX,    srcMidY_, laneX,  entryY  ],
+          [laneX,    entryY,   toPt.x, entryY  ],
+          [toPt.x,   entryY,   toPt.x, toPt.y  ],
+        ];
+      }
+
+      function buildSegmentsE(laneX: number): Array<[number, number, number, number]> {
+        return [
+          [srcRight_, srcMidY_, laneX,  srcMidY_],
+          [laneX,     srcMidY_, laneX,  entryY  ],
+          [laneX,     entryY,   toPt.x, entryY  ],
+          [toPt.x,    entryY,   toPt.x, toPt.y  ],
+        ];
+      }
+
+      function buildSegmentsF(laneX: number): Array<[number, number, number, number]> {
+        return [
+          [fromPt.x, fromPt.y, fromPt.x, exitY   ],
+          [fromPt.x, exitY,    laneX,    exitY   ],
+          [laneX,    exitY,    laneX,    tgtMidY_],
+          [laneX,    tgtMidY_, tgtLeft_, tgtMidY_],
+        ];
+      }
+
+      // ── Build flat candidate list from all strategies ──────────────────────
+      const allCandidates: RouteCandidate[] = [];
+
+      for (const laneX of candidates_A) {
+        allCandidates.push({
+          strategy: 'A', laneX, isMixed: false,
+          segments: buildSegmentsA(laneX),
+          labelMid: { x: laneX, y: (exitY + entryY) / 2 },
+        });
+      }
+
+      const laneXsB = [adaptiveLeftX_BD, realMinX - CLEARANCE, ...sweepCandidates]
+        .filter(x => x < Math.min(srcLeft_, tgtLeft_));
+      for (const laneX of laneXsB) {
+        allCandidates.push({
+          strategy: 'B', laneX, isMixed: false,
+          segments: buildSegmentsB(laneX),
+          labelMid: { x: laneX, y: (srcMidY_ + tgtMidY_) / 2 },
+        });
+      }
+
+      const laneXsC = [adaptiveRightX_CE, rightMarginX, ...sweepCandidates]
+        .filter(x => x > Math.max(srcRight_, tgtRight_));
+      for (const laneX of laneXsC) {
+        allCandidates.push({
+          strategy: 'C', laneX, isMixed: false,
+          segments: buildSegmentsC(laneX),
+          labelMid: { x: laneX, y: (srcMidY_ + tgtMidY_) / 2 },
+        });
+      }
+
+      const laneXsD = [adaptiveLeftX_BD, realMinX - CLEARANCE, ...sweepCandidates]
+        .filter(x => x < srcLeft_);
+      for (const laneX of laneXsD) {
+        allCandidates.push({
+          strategy: 'D', laneX, isMixed: true,
+          segments: buildSegmentsD(laneX),
+          labelMid: { x: laneX, y: (srcMidY_ + entryY) / 2 },
+        });
+      }
+
+      const laneXsE = [adaptiveRightX_CE, rightMarginX, ...sweepCandidates]
+        .filter(x => x > srcRight_);
+      for (const laneX of laneXsE) {
+        allCandidates.push({
+          strategy: 'E', laneX, isMixed: true,
+          segments: buildSegmentsE(laneX),
+          labelMid: { x: laneX, y: (srcMidY_ + entryY) / 2 },
+        });
+      }
+
+      const laneXsF = [adaptiveLeftX_F, realMinX - CLEARANCE, ...sweepCandidates]
+        .filter(x => x < tgtLeft_);
+      for (const laneX of laneXsF) {
+        allCandidates.push({
+          strategy: 'F', laneX, isMixed: true,
+          segments: buildSegmentsF(laneX),
+          labelMid: { x: laneX, y: (exitY + tgtMidY_) / 2 },
+        });
+      }
+
+      // ── Score all candidates and pick best ────────────────────────────────
+      let bestScore     = Infinity;
+      let bestCandidate: RouteCandidate = allCandidates[0] ?? {
+        strategy: 'A', laneX: bends[0]!.x, isMixed: false,
+        segments: buildSegmentsA(bends[0]!.x),
+        labelMid: { x: bends[0]!.x, y: (exitY + entryY) / 2 },
+      };
+
+      for (const c of allCandidates) {
+        const score = scoreLane(
+          c.laneX, c.segments, interBoxesExt, routedSegments,
+          canvasWidth, realMinX,
+          c.isMixed ? 2.0 : 0,
+        );
         if (score < bestScore) {
-          bestScore = score;
-          bestLaneX = laneX;
-          bestSegs  = segs;
+          bestScore     = score;
+          bestCandidate = c;
         }
       }
 
       // ── Register winning segments ──────────────────────────────────────────
-      for (const [x1, y1, x2, y2] of bestSegs) {
+      for (const [x1, y1, x2, y2] of bestCandidate.segments) {
         routedSegments.push(toRect(x1, y1, x2, y2));
       }
 
-      // ── Render ────────────────────────────────────────────────────────────
-      const laneX  = bestLaneX;
-      safePath = bestSegs.length === 1
-        ? `M ${rhu(bestSegs[0]![0])} ${rhu(bestSegs[0]![1])} L ${rhu(bestSegs[0]![2])} ${rhu(bestSegs[0]![3])}`
-        : [
-            `M ${rhu(fromPt.x)} ${rhu(fromPt.y)}`,
-            `L ${rhu(fromPt.x)} ${rhu(exitY)}`,
-            `L ${rhu(laneX)}    ${rhu(exitY)}`,
-            `L ${rhu(laneX)}    ${rhu(entryY)}`,
-            `L ${rhu(toPt.x)}   ${rhu(entryY)}`,
-            `L ${rhu(toPt.x)}   ${rhu(toPt.y)}`,
-          ].join(' ');
-      labelMid = { x: laneX, y: (exitY + entryY) / 2 };
+      // ── Determine effective port points and walls for arrowheads ──────────
+      let effectiveFromPt:   { x: number; y: number } = fromPt;
+      let effectiveFromWall: Wall = fromWall;
+      let effectiveToPt:     { x: number; y: number } = toPt;
+      let effectiveToWall:   Wall = toWall;
+
+      switch (bestCandidate.strategy) {
+        case 'B':
+          effectiveFromPt   = { x: srcLeft_,  y: srcMidY_ };
+          effectiveFromWall = 'left';
+          effectiveToPt     = { x: tgtLeft_,  y: tgtMidY_ };
+          effectiveToWall   = 'left';
+          break;
+        case 'C':
+          effectiveFromPt   = { x: srcRight_, y: srcMidY_ };
+          effectiveFromWall = 'right';
+          effectiveToPt     = { x: tgtRight_, y: tgtMidY_ };
+          effectiveToWall   = 'right';
+          break;
+        case 'D':
+          effectiveFromPt   = { x: srcLeft_,  y: srcMidY_ };
+          effectiveFromWall = 'left';
+          break;
+        case 'E':
+          effectiveFromPt   = { x: srcRight_, y: srcMidY_ };
+          effectiveFromWall = 'right';
+          break;
+        case 'F':
+          effectiveToPt     = { x: tgtLeft_,  y: tgtMidY_ };
+          effectiveToWall   = 'left';
+          break;
+      }
+
+      // ── Render path from winning candidate's segments ─────────────────────
+      const segs = bestCandidate.segments;
+      if (segs.length === 1) {
+        safePath = `M ${rhu(segs[0]![0])} ${rhu(segs[0]![1])} L ${rhu(segs[0]![2])} ${rhu(segs[0]![3])}`;
+      } else {
+        const pts: string[] = [`M ${rhu(segs[0]![0])} ${rhu(segs[0]![1])}`];
+        for (const [,, x2, y2] of segs) {
+          pts.push(`L ${rhu(x2)} ${rhu(y2)}`);
+        }
+        safePath = pts.join(' ');
+      }
+      labelMid = bestCandidate.labelMid;
+
+      elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
+
+      elements.push(...endMarker(p, effectiveFromPt, wallDir(effectiveFromWall, effectiveFromPt), r.leftHead,  palette));
+      elements.push(...endMarker(p, effectiveToPt,   wallDir(effectiveToWall,   effectiveToPt),   r.rightHead, palette));
     } else {
       const routed = routeEdge(a, b, allBoxes, yOff, fromPt, toPt, true);
       safePath = routed.path || `M ${fromPt.x} ${fromPt.y} L ${toPt.x} ${toPt.y}`;
       labelMid = routed.labelMidpoint;
-    }
-    elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
 
-    // Arrowhead direction from wall: axis-aligned, independent of path geometry.
-    elements.push(...endMarker(p, fromPt, wallDir(fromWall, fromPt), r.leftHead, palette));
-    elements.push(...endMarker(p, toPt,   wallDir(toWall,   toPt),   r.rightHead, palette));
+      elements.push(p.path(safePath, palette.textMuted, 1.3, r.dashed ? { dash: '6 4' } : {}));
+
+      // Arrowhead direction from wall: axis-aligned, independent of path geometry.
+      elements.push(...endMarker(p, fromPt, wallDir(fromWall, fromPt), r.leftHead, palette));
+      elements.push(...endMarker(p, toPt,   wallDir(toWall,   toPt),   r.rightHead, palette));
+    }
 
     const mx = labelMid.x, my = labelMid.y;
     if (r.label) elements.push(p.text(r.label, rhuInt(mx), rhuInt(my - 4), memFont, palette.textMuted, { anchor: 'middle' }));
