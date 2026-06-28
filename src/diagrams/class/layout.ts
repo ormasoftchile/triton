@@ -352,6 +352,10 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
     let safePath: string;
     let labelMid: { x: number; y: number };
     let skipEdgeLateralStrategy = false;
+    let effectiveFromPt: { x: number; y: number } = fromPt;
+    let effectiveFromWall: Wall = fromWall;
+    let effectiveToPt: { x: number; y: number } = toPt;
+    let effectiveToWall: Wall = toWall;
 
     if (bends && bends.length > 0) {
       // ── Build candidate lane x positions ──────────────────────────────────
@@ -590,11 +594,6 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
       skipEdgeLateralStrategy = bestCandidate.strategy === 'B' || bestCandidate.strategy === 'C';
 
       // ── Determine effective port points and walls for arrowheads ──────────
-      let effectiveFromPt:   { x: number; y: number } = fromPt;
-      let effectiveFromWall: Wall = fromWall;
-      let effectiveToPt:     { x: number; y: number } = toPt;
-      let effectiveToWall:   Wall = toWall;
-
       switch (bestCandidate.strategy) {
         case 'B':
           effectiveFromPt   = { x: srcLeft_,  y: srcMidY_ };
@@ -671,8 +670,8 @@ export function layoutClass(ir: ClassDocument, theme: ResolvedTheme): LayoutResu
         default:       return { cx: pt.x + 10, cy: pt.y - 10 };
       }
     };
-    if (r.leftCard)  { const o = cardOffset(fromWall, fromPt); elements.push(p.text(r.leftCard,  rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
-    if (r.rightCard) { const o = cardOffset(toWall,   toPt);   elements.push(p.text(r.rightCard, rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
+    if (r.leftCard)  { const o = cardOffset(effectiveFromWall, effectiveFromPt); elements.push(p.text(r.leftCard,  rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
+    if (r.rightCard) { const o = cardOffset(effectiveToWall,   effectiveToPt);   elements.push(p.text(r.rightCard, rhu(o.cx), rhu(o.cy), memFont, palette.textMuted)); }
   }
 
   // ── Class boxes ────────────────────────────────────────────────────────────

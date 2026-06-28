@@ -21,7 +21,8 @@ export function renderSVG(scene: Scene): string {
   }
 
   if (background) {
-    lines.push(`  <rect width="100%" height="100%" fill="${background}" />`);
+    // Use explicit x/width to cover the full viewBox, including negative x origins.
+    lines.push(`  <rect x="${viewBox.x}" y="${viewBox.y}" width="${viewBox.width}" height="${viewBox.height}" fill="${background}" />`);
   }
 
   for (const el of elements) {

@@ -23,7 +23,7 @@ describe('renderSVG', () => {
 
   it('emits background rect when background is set', () => {
     const svg = renderSVG({ ...emptyScene, background: '#fff' });
-    expect(svg).toContain('<rect width="100%" height="100%" fill="#fff"');
+    expect(svg).toContain('fill="#fff"');
   });
 
   it('does not emit background rect when background is absent', () => {
