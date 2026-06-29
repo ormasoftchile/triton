@@ -25,7 +25,7 @@ This project is indexed with codetopo, a structural code intelligence MCP server
 | Known symbol name | `context_by_name(name)` |
 | Known file path | `file_overview(path)` |
 | Find all uses of a field/text | `code_search(".fieldName")` |
-| Understand callers/impact | `callers_approx(node_id, min_confidence=0.7)` → `impact_of(node_id)` |
+| Understand callers/impact | `callers_approx(node_id, min_confidence=0.5)` → `impact_of(node_id)` |
 | Understand a method's calls | `method_fields(symbol, file)` |
 | Need exact source lines | `source_at(file, start_line, end_line)` |
 | HOF/prototype JS codebases (`callers_approx` empty) | `code_search` for call-site text |
@@ -59,7 +59,7 @@ Escalate in this order:
 
 **Callers in HOF-heavy codebases:** `callers_approx` may return empty results when code uses HOF wrappers, prototype assignment, or `forEach` dynamic dispatch. Use `code_search` for direct call-site discovery in JS/TS libraries in those cases.
 
-**Generic method names flood callers:** `callers_approx` on generic names (`find`, `get`, `create`, `search`) returns thousands of low-confidence false positives across array/map/string/domain objects. Before calling `callers_approx`, assess uniqueness: if the method name is likely to exist on multiple types, use `code_search("receiverVar.methodName")` with variable name patterns instead. For unique names (`openEditor`, `createPointInTimeFinder`), use `callers_approx(node_id, min_confidence=0.7)` to filter to attributed callers only.
+**Generic method names flood callers:** `callers_approx` on generic names (`find`, `get`, `create`, `search`) returns thousands of low-confidence false positives across array/map/string/domain objects. Before calling `callers_approx`, assess uniqueness: if the method name is likely to exist on multiple types, use `code_search("receiverVar.methodName")` with variable name patterns instead. For unique names (`openEditor`, `createPointInTimeFinder`), use `callers_approx(node_id, min_confidence=0.5)` to filter to attributed callers only.
 
 **Targeted source reads:** prefer `source_at(file, start_line, end_line)` over reading whole files.
 
