@@ -10,7 +10,7 @@
                 "--watch",
                 "--freshness=normal",
                 "--log-trajectory",
-                "/tmp/codetopo-triton-traj.jsonl"
+                ".codetopo/trajectory.jsonl"
             ],
             "env": {},
             "tools": [
