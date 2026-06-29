@@ -8,7 +8,9 @@
                 "--root",
                 ".",
                 "--watch",
-                "--freshness=normal"
+                "--freshness=normal",
+                "--log-trajectory",
+                "/tmp/codetopo-triton-traj.jsonl"
             ],
             "env": {},
             "tools": [
