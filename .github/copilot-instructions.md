@@ -17,6 +17,36 @@ This project is indexed with codetopo, a structural code intelligence MCP server
 9. `callers_approx` / `callees_approx` — call graph traversal
 10. `impact_of` — blast radius of a change
 
+## When to use which tool
+
+| Situation | First tool |
+|-----------|------------|
+| Cold start — unknown codebase | `dir_tree('.', depth=1)` → `symbols_in_path` |
+| Known symbol name | `context_by_name(name)` |
+| Known file path | `file_overview(path)` |
+| Find all uses of a field/text | `code_search(".fieldName")` |
+| Understand callers/impact | `callers_approx(node_id)` → `impact_of(node_id)` |
+| Understand a method's calls | `method_fields(symbol, file)` |
+| Need exact source lines | `source_at(file, start_line, end_line)` |
+| HOF/prototype JS codebases (`callers_approx` empty) | `code_search` for call-site text |
+
+## Batch, don't bounce
+
+- Issue independent codetopo tool calls in a single response.
+- Do **not** re-run `symbol_search` for a symbol when you already have its `node_id`.
+- Do **not** re-read a `source_at(file, start_line, end_line)` range you already fetched.
+- Prefer `context_for(node_id, include_source=false)` before opening raw source.
+- If one structural query almost answers the question, refine structurally before widening to `code_search`.
+
+## Structure before source
+
+Escalate in this order:
+
+1. **Structure** — `symbol_search`, `context_for`, `file_overview`, `symbols_in_path`
+2. **Source** — `source_at` for specific lines only
+3. **Text search** — `code_search` when the target is a string, error, config value, or unresolved text artifact
+4. **Multi-root** — add another workspace root only when local-root evidence is insufficient
+
 ## Token-efficient patterns
 
 **Enumeration:** `symbols_in_path` is compact by default — pass `compact=true` explicitly for clarity. Returns only `node_id`, `name`, `kind`, `span`. Use the `node_id`s for all follow-up calls.
@@ -25,13 +55,23 @@ This project is indexed with codetopo, a structural code intelligence MCP server
 
 **Constructor internals:** `method_fields(symbol)` lists `this.X` field accesses and outgoing calls for a constructor or method — faster than reading source to understand data model.
 
-**Field access tracing (impact analysis):** `code_search(".fieldName", file_pattern="/abs/path/**")` finds every read and write of a field across all files including workspace roots.
+**Field access tracing:** `code_search(".fieldName", file_pattern="/abs/path/**")` finds every read and write of a field across all files including workspace roots.
 
-**Callers in HOF-heavy codebases:** `callers_approx` / `callees_approx` may return empty results when code uses HOF wrappers (`time("label", () => fn(g))`), prototype assignment (`Obj.method = function(){}`), or `forEach` dynamic dispatch. Use `code_search` for direct text search in those cases — it's more reliable for call-site discovery in JS/TS libraries.
+**Callers in HOF-heavy codebases:** `callers_approx` may return empty results when code uses HOF wrappers, prototype assignment, or `forEach` dynamic dispatch. Use `code_search` for direct call-site discovery in JS/TS libraries in those cases.
 
 **Targeted source reads:** prefer `source_at(file, start_line, end_line)` over reading whole files.
 
 **Avoid re-resolving:** `node_id`s are stable session handles. Never re-run `symbol_search` for a symbol you already have a `node_id` for.
+
+## Focused evidence
+
+When reporting findings, emit compact evidence:
+
+- `file:line` citation
+- symbol name
+- one-sentence reason it matters
+- maximum 5 citations unless asked for more
+- no long prose unless the user asks for explanation
 
 ## Symbol kinds
 
