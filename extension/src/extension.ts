@@ -502,6 +502,7 @@ class PreviewManager {
 
 export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(md: unknown): unknown } {
   const manager = new PreviewManager();
+
   context.subscriptions.push(manager);
 
   // Phase 3 — IntelliSense: diagram-header + per-kind keyword completion, plus

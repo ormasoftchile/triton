@@ -1,3 +1,6 @@
 {
-  "triton.enableMermaid": true
+  "triton.enableMermaid": true,
+  "files.associations": {
+    "*.mmd": "triton"
+  }
 }
