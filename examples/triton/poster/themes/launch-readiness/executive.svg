@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 557.2 438.74054054054056" width="557.2" height="438.74054054054056">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#3A86C8" /></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#0D1B2A" />
+  <text x="24" y="42" font-size="20" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" font-weight="bold">Launch Readiness</text>
+  <rect x="24" y="58" width="325.2" height="120" fill="#0D1B2A" stroke="#2A4060" stroke-width="1" rx="6" />
+  <rect x="369.2" y="58" width="164" height="120" fill="#0D1B2A" stroke="#2A4060" stroke-width="1" rx="6" />
+  <rect x="24" y="198" width="325.2" height="216.74054054054054" fill="#0D1B2A" stroke="#2A4060" stroke-width="1" rx="6" />
+  <rect x="369.2" y="198" width="164" height="216.74054054054054" fill="#0D1B2A" stroke="#2A4060" stroke-width="1" rx="6" />
+  <rect x="138.11419999999998" y="47.8" width="96.9716" height="20.4" fill="#16263B" stroke="#2A4060" stroke-width="1" rx="6" />
+  <text x="186.6" y="62.2" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle" font-weight="bold">Release Flow</text>
+  <g transform="translate(28, 96.5) scale(0.65)">
+    <path d="M 144 44 L 184 44" stroke="#3A86C8" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 304 44 L 344 44" stroke="#3A86C8" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <g id="code">
+      <rect x="24" y="24" width="120" height="40" fill="#16263B" stroke="#2A4060" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Code Freeze</text>
+    </g>
+    <g id="qa">
+      <rect x="184" y="24" width="120" height="40" fill="#16263B" stroke="#2A4060" stroke-width="1.5" rx="2" />
+      <text x="244" y="48.9" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">QA Sign-off</text>
+    </g>
+    <g id="launch">
+      <rect x="344" y="24" width="120" height="40" fill="#16263B" stroke="#2A4060" stroke-width="1.5" rx="20" />
+      <text x="404" y="48.9" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Launch</text>
+    </g>
+  </g>
+  <rect x="409.7149" y="47.8" width="82.97019999999999" height="20.4" fill="#16263B" stroke="#2A4060" stroke-width="1" rx="6" />
+  <text x="451.2" y="62.2" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle" font-weight="bold">Confidence</text>
+  <g transform="translate(410.7, 92.80000000000001) scale(1)">
+    <text x="40.5" y="33.6" font-size="27" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#3A86C8" text-anchor="middle" font-weight="bold">95%</text>
+    <text x="40.5" y="50.400000000000006" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#8BAAC8" text-anchor="middle">go decision</text>
+  </g>
+  <rect x="137.7054" y="187.8" width="97.7892" height="20.4" fill="#16263B" stroke="#2A4060" stroke-width="1" rx="6" />
+  <text x="186.6" y="202.2" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle" font-weight="bold">Launch Week</text>
+  <g transform="translate(28, 216.2) scale(0.8243243243243243)">
+    <text x="24" y="42" font-size="18" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" font-weight="bold">Launch Week</text>
+    <path d="M 44 118 L 360.79999999999995 118" stroke="#2A4060" stroke-width="2" fill="none" />
+    <rect x="44" y="136" width="88.6" height="32" fill="#16263B" stroke="#2A4060" stroke-width="1" rx="4" />
+    <text x="88.3" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Code freeze</text>
+    <rect x="140.6" y="136" width="128.2" height="32" fill="#16263B" stroke="#2A4060" stroke-width="1" rx="4" />
+    <text x="204.7" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">Release candidate</text>
+    <rect x="276.79999999999995" y="136" width="60" height="32" fill="#16263B" stroke="#2A4060" stroke-width="1" rx="4" />
+    <text x="306.79999999999995" y="156.4" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle">GA</text>
+  </g>
+  <rect x="426.4967" y="187.8" width="49.4066" height="20.4" fill="#16263B" stroke="#2A4060" stroke-width="1" rx="6" />
+  <text x="451.2" y="202.2" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle" font-weight="bold">Notes</text>
+  <g transform="translate(373.2, 299.3002702702703) scale(0.65)">
+    <text x="12" y="23.200000000000003" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5">Final go/no-go review scheduled for Friday.</text>
+  </g>
+</svg>

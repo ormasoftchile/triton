@@ -1,0 +1,9 @@
+flowchart TD
+  commit[Commit Pushed] --> build[Build & Lint]
+  build --> test{Tests Pass?}
+  test -->|yes| stage([Deploy to Staging])
+  test -->|no| notify(Notify Author)
+  stage --> approve{Approved?}
+  approve -->|yes| prod([Deploy to Production])
+  approve -->|no| hold(Hold for Review)
+  prod --> live((Live))

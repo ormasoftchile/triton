@@ -1,0 +1,24 @@
+poster "Launch Readiness"
+  columns 2
+
+  cell "Release Flow"
+    flowchart LR
+      code[Code Freeze] --> qa[QA Sign-off]
+      qa --> launch([Launch])
+  end
+
+  cell "Confidence"
+    95% | go decision
+  end
+
+  cell "Launch Week"
+    timeline
+      title Launch Week
+      2025-Q4 : Code freeze
+      2025-Q4 : Release candidate
+      2025-Q4 : GA
+  end
+
+  cell "Notes"
+    Final go/no-go review scheduled for Friday.
+  end

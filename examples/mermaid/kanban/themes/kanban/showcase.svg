@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 942 288" width="942" height="288">
+  <rect width="100%" height="100%" fill="#0D1B2A" />
+  <rect x="24" y="24" width="210" height="38" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="6" />
+  <text x="129" y="47.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Todo  (4)</text>
+  <rect x="24" y="72" width="210" height="38" fill="#132035" stroke="#7C3AED" stroke-width="1" rx="6" />
+  <text x="34" y="96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Design API endpoints</text>
+  <rect x="24" y="120" width="210" height="38" fill="#132035" stroke="#7C3AED" stroke-width="1" rx="6" />
+  <text x="34" y="144" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Setup CI pipeline</text>
+  <rect x="24" y="168" width="210" height="38" fill="#132035" stroke="#7C3AED" stroke-width="1" rx="6" />
+  <text x="34" y="192" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Write test plan</text>
+  <rect x="24" y="216" width="210" height="38" fill="#132035" stroke="#7C3AED" stroke-width="1" rx="6" />
+  <text x="34" y="240" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Database schema</text>
+  <rect x="252" y="24" width="210" height="38" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="6" />
+  <text x="357" y="47.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">In Progress  (2)</text>
+  <rect x="252" y="72" width="210" height="38" fill="#132035" stroke="#0EA5A8" stroke-width="1" rx="6" />
+  <text x="262" y="96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Build auth service</text>
+  <rect x="252" y="120" width="210" height="38" fill="#132035" stroke="#0EA5A8" stroke-width="1" rx="6" />
+  <text x="262" y="144" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Implement logging</text>
+  <rect x="480" y="24" width="210" height="38" fill="#D97706" stroke="#D97706" stroke-width="0" rx="6" />
+  <text x="585" y="47.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Review  (2)</text>
+  <rect x="480" y="72" width="210" height="38" fill="#132035" stroke="#D97706" stroke-width="1" rx="6" />
+  <text x="490" y="96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Code review — auth</text>
+  <rect x="480" y="120" width="210" height="38" fill="#132035" stroke="#D97706" stroke-width="1" rx="6" />
+  <text x="490" y="144" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Security audit</text>
+  <rect x="708" y="24" width="210" height="38" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="6" />
+  <text x="813" y="47.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Done  (3)</text>
+  <rect x="708" y="72" width="210" height="38" fill="#132035" stroke="#5B4FCF" stroke-width="1" rx="6" />
+  <text x="718" y="96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Write project spec</text>
+  <rect x="708" y="120" width="210" height="38" fill="#132035" stroke="#5B4FCF" stroke-width="1" rx="6" />
+  <text x="718" y="144" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Plan sprint 1</text>
+  <rect x="708" y="168" width="210" height="38" fill="#132035" stroke="#5B4FCF" stroke-width="1" rx="6" />
+  <text x="718" y="192" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF5">Setup repo</text>
+</svg>

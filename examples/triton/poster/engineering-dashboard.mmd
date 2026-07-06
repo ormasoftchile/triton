@@ -1,0 +1,27 @@
+poster "Engineering Dashboard"
+  columns 3
+
+  cell "Deploy Pipeline"
+    flowchart LR
+      build[Build] --> test[Test]
+      test --> deploy[Deploy]
+  end
+
+  cell "Coverage"
+    87.4% | test coverage
+  end
+
+  cell "Open PRs"
+    23 | awaiting review
+  end
+
+  cell "Roadmap"
+    timeline
+      title Q3 Goals
+      2025-Q3 : API v2
+      2025-Q3 : Mobile beta
+  end
+
+  cell "Status"
+    All systems operational. No incidents in the last 30 days.
+  end

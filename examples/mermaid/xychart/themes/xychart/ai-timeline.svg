@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 558 471" width="558" height="471">
+  <rect width="100%" height="100%" fill="#F8F9FF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1A1A2E" font-weight="bold">Monthly Revenue vs Target 2026</text>
+  <path d="M 65.6336 420 L 533.6336 420" stroke="#C0C4DF" stroke-width="1" fill="none" opacity="0.5" />
+  <text x="57.6336" y="423.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="end">0</text>
+  <path d="M 65.6336 360 L 533.6336 360" stroke="#C0C4DF" stroke-width="1" fill="none" opacity="0.5" />
+  <text x="57.6336" y="363.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="end">1k</text>
+  <path d="M 65.6336 300 L 533.6336 300" stroke="#C0C4DF" stroke-width="1" fill="none" opacity="0.5" />
+  <text x="57.6336" y="303.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="end">2k</text>
+  <path d="M 65.6336 240 L 533.6336 240" stroke="#C0C4DF" stroke-width="1" fill="none" opacity="0.5" />
+  <text x="57.6336" y="243.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="end">3k</text>
+  <path d="M 65.6336 180 L 533.6336 180" stroke="#C0C4DF" stroke-width="1" fill="none" opacity="0.5" />
+  <text x="57.6336" y="183.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="end">4k</text>
+  <path d="M 65.6336 120 L 533.6336 120" stroke="#C0C4DF" stroke-width="1" fill="none" opacity="0.5" />
+  <text x="57.6336" y="123.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="end">5k</text>
+  <path d="M 65.6336 60 L 533.6336 60" stroke="#C0C4DF" stroke-width="1" fill="none" opacity="0.5" />
+  <text x="57.6336" y="63.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="end">6k</text>
+  <path d="M 65.6336 60 L 65.6336 420" stroke="#1A1A2E" stroke-width="1.5" fill="none" />
+  <path d="M 65.6336 420 L 533.6336 420" stroke="#1A1A2E" stroke-width="1.5" fill="none" />
+  <g transform="rotate(-90 38 240)">
+    <text x="38" y="240" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle" font-weight="bold">Revenue (USD k)</text>
+  </g>
+  <rect x="80.45" y="312" width="46.36" height="108" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="2" />
+  <rect x="158.45" y="264" width="46.36" height="156" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="2" />
+  <rect x="236.45" y="216" width="46.36" height="204" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="2" />
+  <rect x="314.45" y="234" width="46.36" height="186" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="2" />
+  <rect x="392.45" y="150" width="46.36" height="270" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="2" />
+  <rect x="470.45" y="108" width="46.36" height="312" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="2" />
+  <path d="M 104.63 300 L 182.63 270 L 260.63 240 L 338.63 228 L 416.63 180 L 494.63 120" stroke="#0EA5A8" stroke-width="2.5" fill="none" />
+  <circle cx="104.63" cy="300" r="4" fill="#0EA5A8" stroke="#F8F9FF" stroke-width="1.5" />
+  <circle cx="182.63" cy="270" r="4" fill="#0EA5A8" stroke="#F8F9FF" stroke-width="1.5" />
+  <circle cx="260.63" cy="240" r="4" fill="#0EA5A8" stroke="#F8F9FF" stroke-width="1.5" />
+  <circle cx="338.63" cy="228" r="4" fill="#0EA5A8" stroke="#F8F9FF" stroke-width="1.5" />
+  <circle cx="416.63" cy="180" r="4" fill="#0EA5A8" stroke="#F8F9FF" stroke-width="1.5" />
+  <circle cx="494.63" cy="120" r="4" fill="#0EA5A8" stroke="#F8F9FF" stroke-width="1.5" />
+  <text x="104.63" y="439" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle">Jan</text>
+  <text x="182.63" y="439" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle">Feb</text>
+  <text x="260.63" y="439" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle">Mar</text>
+  <text x="338.63" y="439" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle">Apr</text>
+  <text x="416.63" y="439" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle">May</text>
+  <text x="494.63" y="439" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A4A6A" text-anchor="middle">Jun</text>
+</svg>

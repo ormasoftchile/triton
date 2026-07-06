@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1099.4 280" width="1099.4" height="280">
+  <rect width="100%" height="100%" fill="#1A1A2E" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" font-weight="bold">Company History</text>
+  <rect x="36" y="68" width="442" height="178" fill="#22D3EE0A" stroke="#22D3EE33" stroke-width="1" rx="4" />
+  <text x="42" y="82" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#22D3EE" font-weight="bold">Founding</text>
+  <rect x="327.2" y="68" width="545.2" height="178" fill="#22D3EE0A" stroke="#22D3EE33" stroke-width="1" rx="4" />
+  <text x="333.2" y="82" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#22D3EE" font-weight="bold">Growth</text>
+  <rect x="688.6" y="68" width="390.80000000000007" height="178" fill="#22D3EE0A" stroke="#22D3EE33" stroke-width="1" rx="4" />
+  <text x="694.6" y="82" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#22D3EE" font-weight="bold">Scale</text>
+  <path d="M 44 118 L 1075.4 118" stroke="#3A3A5C" stroke-width="2" fill="none" />
+  <text x="24" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0">Product</text>
+  <text x="24" y="200.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0">Team</text>
+  <rect x="44" y="136" width="99.4" height="32" fill="#34D39933" stroke="#3A3A5C" stroke-width="1" rx="4" />
+  <text x="93.7" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Build MVP</text>
+  <rect x="143.4" y="180" width="191.79999999999998" height="32" fill="#34D39933" stroke="#3A3A5C" stroke-width="1" rx="4" />
+  <text x="239.3" y="200.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">First engineering hires</text>
+  <rect x="335.2" y="136" width="337.40000000000003" height="32" fill="#34D39933" stroke="#3A3A5C" stroke-width="1" rx="4" />
+  <text x="503.9" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Scale the platform</text>
+  <rect x="494" y="180" width="202.60000000000002" height="32" fill="#34D39933" stroke="#3A3A5C" stroke-width="1" rx="4" />
+  <text x="595.3" y="200.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Grow go-to-market org</text>
+  <rect x="696.6" y="136" width="330.80000000000007" height="32" fill="#22D3EE33" stroke="#3A3A5C" stroke-width="1" rx="4" />
+  <text x="862" y="156.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">International expansion</text>
+  <rect x="888.4" y="180" width="163.0000000000001" height="32" fill="#22D3EE33" stroke="#3A3A5C" stroke-width="1" rx="4" />
+  <text x="969.9000000000001" y="200.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Enterprise tier</text>
+  <path d="M 44 110 L 52 118 L 44 126 L 36 118 Z" stroke="#1A1A2E" stroke-width="1" fill="#22D3EE" />
+  <text x="44" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0" text-anchor="middle">2018</text>
+  <text x="44" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Incorporated</text>
+  <path d="M 335.2 110 L 343.2 118 L 335.2 126 L 327.2 118 Z" stroke="#1A1A2E" stroke-width="1" fill="#22D3EE" />
+  <text x="335.2" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0" text-anchor="middle">2020</text>
+  <text x="335.2" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Series A</text>
+  <path d="M 696.6 110 L 704.6 118 L 696.6 126 L 688.6 118 Z" stroke="#1A1A2E" stroke-width="1" fill="#22D3EE" />
+  <text x="696.6" y="104" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#8A9BB0" text-anchor="middle">2023</text>
+  <text x="696.6" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E8EEF4" text-anchor="middle">Series B</text>
+</svg>

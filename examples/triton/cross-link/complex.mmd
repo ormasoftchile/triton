@@ -1,0 +1,34 @@
+poster "Microservices Architecture — Cross-Link Map"
+  columns 2
+
+  cell UI "UI Layer" :: flow
+    flowchart LR
+      app[Mobile App] --> bff[BFF]
+      web[Web App] --> bff
+  end
+
+  cell API "API & Orchestration" :: flow
+    flowchart LR
+      gw[API Gateway] --> auth[Auth]
+      gw --> catalog[Catalog]
+      gw --> orders[Orders]
+  end
+
+  cell DATA "Data Stores" :: flow
+    flowchart LR
+      pg[(Postgres)] --> replica[(Read Replica)]
+      redis[Redis Cache] --> pg
+  end
+
+  cell ASYNC "Async & Observability" :: flow
+    flowchart LR
+      kafka[Kafka] --> consumer[Consumer]
+      consumer --> metrics[Metrics]
+  end
+
+  link API.catalog -.-> DATA.redis "cache hit?"
+  link API.orders --> ASYNC.kafka "publishes"
+  link ASYNC.metrics <..> API.gw "health"
+
+  trace "User Purchase Flow" : triggers UI.bff --> API.gw --> API.orders --> DATA.pg
+  trace "Cache Read Path" : reads API.catalog --> DATA.redis

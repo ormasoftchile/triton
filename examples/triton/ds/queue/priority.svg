@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 157.64079999999998 232" width="157.64079999999998" height="232">
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="24" y="56" width="109.64079999999998" height="38" fill="#64a0de" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <rect x="24" y="94" width="109.64079999999998" height="38" fill="#84b4e5" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <rect x="24" y="132" width="109.64079999999998" height="38" fill="#a5c7eb" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <rect x="24" y="170" width="109.64079999999998" height="38" fill="#d5e5f5" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">scheduler</text>
+  <text x="38" y="79.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Deploy</text>
+  <text x="119.64079999999998" y="79.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="end" font-weight="bold">9</text>
+  <text x="38" y="117.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Test</text>
+  <text x="119.64079999999998" y="117.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="end" font-weight="bold">7</text>
+  <text x="38" y="155.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Build</text>
+  <text x="119.64079999999998" y="155.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="end" font-weight="bold">5</text>
+  <text x="38" y="193.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Lint</text>
+  <text x="119.64079999999998" y="193.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="end" font-weight="bold">2</text>
+</svg>

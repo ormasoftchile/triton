@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 755 580" width="755" height="580">
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Distributed Systems Concepts</text>
+  <path d="M 226.33 293.5 C 261.33 293.5, 261.33 106, 296.33 106" stroke="#7C3AED" stroke-width="2" fill="none" />
+  <path d="M 394.48 106 C 443.53 106, 443.53 76, 492.58 76" stroke="#7C3AED" stroke-width="2" fill="none" />
+  <path d="M 394.48 106 C 443.53 106, 443.53 106, 492.58 106" stroke="#7C3AED" stroke-width="2" fill="none" />
+  <path d="M 394.48 106 C 443.53 106, 443.53 136, 492.58 136" stroke="#7C3AED" stroke-width="2" fill="none" />
+  <path d="M 226.33 293.5 C 261.33 293.5, 261.33 211, 296.33 211" stroke="#0EA5A8" stroke-width="2" fill="none" />
+  <path d="M 422.58 211 C 457.58 211, 457.58 181, 492.58 181" stroke="#0EA5A8" stroke-width="2" fill="none" />
+  <path d="M 543.23 181 C 593.55 181, 593.55 166, 643.88 166" stroke="#0EA5A8" stroke-width="2" fill="none" />
+  <path d="M 543.23 181 C 593.55 181, 593.55 196, 643.88 196" stroke="#0EA5A8" stroke-width="2" fill="none" />
+  <path d="M 422.58 211 C 457.58 211, 457.58 241, 492.58 241" stroke="#0EA5A8" stroke-width="2" fill="none" />
+  <path d="M 573.88 241 C 608.88 241, 608.88 226, 643.88 226" stroke="#0EA5A8" stroke-width="2" fill="none" />
+  <path d="M 573.88 241 C 608.88 241, 608.88 256, 643.88 256" stroke="#0EA5A8" stroke-width="2" fill="none" />
+  <path d="M 226.33 293.5 C 261.33 293.5, 261.33 338.5, 296.33 338.5" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 373.5 338.5 C 433.04 338.5, 433.04 301, 492.58 301" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 570.19 301 C 607.03 301, 607.03 286, 643.88 286" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 570.19 301 C 607.03 301, 607.03 316, 643.88 316" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 373.5 338.5 C 433.04 338.5, 433.04 376, 492.58 376" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 556.12 376 C 600 376, 600 346, 643.88 346" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 556.12 376 C 600 376, 600 376, 643.88 376" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 556.12 376 C 600 376, 600 406, 643.88 406" stroke="#D97706" stroke-width="2" fill="none" />
+  <path d="M 226.33 293.5 C 261.33 293.5, 261.33 481, 296.33 481" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <path d="M 406.13 481 C 449.36 481, 449.36 436, 492.58 436" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <path d="M 556.69 436 C 600.29 436, 600.29 436, 643.88 436" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <path d="M 406.13 481 C 449.36 481, 449.36 481, 492.58 481" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <path d="M 557.34 481 C 600.61 481, 600.61 466, 643.88 466" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <path d="M 557.34 481 C 600.61 481, 600.61 496, 643.88 496" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <path d="M 406.13 481 C 449.36 481, 449.36 526, 492.58 526" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <path d="M 559.82 526 C 601.85 526, 601.85 526, 643.88 526" stroke="#5B4FCF" stroke-width="2" fill="none" />
+  <rect x="24" y="271.5" width="202.33" height="44" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="22" />
+  <text x="125" y="299.8" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Distributed Systems</text>
+  <rect x="296.33" y="89" width="98.15" height="34" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="8" />
+  <text x="345" y="110.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Consensus</text>
+  <rect x="492.58" y="63" width="48.83" height="26" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.4" rx="6" />
+  <text x="517" y="79.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Raft</text>
+  <circle cx="485.58" cy="76" r="4" fill="#7C3AED" stroke="#FFFFFF" stroke-width="1.5" />
+  <rect x="492.58" y="93" width="58.01" height="26" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.4" rx="6" />
+  <text x="522" y="109.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Paxos</text>
+  <rect x="492.58" y="123" width="49.48" height="26" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.4" rx="6" />
+  <text x="517" y="139.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">ZAB</text>
+  <rect x="296.33" y="194" width="126.25" height="34" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="8" />
+  <text x="359" y="215.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Communication</text>
+  <rect x="492.58" y="168" width="50.65" height="26" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.4" rx="6" />
+  <text x="518" y="184.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">RPC</text>
+  <rect x="643.88" y="153" width="56.78" height="26" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.4" rx="6" />
+  <text x="672" y="169.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">gRPC</text>
+  <rect x="643.88" y="183" width="56.81" height="26" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.4" rx="6" />
+  <text x="672" y="199.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">REST</text>
+  <rect x="492.58" y="228" width="81.3" height="26" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.4" rx="6" />
+  <text x="533" y="244.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Messaging</text>
+  <rect x="643.88" y="213" width="56.21" height="26" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.4" rx="6" />
+  <text x="672" y="229.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Kafka</text>
+  <circle cx="636.88" cy="226" r="4" fill="#0EA5A8" stroke="#FFFFFF" stroke-width="1.5" />
+  <rect x="643.88" y="243" width="78.23" height="26" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.4" rx="6" />
+  <text x="683" y="259.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">RabbitMQ</text>
+  <rect x="296.33" y="321.5" width="77.16" height="34" fill="#D97706" stroke="#D97706" stroke-width="0" rx="8" />
+  <text x="335" y="343.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Storage</text>
+  <rect x="492.58" y="288" width="77.61" height="26" fill="#F8FAFC" stroke="#D97706" stroke-width="1.4" rx="6" />
+  <text x="531" y="304.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Relational</text>
+  <rect x="643.88" y="273" width="87.45" height="26" fill="#F8FAFC" stroke="#D97706" stroke-width="1.4" rx="6" />
+  <text x="688" y="289.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">PostgreSQL</text>
+  <rect x="643.88" y="303" width="64.15" height="26" fill="#F8FAFC" stroke="#D97706" stroke-width="1.4" rx="6" />
+  <text x="676" y="319.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">MySQL</text>
+  <rect x="492.58" y="363" width="63.54" height="26" fill="#F8FAFC" stroke="#D97706" stroke-width="1.4" rx="6" />
+  <text x="524" y="379.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">NoSQL</text>
+  <rect x="643.88" y="333" width="77.05" height="26" fill="#F8FAFC" stroke="#D97706" stroke-width="1.4" rx="6" />
+  <text x="682" y="349.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">MongoDB</text>
+  <rect x="643.88" y="363" width="81.29" height="26" fill="#F8FAFC" stroke="#D97706" stroke-width="1.4" rx="6" />
+  <text x="685" y="379.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Cassandra</text>
+  <rect x="643.88" y="393" width="56.16" height="26" fill="#F8FAFC" stroke="#D97706" stroke-width="1.4" rx="6" />
+  <text x="672" y="409.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Redis</text>
+  <circle cx="636.88" cy="406" r="4" fill="#D97706" stroke="#FFFFFF" stroke-width="1.5" />
+  <rect x="296.33" y="464" width="109.8" height="34" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="8" />
+  <text x="351" y="485.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Observability</text>
+  <rect x="492.58" y="423" width="64.12" height="26" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.4" rx="6" />
+  <text x="525" y="439.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Metrics</text>
+  <rect x="643.88" y="423" width="87.46" height="26" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.4" rx="6" />
+  <text x="688" y="439.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Prometheus</text>
+  <rect x="492.58" y="468" width="64.76" height="26" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.4" rx="6" />
+  <text x="525" y="484.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Tracing</text>
+  <rect x="643.88" y="453" width="61.71" height="26" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.4" rx="6" />
+  <text x="675" y="469.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Jaeger</text>
+  <rect x="643.88" y="483" width="57.39" height="26" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.4" rx="6" />
+  <text x="673" y="499.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Zipkin</text>
+  <rect x="492.58" y="513" width="67.24" height="26" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.4" rx="6" />
+  <text x="526" y="529.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Logging</text>
+  <rect x="643.88" y="513" width="79.5" height="26" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.4" rx="6" />
+  <text x="684" y="529.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">ELK Stack</text>
+</svg>

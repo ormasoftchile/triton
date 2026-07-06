@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 596 264" width="596" height="264">
+  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">NUMA interconnect</text>
+  <path d="M 120 82 L 216 82" stroke="#2f80ed" stroke-width="2" fill="none" />
+  <rect x="147.44665" y="73" width="41.106700000000004" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="168" y="85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <path d="M 72 108 L 72 188" stroke="#2f80ed" stroke-width="2" fill="none" />
+  <rect x="51.44665" y="139" width="41.106700000000004" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="72" y="151" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <path d="M 264 108 L 264 188" stroke="#2f80ed" stroke-width="2" fill="none" />
+  <rect x="243.44665" y="139" width="41.106700000000004" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="264" y="151" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <path d="M 120 214 L 216 214" stroke="#2f80ed" stroke-width="2" fill="none" />
+  <rect x="147.44665" y="205" width="41.106700000000004" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="168" y="217" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <path d="M 109.82 108 L 226.18 188" stroke="#e2574c" stroke-width="2" fill="none" stroke-dasharray="5 4" />
+  <rect x="147.44665" y="139" width="41.106700000000004" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="168" y="151" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
+  <path d="M 226.18 108 L 109.82 188" stroke="#e2574c" stroke-width="2" fill="none" stroke-dasharray="5 4" />
+  <rect x="147.44665" y="139" width="41.106700000000004" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="168" y="151" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
+  <rect x="24" y="56" width="96" height="52" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="72" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Node 0</text>
+  <text x="72" y="94" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">CPU+RAM</text>
+  <rect x="216" y="56" width="96" height="52" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="264" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Node 1</text>
+  <text x="264" y="94" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">CPU+RAM</text>
+  <rect x="24" y="188" width="96" height="52" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="72" y="208" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Node 2</text>
+  <text x="72" y="226" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">CPU+RAM</text>
+  <rect x="216" y="188" width="96" height="52" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="264" y="208" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Node 3</text>
+  <text x="264" y="226" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">CPU+RAM</text>
+  <rect x="352" y="56" width="220" height="102" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="8" />
+  <text x="366" y="78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Cost (ns)</text>
+  <rect x="366" y="80" width="16" height="12" fill="#27ae60" stroke="#27ae60" stroke-width="1" rx="2" />
+  <text x="390" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">local</text>
+  <text x="558" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end" font-weight="bold">≤ 90</text>
+  <rect x="366" y="102" width="16" height="12" fill="#2f80ed" stroke="#2f80ed" stroke-width="1" rx="2" />
+  <text x="390" y="114" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">hop1</text>
+  <text x="558" y="114" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end" font-weight="bold">≤ 140</text>
+  <rect x="366" y="124" width="16" height="12" fill="#e2574c" stroke="#e2574c" stroke-width="1" rx="2" />
+  <text x="390" y="136" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B">hop2</text>
+  <text x="558" y="136" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end" font-weight="bold">≤ 200</text>
+</svg>

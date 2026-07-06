@@ -1,0 +1,24 @@
+poster "System Dashboard"
+  columns 2
+
+  cell "Services"
+    flowchart LR
+      api[API] --> db[(Database)]
+      api --> cache[Cache]
+  end
+
+  cell "Uptime"
+    99.95% | availability
+  end
+
+  cell "Roadmap"
+    timeline
+      title Milestones
+      2025-Q1 : Alpha
+      2025-Q3 : Beta
+      2025-Q4 : GA
+  end
+
+  cell "Notes"
+    All services operating normally.
+  end

@@ -1,0 +1,9 @@
+architecture-beta
+  group cloud_grp(cloud)[Cloud Services]
+    service api(server)[API Server]
+    service db(database)[Database]
+  service client(internet)[Client]
+  service storage(disk)[Storage]
+  client:R --> L:api
+  api:R --> L:db
+  api:B --> T:storage

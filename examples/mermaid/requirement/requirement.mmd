@@ -1,0 +1,37 @@
+requirementDiagram
+
+requirement UserAuthentication {
+id: REQ-001
+text: The system shall authenticate users via username and password with MFA support.
+risk: high
+verifymethod: test
+}
+
+functionalRequirement AuditLogging {
+id: REQ-002
+text: All access events shall be logged with timestamp and user identity.
+risk: medium
+verifymethod: analysis
+}
+
+designConstraint DataRetention {
+id: CON-001
+text: Audit logs must be retained for a minimum of 90 days.
+risk: low
+verifymethod: inspection
+}
+
+element AuthService {
+type: microservice
+docref: docs/auth-service.md
+}
+
+element AuditDatabase {
+type: datastore
+docref: docs/audit-db.md
+}
+
+AuthService - satisfies -> UserAuthentication
+AuthService - contains -> AuditLogging
+AuditDatabase - refines -> DataRetention
+AuditLogging - derives -> DataRetention

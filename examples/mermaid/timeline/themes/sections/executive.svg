@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 544 322" width="544" height="322">
+  <rect width="100%" height="100%" fill="#0D1B2A" />
+  <text x="272" y="50" font-size="18" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#E8EEF5" text-anchor="middle" font-weight="bold">Product Roadmap 2025</text>
+  <rect x="32" y="68" width="120" height="38" fill="#5368D4" stroke="#5368D4" stroke-width="0" />
+  <text x="92" y="90.85" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Planning</text>
+  <rect x="32" y="106" width="120" height="30" fill="#3F52B5" stroke="#3F52B5" stroke-width="0" />
+  <text x="92" y="124.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Q1 2025</text>
+  <rect x="37" y="160" width="110" height="38" fill="#EEF0FC" stroke="#BBBFEA" stroke-width="1" rx="5" />
+  <text x="92" y="182.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#1E2D8A" text-anchor="middle">Market research</text>
+  <rect x="37" y="202" width="110" height="38" fill="#EEF0FC" stroke="#BBBFEA" stroke-width="1" rx="5" />
+  <text x="92" y="224.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#1E2D8A" text-anchor="middle">Define requirements</text>
+  <rect x="37" y="244" width="110" height="38" fill="#EEF0FC" stroke="#BBBFEA" stroke-width="1" rx="5" />
+  <text x="92" y="266.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#1E2D8A" text-anchor="middle">Design mockups</text>
+  <rect x="152" y="68" width="240" height="38" fill="#E07825" stroke="#E07825" stroke-width="0" />
+  <text x="272" y="90.85" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Development</text>
+  <rect x="152" y="106" width="120" height="30" fill="#C46010" stroke="#C46010" stroke-width="0" />
+  <text x="212" y="124.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Q2 2025</text>
+  <rect x="157" y="160" width="110" height="38" fill="#FEF1E4" stroke="#E8C09A" stroke-width="1" rx="5" />
+  <text x="212" y="182.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#7A3A00" text-anchor="middle">Build MVP</text>
+  <rect x="157" y="202" width="110" height="38" fill="#FEF1E4" stroke="#E8C09A" stroke-width="1" rx="5" />
+  <text x="212" y="224.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#7A3A00" text-anchor="middle">Internal testing</text>
+  <rect x="272" y="106" width="120" height="30" fill="#C46010" stroke="#C46010" stroke-width="0" />
+  <path d="M 272 106 L 272 136" stroke="#E07825" stroke-width="1" fill="none" />
+  <text x="332" y="124.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Q3 2025</text>
+  <rect x="277" y="160" width="110" height="38" fill="#FEF1E4" stroke="#E8C09A" stroke-width="1" rx="5" />
+  <text x="332" y="182.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#7A3A00" text-anchor="middle">Beta program</text>
+  <rect x="277" y="202" width="110" height="38" fill="#FEF1E4" stroke="#E8C09A" stroke-width="1" rx="5" />
+  <text x="332" y="224.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#7A3A00" text-anchor="middle">Feedback iteration</text>
+  <rect x="392" y="68" width="120" height="38" fill="#27A565" stroke="#27A565" stroke-width="0" />
+  <text x="452" y="90.85" font-size="14" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Launch</text>
+  <rect x="392" y="106" width="120" height="30" fill="#1A8A50" stroke="#1A8A50" stroke-width="0" />
+  <text x="452" y="124.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Q4 2025</text>
+  <rect x="397" y="160" width="110" height="38" fill="#E4F7EF" stroke="#A8DFC5" stroke-width="1" rx="5" />
+  <text x="452" y="182.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#0B4D2C" text-anchor="middle">Marketing campaign</text>
+  <rect x="397" y="202" width="110" height="38" fill="#E4F7EF" stroke="#A8DFC5" stroke-width="1" rx="5" />
+  <text x="452" y="224.85" font-size="11" font-family="Georgia, &quot;Times New Roman&quot;, serif" fill="#0B4D2C" text-anchor="middle">GA release</text>
+  <path d="M 32 152 L 512 152" stroke="#8BAAC8" stroke-width="2" fill="none" />
+  <path d="M 512 152 L 504 148 L 504 156 Z" stroke="#8BAAC8" stroke-width="0" fill="#8BAAC8" />
+</svg>
