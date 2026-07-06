@@ -14,7 +14,11 @@
     "Programming Languages"
   ],
   "main": "./dist/extension.cjs",
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:triton.openPreview",
+    "onCommand:triton.openPreviewToSide"
+  ],
   "contributes": {
     "markdown.markdownItPlugins": true,
     "languages": [
@@ -31,14 +35,32 @@
     "commands": [
       {
         "command": "triton.openPreview",
-        "title": "Triton: Open Preview"
+        "title": "Open Preview",
+        "icon": {
+          "light": "./resources/preview.svg",
+          "dark": "./resources/preview.svg"
+        }
       },
       {
         "command": "triton.openPreviewToSide",
-        "title": "Triton: Open Preview to the Side"
+        "title": "Open Preview to the Side",
+        "icon": {
+          "light": "./resources/preview.svg",
+          "dark": "./resources/preview.svg"
+        }
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "triton.openPreview",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
+        },
+        {
+          "command": "triton.openPreviewToSide",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
+        }
+      ],
       "editor/title": [
         {
           "command": "triton.openPreviewToSide",
@@ -47,6 +69,18 @@
         },
         {
           "command": "triton.openPreview",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "triton.openPreview",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "navigation"
+        },
+        {
+          "command": "triton.openPreviewToSide",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
           "group": "navigation"
         }
