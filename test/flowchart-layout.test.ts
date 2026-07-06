@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { layoutFlowchart } from '../src/diagrams/flowchart/layout.js';
+import { layoutFlowchart } from '../src/diagrams/mermaid/flowchart/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
-import type { FlowDocument } from '../src/diagrams/flowchart/ir.js';
+import type { FlowDocument } from '../src/diagrams/mermaid/flowchart/ir.js';
 
 const doc: FlowDocument = {
   version: '1.0',

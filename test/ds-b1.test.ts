@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { stack, layoutStack } from '../src/diagrams/ds/stack/stack.js';
-import { hashmap, layoutHashmap } from '../src/diagrams/ds/hashmap/hashmap.js';
-import { matrix, layoutMatrix } from '../src/diagrams/ds/matrix/matrix.js';
+import { stack, layoutStack } from '../src/diagrams/triton/ds/stack/stack.js';
+import { hashmap, layoutHashmap } from '../src/diagrams/triton/ds/hashmap/hashmap.js';
+import { matrix, layoutMatrix } from '../src/diagrams/triton/ds/matrix/matrix.js';
 import { render } from '../src/frontend/index.js';
 import { detect } from '../src/frontend/detect.js';
 import { defaultTheme } from '../src/theme/preset.js';

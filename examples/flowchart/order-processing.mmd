@@ -1,8 +1,0 @@
-flowchart LR
-  cart[Shopping Cart] --> checkout[Checkout]
-  checkout --> pay{Payment OK?}
-  pay -->|yes| reserve[Reserve Stock]
-  pay -->|no| decline(Decline Order)
-  reserve --> ship([Ship Order])
-  ship --> email(Email Customer)
-  email --> done([Complete])

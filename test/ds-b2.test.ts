@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { trie, buildTrie } from '../src/diagrams/ds/trie/trie.js';
-import { graph, layoutGraph } from '../src/diagrams/ds/graph/graph.js';
-import { unionfind, buildUnionFind, layoutUnionFind } from '../src/diagrams/ds/unionfind/unionfind.js';
-import { layoutTree } from '../src/diagrams/ds/tree/layout.js';
+import { trie, buildTrie } from '../src/diagrams/triton/ds/trie/trie.js';
+import { graph, layoutGraph } from '../src/diagrams/triton/ds/graph/graph.js';
+import { unionfind, buildUnionFind, layoutUnionFind } from '../src/diagrams/triton/ds/unionfind/unionfind.js';
+import { layoutTree } from '../src/diagrams/triton/ds/tree/layout.js';
 import { render } from '../src/frontend/index.js';
 import { detect } from '../src/frontend/detect.js';
 import { defaultTheme } from '../src/theme/preset.js';

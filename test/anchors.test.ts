@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import '../src/frontend/index.js'; // registers diagram modules
-import { layoutFlowchart } from '../src/diagrams/flowchart/layout.js';
-import { layoutTimeline } from '../src/diagrams/timeline/layout.js';
-import { layoutPoster } from '../src/diagrams/poster/layout.js';
+import { layoutFlowchart } from '../src/diagrams/mermaid/flowchart/layout.js';
+import { layoutTimeline } from '../src/diagrams/mermaid/timeline/layout.js';
+import { layoutPoster } from '../src/diagrams/triton/poster/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
-import type { FlowDocument } from '../src/diagrams/flowchart/ir.js';
-import type { TimelineDocument } from '../src/diagrams/timeline/ir.js';
-import type { PosterDocument } from '../src/diagrams/poster/ir.js';
+import type { FlowDocument } from '../src/diagrams/mermaid/flowchart/ir.js';
+import type { TimelineDocument } from '../src/diagrams/mermaid/timeline/ir.js';
+import type { PosterDocument } from '../src/diagrams/triton/poster/ir.js';
 
 const flowDoc: FlowDocument = {
   version: '1.0',

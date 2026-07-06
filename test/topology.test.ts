@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { topology, layoutTopology } from '../src/diagrams/topology/topology.js';
+import { topology, layoutTopology } from '../src/diagrams/triton/topology/topology.js';
 import { classifyCost } from '../src/style/cost.js';
 import { defaultTheme } from '../src/theme/preset.js';
 

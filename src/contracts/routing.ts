@@ -33,6 +33,9 @@ export type PortDirection = 'N' | 'S' | 'E' | 'W';
  */
 export type RouteStyle = 'straight' | 'orthogonal' | 'bezier' | 'polyline';
 
+/** Named curve style for curved path emission when a route uses interpolation. */
+export type CurveStyle = 'linear' | 'catmull-rom' | 'cardinal' | 'basis' | 'natural' | 'monotone-x' | 'monotone-y';
+
 // ─── Routing Input ────────────────────────────────────────────────────────────
 
 export interface RouteRequest {
@@ -47,6 +50,8 @@ export interface RouteRequest {
   readonly padding: number;
   /** Bezier only — curve tension in [0, 1]. Default 0.4. */
   readonly tension?: number;
+  /** Optional named curve interpolation for curved path emission. */
+  readonly curveStyle?: CurveStyle;
   /** Direction the exit port faces.  Hint for orthogonal/bezier routing. */
   readonly fromDir?: PortDirection;
   /** Direction the entry port faces. Hint for orthogonal/bezier routing. */

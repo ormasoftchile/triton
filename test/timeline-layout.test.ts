@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { layoutTimeline } from '../src/diagrams/timeline/layout.js';
+import { layoutTimeline } from '../src/diagrams/mermaid/timeline/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
-import type { TimelineDocument } from '../src/diagrams/timeline/ir.js';
+import type { TimelineDocument } from '../src/diagrams/mermaid/timeline/ir.js';
 
 const doc: TimelineDocument = {
   version: '1.0',

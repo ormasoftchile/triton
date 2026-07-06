@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { memory, layoutMemory } from '../src/diagrams/ds/struct/memory.js';
-import { page, layoutPage } from '../src/diagrams/ds/struct/page.js';
+import { memory, layoutMemory } from '../src/diagrams/triton/ds/struct/memory.js';
+import { page, layoutPage } from '../src/diagrams/triton/ds/struct/page.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
 describe('memory', () => {

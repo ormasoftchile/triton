@@ -38,8 +38,8 @@ export function buildCubicBezierPath(
  */
 export function buildLinePath(points: readonly Point[]): string {
   const gen = line<Point>()
-    .x(d => d.x)
-    .y(d => d.y);
+    .x((d: Point) => d.x)
+    .y((d: Point) => d.y);
   return gen([...points]) ?? '';
 }
 
@@ -66,8 +66,8 @@ export function buildCurvedLinePath(
   curveStyle: CurveStyle,
 ): string {
   const gen = line<Point>()
-    .x(d => d.x)
-    .y(d => d.y)
+    .x((d: Point) => d.x)
+    .y((d: Point) => d.y)
     .curve(CURVE_FACTORIES[curveStyle]);
   return gen([...points]) ?? '';
 }

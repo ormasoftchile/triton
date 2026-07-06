@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { queue, layoutQueue } from '../src/diagrams/ds/queue/queue.js';
-import { cqueue, layoutCQueue } from '../src/diagrams/ds/queue/cqueue.js';
-import { deque, layoutDeque } from '../src/diagrams/ds/queue/deque.js';
-import { pqueue, layoutPQueue } from '../src/diagrams/ds/queue/pqueue.js';
+import { queue, layoutQueue } from '../src/diagrams/triton/ds/queue/queue.js';
+import { cqueue, layoutCQueue } from '../src/diagrams/triton/ds/queue/cqueue.js';
+import { deque, layoutDeque } from '../src/diagrams/triton/ds/queue/deque.js';
+import { pqueue, layoutPQueue } from '../src/diagrams/triton/ds/queue/pqueue.js';
 import { render } from '../src/frontend/index.js';
 import { detect } from '../src/frontend/detect.js';
 import { defaultTheme } from '../src/theme/preset.js';

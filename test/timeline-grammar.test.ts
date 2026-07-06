@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { timeline, parseMermaidStrict } from '../src/diagrams/timeline/index.js';
+import { timeline, parseMermaidStrict } from '../src/diagrams/mermaid/timeline/index.js';
 
 // ─── Layer 1: Mermaid-compatible ──────────────────────────────────────────────
 

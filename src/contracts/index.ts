@@ -59,6 +59,7 @@ export type {
 
 export type {
   RouteStyle,
+  CurveStyle,
   PortDirection,
   RouteRequest,
   Route,
