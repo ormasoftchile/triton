@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { assignPositions } from '../src/diagrams/poster/layout.js';
-import type { PosterCell } from '../src/diagrams/poster/ir.js';
+import { assignPositions } from '../src/diagrams/triton/poster/layout.js';
+import type { PosterCell } from '../src/diagrams/triton/poster/ir.js';
 
 const cell = (id: string, span?: { colSpan?: number; rowSpan?: number }): PosterCell =>
   ({ id, content: { kind: 'text', text: id }, ...span } as PosterCell);

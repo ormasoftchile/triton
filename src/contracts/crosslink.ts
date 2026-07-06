@@ -20,7 +20,7 @@
 
 import type { Point, Color } from './primitives.js';
 import type { CardinalSide, NodeAnchor } from './anchors.js';
-import type { RouteStyle } from './routing.js';
+import type { CurveStyle, RouteStyle } from './routing.js';
 
 // ─── Cell Address ─────────────────────────────────────────────────────────────
 
@@ -78,6 +78,10 @@ export interface CrossLink {
    * Defaults to 'orthogonal' when omitted.
    */
   readonly routing?: RouteStyle;
+  /**
+   * Optional interpolation style for curved connectors.
+   */
+  readonly curveStyle?: CurveStyle;
   /**
    * Optional hint for which wall to exit from the source node.
    * When set, the routing engine skips all other srcWall candidates.

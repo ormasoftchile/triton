@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { array, layoutArray } from '../src/diagrams/ds/struct/array.js';
-import { linkedlist, layoutList } from '../src/diagrams/ds/struct/linkedlist.js';
+import { array, layoutArray } from '../src/diagrams/triton/ds/struct/array.js';
+import { linkedlist, layoutList } from '../src/diagrams/triton/ds/struct/linkedlist.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
 describe('array', () => {

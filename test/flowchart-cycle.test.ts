@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { renderSync } from '../src/frontend/index.js';
-import { layoutFlowchart } from '../src/diagrams/flowchart/layout.js';
+import { layoutFlowchart } from '../src/diagrams/mermaid/flowchart/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
-import type { FlowDocument } from '../src/diagrams/flowchart/ir.js';
+import type { FlowDocument } from '../src/diagrams/mermaid/flowchart/ir.js';
 
 /**
  * Regression: cyclic flowcharts must TERMINATE and render valid SVG.

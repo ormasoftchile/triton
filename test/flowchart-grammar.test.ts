@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parse } from '../src/diagrams/flowchart/parser.js';
+import { parse } from '../src/diagrams/mermaid/flowchart/parser.js';
 
 describe('flowchart grammar', () => {
   it('parses basic flowchart', () => {

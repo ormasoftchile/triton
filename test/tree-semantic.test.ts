@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { buildAvl } from '../src/diagrams/ds/tree/avl.js';
-import { plan } from '../src/diagrams/ds/tree/plan.js';
-import type { TreeDocument } from '../src/diagrams/ds/tree/ir.js';
+import { buildAvl } from '../src/diagrams/triton/ds/tree/avl.js';
+import { plan } from '../src/diagrams/triton/ds/tree/plan.js';
+import type { TreeDocument } from '../src/diagrams/triton/ds/tree/ir.js';
 
 /** In-order traversal of the emitted node list (n0 = root, children left,right). */
 function inorder(doc: TreeDocument): number[] {

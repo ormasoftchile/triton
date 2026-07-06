@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { tree } from '../src/diagrams/ds/tree/index.js';
-import { layoutTree } from '../src/diagrams/ds/tree/layout.js';
+import { tree } from '../src/diagrams/triton/ds/tree/index.js';
+import { layoutTree } from '../src/diagrams/triton/ds/tree/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
 describe('tree grammar', () => {

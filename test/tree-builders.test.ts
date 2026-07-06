@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { buildRbtree } from '../src/diagrams/ds/tree/rbtree.js';
-import { buildBtree } from '../src/diagrams/ds/tree/btree.js';
-import { buildRadix } from '../src/diagrams/ds/tree/radix.js';
-import { buildSegtree } from '../src/diagrams/ds/tree/segtree.js';
-import { buildHeap } from '../src/diagrams/ds/tree/heap.js';
-import type { TreeDocument } from '../src/diagrams/ds/tree/ir.js';
+import { buildRbtree } from '../src/diagrams/triton/ds/tree/rbtree.js';
+import { buildBtree } from '../src/diagrams/triton/ds/tree/btree.js';
+import { buildRadix } from '../src/diagrams/triton/ds/tree/radix.js';
+import { buildSegtree } from '../src/diagrams/triton/ds/tree/segtree.js';
+import { buildHeap } from '../src/diagrams/triton/ds/tree/heap.js';
+import type { TreeDocument } from '../src/diagrams/triton/ds/tree/ir.js';
 
 const byId = (doc: TreeDocument) => new Map(doc.nodes.map(n => [n.id, n]));
 

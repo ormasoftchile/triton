@@ -1,6 +1,0 @@
-flowchart LR
-  start[Start] --> validate{Validate}
-  validate -->|valid| process[Process]
-  validate -->|invalid| reject[Reject]
-  process --> notify(Notify User)
-  notify --> done([Done])
