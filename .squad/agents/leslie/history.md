@@ -88,3 +88,18 @@ Produced formal phase plan `.squad/decisions/inbox/leslie-layout-phases.md` gove
 ## 2026-07-06 — Diagram Options Reference (Team Delivery)
 
 **Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.
+
+### Central-stripping + Universal Headers — Final Assembly (2026-07-07)
+
+**Central `stripComments()` preprocessor shipped (`src/frontend/preprocess.ts`):** strips full-line `%%` comment lines before any parser runs, for every diagram family. This eliminated the per-family comment-safety check and made `%%` support unconditional and universal.
+
+**All 45 fragments updated:** every fragment's former "fallback" note (warning that `%%` was unsupported) was replaced with a `### Comments` section documenting that `%%` lines are stripped centrally. No exceptions.
+
+**60 of 68 `.mmd` example files** now carry inline options-header blocks. The 8 without are special complex poster variants (cross-link, showcase, animated) where the header would be ambiguous inside nested cells.
+
+**`docs/diagram-options.md` re-assembled (2879 lines, 45 family sections):** intro rewritten to 4 sentences stating `%%` support is universal (central `src/frontend/preprocess.ts`), that comment lines may appear anywhere including before the header keyword, and that nearly every example carries a visible options-header block.
+
+**Final `pnpm test` result:** ✅ 404 tests, 31 test files, 0 failures (includes 20 new `preprocess-comments` tests and 69-example render corpus). `pnpm typecheck` ✅ 0 errors.
+## 2026-07-07 — diagram-options Final Assembly
+
+Reassembled docs/diagram-options.md (2879 lines, 45 families). Updated intro to explain central comment support. Verified pnpm test (404 pass, 0 fail) + typecheck (0 errors). Feature complete: all 45 families support %% comments; 60/68 examples carry headers.

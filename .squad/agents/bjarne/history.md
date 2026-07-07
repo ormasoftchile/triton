@@ -1,4 +1,5 @@
-# Bjarne — Ingestion Design
+## # Bjarne — Ingestion Design
+
 
 ## Learnings
 
@@ -91,31 +92,13 @@ shipped Triton. Key reality (grounded in code, blunt about the obsolete charter 
   cosmetic hbox warnings, no undefined refs/cites. tectonic panics under the sandbox
   (macOS system-configuration network probe) — must run UNSANDBOXED.
 
+
 ## Current Status (2026-06-16)
 
-**Geometry-Quality Kernel: Feedback-Driven Layout + Post-Render Gate (2026-06-16)**: Barbara's deterministic kernel (detectors: edgeThroughNode/labelOverNode/labelLabelOverlap/outOfBounds) now consumed in two ways: (1) during overlay router layout — scores candidate routes, picks lowest-cost deterministically, no poisoned renders; (2) post-render gate — fails egregious defects, prints objective report. Validation caught real defect (state `__end__` stab) and fixed via pseudo-state exclusion from anchor registry. All 5 posters CLEAN (verdict matches visual). 2770 tests, determinism preserved. Committed b4b2f04.
+**Geometry-Quality Kernel: Feedback-Driven Layout + Post-Render Gate (2026-06-16)**: Barbara's deterministic kernel (detectors: edgeThroughNode/labelOverNode/labelLabelOve
 
-**ASCII-to-Diagrams Batch 2 Complete (2026-06-16)**: Converted 2 remaining ASCII/box-drawing diagrams across 2 sections. §02 central-thesis: `central-pipeline` (dual-input pipeline from DSL/IR through Domain IR → Layout Engine → Scene IR → Rendering Backend → SVG/PNG/PDF). §51 distribution: `distribution-arch` (Core Library hub → CLI Binary / npm Package / MCP Server / VS Code Extension / Docker Image). Both executive theme, flowchart LR, pass dimension guard. PDF builds clean at 3.1MB. ASCII-diagram conversion is now COMPLETE across the full design document. Decision note: `.squad/decisions/inbox/bjarne-ascii-to-diagrams-batch2.md`.
+(Earlier work summarized — see history-archive.md for full details.)
 
-**ASCII-to-Diagrams Batch 1 Complete (2026-06-16)**: Converted 7 ASCII/box-drawing diagrams across 6 sections to dogfood figures rendered by our compiler. Sections covered: §40-architecture (three-layers), §20-grammar-concept (two-ir-model, composition-ir), §15-frontend (dual-frontend), §11-backends (backend-arch), §22-rendering (canvas-layout), §30-composition (rag-poster-layout). All figures: executive theme, flowchart LR, multi-line labels, pass dimension guard. PDF builds clean at 3.1MB. Decision note written to `.squad/decisions/inbox/bjarne-ascii-to-diagrams-batch1.md`.
-
-**Multi-Line Node Labels Implemented (2026-06-16)**: Barbara shipped multi-line label support (`<br>/\n`); C4 descriptions now wrap correctly.
-
-**Dogfood Figures Pipeline Complete (2026-06-15)**: CLI now renders `.mmd` files via `parseMermaid`/`renderMermaid`. `make figures` in `design/` renders every `design/figures/src/*.mmd` → `design/figures/<name>.png` at 3× scale. Three dogfood figures authored and placed in §40-architecture, §28-family-taxonomy, §12-themes. `\ourdiagram` LaTeX macro added. PDF clean (2.5MB). 2659/2659 tests passing; existing goldens byte-identical.
-
-**Trace Abstraction Spec'd (§30b.8; leslie)**: Multi-hop system traceability across poster layers — named/typed/ordered cross-diagram traces desugar to atomic links + trace-group. Committed af080b0.
-
-**Excel Cell Addressing Complete (§17.2, 2026-06-15)**: `cell A1:` is now a full equivalent of `cell [0,0]:`. Both forms parse to the same `PosterDocument` cell positions, may be freely mixed within a poster, and are case-insensitive. `excelToRowCol` exported for test use. 2659/2659 tests passing; existing goldens byte-identical. Gallery demo `poster-excel.{mmd,svg,png}` emitted.
-
-**Extended Timeline Spec'd (§16b; leslie)**: One IR × 6 layouts × 7 themes = 42 presentations. Two-tier superset of Mermaid `timeline` with full IRDocument field mapping. Four known IR gaps flagged: (1) Milestone no `shape` field, (2) schema.ts layout enum missing `gantt`/`timeline-columns`, (3) `density` not persisted, (4) legend auto-generation unspecified. Implementation TBD.
-
-**Poster Keyword Complete (§17.2)**: The `poster` top-level keyword is implemented. Parser (`parsePosterInternal`), composition-theme factories (`buildCompositionThemeFor`), and full render branch (`renderPoster` + `renderCellScene`) wired into `frontend/mermaid/index.ts`. All 21 grammar types supported as cell content. Graceful degradation: unknown/failing cells warn + skip. 2451/2451 tests passing. Existing goldens byte-identical. Gallery demos: `poster-rag.{mmd,svg,png}` (executive, 2×2, flowchart+sequence+mindmap+xychart) and `poster-rag-midnight.{mmd,svg,png}` (midnight dark board).
-
-**§17.1 Extension Mechanisms COMPLETE**: frontmatter/init config (bjarne-config-surface.md) + new top-level keyword (`poster`) are both shipped.
-
-**Config Surface Complete**: Layout/density/themeOverrides now user-selectable via Mermaid-native config (frontmatter + `%%{init}%%`). `resolveContractTheme` helper added to theme-contract/. All 21 render branches wired. 2428/2428 tests passing. Determinism preserved.
-
-**Recent:** Dogfood pipeline (2026-06-15). Poster keyword shipped (2026-06-15). Config surface implementation (2026-06-15). Prior: requirementDiagram + kanban (2026-06-14).
 
 ## Technical Details
 
@@ -131,6 +114,35 @@ See `history-archive.md` for detailed learnings on CLI rendering, Makefile pipel
 
 - 2026-06-24: **Extension Phase 3 — IntelliSense SHIPPED** (completion + diagnostics). Merged to decisions.md "EXTENSION PHASE 3 — IntelliSense (completion + diagnostics) (2026-06-24)" block. Completion headers sourced from real `src/frontend/detect.ts` (50 entries, 0 mismatches with core `detect()`); per-kind keywords curated from real `examples/` + `grammar.peggy`. Diagnostics map Peggy `SyntaxError.location` (1-based line/column) to precise VSCode Range (zero-width → line end fallback). Markdown ` ```triton ` fences first-class for both providers via shared offset-aware `tritonFenceAt()`. Confined to `extension/` (core untouched). Bundle 1.2 MB, typecheck 0.
 
+
 ## 2026-07-06 — Diagram Options Reference (Team Delivery)
 
 **Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.
+
+
+## Learnings
+
+**Group A inline `%%` headers — post central-stripping (2026-07-07)**:
+`%%` comments now work in ALL diagram families via central preprocessor `stripComments()` in
+`src/frontend/preprocess.ts` (strips full-line `%%` comment lines before parsing — 404 tests pass).
+Added `%%` options-header blocks to the 1 `.mmd` file in each of the 5 Group A families:
+- `examples/mermaid/class/class.mmd` — after `classDiagram`
+- `examples/mermaid/state/state.mmd` — after `stateDiagram-v2`
+- `examples/mermaid/er/er.mmd` — after `erDiagram`
+- `examples/mermaid/c4/c4.mmd` — after `C4Context`
+- `examples/mermaid/requirement/requirement.mmd` — after `requirementDiagram`
+
+Removed the fallback note ("> **Note:** This grammar does not define a `%%` comment rule…") and
+added `### Comments` section to each corresponding fragment:
+- `docs/diagram-options/_fragments/class.md`
+- `docs/diagram-options/_fragments/state.md`
+- `docs/diagram-options/_fragments/er.md`
+- `docs/diagram-options/_fragments/c4.md`
+- `docs/diagram-options/_fragments/requirement.md`
+
+All 5 `node scripts/preview.mjs examples/mermaid/<family>/` runs: exit 0, SVG regenerated clean.
+Header content strictly grammar-derived (matches each fragment). No invented tokens.
+
+## 2026-07-07 — Group A %% Headers (5 files)
+
+Added %% options header blocks to 5 Group A Mermaid families (class/state/er/c4/requirement). Updated 5 fragments: removed fallback notes, added ### Comments sections. All SVGs exit 0.

@@ -58,3 +58,34 @@ The detailed `packages/core`-era Scribe summaries (schema-validation hardening, 
 ## 2026-07-06 — Diagram Options Reference (Team Delivery)
 
 **Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.
+
+## 2026-07-07 — Central %% comment stripping (PR gate)
+
+- **`stripComments` lives in:** `src/frontend/preprocess.ts` (exported for testing).
+- **Exact semantics:**
+  1. Full-line only: a line is a comment iff its first non-whitespace chars are `%%`. Matched by `/^\s*%%/`. Comment lines are **removed entirely** (not blanked) — safe because every grammar/hand-parser already handles blank/empty lines.
+  2. Inline trailing comments (`A --> B %% note`) are NOT stripped. Distinguishing real trailing comments from `%%` inside quoted labels (`A["50%% off"]`) requires a full parse, which we do not have at the pre-processing stage.
+  3. Pure-YAML inputs (first non-whitespace is `type:`) are returned untouched.
+  4. Frontmatter block (`---\n…\n---`) is preserved verbatim; stripping applies only to the Mermaid body that follows.
+  5. Malformed frontmatter (no closing `---`) is preserved conservatively.
+- **Wire-up:** `compileSync` in `src/frontend/index.ts` computes `cleaned = stripComments(input)` once at the top; both `detect(cleaned)` and `module.parse*(cleaned)` receive the stripped string. All four entrypoints (`compileSync`, `renderSync`, `compile`, `render`) benefit automatically.
+- **Test file:** `test/preprocess-comments.test.ts` — 20 tests covering full-line strip, indented `%%`, inline preservation, quoted-label safety, frontmatter preservation, pure-YAML no-op, empty input, detect integration (class/sankey/packet/array), and end-to-end render for 5 previously-unsupported families (class, packet, array, mindmap, pie).
+- **`pnpm test` result:** 404 pass, 0 fail (baseline 384 + 20 new). `pnpm typecheck`: 0 errors.
+- **Verified previously-unsupported families:** `classDiagram`, `packet-beta`, `array` (ds), `mindmap`, `pie` all render without error when a `%%` comment line precedes the header keyword.
+
+
+## 2026-07-07 — Group C %% header blocks (pie / xychart / quadrant / radar / mindmap)
+
+- **Supersedes:** earlier Group C fallback note in all five fragments.
+- **Central `stripComments()` enables this:** because `src/frontend/preprocess.ts` strips full-line `%%` before parse, no grammar-level comment rule is required in any family. All five families now accept `%%` headers safely.
+- **Pattern applied:** `%%` block inserted immediately after the header keyword line (or `mindmap` line at column 0, after any frontmatter). Block structure mirrors the flowchart/sankey exemplar: dashed separator lines, compact per-category one-liners, ends with `%% Comments: %% text  (stripped before parse — safe on any line)`.
+- **Mindmap special care:** indentation is the parse signal for parent-child depth in mindmap; `%%` block lines start at column 0, no indentation. `stripComments()` removes them entirely before the indentation-sensitive parser sees the file — real node indentation is unaffected. Verified by `node scripts/preview.mjs examples/mermaid/mindmap/` → `mindmap.svg` exit 0.
+- **Fragment updates:** removed the `> **Note:** This grammar does not define a %% comment rule…` blockquote from all five fragments; replaced with a `### Comments` section matching the flowchart fragment's wording (mindmap note adds "indentation of real nodes is unaffected").
+- **Files changed:** `examples/mermaid/{pie/languages,xychart/xychart,quadrant/quadrant,radar/radar,mindmap/mindmap}.mmd` (1 file each family); `docs/diagram-options/_fragments/{pie,xychart,quadrant,radar,mindmap}.md`.
+- **Preview results:** all five families → exit 0, `.svg` regenerated, layout unchanged. Mindmap hierarchy intact.
+## 2026-07-07 — Central %% Comment Stripping + Group C headers
+
+Implemented stripComments() in src/frontend/preprocess.ts (20 tests, 404 pass). Added %% options headers to Group C families (pie/xychart/quadrant/radar/mindmap). Coordination: central preprocessing unblocks all group A–E header additions.
+## 2026-07-07 — Session Completion
+
+Universal %% comment support feature complete. All 45 diagram families now accept %% comments centrally.

@@ -139,6 +139,40 @@ Previously completed work:
 - architecture, block, packet, topology: no `%%` headers added; fallback note in fragments.
 
 
-## 2026-07-06 — Diagram Options Reference (Team Delivery)
+## 2026-07-07 — Group D `%%` headers follow-up (architecture, block, packet, topology)
+
+**Task:** `stripComments()` now centralised in `src/frontend/preprocess.ts` — full-line `%%` stripped before any grammar parse. The earlier fallback notes in Group D fragments are superseded. Add `%%` options-header blocks to every `.mmd` in these four families; update fragments to document comment support.
+
+**`.mmd` files updated (7 total):**
+
+| Family       | File(s) changed                                                    | Header placement          |
+|--------------|--------------------------------------------------------------------|---------------------------|
+| architecture | `examples/triton/architecture/architecture.mmd`                    | After `architecture-beta` |
+| block        | `examples/triton/block/block.mmd`                                  | After `block-beta`        |
+| packet       | `examples/triton/packet/packet.mmd`                                | After `packet-beta`       |
+| topology     | `examples/triton/topology/numa.mmd`, `numa-detail.mmd`             | After `topology`          |
+
+**Fragments updated (4 total):** removed `> **Note:** This grammar does not define a %% comment rule…` fallback; added `### Comments` section citing central `stripComments()` in `src/frontend/preprocess.ts`.
+
+- `docs/diagram-options/_fragments/triton-architecture.md`
+- `docs/diagram-options/_fragments/triton-block.md`
+- `docs/diagram-options/_fragments/triton-packet.md`
+- `docs/diagram-options/_fragments/triton-topology.md`
+
+**Preview results (2026-07-07):**
+
+| Family       | SVGs regenerated         | Exit code |
+|--------------|--------------------------|-----------|
+| architecture | `architecture.svg`       | 0 ✓       |
+| block        | `block.svg`              | 0 ✓       |
+| packet       | `packet.svg`             | 0 ✓       |
+| topology     | `numa.svg`, `numa-detail.svg` | 0 ✓  |
+
+**Key learning:** `%%` stripping is now upstream of all parsers — no grammar-level `%%` rule is required. Header comment blocks can be placed immediately after the diagram keyword line (first line) in all families.
+
+
 
 **Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.
+## 2026-07-07 — Group D %% Headers (5 files)
+
+Added %% options header blocks to 4 Triton-native families + poster. 5 .mmd examples (architecture/block/packet/topology/numa*), 4 fragment updates. All SVGs exit 0.

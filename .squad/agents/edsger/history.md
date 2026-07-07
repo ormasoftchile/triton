@@ -169,3 +169,19 @@ array, graph/nodegraph, hashmap, matrix, queue (4 files), stack, tree (9 files: 
 ## 2026-07-06 — Diagram Options Reference (Team Delivery)
 
 **Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.
+
+## 2026-07-07 — Group E (ds) %% Headers Follow-up
+
+**Context:** `%%` comment stripping now works for ALL families via central `stripComments()` in `src/frontend/preprocess.ts`, superseding the earlier fallback. 20 ds example `.mmd` files and all 22 ds fragments updated.
+
+**Learnings:**
+
+- **`%%` headers are now safe in all ds subkinds** — the earlier fallback note ("This grammar does not define a `%%` comment rule") is obsolete and has been removed from all 22 fragments.
+- **Header block placement for single-line ds diagrams** (trie, avl, rbtree, radix, heap, segtree): since the entire diagram is one line, the `%%` block is inserted on line 2 (after the content line), which is fine because comments are stripped before parse regardless of position.
+- **Fragment cleanup pattern**: replacing the fallback note with `re.sub(r'---\n\n+---\n\n(### Comments)', ...)` avoids the double-`---` artifact that arises when the note sits between two `---` separators.
+- **preview.mjs is non-recursive**: must be invoked on each subdirectory individually (e.g., `examples/triton/ds/array/`, `examples/triton/ds/tree/`); passing the parent `examples/triton/ds/` returns "No .mmd files found".
+- **SVG count:** all 20 `.mmd` files rendered to SVG with exit 0 after header insertion — comments stripped cleanly, layout unchanged.
+- **Files touched:** 20 `.mmd` files (array, queue×4, stack, hashmap, matrix, trie, unionfind, graph, tree×9); 22 `ds-*.md` fragments.
+## 2026-07-07 — Group E %% Headers (22 ds subkinds)
+
+Added %% header blocks to 20 ds example files across 9 subdirectories. Updated all 22 ds fragment docs: removed fallback notes, added ### Comments sections. All SVGs exit 0.
