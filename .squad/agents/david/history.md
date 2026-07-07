@@ -1,9 +1,10 @@
 # Project Context
 
-- **Owner:** ormasoftchile
-- **Project:** timeline — a spec/design effort for a timeline creation tool. From data plus a natural-language prompt, produce an IR (intermediate representation) of a timeline for later rendering. This work is about the *process, the IR, and the design* — not implementation, not yet. Research is a primary focus.
-- **Stack:** LaTeX for the design document (main.tex + sections/, Makefile, .latexmkrc, references.bib for the bibliography). No code implementation at this stage.
-- **Created:** 2026-06-10
+## [ARCHIVED HISTORY]
+
+Previously completed work:
+
+---
 
 ## Learnings — Earlier research (summarized 2026-06-23 by Scribe)
 
@@ -88,3 +89,42 @@ Full prior-art / research detail moved to `history-archive.md`. ⚠️ Much of i
 - The biggest layout gap in Triton is the **missing crossing minimization phase** — the shared `layeredLayout` kernel was clearly built as a placeholder. Adding barycenter sweeps + Brandes–Köpf is Phase 1 of the improvement initiative.
 - d3-dag is the pragmatic upgrade for the JS/TS world: smaller bundle than elkjs, TypeScript-native, ILP crossing min available, dagre API compatible.
 - ELK.js is the right choice if Triton needs compound graph layout (groups in architecture diagrams) or orthogonal edge routing with port awareness.
+
+### 2026-07-06 — Group B Diagram-Options Fragments (diagram-options initiative)
+
+**Assignment:** Write `docs/diagram-options/_fragments/<family>.md` for sequence, timeline, journey, gantt, gitgraph, kanban; add `%%` headers where grammar supports it.
+
+**`%%` comment support (grep -c '%%' grammar.peggy):**
+
+| Family    | `%%` in grammar | Count | Notes                                        |
+|-----------|-----------------|-------|----------------------------------------------|
+| sequence  | ✗ NO            | 0     | No Comment rule                              |
+| timeline  | ✓ YES           | 1     | `Comment = "%%" [^\n]*`  (Body only — see constraint below) |
+| journey   | ✗ NO            | 0     | No Comment rule                              |
+| gantt     | ✗ NO            | 0     | No Comment rule                              |
+| gitgraph  | ✗ NO            | 0     | No Comment rule                              |
+| kanban    | ✗ NO            | 0     | No Comment rule                              |
+
+**Critical grammar constraint for timeline `%%` placement:**  
+Timeline's `%%` Comment rule is only reachable via `BlankLine = _ Comment? NL` inside the `Body` alternative. The `Document` rule is `Frontmatter? _ Header _ Directive* _ Body _`, where `Directive*` matches `title/subtitle/theme/layout/axisUnit` before Body begins. Placing `%%` lines between the `timeline` keyword line and the directive lines (e.g., immediately after `timeline\n`) causes a parse error because `%%` is not a valid `Directive`. The header block MUST be placed after all directives and before the first Body item (section/entry). All 9 timeline `.mmd` examples were fixed accordingly; preview confirmed exit 0, all 9 SVGs regenerated.
+
+**Fragment paths written:**
+- `docs/diagram-options/_fragments/sequence.md`
+- `docs/diagram-options/_fragments/timeline.md`
+- `docs/diagram-options/_fragments/journey.md`
+- `docs/diagram-options/_fragments/gantt.md`
+- `docs/diagram-options/_fragments/gitgraph.md`
+- `docs/diagram-options/_fragments/kanban.md`
+
+**Key option facts (grammar-derived):**
+- **sequence:** Arrow rule defines 8 variants: `->>` / `-->>` (solid/dashed arrow), `->` / `-->` (open), `-x` / `--x` (cross), `-)` / `--)` (async). Inline activation via `+`/`-` suffix on arrow. Fragments: `alt/else`, `opt`, `loop`, `par/and`, `critical`, `break` — all close with `end`.
+- **timeline:** Layer 1 (Mermaid): `date : Event text`. Layer 2 (Triton ext): range `start -- end : Label`, annotated point `date : Label : status`, milestone `date : Label : milestone`, track `@trackId`, desc `| text`. Statuses: `active/done/blocked/default`.
+- **journey:** Task syntax: `label : score : Actor1, Actor2`. Score is numeric (float, negatives permitted). No frontmatter; no `%%`.
+- **gantt:** `ExcludesLine` accepts `excludes`, `axisFormat`, `todayMarker`, `tickInterval` (parsed, return null). Task meta resolved by `index.ts` (`STATUS_FLAGS = Set['done','active','crit','milestone']`); `after id` dependency; duration `Nd/Nw/Nh`.
+- **gitgraph:** No `cherry-pick` in grammar. `switch` is alias for `checkout`. `order: N` on branch is parsed but value not stored. Commit/merge options: `id`/`tag`/`type` (key-value pairs).
+- **kanban:** Minimal grammar — columns are unindented text lines, cards are `id[Text]` or `[Text]`. No assignments, priorities, or metadata beyond id.
+
+
+## 2026-07-06 — Diagram Options Reference (Team Delivery)
+
+**Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.

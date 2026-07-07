@@ -2,6 +2,38 @@
 
 ## Learnings
 
+**Diagram-Options Group A — class, state, er, c4, requirement (2026-07-06)**:
+Wrote 5 grammar-derived option fragments to `docs/diagram-options/_fragments/`:
+- `class.md`, `state.md`, `er.md`, `c4.md`, `requirement.md`
+
+**`%%` comment support (Group A):** ALL FIVE families return 0 from
+`grep -c '%%' src/diagrams/mermaid/<family>/grammar.peggy`. None define a Comment rule.
+No `%%` headers were added to any example `.mmd` files. All 5 fragments carry the
+fallback note and omit the Comments section.
+
+**Key grammar facts per family:**
+- **class** — RelTok has 14 explicit alternatives (`<|--`, `--|>`, `<|..`, `..|>`, `*--`, `--*`,
+  `o--`, `--o`, `<--`, `-->`, `<..`, `..>`, `--`, `..`). Cardinality = quoted string on
+  either side. Stereotype = `<<name>>` inside class block. `note` keyword accepted-but-discarded.
+- **state** — Only one transition arrow (`-->`). Special nodes via `state id <<choice|fork|join>>`.
+  `direction` keyword accepted by DirectiveLine but returns null (Triton ignores it). Composite
+  states via `state name { … }`. `[*]` maps to start (source) or end (target) pseudo-state.
+- **er** — ErTok pattern: `[|}{o][|}{o](--|..)[|}{o][|}{o]`. Attribute keys: `PK`, `FK`, `UK`.
+  Relation label is required (quoted or bare text). No direction rule.
+- **c4** — 5 header variants (C4Context/Container/Component/Dynamic/Deployment). NodeKind is
+  freeform identifier mapped by `kindOf()` to 8 IR kinds. 4 boundary types. Relations:
+  `Rel`, `Rel_Ext`, `BiRel`. `title` is the only config keyword.
+- **requirement** — ReqKind has 7 alternatives (case-insensitive). No Frontmatter rule (unique
+  in Group A). Relationship type is unconstrained `Ident`; conventional types from ir.ts comment:
+  `satisfies`, `contains`, `refines`, `derives`.
+
+**Fragment paths:**
+- `docs/diagram-options/_fragments/class.md`
+- `docs/diagram-options/_fragments/state.md`
+- `docs/diagram-options/_fragments/er.md`
+- `docs/diagram-options/_fragments/c4.md`
+- `docs/diagram-options/_fragments/requirement.md`
+
 **Extension Phase 3 — IntelliSense (completion + diagnostics) (2026-06-24)**:
 Built two providers, confined to `extension/` (core `src/` untouched — verified `git diff src package.json` empty).
 - **Completion source = `src/frontend/detect.ts` MERMAID_PATTERNS, not invented.** Authored
@@ -98,3 +130,7 @@ See `history-archive.md` for detailed learnings on CLI rendering, Makefile pipel
 - 2026-06-23: Audited my assigned design/ LaTeX sections vs shipped Triton (plan-only, no prose rewrite). Verdicts (KEEP/REWRITE/DELETE) recorded in the consolidated "DESIGN-DOC AUDIT (2026-06-23)" block in decisions.md.
 
 - 2026-06-24: **Extension Phase 3 — IntelliSense SHIPPED** (completion + diagnostics). Merged to decisions.md "EXTENSION PHASE 3 — IntelliSense (completion + diagnostics) (2026-06-24)" block. Completion headers sourced from real `src/frontend/detect.ts` (50 entries, 0 mismatches with core `detect()`); per-kind keywords curated from real `examples/` + `grammar.peggy`. Diagnostics map Peggy `SyntaxError.location` (1-based line/column) to precise VSCode Range (zero-width → line end fallback). Markdown ` ```triton ` fences first-class for both providers via shared offset-aware `tritonFenceAt()`. Confined to `extension/` (core untouched). Bundle 1.2 MB, typecheck 0.
+
+## 2026-07-06 — Diagram Options Reference (Team Delivery)
+
+**Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.

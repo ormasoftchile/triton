@@ -32,6 +32,15 @@ The detailed `packages/core`-era Scribe summaries (schema-validation hardening, 
 
 ## Learnings
 
+- 2026-07-06 (Group C diagram-options fragments): Catalogued grammar-derived options for pie, xychart, quadrant, radar, sankey, mindmap. Per-family `%%` support findings:
+  - **pie** — `grep -c '%%' grammar.peggy` = 0. No `%%` Comment rule. No header added. Fallback note added to fragment. Fragment: `docs/diagram-options/_fragments/pie.md`.
+  - **xychart** — `grep -c '%%' grammar.peggy` = 0. No `%%` Comment rule. No header added. Fallback note added. Fragment: `docs/diagram-options/_fragments/xychart.md`.
+  - **quadrant** — `grep -c '%%' grammar.peggy` = 0. No `%%` Comment rule. No header added. Fallback note added. Fragment: `docs/diagram-options/_fragments/quadrant.md`.
+  - **radar** — `grep -c '%%' grammar.peggy` = 0. No `%%` Comment rule. No header added. Fallback note added. Fragment: `docs/diagram-options/_fragments/radar.md`.
+  - **sankey** — `grep -c '%%' grammar.peggy` = 2. `%%` supported via `Comment = _ "%%" $[^\n]* (…)` rule. Header block added to `examples/mermaid/sankey/sankey.mmd`. `node scripts/preview.mjs examples/mermaid/sankey/` → exit 0, `sankey.svg` regenerated. Fragment: `docs/diagram-options/_fragments/sankey.md`.
+  - **mindmap** — `grep -c '%%' grammar.peggy` = 0. No `%%` Comment rule. Grammar returns raw indented lines; shape stripping (`((…))`, `(…)`, `[…]`, `{{…}}`) happens in `index.ts:cleanLabel`. `::icon(name)` directive attaches icon to preceding node (index.ts). Frontmatter rule present in grammar. No header added. Fallback note added. Fragment: `docs/diagram-options/_fragments/mindmap.md`.
+  - Key invariant: mindmap grammar captures raw content only — shape semantics are in `index.ts`, not grammar.peggy. Listing them is valid per the spec ("grammar.peggy AND index.ts if hand-parsed").
+
 - 2026-06-23 (Wave-4 light realign): Swept 04/13/20/21/25/26 + 30b path stragglers to the corrected thesis. Pattern for LIGHT consistency edits: keep correct concepts (the "two-IR-layer" = Domain IR→Scene IR and the god-IR rejection are BOTH already thesis-consistent — only renamed headings/captions, didn't gut the section), and surgically replace stale tokens — five-families/22-types → family-taxonomy + Triton-native families (no hard counts); multi-backend SVG/Skia/PPTX/PDF + svgBackend/pngBackend → single `renderSVG` + resvg PNG rasterization; `packages/core/src/grammars/*` → real `src/diagrams/<kind>/`, Scene at `src/contracts/scene.ts`, poster at `src/diagrams/poster/`; data-ingestion "source adapters (ADO/GitHub)" → direct YAML/agent authoring. Gate: `grep -ciE "undefined (reference|citation)|multiply.defined" triton.log` = 0; only hbox over/underfull typography warnings remain. PDF 1.29 MiB.
 
 ---
@@ -45,3 +54,7 @@ The detailed `packages/core`-era Scribe summaries (schema-validation hardening, 
 **Cross-agent note (Scribe, 2026-06-24):** CS data-structure families regrouped under **`src/diagrams/ds/`** (`struct`/`tree`/`queue` moved there; `topology` stays separate). Header keywords are UNCHANGED — folder-only move, `detect.ts` patterns untouched. **Taxonomy update for your sections:** 6 new `DiagramKind`s added under `ds/` — `stack`, `hashmap`, `matrix` (strip kernel), `trie`, `nodegraph`, `unionfind` (tree/graph kernels). ⚠️ The DS graph kind's keyword is **`nodegraph`** (alias `dsgraph`), **NOT `graph`** — Mermaid flowchart owns `graph` (`detect.ts` first pattern). `unionfind` also accepts `dsu`. `trie`/`unionfind` reuse the decorated-tree IR (`ds/tree/ir.ts`); `nodegraph` reuses `graph/layered.ts`. Kind count is now ~41; the family-taxonomy framing should fold these under the CS-structures family.
 
 **Cross-agent note (Scribe, 2026-06-24):** CORE LAYOUT FIX (PR #28) — flowchart `assignLayers()` in `src/diagrams/flowchart/layout.ts` looped forever when a ROOT fed a cycle (longest-path BFS re-pushed ever-growing layers). Fixed with Sugiyama cycle breaking: new `findBackEdges()` DFS strips back-edges to a DAG before the SAME BFS; back-edges still drawn; acyclic output byte-identical. Relevant to the flow-grammar/layout sections (`25-flow*`): the flowchart layering is now provably terminating on ANY graph (cyclic included), deterministic. Flowchart has its OWN layering — it does NOT use `src/graph/layered.ts`. Regression test `test/flowchart-cycle.test.ts`; tests 378 → 385.
+
+## 2026-07-06 — Diagram Options Reference (Team Delivery)
+
+**Scribe note:** Diagram-options feature completed. All 45 fragments assembled into central reference; 4 families have inline `%%` headers in examples (flowchart/9, sankey/1, timeline/9, poster/7); pnpm test: 384 pass.
