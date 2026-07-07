@@ -1,6 +1,20 @@
 timeline
   title Product Journey
   layout vertical-spine
+%% ────────────────────────────────────────────────────────────────────────────
+%% TIMELINE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      timeline
+%% Directives:  title · subtitle · theme · layout · axisUnit
+%% Sections:    section Label
+%% Entry (L1):  date : Event text
+%% Entry (L2):  start -- end : Label : status @track | desc
+%% Statuses:    active · done · blocked · default
+%% Milestones:  date : Label : milestone
+%% Overlays:    note "txt" at target  ·  legend corner "title" … end
+%% Frontmatter: --- yaml block --- (Triton extension)
+%% Comments:    %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   2023-Q1 : Idea validated : done
   2023-Q2 : Seed round closed : milestone
   2023-Q3 : MVP shipped to first users : done

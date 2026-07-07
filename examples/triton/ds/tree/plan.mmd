@@ -1,4 +1,16 @@
 plan
+%% ────────────────────────────────────────────────────────────────────────────
+%% PLAN — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      plan [TD|TB|LR]
+%% Node line:   <indent> [|edge-label|] <label> [:kind …] [{attr: val, …}]
+%% Auto-kinds:  join (label~join) · scan (label~scan) · build (hash/sort/agg/…)
+%% Node kinds:  box · circle · leaf · dot · strip · active · scan · join · build
+%%              red · black · muted · primary
+%% Attr keys:   badge · sub/info · rows · idx · <any> (rendered as sub-line)
+%% Config:      title <text>
+%% Comments:    %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   title Query plan
   Hash Join {rows: 980}
     Seq Scan orders {rows: 10000}

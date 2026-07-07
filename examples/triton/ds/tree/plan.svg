@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 373.79819999999995 287" width="373.79819999999995" height="287">
-  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="0" y="0" width="373.79819999999995" height="287" fill="#FFFFFF" />
   <text x="186.89909999999998" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Query plan</text>
   <path d="M 167.99 93 L 108.4 145" stroke="#64748B" stroke-width="1.5" fill="none" />
   <path d="M 202.33 93 L 252.37 146.5" stroke="#64748B" stroke-width="1.5" fill="none" />

@@ -1,6 +1,7 @@
 import type { Scene, ThemeInput, Result, BaseIR, LayoutResult } from '../contracts/index.js';
 import { ok, err } from '../contracts/index.js';
 import { detect } from './detect.js';
+import { stripComments } from './preprocess.js';
 import { registerDiagram, getModule } from './registry.js';
 import { registerRenderer, getRenderer } from '../render/registry.js';
 import { defaultTheme, getThemePreset } from '../theme/preset.js';
@@ -130,7 +131,8 @@ export function compileSync(
   input: string,
   themeInput?: ThemeInput,
 ): Result<LayoutResult> {
-  const { format, diagramType } = detect(input);
+  const cleaned = stripComments(input);
+  const { format, diagramType } = detect(cleaned);
 
   const module = getModule(diagramType);
   if (!module) {
@@ -139,8 +141,8 @@ export function compileSync(
 
   try {
     const ir: BaseIR = format === 'yaml'
-      ? module.parseYaml(input)
-      : module.parseMermaid(input);
+      ? module.parseYaml(cleaned)
+      : module.parseMermaid(cleaned);
 
     // Build theme: named preset (metadata.theme) → global input → module defaults → per-IR override
     const themeName = typeof ir.metadata?.theme === 'string' ? ir.metadata.theme : undefined;

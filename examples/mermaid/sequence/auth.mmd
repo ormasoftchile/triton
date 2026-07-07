@@ -3,6 +3,19 @@ title: User Authentication Flow
 theme: bytebytego-sequence
 ---
 sequenceDiagram
+%% ────────────────────────────────────────────────────────────────────────────
+%% SEQUENCE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:       sequenceDiagram
+%% Participants: participant id [as Label]  ·  actor id [as Label]
+%% Arrows:       ->> · -->> · -> · --> · -x · --x · -) · --)
+%% Activation:   + activate · - deactivate  (suffix on arrow line)
+%% Overlays:     Note over id1,id2: text  ·  Note left of id: text  ·  Note right of id: text
+%% Fragments:    alt/else · opt · loop · par/and · critical · break  (close with end)
+%% Config:       autonumber
+%% Frontmatter:  --- yaml block --- (before header)
+%% Comments:     %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
     autonumber
     actor User
     participant Client as Web Client

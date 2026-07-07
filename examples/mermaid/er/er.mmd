@@ -3,6 +3,17 @@ title: E-Commerce Schema
 theme: default-er
 ---
 erDiagram
+%% ────────────────────────────────────────────────────────────────────────────
+%% ER — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:       erDiagram
+%% Relationships: ENTITY <left><line><right> OTHER : "label"
+%%               Cards: || (exactly-one) · |o (zero-or-one) · |{ (one-or-more) · }o (zero-or-more)
+%%               Lines: -- (solid/identifying) · .. (dashed/non-identifying)
+%% Attributes:   type name [PK|FK|UK]  (inside entity block)
+%% Frontmatter:  --- yaml block --- (before header)
+%% Comments:     %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
     CUSTOMER ||--o{ ORDER : places
     CUSTOMER {
         string id PK

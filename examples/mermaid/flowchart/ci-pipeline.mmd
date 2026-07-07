@@ -1,4 +1,19 @@
 flowchart TD
+%% ────────────────────────────────────────────────────────────────────────────
+%% FLOWCHART — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      flowchart | graph
+%% Directions:  TD · TB · BT · LR · RL
+%% Node shapes: [rect] · (rounded) · ((circle)) · ([stadium]) · [[sub]]
+%%              [(cyl)] · {{hex}} · {diamond} · [/para/] · [\para-alt\] · >asym]
+%% Edges:       --> · --- · ==> · -.-> · <--> · --x · --o  (+|label|)
+%% Chains:      A --> B --> C   (mix operators freely)
+%% Blocks:      subgraph id [Label] … end
+%% Overlays:    note "txt" at id  ·  legend corner "title" … end
+%% Directives:  style id …  ·  classDef name …  ·  class ids name  ·  click id …
+%% Frontmatter: --- yaml block --- (before header)
+%% Comments:    %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   commit[Commit Pushed] --> build[Build & Lint]
   build --> test{Tests Pass?}
   test -->|yes| stage([Deploy to Staging])

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 681 368" width="681" height="368">
-  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="0" y="0" width="681" height="368" fill="#FFFFFF" />
   <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">2026 Product Roadmap</text>
   <rect x="36" y="68" width="415.59999999999997" height="266" fill="#4A90D90A" stroke="#4A90D933" stroke-width="1" rx="4" />
   <text x="42" y="82" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">H1</text>

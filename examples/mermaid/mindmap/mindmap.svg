@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 755 580" width="755" height="580">
-  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="0" y="0" width="755" height="580" fill="#FFFFFF" />
   <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Distributed Systems Concepts</text>
   <path d="M 226.33 293.5 C 261.33 293.5, 261.33 106, 296.33 106" stroke="#7C3AED" stroke-width="2" fill="none" />
   <path d="M 394.48 106 C 443.53 106, 443.53 76, 492.58 76" stroke="#7C3AED" stroke-width="2" fill="none" />

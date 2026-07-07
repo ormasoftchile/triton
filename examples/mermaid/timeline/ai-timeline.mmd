@@ -3,6 +3,20 @@ timeline
   subtitle From symbolic AI to foundation models — a 60-year arc of progress
   theme ai-timeline
   layout vertical-spine
+%% ────────────────────────────────────────────────────────────────────────────
+%% TIMELINE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      timeline
+%% Directives:  title · subtitle · theme · layout · axisUnit
+%% Sections:    section Label
+%% Entry (L1):  date : Event text
+%% Entry (L2):  start -- end : Label : status @track | desc
+%% Statuses:    active · done · blocked · default
+%% Milestones:  date : Label : milestone
+%% Overlays:    note "txt" at target  ·  legend corner "title" … end
+%% Frontmatter: --- yaml block --- (Triton extension)
+%% Comments:    %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   1967 -- 1985 : Symbolic AI Era : done @ai | Logic-based reasoning, rule engines, LISP. MYCIN, Prolog, knowledge graphs.
   1967-01-01 : ELIZA Chatbot : done @ai | First conversational program by Weizenbaum at MIT
   1986 -- 2011 : Connectionism & Neural Nets : done @ai | Backprop enables multi-layer networks. SVMs, gradient boosting, early CNNs.

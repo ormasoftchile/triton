@@ -3,6 +3,21 @@ title: System Context diagram for Internet Banking System
 theme: default-c4
 ---
 C4Context
+%% ────────────────────────────────────────────────────────────────────────────
+%% C4 — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      C4Context | C4Container | C4Component | C4Dynamic | C4Deployment
+%% Nodes:       Person · Person_Ext · System · System_Ext · SystemDb
+%%              Container · ContainerDb · Container_Ext · Component
+%%              Syntax: NodeKind(id, "label")  ·  NodeKind(id, "label", "descr")
+%% Relations:   Rel(from, to, "label")  ·  Rel_Ext(...)  ·  BiRel(...)
+%%              Optional 4th arg: "tech"
+%% Boundaries:  Enterprise_Boundary · System_Boundary · Container_Boundary · Boundary
+%%              Syntax: Kind(id, "label") { … }  (nestable)
+%% Config:      title text
+%% Frontmatter: --- yaml block --- (before header)
+%% Comments:    %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   title System Context diagram for Internet Banking System
   Enterprise_Boundary(b0, "BankBoundary0") {
     Person(customerA, "Banking Customer A", "A customer of the bank, with personal bank accounts.")

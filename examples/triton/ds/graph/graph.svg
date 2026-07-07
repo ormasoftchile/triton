@@ -2,7 +2,7 @@
   <defs>
     <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
   </defs>
-  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="0" y="0" width="163.90159999999997" height="456" fill="#FFFFFF" />
   <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Build dependency graph</text>
   <path d="M 69.95 96 L 69.95 160" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
   <rect x="58.29699999999998" y="119" width="23.3076" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />

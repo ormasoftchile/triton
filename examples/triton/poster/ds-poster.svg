@@ -4,7 +4,7 @@
     <marker id="queue-arrow-fwd" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#4A90D9" /></marker><marker id="queue-arrow-rev" markerWidth="9" markerHeight="9" refX="2" refY="4" orient="auto"><path d="M8 0 L0 4 L8 8 z" fill="#4A90D9" /></marker>
     <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
   </defs>
-  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="0" y="0" width="893.42537" height="803.1043226954135" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Data Structures</text>
   <rect x="24" y="58" width="200.97577" height="260.30432269541353" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="244.97577" y="58" width="160" height="260.30432269541353" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />

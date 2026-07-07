@@ -3,6 +3,19 @@ title: Order Payment Lifecycle
 theme: default-state
 ---
 stateDiagram-v2
+%% ────────────────────────────────────────────────────────────────────────────
+%% STATE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      stateDiagram | stateDiagram-v2
+%% Transitions: StateA --> StateB  ·  StateA --> StateB : label
+%%              [*] --> StateA  (entry)  ·  StateA --> [*]  (exit)
+%% Blocks:      state Name { … }  (composite)
+%% Specials:    state id <<choice>> · <<fork>> · <<join>>
+%%              state "label" as id  ·  state id
+%% Config:      direction LR  (ignored)  ·  note text  (discarded)
+%% Frontmatter: --- yaml block --- (before header)
+%% Comments:    %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
     [*] --> Idle
     Idle --> Processing : order_placed
     Processing --> Authorized : authorize [amount > 0]

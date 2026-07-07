@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 942 288" width="942" height="288">
-  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="0" y="0" width="942" height="288" fill="#FFFFFF" />
   <rect x="24" y="24" width="210" height="38" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="6" />
   <text x="129" y="47.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Todo  (4)</text>
   <rect x="24" y="72" width="210" height="38" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1" rx="6" />

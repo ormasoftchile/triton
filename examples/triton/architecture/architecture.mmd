@@ -1,9 +1,18 @@
 architecture-beta
+%% ────────────────────────────────────────────────────────────────────────────
+%% ARCHITECTURE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:   architecture-beta
+%% Blocks:   group <id>(<icon>)[<label>]  ·  service <id>(<icon>)[<label>] [in <group>]
+%% Edges:    from:Side --> Side:to  ·  from:Side -- Side:to  ·  from:Side <--> Side:to
+%% Sides:    L · R · T · B  (lowercase also accepted)
+%% Comments: %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   group cloud_grp(cloud)[Cloud Services]
     service api(server)[API Server]
     service db(database)[Database]
   service client(internet)[Client]
   service storage(disk)[Storage]
-  client:R --> L:api
+  client:R --> B:api
   api:R --> L:db
   api:B --> T:storage

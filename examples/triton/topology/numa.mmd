@@ -1,4 +1,13 @@
 topology
+%% ────────────────────────────────────────────────────────────────────────────
+%% TOPOLOGY — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:   topology
+%% Config:   title <text>  ·  costs <unit>  ·  tier <name> <maxWeight> <color> [<dash>]
+%% Blocks:   group <id> : <label>  ·  node <id> : <label> [: <sub>]
+%% Edges:    from -- to [: cost]  (undirected; cost colours edge by tier)
+%% Comments: %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   title NUMA interconnect
   costs ns
     tier local 90 #27ae60

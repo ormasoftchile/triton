@@ -1,4 +1,13 @@
 cqueue
+%% ────────────────────────────────────────────────────────────────────────────
+%% CQUEUE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:   cqueue
+%% Items:    cells <v1> …  ·  items <v1> …  (use _ · . · - for empty slots)
+%% Options:  title <text>  ·  capacity <N>  ·  front <idx>  ·  rear <idx>
+%% Anchors:  c0 · c1 · … cn  (ring cells, 0-based)
+%% Comments: %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   title ring buffer
   capacity 6
   cells _ B C D _ _

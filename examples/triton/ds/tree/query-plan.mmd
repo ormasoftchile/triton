@@ -1,4 +1,16 @@
 tree
+%% ────────────────────────────────────────────────────────────────────────────
+%% TREE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      tree [TD|TB|LR]
+%% Directions:  TD · TB (default) · LR
+%% Node line:   <indent> [|edge-label|] <label> [:kind …] [{attr: val, …}]
+%% Node kinds:  box · circle · leaf · dot · strip · active · scan · join · build
+%%              red · black · muted · primary
+%% Attr keys:   badge · sub/info · rows · idx · <any> (rendered as sub-line)
+%% Config:      title <text>
+%% Comments:    %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────
   title Query plan
   Hash Join :join {rows: 980}
     Seq Scan orders :scan {rows: 10000}
