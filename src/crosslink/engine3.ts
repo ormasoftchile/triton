@@ -290,7 +290,14 @@ export function routeAndRenderCrossLinks3(
 
     if (wr.label) {
       const pts    = sampledPts(wr);
-      const labelPos = pointAtFrac(pts, labelFractions[i] ?? 0.5);
+      // Staggered labels (parallel links sharing a corridor) keep their
+      // length-fraction offset so they don't stack. Otherwise anchor the label
+      // on the route's longest HORIZONTAL run — labels are horizontal text and
+      // read best along a horizontal segment, and this avoids parking them on a
+      // short/outboard vertical channel that may sit at the diagram edge.
+      const labelPos = staggered.has(i) || wr.isBezier
+        ? pointAtFrac(pts, labelFractions[i] ?? 0.5)
+        : labelAnchor(pts);
       pendingLabels.push({
         content:    wr.label,
         x:          labelPos.x,
@@ -946,6 +953,35 @@ function dominantSegment(pts: readonly Point[]): { axis: 'h' | 'v'; coord: numbe
     }
   }
   return { axis, coord };
+}
+
+/**
+ * Pick the anchor point for an edge label. Prefers the midpoint of the longest
+ * HORIZONTAL segment (labels are horizontal text and read best along a
+ * horizontal run), and only falls back to the longest segment overall when the
+ * route has no meaningful horizontal segment (e.g. a pure vertical link).
+ */
+function labelAnchor(pts: readonly Point[]): Point {
+  if (pts.length === 0) return { x: 0, y: 0 };
+  if (pts.length === 1) return pts[0]!;
+  let bestH = -1;
+  let hMid: Point | null = null;
+  let bestAny = -1;
+  let anyMid: Point = pts[0]!;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i]!, b = pts[i + 1]!;
+    const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+    const len = Math.hypot(dx, dy);
+    if (len > bestAny) {
+      bestAny = len;
+      anyMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+    if (dx > dy && dx > bestH) {
+      bestH = dx;
+      hMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+  }
+  return hMid ?? anyMid;
 }
 
 function edgeStyleToDash(style: string | undefined): string | undefined {

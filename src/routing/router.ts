@@ -119,20 +119,34 @@ class OrthogonalRouter implements Router {
         // For a same-wall pair (both E or both W) the two stubs point the same
         // way, so the connecting segment must sit OUTSIDE both ports, otherwise
         // the route collapses back onto the wall.
+        const sameWall = fromDir === toDir;
         const baseX =
-          fromDir === toDir
+          sameWall
             ? fromDir === 'E'
               ? Math.max(from.x, to.x) + STUB
               : Math.min(from.x, to.x) - STUB
             : midX;
-        let bendX = clearVerticalBend(baseX, from.y, to.y, from.x, to.x, obstacles, pad);
-        bendX = clearHorizontalSegments(bendX, from, to, obstacles, pad);
+        let bendX: number;
+        if (sameWall) {
+          // The connecting channel must stay OUTBOARD of the shared wall. The
+          // generic avoidance keeps the bend within the port x-range, which for
+          // a same-wall pair pulls it to the INBOARD side — driving the landing
+          // segment straight through the target box to reach the far wall
+          // ("behind the target"). Only ever shift the channel further outboard.
+          bendX = clearBendXOutboard(baseX, from, to, obstacles, pad, fromDir === 'E' ? 1 : -1);
+        } else {
+          bendX = clearVerticalBend(baseX, from.y, to.y, from.x, to.x, obstacles, pad);
+          bendX = clearHorizontalSegments(bendX, from, to, obstacles, pad);
+        }
         const v1: Point = { x: bendX, y: from.y };
         const v2: Point = { x: bendX, y: to.y };
         const hhPoints: Point[] = [from, v1, v2, to];
 
-        // Verify the H+H route is clear; if not, try V+V with direction stubs
-        if (obstacles && countRouteCollisions(hhPoints, obstacles) > 0) {
+        // Verify the H+H route is clear; if not, try V+V with direction stubs.
+        // Skip the fallback for same-wall pairs: the outboard H+H route is the
+        // one that honours the wall hint without crossing the target, so we keep
+        // it even if it grazes other cells.
+        if (!sameWall && obstacles && countRouteCollisions(hhPoints, obstacles) > 0) {
           const vvRoute = buildVVRouteWithStubs(from, to, fromDir!, toDir!, obstacles, pad);
           if (countRouteCollisions(vvRoute, obstacles) < countRouteCollisions(hhPoints, obstacles)) {
             points = vvRoute;
@@ -147,20 +161,30 @@ class OrthogonalRouter implements Router {
         // Both vertical — bend at midY, shifted to avoid obstacles.
         // For a same-wall pair (both N or both S) push the connecting segment
         // OUTSIDE both ports so the route arcs over/under the nodes.
+        const sameWall = fromDir === toDir;
         const baseY =
-          fromDir === toDir
+          sameWall
             ? fromDir === 'S'
               ? Math.max(from.y, to.y) + STUB
               : Math.min(from.y, to.y) - STUB
             : midY;
-        let bendY = clearHorizontalBend(baseY, from.x, to.x, from.y, to.y, obstacles, pad);
-        bendY = clearVerticalSegments(bendY, from, to, obstacles, pad);
+        let bendY: number;
+        if (sameWall) {
+          // Same reasoning as the horizontal case: keep the connecting channel
+          // outboard of the shared wall so the landing segment never passes
+          // through the target box.
+          bendY = clearBendYOutboard(baseY, from, to, obstacles, pad, fromDir === 'S' ? 1 : -1);
+        } else {
+          bendY = clearHorizontalBend(baseY, from.x, to.x, from.y, to.y, obstacles, pad);
+          bendY = clearVerticalSegments(bendY, from, to, obstacles, pad);
+        }
         const v1: Point = { x: from.x, y: bendY };
         const v2: Point = { x: to.x,   y: bendY };
         const vvPoints: Point[] = [from, v1, v2, to];
 
-        // Verify the V+V route is clear; if not, try H+H with direction stubs
-        if (obstacles && countRouteCollisions(vvPoints, obstacles) > 0) {
+        // Verify the V+V route is clear; if not, try H+H with direction stubs.
+        // Same-wall pairs keep their outboard V+V route (see horizontal case).
+        if (!sameWall && obstacles && countRouteCollisions(vvPoints, obstacles) > 0) {
           const hhRoute = buildHHRouteWithStubs(from, to, fromDir!, toDir!, obstacles, pad);
           if (countRouteCollisions(hhRoute, obstacles) < countRouteCollisions(vvPoints, obstacles)) {
             points = hhRoute;
@@ -208,6 +232,90 @@ class OrthogonalRouter implements Router {
 
     return { points, path, labelPosition: { x: midX, y: midY } };
   }
+}
+
+/**
+ * Clear a same-wall vertical bend channel by shifting it ONLY further outboard
+ * (in `dir`: -1 = west, +1 = east). Unlike clearVerticalBend, this never pulls
+ * the channel back toward the ports — for a same-wall pair the inboard side is
+ * across the target box, so an inboard shift would route the landing segment
+ * "behind the target". The channel and both horizontal stubs are checked; on a
+ * hit the channel jumps past the obstacle's outboard edge.
+ */
+function clearBendXOutboard(
+  baseX: number,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  obstacles: ReadonlyArray<import('../contracts/index.js').Rect> | undefined,
+  pad: number,
+  dir: number,
+): number {
+  if (!obstacles || obstacles.length === 0) return baseX;
+  let x = baseX;
+  const yMin = Math.min(from.y, to.y);
+  const yMax = Math.max(from.y, to.y);
+  for (let pass = 0; pass < obstacles.length * 2 + 2; pass++) {
+    let moved = false;
+    for (const obs of obstacles) {
+      const oLeft   = obs.x - pad;
+      const oRight  = obs.x + obs.width + pad;
+      const oTop    = obs.y;
+      const oBottom = obs.y + obs.height;
+      const vHits = x > oLeft && x < oRight && yMax > oTop && yMin < oBottom;
+      const hHitTo   = segCrossesInterior({ x, y: to.y },   { x: to.x,   y: to.y   }, obs, pad);
+      const hHitFrom = segCrossesInterior({ x: from.x, y: from.y }, { x, y: from.y }, obs, pad);
+      if (vHits || hHitTo || hHitFrom) {
+        const edge = dir < 0 ? oLeft : oRight;
+        if ((dir < 0 && edge < x) || (dir > 0 && edge > x)) {
+          x = edge;
+          moved = true;
+          break;
+        }
+      }
+    }
+    if (!moved) break;
+  }
+  return x;
+}
+
+/**
+ * Vertical-wall analogue of clearBendXOutboard: shift a same-wall horizontal
+ * bend line only further outboard (dir: -1 = north, +1 = south).
+ */
+function clearBendYOutboard(
+  baseY: number,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  obstacles: ReadonlyArray<import('../contracts/index.js').Rect> | undefined,
+  pad: number,
+  dir: number,
+): number {
+  if (!obstacles || obstacles.length === 0) return baseY;
+  let y = baseY;
+  const xMin = Math.min(from.x, to.x);
+  const xMax = Math.max(from.x, to.x);
+  for (let pass = 0; pass < obstacles.length * 2 + 2; pass++) {
+    let moved = false;
+    for (const obs of obstacles) {
+      const oTop    = obs.y - pad;
+      const oBottom = obs.y + obs.height + pad;
+      const oLeft   = obs.x;
+      const oRight  = obs.x + obs.width;
+      const hHits = y > oTop && y < oBottom && xMax > oLeft && xMin < oRight;
+      const vHitTo   = segCrossesInterior({ x: to.x,   y },        { x: to.x,   y: to.y   }, obs, pad);
+      const vHitFrom = segCrossesInterior({ x: from.x, y: from.y }, { x: from.x, y },        obs, pad);
+      if (hHits || vHitTo || vHitFrom) {
+        const edge = dir < 0 ? oTop : oBottom;
+        if ((dir < 0 && edge < y) || (dir > 0 && edge > y)) {
+          y = edge;
+          moved = true;
+          break;
+        }
+      }
+    }
+    if (!moved) break;
+  }
+  return y;
 }
 
 /**

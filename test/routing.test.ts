@@ -54,6 +54,33 @@ describe('orthogonal router', () => {
     expect(r.points[1]!.y).toBe(100);
     expect(r.points[2]!.y).toBe(100);
   });
+
+  it('same-wall W→W keeps the bend outboard — never routes behind the target', () => {
+    // Source exits its west wall (x=300); target is entered on ITS west wall
+    // (x=50) down and to the left. An obstacle straddles the exit run, which
+    // used to push the connecting channel INBOARD (east of the target), driving
+    // the landing segment straight through the target box to reach the far wall.
+    const obstacles = [{ x: 20, y: -60, width: 260, height: 120 }];
+    const r = router.route({
+      from: { x: 300, y: 0 }, to: { x: 50, y: 200 },
+      style: 'orthogonal', fromDir: 'W', toDir: 'W', obstacles, padding: 8,
+    });
+    // The bend channel must stay outboard (west) of the target's west entry
+    // wall so the arrowhead approaches from the left, never crossing the box.
+    expect(r.points[1]!.x).toBeLessThanOrEqual(50);
+    expect(r.points[2]!.x).toBeLessThanOrEqual(50);
+  });
+
+  it('same-wall N→N keeps the bend outboard above both ports', () => {
+    // Both ports on north walls; the connecting channel must sit ABOVE both,
+    // never dipping between them where it would cross a box to reach the wall.
+    const r = router.route({
+      from: { x: 0, y: 200 }, to: { x: 200, y: 60 },
+      style: 'orthogonal', fromDir: 'N', toDir: 'N', obstacles: [], padding: 8,
+    });
+    expect(r.points[1]!.y).toBeLessThanOrEqual(60);
+    expect(r.points[2]!.y).toBeLessThanOrEqual(60);
+  });
 });
 
 describe('bezier router', () => {
