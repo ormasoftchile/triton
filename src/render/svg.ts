@@ -40,9 +40,10 @@ function renderElement(el: SceneElement, depth: number): string {
 
   switch (el.type) {
     case 'rect': {
-      const rx      = el.rx      != null ? ` rx="${el.rx}"` : '';
-      const opacity = el.opacity != null ? ` opacity="${el.opacity}"` : '';
-      return `${pad}<rect x="${el.bounds.x}" y="${el.bounds.y}" width="${el.bounds.width}" height="${el.bounds.height}" fill="${el.fill}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${rx}${opacity} />`;
+      const rx          = el.rx          != null ? ` rx="${el.rx}"` : '';
+      const fillOpacity = el.fillOpacity != null ? ` fill-opacity="${el.fillOpacity}"` : '';
+      const opacity     = el.opacity     != null ? ` opacity="${el.opacity}"` : '';
+      return `${pad}<rect x="${el.bounds.x}" y="${el.bounds.y}" width="${el.bounds.width}" height="${el.bounds.height}" fill="${el.fill}"${fillOpacity} stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${rx}${opacity} />`;
     }
 
     case 'circle': {

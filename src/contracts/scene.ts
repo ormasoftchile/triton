@@ -26,6 +26,7 @@ export interface SceneRect {
   readonly stroke: Color;
   readonly strokeWidth: number;
   readonly rx?: number;
+  readonly fillOpacity?: number;
   readonly opacity?: number;
 }
 

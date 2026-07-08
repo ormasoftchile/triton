@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { memory, layoutMemory } from '../src/diagrams/triton/ds/struct/memory.js';
 import { page, layoutPage } from '../src/diagrams/triton/ds/struct/page.js';
-import type { SceneText, TextAnchor } from '../src/contracts/index.js';
+import type { SceneRect, SceneText, TextAnchor } from '../src/contracts/index.js';
+import { renderSVG } from '../src/render/svg.js';
 import { measureText } from '../src/text/metrics.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
@@ -51,6 +52,46 @@ describe('memory', () => {
     expect(arrows.length).toBeGreaterThanOrEqual(1);
     // the object sits to the right of the var (cross-region)
     expect(anchors['obj']!.bounds.x).toBeGreaterThan(anchors['p']!.bounds.x);
+  });
+
+  it('uses theme-derived translucent fills for memory panels', () => {
+    const theme = {
+      ...defaultTheme,
+      palette: {
+        ...defaultTheme.palette,
+        surface: '#123456',
+        border: '#654321',
+        primary: '#abcdef',
+      },
+    };
+    const ir = memory.parseMermaid([
+      'memory',
+      '  region STACK',
+      '    var p -> obj',
+      '  region HEAP',
+      '    object obj : Point : x=1',
+      '',
+    ].join('\n'));
+    const { scene } = layoutMemory(ir, theme);
+    const rects = scene.elements.filter((e): e is SceneRect => e.type === 'rect');
+    const [regionRect, varRect, , objectRect] = rects;
+
+    expect(regionRect!.fill).toBe(theme.palette.surface);
+    expect(regionRect!.fill).not.toBe('#fbfbfd');
+    expect(regionRect!.stroke).toBe(theme.palette.border);
+    expect(regionRect!.fillOpacity).toBe(0.26);
+
+    expect(varRect!.fill).toBe(theme.palette.surface);
+    expect(varRect!.stroke).toBe(theme.palette.border);
+    expect(varRect!.fillOpacity).toBeGreaterThan(regionRect!.fillOpacity!);
+
+    expect(objectRect!.fill).toBe(theme.palette.surface);
+    expect(objectRect!.stroke).toBe(theme.palette.primary);
+    expect(objectRect!.fillOpacity).toBeGreaterThan(regionRect!.fillOpacity!);
+
+    const svg = renderSVG(scene);
+    expect(svg).toContain('fill="#123456" fill-opacity="0.26"');
+    expect(svg).not.toContain('#fbfbfd');
   });
 
   it('expands the viewBox to include a wide quoted region label', () => {
