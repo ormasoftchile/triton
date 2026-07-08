@@ -1,0 +1,17 @@
+linkedlist
+%% ────────────────────────────────────────────────────────────────────────────
+%% LINKEDLIST — syntax quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header/items:
+%%   linkedlist <v1> <v2> …        (inline form)
+%%   values <v1> <v2> …            (block form)
+%%   nodes <v1> <v2> …             (alias for values)
+%%   bare value lines are appended as node values
+%% Options:  title <text>
+%% Labels:   node values may be quoted, e.g. "multi word", in linkedlist/values/nodes/bare lines.
+%% Anchors:  n0 · n1 · … nn  (list nodes, 0-based)
+%% Demo:     quoted multi-word node labels widen list nodes intact.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title quoted linked list label
+  values "cache line head" "worker node" tail

@@ -1,0 +1,18 @@
+deque
+%% ────────────────────────────────────────────────────────────────────────────
+%% DEQUE — syntax quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header/items:
+%%   deque                         (block form; directives below)
+%%   deque <v1> <v2> …             (inline form)
+%%   cells <v1> <v2> …             (block form)
+%%   items <v1> <v2> …             (alias for cells)
+%% Options:  title <text>
+%% Axis:     axis horizontal (default) · axis vertical
+%% Anchors:  c0 · c1 · … cn  (cells, 0-based)
+%% Demo:     vertical double-ended queue with push/pop at both ends.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title vertical work deque
+  cells steal split run done
+  axis vertical
