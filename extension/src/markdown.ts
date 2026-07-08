@@ -116,6 +116,7 @@ export function renderFencedBlock(
   rawBody: string,
   baseDir: string | undefined,
   theme?: ThemeInput,
+  forcedThemeName?: string,
 ): string {
   let source = rawBody;
 
@@ -126,7 +127,7 @@ export function renderFencedBlock(
     source = read.text;
   }
 
-  const result = renderSync(source, theme);
+  const result = renderSync(source, theme, 'svg', forcedThemeName);
   if (result.ok) return svgContainer(result.value);
   return errorBlock(`[${result.error.code}] ${result.error.message}`);
 }

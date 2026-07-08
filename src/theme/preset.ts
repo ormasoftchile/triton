@@ -309,6 +309,9 @@ export const THEMES: Readonly<Record<string, ResolvedTheme>> = {
   showcase:          showcaseTheme,
 };
 
+/** Ordered names of every built-in theme preset. */
+export const themePresetNames = Object.freeze(Object.keys(THEMES)) as readonly string[];
+
 /** Resolve a theme preset by name, falling back to the default theme. */
 export function getThemePreset(name?: string): ResolvedTheme {
   return (name !== undefined && THEMES[name]) || defaultTheme;
