@@ -21,6 +21,7 @@ import { pen } from '../../../../scene/build.js';
 import { buildStrip, type StripCell } from '../../../../scene/strip.js';
 import { measureText } from '../../../../text/metrics.js';
 import { rhu } from '../../../../util/round.js';
+import { finalizeStripScene, parseAxisToken, pointerToSlot, type StripOrientation } from '../queue/shared.js';
 import { ARROW_ID, arrowDef, lines } from '../struct/shared.js';
 
 export interface StackDoc {
@@ -28,12 +29,14 @@ export interface StackDoc {
   /** Push order — the last element is the top of the stack. */
   cells: string[];
   capacity?: number;
+  axis?: StripOrientation;
 }
 
 function parse(input: string): StackDoc {
   let title: string | undefined;
   let cells: string[] = [];
   let capacity: number | undefined;
+  let axis: StripOrientation = 'vertical';
 
   for (const line of lines(input)) {
     const t = line.split(/\s+/);
@@ -41,8 +44,9 @@ function parse(input: string): StackDoc {
     if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
     if (t[0] === 'cells' || t[0] === 'items') { cells = t.slice(1); continue; }
     if (t[0] === 'capacity') { const n = Number(t[1]); if (Number.isFinite(n)) capacity = n; continue; }
+    if (t[0] === 'axis') { axis = parseAxisToken(t[1], axis); continue; }
   }
-  return { ...(title !== undefined ? { title } : {}), cells, ...(capacity !== undefined ? { capacity } : {}) };
+  return { ...(title !== undefined ? { title } : {}), cells, ...(capacity !== undefined ? { capacity } : {}), axis };
 }
 
 export function layoutStack(doc: StackDoc, theme: ResolvedTheme): LayoutResult {
@@ -55,11 +59,15 @@ export function layoutStack(doc: StackDoc, theme: ResolvedTheme): LayoutResult {
   const total = Math.max(filled, doc.capacity ?? filled, 1);
   const empty = total - filled;
   const cellW = Math.max(64, ...doc.cells.map(c => measureText(c, font).width + 28));
+  const axis: StripOrientation = doc.axis === 'horizontal' ? 'horizontal' : 'vertical';
+  const horizontal = axis === 'horizontal';
 
   const titleH = doc.title ? typography.titleFontSize + 14 : 0;
   const topH = font + 18;                  // room for the push / pop caption
   const sideGap = 64;                      // room for the `top` pointer on the left
-  const origin = { x: margin + sideGap, y: margin + titleH + topH };
+  const origin = horizontal
+    ? { x: margin, y: margin + titleH + topH }
+    : { x: margin + sideGap, y: margin + titleH + topH };
 
   // Top-of-stack drawn at the top: empty slots first, then filled cells in
   // reverse push order (last pushed is topmost).
@@ -71,7 +79,7 @@ export function layoutStack(doc: StackDoc, theme: ResolvedTheme): LayoutResult {
     v !== null ? { label: v } : { fill: palette.background }
   ));
   const strip = buildStrip(p, theme, cellInputs, {
-    origin, cellWidth: cellW, cellHeight: cellH, orientation: 'vertical',
+    origin, cellWidth: cellW, cellHeight: cellH, orientation: axis,
   });
 
   const elements: SceneElement[] = [...strip.elements];
@@ -79,30 +87,28 @@ export function layoutStack(doc: StackDoc, theme: ResolvedTheme): LayoutResult {
     elements.push(p.text(doc.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
   }
 
-  // push / pop both act at the top edge
-  const cx = origin.x + cellW / 2;
-  elements.push(p.text('push / pop', cx, origin.y - 9, font, palette.primary, { anchor: 'middle', weight: 'bold' }));
-  elements.push(p.path(`M ${rhu(cx)} ${rhu(origin.y - topH + 8)} L ${rhu(cx)} ${rhu(origin.y)}`, palette.primary, 1.5, { markerEnd: ARROW_ID }));
+  const topSlot = filled > 0 ? strip.slots[empty]! : strip.slots[0];
+  const actionX = topSlot ? topSlot.x + topSlot.width / 2 : origin.x + cellW / 2;
+  elements.push(p.text('push / pop', actionX, origin.y - 9, font, palette.primary, { anchor: 'middle', weight: 'bold' }));
+  elements.push(p.path(`M ${rhu(actionX)} ${rhu(origin.y - topH + 8)} L ${rhu(actionX)} ${rhu(origin.y)}`, palette.primary, 1.5, { markerEnd: ARROW_ID }));
 
-  // `top` pointer — points into the top-of-stack cell from the left
+  // `top` pointer — points into the top-of-stack cell
   if (filled > 0) {
-    const topSlot = strip.slots[empty]!;
-    const cyTop = topSlot.y + topSlot.height / 2;
-    elements.push(p.path(`M ${rhu(origin.x - sideGap + 8)} ${rhu(cyTop)} L ${rhu(origin.x)} ${rhu(cyTop)}`, palette.secondary, 1.5, { markerEnd: ARROW_ID }));
-    elements.push(p.text('top', origin.x - sideGap + 6, cyTop - 6, font, palette.secondary, { anchor: 'start', weight: 'bold' }));
+    if (horizontal) {
+      const top = pointerToSlot(p, theme, topSlot!, 'top', palette.secondary, 'bottom', 0);
+      elements.push(...top.elements);
+    } else {
+      const cyTop = topSlot!.y + topSlot!.height / 2;
+      elements.push(p.path(`M ${rhu(origin.x - sideGap + 8)} ${rhu(cyTop)} L ${rhu(origin.x)} ${rhu(cyTop)}`, palette.secondary, 1.5, { markerEnd: ARROW_ID }));
+      elements.push(p.text('top', origin.x - sideGap + 6, cyTop - 6, font, palette.secondary, { anchor: 'start', weight: 'bold' }));
+    }
   }
 
   const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
   strip.slots.forEach((slot, i) => { anchors[`c${i}`] = { bounds: slot }; });
 
-  const bottom = origin.y + total * cellH;
-  const scene: Scene = {
-    viewBox: { x: 0, y: 0, width: origin.x + cellW + margin, height: bottom + margin },
-    background: palette.background,
-    elements,
-    defs: [arrowDef(palette.primary)],
-  };
-  return { scene, anchors: anchors as NodeAnchorRegistry };
+  const finalized = finalizeStripScene(elements, anchors, theme, [arrowDef(palette.primary)]);
+  return { scene: finalized.scene, anchors: finalized.anchors as NodeAnchorRegistry };
 }
 
 export const stack: DiagramModule<StackDoc & { version: string; metadata: Record<string, unknown> }> = {
