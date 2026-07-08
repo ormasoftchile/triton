@@ -84,4 +84,47 @@ describe('flowchart grammar', () => {
     expect(r.flow.edges).toHaveLength(200);
     expect(elapsed).toBeLessThan(50);
   });
+
+  it('parses an edge wall hint: @orthogonal:EW', () => {
+    const r = parse(`flowchart TD\nA[Start] --> B[Middle]\nB --> C[End] @orthogonal:EW\n`);
+    expect(r.flow.edges).toHaveLength(2);
+    const hinted = r.flow.edges[1]!;
+    expect(hinted.routing).toBe('orthogonal');
+    expect(hinted.exitWall).toBe('E');
+    expect(hinted.entryWall).toBe('W');
+    // Un-hinted edges carry no routing/wall fields.
+    expect(r.flow.edges[0]!.routing).toBeUndefined();
+    expect(r.flow.edges[0]!.exitWall).toBeUndefined();
+    expect(r.flow.edges[0]!.entryWall).toBeUndefined();
+  });
+
+  it('parses routing-style hints for every style: straight, bezier, polyline', () => {
+    const r = parse(
+      `flowchart TD\nA --> B @straight\nB --> C @bezier\nC --> D @polyline\nD --> E @orthogonal\n`,
+    );
+    expect(r.flow.edges.map((e: any) => e.routing)).toEqual([
+      'straight',
+      'bezier',
+      'polyline',
+      'orthogonal',
+    ]);
+  });
+
+  it('parses a routing style combined with a wall pair: @straight:EN', () => {
+    const r = parse(`flowchart LR\nA --> B\nB --> C @straight:EN\n`);
+    const hinted = r.flow.edges[1]!;
+    expect(hinted.routing).toBe('straight');
+    expect(hinted.exitWall).toBe('E');
+    expect(hinted.entryWall).toBe('N');
+  });
+
+  it('parses a single-wall exit hint and a routing-word-only hint', () => {
+    const r = parse(`flowchart TD\nA[Start] --> B[Middle] @orthogonal:S\nB --> C[End] @straight\n`);
+    expect(r.flow.edges[0]!.exitWall).toBe('S');
+    expect(r.flow.edges[0]!.entryWall).toBeUndefined();
+    // A routing word with no wall pair sets routing but leaves walls unset.
+    expect(r.flow.edges[1]!.routing).toBe('straight');
+    expect(r.flow.edges[1]!.exitWall).toBeUndefined();
+    expect(r.flow.edges[1]!.entryWall).toBeUndefined();
+  });
 });

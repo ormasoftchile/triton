@@ -1,7 +1,7 @@
 import type { FlowDocument, FlowNode, FlowEdge, FlowDirection } from './ir.js';
 import type { Scene, SceneElement, Rect, Point, LayoutResult, NodeAnchorRegistry, NodeAnchor, OccupiedPort, LayoutOptions } from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
-import type { CardinalSide } from '../../../contracts/index.js';
+import type { CardinalSide, RouteStyle } from '../../../contracts/index.js';
 import { getRouter } from '../../../routing/registry.js';
 import { defaultRouter } from '../../../routing/router.js';
 import { applyOverlays } from '../../../overlay/apply.js';
@@ -117,11 +117,16 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
       continue;
     }
 
-    // Forward edge — UNCHANGED orthogonal route (preserves byte-identical output).
-    const fromAnchor = edgeAnchor(fromRect, ir.direction, 'exit',  toRect);
-    const toAnchor   = edgeAnchor(toRect,   ir.direction, 'enter', fromRect);
+    // Forward edge — default orthogonal route; an @route hint may override the
+    // routing style (straight | bezier | polyline) and/or the exit/entry walls.
+    const fromAnchor = edge.exitWall
+      ? wallAnchor(fromRect, edge.exitWall)
+      : edgeAnchor(fromRect, ir.direction, 'exit',  toRect);
+    const toAnchor   = edge.entryWall
+      ? wallAnchor(toRect, edge.entryWall)
+      : edgeAnchor(toRect,   ir.direction, 'enter', fromRect);
 
-    const style = 'orthogonal';
+    const style: RouteStyle = edge.routing ?? 'orthogonal';
     const router = getRouter(style) ?? defaultRouter;
     const route = router.route({
       from: fromAnchor.point,
@@ -566,6 +571,22 @@ function renderNodeShape(node: FlowNode, r: Rect, fill: string, stroke: string, 
  * we exit/enter from the perpendicular side closest to the peer.
  */
 type AnchorResult = { point: Point; portDir: import('../../../contracts/index.js').PortDirection };
+
+/**
+ * Anchor on an explicitly requested wall (from a wall hint). Overrides the
+ * auto-derivation in `edgeAnchor` — the port sits at the midpoint of the named
+ * side with the matching port direction.
+ */
+function wallAnchor(r: Rect, wall: import('../../../contracts/index.js').CardinalSide): AnchorResult {
+  const cx = r.x + r.width  / 2;
+  const cy = r.y + r.height / 2;
+  switch (wall) {
+    case 'N': return { point: { x: cx,             y: r.y             }, portDir: 'N' };
+    case 'S': return { point: { x: cx,             y: r.y + r.height  }, portDir: 'S' };
+    case 'E': return { point: { x: r.x + r.width,  y: cy              }, portDir: 'E' };
+    case 'W': return { point: { x: r.x,            y: cy              }, portDir: 'W' };
+  }
+}
 
 function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: Rect): AnchorResult {
   const cx = r.x + r.width  / 2;
