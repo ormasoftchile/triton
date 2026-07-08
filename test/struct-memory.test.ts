@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { memory, layoutMemory } from '../src/diagrams/triton/ds/struct/memory.js';
 import { page, layoutPage } from '../src/diagrams/triton/ds/struct/page.js';
+import type { SceneText, TextAnchor } from '../src/contracts/index.js';
+import { measureText } from '../src/text/metrics.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
 describe('memory', () => {
@@ -24,6 +26,21 @@ describe('memory', () => {
     expect((obj as { fields: unknown[] }).fields).toEqual([{ k: 'x', v: '1' }, { k: 'y', v: '2' }]);
   });
 
+  it('parses quoted multi-word labels without changing bare labels', () => {
+    const ir = memory.parseMermaid([
+      'memory',
+      '  region "Stack Frame"',
+      '    var "head pointer" -> obj',
+      '  region HEAP',
+      '    object obj : "Point Record" : x=1',
+      '',
+    ].join('\n'));
+    expect(ir.regions[0]!.name).toBe('Stack Frame');
+    expect(ir.regions[0]!.items[0]).toEqual({ kind: 'var', name: 'head pointer', target: 'obj' });
+    expect(ir.regions[1]!.name).toBe('HEAP');
+    expect(ir.regions[1]!.items[0]).toMatchObject({ kind: 'object', id: 'obj', title: 'Point Record' });
+  });
+
   it('anchors the var and the object, and draws a cross-region pointer', () => {
     const ir = memory.parseMermaid(src);
     const { scene, anchors } = layoutMemory(ir, defaultTheme);
@@ -35,6 +52,17 @@ describe('memory', () => {
     // the object sits to the right of the var (cross-region)
     expect(anchors['obj']!.bounds.x).toBeGreaterThan(anchors['p']!.bounds.x);
   });
+
+  it('expands the viewBox to include a wide quoted region label', () => {
+    const wide = 'Stack frame region label wide enough to grow the memory box';
+    const ir = memory.parseMermaid(`memory\n  region "${wide}"\n    var p\n`);
+    const { scene } = layoutMemory(ir, defaultTheme);
+    const label = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === wide);
+    expect(label).toBeDefined();
+    const bounds = textBounds(label!);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(scene.viewBox.width);
+  });
 });
 
 describe('page', () => {
@@ -42,6 +70,11 @@ describe('page', () => {
     const ir = page.parseMermaid('page\n  title heap page\n  slots 3\n  tuples (10,Ann) (40,Bob) (50,Cy)\n');
     expect(ir.slots).toBe(3);
     expect(ir.tuples).toHaveLength(3);
+  });
+
+  it('parses quoted multi-word tuple labels without changing bare labels', () => {
+    const ir = page.parseMermaid('page\n  tuples "(10,Ann Smith)" (40,Bob)\n');
+    expect(ir.tuples).toEqual(['(10,Ann Smith)', '(40,Bob)']);
   });
 
   it('defaults slot count to tuple count', () => {
@@ -60,4 +93,30 @@ describe('page', () => {
     const arrows = scene.elements.filter(e => e.type === 'path' && e.markerEnd != null);
     expect(arrows).toHaveLength(3);
   });
+
+  it('expands the viewBox to include a wide quoted tuple label', () => {
+    const wide = '(10,Alice Smith with a tuple payload wide enough to expand the page)';
+    const ir = page.parseMermaid(`page\n  slots 1\n  tuples "${wide}"\n`);
+    const { scene } = layoutPage(ir, defaultTheme);
+    const label = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === wide);
+    expect(label).toBeDefined();
+    const bounds = textBounds(label!);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(scene.viewBox.width);
+  });
 });
+
+function textBounds(text: {
+  content: string;
+  position: { x: number; y: number };
+  fontSize: number;
+  anchor?: TextAnchor;
+}): { x: number; width: number } {
+  const width = measureText(text.content, text.fontSize).width;
+  const x = text.anchor === 'middle'
+    ? text.position.x - width / 2
+    : text.anchor === 'end'
+      ? text.position.x - width
+      : text.position.x;
+  return { x, width };
+}

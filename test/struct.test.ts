@@ -175,11 +175,27 @@ describe('linkedlist', () => {
     expect(linkedlist.parseMermaid('linkedlist\n  title q\n  3 7 9\n').values).toEqual(['3', '7', '9']);
   });
 
+  it('parses quoted multi-word node labels without changing bare labels', () => {
+    expect(linkedlist.parseMermaid('linkedlist "alpha beta" gamma').values).toEqual(['alpha beta', 'gamma']);
+    expect(linkedlist.parseMermaid('linkedlist\n  nodes bare "two words"\n').values).toEqual(['bare', 'two words']);
+  });
+
   it('renders one node anchor per value', () => {
     const ir = linkedlist.parseMermaid('linkedlist 3 7 9 12');
     const { scene, anchors } = layoutList(ir, defaultTheme);
     expect(Object.keys(anchors)).toEqual(['n0', 'n1', 'n2', 'n3']);
     expect(scene.elements.length).toBeGreaterThan(0);
+  });
+
+  it('expands the viewBox to include a wide quoted node label', () => {
+    const wide = 'node label with enough words to widen the linked list cell';
+    const ir = linkedlist.parseMermaid(`linkedlist "${wide}"`);
+    const { scene } = layoutList(ir, defaultTheme);
+    const label = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === wide);
+    expect(label).toBeDefined();
+    const bounds = textBounds(label!);
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(scene.viewBox.width);
   });
 
   it('handles an empty list', () => {

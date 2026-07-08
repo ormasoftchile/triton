@@ -17,7 +17,7 @@ import type {
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { rhu } from '../../../../util/round.js';
-import { ARROW_ID, arrowDef, lines } from './shared.js';
+import { ARROW_ID, arrowDef, lines, tokenizeDirective } from './shared.js';
 
 interface PageDoc { title?: string; slots?: number; tuples: string[]; }
 
@@ -26,9 +26,9 @@ function parse(input: string): PageDoc {
   let slots: number | undefined;
   const tuples: string[] = [];
   for (const line of lines(input)) {
-    const t = line.split(/\s+/);
+    const t = tokenizeDirective(line);
     if (t[0] === 'page') continue;
-    if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
+    if (t[0] === 'title') { title = t.slice(1).join(' '); continue; }
     if (t[0] === 'slots') { slots = Number(t[1]); continue; }
     if (t[0] === 'tuples') { tuples.push(...t.slice(1)); continue; }
   }
