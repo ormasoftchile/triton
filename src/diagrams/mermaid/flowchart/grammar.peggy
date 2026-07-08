@@ -55,8 +55,14 @@
     return id;
   }
 
-  function addEdge(from, to, label, kind, style) {
-    edges.push({ from, to, label: label || undefined, kind: kind || 'sync', style: style || 'solid' });
+  function addEdge(from, to, label, kind, style, ann) {
+    const e = { from, to, label: label || undefined, kind: kind || 'sync', style: style || 'solid' };
+    if (ann) {
+      if (ann.routing)   e.routing   = ann.routing;
+      if (ann.exitWall)  e.exitWall  = ann.exitWall;
+      if (ann.entryWall) e.entryWall = ann.entryWall;
+    }
+    edges.push(e);
   }
 
   function reset() {
@@ -133,10 +139,10 @@ SubgraphLabel
 // ─── Edge Chains ──────────────────────────────────────────────────────────────
 
 EdgeChain
-  = head:NodeRef rest:(_ edge:EdgeOp _ target:NodeRef { return { edge, target }; })+ {
+  = head:NodeRef rest:(_ edge:EdgeOp _ target:NodeRef ann:(_ "@" RouteAnnotation)? { return { edge, target, ann: ann ? ann[2] : null }; })+ {
       let prev = head;
-      for (const { edge, target } of rest) {
-        addEdge(prev.id, target.id, edge.label, edge.kind, edge.style);
+      for (const { edge, target, ann } of rest) {
+        addEdge(prev.id, target.id, edge.label, edge.kind, edge.style, ann);
         prev = target;
       }
       return { type: 'chain' };
@@ -163,6 +169,27 @@ EdgeArrow
   / "-.-"   { return { kind: 'async', style: 'dotted' }; }
   / "---"   { return { kind: 'sync',  style: 'solid'  }; }
   / "==="   { return { kind: 'sync',  style: 'solid'  }; }
+
+// ─── Route Annotations (wall hints) ───────────────────────────────────────────
+// Attach a routing/wall hint to an edge, e.g. A -->|label| B @orthogonal:EW
+// EW = exit East wall of A, enter West wall of B.
+
+RouteAnnotation
+  = route:RouteWord walls:(":" WallPair)? { return { routing: route, ...(walls ? walls[1] : {}) }; }
+  / walls:WallPair { return walls; }
+
+RouteWord
+  = "straight"   { return 'straight'; }
+  / "orthogonal" { return 'orthogonal'; }
+  / "bezier"     { return 'bezier'; }
+  / "polyline"   { return 'polyline'; }
+
+WallPair
+  = exit:Wall entry:Wall { return { exitWall: exit, entryWall: entry }; }
+  / exit:Wall            { return { exitWall: exit }; }
+
+Wall
+  = w:("N" / "S" / "E" / "W") { return w; }
 
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 

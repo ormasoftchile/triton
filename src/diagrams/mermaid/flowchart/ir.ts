@@ -1,4 +1,4 @@
-import type { BaseIR } from '../../../contracts/index.js';
+import type { BaseIR, CardinalSide, RouteStyle } from '../../../contracts/index.js';
 
 export type NodeShape =
   | 'rect' | 'rounded-rect' | 'circle' | 'diamond' | 'stadium'
@@ -25,6 +25,12 @@ export interface FlowEdge {
   readonly kind: EdgeKind;
   readonly style: EdgeStyle;
   readonly bidirectional?: boolean;
+  /** Optional routing style hint (straight | orthogonal | bezier | polyline). */
+  readonly routing?: RouteStyle;
+  /** Optional wall hint: force the edge to exit `from` on this side. */
+  readonly exitWall?: CardinalSide;
+  /** Optional wall hint: force the edge to enter `to` on this side. */
+  readonly entryWall?: CardinalSide;
 }
 
 export interface FlowSubgraph {
