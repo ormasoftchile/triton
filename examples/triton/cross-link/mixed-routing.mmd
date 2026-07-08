@@ -38,4 +38,3 @@ poster "Mixed Routing Styles"
   link STORE.replica --> API.cache "feeds cache" @bezier
   link AUTH.oauth -.-> STORE.pg "stores grants" @straight
 
-  trace "Request Lifecycle" : calls AUTH.login --> AUTH.oauth --> AUTH.tokens --> AUTH.session --> API.gw --> API.rate --> API.dispatch --> WORKER.queue --> WORKER.exec --> STORE.pg

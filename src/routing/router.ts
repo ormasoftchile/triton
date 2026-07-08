@@ -77,14 +77,32 @@ class OrthogonalRouter implements Router {
     const midX = (from.x + to.x) / 2;
     const midY = (from.y + to.y) / 2;
     const pad = padding ?? 12;
+    // Minimum straight "landing" run before an arrowhead / after an exit port,
+    // so a same-wall detour never places the arrowhead directly on a bend.
+    const STUB = Math.max(pad, 20);
 
-    // Already aligned on one axis — straight line
-    if (Math.abs(dx) < 1 || Math.abs(dy) < 1) {
-      return {
-        points: [from, to],
-        path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
-        labelPosition: { x: midX, y: midY },
-      };
+    // Already aligned on one axis — straight line. But only shortcut when the
+    // straight direction is COMPATIBLE with the requested port walls: a flat
+    // (dy≈0) line must exit/enter horizontal walls, a vertical (dx≈0) line must
+    // exit/enter vertical walls. Otherwise a same-wall pair (e.g. N→N between
+    // equal-height nodes) would collapse into a line that leaves sideways,
+    // violating the wall hint — fall through to the direction-aware routing.
+    const straightH = Math.abs(dy) < 1;   // horizontal straight line
+    const straightV = Math.abs(dx) < 1;   // vertical straight line
+    if (straightH || straightV) {
+      const dirsOk =
+        !fromDir || !toDir
+          ? true
+          : straightH
+            ? (fromDir === 'E' || fromDir === 'W') && (toDir === 'E' || toDir === 'W')
+            : (fromDir === 'N' || fromDir === 'S') && (toDir === 'N' || toDir === 'S');
+      if (dirsOk) {
+        return {
+          points: [from, to],
+          path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
+          labelPosition: { x: midX, y: midY },
+        };
+      }
     }
 
     // With port direction hints, route so the first segment leaves in
@@ -97,8 +115,17 @@ class OrthogonalRouter implements Router {
       let path: string;
 
       if (exitH && entryH) {
-        // Both horizontal — bend at midX, shifted to avoid obstacles
-        let bendX = clearVerticalBend(midX, from.y, to.y, from.x, to.x, obstacles, pad);
+        // Both horizontal — bend at midX, shifted to avoid obstacles.
+        // For a same-wall pair (both E or both W) the two stubs point the same
+        // way, so the connecting segment must sit OUTSIDE both ports, otherwise
+        // the route collapses back onto the wall.
+        const baseX =
+          fromDir === toDir
+            ? fromDir === 'E'
+              ? Math.max(from.x, to.x) + STUB
+              : Math.min(from.x, to.x) - STUB
+            : midX;
+        let bendX = clearVerticalBend(baseX, from.y, to.y, from.x, to.x, obstacles, pad);
         bendX = clearHorizontalSegments(bendX, from, to, obstacles, pad);
         const v1: Point = { x: bendX, y: from.y };
         const v2: Point = { x: bendX, y: to.y };
@@ -117,8 +144,16 @@ class OrthogonalRouter implements Router {
         }
         path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
       } else if (!exitH && !entryH) {
-        // Both vertical — bend at midY, shifted to avoid obstacles
-        let bendY = clearHorizontalBend(midY, from.x, to.x, from.y, to.y, obstacles, pad);
+        // Both vertical — bend at midY, shifted to avoid obstacles.
+        // For a same-wall pair (both N or both S) push the connecting segment
+        // OUTSIDE both ports so the route arcs over/under the nodes.
+        const baseY =
+          fromDir === toDir
+            ? fromDir === 'S'
+              ? Math.max(from.y, to.y) + STUB
+              : Math.min(from.y, to.y) - STUB
+            : midY;
+        let bendY = clearHorizontalBend(baseY, from.x, to.x, from.y, to.y, obstacles, pad);
         bendY = clearVerticalSegments(bendY, from, to, obstacles, pad);
         const v1: Point = { x: from.x, y: bendY };
         const v2: Point = { x: to.x,   y: bendY };

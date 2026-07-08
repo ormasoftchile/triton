@@ -28,7 +28,7 @@
 
 import { build, context } from 'esbuild';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync, watch as fsWatch } from 'node:fs';
 import { dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -146,7 +146,27 @@ if (watch) {
   await ctx.rebuild();
   console.log('✓ bundled extension/dist/extension.cjs');
   await ctx.watch();
-  console.log('› watching for changes…');
+
+  // esbuild only watches files in the IMPORT GRAPH — `grammar.peggy` files are
+  // NOT imported (only their generated `parser.js` is). Without this, editing a
+  // grammar never regenerates the parser, and the debug instance silently runs a
+  // stale parser (the classic "wall syntax doesn't parse" bug). Watch the .peggy
+  // sources ourselves: regenerate parsers on change, then re-bundle so the
+  // extension host picks it up on the next reload — zero manual steps.
+  const diagramsDir = join(repoRoot, 'src', 'diagrams');
+  let pending = null;
+  fsWatch(diagramsDir, { recursive: true }, (_evt, filename) => {
+    if (!filename || !filename.endsWith('.peggy')) return;
+    clearTimeout(pending);
+    pending = setTimeout(async () => {
+      console.log(`› grammar changed (${filename}) — regenerating parsers…`);
+      ensureGrammars();          // rewrites the stale parser.js
+      await ctx.rebuild();       // re-inline the fresh parser into the bundle
+      console.log('✓ re-bundled extension/dist/extension.cjs (grammar update) — reload the debug window');
+    }, 150);
+  });
+
+  console.log('› watching for changes (incl. grammar.peggy)…');
 } else {
   await build(options);
   console.log('✓ bundled extension/dist/extension.cjs');

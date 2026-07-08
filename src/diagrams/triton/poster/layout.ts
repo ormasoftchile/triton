@@ -196,7 +196,6 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
 
   // ─── Cross-Link Resolution & Rendering ──────────────────────────────────
   const links  = ir.links  ?? [];
-  const traces = ir.traces ?? [];
 
   // Start with the grid dimensions; cross-link rendering may expand these.
   let finalW = totalW;
@@ -212,7 +211,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     });
 
     if (USE_ENGINE_V3) {
-      const result = routeAndRenderCrossLinks3(posterLinks, traces, theme, mergedAnchors, allOccupiedPorts, textOccupied, cellBorders, cellRects);
+      const result = routeAndRenderCrossLinks3(posterLinks, theme, mergedAnchors, allOccupiedPorts, textOccupied, cellBorders, cellRects);
       linkDefs     = result.defs;
       linkElements = result.elements;
     } else {
@@ -221,7 +220,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
         console.warn(`[poster:crosslink] Link ${diag.linkIndex}: ${diag.message}`);
       }
       if (resolved.length > 0) {
-        const result = renderCrossLinks(resolved, traces, theme, mergedAnchors, textOccupied, cellBorders, cellRects);
+        const result = renderCrossLinks(resolved, theme, mergedAnchors, textOccupied, cellBorders, cellRects);
         linkDefs     = result.defs;
         linkElements = result.elements;
       } else {

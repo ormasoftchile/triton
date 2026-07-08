@@ -31,7 +31,6 @@
 {{
   const cells = [];
   const links = [];
-  const traces = [];
   let cellCounter = 0;
 
   function slugify(text) {
@@ -49,15 +48,9 @@
     links.push({ from, ...arrow, to, label: label || undefined, ...(props ? props : {}) });
   }
 
-  function addTrace(name, type, hops, color) {
-    const id = slugify(name) || `trace-${traces.length + 1}`;
-    traces.push({ id, name, type: type || undefined, hops, color: color || undefined });
-  }
-
   function reset() {
     cells.length = 0;
     links.length = 0;
-    traces.length = 0;
     cellCounter = 0;
   }
 }}
@@ -75,7 +68,6 @@ Document
         grid: { columns: parseInt(columns, 10) },
         cells,
         ...(links.length > 0 ? { links } : {}),
-        ...(traces.length > 0 ? { traces } : {}),
       };
     }
 
@@ -96,7 +88,7 @@ GridDirective
   = _ key:("columns" / "rows" / "gap") __ value:$[^\n]+ NL { return { key, value: value.trim() }; }
 
 BodyItems
-  = items:(CellBlock / LinkDecl / TraceDecl / BlankLine)* { return items.filter(Boolean); }
+  = items:(CellBlock / LinkDecl / BlankLine)* { return items.filter(Boolean); }
 
 CellBlock
   = _ "cell" ids:CellIdTitle span:CellSpan? explicitKind:(_ "::" _ kind:CellKind { return kind; })? theme:(_ "@theme" __ t:Identifier { return t; })? _ NL
@@ -124,7 +116,7 @@ CellKind
 LinkDecl
   = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef label:(_ QuotedString)? ann:(_ "@" RouteAnnotation)? block:(_ PropBlock)? _ NL {
       const result = {};
-      if (ann) result.routing = ann[2];
+      if (ann) Object.assign(result, ann[2]);
       if (block) {
         const b = block[1];
         // Map { route: X } → routing field
@@ -143,10 +135,24 @@ LinkDecl
 // ─── Annotations & Properties ────────────────────────────────────────────────
 
 RouteAnnotation
+  = route:RouteWord walls:(":" WallPair)? {
+      return { routing: route, ...(walls ? walls[1] : {}) };
+    }
+  / walls:WallPair { return walls; }
+
+RouteWord
   = "straight"   { return 'straight'; }
   / "orthogonal" { return 'orthogonal'; }
   / "bezier"     { return 'bezier'; }
   / "polyline"   { return 'polyline'; }
+
+// Wall hints: EXIT ENTRY as two cardinal letters (e.g. EW = exit E, enter W).
+WallPair
+  = exit:Wall entry:Wall { return { exitWall: exit, entryWall: entry }; }
+  / exit:Wall            { return { exitWall: exit }; }
+
+Wall
+  = w:("N" / "S" / "E" / "W") { return w; }
 
 PropBlock
   = "{" _ first:PropEntry rest:(_ "," _ PropEntry)* _ "}" {
@@ -163,22 +169,6 @@ PropValue
   = num:$([0-9]+ ("." [0-9]+)?) { return parseFloat(num); }
   / QuotedString
   / Identifier
-
-// ─── Trace Declarations ──────────────────────────────────────────────────────
-
-TraceDecl
-  = _ "trace" __ name:QuotedString type:(_ ":" _ TraceType)? color:(_ "color" _ QuotedString)? __ hops:HopList _ NL {
-      addTrace(name, type ? type[3] : null, hops, color ? color[3] : null);
-      return { type: 'trace' };
-    }
-
-TraceType
-  = "satisfies" / "triggers" / "calls" / "reads" / "writes" / "extends" / "custom"
-
-HopList
-  = first:NodeRef rest:(__ "-->" __ NodeRef)* {
-      return [first, ...rest.map(r => r[3])];
-    }
 
 // ─── Arrows ──────────────────────────────────────────────────────────────────
 
