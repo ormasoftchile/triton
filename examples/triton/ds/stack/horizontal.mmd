@@ -1,0 +1,19 @@
+stack
+%% ────────────────────────────────────────────────────────────────────────────
+%% STACK — syntax quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header/items:
+%%   stack                         (block form; directives below)
+%%   stack <v1> <v2> …             (inline form; last token = top)
+%%   cells <v1> <v2> …             (push order; last = top)
+%%   items <v1> <v2> …             (alias for cells)
+%% Options:  title <text> · capacity <N>
+%% Axis:     axis vertical (default) · axis horizontal
+%% Anchors:  c0 · c1 · … cn  (display order; top = first empty slot or 0)
+%% Demo:     horizontal stack; push/pop and top point to the top cell.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title horizontal call stack
+  cells main parse layout render
+  capacity 6
+  axis horizontal

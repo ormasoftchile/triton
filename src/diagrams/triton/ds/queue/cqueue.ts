@@ -23,7 +23,16 @@ import { pen } from '../../../../scene/build.js';
 import { buildStrip, type StripCell } from '../../../../scene/strip.js';
 import { measureText } from '../../../../text/metrics.js';
 import { rhu } from '../../../../util/round.js';
-import { ARROW_FWD, arrowDefs, lines, pointerBelow } from './shared.js';
+import {
+  ARROW_FWD,
+  arrowDefs,
+  finalizeStripScene,
+  lines,
+  parseAxisToken,
+  pointerBelow,
+  pointerToSlot,
+  type StripOrientation,
+} from './shared.js';
 
 export interface CQueueDoc {
   title?: string;
@@ -31,6 +40,7 @@ export interface CQueueDoc {
   cells: (string | null)[];
   front?: number;
   rear?: number;
+  axis?: StripOrientation;
 }
 
 const EMPTY = new Set(['_', '.', '-']);
@@ -41,6 +51,7 @@ function parse(input: string): CQueueDoc {
   let capacity: number | undefined;
   let front: number | undefined;
   let rear: number | undefined;
+  let axis: StripOrientation = 'horizontal';
 
   for (const line of lines(input)) {
     const t = line.split(/\s+/);
@@ -50,6 +61,7 @@ function parse(input: string): CQueueDoc {
     if (t[0] === 'cells' || t[0] === 'items') { cells = t.slice(1).map(v => (EMPTY.has(v) ? null : v)); continue; }
     if (t[0] === 'front') { const n = Number(t[1]); if (Number.isFinite(n)) front = n; continue; }
     if (t[0] === 'rear') { const n = Number(t[1]); if (Number.isFinite(n)) rear = n; continue; }
+    if (t[0] === 'axis') { axis = parseAxisToken(t[1], axis); continue; }
   }
 
   const cap = capacity ?? cells.length;
@@ -68,6 +80,7 @@ function parse(input: string): CQueueDoc {
     cells: padded,
     front: f,
     rear: r,
+    axis,
   };
 }
 
@@ -80,17 +93,21 @@ export function layoutCQueue(doc: CQueueDoc, theme: ResolvedTheme): LayoutResult
   const total = doc.capacity;
   const labelW = doc.cells.map(c => (c ? measureText(c, font).width : 0));
   const cellW = Math.max(46, ...labelW.map(w => w + 24));
+  const axis: StripOrientation = doc.axis === 'vertical' ? 'vertical' : 'horizontal';
+  const horizontal = axis === 'horizontal';
 
   const titleH = doc.title ? typography.titleFontSize + 14 : 0;
   const arcH = 44;                        // room for the wrap arc above the strip
-  const origin = { x: margin, y: margin + titleH + arcH };
+  const origin = horizontal
+    ? { x: margin, y: margin + titleH + arcH }
+    : { x: margin + arcH, y: margin + titleH };
 
   const cellInputs: StripCell[] = doc.cells.map((v, i) => (
     v !== null
       ? { label: v, index: String(i) }
       : { fill: palette.background, index: String(i) }
   ));
-  const strip = buildStrip(p, theme, cellInputs, { origin, cellWidth: cellW, cellHeight: cellH });
+  const strip = buildStrip(p, theme, cellInputs, { origin, cellWidth: cellW, cellHeight: cellH, orientation: axis });
 
   const elements: SceneElement[] = [...strip.elements];
   if (doc.title) {
@@ -101,36 +118,44 @@ export function layoutCQueue(doc: CQueueDoc, theme: ResolvedTheme): LayoutResult
   const rearSlot = strip.slots[doc.rear ?? 0];
   const frontSlot = strip.slots[doc.front ?? 0];
   if (rearSlot && frontSlot) {
-    const rx = rearSlot.x + rearSlot.width / 2;
-    const fx = frontSlot.x + frontSlot.width / 2;
-    const yTop = origin.y;                 // strip top edge
-    const apexY = origin.y - arcH + 8;
-    const d = `M ${rhu(rx)} ${rhu(yTop)} C ${rhu(rx)} ${rhu(apexY)}, ${rhu(fx)} ${rhu(apexY)}, ${rhu(fx)} ${rhu(yTop)}`;
-    elements.push(p.path(d, palette.primary, 1.5, { markerEnd: ARROW_FWD }));
-    const midX = (rx + fx) / 2;
-    elements.push(p.text(`mod ${total}`, midX, apexY - 2, typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));
+    if (horizontal) {
+      const rx = rearSlot.x + rearSlot.width / 2;
+      const fx = frontSlot.x + frontSlot.width / 2;
+      const yTop = origin.y;                 // strip top edge
+      const apexY = origin.y - arcH + 8;
+      const d = `M ${rhu(rx)} ${rhu(yTop)} C ${rhu(rx)} ${rhu(apexY)}, ${rhu(fx)} ${rhu(apexY)}, ${rhu(fx)} ${rhu(yTop)}`;
+      elements.push(p.path(d, palette.primary, 1.5, { markerEnd: ARROW_FWD }));
+      const midX = (rx + fx) / 2;
+      elements.push(p.text(`mod ${total}`, midX, apexY - 2, typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));
+    } else {
+      const ry = rearSlot.y + rearSlot.height / 2;
+      const fy = frontSlot.y + frontSlot.height / 2;
+      const xLeft = origin.x;
+      const apexX = origin.x - arcH + 8;
+      const d = `M ${rhu(xLeft)} ${rhu(ry)} C ${rhu(apexX)} ${rhu(ry)}, ${rhu(apexX)} ${rhu(fy)}, ${rhu(xLeft)} ${rhu(fy)}`;
+      elements.push(p.path(d, palette.primary, 1.5, { markerEnd: ARROW_FWD }));
+      const midY = (ry + fy) / 2;
+      elements.push(p.text(`mod ${total}`, apexX - 4, midY + 4, typography.smallFontSize, palette.textMuted, { anchor: 'end' }));
+    }
   }
 
   // front / rear pointers below
-  let bottom = origin.y + cellH;
   if (frontSlot && rearSlot) {
     const same = (doc.front ?? 0) === (doc.rear ?? 0);
-    const front = pointerBelow(p, theme, frontSlot, 'front', palette.secondary, 0);
-    const rear = pointerBelow(p, theme, rearSlot, 'rear', palette.primary, same ? 1 : 0);
+    const front = horizontal
+      ? pointerBelow(p, theme, frontSlot, 'front', palette.secondary, 0)
+      : pointerToSlot(p, theme, frontSlot, 'front', palette.secondary, 'right', 0);
+    const rear = horizontal
+      ? pointerBelow(p, theme, rearSlot, 'rear', palette.primary, same ? 1 : 0)
+      : pointerToSlot(p, theme, rearSlot, 'rear', palette.primary, 'right', same ? 1 : 0);
     elements.push(...front.elements, ...rear.elements);
-    bottom = Math.max(front.bottom, rear.bottom);
   }
 
   const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
   strip.slots.forEach((slot, i) => { anchors[`c${i}`] = { bounds: slot }; });
 
-  const scene: Scene = {
-    viewBox: { x: 0, y: 0, width: strip.bounds.width + margin * 2, height: bottom + margin },
-    background: palette.background,
-    elements,
-    defs: [arrowDefs(palette.primary)],
-  };
-  return { scene, anchors: anchors as NodeAnchorRegistry };
+  const finalized = finalizeStripScene(elements, anchors, theme, [arrowDefs(palette.primary)]);
+  return { scene: finalized.scene, anchors: finalized.anchors as NodeAnchorRegistry };
 }
 
 export const cqueue: DiagramModule<CQueueDoc & { version: string; metadata: Record<string, unknown> }> = {

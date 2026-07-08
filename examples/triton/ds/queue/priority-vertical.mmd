@@ -1,0 +1,18 @@
+pqueue
+%% ────────────────────────────────────────────────────────────────────────────
+%% PQUEUE — syntax quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header/items:
+%%   pqueue                        (block form; directives below)
+%%   item <label words…> <priority> (trailing numeric priority; highest first)
+%% Options:  title <text>
+%% Axis:     axis horizontal (default) · axis vertical
+%% Anchors:  c0 · c1 · … cn  (sorted display order; top = highest priority)
+%% Demo:     vertical priority queue; label and priority text stay horizontal.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title vertical scheduler
+  axis vertical
+  item Deploy 9
+  item Build 5
+  item Lint 2

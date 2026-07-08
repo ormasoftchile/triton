@@ -186,7 +186,8 @@ Arrow
 // ─── Node References ─────────────────────────────────────────────────────────
 
 NodeRef
-  = cell:Identifier "." node:Identifier { return { cellPath: [cell], nodeId: node }; }
+  = cell:Identifier "[" index:SignedInteger "]" { return { cellPath: [cell], nodeId: "", elementIndex: index }; }
+  / cell:Identifier "." node:Identifier { return { cellPath: [cell], nodeId: node }; }
 
 Identifier
   = $([a-zA-Z_][a-zA-Z0-9_-]*)
@@ -196,6 +197,7 @@ CellContent
 
 QuotedString = "\"" text:$[^"]* "\"" { return text; }
 Integer      = digits:$[0-9]+ { return parseInt(digits, 10); }
+SignedInteger = sign:("-" / "+")? digits:$[0-9]+ { return parseInt((sign || "") + digits, 10); }
 BlankLine    = _ Comment? NL { return null; }
 Comment      = "%%" [^\n]*
 _            = [ \t]*

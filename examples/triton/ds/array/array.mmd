@@ -1,15 +1,29 @@
 array
 %% ────────────────────────────────────────────────────────────────────────────
-%% ARRAY — options quick-ref
+%% ARRAY — syntax quick-ref
 %% ────────────────────────────────────────────────────────────────────────────
-%% Header:   array
-%% Items:    cells <v1> <v2> …  ·  array <v1> … (inline)
-%% Options:  title <text>  ·  index  ·  ptr <name> -> <idx>
-%% Anchors:  c0 · c1 · … cn  (individual cells, 0-based)
-%% Comments: %% text  (stripped before parse — safe on any line)
+%% Header/items:
+%%   array                         (block form; directives below)
+%%   cells <v1> <v2> …             (items in block form)
+%%   array <v1> <v2> …             (inline form)
+%%   title <text>
+%% Gap:
+%%   literal ... in cells = one elided-middle cell rendered as …
+%%   At most one; it must be between concrete cells, not first or last.
+%% Axis:    axis horizontal (default) · axis vertical
+%% Index:   index · index bottom · index reverse · index bottom reverse
+%%          bottom uses the opposite side; reverse numbers n-1 → 0.
+%% Pointers:
+%%   ptr <name> -> <target> ["quoted label"]
+%%   <target> = logical index value (not physical slot; reverse/gap-aware), cN, cfirst, clast, cgap.
+%% Anchors: c0 … cN (logical cells; gap has no cN) · cfirst · clast · cgap
+%% Poster links:
+%%   arrayName.cN · arrayName.cfirst · arrayName.clast · arrayName.cgap
+%%   arrayName[i] · arrayName[-1]  (negative counts from end; -1 = clast)
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
 %% ────────────────────────────────────────────────────────────────────────────
   title Sample array
   cells 5 8 13 21 34
-  index
+  index bottom
   ptr p -> 2
   ptr q -> 4

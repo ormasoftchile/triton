@@ -14,7 +14,7 @@ import type {
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { rhu } from '../../../../util/round.js';
-import { ARROW_ID, arrowDef, lines } from './shared.js';
+import { ARROW_ID, arrowDef, lines, tokenizeDirective } from './shared.js';
 
 interface ListDoc {
   title?: string;
@@ -25,9 +25,9 @@ function parse(input: string): ListDoc {
   let title: string | undefined;
   const values: string[] = [];
   for (const line of lines(input)) {
-    const t = line.split(/\s+/);
+    const t = tokenizeDirective(line);
     if (t[0] === 'linkedlist') { values.push(...t.slice(1)); continue; }
-    if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
+    if (t[0] === 'title') { title = t.slice(1).join(' '); continue; }
     if (t[0] === 'values' || t[0] === 'nodes') { values.push(...t.slice(1)); continue; }
     values.push(...t);
   }

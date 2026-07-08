@@ -1,0 +1,19 @@
+queue
+%% ────────────────────────────────────────────────────────────────────────────
+%% QUEUE — syntax quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header/items:
+%%   queue                         (block form; directives below)
+%%   queue <v1> <v2> …             (inline form)
+%%   cells <v1> <v2> …             (filled cells in block form)
+%%   items <v1> <v2> …             (alias for cells)
+%% Options:  title <text> · capacity <N>
+%% Axis:     axis horizontal (default) · axis vertical
+%% Anchors:  c0 · c1 · … cn  (cells, 0-based, including empty slots)
+%% Demo:     vertical FIFO queue; dequeue at top, enqueue at bottom.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title vertical task queue
+  cells parse plan render
+  capacity 5
+  axis vertical

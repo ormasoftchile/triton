@@ -1,14 +1,17 @@
 import * as vscode from 'vscode';
 import { dirname } from 'path';
+import type { ThemeInput } from '../../src/contracts/index.js';
 // The Triton compiler is imported by RELATIVE PATH (the repo has no package
 // `main`/`exports`, so `import 'triton'` is impossible). esbuild bundles this
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { render } from '../../src/frontend/index.js';
+import { themePresetNames } from '../../src/theme/preset.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
 import { registerCompletion } from './completion.js';
 import { registerDiagnostics } from './diagnostics.js';
+import { shellHtml } from './preview-html.js';
 
 // ─── Mermaid coexistence reconciliation (LOCKED decision) ──────────────────────
 //
@@ -30,6 +33,8 @@ import { registerDiagnostics } from './diagnostics.js';
 // for Markdown fence selection (see `pickRenderable`).
 
 type RenderMode = 'explicit' | 'passive';
+
+const PREVIEW_THEME_KEY = 'triton.previewTheme';
 
 interface Renderable {
   /** The diagram source text to feed to `render()`. */
@@ -103,128 +108,11 @@ function pickRenderable(
 
 // ─── Webview HTML ──────────────────────────────────────────────────────────────
 
-function nonce(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let out = '';
-  for (let i = 0; i < 32; i++) out += chars[Math.floor(Math.random() * chars.length)];
-  return out;
-}
-
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-}
-
-function shellHtml(webview: vscode.Webview, title: string): string {
-  const n = nonce();
-  const csp = [
-    `default-src 'none'`,
-    `img-src ${webview.cspSource} data:`,
-    `style-src ${webview.cspSource} 'unsafe-inline'`,
-    `script-src 'nonce-${n}'`,
-  ].join('; ');
-
-  return /* html */ `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="${csp}" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeHtml(title)}</title>
-  <style>
-    :root { color-scheme: light dark; }
-    html, body { height: 100%; margin: 0; }
-    body {
-      font-family: var(--vscode-font-family, sans-serif);
-      color: var(--vscode-foreground);
-      background: var(--vscode-editor-background);
-      overflow: hidden;
-    }
-    #stage {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      overflow: auto; padding: 16px; box-sizing: border-box;
-    }
-    #stage.fit { padding: 0; }
-    #content svg { display: block; height: auto; max-width: none; }
-    #stage.fit #content svg { max-width: 100%; max-height: 100%; }
-    /* Document mode: stacked Markdown blocks flow top-to-bottom and scroll,
-       instead of being flex-centered (which collapses multiple responsive SVGs
-       on top of each other). The inline per-SVG styles handle fit + centering. */
-    body.doc-mode #stage { display: block; }
-    body.doc-mode #toolbar { display: none; }
-    #error {
-      position: absolute; left: 0; right: 0; bottom: 0;
-      margin: 0; padding: 10px 14px;
-      font-family: var(--vscode-editor-font-family, monospace);
-      font-size: 12px; white-space: pre-wrap;
-      color: var(--vscode-inputValidation-errorForeground, #fff);
-      background: var(--vscode-inputValidation-errorBackground, #5a1d1d);
-      border-top: 1px solid var(--vscode-inputValidation-errorBorder, #be1100);
-      display: none;
-    }
-    #error.show { display: block; }
-    #toolbar {
-      position: absolute; top: 8px; right: 8px;
-      display: flex; gap: 4px; z-index: 10;
-    }
-    #toolbar button {
-      font: inherit; font-size: 11px;
-      color: var(--vscode-button-foreground);
-      background: var(--vscode-button-background);
-      border: none; border-radius: 3px;
-      padding: 3px 8px; cursor: pointer;
-    }
-    #toolbar button:hover { background: var(--vscode-button-hoverBackground); }
-  </style>
-</head>
-<body>
-  <div id="toolbar">
-    <button id="fit" title="Toggle zoom to fit">Fit</button>
-    <button id="reset" title="Actual size">1:1</button>
-  </div>
-  <div id="stage" class="fit"><div id="content"></div></div>
-  <pre id="error"></pre>
-  <script nonce="${n}">
-    const vscodeApi = acquireVsCodeApi();
-    const stage = document.getElementById('stage');
-    const content = document.getElementById('content');
-    const errorBox = document.getElementById('error');
-
-    document.getElementById('fit').addEventListener('click', () => stage.classList.add('fit'));
-    document.getElementById('reset').addEventListener('click', () => stage.classList.remove('fit'));
-
-    window.addEventListener('message', (event) => {
-      const msg = event.data;
-      if (msg.type === 'svg') {
-        const doc = !!msg.doc;
-        document.body.classList.toggle('doc-mode', doc);
-        stage.classList.toggle('fit', !doc);
-        content.innerHTML = msg.svg;
-        errorBox.classList.remove('show');
-        vscodeApi.setState({ svg: msg.svg, docUri: msg.docUri, doc: doc });
-      } else if (msg.type === 'error') {
-        // Keep the last good SVG visible; show the error as a non-destructive banner.
-        errorBox.textContent = msg.message;
-        errorBox.classList.add('show');
-      }
-    });
-
-    const prev = vscodeApi.getState();
-    if (prev && prev.svg) {
-      document.body.classList.toggle('doc-mode', !!prev.doc);
-      stage.classList.toggle('fit', !prev.doc);
-      content.innerHTML = prev.svg;
-    }
-    // Tell the extension the webview is loaded and listening, so it can flush a
-    // render that was produced before this script attached its listener (the
-    // synchronous Markdown path would otherwise race the webview load).
-    vscodeApi.postMessage({ type: 'ready' });
-  </script>
-</body>
-</html>`;
 }
 
 // ─── Preview manager ───────────────────────────────────────────────────────────
@@ -278,7 +166,8 @@ interface Preview {
 
 type WebviewMessage =
   | { readonly type: 'svg'; readonly svg: string; readonly docUri: string; readonly doc: boolean }
-  | { readonly type: 'error'; readonly message: string };
+  | { readonly type: 'error'; readonly message: string }
+  | { readonly type: 'theme'; readonly name: string };
 
 class PreviewManager {
   // A single live preview that FOLLOWS the active editor, like the built-in
@@ -288,7 +177,7 @@ class PreviewManager {
   private debounce: ReturnType<typeof setTimeout> | undefined;
   private readonly disposables: vscode.Disposable[] = [];
 
-  constructor() {
+  constructor(private readonly context: vscode.ExtensionContext) {
     this.disposables.push(
       vscode.workspace.onDidChangeTextDocument((e) => this.onDocChange(e.document)),
       vscode.window.onDidChangeActiveTextEditor((editor) => this.onActiveEditor(editor)),
@@ -313,7 +202,7 @@ class PreviewManager {
         { viewColumn: column, preserveFocus: true },
         { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [] },
       );
-      panel.webview.html = shellHtml(panel.webview, this.label(doc.uri));
+      panel.webview.html = shellHtml(panel.webview, this.label(doc.uri), this.selectedTheme());
       this.bindPanel(panel, doc.uri);
     } else {
       this.preview.docUri = doc.uri;
@@ -332,13 +221,16 @@ class PreviewManager {
   private bindPanel(panel: vscode.WebviewPanel, docUri: vscode.Uri): Preview {
     const preview: Preview = { panel, docUri, ready: false, pending: undefined };
     this.preview = preview;
-    panel.webview.onDidReceiveMessage((msg: { type?: string }) => {
+    panel.webview.onDidReceiveMessage((msg: { type?: string; name?: unknown }) => {
       if (msg && msg.type === 'ready') {
         preview.ready = true;
+        this.post({ type: 'theme', name: this.selectedTheme() });
         if (preview.pending) {
           void panel.webview.postMessage(preview.pending);
           preview.pending = undefined;
         }
+      } else if (msg && msg.type === 'setTheme') {
+        void this.setTheme(msg.name);
       }
     });
     panel.onDidDispose(() => {
@@ -362,7 +254,7 @@ class PreviewManager {
 
   /** Restore a preview panel after a window reload (WebviewPanelSerializer). */
   async restore(panel: vscode.WebviewPanel, state: unknown): Promise<void> {
-    panel.webview.html = shellHtml(panel.webview, 'Triton');
+    panel.webview.html = shellHtml(panel.webview, 'Triton', this.selectedTheme());
     const docUri =
       state && typeof state === 'object' && typeof (state as { docUri?: unknown }).docUri === 'string'
         ? (state as { docUri: string }).docUri
@@ -413,6 +305,44 @@ class PreviewManager {
     }, Math.max(0, debounceMs));
   }
 
+  private selectedTheme(): string {
+    const stored = this.context.workspaceState.get<string>(PREVIEW_THEME_KEY, '');
+    return themePresetNames.includes(stored) ? stored : '';
+  }
+
+  private normalizeThemeName(name: unknown): string {
+    return typeof name === 'string' && themePresetNames.includes(name) ? name : '';
+  }
+
+  private async setTheme(name: unknown): Promise<void> {
+    const selected = this.normalizeThemeName(name);
+    await this.context.workspaceState.update(PREVIEW_THEME_KEY, selected);
+    this.post({ type: 'theme', name: selected });
+
+    const preview = this.preview;
+    if (!preview) return;
+    const editor = vscode.window.activeTextEditor;
+    const doc =
+      editor && editor.document.uri.toString() === preview.docUri.toString()
+        ? editor.document
+        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+    if (doc) await this.renderInto(doc, 'explicit');
+  }
+
+  private themeArgs(): { readonly themeInput: ThemeInput; readonly forcedThemeName: string | undefined } {
+    const selected = this.selectedTheme();
+    if (selected) {
+      return {
+        themeInput: { palette: { background: '' } },
+        forcedThemeName: selected,
+      };
+    }
+    return {
+      themeInput: editorThemeInput(),
+      forcedThemeName: undefined,
+    };
+  }
+
   private async renderInto(doc: vscode.TextDocument, mode: RenderMode): Promise<void> {
     const preview = this.preview;
     if (!preview) return;
@@ -439,7 +369,8 @@ class PreviewManager {
     }
 
     // render() returns a Result<string> and never throws.
-    const result = await render(renderable.text, editorThemeInput());
+    const { themeInput, forcedThemeName } = this.themeArgs();
+    const result = await render(renderable.text, themeInput, 'svg', forcedThemeName);
     // The active document may have changed while we awaited; only post if the
     // preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
@@ -475,9 +406,11 @@ class PreviewManager {
     }
 
     const baseDir = doc.uri.scheme === 'file' ? dirname(doc.uri.fsPath) : undefined;
-    const theme = editorThemeInput();
+    const { themeInput, forcedThemeName } = this.themeArgs();
     const html = blocks
-      .map((b, i) => labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, theme)))
+      .map((b, i) =>
+        labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, themeInput, forcedThemeName)),
+      )
       .join('\n');
 
     this.post({ type: 'svg', svg: html, docUri: doc.uri.toString(), doc: true });
@@ -501,7 +434,7 @@ class PreviewManager {
 // ─── Activation ────────────────────────────────────────────────────────────────
 
 export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(md: unknown): unknown } {
-  const manager = new PreviewManager();
+  const manager = new PreviewManager(context);
 
   context.subscriptions.push(manager);
 

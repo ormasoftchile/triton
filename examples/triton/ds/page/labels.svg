@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340.1056 254" width="340.1056" height="254">
+  <defs>
+    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
+  </defs>
+  <rect x="0" y="0" width="340.1056" height="254" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">quoted page tuple label</text>
+  <rect x="24" y="56" width="292.1056" height="174" fill="#fbfbfd" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+  <rect x="24" y="56" width="292.1056" height="26" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="0" />
+  <text x="36" y="73" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#ffffff" font-weight="bold">PageHeader    freeStart →        ← freeEnd</text>
+  <rect x="38" y="92" width="54" height="22" fill="#eef2ff" stroke="#4A90D9" stroke-width="1.5" rx="3" />
+  <text x="65" y="107" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">slot0</text>
+  <rect x="100" y="92" width="54" height="22" fill="#eef2ff" stroke="#4A90D9" stroke-width="1.5" rx="3" />
+  <text x="127" y="107" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">slot1</text>
+  <text x="170.0528" y="152" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">free space</text>
+  <rect x="38" y="188" width="123.05279999999999" height="28" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <text x="99.5264" y="206.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">(10,Alice Smith)</text>
+  <path d="M 65 114 L 99.53 188" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <rect x="179.0528" y="188" width="123.05279999999999" height="28" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <text x="240.5792" y="206.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">(40,Bob Jones)</text>
+  <path d="M 127 114 L 240.58 188" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+</svg>

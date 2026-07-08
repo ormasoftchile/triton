@@ -1,0 +1,21 @@
+memory
+%% ────────────────────────────────────────────────────────────────────────────
+%% MEMORY — syntax quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header/regions:
+%%   memory                        (block form; directives below)
+%%   region <NAME>                 (start a named region block)
+%%   var <name>                    (variable slot in current region)
+%%   var <name> -> <target-id>     (slot with pointer to an object/var id)
+%%   object <id> : <title> : <k>=<v>, …
+%% Options:  title <text>
+%% Labels:   region names, var names, and object titles may be quoted "multi word".
+%% Anchors:  <var-name> · <object-id>
+%% Demo:     quoted region, var, and object-title labels size boxes correctly.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title quoted memory labels
+  region "Stack Frame"
+    var "current pointer" -> obj
+  region HEAP
+    object obj : "Point Record" : x=1, y=2

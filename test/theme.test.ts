@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { resolveTheme } from '../src/theme/resolver.js';
-import { defaultTheme } from '../src/theme/preset.js';
+import { defaultTheme, executiveTheme, minimalTheme, themePresetNames } from '../src/theme/preset.js';
+import { compileSync, renderSync } from '../src/frontend/index.js';
+import { readFileSync } from 'node:fs';
 
 describe('resolveTheme', () => {
   it('empty input returns base unchanged', () => {
@@ -8,6 +10,55 @@ describe('resolveTheme', () => {
     expect(result.name).toBe(defaultTheme.name);
     expect(result.palette.primary).toBe(defaultTheme.palette.primary);
     expect(result.typography.baseFontSize).toBe(defaultTheme.typography.baseFontSize);
+  });
+
+  describe('theme preset selection', () => {
+    it('exports the ordered built-in preset names', () => {
+      expect(themePresetNames).toEqual([
+        'default',
+        'executive',
+        'minimal',
+        'consulting',
+        'product',
+        'release',
+        'ai-timeline',
+        'bytebytego',
+        'gitline',
+        'our-timeline',
+        'subject-timeline',
+        'showcase',
+      ]);
+    });
+
+    it('forced preset wins over diagram metadata', () => {
+      const result = compileSync('---\ntheme: minimal\n---\nflowchart TD\nA --> B\n', undefined, 'executive');
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.scene.background).toBe(executiveTheme.palette.background);
+    });
+
+    it('diagram metadata is used when no forced preset is provided', () => {
+      const result = compileSync('---\ntheme: executive\n---\nflowchart TD\nA --> B\n');
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.scene.background).toBe(executiveTheme.palette.background);
+    });
+
+    it('unknown forced preset falls back safely to default', () => {
+      const result = compileSync('---\ntheme: executive\n---\nflowchart TD\nA --> B\n', undefined, 'not-a-theme');
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.scene.background).toBe(defaultTheme.palette.background);
+    });
+
+    it('forced presets produce distinct SVG for the array example', () => {
+      const input = readFileSync('examples/triton/ds/array/array.mmd', 'utf8');
+      const minimal = renderSync(input, undefined, 'svg', minimalTheme.name);
+      const executive = renderSync(input, undefined, 'svg', executiveTheme.name);
+      expect(minimal.ok && executive.ok).toBe(true);
+      if (!minimal.ok || !executive.ok) return;
+      expect(minimal.value).not.toBe(executive.value);
+    });
   });
 
   it('overrides name', () => {

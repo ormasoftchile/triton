@@ -1,0 +1,17 @@
+page
+%% ────────────────────────────────────────────────────────────────────────────
+%% PAGE — syntax quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header/items:
+%%   page                          (block form; directives below)
+%%   slots <N>                     (slot pointer count; defaults to tuple count)
+%%   tuples <t1> <t2> …            (tuple cells)
+%% Options:  title <text>
+%% Labels:   tuple values may be quoted, e.g. "(10,Alice Smith)".
+%% Anchors:  slot0 · slot1 · …  · tuple0 · tuple1 · …
+%% Demo:     quoted tuple labels keep multi-word names in one tuple cell.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title quoted page tuple label
+  slots 2
+  tuples "(10,Alice Smith)" "(40,Bob Jones)"

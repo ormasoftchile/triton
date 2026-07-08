@@ -1,9 +1,9 @@
 /**
  * @file diagrams/queue/pqueue.ts — Priority queue.
  *
- * A VERTICAL stack of cells ordered by priority (highest at the top). Each cell
+ * A strip of cells ordered by priority (highest first). Each cell
  * is shaded by its priority — a deterministic tint of the theme's primary
- * accent (strongest at the top) — and shows its priority value on the right.
+ * accent (strongest first) — and shows its priority value on the right.
  *
  * Value-driven mini-syntax:
  *   pqueue
@@ -19,7 +19,7 @@ import type {
 import { pen } from '../../../../scene/build.js';
 import { buildStrip, type StripCell } from '../../../../scene/strip.js';
 import { measureText } from '../../../../text/metrics.js';
-import { lines } from './shared.js';
+import { finalizeStripScene, lines, parseAxisToken, type StripOrientation } from './shared.js';
 
 export interface PQItem {
   label: string;
@@ -29,16 +29,19 @@ export interface PQItem {
 export interface PQueueDoc {
   title?: string;
   items: PQItem[];
+  axis?: StripOrientation;
 }
 
 function parse(input: string): PQueueDoc {
   let title: string | undefined;
   const items: PQItem[] = [];
+  let axis: StripOrientation = 'horizontal';
 
   for (const line of lines(input)) {
     const t = line.split(/\s+/);
     if (t[0] === 'pqueue') { continue; }
     if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
+    if (t[0] === 'axis') { axis = parseAxisToken(t[1], axis); continue; }
     if (t[0] === 'item') {
       // `item <label words...> <priority>` — trailing token is the priority.
       const rest = line.slice(4).trim();
@@ -47,7 +50,7 @@ function parse(input: string): PQueueDoc {
       else if (rest) items.push({ label: rest, priority: 0 });
     }
   }
-  return { ...(title !== undefined ? { title } : {}), items };
+  return { ...(title !== undefined ? { title } : {}), items, axis };
 }
 
 /** Parse `#rgb` / `#rrggbb` into [r,g,b], or null if not a hex colour. */
@@ -80,6 +83,7 @@ export function layoutPQueue(doc: PQueueDoc, theme: ResolvedTheme): LayoutResult
   const margin = spacing.diagramMargin;
   const font = typography.baseFontSize;
   const cellH = 38;
+  const axis: StripOrientation = doc.axis === 'vertical' ? 'vertical' : 'horizontal';
 
   // Highest priority first; ties keep input order (stable).
   const items = doc.items
@@ -107,7 +111,7 @@ export function layoutPQueue(doc: PQueueDoc, theme: ResolvedTheme): LayoutResult
   });
 
   const strip = buildStrip(p, theme, cellInputs, {
-    origin, cellWidth: cellW, cellHeight: cellH, orientation: 'vertical',
+    origin, cellWidth: cellW, cellHeight: cellH, orientation: axis,
   });
 
   const elements: SceneElement[] = [...strip.elements];
@@ -126,12 +130,8 @@ export function layoutPQueue(doc: PQueueDoc, theme: ResolvedTheme): LayoutResult
   const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
   strip.slots.forEach((slot, i) => { anchors[`c${i}`] = { bounds: slot }; });
 
-  const scene: Scene = {
-    viewBox: { x: 0, y: 0, width: cellW + margin * 2, height: origin.y + items.length * cellH + margin },
-    background: palette.background,
-    elements,
-  };
-  return { scene, anchors: anchors as NodeAnchorRegistry };
+  const finalized = finalizeStripScene(elements, anchors, theme);
+  return { scene: finalized.scene, anchors: finalized.anchors as NodeAnchorRegistry };
 }
 
 export const pqueue: DiagramModule<PQueueDoc & { version: string; metadata: Record<string, unknown> }> = {

@@ -130,6 +130,7 @@ registerRouter('polyline', polylineRouter);
 export function compileSync(
   input: string,
   themeInput?: ThemeInput,
+  forcedThemeName?: string,
 ): Result<LayoutResult> {
   const cleaned = stripComments(input);
   const { format, diagramType } = detect(cleaned);
@@ -144,9 +145,9 @@ export function compileSync(
       ? module.parseYaml(cleaned)
       : module.parseMermaid(cleaned);
 
-    // Build theme: named preset (metadata.theme) → global input → module defaults → per-IR override
+    // Build theme: forced preset → metadata preset → global input → module defaults → per-IR override
     const themeName = typeof ir.metadata?.theme === 'string' ? ir.metadata.theme : undefined;
-    const base = resolveTheme(themeInput ?? {}, getThemePreset(themeName));
+    const base = resolveTheme(themeInput ?? {}, getThemePreset(forcedThemeName ?? themeName));
     const withModuleDefaults = module.defaultThemeOverride
       ? resolveTheme(module.defaultThemeOverride, base)
       : base;
@@ -173,8 +174,9 @@ export function renderSync(
   input: string,
   themeInput?: ThemeInput,
   rendererName = 'svg',
+  forcedThemeName?: string,
 ): Result<string> {
-  const compileResult = compileSync(input, themeInput);
+  const compileResult = compileSync(input, themeInput, forcedThemeName);
   if (!compileResult.ok) return compileResult;
 
   const renderer = getRenderer<string>(rendererName);
@@ -203,8 +205,9 @@ export function renderSync(
 export async function compile(
   input: string,
   themeInput?: ThemeInput,
+  forcedThemeName?: string,
 ): Promise<Result<LayoutResult>> {
-  return compileSync(input, themeInput);
+  return compileSync(input, themeInput, forcedThemeName);
 }
 
 /**
@@ -220,7 +223,7 @@ export async function render(
   input: string,
   themeInput?: ThemeInput,
   rendererName = 'svg',
+  forcedThemeName?: string,
 ): Promise<Result<string>> {
-  return renderSync(input, themeInput, rendererName);
+  return renderSync(input, themeInput, rendererName, forcedThemeName);
 }
-

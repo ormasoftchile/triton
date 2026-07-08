@@ -19,7 +19,7 @@ import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { connectSlots } from '../../../../graph/connect.js';
 import { rhu } from '../../../../util/round.js';
-import { ARROW_ID, arrowDef, lines } from './shared.js';
+import { ARROW_ID, arrowDef, lines, tokenizeDirective } from './shared.js';
 
 interface VarItem { kind: 'var'; name: string; target?: string; }
 interface ObjItem { kind: 'object'; id: string; title: string; fields: { k: string; v: string }[]; }
@@ -32,20 +32,20 @@ function parse(input: string): MemoryDoc {
   const regions: Region[] = [];
   let cur: Region | undefined;
   for (const line of lines(input)) {
-    const t = line.split(/\s+/);
+    const t = tokenizeDirective(line);
     if (t[0] === 'memory') continue;
-    if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
-    if (t[0] === 'region') { cur = { name: line.slice(6).trim(), items: [] }; regions.push(cur); continue; }
+    if (t[0] === 'title') { title = t.slice(1).join(' '); continue; }
+    if (t[0] === 'region') { cur = { name: decodeLabel(line.slice(6)), items: [] }; regions.push(cur); continue; }
     if (!cur) continue;
     if (t[0] === 'var') {
-      const m = line.match(/^var\s+(\S+)(?:\s*->\s*(\S+))?/);
-      if (m) cur.items.push({ kind: 'var', name: m[1]!, ...(m[2] ? { target: m[2] } : {}) });
+      const parsed = parseVarDirective(t);
+      if (parsed) cur.items.push({ kind: 'var', name: parsed.name, ...(parsed.target ? { target: parsed.target } : {}) });
       continue;
     }
     if (t[0] === 'object') {
       const parts = line.slice(6).split(':').map(s => s.trim());
       const id = parts[0] ?? 'obj';
-      const titleO = parts[1] || id;
+      const titleO = parts[1] ? decodeLabel(parts[1]) : id;
       const fields = (parts[2] ?? '').split(',').map(s => s.trim()).filter(Boolean).map(pair => {
         const [k, v] = pair.split('=').map(x => x.trim());
         return { k: k ?? '', v: v ?? '' };
@@ -54,6 +54,33 @@ function parse(input: string): MemoryDoc {
     }
   }
   return { ...(title !== undefined ? { title } : {}), regions };
+}
+
+function decodeLabel(raw: string): string {
+  return tokenizeDirective(raw.trim()).join(' ');
+}
+
+function parseVarDirective(tokens: readonly string[]): { name: string; target?: string } | undefined {
+  const nameToken = tokens[1];
+  if (nameToken === undefined) return undefined;
+
+  const inlineArrow = nameToken.indexOf('->');
+  if (inlineArrow >= 0) {
+    const name = nameToken.slice(0, inlineArrow);
+    const target = nameToken.slice(inlineArrow + 2);
+    return { name, ...(target ? { target } : {}) };
+  }
+
+  if (tokens[2] === '->') {
+    return { name: nameToken, ...(tokens[3] ? { target: tokens[3] } : {}) };
+  }
+
+  if (tokens[2]?.startsWith('->')) {
+    const target = tokens[2].slice(2) || tokens[3];
+    return { name: nameToken, ...(target ? { target } : {}) };
+  }
+
+  return { name: nameToken };
 }
 
 export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult {
@@ -89,7 +116,7 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
   for (const region of doc.regions) {
     const sizes = region.items.map(itemSize);
     const innerW = Math.max(80, ...sizes.map(s => s.w));
-    const regionW = innerW + PAD * 2;
+    const regionW = Math.max(innerW + PAD * 2, measureText(region.name, small).width + 24);
     const contentH = sizes.reduce((s, sz) => s + sz.h + GAP, 0) - (sizes.length ? GAP : 0);
     const regionH = HEADER + PAD + contentH + PAD;
 

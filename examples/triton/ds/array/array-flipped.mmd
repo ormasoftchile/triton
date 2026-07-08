@@ -1,0 +1,17 @@
+array
+%% ────────────────────────────────────────────────────────────────────────────
+%% ARRAY FLIPPED — demonstration notes
+%% ────────────────────────────────────────────────────────────────────────────
+%% Shows axis vertical, index bottom reverse, and a middle ... gap exported as cgap.
+%% Pointer labels are quoted; numeric targets follow reverse logical numbering.
+%% cfirst targets the first live cell (top); clast targets the last live cell (bottom).
+%% Semantic targets cfirst, clast, and cgap address the live endpoints and gap directly.
+%% Comments: full-line %% text is stripped before parse; inline/trailing %% is not.
+%% ────────────────────────────────────────────────────────────────────────────
+  title Symbolic array
+  cells 5 8 ... 34
+  axis vertical
+  index bottom reverse
+  ptr head -> cfirst "start of the run"
+  ptr tail -> clast "last live element"
+  ptr probe -> cgap "somewhere in the middle"
