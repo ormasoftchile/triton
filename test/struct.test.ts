@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { array, layoutArray } from '../src/diagrams/triton/ds/struct/array.js';
 import { linkedlist, layoutList } from '../src/diagrams/triton/ds/struct/linkedlist.js';
+import type { ScenePath, SceneRect, SceneText, TextAnchor } from '../src/contracts/index.js';
+import { measureText } from '../src/text/metrics.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
 describe('array', () => {
@@ -107,6 +109,59 @@ describe('array', () => {
     expect(new Set(labels.map(e => e.position.y)).size).toBe(2);
   });
 
+  it('expands the viewBox to include wide title, index, and pointer labels', () => {
+    const ir = array.parseMermaid([
+      'array',
+      '  title Symbolic array with a deliberately wide title',
+      '  cells 5 8 ... 34',
+      '  axis vertical',
+      '  index bottom reverse',
+      '  ptr head -> 0 "start of the run with a wide label"',
+      '  ptr tail -> clast "last live element with a wide label"',
+      '  ptr probe -> cgap "somewhere in the middle with a wide label"',
+    ].join('\n'));
+    const { scene } = layoutArray(ir, defaultTheme);
+    for (const text of scene.elements.filter((e): e is SceneText => e.type === 'text')) {
+      const bounds = textBounds(text);
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(scene.viewBox.width);
+    }
+  });
+
+  it('assigns co-located vertical pointers to distinct arrow coordinates', () => {
+    const ir = array.parseMermaid([
+      'array',
+      '  cells 5 8 ... 34',
+      '  axis vertical',
+      '  index bottom reverse',
+      '  ptr head -> 0 "start of the run"',
+      '  ptr tail -> clast "last live element"',
+    ].join('\n'));
+    const { scene } = layoutArray(ir, defaultTheme);
+    const paths = scene.elements.filter((e): e is ScenePath => e.type === 'path');
+    expect(paths).toHaveLength(2);
+    expect(paths[0]!.d).not.toBe(paths[1]!.d);
+  });
+
+  it('keeps vertical array content near the top of the tight content bounds', () => {
+    const ir = array.parseMermaid([
+      'array',
+      '  title Symbolic array',
+      '  cells 5 8 ... 34',
+      '  axis vertical',
+      '  index bottom reverse',
+      '  ptr head -> 0 "start of the run"',
+      '  ptr tail -> clast "last live element"',
+      '  ptr probe -> cgap "somewhere in the middle"',
+    ].join('\n'));
+    const { scene } = layoutArray(ir, defaultTheme);
+    const minCellY = Math.min(...scene.elements
+      .filter((e): e is SceneRect => e.type === 'rect' && e.strokeWidth === 1.5)
+      .map(e => e.bounds.y));
+    expect(minCellY).toBeLessThanOrEqual(defaultTheme.spacing.diagramMargin + defaultTheme.typography.titleFontSize + 16);
+    expect(minCellY).toBeLessThan(scene.viewBox.height / 3);
+  });
+
   it('rejects leading, trailing, and multiple gaps', () => {
     expect(() => array.parseMermaid('array\n  cells ... 1\n')).toThrow();
     expect(() => array.parseMermaid('array\n  cells 1 ...\n')).toThrow();
@@ -140,4 +195,19 @@ function collectTexts(elements: readonly any[]): string[] {
     if (el.children) out.push(...collectTexts(el.children));
   }
   return out;
+}
+
+function textBounds(text: {
+  content: string;
+  position: { x: number; y: number };
+  fontSize: number;
+  anchor?: TextAnchor;
+}): { x: number; width: number } {
+  const width = measureText(text.content, text.fontSize).width;
+  const x = text.anchor === 'middle'
+    ? text.position.x - width / 2
+    : text.anchor === 'end'
+      ? text.position.x - width
+      : text.position.x;
+  return { x, width };
 }

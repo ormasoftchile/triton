@@ -1,24 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 316.78740000000005 462.78740000000005" width="316.78740000000005" height="462.78740000000005">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 409.25 240" width="409.25" height="240">
   <defs>
     <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="316.78740000000005" height="462.78740000000005" fill="#FFFFFF" />
-  <text x="224.78740000000002" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Symbolic array</text>
-  <rect x="224.78740000000002" y="256.78740000000005" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-  <text x="244.78740000000002" y="281.78740000000005" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">5</text>
-  <text x="270.78740000000005" y="280.78740000000005" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">2</text>
-  <rect x="224.78740000000002" y="296.78740000000005" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-  <text x="244.78740000000002" y="321.78740000000005" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">8</text>
-  <text x="270.78740000000005" y="320.78740000000005" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">1</text>
-  <rect x="224.78740000000002" y="336.78740000000005" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" opacity="0.45" />
-  <text x="244.78740000000002" y="361.78740000000005" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">…</text>
-  <rect x="224.78740000000002" y="376.78740000000005" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-  <text x="244.78740000000002" y="401.78740000000005" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">34</text>
-  <text x="270.78740000000005" y="400.78740000000005" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">0</text>
-  <path d="M 194.79 396.79 L 224.79 396.79" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-  <text x="188.78740000000002" y="400.78740000000005" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="end" font-weight="bold">start of the run</text>
-  <path d="M 194.79 396.79 L 224.79 396.79" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-  <text x="188.78740000000002" y="418.78740000000005" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="end" font-weight="bold">last live element</text>
-  <path d="M 194.79 356.79 L 224.79 356.79" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-  <text x="188.78740000000002" y="360.78740000000005" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="end" font-weight="bold">somewhere in the middle</text>
+  <rect x="0" y="0" width="409.25" height="240" fill="#FFFFFF" />
+  <text x="266.99" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Symbolic array</text>
+  <rect x="266.99" y="56" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <text x="286.99" y="81" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">5</text>
+  <text x="312.99" y="80" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">2</text>
+  <rect x="266.99" y="96" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <text x="286.99" y="121" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">8</text>
+  <text x="312.99" y="120" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">1</text>
+  <rect x="266.99" y="136" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" opacity="0.45" />
+  <text x="286.99" y="161" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">…</text>
+  <rect x="266.99" y="176" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+  <text x="286.99" y="201" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">34</text>
+  <text x="312.99" y="200" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">0</text>
+  <path d="M 236.99 190 L 266.99 190" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <text x="230.99" y="194" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="end" font-weight="bold">start of the run</text>
+  <path d="M 132.13 202 L 266.99 202" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <text x="126.13" y="206" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="end" font-weight="bold">last live element</text>
+  <path d="M 236.99 156 L 266.99 156" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <text x="230.99" y="160" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="end" font-weight="bold">somewhere in the middle</text>
 </svg>
