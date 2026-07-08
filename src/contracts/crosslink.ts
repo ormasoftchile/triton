@@ -38,6 +38,8 @@ export interface NodeAddress {
   readonly cellPath: readonly string[];
   /** Node ID within the target cell's diagram. */
   readonly nodeId: string;
+  /** Poster sugar for addressing array elements, resolved during poster layout. */
+  readonly elementIndex?: number;
 }
 
 // ─── Edge Style ───────────────────────────────────────────────────────────────

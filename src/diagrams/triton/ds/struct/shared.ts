@@ -13,3 +13,51 @@ export function arrowDef(color: string): string {
 export function lines(input: string): string[] {
   return input.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 }
+
+/**
+ * Split a directive line into bare tokens and double-quoted tokens.
+ *
+ * Quoted tokens support only `\"` and `\\` escapes and cannot span lines.
+ * Full-line comment handling remains centralized before diagram parsers run;
+ * this tokenizer intentionally does not strip inline `%%` text.
+ */
+export function tokenizeDirective(line: string): string[] {
+  const tokens: string[] = [];
+  let i = 0;
+
+  while (i < line.length) {
+    while (i < line.length && /\s/.test(line[i]!)) i++;
+    if (i >= line.length) break;
+
+    if (line[i] === '"') {
+      i++;
+      let value = '';
+      while (i < line.length) {
+        const ch = line[i]!;
+        if (ch === '"') {
+          i++;
+          break;
+        }
+        if (ch === '\\') {
+          const next = line[i + 1];
+          if (next === '"' || next === '\\') {
+            value += next;
+            i += 2;
+            continue;
+          }
+        }
+        value += ch;
+        i++;
+      }
+      if (line[i - 1] !== '"') throw new Error(`Unterminated quoted string: ${line}`);
+      tokens.push(value);
+      continue;
+    }
+
+    const start = i;
+    while (i < line.length && !/\s/.test(line[i]!)) i++;
+    tokens.push(line.slice(start, i));
+  }
+
+  return tokens;
+}

@@ -7,6 +7,8 @@ import { resolveCrossLinks } from '../../../crosslink/resolve.js';
 import { renderCrossLinks } from '../../../crosslink/render.js';
 import { routeAndRenderCrossLinks3 } from '../../../crosslink/engine3.js';
 import { measureText } from '../../../text/metrics.js';
+import { resolveArrayElementAnchorId } from '../ds/struct/array.js';
+import type { NodeAddress, CrossLink } from '../../../contracts/crosslink.js';
 
 /** Set to true to use the v3 global cost-function routing engine. */
 const USE_ENGINE_V3 = true;
@@ -36,6 +38,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     const cellTheme = cell.theme ? getThemePreset(cell.theme) : theme;
     return { cell, cellTheme, result: layoutCellContent(cell.content, cellTheme) };
   });
+  const cellResultById = new Map(cellResults.map(({ cell, result }) => [cell.id ?? '', { cell, result }]));
 
   const numRows = grid.rows ??
     Math.max(...positioned.map(c => (c.row ?? 0) + (c.rowSpan ?? 1)));
@@ -195,7 +198,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   }
 
   // ─── Cross-Link Resolution & Rendering ──────────────────────────────────
-  const links  = ir.links  ?? [];
+  const links  = normalizeElementIndexLinks(ir.links ?? [], cellResultById);
 
   // Start with the grid dimensions; cross-link rendering may expand these.
   let finalW = totalW;
@@ -279,6 +282,44 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     },
     anchors: mergedAnchors,
   };
+}
+
+function normalizeElementIndexLinks(
+  links: readonly CrossLink[],
+  cellResultById: ReadonlyMap<string, { cell: PosterCell; result: LayoutResult }>,
+): CrossLink[] {
+  return links.map(link => ({
+    ...link,
+    from: normalizeElementIndexAddress(link.from, cellResultById),
+    to: normalizeElementIndexAddress(link.to, cellResultById),
+  }));
+}
+
+function normalizeElementIndexAddress(
+  address: NodeAddress,
+  cellResultById: ReadonlyMap<string, { cell: PosterCell; result: LayoutResult }>,
+): NodeAddress {
+  if (address.elementIndex === undefined) return address;
+
+  const cellId = address.cellPath.join('.');
+  const cellResult = cellResultById.get(cellId);
+  const content = cellResult?.cell.content;
+  const arrayNodeId = content?.kind === 'diagram' && content.diagramKind === 'array'
+    ? resolveArrayElementAnchorId(content.doc as any, address.elementIndex)
+    : fallbackElementAnchorId(cellResult?.result.anchors ?? {}, address.elementIndex);
+
+  return {
+    ...address,
+    nodeId: arrayNodeId ?? `__missing_element_${address.elementIndex}`,
+  };
+}
+
+function fallbackElementAnchorId(anchors: NodeAnchorRegistry, elementIndex: number): string | undefined {
+  if (elementIndex < 0) {
+    if (elementIndex === -1 && anchors.clast) return 'clast';
+    return undefined;
+  }
+  return anchors[`c${elementIndex}`] ? `c${elementIndex}` : undefined;
 }
 
 /**

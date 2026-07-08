@@ -153,6 +153,28 @@ describe('poster grammar — cross-links', () => {
     expect(l5!.style).toBe('dotted');
   });
 
+  it('parses array element bracket node references without changing dot references', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 2
+
+  cell arr :: array
+    array 5 8 13
+  end
+
+  cell other :: flow
+    flowchart LR
+      c2[C2]
+  end
+
+  link other.c2 --> arr[2] "positive"
+  link arr[-1] --> other.c2 "negative"
+  link other.c2 --> arr.c2 "dot"
+`);
+    expect(ir.links![0]!.to).toEqual({ cellPath: ['arr'], nodeId: '', elementIndex: 2 });
+    expect(ir.links![1]!.from).toEqual({ cellPath: ['arr'], nodeId: '', elementIndex: -1 });
+    expect(ir.links![2]!.to).toEqual({ cellPath: ['arr'], nodeId: 'c2' });
+  });
+
   it('parses @route annotation on links', () => {
     const ir = poster.parseMermaid(`poster "Test"
   columns 2
