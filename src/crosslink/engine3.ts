@@ -108,6 +108,7 @@ interface WorkingRoute {
   markerEnd?:   string;
   markerStart?: string;
   label?:       string;
+  labelPlacement?: 'path-midpoint';
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
@@ -175,7 +176,10 @@ export function routeAndRenderCrossLinks3(
     committed.push(best.committed);
 
     let color: string;
-    {
+    const explicitColor = typeof link.props?.color === 'string' ? link.props.color : undefined;
+    if (explicitColor) {
+      color = explicitColor;
+    } else {
       color = PALETTE[explicitColorIdx % PALETTE.length]!;
       explicitColorIdx++;
     }
@@ -206,6 +210,7 @@ export function routeAndRenderCrossLinks3(
       ...(markerEnd   ? { markerEnd }   : {}),
       ...(markerStart ? { markerStart } : {}),
       ...(link.label  ? { label: link.label } : {}),
+      ...(link.props?.labelPlacement === 'path-midpoint' ? { labelPlacement: 'path-midpoint' as const } : {}),
     });
   }
 
@@ -295,7 +300,7 @@ export function routeAndRenderCrossLinks3(
       // on the route's longest HORIZONTAL run — labels are horizontal text and
       // read best along a horizontal segment, and this avoids parking them on a
       // short/outboard vertical channel that may sit at the diagram edge.
-      const labelPos = staggered.has(i) || wr.isBezier
+      const labelPos = staggered.has(i) || wr.isBezier || wr.labelPlacement === 'path-midpoint'
         ? pointAtFrac(pts, labelFractions[i] ?? 0.5)
         : labelAnchor(pts);
       pendingLabels.push({
@@ -438,12 +443,13 @@ function findBestRoute(
           dp = snapped.dstPort;
 
           const router = createRouter(routeStyle);
+          const routePadding = typeof link.props?.routePadding === 'number' ? link.props.routePadding : ROUTE_PADDING;
           const route  = router.route({
             from:    sp,
             to:      dp,
             style:   routeStyle,
             obstacles: linkObstacles,
-            padding: ROUTE_PADDING,
+            padding: routePadding,
             fromDir: ss as PortDirection,
             toDir:   ds as PortDirection,
           });

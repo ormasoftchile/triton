@@ -5,6 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import { resolveCrossLinks } from '../src/crosslink/resolve.js';
 import { renderCrossLinks } from '../src/crosslink/render.js';
+import { crossLinksToConnectorSpecs, routeConnectors } from '../src/crosslink/connectors.js';
+import { routeAndRenderCrossLinks3 } from '../src/crosslink/engine3.js';
 import { resolveTheme } from '../src/theme/resolver.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { registerRouter } from '../src/routing/registry.js';
@@ -258,5 +260,31 @@ describe('renderCrossLinks', () => {
     expect(pathEl.markerEnd).toBeUndefined();
     expect(pathEl.markerStart).toBeUndefined();
     expect(result.defs).toHaveLength(0);
+  });
+});
+
+describe('routeConnectors', () => {
+  it('adapts poster cross-links to the shared connector seam without changing engine3 output', () => {
+    const links: CrossLink[] = [{
+      from: { cellPath: ['A'], nodeId: 'node1' },
+      to:   { cellPath: ['B'], nodeId: 'node1' },
+      direction: 'directed',
+      style: 'solid',
+      label: 'same',
+      routing: 'orthogonal',
+    }];
+
+    const direct = routeAndRenderCrossLinks3(links, theme, anchors);
+    const shared = routeConnectors({
+      anchors,
+      connectors: crossLinksToConnectorSpecs(links),
+      theme,
+    });
+
+    expect(shared.diagnostics).toHaveLength(0);
+    expect(shared.defs).toEqual(direct.defs);
+    expect(shared.elements).toEqual(direct.elements);
+    expect(shared.pathElements).toEqual(direct.elements.filter(e => e.type !== 'text'));
+    expect(shared.labelElements).toEqual(direct.elements.filter(e => e.type === 'text'));
   });
 });
