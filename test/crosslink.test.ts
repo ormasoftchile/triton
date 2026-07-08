@@ -11,7 +11,6 @@ import { registerRouter } from '../src/routing/registry.js';
 import { orthogonalRouter } from '../src/routing/router.js';
 import type { NodeAnchorRegistry } from '../src/contracts/anchors.js';
 import type { CrossLink } from '../src/contracts/crosslink.js';
-import type { TraceRecord } from '../src/contracts/crosslink.js';
 
 // Ensure orthogonal router is registered
 registerRouter('orthogonal', orthogonalRouter);
@@ -171,7 +170,7 @@ describe('renderCrossLinks', () => {
     }];
 
     const { resolved } = resolveCrossLinks(links, anchors);
-    const result = renderCrossLinks(resolved, [], theme);
+    const result = renderCrossLinks(resolved, theme);
 
     expect(result.elements.length).toBeGreaterThanOrEqual(1);
     const pathEl = result.elements[0]!;
@@ -190,7 +189,7 @@ describe('renderCrossLinks', () => {
     }];
 
     const { resolved } = resolveCrossLinks(links, anchors);
-    const result = renderCrossLinks(resolved, [], theme);
+    const result = renderCrossLinks(resolved, theme);
 
     const textEls = result.elements.filter(e => e.type === 'text');
     expect(textEls).toHaveLength(1);
@@ -206,7 +205,7 @@ describe('renderCrossLinks', () => {
     }];
 
     const { resolved } = resolveCrossLinks(links, anchors);
-    const result = renderCrossLinks(resolved, [], theme);
+    const result = renderCrossLinks(resolved, theme);
 
     const pathEl = result.elements.find(e => e.type === 'path') as any;
     expect(pathEl.strokeDasharray).toBe('8 4');
@@ -221,30 +220,10 @@ describe('renderCrossLinks', () => {
     }];
 
     const { resolved } = resolveCrossLinks(links, anchors);
-    const result = renderCrossLinks(resolved, [], theme);
+    const result = renderCrossLinks(resolved, theme);
 
     const pathEl = result.elements.find(e => e.type === 'path') as any;
     expect(pathEl.strokeDasharray).toBe('4 3');
-  });
-
-  it('uses trace colour when traceId is set', () => {
-    const traces: TraceRecord[] = [
-      { id: 'trace-1', name: 'Auth Flow', hops: [], color: '#FF0000' },
-    ];
-
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'directed',
-      style: 'solid',
-      traceId: 'trace-1',
-    }];
-
-    const { resolved } = resolveCrossLinks(links, anchors);
-    const result = renderCrossLinks(resolved, traces, theme);
-
-    const pathEl = result.elements.find(e => e.type === 'path') as any;
-    expect(pathEl.stroke).toBe('#FF0000');
   });
 
   it('renders bidirectional markers', () => {
@@ -256,7 +235,7 @@ describe('renderCrossLinks', () => {
     }];
 
     const { resolved } = resolveCrossLinks(links, anchors);
-    const result = renderCrossLinks(resolved, [], theme);
+    const result = renderCrossLinks(resolved, theme);
 
     const pathEl = result.elements.find(e => e.type === 'path') as any;
     expect(pathEl.markerEnd).toBe('triton-crosslink-arrow');
@@ -273,7 +252,7 @@ describe('renderCrossLinks', () => {
     }];
 
     const { resolved } = resolveCrossLinks(links, anchors);
-    const result = renderCrossLinks(resolved, [], theme);
+    const result = renderCrossLinks(resolved, theme);
 
     const pathEl = result.elements.find(e => e.type === 'path') as any;
     expect(pathEl.markerEnd).toBeUndefined();

@@ -101,7 +101,7 @@ function collectTexts(elements: any[]): string[] {
   return out;
 }
 
-// ─── Grammar: links, traces, explicit IDs ─────────────────────────────────────
+// ─── Grammar: links, explicit IDs ─────────────────────────────────────────────
 
 describe('poster grammar — cross-links', () => {
   it('parses explicit cell IDs', () => {
@@ -224,33 +224,36 @@ describe('poster grammar — cross-links', () => {
     expect(ir.links![0]!.routing).toBe('bezier');
   });
 
-  it('parses trace declarations and desugars to links', () => {
+  it('parses @route:WALLS wall hints on links', () => {
     const ir = poster.parseMermaid(`poster "Test"
   columns 2
 
   cell A :: flow
     flowchart LR
-      start[Start] --> mid[Mid]
+      n1[N1] --> n2[N2]
   end
 
   cell B :: flow
     flowchart LR
-      end1[End] --> done[Done]
+      m1[M1] --> m2[M2]
   end
 
-  trace "Request Flow" : triggers A.start --> A.mid --> B.end1 --> B.done
+  link A.n1 --> B.m1 "both walls" @orthogonal:EW
+  link A.n1 --> B.m1 "exit only" @straight:S
+  link A.n2 --> B.m2 "walls only" @NS
 `);
-    expect(ir.traces).toHaveLength(1);
-    expect(ir.traces![0]!.name).toBe('Request Flow');
-    expect(ir.traces![0]!.type).toBe('triggers');
-    expect(ir.traces![0]!.hops).toHaveLength(4);
-
-    // Trace desugars to cross-cell links only (intra-cell hops are skipped)
-    // A.start→A.mid and B.end1→B.done are intra-cell; only A.mid→B.end1 crosses cells
-    const traceLinks = ir.links!.filter(l => l.traceId === ir.traces![0]!.id);
-    expect(traceLinks).toHaveLength(1);
-    expect(traceLinks[0]!.from.nodeId).toBe('mid');
-    expect(traceLinks[0]!.to.nodeId).toBe('end1');
+    expect(ir.links).toHaveLength(3);
+    // route + both walls
+    expect(ir.links![0]!.routing).toBe('orthogonal');
+    expect(ir.links![0]!.exitWall).toBe('E');
+    expect(ir.links![0]!.entryWall).toBe('W');
+    // route + exit-only wall
+    expect(ir.links![1]!.routing).toBe('straight');
+    expect(ir.links![1]!.exitWall).toBe('S');
+    expect(ir.links![1]!.entryWall).toBeUndefined();
+    // walls-only (route defaults)
+    expect(ir.links![2]!.exitWall).toBe('N');
+    expect(ir.links![2]!.entryWall).toBe('S');
   });
 
   it('renders cross-links from parsed source end-to-end', async () => {

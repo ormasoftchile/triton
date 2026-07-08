@@ -9,7 +9,7 @@
  */
 
 import type { SceneElement } from '../contracts/scene.js';
-import type { ResolvedCrossLink, TraceRecord, CrossLinkEdgeStyle } from '../contracts/crosslink.js';
+import type { ResolvedCrossLink, CrossLinkEdgeStyle } from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry } from '../contracts/anchors.js';
 import type { PortDirection, RouteStyle } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
@@ -33,7 +33,6 @@ const CROSSLINK_ARROW_BOTH_ID = 'triton-crosslink-arrow-both';
  * Render resolved cross-links into scene elements.
  *
  * @param resolved — links with resolved port positions in poster space
- * @param traces  — trace records for colour assignment
  * @param theme   — for styling (colours, fonts, stroke widths)
  * @param anchors — full anchor registry for obstacle avoidance
  * @param occupiedRects — bounding boxes of existing text/elements that labels must avoid
@@ -48,7 +47,6 @@ const CELL_SHRINK = 12;
 
 export function renderCrossLinks(
   resolved: readonly ResolvedCrossLink[],
-  traces: readonly TraceRecord[],
   theme: ResolvedTheme,
   anchors?: NodeAnchorRegistry,
   occupiedRects?: readonly Rect[],
@@ -70,18 +68,11 @@ export function renderCrossLinks(
     }
   }
 
-  // Build trace colour map — uses distinct colours (avoids primary which is the default link colour)
-  const traceColors = new Map<string, string>();
+  // Assign distinct colours to explicit links
   const categoricalPalette = [
     '#E11D48', '#16A34A', '#9333EA', '#0891B2',
     '#CA8A04', '#DC2626', '#2563EB', '#7C3AED',
   ];
-  for (let i = 0; i < traces.length; i++) {
-    const t = traces[i]!;
-    traceColors.set(t.id, t.color ?? categoricalPalette[i % categoricalPalette.length]!);
-  }
-
-  // Assign distinct colours to explicit (non-trace) links as well
   let explicitColorIdx = 0;
 
   // Collect labels for de-collision pass after all routes are computed
@@ -98,9 +89,7 @@ export function renderCrossLinks(
     const { link, fromPort, toPort, fromSide, toSide } = rLink;
 
     let color: string;
-    if (link.traceId) {
-      color = traceColors.get(link.traceId) ?? palette.primary;
-    } else {
+    {
       color = categoricalPalette[explicitColorIdx % categoricalPalette.length]!;
       explicitColorIdx++;
     }

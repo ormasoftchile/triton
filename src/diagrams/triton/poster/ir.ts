@@ -1,4 +1,4 @@
-import type { BaseIR, CrossLink, TraceRecord, DiagramKind } from '../../../contracts/index.js';
+import type { BaseIR, CrossLink, DiagramKind } from '../../../contracts/index.js';
 
 // ─── Cell Content ─────────────────────────────────────────────────────────────
 
@@ -36,6 +36,4 @@ export interface PosterDocument extends BaseIR {
   readonly cells: readonly PosterCell[];
   /** Cross-diagram links declared at this poster level. */
   readonly links?: readonly CrossLink[];
-  /** Named multi-hop traces declared at this poster level. */
-  readonly traces?: readonly TraceRecord[];
 }

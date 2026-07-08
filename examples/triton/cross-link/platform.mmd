@@ -52,5 +52,3 @@ poster "ML Platform — Training & Serving Pipeline"
   link INFRA.k8s --> SERVE.stable "hosts"
   link INFRA.vault --> SERVE.gateway "injects secrets"
 
-  trace "New Data Pipeline" : triggers INGEST.s3 --> INGEST.validator --> INGEST.registry --> TRAIN.scheduler --> TRAIN.gpu --> TRAIN.mlflow --> SERVE.router --> SERVE.canary
-  trace "Incident Response" : triggers MONITOR.prom --> MONITOR.alertmgr --> MONITOR.pager

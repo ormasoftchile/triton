@@ -23,7 +23,7 @@
  */
 
 import type { SceneElement } from '../contracts/scene.js';
-import type { CrossLink, TraceRecord, CrossLinkEdgeStyle } from '../contracts/crosslink.js';
+import type { CrossLink, CrossLinkEdgeStyle } from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry } from '../contracts/anchors.js';
 import type { PortDirection } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
@@ -102,7 +102,6 @@ interface WorkingRoute {
  */
 export function routeAndRenderCrossLinks2(
   links: readonly CrossLink[],
-  traces: readonly TraceRecord[],
   theme: ResolvedTheme,
   anchors: NodeAnchorRegistry,
   occupiedRects?: readonly Rect[],
@@ -118,10 +117,6 @@ export function routeAndRenderCrossLinks2(
     '#E11D48', '#16A34A', '#9333EA', '#0891B2',
     '#CA8A04', '#DC2626', '#2563EB', '#7C3AED',
   ];
-  const traceColors = new Map<string, string>();
-  for (let i = 0; i < traces.length; i++) {
-    traceColors.set(traces[i]!.id, traces[i]!.color ?? PALETTE[i % PALETTE.length]!);
-  }
   let explicitColorIdx = 0;
 
   // All node bounds used as routing obstacles
@@ -270,9 +265,7 @@ export function routeAndRenderCrossLinks2(
 
     // Colour
     let color: string;
-    if (link.traceId) {
-      color = traceColors.get(link.traceId) ?? palette.primary;
-    } else {
+    {
       color = PALETTE[explicitColorIdx % PALETTE.length]!;
       explicitColorIdx++;
     }

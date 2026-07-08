@@ -30,5 +30,3 @@ poster "Microservices Architecture — Cross-Link Map"
   link API.orders --> ASYNC.kafka "publishes"
   link ASYNC.metrics <..> API.gw "health"
 
-  trace "User Purchase Flow" : triggers UI.bff --> API.gw --> API.orders --> DATA.pg
-  trace "Cache Read Path" : reads API.catalog --> DATA.redis

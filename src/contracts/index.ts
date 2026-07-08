@@ -101,8 +101,6 @@ export type {
   CrossLinkEdgeStyle,
   CrossLinkDirection,
   CrossLink,
-  TraceType,
-  TraceRecord,
   ResolvedCrossLink,
   RouteQuality,
   PerturbationKind,

@@ -25,7 +25,7 @@
  */
 
 import type { SceneElement } from '../contracts/scene.js';
-import type { CrossLink, TraceRecord } from '../contracts/crosslink.js';
+import type { CrossLink } from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry, OccupiedPort } from '../contracts/anchors.js';
 import type { PortDirection } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
@@ -114,7 +114,6 @@ interface WorkingRoute {
 
 export function routeAndRenderCrossLinks3(
   links:             readonly CrossLink[],
-  traces:            readonly TraceRecord[],
   theme:             ResolvedTheme,
   anchors:           NodeAnchorRegistry,
   intraPorts?:       readonly OccupiedPort[],
@@ -131,10 +130,6 @@ export function routeAndRenderCrossLinks3(
     '#E11D48', '#16A34A', '#9333EA', '#0891B2',
     '#CA8A04', '#DC2626', '#2563EB', '#7C3AED',
   ];
-  const traceColors = new Map<string, string>();
-  for (let i = 0; i < traces.length; i++) {
-    traceColors.set(traces[i]!.id, traces[i]!.color ?? PALETTE[i % PALETTE.length]!);
-  }
   let explicitColorIdx = 0;
 
   const allNodeBounds: Rect[] = Object.values(anchors).map(a => a.bounds);
@@ -180,9 +175,7 @@ export function routeAndRenderCrossLinks3(
     committed.push(best.committed);
 
     let color: string;
-    if (link.traceId) {
-      color = traceColors.get(link.traceId) ?? palette.primary;
-    } else {
+    {
       color = PALETTE[explicitColorIdx % PALETTE.length]!;
       explicitColorIdx++;
     }
@@ -411,9 +404,13 @@ function findBestRoute(
 
   const routeStyle  = link.routing ?? 'orthogonal';
   const sides: CardinalSide[] = ['N', 'S', 'E', 'W'];
-  // Collapse search dimensions: phase-0 port hints → user exit/entry hints → full search
-  const srcWalls: CardinalSide[] = portHint?.srcWall ? [portHint.srcWall] : link.exitWall  ? [link.exitWall]  : sides;
-  const dstWalls: CardinalSide[] = portHint?.dstWall ? [portHint.dstWall] : link.entryWall ? [link.entryWall] : sides;
+  // Collapse search dimensions. Precedence: explicit user exit/entry walls win,
+  // then phase-0 shared-port fan hints, then full 4-wall search.
+  const srcWalls: CardinalSide[] = link.exitWall  ? [link.exitWall]  : portHint?.srcWall ? [portHint.srcWall] : sides;
+  const dstWalls: CardinalSide[] = link.entryWall ? [link.entryWall] : portHint?.dstWall ? [portHint.dstWall] : sides;
+  // Honor a phase-0 fan t whenever one was assigned. Pinned walls always get a
+  // fan slot (centre when alone, evenly spread when several share the wall), so
+  // this is what centres the port on the wall.
   const srcTs: readonly number[] = portHint?.srcT !== undefined ? [portHint.srcT] : WALL_TS;
   const dstTs: readonly number[] = portHint?.dstT !== undefined ? [portHint.dstT] : WALL_TS;
 
@@ -797,18 +794,32 @@ function preAssignSharedPorts(
     groups.get(dg)!.push({ linkIdx: i, isSource: false, tangentKey: dstTK });
   }
 
-  // Step 3: for groups with 2+ members sort and assign t values
+  // Step 3: assign evenly-spaced t values along each wall.
+  //   - Groups with 2+ members always fan (non-crossing arrival/departure order).
+  //   - A single link that is USER-PINNED to a wall still gets a slot so it
+  //     lands at the wall midpoint (1/(1+1)); this is the fan formula degenerating
+  //     to centre, NOT a hardcoded 0.5. Two pinned links → 1/3, 2/3, and so on.
+  //   - A single AUTO link keeps its cost-search freedom (no hint emitted).
   const result = new Map<number, PortHint>();
 
   for (const [groupKey, members] of groups) {
-    if (members.length < 2) continue;   // single link — let the cost function decide
-
     const wall = groupKey.split(':').at(-1) as CardinalSide;
-    members.sort((a, b) => a.tangentKey - b.tangentKey);
-    const n = members.length;
+    const pinnedHere = members.filter(m => {
+      const l = links[m.linkIdx]!;
+      return m.isSource ? l.exitWall === wall : l.entryWall === wall;
+    });
+
+    // Which members actually get fanned on this wall.
+    // If any link is pinned here, only the pinned links share the wall slots
+    // (auto links keep searching). Otherwise fan the whole group when 2+.
+    const fanned = pinnedHere.length > 0 ? pinnedHere : members;
+    if (fanned.length < 2 && pinnedHere.length === 0) continue;
+
+    fanned.sort((a, b) => a.tangentKey - b.tangentKey);
+    const n = fanned.length;
 
     for (let k = 0; k < n; k++) {
-      const { linkIdx, isSource } = members[k]!;
+      const { linkIdx, isSource } = fanned[k]!;
       const t = (k + 1) / (n + 1);
       const ex = result.get(linkIdx) ?? {};
       result.set(linkIdx, isSource

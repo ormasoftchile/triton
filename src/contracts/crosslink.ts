@@ -3,12 +3,8 @@
  *
  * Contracts for cross-diagram linking in poster compositions.
  *
- * Two constructs:
- *   - CrossLink: a single directed/undirected edge between nodes in
- *     different cells of a poster.
- *   - Trace: a named, ordered, optionally-typed multi-hop path of
- *     cross-links representing a logical thread (user journey,
- *     requirement traceability, distributed request path).
+ * CrossLink: a single directed/undirected edge between nodes in
+ * different cells of a poster.
  *
  * Cross-links are presentation-layer assertions on the composition.
  * They do NOT modify any child diagram's IR or Scene — each cell
@@ -18,7 +14,7 @@
  * Dependency: primitives.ts, anchors.ts
  */
 
-import type { Point, Color } from './primitives.js';
+import type { Point } from './primitives.js';
 import type { CardinalSide, NodeAnchor } from './anchors.js';
 import type { CurveStyle, RouteStyle } from './routing.js';
 
@@ -105,53 +101,10 @@ export interface CrossLink {
    */
   readonly animation?: 'march' | 'particle' | 'none';
   /**
-   * If this link is part of a trace, the trace's ID.
-   * Used to apply consistent styling (colour, grouping) across trace members.
-   */
-  readonly traceId?: string;
-  /**
    * Optional property bag for future per-link overrides (tension, color, etc.).
    * Parsed from `{ key: value }` blocks in the syntax.
    */
   readonly props?: Readonly<Record<string, string | number>>;
-}
-
-// ─── Trace ────────────────────────────────────────────────────────────────────
-
-/**
- * Semantic type of a trace — what relationship the hops represent.
- * Extensible; these are the built-in vocabulary from the design spec.
- */
-export type TraceType =
-  | 'satisfies'   // requirement → implementation
-  | 'triggers'    // event → handler
-  | 'calls'       // service → service
-  | 'reads'       // component → data store
-  | 'writes'      // component → data store
-  | 'extends'     // type hierarchy
-  | 'custom';     // user-defined (type label in the trace name)
-
-/**
- * A named, ordered, optionally-typed multi-hop path of cross-diagram links.
- *
- * Traces desugar to atomic CrossLink[]s at composition time.
- * The TraceRecord groups them under a name for consistent styling,
- * legend display, and agent addressability.
- */
-export interface TraceRecord {
-  /** Unique trace ID (auto-generated or author-specified). */
-  readonly id: string;
-  /** Human-readable name displayed in the legend. */
-  readonly name: string;
-  /** Optional semantic type governing the trace legend pill label. */
-  readonly type?: TraceType;
-  /**
-   * Ordered hop endpoints. Length N produces N-1 atomic links:
-   *   hops[0]→hops[1], hops[1]→hops[2], …, hops[N-2]→hops[N-1]
-   */
-  readonly hops: readonly NodeAddress[];
-  /** Resolved colour assigned at composition time from the categorical palette. */
-  readonly color?: Color;
 }
 
 // ─── Resolved Cross-Link (after anchor lookup) ────────────────────────────────
