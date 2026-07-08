@@ -21,6 +21,7 @@ export interface TextOpts {
 
 export interface RectOpts {
   rx?: number;
+  fillOpacity?: number;
   opacity?: number;
 }
 
@@ -63,8 +64,9 @@ export function pen(theme: ResolvedTheme): Pen {
     rect(bounds, fill, stroke, strokeWidth, opts = {}) {
       return {
         type: 'rect', bounds, fill, stroke, strokeWidth,
-        ...(opts.rx !== undefined      ? { rx: opts.rx } : {}),
-        ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
+        ...(opts.rx !== undefined          ? { rx: opts.rx } : {}),
+        ...(opts.fillOpacity !== undefined ? { fillOpacity: opts.fillOpacity } : {}),
+        ...(opts.opacity !== undefined     ? { opacity: opts.opacity } : {}),
       };
     },
     circle(center, radius, fill, stroke, strokeWidth, opts = {}) {

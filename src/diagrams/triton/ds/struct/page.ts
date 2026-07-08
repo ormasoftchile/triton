@@ -45,47 +45,72 @@ export function layoutPage(doc: PageDoc, theme: ResolvedTheme): LayoutResult {
 
   const slotCount = doc.slots ?? doc.tuples.length;
   const PAD = 14, HEADER = 26, SLOT_W = 54, SLOT_H = 22, TUPLE_H = 28, TGAP = 18;
+  const SLOT_TOP_GAP = 12, FREE_BAND = 48, MIN_INNER_W = 240, SLOT_FILL_OPACITY = 0.14;
 
-  const tupleW = Math.max(110, ...doc.tuples.map(t => measureText(t, font).width + 24));
-  const tuplesRowW = doc.tuples.length * tupleW + (doc.tuples.length - 1) * TGAP;
-  const slotsRowW = slotCount * (SLOT_W + 8) - 8;
-  const innerW = Math.max(tuplesRowW, slotsRowW, 240);
+  const tupleWidths = doc.tuples.map(t => Math.max(110, measureText(t, font).width + 24));
+  const columnCount = Math.max(slotCount, doc.tuples.length, 1);
+  const columnWidths = Array.from({ length: columnCount }, (_, i) => Math.max(SLOT_W, tupleWidths[i] ?? 0));
+  const contentW = columnWidths.reduce((sum, width) => sum + width, 0) + (columnCount - 1) * TGAP;
+  const innerW = Math.max(contentW, MIN_INNER_W);
   const pageW = innerW + PAD * 2;
-  const pageH = HEADER + 36 + 70 + TUPLE_H + PAD;
+  const pageH = HEADER + SLOT_TOP_GAP + SLOT_H + FREE_BAND + TUPLE_H + PAD;
+  const contentX = pxForCenteredContent(margin + PAD, innerW, contentW);
 
   const px = margin, py = margin + titleH;
   const elements: SceneElement[] = [];
   if (doc.title) elements.push(p.text(doc.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
 
-  elements.push(p.rect({ x: px, y: py, width: pageW, height: pageH }, '#fbfbfd', palette.border, 1.5, { rx: 6 }));
+  elements.push(p.rect({ x: px, y: py, width: pageW, height: pageH }, palette.surface, palette.border, 1.5, { rx: 6 }));
   elements.push(p.rect({ x: px, y: py, width: pageW, height: HEADER }, palette.primary, palette.primary, 0, { rx: 0 }));
   elements.push(p.text('PageHeader    freeStart →        ← freeEnd', px + 12, py + 17, small, '#ffffff', { weight: 'bold' }));
 
-  const slotY = py + HEADER + 10;
+  const slotY = py + HEADER + SLOT_TOP_GAP;
   const slotCx: number[] = [];
+  const tupleCx: number[] = [];
   const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
+  const columnX: number[] = [];
+  let x = contentX;
+  for (const width of columnWidths) {
+    columnX.push(x);
+    x += width + TGAP;
+  }
+
   for (let i = 0; i < slotCount; i++) {
-    const sx = px + PAD + i * (SLOT_W + 8);
+    const sx = (columnX[i] ?? contentX) + ((columnWidths[i] ?? SLOT_W) - SLOT_W) / 2;
     const box = { x: sx, y: slotY, width: SLOT_W, height: SLOT_H };
-    elements.push(p.rect(box, '#eef2ff', palette.primary, 1.5, { rx: 3 }));
+    elements.push(p.rect(box, palette.primary, palette.primary, 1.5, { rx: 3, fillOpacity: SLOT_FILL_OPACITY }));
     elements.push(p.text(`slot${i}`, sx + SLOT_W / 2, slotY + 15, small, palette.primary, { anchor: 'middle', weight: 'bold' }));
     slotCx.push(sx + SLOT_W / 2);
     anchors[`slot${i}`] = { bounds: box };
   }
 
-  elements.push(p.text('free space', px + pageW / 2, py + HEADER + 70, font, palette.textMuted, { anchor: 'middle' }));
+  const tupleY = slotY + SLOT_H + FREE_BAND;
+  const freeLabel = 'free space';
+  const freeLabelY = slotY + SLOT_H + FREE_BAND / 2 + font * 0.35;
+  const freeLabelX = px + pageW / 2;
+  const freeLabelWidth = measureText(freeLabel, font).width;
+  const freeLabelBounds = {
+    x1: freeLabelX - freeLabelWidth / 2 - 6,
+    x2: freeLabelX + freeLabelWidth / 2 + 6,
+    y1: freeLabelY - font - 3,
+    y2: freeLabelY + 5,
+  };
+  elements.push(p.text(freeLabel, freeLabelX, freeLabelY, font, palette.textMuted, { anchor: 'middle' }));
 
-  const tupleY = py + pageH - PAD - TUPLE_H;
   doc.tuples.forEach((tuple, i) => {
-    const tx = px + PAD + i * (tupleW + TGAP);
+    const tupleW = tupleWidths[i]!;
+    const tx = (columnX[i] ?? contentX) + ((columnWidths[i] ?? tupleW) - tupleW) / 2;
     const box = { x: tx, y: tupleY, width: tupleW, height: TUPLE_H };
+    const cx = tx + tupleW / 2;
+    tupleCx.push(cx);
     elements.push(p.rect(box, palette.surface, palette.border, 1.5, { rx: 3 }));
-    elements.push(p.text(tuple, tx + tupleW / 2, tupleY + TUPLE_H / 2 + font * 0.35, font, palette.text, { anchor: 'middle', weight: 'bold' }));
+    elements.push(p.text(tuple, cx, tupleY + TUPLE_H / 2 + font * 0.35, font, palette.text, { anchor: 'middle', weight: 'bold' }));
     anchors[`tuple${i}`] = { bounds: box };
-    if (i < slotCx.length) {
-      elements.push(p.path(`M ${rhu(slotCx[i]!)} ${rhu(slotY + SLOT_H)} L ${rhu(tx + tupleW / 2)} ${rhu(tupleY)}`, palette.textMuted, 1.5, { markerEnd: ARROW_ID }));
-    }
   });
+
+  for (let i = 0; i < Math.min(slotCx.length, tupleCx.length); i++) {
+    elements.push(p.path(verticalArrow(slotCx[i]!, slotY + SLOT_H, tupleY, freeLabelBounds), palette.textMuted, 1.5, { markerEnd: ARROW_ID }));
+  }
 
   const scene: Scene = {
     viewBox: { x: 0, y: 0, width: pageW + margin * 2, height: py + pageH + margin },
@@ -94,6 +119,18 @@ export function layoutPage(doc: PageDoc, theme: ResolvedTheme): LayoutResult {
     defs: [arrowDef(palette.textMuted)],
   };
   return { scene, anchors: anchors as NodeAnchorRegistry };
+}
+
+function pxForCenteredContent(innerLeft: number, innerW: number, contentW: number): number {
+  return innerLeft + Math.max(0, (innerW - contentW) / 2);
+}
+
+function verticalArrow(x: number, y1: number, y2: number, avoid?: { x1: number; x2: number; y1: number; y2: number }): string {
+  const rx = rhu(x);
+  if (avoid && x >= avoid.x1 && x <= avoid.x2 && y1 < avoid.y2 && y2 > avoid.y1) {
+    return `M ${rx} ${rhu(y1)} L ${rx} ${rhu(Math.max(y1, avoid.y1))} M ${rx} ${rhu(Math.min(y2, avoid.y2))} L ${rx} ${rhu(y2)}`;
+  }
+  return `M ${rx} ${rhu(y1)} L ${rx} ${rhu(y2)}`;
 }
 
 export const page: DiagramModule<PageDoc & { version: string; metadata: Record<string, unknown> }> = {

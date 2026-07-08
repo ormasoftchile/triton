@@ -92,6 +92,9 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
   const titleH = doc.title ? typography.titleFontSize + 14 : 0;
 
   const HEADER = 26, PAD = 14, GAP = 14, REGION_GAP = 90;
+  const REGION_FILL_OPACITY = 0.26;
+  const VAR_FILL_OPACITY = 0.56;
+  const OBJECT_FILL_OPACITY = 0.62;
 
   const itemSize = (item: Item): { w: number; h: number } => {
     if (item.kind === 'var') {
@@ -120,7 +123,13 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
     const contentH = sizes.reduce((s, sz) => s + sz.h + GAP, 0) - (sizes.length ? GAP : 0);
     const regionH = HEADER + PAD + contentH + PAD;
 
-    elements.push(p.rect({ x: regionX, y: regionTop, width: regionW, height: regionH }, '#fbfbfd', palette.border, 1.5, { rx: 8 }));
+    elements.push(p.rect(
+      { x: regionX, y: regionTop, width: regionW, height: regionH },
+      palette.surface,
+      palette.border,
+      1.5,
+      { rx: 8, fillOpacity: REGION_FILL_OPACITY },
+    ));
     elements.push(p.text(region.name, regionX + 12, regionTop + 17, small, palette.textMuted, { weight: 'bold' }));
 
     let iy = regionTop + HEADER + PAD;
@@ -128,7 +137,7 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
       const { h } = sizes[i]!;
       const box: Rect = { x: regionX + PAD, y: iy, width: innerW, height: h };
       if (item.kind === 'var') {
-        elements.push(p.rect(box, palette.surface, palette.border, 1.5, { rx: 4 }));
+        elements.push(p.rect(box, palette.surface, palette.border, 1.5, { rx: 4, fillOpacity: VAR_FILL_OPACITY }));
         elements.push(p.text(item.name, box.x + 12, box.y + h / 2 + font * 0.35, font, palette.text, { weight: 'bold' }));
         idBox.set(item.name, box);
         anchors[item.name] = { bounds: box };
@@ -137,7 +146,7 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
           pending.push({ from: box, target: item.target });
         }
       } else {
-        elements.push(p.rect(box, palette.surface, palette.primary, 2, { rx: 6 }));
+        elements.push(p.rect(box, palette.surface, palette.primary, 2, { rx: 6, fillOpacity: OBJECT_FILL_OPACITY }));
         elements.push(p.text(item.title, box.x + 12, box.y + 18, font, palette.primary, { weight: 'bold' }));
         item.fields.forEach((f, fi) => {
           elements.push(p.text(`${f.k}: ${f.v}`, box.x + 12, box.y + 24 + (fi + 1) * 18, small, palette.text));

@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { memory, layoutMemory } from '../src/diagrams/triton/ds/struct/memory.js';
 import { page, layoutPage } from '../src/diagrams/triton/ds/struct/page.js';
-import type { SceneText, TextAnchor } from '../src/contracts/index.js';
+import type { ScenePath, SceneRect, SceneText, TextAnchor } from '../src/contracts/index.js';
+import { renderSVG } from '../src/render/svg.js';
 import { measureText } from '../src/text/metrics.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
@@ -53,6 +54,46 @@ describe('memory', () => {
     expect(anchors['obj']!.bounds.x).toBeGreaterThan(anchors['p']!.bounds.x);
   });
 
+  it('uses theme-derived translucent fills for memory panels', () => {
+    const theme = {
+      ...defaultTheme,
+      palette: {
+        ...defaultTheme.palette,
+        surface: '#123456',
+        border: '#654321',
+        primary: '#abcdef',
+      },
+    };
+    const ir = memory.parseMermaid([
+      'memory',
+      '  region STACK',
+      '    var p -> obj',
+      '  region HEAP',
+      '    object obj : Point : x=1',
+      '',
+    ].join('\n'));
+    const { scene } = layoutMemory(ir, theme);
+    const rects = scene.elements.filter((e): e is SceneRect => e.type === 'rect');
+    const [regionRect, varRect, , objectRect] = rects;
+
+    expect(regionRect!.fill).toBe(theme.palette.surface);
+    expect(regionRect!.fill).not.toBe('#fbfbfd');
+    expect(regionRect!.stroke).toBe(theme.palette.border);
+    expect(regionRect!.fillOpacity).toBe(0.26);
+
+    expect(varRect!.fill).toBe(theme.palette.surface);
+    expect(varRect!.stroke).toBe(theme.palette.border);
+    expect(varRect!.fillOpacity).toBeGreaterThan(regionRect!.fillOpacity!);
+
+    expect(objectRect!.fill).toBe(theme.palette.surface);
+    expect(objectRect!.stroke).toBe(theme.palette.primary);
+    expect(objectRect!.fillOpacity).toBeGreaterThan(regionRect!.fillOpacity!);
+
+    const svg = renderSVG(scene);
+    expect(svg).toContain('fill="#123456" fill-opacity="0.26"');
+    expect(svg).not.toContain('#fbfbfd');
+  });
+
   it('expands the viewBox to include a wide quoted region label', () => {
     const wide = 'Stack frame region label wide enough to grow the memory box';
     const ir = memory.parseMermaid(`memory\n  region "${wide}"\n    var p\n`);
@@ -94,6 +135,52 @@ describe('page', () => {
     expect(arrows).toHaveLength(3);
   });
 
+  it('centers slots above tuples and keeps arrows short and vertical', () => {
+    const ir = page.parseMermaid('page\n  slots 4\n  tuples "(10,Alice Smith)" "(40,Bob)" "(90,Charlie Delta)"\n');
+    const { scene, anchors } = layoutPage(ir, defaultTheme);
+    const arrows = scene.elements.filter((e): e is ScenePath => e.type === 'path' && e.markerEnd != null);
+
+    expect(arrows).toHaveLength(3);
+    for (let i = 0; i < arrows.length; i++) {
+      const slot = anchors[`slot${i}`]!.bounds;
+      const tuple = anchors[`tuple${i}`]!.bounds;
+      expect(centerX(slot)).toBeCloseTo(centerX(tuple), 6);
+      expect(tuple.y - (slot.y + slot.height)).toBeLessThanOrEqual(52);
+      expect(uniquePathXCoords(arrows[i]!.d)).toHaveLength(1);
+    }
+    expect(anchors['slot3']).toBeDefined();
+    expect(anchors['tuple3']).toBeUndefined();
+  });
+
+  it('uses theme-derived fills for page panels and slots', () => {
+    const theme = {
+      ...defaultTheme,
+      palette: {
+        ...defaultTheme.palette,
+        surface: '#123456',
+        border: '#654321',
+        primary: '#abcdef',
+      },
+    };
+    const ir = page.parseMermaid('page\n  slots 2\n  tuples "(10,Alice Smith)" "(40,Bob Jones)"\n');
+    const { scene } = layoutPage(ir, theme);
+    const rects = scene.elements.filter((e): e is SceneRect => e.type === 'rect');
+    const [pageRect, headerRect, slotRect] = rects;
+
+    expect(pageRect!.fill).toBe(theme.palette.surface);
+    expect(pageRect!.stroke).toBe(theme.palette.border);
+    expect(headerRect!.fill).toBe(theme.palette.primary);
+    expect(slotRect!.fill).toBe(theme.palette.primary);
+    expect(slotRect!.fillOpacity).toBeGreaterThan(0);
+    expect(slotRect!.fillOpacity).toBeLessThan(1);
+
+    const svg = renderSVG(scene);
+    expect(svg).toContain('fill="#123456"');
+    expect(svg).toContain('fill="#abcdef" fill-opacity=');
+    expect(svg).not.toContain('#fbfbfd');
+    expect(svg).not.toContain('#eef2ff');
+  });
+
   it('expands the viewBox to include a wide quoted tuple label', () => {
     const wide = '(10,Alice Smith with a tuple payload wide enough to expand the page)';
     const ir = page.parseMermaid(`page\n  slots 1\n  tuples "${wide}"\n`);
@@ -119,4 +206,13 @@ function textBounds(text: {
       ? text.position.x - width
       : text.position.x;
   return { x, width };
+}
+
+function centerX(rect: { x: number; width: number }): number {
+  return rect.x + rect.width / 2;
+}
+
+function uniquePathXCoords(d: string): number[] {
+  const coords = [...d.matchAll(/[ML] ([0-9.]+) [0-9.]+/g)].map(match => Number(match[1]));
+  return [...new Set(coords)];
 }
