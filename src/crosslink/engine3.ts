@@ -444,11 +444,12 @@ function findBestRoute(
 
           const router = createRouter(routeStyle);
           const routePadding = typeof link.props?.routePadding === 'number' ? link.props.routePadding : ROUTE_PADDING;
+          const routeObstacles = [...linkObstacles, srcAnchor.bounds, dstAnchor.bounds];
           const route  = router.route({
             from:    sp,
             to:      dp,
             style:   routeStyle,
-            obstacles: linkObstacles,
+            obstacles: routeObstacles,
             padding: routePadding,
             fromDir: ss as PortDirection,
             toDir:   ds as PortDirection,

@@ -1,0 +1,45 @@
+poster "SQL Engine — Anatomy"
+    columns 2
+%% ────────────────────────────────────────────────────────────────────────────
+%% POSTER — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      poster "Title"  (title optional)
+%% Grid:        columns N · rows N · gap N
+%% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
+%% Span:        [N] (col-only)  ·  [NxM] (col × row)
+%% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
+%% Arrows:      --> · -.-> · ..> · <--> · <-.-> · <..> · --- · -.- · ...
+%% Routing:     @straight · @orthogonal · @bezier · @polyline
+%% Frontmatter: --- yaml block --- (before header)
+%% Comments:    %% text  (stripped before parse)
+%% ────────────────────────────────────────────────────────────────────────────
+
+    cell q "Query plan (EXPLAIN)"
+        plan
+            Hash Join {rows: 980}
+                Seq Scan orders {rows: 10000}
+                Hash
+                    Index Scan customers {idx: idx_cust}
+    end
+
+    cell idx "B+tree index"
+        btree order 3 insert 10 20 30 40 50 60 25 55
+    end
+
+    cell pg "Slotted page"
+        page
+            slots 3
+            tuples (10,Ann) (40,Bob) (50,Cy)
+    end
+
+    cell mem "Row in memory"
+        memory
+            region BUFFER
+                var slot -> row
+            region TUPLE
+                object row : Row : id=50, name=Cy
+    end
+
+    link q.n3 --> idx.n0 "scan uses index"
+    link idx.n0 --> pg.slot0 "leaf points to page"
+    link pg.tuple2 --> mem.row "tuple is a row"
