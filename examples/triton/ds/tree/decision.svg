@@ -13,14 +13,14 @@
   <path d="M 147.11 172 L 167.84 224" stroke="#64748B" stroke-width="1.5" fill="none" />
   <rect x="147.33785" y="189" width="20.2672" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
   <text x="157.47145" y="201" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">no</text>
-  <rect x="63.403" y="60" width="90.069" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <rect x="63.403" y="60" width="90.069" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
   <text x="108.4375" y="79.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">x1 &lt; 0.5 ?</text>
-  <rect x="24.000000000000004" y="142" width="37.3786" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="15" />
+  <rect x="24.000000000000004" y="142" width="37.3786" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="15" />
   <text x="42.6893" y="161.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">A</text>
-  <rect x="96.0923" y="142" width="90.069" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <rect x="96.0923" y="142" width="90.069" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
   <text x="141.1268" y="161.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">x2 &lt; 0.3 ?</text>
-  <rect x="89.3786" y="224" width="37.3786" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="15" />
+  <rect x="89.3786" y="224" width="37.3786" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="15" />
   <text x="108.06790000000001" y="243.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">B</text>
-  <rect x="154.7572" y="224" width="38.1178" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="15" />
+  <rect x="154.7572" y="224" width="38.1178" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="15" />
   <text x="173.8161" y="243.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">C</text>
 </svg>
