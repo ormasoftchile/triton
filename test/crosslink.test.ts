@@ -353,6 +353,46 @@ describe('routeConnectors', () => {
     expect(countOccurrences(renderAnimatedConnector('stream').svg, '<animateMotion ')).toBe(4);
   });
 
+  it('trims particle, comet, and stream motion paths short of the visible connector endpoint', () => {
+    for (const anim of ['particle', 'comet', 'stream'] as const) {
+      const { path, svg } = renderAnimatedConnector(anim);
+      expect(svg).toContain(`<path d="${path.d}"`);
+
+      const visiblePts = pathPoints(path.d);
+      const visibleEnd = visiblePts[visiblePts.length - 1]!;
+      const visiblePrev = visiblePts[visiblePts.length - 2]!;
+      const visibleLastSegment = Math.hypot(visibleEnd.x - visiblePrev.x, visibleEnd.y - visiblePrev.y);
+      const motionPaths = animateMotionPaths(svg);
+      expect(motionPaths.length).toBeGreaterThan(0);
+
+      for (const motionPath of motionPaths) {
+        expect(motionPath).not.toBe(path.d);
+        const motionPts = pathPoints(motionPath);
+        const motionEnd = motionPts[motionPts.length - 1]!;
+        expect(Math.hypot(visibleEnd.x - motionEnd.x, visibleEnd.y - motionEnd.y)).toBeCloseTo(12, 5);
+        expect(Math.hypot(motionEnd.x - visiblePrev.x, motionEnd.y - visiblePrev.y)).toBeCloseTo(visibleLastSegment - 12, 5);
+      }
+    }
+  });
+
+  it('clamps short animated motion segments without inverting them', () => {
+    const svg = renderSVG({
+      viewBox: { x: 0, y: 0, width: 10, height: 10 },
+      elements: [{
+        type: 'path',
+        d: 'M 0 0 L 5 0',
+        stroke: '#000',
+        strokeWidth: 1,
+        fill: 'none',
+        markerEnd: 'arrow',
+        animated: 'particle',
+      }],
+    });
+    const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
+    expect(svg).toContain('<path d="M 0 0 L 5 0"');
+    expect(motionPts[motionPts.length - 1]).toEqual({ x: 1, y: 0 });
+  });
+
   it('emits flow gradients and draw dashoffset animation constructs', () => {
     const flow = renderAnimatedConnector('flow').svg;
     expect(flow).toContain('gradientUnits="userSpaceOnUse"');
@@ -408,4 +448,8 @@ function renderAnimatedConnector(anim: string, style: 'solid' | 'dashed' | 'dott
 
 function countOccurrences(text: string, needle: string): number {
   return text.split(needle).length - 1;
+}
+
+function animateMotionPaths(svg: string): string[] {
+  return [...svg.matchAll(/<animateMotion\b[^>]*\bpath="([^"]+)"/g)].map(m => m[1]!);
 }

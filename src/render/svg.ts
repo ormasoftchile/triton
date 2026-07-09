@@ -95,22 +95,23 @@ function renderElement(el: SceneElement, depth: number): string {
         return `${gradient}\n${attrs} />`;
       }
       if (el.animated === 'particle') {
-        // A filled circle travels along the path using animateMotion.
-        // The path data is inlined in the path= attribute — no id needed.
-        const circle = renderMotionCircle(el.d, el.stroke, 4, undefined, '1.5s', '0s', pad);
+        const motionPath = trimMotionPathForArrowhead(el.d);
+        const circle = renderMotionCircle(motionPath, el.stroke, 4, undefined, '1.5s', '0s', pad);
         return `${attrs} />\n${circle}`;
       }
       if (el.animated === 'comet') {
+        const motionPath = trimMotionPathForArrowhead(el.d);
         const circles = [
-          renderMotionCircle(el.d, el.stroke, 4.2, 0.95, '1.8s', '0s', pad),
-          renderMotionCircle(el.d, el.stroke, 3.1, 0.45, '1.8s', '-0.18s', pad),
-          renderMotionCircle(el.d, el.stroke, 2.2, 0.22, '1.8s', '-0.36s', pad),
+          renderMotionCircle(motionPath, el.stroke, 4.2, 0.95, '1.8s', '0s', pad),
+          renderMotionCircle(motionPath, el.stroke, 3.1, 0.45, '1.8s', '-0.18s', pad),
+          renderMotionCircle(motionPath, el.stroke, 2.2, 0.22, '1.8s', '-0.36s', pad),
         ].join('\n');
         return `${attrs} />\n${circles}`;
       }
       if (el.animated === 'stream') {
+        const motionPath = trimMotionPathForArrowhead(el.d);
         const circles = [0, 1, 2, 3]
-          .map(i => renderMotionCircle(el.d, el.stroke, 3.2, 0.9, '2s', i === 0 ? '0s' : `-${formatNum(i * 0.5)}s`, pad))
+          .map(i => renderMotionCircle(motionPath, el.stroke, 3.2, 0.9, '2s', i === 0 ? '0s' : `-${formatNum(i * 0.5)}s`, pad))
           .join('\n');
         return `${attrs} />\n${circles}`;
       }
@@ -153,6 +154,35 @@ function renderMotionCircle(
 ): string {
   const opacityAttr = opacity != null ? ` opacity="${opacity}"` : '';
   return `${pad}<circle r="${radius}" fill="${escapeAttr(fill)}"${opacityAttr}>\n${pad}  <animateMotion dur="${dur}" begin="${begin}" repeatCount="indefinite" rotate="auto" path="${escapeAttr(path)}"/>\n${pad}</circle>`;
+}
+
+const MOTION_ARROWHEAD_CLEARANCE = 12;
+const MIN_MOTION_SEGMENT_LENGTH = 1;
+
+function trimMotionPathForArrowhead(path: string): string {
+  const pts = pathPoints(path);
+  if (pts.length < 2) return path;
+
+  const end = pts[pts.length - 1]!;
+  const prev = pts[pts.length - 2]!;
+  const dx = end.x - prev.x;
+  const dy = end.y - prev.y;
+  const segmentLength = Math.hypot(dx, dy);
+  if (segmentLength === 0) return path;
+
+  const remainingLength = segmentLength > MIN_MOTION_SEGMENT_LENGTH
+    ? Math.max(MIN_MOTION_SEGMENT_LENGTH, segmentLength - MOTION_ARROWHEAD_CLEARANCE)
+    : segmentLength / 2;
+  const unitX = dx / segmentLength;
+  const unitY = dy / segmentLength;
+  const trimmedEnd = {
+    x: prev.x + unitX * remainingLength,
+    y: prev.y + unitY * remainingLength,
+  };
+  const motionPts = [...pts.slice(0, -1), trimmedEnd];
+  return motionPts
+    .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${formatNum(pt.x)} ${formatNum(pt.y)}`)
+    .join(' ');
 }
 
 function renderFlowGradient(el: Extract<SceneElement, { type: 'path' }>, pad: string): string {
