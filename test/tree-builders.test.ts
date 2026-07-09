@@ -4,7 +4,11 @@ import { buildBtree } from '../src/diagrams/triton/ds/tree/btree.js';
 import { buildRadix } from '../src/diagrams/triton/ds/tree/radix.js';
 import { buildSegtree } from '../src/diagrams/triton/ds/tree/segtree.js';
 import { buildHeap } from '../src/diagrams/triton/ds/tree/heap.js';
+import { layoutTree } from '../src/diagrams/triton/ds/tree/layout.js';
+import { defaultTheme, executiveTheme } from '../src/theme/preset.js';
+import { resolveTheme } from '../src/theme/resolver.js';
 import type { TreeDocument } from '../src/diagrams/triton/ds/tree/ir.js';
+import type { Color, SceneCircle } from '../src/contracts/index.js';
 
 const byId = (doc: TreeDocument) => new Map(doc.nodes.map(n => [n.id, n]));
 
@@ -19,6 +23,35 @@ function bstInorder(doc: TreeDocument): number[] {
   return out;
 }
 
+function parseHex(c: Color): [number, number, number] | null {
+  const s = c.trim();
+  const m3 = s.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+  if (m3) return [parseInt(m3[1]! + m3[1]!, 16), parseInt(m3[2]! + m3[2]!, 16), parseInt(m3[3]! + m3[3]!, 16)];
+  const m6 = s.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  if (m6) return [parseInt(m6[1]!, 16), parseInt(m6[2]!, 16), parseInt(m6[3]!, 16)];
+  return null;
+}
+
+function relativeLuminance(c: Color): number {
+  const rgb = parseHex(c);
+  if (!rgb) return 0;
+  const linear = (v: number): number => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * linear(rgb[0]) + 0.7152 * linear(rgb[1]) + 0.0722 * linear(rgb[2]);
+}
+
+function contrastRatio(a: Color, b: Color): number {
+  const la = relativeLuminance(a), lb = relativeLuminance(b);
+  const hi = Math.max(la, lb), lo = Math.min(la, lb);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function nodeCircles(doc: TreeDocument, theme = defaultTheme): SceneCircle[] {
+  return layoutTree(doc, theme).scene.elements.filter((el): el is SceneCircle => el.type === 'circle');
+}
+
 describe('rbtree builder', () => {
   it('has a black root and a valid two-colouring', () => {
     const doc = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
@@ -31,6 +64,40 @@ describe('rbtree builder', () => {
   it('keeps BST ordering', () => {
     const seq = bstInorder(buildRbtree('rbtree insert 13 8 17 1 11 15 25 6'));
     expect(seq).toEqual([...seq].sort((a, b) => a - b));
+  });
+
+  it('renders red and black colours from the resolved theme instead of legacy literals', () => {
+    const doc = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
+    const light = nodeCircles(doc, defaultTheme);
+    const darkTheme = resolveTheme({ palette: { background: '#0f1117' } }, executiveTheme);
+    const dark = nodeCircles(doc, darkTheme);
+    const redIndex = doc.nodes.findIndex(n => n.kinds.includes('red'));
+
+    expect(light[0]!.fill).not.toBe('#2b2b2b');
+    expect(light[0]!.stroke).not.toBe('#2b2b2b');
+    expect(light[redIndex]!.fill).not.toBe('#d64545');
+    expect(light[redIndex]!.stroke).not.toBe('#d64545');
+    expect(dark[0]!.fill).not.toBe(light[0]!.fill);
+    expect(dark[0]!.stroke).not.toBe(light[0]!.stroke);
+    expect(dark[redIndex]!.fill).not.toBe(light[redIndex]!.fill);
+  });
+
+  it('gives black nodes a contrasting stroke on dark themes', () => {
+    const darkTheme = resolveTheme({ palette: { background: '#0f1117' } }, executiveTheme);
+    const doc = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
+    const blackRoot = nodeCircles(doc, darkTheme)[0]!;
+
+    expect(contrastRatio(blackRoot.stroke, darkTheme.palette.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(blackRoot.fill, darkTheme.palette.background)).toBeGreaterThanOrEqual(1.7);
+  });
+
+  it('keeps dark-palette black nodes visible when the SVG background is transparent', () => {
+    const transparentExecutive = resolveTheme({ palette: { background: '' } }, executiveTheme);
+    const doc = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
+    const blackRoot = nodeCircles(doc, transparentExecutive)[0]!;
+
+    expect(blackRoot.fill).not.toBe(nodeCircles(doc, defaultTheme)[0]!.fill);
+    expect(contrastRatio(blackRoot.stroke, transparentExecutive.palette.surface)).toBeGreaterThanOrEqual(4.5);
   });
 });
 
