@@ -158,12 +158,11 @@ function renderMotionCircle(
 }
 
 interface MarkerMetrics {
-  readonly markerWidth: number;
+  readonly refX: number;
   readonly markerUnits: 'strokeWidth' | 'userSpaceOnUse';
 }
 
-const DEFAULT_MARKER_WIDTH = 8;
-const MOTION_DOT_MARGIN = 4;
+const DEFAULT_MARKER_REF_X = 7;
 const MIN_MOTION_SEGMENT_LENGTH = 1;
 
 function trimMotionPathForArrowhead(path: string, clearance: number): string {
@@ -199,11 +198,11 @@ function motionArrowheadClearance(
   markerMetrics: Map<string, MarkerMetrics>,
 ): number {
   if (el.markerEnd == null) return 0;
-  const marker = markerMetrics.get(el.markerEnd) ?? { markerWidth: DEFAULT_MARKER_WIDTH, markerUnits: 'strokeWidth' as const };
-  const markerLength = marker.markerUnits === 'strokeWidth'
-    ? marker.markerWidth * el.strokeWidth
-    : marker.markerWidth;
-  return markerLength + dotRadius + MOTION_DOT_MARGIN;
+  const marker = markerMetrics.get(el.markerEnd) ?? { refX: DEFAULT_MARKER_REF_X, markerUnits: 'strokeWidth' as const };
+  const markerBackOffset = marker.markerUnits === 'strokeWidth'
+    ? marker.refX * el.strokeWidth
+    : marker.refX;
+  return markerBackOffset + dotRadius;
 }
 
 function markerMetricsById(defs: readonly string[]): Map<string, MarkerMetrics> {
@@ -212,10 +211,10 @@ function markerMetricsById(defs: readonly string[]): Map<string, MarkerMetrics> 
     for (const match of def.matchAll(/<marker\b[^>]*>/g)) {
       const marker = match[0];
       const id = attrValue(marker, 'id');
-      const markerWidth = attrNumber(marker, 'markerWidth');
-      if (id == null || markerWidth == null) continue;
+      const refX = attrNumber(marker, 'refX');
+      if (id == null || refX == null) continue;
       const markerUnits = attrValue(marker, 'markerUnits') === 'userSpaceOnUse' ? 'userSpaceOnUse' : 'strokeWidth';
-      markers.set(id, { markerWidth, markerUnits });
+      markers.set(id, { refX, markerUnits });
     }
   }
   return markers;
