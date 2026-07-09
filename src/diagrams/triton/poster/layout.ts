@@ -3,15 +3,10 @@ import type { Scene, SceneElement, Rect, LayoutResult, NodeAnchor, NodeAnchorReg
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { getModule } from '../../../frontend/registry.js';
 import { getThemePreset } from '../../../theme/preset.js';
-import { resolveCrossLinks } from '../../../crosslink/resolve.js';
-import { renderCrossLinks } from '../../../crosslink/render.js';
-import { routeAndRenderCrossLinks3 } from '../../../crosslink/engine3.js';
+import { crossLinksToConnectorSpecs, routeConnectors } from '../../../crosslink/connectors.js';
 import { measureText } from '../../../text/metrics.js';
 import { resolveArrayElementAnchorId } from '../ds/struct/array.js';
 import type { NodeAddress, CrossLink } from '../../../contracts/crosslink.js';
-
-/** Set to true to use the v3 global cost-function routing engine. */
-const USE_ENGINE_V3 = true;
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
@@ -205,32 +200,21 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   let finalH = totalH;
 
   if (links.length > 0) {
-    let linkDefs: string[];
-    let linkElements: import('../../../contracts/scene.js').SceneElement[];
-
-    const posterLinks = links.map(link => {
+    const connectorSpecs = crossLinksToConnectorSpecs(links.map(link => {
       const explicitCurve = link.curveStyle ?? (typeof link.props?.curveStyle === 'string' ? link.props.curveStyle as import('../../../contracts/routing.js').CurveStyle : undefined);
       return explicitCurve ? link : { ...link, curveStyle: 'cardinal' as const };
+    }));
+    const connectorResult = routeConnectors({
+      anchors: mergedAnchors,
+      connectors: connectorSpecs,
+      theme,
+      occupiedPorts: allOccupiedPorts,
+      occupiedTextRects: textOccupied,
+      routingObstacles: cellBorders,
+      containerObstacles: cellRects,
     });
-
-    if (USE_ENGINE_V3) {
-      const result = routeAndRenderCrossLinks3(posterLinks, theme, mergedAnchors, allOccupiedPorts, textOccupied, cellBorders, cellRects);
-      linkDefs     = result.defs;
-      linkElements = result.elements;
-    } else {
-      const { resolved, diagnostics } = resolveCrossLinks(links, mergedAnchors, cellRects);
-      for (const diag of diagnostics) {
-        console.warn(`[poster:crosslink] Link ${diag.linkIndex}: ${diag.message}`);
-      }
-      if (resolved.length > 0) {
-        const result = renderCrossLinks(resolved, theme, mergedAnchors, textOccupied, cellBorders, cellRects);
-        linkDefs     = result.defs;
-        linkElements = result.elements;
-      } else {
-        linkDefs     = [];
-        linkElements = [];
-      }
-    }
+    const linkDefs = connectorResult.defs;
+    const linkElements = connectorResult.elements;
 
       // Add link defs
       for (const def of linkDefs) {
@@ -245,7 +229,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       const linkLabels = linkElements.filter(e => e.type === 'text');
 
       // Expand the viewBox to include all cross-link route and label extents.
-      const ext = crossLinkExtents(linkElements);
+      const ext = connectorResult.extents;
       if (ext.maxX > finalW) finalW = ext.maxX + padding;
       if (ext.maxY > finalH) finalH = ext.maxY + padding;
 

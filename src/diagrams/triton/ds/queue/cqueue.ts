@@ -1,8 +1,8 @@
 /**
  * @file diagrams/queue/cqueue.ts — Circular (ring-buffer) queue.
  *
- * Same horizontal strip as the linear queue, but a curved wrap-around arrow
- * arcs over the strip from the REAR cell back to the FRONT cell — the modular
+ * Same horizontal strip as the linear queue, but an orthogonal wrap-around
+ * connector routes from the REAR cell back to the FRONT cell — the modular
  * (ring) continuity. `front`/`rear` markers sit beneath their cells and may
  * wrap independently. This is the strip-plus-wrap rendering (not a true radial
  * ring): the intended look of the reference's top-right panel.
@@ -17,12 +17,12 @@
  */
 
 import type {
-  DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry,
+  DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry, Rect,
 } from '../../../../contracts/index.js';
 import { pen } from '../../../../scene/build.js';
 import { buildStrip, type StripCell } from '../../../../scene/strip.js';
 import { measureText } from '../../../../text/metrics.js';
-import { rhu } from '../../../../util/round.js';
+import { routeConnectors } from '../../../../crosslink/connectors.js';
 import {
   ARROW_FWD,
   arrowDefs,
@@ -114,29 +114,53 @@ export function layoutCQueue(doc: CQueueDoc, theme: ResolvedTheme): LayoutResult
     elements.push(p.text(doc.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
   }
 
-  // wrap arc: rear cell top → up and over → front cell top, pointing into front
   const rearSlot = strip.slots[doc.rear ?? 0];
   const frontSlot = strip.slots[doc.front ?? 0];
+  const anchors: Record<string, { bounds: Rect }> = {};
+  strip.slots.forEach((slot, i) => { anchors[`c${i}`] = { bounds: slot }; });
+  if (frontSlot) anchors.front = { bounds: frontSlot };
+  if (rearSlot) anchors.rear = { bounds: rearSlot };
+
+  // Implicit wrap connector: rear slot → front slot, routed through the shared
+  // connector seam with wall hints that keep the channel outboard.
   if (rearSlot && frontSlot) {
-    if (horizontal) {
-      const rx = rearSlot.x + rearSlot.width / 2;
-      const fx = frontSlot.x + frontSlot.width / 2;
-      const yTop = origin.y;                 // strip top edge
-      const apexY = origin.y - arcH + 8;
-      const d = `M ${rhu(rx)} ${rhu(yTop)} C ${rhu(rx)} ${rhu(apexY)}, ${rhu(fx)} ${rhu(apexY)}, ${rhu(fx)} ${rhu(yTop)}`;
-      elements.push(p.path(d, palette.primary, 1.5, { markerEnd: ARROW_FWD }));
-      const midX = (rx + fx) / 2;
-      elements.push(p.text(`mod ${total}`, midX, apexY - 2, typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));
-    } else {
-      const ry = rearSlot.y + rearSlot.height / 2;
-      const fy = frontSlot.y + frontSlot.height / 2;
-      const xLeft = origin.x;
-      const apexX = origin.x - arcH + 8;
-      const d = `M ${rhu(xLeft)} ${rhu(ry)} C ${rhu(apexX)} ${rhu(ry)}, ${rhu(apexX)} ${rhu(fy)}, ${rhu(xLeft)} ${rhu(fy)}`;
-      elements.push(p.path(d, palette.primary, 1.5, { markerEnd: ARROW_FWD }));
-      const midY = (ry + fy) / 2;
-      elements.push(p.text(`mod ${total}`, apexX - 4, midY + 4, typography.smallFontSize, palette.textMuted, { anchor: 'end' }));
-    }
+    const selfLoop = (doc.front ?? 0) === (doc.rear ?? 0);
+    const connectorAnchors = selfLoop
+      ? selfLoopWrapAnchors(frontSlot, horizontal)
+      : strip.slots.reduce<Record<string, { bounds: Rect }>>((acc, slot, i) => {
+        acc[`c${i}`] = { bounds: slot };
+        return acc;
+      }, {});
+    const fromKey = selfLoop ? '__rearWrap' : `c${doc.rear ?? 0}`;
+    const toKey = selfLoop ? '__frontWrap' : `c${doc.front ?? 0}`;
+    const connectorResult = routeConnectors({
+      anchors: connectorAnchors,
+      connectors: [{
+        fromKey,
+        toKey,
+        direction: 'directed',
+        style: 'solid',
+        label: `mod ${total}`,
+        routing: 'orthogonal',
+        exitWall: horizontal ? 'N' : 'W',
+        entryWall: horizontal ? 'N' : 'W',
+        animation: 'none',
+        props: {
+          color: palette.primary,
+          routePadding: arcH - 8,
+          labelPlacement: 'path-midpoint',
+        },
+      }],
+      theme,
+    });
+    const connectorElements = connectorResult.elements.map(element =>
+      element.type === 'path' && element.markerEnd === 'triton-crosslink-arrow'
+        ? { ...element, markerEnd: ARROW_FWD, strokeWidth: 1.5 }
+        : element,
+    );
+    const linkPaths = connectorElements.filter(e => e.type !== 'text');
+    const linkLabels = connectorElements.filter(e => e.type === 'text');
+    elements.push(...linkPaths, ...linkLabels);
   }
 
   // front / rear pointers below
@@ -151,11 +175,21 @@ export function layoutCQueue(doc: CQueueDoc, theme: ResolvedTheme): LayoutResult
     elements.push(...front.elements, ...rear.elements);
   }
 
-  const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
-  strip.slots.forEach((slot, i) => { anchors[`c${i}`] = { bounds: slot }; });
-
   const finalized = finalizeStripScene(elements, anchors, theme, [arrowDefs(palette.primary)]);
   return { scene: finalized.scene, anchors: finalized.anchors as NodeAnchorRegistry };
+}
+
+function selfLoopWrapAnchors(slot: Rect, horizontal: boolean): Record<string, { bounds: Rect }> {
+  if (horizontal) {
+    return {
+      __rearWrap: { bounds: { x: slot.x + slot.width / 2, y: slot.y, width: slot.width / 2, height: slot.height } },
+      __frontWrap: { bounds: { x: slot.x, y: slot.y, width: slot.width / 2, height: slot.height } },
+    };
+  }
+  return {
+    __rearWrap: { bounds: { x: slot.x, y: slot.y + slot.height / 2, width: slot.width, height: slot.height / 2 } },
+    __frontWrap: { bounds: { x: slot.x, y: slot.y, width: slot.width, height: slot.height / 2 } },
+  };
 }
 
 export const cqueue: DiagramModule<CQueueDoc & { version: string; metadata: Record<string, unknown> }> = {
