@@ -1,22 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 893.42537 803.1043226954135" width="893.42537" height="803.1043226954135">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 896.44137 804.7279907084785" width="896.44137" height="804.7279907084785">
   <defs>
     <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#4A90D9" /></marker>
     <marker id="queue-arrow-fwd" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#4A90D9" /></marker><marker id="queue-arrow-rev" markerWidth="9" markerHeight="9" refX="2" refY="4" orient="auto"><path d="M8 0 L0 4 L8 8 z" fill="#4A90D9" /></marker>
     <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
   </defs>
-  <rect x="0" y="0" width="893.42537" height="803.1043226954135" fill="#FFFFFF" />
+  <rect x="0" y="0" width="896.44137" height="804.7279907084785" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Data Structures</text>
-  <rect x="24" y="58" width="200.97577" height="260.30432269541353" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="244.97577" y="58" width="160" height="260.30432269541353" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="424.97577" y="58" width="253.70000000000005" height="260.30432269541353" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="698.67577" y="58" width="170.74960000000002" height="260.30432269541353" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="24" y="338.30432269541353" width="200.97577" height="174.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="244.97577" y="338.30432269541353" width="160" height="174.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="424.97577" y="338.30432269541353" width="253.70000000000005" height="440.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="698.67577" y="338.30432269541353" width="170.74960000000002" height="440.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="24" y="533.1043226954135" width="380.97577" height="246" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="58" width="200.97577" height="261.92799070847855" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="244.97577" y="58" width="160" height="261.92799070847855" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="424.97577" y="58" width="256.716" height="261.92799070847855" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="701.69177" y="58" width="170.74960000000002" height="261.92799070847855" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="339.92799070847855" width="200.97577" height="174.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="244.97577" y="339.92799070847855" width="160" height="174.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="424.97577" y="339.92799070847855" width="256.716" height="440.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="701.69177" y="339.92799070847855" width="170.74960000000002" height="440.8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="534.7279907084785" width="380.97577" height="246" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Array</text>
-  <g transform="translate(28, 164.91452473480354) scale(0.7781281048387098)">
+  <g transform="translate(28, 165.72635874133604) scale(0.7781281048387098)">
     <rect x="24" y="24" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
     <text x="44" y="49" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">5</text>
     <rect x="64" y="24" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
@@ -29,41 +29,41 @@
     <text x="204" y="49" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">34</text>
   </g>
   <text x="252.97577" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Stack</text>
-  <g transform="translate(248.97577, 84) scale(0.852978972945976)">
-    <rect x="88" y="56" width="66.199" height="38" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <rect x="88" y="94" width="66.199" height="38" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <rect x="88" y="132" width="66.199" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <text x="121.0995" y="156" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">layout</text>
-    <rect x="88" y="170" width="66.199" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <text x="121.0995" y="194" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">parse</text>
-    <rect x="88" y="208" width="66.199" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <text x="121.0995" y="232" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">main</text>
-    <text x="121.0995" y="47" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">push / pop</text>
-    <path d="M 121.1 32 L 121.1 56" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-    <path d="M 32 151 L 88 151" stroke="#7C3AED" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-    <text x="30" y="145" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="start" font-weight="bold">top</text>
+  <g transform="translate(248.97577, 84) scale(0.8826945412311267)">
+    <rect x="82" y="48.75" width="66.199" height="38" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <rect x="82" y="86.75" width="66.199" height="38" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <rect x="82" y="124.75" width="66.199" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="115.1" y="148.75" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">layout</text>
+    <rect x="82" y="162.75" width="66.199" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="115.1" y="186.75" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">parse</text>
+    <rect x="82" y="200.75" width="66.199" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="115.1" y="224.75" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">main</text>
+    <text x="115.1" y="39.75" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">push / pop</text>
+    <path d="M 115.1 24.75 L 115.1 48.75" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 26 143.75 L 82 143.75" stroke="#7C3AED" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <text x="24" y="137.75" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="start" font-weight="bold">top</text>
   </g>
   <text x="432.97577" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Queue</text>
-  <g transform="translate(428.97577, 145.85216134770675) scale(0.6500000000000001)">
-    <rect x="74" y="52" width="46" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <text x="97" y="77" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">A</text>
-    <rect x="120" y="52" width="46" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <text x="143" y="77" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">B</text>
-    <rect x="166" y="52" width="46" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <text x="189" y="77" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">C</text>
-    <rect x="212" y="52" width="46" height="40" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <rect x="258" y="52" width="46" height="40" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
-    <path d="M 74 72 L 24 72" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
-    <text x="49" y="44" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">dequeue</text>
-    <path d="M 354 72 L 304 72" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
-    <text x="329" y="44" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">enqueue</text>
-    <path d="M 97 122 L 97 96" stroke="#7C3AED" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
-    <text x="97" y="136" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">front</text>
-    <path d="M 189 122 L 189 96" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
-    <text x="189" y="136" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">rear</text>
+  <g transform="translate(428.97577, 145.52649535423927) scale(0.65)">
+    <rect x="76.32" y="46" width="46" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="99.32" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">A</text>
+    <rect x="122.32" y="46" width="46" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="145.32" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">B</text>
+    <rect x="168.32" y="46" width="46" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="191.32" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">C</text>
+    <rect x="214.32" y="46" width="46" height="40" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <rect x="260.32" y="46" width="46" height="40" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <path d="M 76.32 66 L 26.32 66" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="51.32" y="38" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">dequeue</text>
+    <path d="M 356.32 66 L 306.32 66" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="331.32" y="38" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">enqueue</text>
+    <path d="M 99.32 120 L 99.32 90" stroke="#7C3AED" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="99.32" y="140" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">front</text>
+    <path d="M 191.32 120 L 191.32 90" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="191.32" y="140" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">rear</text>
   </g>
-  <text x="706.67577" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Union-Find</text>
-  <g transform="translate(702.67577, 100.79479439118502) scale(0.7076069565217392)">
+  <text x="709.69177" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Union-Find</text>
+  <g transform="translate(705.69177, 101.60662839771753) scale(0.7076069565217392)">
     <path d="M 45 66 L 45 118" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 45 160 L 45 212" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 115 66 L 115 118" stroke="#64748B" stroke-width="1.5" fill="none" />
@@ -80,8 +80,8 @@
     <circle cx="185" cy="45" r="21" fill="#4A90D9" stroke="#4A90D9" stroke-width="2" />
     <text x="185" y="49.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#ffffff" text-anchor="middle" font-weight="bold">5</text>
   </g>
-  <text x="32" y="353.5043226954135" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Hash map</text>
-  <g transform="translate(28, 371.70432269541357) scale(0.65)">
+  <text x="32" y="355.12799070847853" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Hash map</text>
+  <g transform="translate(28, 373.3279907084785) scale(0.65)">
     <rect x="24" y="24" width="46" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
     <text x="47" y="47.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">0</text>
     <rect x="24" y="62" width="46" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
@@ -103,8 +103,8 @@
     <rect x="207.9562" y="142" width="64.9296" height="30" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
     <text x="240.421" y="161.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">erin : 5</text>
   </g>
-  <text x="252.97577" y="353.5043226954135" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Matrix</text>
-  <g transform="translate(248.97577, 364.30432269541353) scale(0.8)">
+  <text x="252.97577" y="355.12799070847853" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Matrix</text>
+  <g transform="translate(248.97577, 365.92799070847855) scale(0.8)">
     <rect x="46" y="43" width="40" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
     <text x="66" y="67" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1</text>
     <rect x="86" y="43" width="40" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
@@ -130,8 +130,8 @@
     <text x="106" y="37" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">1</text>
     <text x="146" y="37" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2</text>
   </g>
-  <text x="432.97577" y="353.5043226954135" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Max-heap</text>
-  <g transform="translate(436.82577000000003, 430.70432269541357) scale(1)">
+  <text x="432.97577" y="355.12799070847853" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Max-heap</text>
+  <g transform="translate(438.33377, 432.3279907084785) scale(1)">
     <path d="M 107.18 66 L 87.82 118" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 130.64 66 L 169.36 118" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 72.18 160 L 52.82 212" stroke="#64748B" stroke-width="1.5" fill="none" />
@@ -150,8 +150,8 @@
     <circle cx="185" cy="233" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="185" y="237.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">50</text>
   </g>
-  <text x="706.67577" y="353.5043226954135" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Trie</text>
-  <g transform="translate(702.67577, 452.70432269541357) scale(0.65)">
+  <text x="709.69177" y="355.12799070847853" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Trie</text>
+  <g transform="translate(705.69177, 454.3279907084785) scale(0.65)">
     <path d="M 116.32 66 L 94.35 118" stroke="#64748B" stroke-width="1.5" fill="none" />
     <rect x="98.5872" y="83" width="13.5" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
     <text x="105.3372" y="95" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">c</text>
@@ -190,8 +190,8 @@
     <rect x="174.9648" y="306" width="51.419200000000004" height="30" fill="#4A90D9" stroke="#4A90D9" stroke-width="2" rx="15" />
     <text x="200.6744" y="325.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#ffffff" text-anchor="middle" font-weight="bold">dog</text>
   </g>
-  <text x="32" y="548.3043226954136" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Graph</text>
-  <g transform="translate(146.487885, 559.1043226954135) scale(1)">
+  <text x="32" y="549.9279907084785" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Graph</text>
+  <g transform="translate(146.487885, 560.7279907084785) scale(1)">
     <path d="M 56 64 L 56 128" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
     <rect x="48.94365" y="87" width="14.1127" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
     <text x="56" y="99" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ir</text>
