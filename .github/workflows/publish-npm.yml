@@ -1,0 +1,172 @@
+name: Publish npm packages
+
+# Lockstep publishing for @cristianormazabal/triton-core (packages/core) and
+# @cristianormazabal/triton-latex (latex/). A release is cut ONLY when a commit
+# landing on main has a version tag in its message: [version:patch],
+# [version:minor], or [version:major] (case-insensitive). No tag => no-op.
+#
+# Uses OIDC Trusted Publishing (npm publish --provenance); no NPM_TOKEN needed
+# once each package has this workflow registered as a trusted publisher on npm.
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    name: Publish (lockstep)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the version bump commit + tag
+      id-token: write # OIDC token for npm provenance / trusted publishing
+
+    steps:
+      # Step 1 — decide whether this push is a release, and at what level.
+      # Parses the HEAD commit message for [version:patch|minor|major].
+      - name: Detect release tag in commit message
+        id: detect
+        env:
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          msg="$HEAD_COMMIT_MESSAGE"
+          echo "Head commit message:"
+          echo "$msg"
+          level=""
+          shopt -s nocasematch
+          if [[ "$msg" =~ \[version:(patch|minor|major)\] ]]; then
+            level="${BASH_REMATCH[1]}"
+            level="$(echo "$level" | tr '[:upper:]' '[:lower:]')"
+          fi
+          shopt -u nocasematch
+          if [[ -n "$level" ]]; then
+            echo "Release requested: level=$level"
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "level=$level" >> "$GITHUB_OUTPUT"
+          else
+            echo "No version tag found — this run is a clean no-op."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Step 2 — checkout (full history so we can commit + tag + push).
+      - name: Checkout
+        if: steps.detect.outputs.release == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        if: steps.detect.outputs.release == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Ensure recent npm (OIDC trusted publishing needs npm >= 11.5)
+        if: steps.detect.outputs.release == 'true'
+        run: |
+          echo "npm version before: $(npm --version)"
+          npm install -g npm@latest
+          echo "npm version after: $(npm --version)"
+
+      - name: Enable corepack / pnpm
+        if: steps.detect.outputs.release == 'true'
+        run: corepack enable pnpm
+
+      # Step 3 — install, typecheck, test, build. Any failure aborts the release.
+      - name: Install dependencies
+        if: steps.detect.outputs.release == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        if: steps.detect.outputs.release == 'true'
+        run: pnpm typecheck
+
+      - name: Test
+        if: steps.detect.outputs.release == 'true'
+        run: pnpm test
+
+      - name: Build
+        if: steps.detect.outputs.release == 'true'
+        run: pnpm build
+
+      # Step 4 — compute + apply the new lockstep version across all 3 packages.
+      - name: Apply lockstep version bump
+        id: version
+        if: steps.detect.outputs.release == 'true'
+        run: node scripts/release-version.mjs "${{ steps.detect.outputs.level }}" >> "$GITHUB_OUTPUT"
+
+      # Step 5 — publish CORE. dist was produced by `pnpm build` above.
+      - name: Publish @cristianormazabal/triton-core
+        if: steps.detect.outputs.release == 'true'
+        working-directory: packages/core
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [[ ! -f dist/index.js ]]; then
+            echo "::error::packages/core/dist/index.js missing — build did not run"
+            exit 1
+          fi
+          name="$(node -p "require('./package.json').name")"
+          if npm view "$name@$VERSION" version >/dev/null 2>&1; then
+            echo "$name@$VERSION already published — skipping."
+          else
+            echo "Publishing $name@$VERSION ..."
+            npm publish --provenance --access public
+          fi
+
+      # Step 6 — publish LATEX. latex/ installs independently (own pnpm-lock.yaml)
+      # and builds via its own esbuild. prepublishOnly also runs its build.
+      - name: Publish @cristianormazabal/triton-latex
+        if: steps.detect.outputs.release == 'true'
+        working-directory: latex
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+          name="$(node -p "require('./package.json').name")"
+          if npm view "$name@$VERSION" version >/dev/null 2>&1; then
+            echo "$name@$VERSION already published — skipping."
+          else
+            echo "Publishing $name@$VERSION ..."
+            npm publish --provenance --access public
+          fi
+
+      # Step 7 — commit the version bump + annotated tag, push to main.
+      # Uses [skip ci] so the bot commit does not retrigger CI (and it has no
+      # version tag anyway, so this workflow would no-op on it regardless).
+      - name: Commit version bump and tag
+        if: steps.detect.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json packages/core/package.json latex/package.json
+          git add -A -- '*pnpm-lock.yaml'
+          if git diff --cached --quiet; then
+            echo "Nothing to commit (versions unchanged)."
+          else
+            git commit -m "chore(release): v$VERSION [skip ci]"
+          fi
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists — not re-tagging."
+          else
+            git tag -a "v$VERSION" -m "Release v$VERSION"
+          fi
+          git push origin HEAD:main
+          git push origin "v$VERSION"
+
+      # Step 8 — create the GitHub Release (auto-generated notes).
+      - name: Create GitHub Release
+        if: steps.detect.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Release v$VERSION already exists — skipping."
+          else
+            gh release create "v$VERSION" --generate-notes --latest
+          fi

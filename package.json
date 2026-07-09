@@ -2,7 +2,7 @@
   "name": "triton",
   "private": true,
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Triton — deterministic, contracts-first diagram compiler (SVG/PNG)",
   "engines": {
     "node": ">=20"
@@ -19,7 +19,8 @@
     "test:watch": "vitest",
     "preview": "node scripts/preview.mjs",
     "format": "prettier --write \"**/*.{ts,js,json,yaml,yml,md}\" --ignore-path .gitignore",
-    "format:check": "prettier --check \"**/*.{ts,js,json,yaml,yml,md}\" --ignore-path .gitignore"
+    "format:check": "prettier --check \"**/*.{ts,js,json,yaml,yml,md}\" --ignore-path .gitignore",
+    "release:version": "node scripts/release-version.mjs"
   },
   "dependencies": {
     "d3-path": "^3.1.0",
