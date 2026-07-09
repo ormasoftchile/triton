@@ -10,7 +10,7 @@ import { routeAndRenderCrossLinks3 } from '../src/crosslink/engine3.js';
 import { resolveTheme } from '../src/theme/resolver.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { registerRouter } from '../src/routing/registry.js';
-import { orthogonalRouter } from '../src/routing/router.js';
+import { countRouteCollisions, orthogonalRouter } from '../src/routing/router.js';
 import type { NodeAnchorRegistry } from '../src/contracts/anchors.js';
 import type { CrossLink } from '../src/contracts/crosslink.js';
 
@@ -287,4 +287,51 @@ describe('routeConnectors', () => {
     expect(shared.pathElements).toEqual(direct.elements.filter(e => e.type !== 'text'));
     expect(shared.labelElements).toEqual(direct.elements.filter(e => e.type === 'text'));
   });
+
+  it('forced N→N link between vertically stacked boxes routes around endpoint boxes', () => {
+    const wallAnchors: NodeAnchorRegistry = {
+      'A.top': {
+        bounds: { x: 0, y: 0, width: 100, height: 40 },
+      },
+      'B.bottom': {
+        bounds: { x: 0, y: 200, width: 100, height: 40 },
+      },
+      'A.tuple': {
+        bounds: { x: 20, y: 70, width: 80, height: 40 },
+      },
+      'B.tuple': {
+        bounds: { x: 20, y: 270, width: 80, height: 40 },
+      },
+    };
+    const cellRects = new Map([
+      ['A', { x: -20, y: -40, width: 180, height: 180 }],
+      ['B', { x: -20, y: 160, width: 180, height: 180 }],
+    ]);
+    const links: CrossLink[] = [{
+      from: { cellPath: ['A'], nodeId: 'top' },
+      to:   { cellPath: ['B'], nodeId: 'bottom' },
+      direction: 'directed',
+      style: 'solid',
+      routing: 'orthogonal',
+      exitWall: 'N',
+      entryWall: 'N',
+    }];
+
+    const result = routeAndRenderCrossLinks3(links, theme, wallAnchors, undefined, undefined, undefined, cellRects);
+    const path = result.elements.find(e => e.type === 'path') as { d: string } | undefined;
+    expect(path?.d).toBeDefined();
+    const pts = pathPoints(path!.d);
+    expect(pts.some(p => p.y < 0)).toBe(true);
+    expect(pts.some(p => p.x < -20 || p.x > 160)).toBe(true);
+    expect(countRouteCollisions(pts, [wallAnchors['A.tuple']!.bounds, wallAnchors['B.tuple']!.bounds])).toBe(0);
+  });
 });
+
+function pathPoints(d: string): Array<{ x: number; y: number }> {
+  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0]));
+  const pts: Array<{ x: number; y: number }> = [];
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    pts.push({ x: nums[i]!, y: nums[i + 1]! });
+  }
+  return pts;
+}

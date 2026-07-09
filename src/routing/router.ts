@@ -1,5 +1,5 @@
 import type { Router, RouteRequest, Route, RouteStyle, PortDirection } from '../contracts/index.js';
-import type { Point } from '../contracts/index.js';
+import type { Point, Rect } from '../contracts/index.js';
 
 // ─── Straight ─────────────────────────────────────────────────────────────────
 
@@ -82,21 +82,14 @@ class OrthogonalRouter implements Router {
     const STUB = Math.max(pad, 20);
 
     // Already aligned on one axis — straight line. But only shortcut when the
-    // straight direction is COMPATIBLE with the requested port walls: a flat
-    // (dy≈0) line must exit/enter horizontal walls, a vertical (dx≈0) line must
-    // exit/enter vertical walls. Otherwise a same-wall pair (e.g. N→N between
-    // equal-height nodes) would collapse into a line that leaves sideways,
-    // violating the wall hint — fall through to the direction-aware routing.
+    // segment actually leaves the source along its wall normal, approaches the
+    // target from that wall's outboard side, and crosses no obstacles.
     const straightH = Math.abs(dy) < 1;   // horizontal straight line
     const straightV = Math.abs(dx) < 1;   // vertical straight line
     if (straightH || straightV) {
-      const dirsOk =
-        !fromDir || !toDir
-          ? true
-          : straightH
-            ? (fromDir === 'E' || fromDir === 'W') && (toDir === 'E' || toDir === 'W')
-            : (fromDir === 'N' || fromDir === 'S') && (toDir === 'N' || toDir === 'S');
-      if (dirsOk) {
+      const dirsOk = straightDirsOk(from, to, straightH, straightV, fromDir, toDir);
+      const clear = !obstacles || countRouteCollisions([from, to], obstacles) === 0;
+      if (dirsOk && clear) {
         return {
           points: [from, to],
           path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
@@ -140,7 +133,10 @@ class OrthogonalRouter implements Router {
         }
         const v1: Point = { x: bendX, y: from.y };
         const v2: Point = { x: bendX, y: to.y };
-        const hhPoints: Point[] = [from, v1, v2, to];
+        let hhPoints: Point[] = [from, v1, v2, to];
+        if (sameWall && obstacles && routeHitsEndpointObstacle(hhPoints, from, to, obstacles)) {
+          hhPoints = buildSameHorizontalWallRoute(from, to, fromDir, obstacles, pad, STUB);
+        }
 
         // Verify the H+H route is clear; if not, try V+V with direction stubs.
         // Skip the fallback for same-wall pairs: the outboard H+H route is the
@@ -180,7 +176,10 @@ class OrthogonalRouter implements Router {
         }
         const v1: Point = { x: from.x, y: bendY };
         const v2: Point = { x: to.x,   y: bendY };
-        const vvPoints: Point[] = [from, v1, v2, to];
+        let vvPoints: Point[] = [from, v1, v2, to];
+        if (sameWall && obstacles && routeHitsEndpointObstacle(vvPoints, from, to, obstacles)) {
+          vvPoints = buildSameVerticalWallRoute(from, to, fromDir, obstacles, pad, STUB);
+        }
 
         // Verify the V+V route is clear; if not, try H+H with direction stubs.
         // Same-wall pairs keep their outboard V+V route (see horizontal case).
@@ -318,6 +317,161 @@ function clearBendYOutboard(
   return y;
 }
 
+function straightDirsOk(
+  from: Point,
+  to: Point,
+  straightH: boolean,
+  straightV: boolean,
+  fromDir?: PortDirection,
+  toDir?: PortDirection,
+): boolean {
+  if (!fromDir && !toDir) return true;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (straightH && Math.abs(dx) < 1) return true;
+
+  let requiredFrom: PortDirection;
+  let requiredTo: PortDirection;
+  if (straightH) {
+    requiredFrom = dx > 0 ? 'E' : 'W';
+    requiredTo = dx > 0 ? 'W' : 'E';
+  } else if (straightV) {
+    requiredFrom = dy > 0 ? 'S' : 'N';
+    requiredTo = dy > 0 ? 'N' : 'S';
+  } else {
+    return false;
+  }
+
+  return (!fromDir || fromDir === requiredFrom) && (!toDir || toDir === requiredTo);
+}
+
+function buildSameVerticalWallRoute(
+  from: Point,
+  to: Point,
+  wall: PortDirection,
+  obstacles: ReadonlyArray<Rect>,
+  pad: number,
+  stub: number,
+): Point[] {
+  const dir = wall === 'S' ? 1 : -1;
+  const fromOut: Point = { x: from.x, y: from.y + dir * stub };
+  const toOut: Point = { x: to.x, y: to.y + dir * stub };
+  const colliders = collidingObstacles([from, fromOut, { x: to.x, y: fromOut.y }, to], obstacles);
+  const relevant = colliders.length > 0 ? colliders : obstacles;
+  const leftX = Math.min(...relevant.map(o => o.x - pad));
+  const rightX = Math.max(...relevant.map(o => o.x + o.width + pad));
+  return bestSameVerticalCandidate(from, to, fromOut, toOut, [leftX, rightX], obstacles);
+}
+
+function buildSameHorizontalWallRoute(
+  from: Point,
+  to: Point,
+  wall: PortDirection,
+  obstacles: ReadonlyArray<Rect>,
+  pad: number,
+  stub: number,
+): Point[] {
+  const dir = wall === 'E' ? 1 : -1;
+  const fromOut: Point = { x: from.x + dir * stub, y: from.y };
+  const toOut: Point = { x: to.x + dir * stub, y: to.y };
+  const colliders = collidingObstacles([from, fromOut, { x: fromOut.x, y: to.y }, to], obstacles);
+  const relevant = colliders.length > 0 ? colliders : obstacles;
+  const topY = Math.min(...relevant.map(o => o.y - pad));
+  const bottomY = Math.max(...relevant.map(o => o.y + o.height + pad));
+  return bestSameHorizontalCandidate(from, to, fromOut, toOut, [topY, bottomY], obstacles);
+}
+
+function bestSameVerticalCandidate(
+  from: Point,
+  to: Point,
+  fromOut: Point,
+  toOut: Point,
+  escapeXs: readonly number[],
+  obstacles: ReadonlyArray<Rect>,
+): Point[] {
+  let best: Point[] | undefined;
+  let bestCost = Infinity;
+  for (const escapeX of escapeXs) {
+    const candidate = [
+      from,
+      fromOut,
+      { x: escapeX, y: fromOut.y },
+      { x: escapeX, y: toOut.y },
+      toOut,
+      to,
+    ];
+    const cost = countRouteCollisions(candidate, obstacles) * 1_000_000 + polylineLength(candidate);
+    if (cost < bestCost) {
+      best = candidate;
+      bestCost = cost;
+    }
+  }
+  return best!;
+}
+
+function bestSameHorizontalCandidate(
+  from: Point,
+  to: Point,
+  fromOut: Point,
+  toOut: Point,
+  escapeYs: readonly number[],
+  obstacles: ReadonlyArray<Rect>,
+): Point[] {
+  let best: Point[] | undefined;
+  let bestCost = Infinity;
+  for (const escapeY of escapeYs) {
+    const candidate = [
+      from,
+      fromOut,
+      { x: fromOut.x, y: escapeY },
+      { x: toOut.x, y: escapeY },
+      toOut,
+      to,
+    ];
+    const cost = countRouteCollisions(candidate, obstacles) * 1_000_000 + polylineLength(candidate);
+    if (cost < bestCost) {
+      best = candidate;
+      bestCost = cost;
+    }
+  }
+  return best!;
+}
+
+function collidingObstacles(points: readonly Point[], obstacles: ReadonlyArray<Rect>): Rect[] {
+  return obstacles.filter(obs => {
+    for (let i = 0; i < points.length - 1; i++) {
+      if (segCrossesInterior(points[i]!, points[i + 1]!, obs, 0)) return true;
+    }
+    return false;
+  });
+}
+
+function routeHitsEndpointObstacle(
+  points: readonly Point[],
+  from: Point,
+  to: Point,
+  obstacles: ReadonlyArray<Rect>,
+): boolean {
+  return collidingObstacles(points, obstacles).some(obs =>
+    pointInOrOnRect(from, obs) || pointInOrOnRect(to, obs),
+  );
+}
+
+function pointInOrOnRect(p: Point, r: Rect): boolean {
+  const eps = 1e-6;
+  return p.x >= r.x - eps && p.x <= r.x + r.width + eps &&
+    p.y >= r.y - eps && p.y <= r.y + r.height + eps;
+}
+
+function polylineLength(points: readonly Point[]): number {
+  let len = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i]!;
+    const b = points[i + 1]!;
+    len += Math.abs(b.x - a.x) + Math.abs(b.y - a.y);
+  }
+  return len;
+}
 /**
  * Shift a vertical bend line (at x=bendX, spanning yMin–yMax) to avoid obstacles.
  * Returns the original bendX if it doesn't intersect anything, otherwise shifts
@@ -577,7 +731,7 @@ function segCrossesInterior(
 }
 
 /** Count total segment-obstacle collisions along a polyline route. */
-function countRouteCollisions(
+export function countRouteCollisions(
   points: readonly Point[],
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
 ): number {
