@@ -23,7 +23,7 @@
  */
 
 import type { SceneElement } from '../contracts/scene.js';
-import type { CrossLink, CrossLinkEdgeStyle } from '../contracts/crosslink.js';
+import { isRenderedConnectorAnimation, type CrossLink, type CrossLinkEdgeStyle, type RenderedConnectorAnimation } from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry } from '../contracts/anchors.js';
 import type { PortDirection } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
@@ -86,7 +86,7 @@ interface WorkingRoute {
   isBezier?:   true;
   color:       string;
   dash?:       string;
-  animation?:  'march' | 'particle';
+  animation?:  RenderedConnectorAnimation;
   markerEnd?:  string;
   markerStart?: string;
   label?:      string;
@@ -271,10 +271,9 @@ export function routeAndRenderCrossLinks2(
     }
 
     const dash = edgeStyleToDash(link.style);
-    const animation: 'march' | 'particle' | undefined =
+    const animation: RenderedConnectorAnimation | undefined =
       link.animation === 'none'     ? undefined :
-      link.animation === 'particle' ? 'particle' :
-      link.animation === 'march'    ? 'march'    :
+      isRenderedConnectorAnimation(link.animation) ? link.animation :
       dash                          ? 'march'    : undefined;
 
     let markerEnd:   string | undefined;

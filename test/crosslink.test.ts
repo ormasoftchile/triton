@@ -7,6 +7,7 @@ import { resolveCrossLinks } from '../src/crosslink/resolve.js';
 import { renderCrossLinks } from '../src/crosslink/render.js';
 import { crossLinksToConnectorSpecs, routeConnectors } from '../src/crosslink/connectors.js';
 import { routeAndRenderCrossLinks3 } from '../src/crosslink/engine3.js';
+import { renderSVG } from '../src/render/svg.js';
 import { resolveTheme } from '../src/theme/resolver.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { registerRouter } from '../src/routing/registry.js';
@@ -325,6 +326,114 @@ describe('routeConnectors', () => {
     expect(pts.some(p => p.x < -20 || p.x > 160)).toBe(true);
     expect(countRouteCollisions(pts, [wallAnchors['A.tuple']!.bounds, wallAnchors['B.tuple']!.bounds])).toBe(0);
   });
+
+  it('threads every connector animation value to scene paths and SVG SMIL', () => {
+    const cases = [
+      { anim: 'march', style: 'dashed', expect: 'attributeName="stroke-dashoffset"' },
+      { anim: 'particle', expect: '<animateMotion dur="1.5s"' },
+      { anim: 'draw', expect: 'values="0;' },
+      { anim: 'pulse', expect: 'attributeName="stroke-width"' },
+      { anim: 'glow', expect: 'attributeName="stroke-opacity"' },
+      { anim: 'comet', expect: 'begin="-0.36s"' },
+      { anim: 'stream', expect: 'begin="-1.5s"' },
+      { anim: 'flow', expect: '<linearGradient id="triton-flow-' },
+      { anim: 'colorcycle', expect: 'attributeName="stroke" values="#4A90D9;#9b51e0;#e54444;#2ecc71;#4A90D9"' },
+    ] as const;
+
+    for (const c of cases) {
+      const { path, svg } = renderAnimatedConnector(c.anim, c.style ?? 'solid');
+      expect(path.animated).toBe(c.anim);
+      expect(svg).toContain(c.expect);
+    }
+  });
+
+  it('emits the expected particle counts for particle, comet, and stream animations', () => {
+    expect(countOccurrences(renderAnimatedConnector('particle').svg, '<animateMotion ')).toBe(1);
+    expect(countOccurrences(renderAnimatedConnector('comet').svg, '<animateMotion ')).toBe(3);
+    expect(countOccurrences(renderAnimatedConnector('stream').svg, '<animateMotion ')).toBe(4);
+  });
+
+  it('trims particle, comet, and stream motion paths short of the visible connector endpoint', () => {
+    const dotRadii = { particle: 4, comet: 4.2, stream: 3.2 };
+    for (const anim of ['particle', 'comet', 'stream'] as const) {
+      const { path, svg } = renderAnimatedConnector(anim);
+      expect(svg).toContain(`<path d="${path.d}"`);
+
+      const visiblePts = pathPoints(path.d);
+      const visibleEnd = visiblePts[visiblePts.length - 1]!;
+      const visiblePrev = visiblePts[visiblePts.length - 2]!;
+      const visibleLastSegment = Math.hypot(visibleEnd.x - visiblePrev.x, visibleEnd.y - visiblePrev.y);
+      const motionPaths = animateMotionPaths(svg);
+      const expectedClearance = 7 * path.strokeWidth + dotRadii[anim];
+      expect(motionPaths.length).toBeGreaterThan(0);
+
+      for (const motionPath of motionPaths) {
+        expect(motionPath).not.toBe(path.d);
+        const motionPts = pathPoints(motionPath);
+        const motionEnd = motionPts[motionPts.length - 1]!;
+        expect(Math.hypot(visibleEnd.x - motionEnd.x, visibleEnd.y - motionEnd.y)).toBeCloseTo(expectedClearance, 5);
+        expect(Math.hypot(motionEnd.x - visiblePrev.x, motionEnd.y - visiblePrev.y)).toBeCloseTo(visibleLastSegment - expectedClearance, 5);
+      }
+    }
+  });
+
+  it('derives animated motion clearance from marker refX, stroke width, and dot radius', () => {
+    const svg = renderSVG({
+      viewBox: { x: 0, y: 0, width: 120, height: 20 },
+      defs: ['<marker id="custom-arrow" markerWidth="40" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" /></marker>'],
+      elements: [{
+        type: 'path',
+        d: 'M 0 0 L 100 0',
+        stroke: '#000',
+        strokeWidth: 2,
+        fill: 'none',
+        markerEnd: 'custom-arrow',
+        animated: 'particle',
+      }],
+    });
+    const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
+    expect(svg).toContain('<path d="M 0 0 L 100 0"');
+    expect(motionPts[motionPts.length - 1]).toEqual({ x: 80, y: 0 });
+  });
+
+  it('clamps short animated motion segments without inverting them', () => {
+    const svg = renderSVG({
+      viewBox: { x: 0, y: 0, width: 10, height: 10 },
+      elements: [{
+        type: 'path',
+        d: 'M 0 0 L 5 0',
+        stroke: '#000',
+        strokeWidth: 1,
+        fill: 'none',
+        markerEnd: 'arrow',
+        animated: 'particle',
+      }],
+    });
+    const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
+    expect(svg).toContain('<path d="M 0 0 L 5 0"');
+    expect(motionPts[motionPts.length - 1]).toEqual({ x: 1, y: 0 });
+  });
+
+  it('emits flow gradients and draw dashoffset animation constructs', () => {
+    const flow = renderAnimatedConnector('flow').svg;
+    expect(flow).toContain('gradientUnits="userSpaceOnUse"');
+    expect(flow).toContain('attributeName="offset"');
+    expect(flow).toContain('stroke="url(#triton-flow-');
+
+    const draw = renderAnimatedConnector('draw').svg;
+    expect(draw).toContain('stroke-dasharray="190 190"');
+    expect(draw).toContain('attributeName="stroke-dashoffset"');
+  });
+
+  it('renders none and unknown animation values as plain paths', () => {
+    for (const anim of ['none', 'unknown-animation'] as const) {
+      const { path, svg } = renderAnimatedConnector(anim);
+      expect(path.animated).toBeUndefined();
+      expect(svg).not.toContain('<animate');
+      expect(svg).not.toContain('<animateMotion');
+      expect(svg).not.toContain('<linearGradient');
+    }
+  });
 });
 
 function pathPoints(d: string): Array<{ x: number; y: number }> {
@@ -334,4 +443,34 @@ function pathPoints(d: string): Array<{ x: number; y: number }> {
     pts.push({ x: nums[i]!, y: nums[i + 1]! });
   }
   return pts;
+}
+
+function renderAnimatedConnector(anim: string, style: 'solid' | 'dashed' | 'dotted' = 'solid') {
+  const result = routeConnectors({
+    anchors,
+    connectors: [{
+      fromKey: 'A.node1',
+      toKey: 'B.node1',
+      direction: 'directed',
+      style,
+      animation: anim as any,
+    }],
+    theme,
+  });
+  const path = result.pathElements.find(e => e.type === 'path');
+  if (!path || path.type !== 'path') throw new Error(`No path for ${anim}`);
+  const svg = renderSVG({
+    viewBox: { x: 0, y: 0, width: 420, height: 140 },
+    elements: result.elements,
+    defs: result.defs,
+  });
+  return { path, svg };
+}
+
+function countOccurrences(text: string, needle: string): number {
+  return text.split(needle).length - 1;
+}
+
+function animateMotionPaths(svg: string): string[] {
+  return [...svg.matchAll(/<animateMotion\b[^>]*\bpath="([^"]+)"/g)].map(m => m[1]!);
 }

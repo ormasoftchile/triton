@@ -16,6 +16,7 @@
  */
 
 import type { Color, FontFamily, FontWeight, Point, Rect, TextAnchor } from './primitives.js';
+import type { RenderedConnectorAnimation } from './animations.js';
 
 // ─── Element Variants ─────────────────────────────────────────────────────────
 
@@ -63,10 +64,12 @@ export interface ScenePath {
    *              silently ignored on solid paths.
    * 'particle' — emits a sibling <circle> with <animateMotion> that travels
    *              along the path. Works on any edge style.
+   * Other connector animations emit SMIL either inside the path or as sibling
+   * motion/gradient elements, while retaining a visible static stroke.
    *
    * Both degrade cleanly in rsvg-convert (SMIL ignored → static line/dot).
    */
-  readonly animated?: 'march' | 'particle';
+  readonly animated?: RenderedConnectorAnimation;
 }
 
 export interface SceneText {

@@ -1,0 +1,102 @@
+poster "Connector Animation Gallery"
+  columns 2
+
+  cell MARCH_A "march" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell MARCH_B "march target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell PARTICLE_A "particle" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell PARTICLE_B "particle target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell DRAW_A "draw" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell DRAW_B "draw target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell PULSE_A "pulse" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell PULSE_B "pulse target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell GLOW_A "glow" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell GLOW_B "glow target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell COMET_A "comet" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell COMET_B "comet target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell STREAM_A "stream" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell STREAM_B "stream target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell FLOW_A "flow" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell FLOW_B "flow target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  cell COLOR_A "colorcycle" :: flow
+    flowchart LR
+      x[Source]
+  end
+
+  cell COLOR_B "colorcycle target" :: flow
+    flowchart LR
+      y[Target]
+  end
+
+  link MARCH_A.x -.-> MARCH_B.y "march" { anim: march }
+  link PARTICLE_A.x --> PARTICLE_B.y "particle" { anim: particle }
+  link DRAW_A.x --> DRAW_B.y "draw" { anim: draw }
+  link PULSE_A.x --> PULSE_B.y "pulse" { anim: pulse }
+  link GLOW_A.x --> GLOW_B.y "glow" { anim: glow }
+  link COMET_A.x --> COMET_B.y "comet" { anim: comet }
+  link STREAM_A.x --> STREAM_B.y "stream" { anim: stream }
+  link FLOW_A.x --> FLOW_B.y "flow" { anim: flow }
+  link COLOR_A.x --> COLOR_B.y "colorcycle" { anim: colorcycle }

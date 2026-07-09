@@ -8,7 +8,7 @@
 
 import type { SceneElement } from '../contracts/scene.js';
 import type { CardinalSide, NodeAnchorRegistry, OccupiedPort } from '../contracts/anchors.js';
-import type { CrossLink, CrossLinkDirection, CrossLinkEdgeStyle, NodeAddress } from '../contracts/crosslink.js';
+import type { CrossLink, CrossLinkAnimation, CrossLinkDirection, CrossLinkEdgeStyle, NodeAddress } from '../contracts/crosslink.js';
 import type { Rect } from '../contracts/primitives.js';
 import type { CurveStyle, RouteStyle } from '../contracts/routing.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
@@ -24,7 +24,7 @@ export interface NormalizedConnectorSpec {
   readonly curveStyle?: CurveStyle;
   readonly exitWall?: CardinalSide;
   readonly entryWall?: CardinalSide;
-  readonly animation?: 'march' | 'particle' | 'none';
+  readonly animation?: CrossLinkAnimation;
   readonly props?: Readonly<Record<string, string | number>>;
   /**
    * Optional blocked-container IDs for endpoint-aware obstacle exclusion.

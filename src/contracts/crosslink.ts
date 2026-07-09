@@ -17,6 +17,16 @@
 import type { Point } from './primitives.js';
 import type { CardinalSide, NodeAnchor } from './anchors.js';
 import type { CurveStyle, RouteStyle } from './routing.js';
+import type { CrossLinkAnimation } from './animations.js';
+
+export {
+  CONNECTOR_ANIMATIONS,
+  isRenderedConnectorAnimation,
+} from './animations.js';
+export type {
+  CrossLinkAnimation,
+  RenderedConnectorAnimation,
+} from './animations.js';
 
 // ─── Cell Address ─────────────────────────────────────────────────────────────
 
@@ -96,12 +106,19 @@ export interface CrossLink {
    * 'march'    — marching ants (stroke-dashoffset cycle). Only visible when
    *              the edge style is dashed or dotted; silently ignored on solid.
    * 'particle' — a dot travels along the path. Works on any edge style.
+   * 'draw'     — dashoffset reveal/erase loop over the approximate path length.
+   * 'pulse'    — breathing stroke-width animation.
+   * 'glow'     — stroke-opacity pulse.
+   * 'comet'    — particle with a short fading tail.
+   * 'stream'   — multiple staggered particles.
+   * 'flow'     — animated gradient band along the connector direction.
+   * 'colorcycle' — stroke hue cycle.
    * 'none'     — explicitly suppresses the default animation for this edge.
    *
    * When omitted the renderer applies defaults:
    *   dashed → 'march', dotted → 'march', solid → no animation.
    */
-  readonly animation?: 'march' | 'particle' | 'none';
+  readonly animation?: CrossLinkAnimation;
   /**
    * Optional property bag for future per-link overrides (tension, color, etc.).
    * Parsed from `{ key: value }` blocks in the syntax.

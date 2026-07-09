@@ -1,0 +1,219 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 388 1322" width="388" height="1322">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
+  </defs>
+  <rect x="0" y="0" width="388" height="1322" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Connector Animation Gallery</text>
+  <rect x="24" y="58" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="58" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="198" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="198" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="338" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="338" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="478" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="478" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="618" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="618" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="758" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="758" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="898" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="898" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="1038" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="1038" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="1178" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="1178" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 158.28571428571428 114.52380952380952 L 229.71428571428572 114.52380952380952" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.28571428571428 254.52380952380955 L 229.71428571428572 254.52380952380955" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <circle r="4" fill="#7C3AED">
+    <animateMotion dur="1.5s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 254.524 L 211.714 254.524"/>
+  </circle>
+  <path d="M 158.28571428571428 394.5238095238095 L 229.71428571428572 394.5238095238095" stroke="#2563EB" stroke-width="2" fill="none" stroke-dasharray="71.429 71.429" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-dashoffset" values="0;71.429;0" dur="2s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.28571428571428 534.5238095238095 L 229.71428571428572 534.5238095238095" stroke="#DC2626" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-width" values="2;4;2" dur="1.4s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.28571428571428 674.5238095238094 L 229.71428571428572 674.5238095238094" stroke="#CA8A04" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke-opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.28571428571428 814.5238095238094 L 229.71428571428572 814.5238095238094" stroke="#0891B2" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <circle r="4.2" fill="#0891B2" opacity="0.95">
+    <animateMotion dur="1.8s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 211.514 814.524"/>
+  </circle>
+  <circle r="3.1" fill="#0891B2" opacity="0.45">
+    <animateMotion dur="1.8s" begin="-0.18s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 211.514 814.524"/>
+  </circle>
+  <circle r="2.2" fill="#0891B2" opacity="0.22">
+    <animateMotion dur="1.8s" begin="-0.36s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 211.514 814.524"/>
+  </circle>
+  <path d="M 158.28571428571428 954.5238095238094 L 229.71428571428572 954.5238095238094" stroke="#9333EA" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <circle r="3.2" fill="#9333EA" opacity="0.9">
+    <animateMotion dur="2s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 212.514 954.524"/>
+  </circle>
+  <circle r="3.2" fill="#9333EA" opacity="0.9">
+    <animateMotion dur="2s" begin="-0.5s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 212.514 954.524"/>
+  </circle>
+  <circle r="3.2" fill="#9333EA" opacity="0.9">
+    <animateMotion dur="2s" begin="-1s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 212.514 954.524"/>
+  </circle>
+  <circle r="3.2" fill="#9333EA" opacity="0.9">
+    <animateMotion dur="2s" begin="-1.5s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 212.514 954.524"/>
+  </circle>
+  <defs>
+    <linearGradient id="triton-flow-19qj9ud" gradientUnits="userSpaceOnUse" x1="158.28571428571428" y1="1094.5238095238096" x2="229.71428571428572" y2="1094.5238095238096">
+      <stop offset="0%" stop-color="#16A34A" stop-opacity="0.75"/>
+      <stop offset="20%" stop-color="#16A34A" stop-opacity="0.85">
+        <animate attributeName="offset" values="0%;60%;100%" dur="1.6s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="35%" stop-color="#FFFFFF" stop-opacity="1">
+        <animate attributeName="offset" values="10%;70%;100%" dur="1.6s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="50%" stop-color="#16A34A" stop-opacity="0.85">
+        <animate attributeName="offset" values="20%;80%;100%" dur="1.6s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" stop-color="#16A34A" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+  <path d="M 158.28571428571428 1094.5238095238096 L 229.71428571428572 1094.5238095238096" stroke="url(#triton-flow-19qj9ud)" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 1234.5238095238096 L 229.71428571428572 1234.5238095238096" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)">
+    <animate attributeName="stroke" values="#4A90D9;#9b51e0;#e54444;#2ecc71;#4A90D9" dur="3s" repeatCount="indefinite"/>
+  </path>
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">march</text>
+  <g transform="translate(28, 89.19047619047619) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">march target</text>
+  <g transform="translate(208, 89.19047619047619) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="213.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">particle</text>
+  <g transform="translate(28, 229.1904761904762) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="213.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">particle target</text>
+  <g transform="translate(208, 229.1904761904762) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="353.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">draw</text>
+  <g transform="translate(28, 369.1904761904762) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="353.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">draw target</text>
+  <g transform="translate(208, 369.1904761904762) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="493.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">pulse</text>
+  <g transform="translate(28, 509.1904761904762) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="493.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">pulse target</text>
+  <g transform="translate(208, 509.1904761904762) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="633.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">glow</text>
+  <g transform="translate(28, 649.1904761904761) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="633.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">glow target</text>
+  <g transform="translate(208, 649.1904761904761) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="773.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">comet</text>
+  <g transform="translate(28, 789.1904761904761) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="773.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">comet target</text>
+  <g transform="translate(208, 789.1904761904761) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="913.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">stream</text>
+  <g transform="translate(28, 929.1904761904761) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="913.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">stream target</text>
+  <g transform="translate(208, 929.1904761904761) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="1053.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">flow</text>
+  <g transform="translate(28, 1069.1904761904761) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="1053.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">flow target</text>
+  <g transform="translate(208, 1069.1904761904761) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="32" y="1193.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">colorcycle</text>
+  <g transform="translate(28, 1209.1904761904761) scale(0.9047619047619048)">
+    <g id="x">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="1193.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">colorcycle target</text>
+  <g transform="translate(208, 1209.1904761904761) scale(0.9047619047619048)">
+    <g id="y">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="194" y="112.52380952380952" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">march</text>
+  <text x="194" y="252.52380952380952" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">particle</text>
+  <text x="194" y="392.5238095238095" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2563EB" text-anchor="middle" font-weight="bold">draw</text>
+  <text x="194" y="532.5238095238095" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#DC2626" text-anchor="middle" font-weight="bold">pulse</text>
+  <text x="194" y="672.5238095238094" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#CA8A04" text-anchor="middle" font-weight="bold">glow</text>
+  <text x="194" y="812.5238095238094" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0891B2" text-anchor="middle" font-weight="bold">comet</text>
+  <text x="194" y="952.5238095238094" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">stream</text>
+  <text x="194" y="1092.5238095238096" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">flow</text>
+  <text x="194" y="1224.904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">colorcycle</text>
+</svg>
