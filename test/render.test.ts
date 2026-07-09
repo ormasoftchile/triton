@@ -85,6 +85,22 @@ describe('renderSVG', () => {
     expect(svg).toContain('fill="#red"');
   });
 
+  it('renders empty fills as none while preserving real fills', () => {
+    const svg = renderSVG({
+      ...emptyScene,
+      elements: [
+        { type: 'rect', bounds: { x: 0, y: 0, width: 10, height: 10 }, fill: '', stroke: '#111', strokeWidth: 1 },
+        { type: 'circle', center: { x: 20, y: 20 }, radius: 5, fill: '   ', stroke: '#222', strokeWidth: 1 },
+        { type: 'text', content: 'T', position: { x: 0, y: 20 }, fontSize: 12, fontFamily: 'sans-serif', fill: '' },
+        { type: 'path', d: 'M 0 0 L 1 1', stroke: '#333', strokeWidth: 1, fill: '' },
+        { type: 'rect', bounds: { x: 30, y: 0, width: 10, height: 10 }, fill: '#123456', stroke: '#444', strokeWidth: 1 },
+      ],
+    });
+    expect(svg).not.toContain('fill=""');
+    expect(svg.match(/fill="none"/g)).toHaveLength(4);
+    expect(svg).toContain('fill="#123456"');
+  });
+
   it('renders group element with children', () => {
     const svg = renderSVG({
       ...emptyScene,

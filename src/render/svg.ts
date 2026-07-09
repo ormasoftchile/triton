@@ -43,26 +43,26 @@ function renderElement(el: SceneElement, depth: number): string {
       const rx          = el.rx          != null ? ` rx="${el.rx}"` : '';
       const fillOpacity = el.fillOpacity != null ? ` fill-opacity="${el.fillOpacity}"` : '';
       const opacity     = el.opacity     != null ? ` opacity="${el.opacity}"` : '';
-      return `${pad}<rect x="${el.bounds.x}" y="${el.bounds.y}" width="${el.bounds.width}" height="${el.bounds.height}" fill="${el.fill}"${fillOpacity} stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${rx}${opacity} />`;
+      return `${pad}<rect x="${el.bounds.x}" y="${el.bounds.y}" width="${el.bounds.width}" height="${el.bounds.height}" fill="${fillVal(el.fill)}"${fillOpacity} stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${rx}${opacity} />`;
     }
 
     case 'circle': {
       const opacity = el.opacity != null ? ` opacity="${el.opacity}"` : '';
-      return `${pad}<circle cx="${el.center.x}" cy="${el.center.y}" r="${el.radius}" fill="${el.fill}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${opacity} />`;
+      return `${pad}<circle cx="${el.center.x}" cy="${el.center.y}" r="${el.radius}" fill="${fillVal(el.fill)}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${opacity} />`;
     }
 
     case 'text': {
       const anchor  = el.anchor    != null ? ` text-anchor="${el.anchor}"` : '';
       const weight  = el.fontWeight != null ? ` font-weight="${el.fontWeight}"` : '';
       const opacity = el.opacity   != null ? ` opacity="${el.opacity}"` : '';
-      return `${pad}<text x="${el.position.x}" y="${el.position.y}" font-size="${el.fontSize}" font-family="${escapeAttr(el.fontFamily)}" fill="${el.fill}"${anchor}${weight}${opacity}>${escapeXml(el.content)}</text>`;
+      return `${pad}<text x="${el.position.x}" y="${el.position.y}" font-size="${el.fontSize}" font-family="${escapeAttr(el.fontFamily)}" fill="${fillVal(el.fill)}"${anchor}${weight}${opacity}>${escapeXml(el.content)}</text>`;
     }
 
     case 'path': {
       const dash    = el.strokeDasharray != null ? ` stroke-dasharray="${el.strokeDasharray}"` : '';
       const mEnd    = el.markerEnd       != null ? ` marker-end="url(#${el.markerEnd})"` : '';
       const mStart  = el.markerStart     != null ? ` marker-start="url(#${el.markerStart})"` : '';
-      const fill    = el.fill            != null ? ` fill="${el.fill}"` : ' fill="none"';
+      const fill    = ` fill="${fillVal(el.fill)}"`;
       const opacity = el.opacity         != null ? ` opacity="${el.opacity}"` : '';
       const attrs   = `${pad}<path d="${el.d}" stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${fill}${dash}${mEnd}${mStart}${opacity}`;
       if (el.animated === 'march' && el.strokeDasharray) {
@@ -102,6 +102,10 @@ function parseDasharrayPeriod(dasharray: string): number {
     .map(Number)
     .filter(n => !isNaN(n) && n > 0)
     .reduce((sum, n) => sum + n, 0);
+}
+
+function fillVal(fill: string | null | undefined): string {
+  return fill != null && fill.trim() !== '' ? fill : 'none';
 }
 
 function escapeXml(text: string): string {
