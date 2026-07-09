@@ -354,6 +354,7 @@ describe('routeConnectors', () => {
   });
 
   it('trims particle, comet, and stream motion paths short of the visible connector endpoint', () => {
+    const dotRadii = { particle: 4, comet: 4.2, stream: 3.2 };
     for (const anim of ['particle', 'comet', 'stream'] as const) {
       const { path, svg } = renderAnimatedConnector(anim);
       expect(svg).toContain(`<path d="${path.d}"`);
@@ -363,16 +364,36 @@ describe('routeConnectors', () => {
       const visiblePrev = visiblePts[visiblePts.length - 2]!;
       const visibleLastSegment = Math.hypot(visibleEnd.x - visiblePrev.x, visibleEnd.y - visiblePrev.y);
       const motionPaths = animateMotionPaths(svg);
+      const expectedClearance = 8 * path.strokeWidth + dotRadii[anim] + 4;
       expect(motionPaths.length).toBeGreaterThan(0);
 
       for (const motionPath of motionPaths) {
         expect(motionPath).not.toBe(path.d);
         const motionPts = pathPoints(motionPath);
         const motionEnd = motionPts[motionPts.length - 1]!;
-        expect(Math.hypot(visibleEnd.x - motionEnd.x, visibleEnd.y - motionEnd.y)).toBeCloseTo(12, 5);
-        expect(Math.hypot(motionEnd.x - visiblePrev.x, motionEnd.y - visiblePrev.y)).toBeCloseTo(visibleLastSegment - 12, 5);
+        expect(Math.hypot(visibleEnd.x - motionEnd.x, visibleEnd.y - motionEnd.y)).toBeCloseTo(expectedClearance, 5);
+        expect(Math.hypot(motionEnd.x - visiblePrev.x, motionEnd.y - visiblePrev.y)).toBeCloseTo(visibleLastSegment - expectedClearance, 5);
       }
     }
+  });
+
+  it('derives animated motion clearance from marker width, stroke width, and dot radius', () => {
+    const svg = renderSVG({
+      viewBox: { x: 0, y: 0, width: 120, height: 20 },
+      defs: ['<marker id="custom-arrow" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L9 4 L0 8 z" /></marker>'],
+      elements: [{
+        type: 'path',
+        d: 'M 0 0 L 100 0',
+        stroke: '#000',
+        strokeWidth: 2,
+        fill: 'none',
+        markerEnd: 'custom-arrow',
+        animated: 'particle',
+      }],
+    });
+    const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
+    expect(svg).toContain('<path d="M 0 0 L 100 0"');
+    expect(motionPts[motionPts.length - 1]).toEqual({ x: 74, y: 0 });
   });
 
   it('clamps short animated motion segments without inverting them', () => {
@@ -430,7 +451,7 @@ function renderAnimatedConnector(anim: string, style: 'solid' | 'dashed' | 'dott
     connectors: [{
       fromKey: 'A.node1',
       toKey: 'B.node1',
-      direction: 'undirected',
+      direction: 'directed',
       style,
       animation: anim as any,
     }],

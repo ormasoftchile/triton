@@ -28,7 +28,7 @@
   </path>
   <path d="M 158.28571428571428 254.52380952380955 L 229.71428571428572 254.52380952380955" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <circle r="4" fill="#7C3AED">
-    <animateMotion dur="1.5s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 254.524 L 217.714 254.524"/>
+    <animateMotion dur="1.5s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 254.524 L 205.714 254.524"/>
   </circle>
   <path d="M 158.28571428571428 394.5238095238095 L 229.71428571428572 394.5238095238095" stroke="#2563EB" stroke-width="2" fill="none" stroke-dasharray="71.429 71.429" marker-end="url(#triton-crosslink-arrow)">
     <animate attributeName="stroke-dashoffset" values="0;71.429;0" dur="2s" repeatCount="indefinite"/>
@@ -41,26 +41,26 @@
   </path>
   <path d="M 158.28571428571428 814.5238095238094 L 229.71428571428572 814.5238095238094" stroke="#0891B2" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <circle r="4.2" fill="#0891B2" opacity="0.95">
-    <animateMotion dur="1.8s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 217.714 814.524"/>
+    <animateMotion dur="1.8s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 205.514 814.524"/>
   </circle>
   <circle r="3.1" fill="#0891B2" opacity="0.45">
-    <animateMotion dur="1.8s" begin="-0.18s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 217.714 814.524"/>
+    <animateMotion dur="1.8s" begin="-0.18s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 205.514 814.524"/>
   </circle>
   <circle r="2.2" fill="#0891B2" opacity="0.22">
-    <animateMotion dur="1.8s" begin="-0.36s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 217.714 814.524"/>
+    <animateMotion dur="1.8s" begin="-0.36s" repeatCount="indefinite" rotate="auto" path="M 158.286 814.524 L 205.514 814.524"/>
   </circle>
   <path d="M 158.28571428571428 954.5238095238094 L 229.71428571428572 954.5238095238094" stroke="#9333EA" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <circle r="3.2" fill="#9333EA" opacity="0.9">
-    <animateMotion dur="2s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 217.714 954.524"/>
+    <animateMotion dur="2s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 206.514 954.524"/>
   </circle>
   <circle r="3.2" fill="#9333EA" opacity="0.9">
-    <animateMotion dur="2s" begin="-0.5s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 217.714 954.524"/>
+    <animateMotion dur="2s" begin="-0.5s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 206.514 954.524"/>
   </circle>
   <circle r="3.2" fill="#9333EA" opacity="0.9">
-    <animateMotion dur="2s" begin="-1s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 217.714 954.524"/>
+    <animateMotion dur="2s" begin="-1s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 206.514 954.524"/>
   </circle>
   <circle r="3.2" fill="#9333EA" opacity="0.9">
-    <animateMotion dur="2s" begin="-1.5s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 217.714 954.524"/>
+    <animateMotion dur="2s" begin="-1.5s" repeatCount="indefinite" rotate="auto" path="M 158.286 954.524 L 206.514 954.524"/>
   </circle>
   <defs>
     <linearGradient id="triton-flow-19qj9ud" gradientUnits="userSpaceOnUse" x1="158.28571428571428" y1="1094.5238095238096" x2="229.71428571428572" y2="1094.5238095238096">

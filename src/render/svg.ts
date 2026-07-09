@@ -9,6 +9,7 @@ import type { Scene, SceneElement, Renderer } from '../contracts/index.js';
 export function renderSVG(scene: Scene): string {
   const { viewBox, background, elements, defs } = scene;
   const vb = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
+  const markerMetrics = markerMetricsById(defs ?? []);
 
   const lines: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${viewBox.width}" height="${viewBox.height}">`,
@@ -26,7 +27,7 @@ export function renderSVG(scene: Scene): string {
   }
 
   for (const el of elements) {
-    lines.push(renderElement(el, 1));
+    lines.push(renderElement(el, 1, markerMetrics));
   }
 
   lines.push('</svg>');
@@ -35,7 +36,7 @@ export function renderSVG(scene: Scene): string {
 
 // ─── Element Rendering ────────────────────────────────────────────────────────
 
-function renderElement(el: SceneElement, depth: number): string {
+function renderElement(el: SceneElement, depth: number, markerMetrics: Map<string, MarkerMetrics>): string {
   const pad = '  '.repeat(depth);
 
   switch (el.type) {
@@ -95,12 +96,12 @@ function renderElement(el: SceneElement, depth: number): string {
         return `${gradient}\n${attrs} />`;
       }
       if (el.animated === 'particle') {
-        const motionPath = trimMotionPathForArrowhead(el.d);
+        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, 4, markerMetrics));
         const circle = renderMotionCircle(motionPath, el.stroke, 4, undefined, '1.5s', '0s', pad);
         return `${attrs} />\n${circle}`;
       }
       if (el.animated === 'comet') {
-        const motionPath = trimMotionPathForArrowhead(el.d);
+        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, 4.2, markerMetrics));
         const circles = [
           renderMotionCircle(motionPath, el.stroke, 4.2, 0.95, '1.8s', '0s', pad),
           renderMotionCircle(motionPath, el.stroke, 3.1, 0.45, '1.8s', '-0.18s', pad),
@@ -109,7 +110,7 @@ function renderElement(el: SceneElement, depth: number): string {
         return `${attrs} />\n${circles}`;
       }
       if (el.animated === 'stream') {
-        const motionPath = trimMotionPathForArrowhead(el.d);
+        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, 3.2, markerMetrics));
         const circles = [0, 1, 2, 3]
           .map(i => renderMotionCircle(motionPath, el.stroke, 3.2, 0.9, '2s', i === 0 ? '0s' : `-${formatNum(i * 0.5)}s`, pad))
           .join('\n');
@@ -125,7 +126,7 @@ function renderElement(el: SceneElement, depth: number): string {
       if (el.children.length === 0) {
         return `${pad}<g${id}${transform}${opacity} />`;
       }
-      const inner = el.children.map(c => renderElement(c, depth + 1)).join('\n');
+      const inner = el.children.map(c => renderElement(c, depth + 1, markerMetrics)).join('\n');
       return `${pad}<g${id}${transform}${opacity}>\n${inner}\n${pad}</g>`;
     }
   }
@@ -156,10 +157,17 @@ function renderMotionCircle(
   return `${pad}<circle r="${radius}" fill="${escapeAttr(fill)}"${opacityAttr}>\n${pad}  <animateMotion dur="${dur}" begin="${begin}" repeatCount="indefinite" rotate="auto" path="${escapeAttr(path)}"/>\n${pad}</circle>`;
 }
 
-const MOTION_ARROWHEAD_CLEARANCE = 12;
+interface MarkerMetrics {
+  readonly markerWidth: number;
+  readonly markerUnits: 'strokeWidth' | 'userSpaceOnUse';
+}
+
+const DEFAULT_MARKER_WIDTH = 8;
+const MOTION_DOT_MARGIN = 4;
 const MIN_MOTION_SEGMENT_LENGTH = 1;
 
-function trimMotionPathForArrowhead(path: string): string {
+function trimMotionPathForArrowhead(path: string, clearance: number): string {
+  if (clearance <= 0) return path;
   const pts = pathPoints(path);
   if (pts.length < 2) return path;
 
@@ -171,7 +179,7 @@ function trimMotionPathForArrowhead(path: string): string {
   if (segmentLength === 0) return path;
 
   const remainingLength = segmentLength > MIN_MOTION_SEGMENT_LENGTH
-    ? Math.max(MIN_MOTION_SEGMENT_LENGTH, segmentLength - MOTION_ARROWHEAD_CLEARANCE)
+    ? Math.max(MIN_MOTION_SEGMENT_LENGTH, segmentLength - clearance)
     : segmentLength / 2;
   const unitX = dx / segmentLength;
   const unitY = dy / segmentLength;
@@ -183,6 +191,46 @@ function trimMotionPathForArrowhead(path: string): string {
   return motionPts
     .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${formatNum(pt.x)} ${formatNum(pt.y)}`)
     .join(' ');
+}
+
+function motionArrowheadClearance(
+  el: Extract<SceneElement, { type: 'path' }>,
+  dotRadius: number,
+  markerMetrics: Map<string, MarkerMetrics>,
+): number {
+  if (el.markerEnd == null) return 0;
+  const marker = markerMetrics.get(el.markerEnd) ?? { markerWidth: DEFAULT_MARKER_WIDTH, markerUnits: 'strokeWidth' as const };
+  const markerLength = marker.markerUnits === 'strokeWidth'
+    ? marker.markerWidth * el.strokeWidth
+    : marker.markerWidth;
+  return markerLength + dotRadius + MOTION_DOT_MARGIN;
+}
+
+function markerMetricsById(defs: readonly string[]): Map<string, MarkerMetrics> {
+  const markers = new Map<string, MarkerMetrics>();
+  for (const def of defs) {
+    for (const match of def.matchAll(/<marker\b[^>]*>/g)) {
+      const marker = match[0];
+      const id = attrValue(marker, 'id');
+      const markerWidth = attrNumber(marker, 'markerWidth');
+      if (id == null || markerWidth == null) continue;
+      const markerUnits = attrValue(marker, 'markerUnits') === 'userSpaceOnUse' ? 'userSpaceOnUse' : 'strokeWidth';
+      markers.set(id, { markerWidth, markerUnits });
+    }
+  }
+  return markers;
+}
+
+function attrValue(text: string, name: string): string | undefined {
+  return text.match(new RegExp(`\\b${name}\\s*=\\s*"([^"]+)"`))?.[1]
+    ?? text.match(new RegExp(`\\b${name}\\s*=\\s*'([^']+)'`))?.[1];
+}
+
+function attrNumber(text: string, name: string): number | undefined {
+  const value = attrValue(text, name);
+  if (value == null) return undefined;
+  const n = Number.parseFloat(value);
+  return Number.isFinite(n) ? n : undefined;
 }
 
 function renderFlowGradient(el: Extract<SceneElement, { type: 'path' }>, pad: string): string {
