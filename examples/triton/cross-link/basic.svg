@@ -3,15 +3,15 @@
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
     <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
   </defs>
-  <rect width="100%" height="100%" fill="#FFFFFF" />
+  <rect x="0" y="0" width="553.2" height="336.3809523809524" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Cross-Link Basic Demo</text>
-  <rect x="24" y="58" width="160" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="204" y="58" width="325.2" height="254.3809523809524" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="58" width="160" height="254.3809523809524" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="58" width="325.2" height="254.3809523809524" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <path d="M 158.28571428571428 183.75238095238097 L 223.6 183.75238095238097" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <path d="M 158.28571428571428 254.0952380952381 L 242.94285714285715 254.0952380952381 L 242.94285714285715 206.5904761904762 L 327.6 206.5904761904762" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
-  <text x="32" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Frontend Services</text>
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Frontend Services</text>
   <g transform="translate(28, 84.00000000000001) scale(0.9047619047619048)">
     <g id="ui">
       <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
@@ -26,7 +26,7 @@
       <text x="84" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Auth Service</text>
     </g>
   </g>
-  <text x="212" y="76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Backend Services</text>
+  <text x="212" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Backend Services</text>
   <g transform="translate(208, 141.5904761904762) scale(0.65)">
     <path d="M 144 84 L 184 84" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
     <path d="M 304 84 L 324 84 L 324 44 L 344 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
@@ -49,5 +49,5 @@
     </g>
   </g>
   <text x="199.38571428571427" y="177.1904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">routes to</text>
-  <text x="242.94285714285715" y="228.34285714285716" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">validates</text>
+  <text x="200.6142857142857" y="252.09523809523807" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">validates</text>
 </svg>
