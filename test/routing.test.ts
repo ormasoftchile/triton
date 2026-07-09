@@ -94,6 +94,16 @@ describe('orthogonal router', () => {
     expect(countRouteCollisions(r.points, obstacles)).toBe(0);
   });
 
+  it('same-wall N→N detour clears the containing shape when the port is inside it', () => {
+    const obstacles = [box(0, 0, 240, 140), box(0, 220, 240, 140)];
+    const r = router.route({
+      from: { x: 120, y: 70 }, to: { x: 120, y: 290 },
+      style: 'orthogonal', fromDir: 'N', toDir: 'N', obstacles, padding: 8,
+    });
+    expect(r.points.some(p => p.x < 0 || p.x > 240)).toBe(true);
+    expect(r.points.slice(2, -2).every(p => p.x < 0 || p.x > 240)).toBe(true);
+  });
+
   it('same-wall S→S between vertically stacked boxes detours symmetrically', () => {
     const obstacles = [box(0, 200, 100, 40), box(0, 0, 100, 40)];
     const r = router.route({

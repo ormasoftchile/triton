@@ -453,17 +453,14 @@ function routeHitsEndpointObstacle(
   obstacles: ReadonlyArray<Rect>,
 ): boolean {
   return collidingObstacles(points, obstacles).some(obs =>
-    pointOnRectBoundary(from, obs) || pointOnRectBoundary(to, obs),
+    pointInOrOnRect(from, obs) || pointInOrOnRect(to, obs),
   );
 }
 
-function pointOnRectBoundary(p: Point, r: Rect): boolean {
+function pointInOrOnRect(p: Point, r: Rect): boolean {
   const eps = 1e-6;
-  const onVertical = (Math.abs(p.x - r.x) < eps || Math.abs(p.x - (r.x + r.width)) < eps) &&
+  return p.x >= r.x - eps && p.x <= r.x + r.width + eps &&
     p.y >= r.y - eps && p.y <= r.y + r.height + eps;
-  const onHorizontal = (Math.abs(p.y - r.y) < eps || Math.abs(p.y - (r.y + r.height)) < eps) &&
-    p.x >= r.x - eps && p.x <= r.x + r.width + eps;
-  return onVertical || onHorizontal;
 }
 
 function polylineLength(points: readonly Point[]): number {

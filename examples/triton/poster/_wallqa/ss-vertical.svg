@@ -7,7 +7,7 @@
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Wall test SS</text>
   <rect x="24" y="58" width="213.4" height="158.70000000000002" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="24" y="236.70000000000002" width="213.4" height="158.70000000000002" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <path d="M 130.70000000000002 317.30000000000007 L 130.70000000000002 337.30000000000007 L 160.25 337.30000000000007 L 160.25 158.60000000000002 L 130.70000000000002 158.60000000000002 L 130.70000000000002 138.60000000000002" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 130.70000000000002 317.30000000000007 L 130.70000000000002 337.30000000000007 L 12 337.30000000000007 L 12 158.60000000000002 L 130.70000000000002 158.60000000000002 L 130.70000000000002 138.60000000000002" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
   <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">A</text>
   <g transform="translate(28, 84) scale(0.65)">
     <rect x="24" y="24" width="268" height="150" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
@@ -32,5 +32,5 @@
     <text x="158" y="150.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">(2,y)</text>
     <path d="M 158 84 L 158 95.9 M 158 117.9 L 158 132" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
   </g>
-  <text x="145.47500000000002" y="335.30000000000007" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">SS south</text>
+  <text x="71.35000000000001" y="335.30000000000007" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">SS south</text>
 </svg>

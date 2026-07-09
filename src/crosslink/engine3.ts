@@ -396,10 +396,12 @@ function findBestRoute(
   // as hard obstacles and produces large detours to reach the destination port.
   const srcCellId = link.from.cellPath.join('.');
   const dstCellId = link.to.cellPath.join('.');
+  const sameSourceCell = (key: string): boolean => srcCellId.length > 0 && key.startsWith(srcCellId + '.');
+  const sameTargetCell = (key: string): boolean => dstCellId.length > 0 && key.startsWith(dstCellId + '.');
   const linkObstacles: Rect[] = Object.entries(anchors)
     .filter(([key]) =>
-      !key.startsWith(srcCellId + '.') &&
-      !key.startsWith(dstCellId + '.') &&
+      !sameSourceCell(key) &&
+      !sameTargetCell(key) &&
       key !== srcKey && key !== dstKey,
     )
     .map(([, a]) => a.bounds);
@@ -444,7 +446,13 @@ function findBestRoute(
 
           const router = createRouter(routeStyle);
           const routePadding = typeof link.props?.routePadding === 'number' ? link.props.routePadding : ROUTE_PADDING;
-          const routeObstacles = [...linkObstacles, srcAnchor.bounds, dstAnchor.bounds];
+          const routeObstacles = [
+            ...linkObstacles,
+            ...forcedAwayEndpointObstacles(
+              link, ss, ds, srcCenter, dstCenter, anchors, cellRects,
+              srcKey, dstKey, srcCellId, dstCellId, sameSourceCell, sameTargetCell,
+            ),
+          ];
           const route  = router.route({
             from:    sp,
             to:      dp,
@@ -497,6 +505,46 @@ function findBestRoute(
   }
 
   return bestScore < Infinity ? { committed: bestCommitted, rawPts: bestRawPts } : null;
+}
+
+function forcedAwayEndpointObstacles(
+  link: CrossLink,
+  srcWall: CardinalSide,
+  dstWall: CardinalSide,
+  srcCenter: Point,
+  dstCenter: Point,
+  anchors: NodeAnchorRegistry,
+  cellRects: ReadonlyMap<string, Rect> | undefined,
+  srcKey: string,
+  dstKey: string,
+  srcCellId: string,
+  dstCellId: string,
+  sameSourceCell: (key: string) => boolean,
+  sameTargetCell: (key: string) => boolean,
+): Rect[] {
+  const exitAway = link.exitWall !== undefined && wallFacesAway(srcWall, srcCenter, dstCenter);
+  const entryAway = link.entryWall !== undefined && wallFacesAway(dstWall, dstCenter, srcCenter);
+  const rects: Rect[] = [anchors[srcKey]?.bounds, anchors[dstKey]?.bounds].filter((r): r is Rect => r !== undefined);
+
+  if (exitAway || entryAway) {
+    for (const [key, anchor] of Object.entries(anchors)) {
+      if (sameSourceCell(key) || sameTargetCell(key)) rects.push(anchor.bounds);
+    }
+    const srcCell = cellRects?.get(srcCellId);
+    const dstCell = cellRects?.get(dstCellId);
+    if (srcCell) rects.push(srcCell);
+    if (dstCell) rects.push(dstCell);
+  }
+
+  return rects;
+}
+
+function wallFacesAway(wall: CardinalSide, fromCenter: Point, toCenter: Point): boolean {
+  const nx = wall === 'E' ? 1 : wall === 'W' ? -1 : 0;
+  const ny = wall === 'S' ? 1 : wall === 'N' ? -1 : 0;
+  const vx = toCenter.x - fromCenter.x;
+  const vy = toCenter.y - fromCenter.y;
+  return vx * nx + vy * ny < 0;
 }
 
 // ─── Pass 3: Crossing repair ──────────────────────────────────────────────────
