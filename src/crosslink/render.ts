@@ -9,7 +9,7 @@
  */
 
 import type { SceneElement } from '../contracts/scene.js';
-import type { ResolvedCrossLink, CrossLinkEdgeStyle } from '../contracts/crosslink.js';
+import { isRenderedConnectorAnimation, type ResolvedCrossLink, type CrossLinkEdgeStyle, type RenderedConnectorAnimation } from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry } from '../contracts/anchors.js';
 import type { PortDirection, RouteStyle } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
@@ -134,10 +134,9 @@ export function renderCrossLinks(
 
     const dash = edgeStyleToDash(link.style);
     // Animation: explicit DSL value wins; default is 'march' for dashed/dotted, nothing for solid.
-    const animation: 'march' | 'particle' | undefined =
+    const animation: RenderedConnectorAnimation | undefined =
       link.animation === 'none'     ? undefined :
-      link.animation === 'particle' ? 'particle' :
-      link.animation === 'march'    ? 'march'    :
+      isRenderedConnectorAnimation(link.animation) ? link.animation :
       dash                          ? 'march'    : undefined;
     let markerEnd: string | undefined;
     let markerStart: string | undefined;
@@ -1041,7 +1040,7 @@ interface PendingRoute {
   toDir: PortDirection | undefined;
   color: string;
   dash: string | undefined;
-  animation: 'march' | 'particle' | undefined;
+  animation: RenderedConnectorAnimation | undefined;
   markerEnd: string | undefined;
   markerStart: string | undefined;
   label: string | undefined;

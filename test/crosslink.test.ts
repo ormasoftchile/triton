@@ -7,6 +7,7 @@ import { resolveCrossLinks } from '../src/crosslink/resolve.js';
 import { renderCrossLinks } from '../src/crosslink/render.js';
 import { crossLinksToConnectorSpecs, routeConnectors } from '../src/crosslink/connectors.js';
 import { routeAndRenderCrossLinks3 } from '../src/crosslink/engine3.js';
+import { renderSVG } from '../src/render/svg.js';
 import { resolveTheme } from '../src/theme/resolver.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { registerRouter } from '../src/routing/registry.js';
@@ -325,6 +326,53 @@ describe('routeConnectors', () => {
     expect(pts.some(p => p.x < -20 || p.x > 160)).toBe(true);
     expect(countRouteCollisions(pts, [wallAnchors['A.tuple']!.bounds, wallAnchors['B.tuple']!.bounds])).toBe(0);
   });
+
+  it('threads every connector animation value to scene paths and SVG SMIL', () => {
+    const cases = [
+      { anim: 'march', style: 'dashed', expect: 'attributeName="stroke-dashoffset"' },
+      { anim: 'particle', expect: '<animateMotion dur="1.5s"' },
+      { anim: 'draw', expect: 'values="0;' },
+      { anim: 'pulse', expect: 'attributeName="stroke-width"' },
+      { anim: 'glow', expect: 'attributeName="stroke-opacity"' },
+      { anim: 'comet', expect: 'begin="-0.36s"' },
+      { anim: 'stream', expect: 'begin="-1.5s"' },
+      { anim: 'flow', expect: '<linearGradient id="triton-flow-' },
+      { anim: 'colorcycle', expect: 'attributeName="stroke" values="#4A90D9;#9b51e0;#e54444;#2ecc71;#4A90D9"' },
+    ] as const;
+
+    for (const c of cases) {
+      const { path, svg } = renderAnimatedConnector(c.anim, c.style ?? 'solid');
+      expect(path.animated).toBe(c.anim);
+      expect(svg).toContain(c.expect);
+    }
+  });
+
+  it('emits the expected particle counts for particle, comet, and stream animations', () => {
+    expect(countOccurrences(renderAnimatedConnector('particle').svg, '<animateMotion ')).toBe(1);
+    expect(countOccurrences(renderAnimatedConnector('comet').svg, '<animateMotion ')).toBe(3);
+    expect(countOccurrences(renderAnimatedConnector('stream').svg, '<animateMotion ')).toBe(4);
+  });
+
+  it('emits flow gradients and draw dashoffset animation constructs', () => {
+    const flow = renderAnimatedConnector('flow').svg;
+    expect(flow).toContain('gradientUnits="userSpaceOnUse"');
+    expect(flow).toContain('attributeName="offset"');
+    expect(flow).toContain('stroke="url(#triton-flow-');
+
+    const draw = renderAnimatedConnector('draw').svg;
+    expect(draw).toContain('stroke-dasharray="190 190"');
+    expect(draw).toContain('attributeName="stroke-dashoffset"');
+  });
+
+  it('renders none and unknown animation values as plain paths', () => {
+    for (const anim of ['none', 'unknown-animation'] as const) {
+      const { path, svg } = renderAnimatedConnector(anim);
+      expect(path.animated).toBeUndefined();
+      expect(svg).not.toContain('<animate');
+      expect(svg).not.toContain('<animateMotion');
+      expect(svg).not.toContain('<linearGradient');
+    }
+  });
 });
 
 function pathPoints(d: string): Array<{ x: number; y: number }> {
@@ -334,4 +382,30 @@ function pathPoints(d: string): Array<{ x: number; y: number }> {
     pts.push({ x: nums[i]!, y: nums[i + 1]! });
   }
   return pts;
+}
+
+function renderAnimatedConnector(anim: string, style: 'solid' | 'dashed' | 'dotted' = 'solid') {
+  const result = routeConnectors({
+    anchors,
+    connectors: [{
+      fromKey: 'A.node1',
+      toKey: 'B.node1',
+      direction: 'undirected',
+      style,
+      animation: anim as any,
+    }],
+    theme,
+  });
+  const path = result.pathElements.find(e => e.type === 'path');
+  if (!path || path.type !== 'path') throw new Error(`No path for ${anim}`);
+  const svg = renderSVG({
+    viewBox: { x: 0, y: 0, width: 420, height: 140 },
+    elements: result.elements,
+    defs: result.defs,
+  });
+  return { path, svg };
+}
+
+function countOccurrences(text: string, needle: string): number {
+  return text.split(needle).length - 1;
 }

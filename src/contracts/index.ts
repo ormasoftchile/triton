@@ -7,7 +7,8 @@
  * Dependency order (each file imports only from files above it):
  *
  *   primitives   (no deps)
- *   scene        ← primitives
+ *   animations   (no deps)
+ *   scene        ← primitives, animations
  *   theme        ← primitives
  *   overlay      ← primitives
  *   routing      ← primitives
@@ -25,6 +26,16 @@ export type {
   TextAnchor,
   FontWeight,
 } from './primitives.js';
+
+export type {
+  RenderedConnectorAnimation,
+  CrossLinkAnimation,
+} from './animations.js';
+
+export {
+  CONNECTOR_ANIMATIONS,
+  isRenderedConnectorAnimation,
+} from './animations.js';
 
 export type {
   SceneRect,
@@ -100,6 +111,8 @@ export type {
   NodeAddress,
   CrossLinkEdgeStyle,
   CrossLinkDirection,
+  RenderedConnectorAnimation as CrossLinkRenderedAnimation,
+  CrossLinkAnimation as CrossLinkAnimationName,
   CrossLink,
   ResolvedCrossLink,
   RouteQuality,

@@ -12,6 +12,7 @@ import type {
   SceneElement, SceneText, SceneRect, SceneCircle, ScenePath, SceneGroup,
   Rect, Point, Color, FontWeight, TextAnchor, ResolvedTheme,
 } from '../contracts/index.js';
+import type { RenderedConnectorAnimation } from '../contracts/animations.js';
 
 export interface TextOpts {
   weight?: FontWeight;
@@ -30,7 +31,7 @@ export interface PathOpts {
   dash?: string;
   markerEnd?: string;
   markerStart?: string;
-  animated?: 'march' | 'particle';
+  animated?: RenderedConnectorAnimation;
   opacity?: number;
 }
 
