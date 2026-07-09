@@ -157,7 +157,8 @@ function nodeStyle(kinds: readonly string[], theme: ResolvedTheme): NodeStyle {
   if (has('scan'))   return { shape, fill: palette.surface, stroke: palette.primary, text: palette.text };
   if (has('join'))   return { shape, fill: palette.surface, stroke: palette.secondary, text: palette.text };
   if (has('build') || has('muted')) return { shape, fill: palette.surface, stroke: palette.textMuted, text: palette.text };
-  return { shape, fill: palette.surface, stroke: palette.primary, text: palette.text };
+  const fill = palette.surface;
+  return { shape, fill, stroke: outlineStroke(fill, theme), text: palette.text };
 }
 
 /** Build the muted info sub-line from a node's parsed attributes. */

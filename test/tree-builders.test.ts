@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { buildAvl } from '../src/diagrams/triton/ds/tree/avl.js';
 import { buildRbtree } from '../src/diagrams/triton/ds/tree/rbtree.js';
 import { buildBtree } from '../src/diagrams/triton/ds/tree/btree.js';
 import { buildRadix } from '../src/diagrams/triton/ds/tree/radix.js';
@@ -8,7 +9,7 @@ import { layoutTree } from '../src/diagrams/triton/ds/tree/layout.js';
 import { defaultTheme, executiveTheme } from '../src/theme/preset.js';
 import { resolveTheme } from '../src/theme/resolver.js';
 import type { TreeDocument } from '../src/diagrams/triton/ds/tree/ir.js';
-import type { Color, SceneCircle } from '../src/contracts/index.js';
+import type { Color, ResolvedTheme, SceneCircle, SceneRect } from '../src/contracts/index.js';
 
 const byId = (doc: TreeDocument) => new Map(doc.nodes.map(n => [n.id, n]));
 
@@ -48,8 +49,24 @@ function contrastRatio(a: Color, b: Color): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+function outlineStroke(fill: Color, theme: ResolvedTheme): Color {
+  const canvas = parseHex(theme.palette.background) ? theme.palette.background : theme.palette.surface;
+  const candidates = [theme.palette.text, theme.palette.border, theme.palette.textMuted, theme.palette.background];
+  let best = theme.palette.text, score = -Infinity;
+  for (const c of candidates) {
+    if (!parseHex(c)) continue;
+    const next = Math.min(contrastRatio(c, fill), contrastRatio(c, canvas)) + contrastRatio(c, canvas) * 0.15;
+    if (next > score) { best = c; score = next; }
+  }
+  return best;
+}
+
 function nodeCircles(doc: TreeDocument, theme = defaultTheme): SceneCircle[] {
   return layoutTree(doc, theme).scene.elements.filter((el): el is SceneCircle => el.type === 'circle');
+}
+
+function nodeRects(doc: TreeDocument, theme = defaultTheme): SceneRect[] {
+  return layoutTree(doc, theme).scene.elements.filter((el): el is SceneRect => el.type === 'rect');
 }
 
 describe('rbtree builder', () => {
@@ -98,6 +115,56 @@ describe('rbtree builder', () => {
 
     expect(blackRoot.fill).not.toBe(nodeCircles(doc, defaultTheme)[0]!.fill);
     expect(contrastRatio(blackRoot.stroke, transparentExecutive.palette.surface)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('uses the neutral outline treatment for AVL, plain circle, and RB structural borders', () => {
+    const themes = [
+      defaultTheme,
+      resolveTheme({ palette: { background: '#0f1117' } }, executiveTheme),
+    ];
+    const plainCircle: TreeDocument = {
+      version: '1.0',
+      metadata: {},
+      direction: 'TB',
+      nodes: [{ id: 'n0', label: '42', kinds: ['circle'], children: [] }],
+    };
+    const avl = buildAvl('avl insert 20 10 30');
+    const rb = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
+
+    for (const theme of themes) {
+      const expectedSurfaceOutline = outlineStroke(theme.palette.surface, theme);
+      const plain = nodeCircles(plainCircle, theme)[0]!;
+      const avlRoot = nodeCircles(avl, theme)[0]!;
+      const rbCircles = nodeCircles(rb, theme);
+      const redIndex = rb.nodes.findIndex(n => n.kinds.includes('red'));
+
+      expect(plain.stroke).toBe(expectedSurfaceOutline);
+      expect(avlRoot.stroke).toBe(expectedSurfaceOutline);
+      expect(plain.stroke).not.toBe(theme.palette.primary);
+      expect(avlRoot.stroke).not.toBe(theme.palette.primary);
+      expect(rbCircles[0]!.stroke).toBe(outlineStroke(rbCircles[0]!.fill, theme));
+      expect(rbCircles[redIndex]!.stroke).toBe(outlineStroke(rbCircles[redIndex]!.fill, theme));
+    }
+  });
+
+  it('keeps state node strokes semantic after structural border unification', () => {
+    const doc: TreeDocument = {
+      version: '1.0',
+      metadata: {},
+      direction: 'TB',
+      nodes: [
+        { id: 'n0', label: 'Active', kinds: ['active'], children: ['n1', 'n2', 'n3'] },
+        { id: 'n1', label: 'Seq Scan', kinds: ['scan'], children: [] },
+        { id: 'n2', label: 'Hash Join', kinds: ['join'], children: [] },
+        { id: 'n3', label: 'Hash', kinds: ['build'], children: [] },
+      ],
+    };
+    const [active, scan, join, build] = nodeRects(doc, defaultTheme);
+
+    expect(active!.stroke).toBe(defaultTheme.palette.primary);
+    expect(scan!.stroke).toBe(defaultTheme.palette.primary);
+    expect(join!.stroke).toBe(defaultTheme.palette.secondary);
+    expect(build!.stroke).toBe(defaultTheme.palette.textMuted);
   });
 });
 
