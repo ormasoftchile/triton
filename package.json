@@ -2,7 +2,7 @@
   "name": "triton",
   "private": true,
   "type": "module",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Triton — deterministic, contracts-first diagram compiler (SVG/PNG)",
   "engines": {
     "node": ">=20"
