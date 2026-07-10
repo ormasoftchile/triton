@@ -5,8 +5,12 @@ name: Publish npm packages
 # landing on main has a version tag in its message: [version:patch],
 # [version:minor], or [version:major] (case-insensitive). No tag => no-op.
 #
-# Uses OIDC Trusted Publishing (npm publish --provenance); no NPM_TOKEN needed
-# once each package has this workflow registered as a trusted publisher on npm.
+# Uses OIDC Trusted Publishing (tokenless); no NPM_TOKEN needed once each package
+# has this workflow registered as a trusted publisher on npm.
+#
+# Provenance is DISABLED (--provenance=false): npm rejects provenance for private
+# source repos ("Only public source repositories are supported"). If this repo is
+# made public, drop `--provenance=false` (or set `--provenance`) to re-enable it.
 
 on:
   push:
@@ -114,7 +118,7 @@ jobs:
             echo "$name@$VERSION already published — skipping."
           else
             echo "Publishing $name@$VERSION ..."
-            npm publish --provenance --access public
+            npm publish --provenance=false --access public
           fi
 
       # Step 6 — publish LATEX. latex/ installs independently (own pnpm-lock.yaml)
@@ -132,7 +136,7 @@ jobs:
             echo "$name@$VERSION already published — skipping."
           else
             echo "Publishing $name@$VERSION ..."
-            npm publish --provenance --access public
+            npm publish --provenance=false --access public
           fi
 
       # Step 7 — commit the version bump + annotated tag, push to main.

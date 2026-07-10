@@ -57,10 +57,14 @@ It rewrites the `version` field in all three `package.json` files.
 
 ## One-time npm setup (owner must do this manually)
 
-Publishing uses **OIDC Trusted Publishing** with provenance
-(`npm publish --provenance`). No `NPM_TOKEN` is stored anywhere — npm trusts the
-GitHub Actions workflow directly. This **cannot be automated** and must be
-configured once per package on npmjs.com:
+Publishing uses **OIDC Trusted Publishing** (tokenless). No `NPM_TOKEN` is
+stored anywhere — npm trusts the GitHub Actions workflow directly. This
+**cannot be automated** and must be configured once per package on npmjs.com:
+
+> **Provenance is disabled** (`--provenance=false`) because npm only supports
+> provenance for **public** source repos, and this repo is private. If you make
+> the repo public, remove `--provenance=false` from both publish steps in
+> `publish-npm.yml` to re-enable signed provenance attestations.
 
 For **each** of `@cristianormazabal/triton-core` and
 `@cristianormazabal/triton-latex`:
