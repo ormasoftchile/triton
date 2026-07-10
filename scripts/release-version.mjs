@@ -2,11 +2,12 @@
  * Release version-sync script.
  *
  * Single source of truth: the ROOT package.json `version` field. This script
- * computes a new lockstep version and writes the SAME version into all three
+ * computes a new lockstep version and writes the SAME version into all four
  * package.json files:
  *   ./package.json
  *   ./packages/core/package.json
  *   ./latex/package.json
+ *   ./extension/package.json
  *
  * Usage:
  *   node scripts/release-version.mjs <patch|minor|major>
@@ -27,6 +28,7 @@ const TARGETS = [
   join(rootDir, 'package.json'),
   join(rootDir, 'packages', 'core', 'package.json'),
   join(rootDir, 'latex', 'package.json'),
+  join(rootDir, 'extension', 'package.json'),
 ];
 
 function fail(msg) {

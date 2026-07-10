@@ -1,12 +1,17 @@
-name: Publish npm packages
+name: Publish npm packages & VS Code extension
 
-# Lockstep publishing for @cristianormazabal/triton-core (packages/core) and
-# @cristianormazabal/triton-latex (latex/). A release is cut ONLY when a commit
-# landing on main has a version tag in its message: [version:patch],
-# [version:minor], or [version:major] (case-insensitive). No tag => no-op.
+# Lockstep publishing for @cristianormazabal/triton-core (packages/core),
+# @cristianormazabal/triton-latex (latex/), and the triton-vscode extension
+# (extension/, VS Code Marketplace). A release is cut ONLY when a commit landing
+# on main has a version tag in its message: [version:patch], [version:minor], or
+# [version:major] (case-insensitive). No tag => no-op. All three artifacts share
+# the same version (root package.json is the single source of truth).
 #
-# Uses OIDC Trusted Publishing (tokenless); no NPM_TOKEN needed once each package
-# has this workflow registered as a trusted publisher on npm.
+# Uses OIDC Trusted Publishing (tokenless) for npm; no NPM_TOKEN needed once each
+# package has this workflow registered as a trusted publisher on npm. The VS Code
+# Marketplace publish is guarded by the VSCE_PAT secret — if it is not set, the
+# extension is still packaged and attached to the GitHub Release but not pushed
+# to the Marketplace.
 #
 # Provenance is DISABLED (--provenance=false): npm rejects provenance for private
 # source repos ("Only public source repositories are supported"). If this repo is
@@ -96,7 +101,8 @@ jobs:
         if: steps.detect.outputs.release == 'true'
         run: pnpm build
 
-      # Step 4 — compute + apply the new lockstep version across all 3 packages.
+      # Step 4 — compute + apply the new lockstep version across all 4 manifests
+      # (root, packages/core, latex, extension).
       - name: Apply lockstep version bump
         id: version
         if: steps.detect.outputs.release == 'true'
@@ -139,7 +145,45 @@ jobs:
             npm publish --provenance=false --access public
           fi
 
-      # Step 7 — commit the version bump + annotated tag, push to main.
+      # Step 7 — package & publish the VS Code extension. `pnpm build` already
+      # produced extension/dist/extension.cjs and Step 4 stamped the new version
+      # into extension/package.json. We package the .vsix (kept at repo root so
+      # the release step can attach it), then publish to the Marketplace only if
+      # VSCE_PAT is configured. A missing PAT is NOT an error: the .vsix is still
+      # built and attached to the GitHub Release. NOTE: vsce has no "already
+      # published" guard — re-running a release at an already-published version
+      # will error; bump the version to re-release.
+      - name: Package & publish VS Code extension
+        id: vsix
+        if: steps.detect.outputs.release == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [[ ! -f extension/dist/extension.cjs ]]; then
+            echo "::error::extension/dist/extension.cjs missing — build did not run"
+            exit 1
+          fi
+          cd extension
+          npx --yes @vscode/vsce package --no-dependencies
+          cd ..
+          mv extension/*.vsix ./
+          vsix="triton-vscode-$VERSION.vsix"
+          if [[ ! -f "$vsix" ]]; then
+            echo "::error::expected $vsix at repo root after packaging"
+            ls -1 ./*.vsix || true
+            exit 1
+          fi
+          echo "vsix=$vsix" >> "$GITHUB_OUTPUT"
+          echo "Packaged $vsix"
+          if [ -n "$VSCE_PAT" ]; then
+            echo "Publishing $vsix to the VS Code Marketplace ..."
+            npx --yes @vscode/vsce publish --no-dependencies --packagePath "$vsix" -p "$VSCE_PAT"
+          else
+            echo "Skipping VS Code Marketplace publish — VSCE_PAT not configured"
+          fi
+
+      # Step 8 — commit the version bump + annotated tag, push to main.
       # Uses [skip ci] so the bot commit does not retrigger CI (and it has no
       # version tag anyway, so this workflow would no-op on it regardless).
       - name: Commit version bump and tag
@@ -149,7 +193,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package.json packages/core/package.json latex/package.json
+          git add package.json packages/core/package.json latex/package.json extension/package.json
           git add -A -- '*pnpm-lock.yaml'
           if git diff --cached --quiet; then
             echo "Nothing to commit (versions unchanged)."
@@ -164,15 +208,18 @@ jobs:
           git push origin HEAD:main
           git push origin "v$VERSION"
 
-      # Step 8 — create the GitHub Release (auto-generated notes).
+      # Step 9 — create the GitHub Release (auto-generated notes) with the
+      # packaged .vsix attached as a downloadable asset.
       - name: Create GitHub Release
         if: steps.detect.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
+          VSIX: ${{ steps.vsix.outputs.vsix }}
         run: |
           if gh release view "v$VERSION" >/dev/null 2>&1; then
-            echo "Release v$VERSION already exists — skipping."
+            echo "Release v$VERSION already exists — uploading vsix asset."
+            gh release upload "v$VERSION" "$VSIX" --clobber
           else
-            gh release create "v$VERSION" --generate-notes --latest
+            gh release create "v$VERSION" "$VSIX" --generate-notes --latest
           fi

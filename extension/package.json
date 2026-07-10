@@ -2,10 +2,14 @@
   "name": "triton-vscode",
   "displayName": "Triton",
   "description": "Live preview for Triton diagrams (and Mermaid) — deterministic SVG, rendered by the Triton compiler.",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
-  "publisher": "triton-placeholder",
+  "publisher": "focus-space",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ormasoftchile/triton.git"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -13,6 +17,10 @@
     "Visualization",
     "Programming Languages"
   ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "main": "./dist/extension.cjs",
   "activationEvents": [
     "onStartupFinished",
@@ -106,7 +114,9 @@
   "scripts": {
     "build": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "package": "vsce package --no-dependencies",
+    "deploy": "vsce publish --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
