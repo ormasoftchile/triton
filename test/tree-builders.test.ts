@@ -132,16 +132,15 @@ describe('rbtree builder', () => {
     const rb = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
 
     for (const theme of themes) {
-      const expectedSurfaceOutline = outlineStroke(theme.palette.surface, theme);
       const plain = nodeCircles(plainCircle, theme)[0]!;
       const avlRoot = nodeCircles(avl, theme)[0]!;
       const rbCircles = nodeCircles(rb, theme);
       const redIndex = rb.nodes.findIndex(n => n.kinds.includes('red'));
 
-      expect(plain.stroke).toBe(expectedSurfaceOutline);
-      expect(avlRoot.stroke).toBe(expectedSurfaceOutline);
-      expect(plain.stroke).not.toBe(theme.palette.primary);
-      expect(avlRoot.stroke).not.toBe(theme.palette.primary);
+      // Default/plain nodes now use palette.primary border (matches nodegraph default nodes)
+      expect(plain.stroke).toBe(theme.palette.primary);
+      expect(avlRoot.stroke).toBe(theme.palette.primary);
+      // Semantic kinds (RB red/black) keep their outlineStroke-based borders
       expect(rbCircles[0]!.stroke).toBe(outlineStroke(rbCircles[0]!.fill, theme));
       expect(rbCircles[redIndex]!.stroke).toBe(outlineStroke(rbCircles[redIndex]!.fill, theme));
     }

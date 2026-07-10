@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 544.2 580.7" width="544.2" height="580.7">
   <defs>
-    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#4A90D9" /></marker>
+    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#4A90D9" /></marker>
   </defs>
   <rect x="0" y="0" width="544.2" height="580.7" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Annotation Overlays — note directive</text>
@@ -16,19 +16,19 @@
     <path d="M 87.82 160 L 107.18 212" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 212.18 160 L 192.82 212" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 227.82 160 L 247.18 212" stroke="#64748B" stroke-width="1.5" fill="none" />
-    <circle cx="150" cy="45" r="21" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" />
+    <circle cx="150" cy="45" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="150" y="49.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">70</text>
-    <circle cx="80" cy="139" r="21" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" />
+    <circle cx="80" cy="139" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="80" y="143.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">40</text>
-    <circle cx="45" cy="233" r="21" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" />
+    <circle cx="45" cy="233" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="45" y="237.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">20</text>
-    <circle cx="115" cy="233" r="21" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" />
+    <circle cx="115" cy="233" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="115" y="237.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">30</text>
-    <circle cx="220" cy="139" r="21" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" />
+    <circle cx="220" cy="139" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="220" y="143.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">60</text>
-    <circle cx="185" cy="233" r="21" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" />
+    <circle cx="185" cy="233" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="185" y="237.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">50</text>
-    <circle cx="255" cy="233" r="21" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" />
+    <circle cx="255" cy="233" r="21" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" />
     <text x="255" y="237.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">10</text>
   </g>
   <text x="125.5" y="285.70000000000005" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">heap keeps top 3</text>

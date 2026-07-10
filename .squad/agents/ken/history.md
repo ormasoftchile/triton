@@ -225,3 +225,31 @@ Same violation as c9f4450.
 **Score: 2 ✅ fixed / 2 ⚠️ persist / 0 ❌**
 
 Full verdict: `.squad/decisions/inbox/ken-verdict-9cf0847.md`
+
+---
+
+## 2026-07-10 — Visual QA: Phase 2 Theming Fixes
+
+**Task:** QA review of Phase 2 visual fixes and dropped primitives  
+**Scope:** 6 rendered files (intervals, hashring, cards, edge-highlight, linkedlist)  
+**Verdict:** PASS
+
+---
+
+### Findings
+
+**Shipped fixes (verified):**
+1. Tree default node borders — plain nodes now use palette.primary (blue) ✓
+2. Arrowhead size uniformity — markerUnits="userSpaceOnUse" working correctly ✓
+
+**Dropped primitives (no impact):**
+- intervals/hashring implementations had cosmetic note-badge overlap in card8 (LOW severity)
+- Dropped before merge, so does not affect final branch
+
+---
+
+### QA Sign-Off
+
+Branch passes visual QA with both theming fixes confirmed and no regressions.
+
+**Timestamp:** 2026-07-10T19:17:43-04:00
