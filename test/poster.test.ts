@@ -307,3 +307,83 @@ describe('poster grammar — cross-links', () => {
     expect(texts).toContain('connects');
   });
 });
+
+describe('poster phase-1 features', () => {
+  // ── Feature 2: caption slot ──────────────────────────────────────────────
+
+  it('parses caption directive from cell content', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 1
+
+  cell arr "Array"
+    array 1 2 3
+    caption "slide →"
+  end
+`);
+    expect(ir.cells[0]!.caption).toBe('slide →');
+  });
+
+  it('leaves cell content clean after extracting caption', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 1
+
+  cell arr "Array"
+    array 1 2 3
+    caption "suffix"
+  end
+`);
+    // The diagram content (array) should still parse correctly
+    expect(ir.cells[0]!.content.kind).toBe('diagram');
+  });
+
+  it('renders caption text inside the cell', async () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 1
+
+  cell arr "Array"
+    array 1 2 3
+    caption "slide →"
+  end
+`);
+    const { scene } = await layoutPoster(ir, defaultTheme);
+    const texts: string[] = [];
+    const collect = (els: readonly any[]) => { for (const e of els) { if (e.type === 'text') texts.push(e.content); if (e.children) collect(e.children); } };
+    collect(scene.elements);
+    expect(texts).toContain('slide →');
+  });
+
+  // ── Feature 3: note overlay ──────────────────────────────────────────────
+
+  it('parses note directive with and without position', () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 1
+
+  cell arr "Array"
+    array 1 2 3
+    note "k=3" at top-right
+    note "hello"
+  end
+`);
+    expect(ir.cells[0]!.notes).toHaveLength(2);
+    expect(ir.cells[0]!.notes![0]!.text).toBe('k=3');
+    expect(ir.cells[0]!.notes![0]!.position).toBe('top-right');
+    expect(ir.cells[0]!.notes![1]!.text).toBe('hello');
+    expect(ir.cells[0]!.notes![1]!.position).toBeUndefined();
+  });
+
+  it('renders note overlay text inside the cell', async () => {
+    const ir = poster.parseMermaid(`poster "Test"
+  columns 1
+
+  cell arr "Array"
+    array 1 2 3
+    note "k=3"
+  end
+`);
+    const { scene } = await layoutPoster(ir, defaultTheme);
+    const texts: string[] = [];
+    const collect = (els: readonly any[]) => { for (const e of els) { if (e.type === 'text') texts.push(e.content); if (e.children) collect(e.children); } };
+    collect(scene.elements);
+    expect(texts).toContain('k=3');
+  });
+});

@@ -17,6 +17,10 @@ export interface StripCell {
   readonly label?: string;
   /** Cell fill; defaults to theme surface. */
   readonly fill?: Color;
+  /** Fill opacity override (e.g. 0.22 for a semi-transparent highlight). */
+  readonly fillOpacity?: number;
+  /** Stroke override; defaults to theme border. */
+  readonly stroke?: Color;
   /** Optional label drawn just outside the strip (index / address). */
   readonly index?: string;
 }
@@ -61,7 +65,7 @@ export function buildStrip(
     const y = origin.y + (horizontal ? 0 : i * step);
     const slot: Rect = { x, y, width: cellWidth, height: cellHeight };
     slots.push(slot);
-    elements.push(pen.rect(slot, cell.fill ?? palette.surface, palette.border, 1.5, { rx: 3 }));
+    elements.push(pen.rect(slot, cell.fill ?? palette.surface, cell.stroke ?? palette.border, 1.5, { rx: 3, ...(cell.fillOpacity !== undefined ? { fillOpacity: cell.fillOpacity } : {}) }));
     if (cell.label !== undefined) {
       elements.push(pen.text(cell.label, x + cellWidth / 2, y + cellHeight / 2 + 5,
         theme.typography.baseFontSize, palette.text, { anchor: 'middle', weight: 'bold' }));

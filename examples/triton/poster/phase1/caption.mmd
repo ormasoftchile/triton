@@ -1,0 +1,31 @@
+poster "Caption Slot Demo"
+    columns 2
+
+    cell tw "Two Pointers"
+        array
+            cells 1 2 3 4 5 6
+            index
+            ptr L -> 0 "L"
+            ptr R -> 5 "R"
+        caption "converge toward center"
+    end
+
+    cell ps "Prefix Sum"
+        array
+            cells 0 1 3 6 10 15
+        caption "prefix[i] = prefix[i-1] + arr[i]"
+    end
+
+    cell gr "Greedy Coins"
+        array
+            cells 1 5 10 25
+            highlight 3
+        caption "pick largest ≤ amount"
+    end
+
+    cell bfs "BFS Queue"
+        queue
+            cells A B C D
+            capacity 6
+        caption "process level by level"
+    end

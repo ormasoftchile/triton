@@ -1,0 +1,36 @@
+poster "Annotation Overlays — note directive"
+    columns 2
+
+    cell heap "Top K Elements"
+        heap max insert 50 30 70 20 40 60 10
+        note "k=3" at top-right
+        caption "heap keeps top 3"
+    end
+
+    cell sw "Sliding Window"
+        array
+            cells 2 1 5 2 3 4 1 1 2
+            window 2-4
+            index
+        note "k=3" at top-right
+        note "max=5" at bottom-right
+        caption "maximum sum subarray"
+    end
+
+    cell fc "Frequency Count"
+        hashmap
+            buckets 4
+            bucket 0: a->3
+            bucket 1: b->1
+            bucket 3: c->2
+        note "target found" at top-left
+        caption "count occurrences"
+    end
+
+    cell gs "Greedy"
+        array
+            cells 25 10 5 1
+            highlight 0
+        note "amount=30" at top-right
+        caption "pick largest that fits"
+    end

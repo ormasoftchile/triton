@@ -136,6 +136,29 @@ describe('matrix', () => {
     expect(anchors.r0c0!.bounds.x).toBeLessThan(anchors.r0c1!.bounds.x);
     expect(anchors.r0c0!.bounds.y).toBeLessThan(anchors.r1c0!.bounds.y);
   });
+
+  // ── Feature 1: matrix highlight ──────────────────────────────────────────
+
+  it('parses highlight directive as r,c pairs', () => {
+    const ir = matrix.parseMermaid('matrix\n  row 1 2 3\n  highlight 0,1 1,2\n');
+    expect(ir.highlights).toEqual([[0, 1], [1, 2]]);
+  });
+
+  it('renders highlighted cells with primary fill', () => {
+    const ir = matrix.parseMermaid('matrix\n  row a b c\n  row d e f\n  highlight 0,0 1,2\n');
+    const { scene } = layoutMatrix(ir, defaultTheme);
+    const allRects: SceneRect[] = [];
+    const collectRects = (els: readonly SceneElement[]) => {
+      for (const el of els) {
+        if (el.type === 'rect') allRects.push(el as SceneRect);
+        if ((el as any).children) collectRects((el as any).children);
+      }
+    };
+    collectRects(scene.elements);
+    const highlighted = allRects.filter(r => r.fillOpacity !== undefined && r.fillOpacity < 1);
+    expect(highlighted.length).toBeGreaterThanOrEqual(2);
+    expect(highlighted[0]!.fill).toBe(defaultTheme.palette.primary);
+  });
 });
 
 describe('ds B1 renders to SVG', () => {

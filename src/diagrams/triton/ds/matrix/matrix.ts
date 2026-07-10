@@ -31,12 +31,16 @@ export interface MatrixDoc {
   title?: string;
   rows: string[][];
   showIndex: boolean;
+  /** Highlighted cell positions as [row, col] pairs (0-indexed). */
+  highlights?: [number, number][];
 }
 
 function parse(input: string): MatrixDoc {
   let title: string | undefined;
   const rows: string[][] = [];
   let showIndex = true;
+
+  const highlights: [number, number][] = [];
 
   for (const line of input.split(/\r?\n/).map(l => l.trimEnd())) {
     const trimmed = line.trim();
@@ -53,8 +57,16 @@ function parse(input: string): MatrixDoc {
     if (t[0] === 'title') { title = trimmed.slice(5).trim(); continue; }
     if (t[0] === 'noindex') { showIndex = false; continue; }
     if (t[0] === 'row') { rows.push(t.slice(1)); continue; }
+    if (t[0] === 'highlight') {
+      // Accepts space-separated r,c pairs: highlight 0,1 1,2 2,0
+      for (const tok of t.slice(1)) {
+        const m = tok.match(/^(\d+),(\d+)$/);
+        if (m) highlights.push([Number(m[1]), Number(m[2])]);
+      }
+      continue;
+    }
   }
-  return { ...(title !== undefined ? { title } : {}), rows, showIndex };
+  return { ...(title !== undefined ? { title } : {}), rows, showIndex, ...(highlights.length > 0 ? { highlights } : {}) };
 }
 
 export function layoutMatrix(doc: MatrixDoc, theme: ResolvedTheme): LayoutResult {
@@ -82,7 +94,12 @@ export function layoutMatrix(doc: MatrixDoc, theme: ResolvedTheme): LayoutResult
   const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
   grid.forEach((row, r) => {
     const rowOrigin = { x: origin.x, y: origin.y + r * cellH };
-    const cellInputs: StripCell[] = row.map(v => ({ label: v }));
+    const cellInputs: StripCell[] = row.map((v, c) => {
+      const isHighlit = doc.highlights?.some(([hr, hc]) => hr === r && hc === c) ?? false;
+      return isHighlit
+        ? { label: v, fill: palette.primary, fillOpacity: 0.22, stroke: palette.primary }
+        : { label: v };
+    });
     const strip = buildStrip(p, theme, cellInputs, { origin: rowOrigin, cellWidth: cellW, cellHeight: cellH });
     elements.push(...strip.elements);
     strip.slots.forEach((slot, c) => { anchors[`r${r}c${c}`] = { bounds: slot }; });

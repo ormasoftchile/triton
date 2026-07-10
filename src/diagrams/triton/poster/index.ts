@@ -1,4 +1,5 @@
 import type { DiagramModule, LayoutResult, LayoutOptions, DiagramKind } from '../../../contracts/index.js';
+import type { PosterNote, NotePosition } from './ir.js';
 import type { PosterDocument } from './ir.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import type { CrossLink } from '../../../contracts/crosslink.js';
@@ -12,8 +13,14 @@ export const poster: DiagramModule<PosterDocument> = {
   parseMermaid(input: string): PosterDocument {
     const raw = parser.parse(input) as any;
     const cells = raw.cells.map((c: any) => {
-      const content = parseCell(c);
-      return { id: c.id, title: c.title, content, colSpan: c.span?.colSpan, rowSpan: c.span?.rowSpan, theme: c.theme };
+      const { rawContent, caption, notes } = extractCellAnnotations(c.rawContent as string);
+      const content = parseCell({ ...c, rawContent });
+      return {
+        id: c.id, title: c.title, content,
+        colSpan: c.span?.colSpan, rowSpan: c.span?.rowSpan, theme: c.theme,
+        ...(caption ? { caption } : {}),
+        ...(notes.length > 0 ? { notes } : {}),
+      };
     });
 
     const explicitLinks: CrossLink[] = raw.links ?? [];
@@ -85,6 +92,7 @@ function inferCellKind(rawContent: string): string | null {
   if (keyword.startsWith('nodegraph')) return 'nodegraph';
   if (keyword.startsWith('plan')) return 'plan';
   if (keyword.startsWith('btree')) return 'btree';
+  if (keyword.startsWith('tree')) return 'tree';
   if (keyword.startsWith('page')) return 'page';
   if (keyword.startsWith('memory')) return 'memory';
   if (keyword.startsWith('linkedlist')) return 'linkedlist';
@@ -109,3 +117,34 @@ function inferCellKind(rawContent: string): string | null {
   if (trimmed.includes('|')) return 'stat';
   return 'text';
 }
+
+// ─── Cell Annotation Extraction ──────────────────────────────────────────────
+
+const CAPTION_RE = /^[ \t]*caption[ \t]+"([^"]*)"[ \t]*$/;
+const NOTE_RE    = /^[ \t]*note[ \t]+"([^"]*)"(?:[ \t]+at[ \t]+(top-left|top-right|bottom-left|bottom-right|center))?[ \t]*$/;
+
+/**
+ * Strip `caption "..."` and `note "..." [at position]` directives from
+ * a cell's raw content and return them as structured fields.
+ */
+function extractCellAnnotations(rawContent: string): {
+  rawContent: string;
+  caption: string | undefined;
+  notes: PosterNote[];
+} {
+  const inputLines = rawContent.split('\n');
+  const outLines: string[] = [];
+  let caption: string | undefined;
+  const notes: PosterNote[] = [];
+
+  for (const line of inputLines) {
+    const cm = line.match(CAPTION_RE);
+    if (cm) { caption = cm[1]; continue; }
+    const nm = line.match(NOTE_RE);
+    if (nm) { notes.push({ text: nm[1]!, ...(nm[2] ? { position: nm[2] as NotePosition } : {}) }); continue; }
+    outLines.push(line);
+  }
+
+  return { rawContent: outLines.join('\n'), caption, notes };
+}
+

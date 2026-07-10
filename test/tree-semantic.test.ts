@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { buildAvl } from '../src/diagrams/triton/ds/tree/avl.js';
 import { plan } from '../src/diagrams/triton/ds/tree/plan.js';
 import type { TreeDocument } from '../src/diagrams/triton/ds/tree/ir.js';
+import { tree } from '../src/diagrams/triton/ds/tree/index.js';
+import { layoutTree } from '../src/diagrams/triton/ds/tree/layout.js';
+import { defaultTheme } from '../src/theme/preset.js';
 
 /** In-order traversal of the emitted node list (n0 = root, children left,right). */
 function inorder(doc: TreeDocument): number[] {
@@ -74,5 +77,40 @@ describe('plan builder', () => {
     const doc = plan.parseMermaid('plan\n  Hash Join :build\n');
     expect(doc.nodes[0]!.kinds).toContain('build');
     expect(doc.nodes[0]!.kinds).not.toContain('join');
+  });
+});
+
+// ── Feature 4: tree path highlight ─────────────────────────────────────────
+
+describe('tree path directive', () => {
+  it('extracts path directive and builds activePaths', () => {
+    const ir = tree.parseMermaid([
+      'tree',
+      '  A',
+      '    B',
+      '      C',
+      'path A -> B -> C',
+    ].join('\n'));
+    expect(ir.activePaths).toBeDefined();
+    expect(ir.activePaths).toHaveLength(2);
+  });
+
+  it('renders active edges with a thicker path element', () => {
+    const ir = tree.parseMermaid([
+      'tree',
+      '  Root',
+      '    Left',
+      '    Right',
+      'path Root -> Left',
+    ].join('\n'));
+    const { scene } = layoutTree(ir, defaultTheme);
+    const paths = scene.elements.filter((e: any) => e.type === 'path');
+    const boldPath = paths.find((p: any) => p.strokeWidth === 2.5);
+    expect(boldPath).toBeDefined();
+  });
+
+  it('leaves tree intact when no path directive', () => {
+    const ir = tree.parseMermaid('tree\n  A\n    B\n');
+    expect(ir.activePaths).toBeUndefined();
   });
 });
