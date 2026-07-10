@@ -103,3 +103,36 @@ Produced formal phase plan `.squad/decisions/inbox/leslie-layout-phases.md` gove
 ## 2026-07-07 — diagram-options Final Assembly
 
 Reassembled docs/diagram-options.md (2879 lines, 45 families). Updated intro to explain central comment support. Verified pnpm test (404 pass, 0 fail) + typecheck (0 errors). Feature complete: all 45 families support %% comments; 60/68 examples carry headers.
+
+---
+
+## 2026-07-10 — Poster Replication Capability Analysis
+
+**Task:** Analyze two algomaster.io reference posters (DSA 15 Patterns, Load Balancing Algorithms) to assess what Triton can replicate today vs. what needs adding.
+
+**Deliverable:** `.squad/decisions/inbox/leslie-poster-capability-analysis.md`
+
+### Key Findings
+
+1. **Composition skeleton is solid:** `poster` keyword already supports titled grid of cells with embedded sub-diagrams, per-cell themes, cross-links with animations. No architectural gap.
+
+2. **DSA Poster (15 cards):**
+   - 0 fully replicable, 14 partial, 1 impossible (Overlapping Intervals — no interval-bar primitive)
+   - Main gaps: per-cell highlight in array/matrix, annotation overlays, path-highlight on trees, caption slot
+
+3. **Load Balancing Poster (6 cards):**
+   - 0 fully replicable, 5 partial, 1 impossible (Consistent Hashing — no hash-ring primitive)
+   - Main gaps: per-node annotation labels, edge-active animation cycling, hash-ring layout
+
+4. **Prioritised roadmap:**
+   - Phase 1 (quick wins): per-cell highlight, caption slot, annotation overlay, edge highlight
+   - Phase 2 (new primitives): interval bar, hash ring
+   - Phase 3 (animation): frame-sequence (advised against for determinism reasons)
+
+5. **Advised AGAINST:** pixel-perfect replication (diminishing returns), multi-frame animation (violates determinism contract), new `table` primitive (extend `matrix` instead).
+
+### Learnings
+
+- Triton's DS primitives (array, matrix, stack, heap, tree, nodegraph) cover ~90% of educational algorithm visualisation needs structurally. The gap is annotation/highlight modifiers, not missing shapes.
+- Cross-link animation system (march, glow, particle, etc.) is already rich; extending it to intra-diagram edges is a small scope.
+- Hash-ring is genuinely missing and would require a new layout algorithm (circular node placement around circumference).
