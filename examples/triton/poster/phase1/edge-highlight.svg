@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 436.7992 631.0601569719768" width="436.7992" height="631.0601569719768">
   <defs>
-    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
+    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#64748B" /></marker>
   </defs>
   <rect x="0" y="0" width="436.7992" height="631.0601569719768" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Edge &amp; Path Highlight — Tree &amp; Graph</text>
@@ -16,13 +16,13 @@
     <path d="M 81.8 136 L 102.76 188" stroke="#4A90D9" stroke-width="2.5" fill="none" />
     <rect x="90.11779999999999" y="24" width="37.3786" height="30" fill="#4A90D9" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="108.80709999999999" y="43.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#000000" text-anchor="middle" font-weight="bold">A</text>
-    <rect x="57.058899999999994" y="106" width="37.3786" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="57.058899999999994" y="106" width="37.3786" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="75.7482" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">B</text>
-    <rect x="24" y="188" width="38.1178" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="24" y="188" width="38.1178" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="43.0589" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">D</text>
     <rect x="90.1178" y="188" width="37.3786" height="30" fill="#4A90D9" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="108.8071" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#000000" text-anchor="middle" font-weight="bold">E</text>
-    <rect x="155.4964" y="106" width="38.1178" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="155.4964" y="106" width="38.1178" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="174.5553" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">C</text>
   </g>
   <text x="107.3" y="281.3726815621407" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">DFS: A→B→E path highlighted</text>
@@ -33,17 +33,17 @@
     <path d="M 88.25 136 L 62.57 188" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 103.92 136 L 132.56 188" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 235.04 136 L 235.04 188" stroke="#4A90D9" stroke-width="2.5" fill="none" />
-    <rect x="120.18069999999999" y="24" width="58.4066" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="120.18069999999999" y="24" width="58.4066" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="149.384" y="43.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root</text>
-    <rect x="55.9368" y="106" width="79.4472" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="55.9368" y="106" width="79.4472" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="95.6604" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Choice1</text>
-    <rect x="24" y="188" width="62.32939999999999" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="24" y="188" width="62.32939999999999" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="55.164699999999996" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Good</text>
-    <rect x="114.32939999999999" y="188" width="52.9914" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="114.32939999999999" y="188" width="52.9914" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="140.8251" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Bad</text>
-    <rect x="195.3208" y="106" width="79.4472" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="195.3208" y="106" width="79.4472" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="235.0444" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Choice2</text>
-    <rect x="197.65179999999998" y="188" width="74.7852" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <rect x="197.65179999999998" y="188" width="74.7852" height="30" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="235.0444" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Answer</text>
   </g>
   <text x="311.6996" y="281.3726815621407" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">explore then backtrack</text>

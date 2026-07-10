@@ -4,9 +4,16 @@
 
 export const ARROW_ID = 'struct-arrow';
 
-/** A small filled arrowhead marker def in the given colour. */
+/** A small filled arrowhead marker def in the given colour.
+ *
+ * markerUnits="userSpaceOnUse" keeps the arrowhead a CONSTANT pixel size
+ * regardless of the edge's strokeWidth. Dimensions are scaled to match the
+ * visual size of the old strokeWidth-relative marker on a 1.5-width edge
+ * (8 sw-units × 1.5 = 12 px). Active edges (sw=2.5) now get the same
+ * arrowhead size instead of the previous ~1.67× balloon.
+ */
 export function arrowDef(color: string): string {
-  return `<marker id="${ARROW_ID}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="${color}" /></marker>`;
+  return `<marker id="${ARROW_ID}" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="${color}" /></marker>`;
 }
 
 /** Tokens on the keyword line and directive lines, trimmed and split. */
