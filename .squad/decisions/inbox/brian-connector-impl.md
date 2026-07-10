@@ -1,4 +1,0 @@
-### 2026-07-08: Shared connector seam and cqueue wrap implementation
-**By:** Brian
-**What:** Added `src/crosslink/connectors.ts` as the diagram-agnostic post-layout connector seam over the existing v3 crosslink router. Poster now lowers normalized links into that seam, preserving its cardinal curve default in the poster adapter. Cqueue now lowers its implicit rear-to-front wrap to one generated orthogonal connector with N→N or W→W wall hints, a 36px outboard route padding derived from the old 44px arc band, `mod N` labeling, and front/rear anchor aliases.
-**Why:** This keeps poster behavior on the existing engine path while making connector routing reusable by local DS diagrams without fabricating poster cell paths. The cqueue wrap is now an axis-aligned shared connector instead of bespoke cubic geometry, so horizontal/vertical and self-loop cases share the same routing/label/viewBox handling.

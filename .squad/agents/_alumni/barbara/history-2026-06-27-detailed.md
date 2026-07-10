@@ -1,0 +1,219 @@
+# Barbara — Semantics & Rendering
+
+**Owner:** Barbara (Semantics & Rendering)  
+**Project:** timeline — deterministic diagram compiler  
+**Updated:** 2026-06-25
+
+---
+
+## Current Status (2026-06-17) — archived
+
+Full 2026-06-17 detail (configurable poster routing `routingStyle: 'orthogonal'|'straight'`, the orthogonal-vs-straight visual comparison, wall-centered exit/entry ports, greedy-switch + Brandes-Köpf, A* pathfinding, aesthetic metrics) moved to `history-archive.md` by Scribe 2026-06-24. The durable takeaways are kept in the "Learnings — Earlier work (summarized)" section below.
+
+---
+
+## Archive & Historical Notes
+
+**Full detailed work (2026-06-15–2026-06-17):** See `history-2026-06-17-archived.md` (if created) for A* pathfinding, aesthetic metrics, and earlier June 17 work.
+
+**Earlier work (2026-06-14 and prior):** See `history-archive.md` and dated archive files.
+
+---
+
+## Learnings — Earlier work (summarized 2026-06-23 by Scribe)
+
+Full pre-realignment rendering/layout detail moved to `history-archive.md` (+ `history-2026-06-16-summarized.md`). ⚠️ Those notes reference the OLD `packages/core/...` tree — current code lives under `src/`, and the single-backend/Scene realignment supersedes the multi-backend framing.
+
+- **Poster overlay routing:** configurable `routingStyle: 'orthogonal'|'straight'`; wall-face-centered exit/entry ports give balanced connectors; deterministic enumerated candidates with A* fallback; 6-metric aesthetic scorecard (ACCEPTABLE 0.73–0.81 is legitimate; reaching GOOD needs layout reorder, not routing).
+- **Flow layout:** greedy-switch crossing minimization + simplified Brandes-Köpf alignment (full BK deferred); node-overlap is a hard constraint; lexicographic tie-breaking preserves determinism.
+- **Old pipeline map:** preprocess → detect → parse→Domain IR → theme → layout→Scene → svg/png. Now described in the realigned doc as the single `renderSVG(scene)` + `Scene` contract.
+
+- 2026-06-23: Audited my assigned design/ LaTeX sections vs shipped Triton (plan-only, no prose rewrite). Verdicts (KEEP/REWRITE/DELETE) recorded in the consolidated "DESIGN-DOC AUDIT (2026-06-23)" block in decisions.md.
+
+## Learnings
+
+- 2026-06-27 CASCADE PORT ASSIGNMENT — `src/diagrams/class/layout.ts`:
+  - Replaced naive even-distribution (`t = (idx+1)/(n+1)`) with two-part port assignment: (1) sort each wall group by opposite-end node center → crossing-free ordering; (2) project source centers as ideal positions, then spread with a cascade/iterative algorithm enforcing MIN_PORT_GAP=20px and WALL_MARGIN=16px.
+  - `cascadePorts(ideals, lo, hi, minGap)` does a forward pass (enforce min gap) + backward pass (enforce hi bound) repeated until stable, with fallback to even distribution when span exceeds available space.
+  - `assignGroupPorts(box, wall, group, yOff)` is a module-level helper that sorts, computes lo/hi in absolute coords (including yOff for left/right walls), calls cascade, returns `Map<ri, {x,y}>`.
+  - For LEFT/RIGHT walls, wallBase must include yOff (absolute y-coordinates); for TOP/BOTTOM walls, wallBase is box.x (x unchanged by yOff). sourceCenter for left/right also adds yOff to stay in the same coordinate space.
+  - Departure ports built with `fromPortMap2`: departure wall of A toward B = `approachWall(b, a)`; sort by TARGET center (not source) for crossing minimisation on departure side.
+  - Fallback for departure: `borderPoint({...a, y:a.y+yOff}, toPt.x, toPt.y)` — aim toward the ASSIGNED arrival port, not the target box center.
+  - Result on `examples/class/class.svg`: Customer→Order and ShoppingCart→Order arrive at Order's top at x=96.82 and x=116.82 (20px apart, previously coincident). No X crossing above Order. Build: `pnpm -C /Volumes/Projects/triton build`. Preview: `node scripts/preview.mjs examples/class/`. Rasterize: `rsvg-convert -f png -w 1400 -o examples/class/class.png examples/class/class.svg`.
+  - KEY COORD FACT: In `examples/class`, both Customer and ShoppingCart happen to have center_x=96.82 (same x), while Order has center_x=138.86. Since both sources have identical x-center, cascade spreads them at [96.82, 116.82] (left bound + 20px gap). The crossing fix comes from the ROUTING algorithm going around ShoppingCart, not from the ports themselves being far apart — but the 20px spread ensures they don't pile on one point.
+
+- 2026-06-23: Executed the design-doc realignment for my 7 assigned sections (11-backends, 14-animation, 22-rendering, 19-render-contract, 12-themes, 30-composition, 30b cross-links). Grounded every claim in real `src/` files. Key corrections that recur across the whole doc:
+  - Backend reality = ONE `renderSVG(scene)` in `src/render/svg.ts` (+ optional resvg PNG). NO Skia/PPTX/PDF/HTML — those were aspirational. Dropped fidelity-tier/backend-selection narrative everywhere.
+  - Animation reality = exactly two effects via `ScenePath.animated?: 'march' | 'particle'` (SMIL: `<animate stroke-dashoffset>` and sibling `<circle><animateMotion>`). The old hint taxonomy (FlowingDashes/DrawOn/DotAlongPath/Pulse/FadeIn) does not exist.
+  - Scene contract = `Scene{viewBox, background?, elements, defs?}` with a 5-variant `SceneElement` union (`rect|circle|path|text|group`). NOT `ScenePrimitive`, NOT Line/MultiText/Image. `renderSVG` walks groups uniformly — composition uses one `SceneGroup` transform (`embedScene(scene, into)` in `src/diagrams/poster/layout.ts`), so no per-element coordinate rewriting / no `translateAndScale`/`embedSceneInRect`/`sceneHash` (all fabricated).
+  - Themes = unified `ResolvedTheme{name,palette,typography,spacing,edges,panel}` from `src/theme/preset.ts` (12 presets). The per-grammar FlowTheme/SequenceTheme fragmentation story and the Tier-1/2/3 contract were never built — deleted.
+  - Real paths are `src/...` ALWAYS — never `packages/core/...` or `@diagram-compiler/*`. Poster IR is `PosterDocument`/`DiagramContent{kind:'diagram',diagramKind,doc}` in `src/diagrams/poster/ir.ts`; requirement vocab is `ReqRelation.type` (free string) in `src/diagrams/requirement/ir.ts` (no `RequirementRelKind` enum, no schema.ts).
+- 2026-06-23: `50-agent-integration.tex` was deleted, leaving 4 dangling `\ref{sec:agent-integration}` in 30b. Repointed all to `sec:diagram-contract` (the surviving IR-as-API surface) and de-agented the adjacent prose. The anchor-registry concept in 30b is sound — kept.
+- 2026-06-23 TOOLING: `tectonic` panics under the VS Code sandbox (macOS SCDynamicStore / `system-configuration` NULL object) — must run UNSANDBOXED to compile. `cd design && tectonic -X compile triton.tex --keep-logs` then grep `triton.log` for "undefined reference". Doc compiles to a 1.29 MiB PDF; the only remaining undefined refs (`sec:family-nodelink`, `sec:corpus-comparison-matrix`, `sec:graph-grammar`, `principle:minimal-clutter`) live in 18-aesthetics/25-flow-grammar — NOT my files, pre-existing.
+- 2026-06-23 EDIT TECHNIQUE: For large LaTeX rewrites, replace_string_in_file is the only available tool (create_file can't edit; terminal edits forbidden). Read the file's CURRENT bytes immediately before each large deletion so the oldString matches exactly; stage big rewrites as (A) replace head with new content, (B) delete the stale tail in a second edit.
+- 2026-06-23 VS CODE EXTENSION (Phase 1 live preview) — built the `extension/` satellite. Full detail archived 2026-06-24 in `history-archive.md` (+ decisions.md "VS CODE EXTENSION — Phase 1" block). Key durable facts: `render(text) → Promise<Result<string>>` (NEVER throws, `{ok,value}|{ok,error}`) is the SOLE render path, imported `../../src/frontend/index.js`; esbuild bundles the compiler from `src/` with a `.js`→`.ts` `onResolve` plugin that returns `undefined` for the generated Peggy `parser.js`; CJS-importing-ESM needs `moduleResolution:"Bundler"` (TS1479); Mermaid coexistence gated behind `triton.enableMermaid` (default false) via `pickRenderable()`; SVG-only in P1 (no resvg). Output ≈1.1 MB, typecheck 0.
+
+- 2026-06-23 QUEUE FAMILY — built the 4-variant queue family (queue/cqueue/deque/pqueue), PR #17, 337 tests. Full detail archived 2026-06-24 in `history-archive.md` (+ decisions.md "QUEUE DIAGRAM FAMILY" block). Key durable facts: hand-parsed like struct (NO peggy — only flowchart/timeline/poster own `parser.js`); one content-detectable header per variant; canonical 3-edit registration (miss one → silently routes to flowchart); all four reuse `buildStrip` for cells + `c0..cn` slot anchors; deque double-head uses TWO fixed markers `ARROW_FWD`/`ARROW_REV` (NOT `auto-start-reverse` — resvg-unsafe); pqueue shades via a LOCAL `mixHex` hex-lerp (repo has no color-mix util); regenerate examples with `node scripts/preview.mjs examples/queue/` (`tsx` not installed, npm 403).
+
+---
+
+**Cross-agent note (Scribe, 2026-06-23):** The new VS Code extension (`extension/`) reuses `render()` (`src/frontend/index.ts`) as its SOLE render path and esbuild-bundles the compiler from `src/`. Any change to the `render(input, themeInput?, rendererName?)` signature, its `Result<string>` SVG contract, or the `src/frontend/detect.ts` `MERMAID_PATTERNS` header table is now a downstream dependency for the extension preview + future IntelliSense. Keep these stable or update `extension/src/extension.ts` in the same PR. SVG-only in P1 (no resvg).
+## Recent Work (2026-06-23 onwards)
+
+- 2026-06-23 DS REGROUP (Phase A — pure refactor). Grouped `struct`/`tree`/`queue` under `src/diagrams/ds/` via `git mv` (history preserved); examples → `examples/ds/*`; `topology` stays separate. Headers/kind names + `detect.ts` UNCHANGED. Full detail in decisions.md "DATA-STRUCTURE FAMILY" block. Durable gotchas: grammar discovery is now RECURSIVE in `scripts/build-grammars.mjs` + `extension/esbuild.mjs` (`findGrammarDirs`, keyed relative to `src/diagrams/`, count still 23) so future nested families need no build-script edit; families one level deeper use `../../../` for src-escaping imports but intra-`ds` siblings stay single-`../`. Gate: build:grammars 23, typecheck 0, 337 tests, extension exit 0, git 58 renames.
+
+- 2026-06-23 DS PHASE B1 — `stack`, `hashmap`, `matrix` under `ds/`, hand-parsed (NO peggy), strip/slot kernel. Full detail in decisions.md "DATA-STRUCTURE FAMILY" block. Durable: stack = VERTICAL `buildStrip`, last-pushed = top (smallest y); hashmap = bucket column → horizontal `key:value` chains, IR keeps `chains` as a plain ARRAY not a Map (serializable — important rule); matrix = one strip per row + `RxC` shorthand. Anchors `c0..cn` / `b{i}e{j}` / `r{i}c{j}`. ⚠️ Fixed `scripts/preview.mjs`: its Step-3 hardcoded `['flowchart','timeline','poster']` copy list never copied `ds/tree/parser.js` → replaced with recursive `copyParsers()` mirroring every `src/diagrams/**/parser.js`. Gate: `test/ds-b1.test.ts` (17) → 357 pass, 0 tsc errors, build:grammars 23.
+
+- 2026-06-23 DS PHASE B2 — `trie`, `nodegraph`, `unionfind` under `ds/`, tree/graph kernels, hand-parsed. Full detail in decisions.md "DATA-STRUCTURE FAMILY" block. Durable: trie compiles to the shared decorated-tree IR + `layoutTree` (like `radix` but uncompressed — one char/edge, terminal nodes = filled pills); unionfind = DSU forest also on the tree IR (`layoutTree` already lays out a forest → sets side by side), IR carries `parent[]`/`roots[]`/`count`, representatives filled; nodegraph on `graph/layered.ts` + `connectSlots`, `directed`→arrowheads+defs / `undirected`→none. ⚠️ GRAPH KEYWORD COLLISION: Mermaid flowchart owns `graph` (`detect.ts` first pattern) → DS graph uses `nodegraph` (alias `dsgraph`), NEVER a bare `^graph`; regression test asserts `detect('graph TD …')==='flowchart'`. `unionfind` alias `dsu`. trie/unionfind import the tree family as a sibling (`../tree/…`). Gate: `test/ds-b2.test.ts` (17) → 377 pass, 0 tsc errors, build:grammars 23. SVGs valid (trie 258×442, nodegraph 164×456, unionfind 230×314).
+
+- 2026-06-24 DS GALLERY POSTER — built ONE composition showcase `examples/gallery/ds-poster.mmd` (+ rendered `.svg`) titled "Data Structures". Composes 9 DS kinds in a fully-filled 4×3 grid using the poster family's occupancy-aware `assignPositions`: row0 = array / stack / queue / unionfind; row1 = hashmap / matrix / heap[1x2] / trie[1x2]; row2 = nodegraph[2] (fills the two cols left free under the rowSpan-2 tree cells). Durable facts:
+  - **CellKind accepts ANY registered kind verbatim** (grammar's `CellKind = ... / Identifier`), so `array`/`stack`/`queue`/`hashmap`/`matrix`/`heap`/`trie`/`unionfind`/`nodegraph` all embed as cells with no poster changes.
+  - **Span syntax is inline before `::`**: `[N]` = colSpan N (rowSpan 1); `[CxR]` = `[1x2]` etc.
+  - **Kinds that compose cleanly** (small + varied): array/stack/queue/cqueue/deque/hashmap/matrix/heap/avl/btree/rbtree/radix/trie/nodegraph/unionfind. Trees/trie are tallest → rowSpan 2.
+  - **Render path**: `node scripts/preview.mjs examples/gallery/` writes `.svg` (build:grammars → tsc → copyParsers → `render()` from dist). `examples.test` globs `examples/**/*.mmd` → auto-covered.
+
+- 2026-06-24 LATEX INTEGRATION (Phase 2, PR #24) — built ISOLATED `latex/` (`@triton/latex`, mirrors `extension/`, NOT root-workspace member) rendering diagrams to **vector PDF** for `\includegraphics`. Durable: SVG→PDF = **`pdfkit` + `svg-to-pdfkit`, pure-JS, no system binaries**; 0 raster XObjects, embedded base-14 fonts (no font drift); SMIL dropped; y-flip `Tm 1 0 0 -1`. Inspect PDFs via node `zlib.inflateSync`. CLI `triton-latex` (`dist/cli.cjs` CJS): `render`/`render-dir`, reuses core `renderSync()`. esbuild **`external:['pdfkit','svg-to-pdfkit']`** keeps PDF deps out of core. `triton.sty` graphicx-only. Gate: root `pnpm test` 378 pass, core deps diff EMPTY.
+
+- 2026-06-24 INLINE TRITON ENV (PR #25) — author Triton source in `.tex` between `\begin{triton}…\end{triton}` → vector PDF at compile time (`fancyvrb` VerbatimOut → `pdftexcmds` content hash → `\write18` triton-latex CLI → `\includegraphics`), guarded by `\pdf@shellescape`. `\@currenvir` dispatch lets command+env share the name. **Verified-impossible:** inline `[width=]` on verbatim env (lookahead eats line-end) → use `\tritonnext`/`\tritonsetup`. graphicx macro opts need `\expandafter`. tectonic = `-Z shell-escape -Z shell-escape-cwd=.`, unsandboxed. Gate: inline-demo.pdf, 0 Image XObjects (pure vector). Core untouched.
+
+- 2026-06-24 DESIGN DOGFOOD (PR #27) — all 8 `\ourfig` PNGs → inline `\begin{triton}` blocks; `design/triton.sty` symlink + `\tritoncli{node ../latex/dist/cli.cjs}`; PNG pipeline + `\ourfig` deleted; design build shell-escape (exit 0, 21 pages, ~134 KiB). Later: Makefile COPYs `../latex/triton.sty` into `design/` as a build step (portable, Windows-friendly) and `.gitignore` excludes the copy.
+
+- 2026-06-24 CORE FIX: flowchart cycles (PR #28) — `assignLayers()` in `src/diagrams/flowchart/layout.ts` looped forever when a ROOT fed a cycle (BFS re-pushed ever-growing layers). Fix = Sugiyama cycle breaking: `findBackEdges()` DFS strips back-edges to a DAG, same longest-path BFS on forward subset (terminates, deterministic); back-edges still drawn; acyclic byte-identical. Regression test `test/flowchart-cycle.test.ts` (7). `pnpm test` 378 → **385**.
+
+- 2026-06-24 BACK-EDGE VISUAL ROUTING (follow-up to PR #28) — flowchart edge loop classifies before drawing (self-loop/back-edge/forward); self-loops get `selfLoopRoute()` (small cubic off side wall); back-edges get `backEdgeRoute()` (cubic Bézier bowing to lateral side, control points pushed by `bow = max(NODE_W*0.75 | NODE_H*0.9, span*0.35)`); forward edges unchanged. Byte-identical for acyclic (viewBox grows only via `bowMaxX/bowMaxY`). PROVEN: `node scripts/preview.mjs examples/flowchart/` → `git status --porcelain` EMPTY. Tests +2 (back vs forward arcs, self-loop non-degenerate). `pnpm test` 385 → **387**. Confined to `src/diagrams/flowchart/`.
+
+- 2026-06-23 DESIGN-DOC REALIGNMENT (Waves 1–4) — executed consolidated verdicts from prior AUDIT block. Rewrote `02-central-thesis` (contracts-first Mermaid-superset), `03-principles`, `60-roadmap`; created `06-status`, `19-render-contract`, `23-diagram-contract`, `31-structures-family`. Deleted `16b-extended-timeline`, `50-agent-integration`, `55-target-outputs`. My sections: `11-backends` (ONE `renderSVG()`, no Skia/PPTX/PDF/HTML), `14-animation` (only `march`+`particle`, no SMIL variants), `22-rendering` (generic Scene + per-grammar layouts, demote timeline), `12-themes` (unified `ResolvedTheme`, 12 presets, drop fragmentation), `19-render-contract` (fill: `SceneElement` union), `30-composition` (fix names: `src/diagrams/poster`, `SceneElement` union, CellKind registry), `30b` (repoint dangling refs). Build clean: 0 undefined refs, 0 BibTeX errors. ⚠️ tectonic panics under macOS VS Code sandbox (SCDynamicStore NULL) — must run unsandboxed.
+
+- 2026-06-24: Made design build portable — removed the committed `design/triton.sty` symlink (broke on Windows checkouts as a plain text file). Tectonic does NOT honor TEXINPUTS for .sty resolution (tested: `File triton.sty not found`), so the Makefile now COPYs `../latex/triton.sty` into `design/` as a build step (`pdf: triton.sty` prereq) and `.gitignore` excludes the copy. Full `make clean && make` → exit 0, triton.pdf 133 KiB with inline figures rendered.
+
+- 2026-06-27 PHASE 2 — Lift Sugiyama into `src/graph/layered.ts` kernel (387/387). All 7 callers (class/state/er/c4/architecture/requirement/ds-nodegraph) inherit crossing minimisation + B–K coordinate assignment automatically — zero caller changes. Key adaptations vs Phase 1 flowchart version: (a) `detectBackEdges` uses layer heuristic (`layer[v] ≤ layer[u]`) instead of DFS — correct for kernel use case (no edge routing); (b) `assignCoordinatesBK` uses per-node `width`/`height` variable sizes (not fixed NODE_W/NODE_H), positions nodes by cross-axis **centre** (not left edge), uses `maxSpan` (total cross span of widest layer) instead of `maxNodesInLayer × crossStep` for centering fallback; (c) `layeredLayout` now computes `width`/`height` from placed box extents rather than analytically. `byLayer` changed from `GraphNode[][]` to `Map<number, GraphNode[]>` internally. Decision: `.squad/decisions/inbox/barbara-phase2-complete.md`. Golden tests passed unchanged — simple test examples converge to same order as insertion order.
+
+- 2026-06-27 PHASE 2 BUG FIXES — Composite boundary clamping + obstacle-avoiding edge routing (387/387).
+
+  **Bug 1 (state composite boundary too wide):** After computing the member-node bounding box, iterate all non-member `laid.boxes` entries. For any whose y-range overlaps the composite's y-range AND whose x-range intersects the initial padded rect, clamp `maxX = nmLeft − 4` (non-member right of members) or `minX = nmRight + 4` (non-member left). Pad reduced 22→16px. For edge labels: only cross-boundary transitions (exactly one endpoint is in the composite's `nodeIds`) get shifted above the composite boundary if the midpoint lands inside. Inner transitions keep labels inside.
+
+  **Bug 2 (edges cut through unrelated nodes):** Added `routeEdge(fromBox, toBox, allBoxes, yOff)` to `src/graph/layered.ts` — infers port directions from geometry (dominant axis), builds obstacle list from all boxes except from/to (applying yOff), delegates to `orthogonalRouter`. Updated callers: `class`, `state`, `er`, `c4`, `requirement` use `routeEdge`; `architecture` uses `orthogonalRouter` directly with its explicit L/R/T/B port directions. End-markers (triangles/diamonds/arrows) and crow's-foot markers still computed from `borderPoint` on the raw box rects for clean arrowhead placement.
+
+  **Durable gotchas:**
+  - Composite `containerRect` is in WORLD coords (with yOff); `laid.boxes` is in LAYOUT coords (no yOff). The clamping must use layout coords throughout (compare `box.y` against `rects[].y`, not against `cr.y`).
+  - `routeEdge` must pass `yOff` to shift all obstacle rects into world coords matching the from/to `borderPoint` computation.
+  - The `routeEdge` return path comes from the router without rounding — callers that previously applied `rhu()` on the path now use the raw router path string directly. Labels still use `rhuInt(labelMidpoint.x)` for text placement.
+  - Architecture: keep explicit port anchors (`port(r, e.fromSide)`) as `from`/`to` points so the router respects the declared exit/entry side, then let obstacle avoidance handle bends.
+
+
+- 2026-06-27 PHASE 1 — Flowchart Full Sugiyama Upgrade (commit 23cee08, PR pending). Added Sugiyama phases 3 and 4 to `src/diagrams/flowchart/layout.ts`. Gate: `pnpm test` **387/387**. Decision written: `.squad/decisions/inbox/barbara-phase1-complete.md`.
+
+  **Phase 3 — `minimizeCrossings()`:** Barycentric bi-directional sweeps, MAX_PASSES=4. Nodes without anchoring neighbours in the reference layer use current position index as barycenter (keeps relative order). Stable sort: equal barycenters tie-break on original insertion index. Back-edges and self-loops excluded.
+
+  **Phase 4 — `assignCoordinatesBK()`:** Two-pass simplified B-K. Pass1 top-down (predecessor-aligned), Pass2 bottom-up (successor-aligned). Preference = mean cross-axis position of forward-edge neighbours (mean gives centred result for symmetric trees, matching dagre). Nodes with no neighbours fall back to the OLD centering formula (`margin + (maxNodesInLayer-count)*crossStep/2 + i*crossStep`) so roots/leaves remain stable. Block start = `max(margin, medianOfPrefs - ½·totalSpan)`. Final position = average of the two passes — proven non-overlapping because both passes use uniform crossStep and averaging uniform sequences preserves spacing. Back-edges/self-loops excluded.
+
+  **Durable gotchas:**
+  - `findBackEdges()` was previously called INSIDE the edge-drawing loop (line 91). Moved it earlier (right after `groupByLayer`) so the same `Set<number>` is reused by crossing-min, B-K, and the edge router — one DFS instead of two.
+  - Averaging two passes eliminates the need for a forward+backward pass correction loop; the algebra guarantees no overlaps.
+  - `scripts/preview.mjs` had a stale dist path (`../dist/frontend/index.js`). The tsconfig `outDir` is `./packages/core/dist`. Fixed import + parser-copy destination in the same commit.
+  - Vitest doesn't need the compiled output (uses TypeScript directly), so `pnpm test` was always passing. The stale path only affected the preview script.
+  - Phase 2: same `minimizeCrossings` + `assignCoordinatesBK` should be lifted into `src/graph/layered.ts` so class/state/ER/C4/block/requirement inherit it (Leslie's phase plan §Phase 2).
+
+
+---
+
+## 2026-06-27 — Class Diagram Visual Fixes
+
+Received four-problem audit from ormasoftchile on `examples/class/class.svg`. Read `src/diagrams/class/layout.ts` and `src/graph/layered.ts` in full before touching anything.
+
+### Fix 1 — Straight edges for unobstructed paths (`src/graph/layered.ts`)
+
+Added `straightLineObstacleFree(p1, p2, obstacles, padding)` using Liang–Barsky clipping. In `routeEdge`, before calling `orthogonalRouter`, now checks whether the direct segment from `pa` to `pb` clears all padded obstacles. If clear → `M x1 y1 L x2 y2` (no bends). Also added `path || fallbackStraight` guard for empty router results.
+
+### Fix 2 — B–K alignment snap (`src/graph/layered.ts`)
+
+Added `snapAlignedPairs` called after `assignCoordinatesBK` in `layeredLayout`. For each forward edge between adjacent layers whose cross-axis centres differ by < `nodeGap`, snaps the upper node to match the lower node's x-centre — only if no sibling overlap results. Works for TB and LR.
+
+### Fix 3 & 4 — Port fan-out, Customer→Order visibility (`src/diagrams/class/layout.ts`)
+
+Extended `routeEdge` with optional `fromPt?` / `toPt?` parameters (backward-compatible). In `layout.ts`, precomputed a `toPortMap: Map<"nodeId:wall", number[]>` before the relations loop. Each edge gets t-value `(idx+1)/(n+1)` distributed across its arrival wall via `wallPoint(box, wall, t, yOff)`. End markers updated to use the same attachment points. `safePath` fallback ensures no edge silently disappears.
+
+### Visual confirmation
+
+- `Customer→ShoppingCart (has)` and `ShoppingCart→Order (creates)`: clean straight diagonal lines, no bends.
+- `CreditCardPayment` and `Payment`: x-aligned, vertical dashed connector.
+- `Order` top: two arrows at t≈0.33 and t≈0.67 — visibly fanned apart.
+- `Customer→Order (places)`: fully visible diagonal, "places" label rendered, cardinality marks readable.
+- State diagram: no regression, Processing boundary clear of Idle, all labels visible.
+
+### Tests
+
+`pnpm test` — 387/387 passed.
+
+- 2026-06-25 C4 CONNECTOR ROUTING ANALYSIS (ANALYSIS ONLY, no code) — comparative study of C4 vs other box-diagram families. Delivered: `.squad/decisions/inbox/barbara-c4-connector-routing.md`. Finding: C4 combines **five properties** that no other family combines: (1) straight-line `borderPoint()` routing (angle-aware port selection), (2) generous 80px layerGap (largest in codebase), (3) wide 180px nodes (most in codebase), (4) textMuted connectors (not dominant primary blue), (5) label background-rect erasure (KO-rect). Recommendation recorded: port muted+KO-rect to architecture (P1, high feasibility), class & block (trivial); observation that flowchart should keep orthogonal but add KO-rect.
+
+---
+
+## Cross-agent notes
+
+**Extension (Scribe, 2026-06-24):** The VS Code extension (`extension/`) reuses `render()` (`src/frontend/index.ts`) as its SOLE render path and esbuild-bundles the compiler from `src/`. Any change to `render(input, themeInput?, rendererName?)` signature, its `Result<string>` SVG contract, or `src/frontend/detect.ts` MERMAID_PATTERNS header table is now a downstream dependency. Keep stable or update `extension/src/extension.ts` in the same PR.
+
+---
+
+## Archived sections
+
+**Full 2026-06-17 and earlier detail:** See `history-archive.md` (A* pathfinding, aesthetic metrics, poster routing `routingStyle`, greedy-switch + Brandes-Köpf, wall-centered ports, earlier June realignment summaries). See also dated archive files (`history-2026-06-11-archived.md`, `history-2026-06-14-archived.md`, `history-2026-06-15-summarized.md`, `history-2026-06-16-summarized.md`).
+
+**Archive & Historical Notes:** The work logs from 2026-06-17 and earlier reference the OLD `packages/core/...` tree — current code lives under `src/`, and the single-backend/Scene realignment supersedes the multi-backend framing. See `history-archive.md` for the detailed context.
+
+---
+
+## 2026-07-09 — VS Code Extension Marketplace Icon
+
+Created `extension/resources/icon.svg` and `extension/resources/icon.png` (256×256) for the VS Code Marketplace listing.
+
+### Design approach
+
+**Motif:** Stylized trident (Triton sea-god motif) with three tines terminating in graph nodes (circles connected by curved edges) — fusing the brand identity with the diagram/node-graph product domain.
+
+**Palette (from src/theme/preset.ts):**
+- Background: navy→purple gradient (#0D1B2A → #1a1040) on 256×256 rounded-square (rx=48)
+- Trident: blue→purple vertical gradient (#4A90D9 → #7C3AED), stroke-width 14–18px
+- Node circles: blue outer (#4A90D9) and purple center (#7C3AED), white core (#F8FAFC), Gaussian glow filter
+- Edge connections: teal accent (#2DD4BF) curved paths linking the three node tips
+
+**Small-size legibility:** Verified at 32×32 — three glowing nodes and crossbar remain distinguishable.
+
+### Rasterization command
+
+```bash
+/opt/homebrew/bin/rsvg-convert -f png -w 256 -h 256 \
+  -o extension/resources/icon.png extension/resources/icon.svg
+```
+
+### Wiring
+
+Added `"icon": "resources/icon.png"` to `extension/package.json` (between `categories` and `galleryBanner`).
+
+### Ship verification
+
+`npx @vscode/vsce ls --no-dependencies` confirms `resources/icon.png` is included in the .vsix contents.
+
+## Learnings
+
+- **VS Code Marketplace requires PNG** (min 128×128, 256×256 ideal) — SVG cannot be used directly for the `icon` field.
+- **`extension/.vscodeignore`** whitelists `resources/**`, so any PNG/SVG added there ships automatically.
+- **rsvg-convert** on macOS (Homebrew) handles gradients, filters, and glow effects correctly; no need for Inkscape/headless Chrome for simple SVG rasterization.
+- **Icon needs own background** — Marketplace shows icons on both light/dark themes; relying on transparency looks broken. Always provide a solid/gradient background fill.
+- **Test at 32×32** — if the icon is unreadable at favicon size, it won't work in VS Code's sidebar, activity bar, or extension tiles.
+
+### 2026-07-09 Revision — Fixing the "Sad Face" Problem
+
+Initial design read as a sad face (two symmetric nodes = eyes, downward-curving crossbar = frown, invisible trident strokes). Revised with:
+
+1. **Bright high-contrast colors:** Changed from dark blue→purple gradient (invisible against dark background) to bright cyan→teal (#67E8F9 → #14B8A6)
+2. **Filled shapes instead of strokes:** rsvg-convert doesn't render gradients on strokes properly. Switched to filled `<rect>` elements with rounded corners (rx) to simulate thick strokes with gradient fill.
+3. **Straight crossbar:** Eliminated downward curve that created "frown" gestalt.
+4. **Proper composition:** Trident fills y=24 to y=222 (nearly full badge height), no large empty void.
+5. **Subordinate nodes:** Graph nodes at prong tips are smaller (r=9–11) and don't read as "eyes".
+
+### Key rsvg-convert learnings
+
+- **Gradients on strokes:** `stroke="url(#grad)"` on `<line>` elements does NOT render in rsvg-convert — the strokes become invisible regardless of gradient colors.
+- **Solution:** Use filled `<rect>` elements with `rx` for rounded ends, or filled `<path>` shapes. Gradients on `fill` work correctly.
+- **Test with solid color first:** When debugging visibility issues, test with a solid bright color (#22D3EE worked) before adding gradients to isolate the rendering issue.
