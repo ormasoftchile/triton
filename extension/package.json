@@ -17,6 +17,7 @@
     "Visualization",
     "Programming Languages"
   ],
+  "icon": "resources/icon.png",
   "galleryBanner": {
     "color": "#1e1e1e",
     "theme": "dark"

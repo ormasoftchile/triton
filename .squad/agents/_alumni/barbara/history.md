@@ -160,3 +160,60 @@ Extended `routeEdge` with optional `fromPt?` / `toPt?` parameters (backward-comp
 **Full 2026-06-17 and earlier detail:** See `history-archive.md` (A* pathfinding, aesthetic metrics, poster routing `routingStyle`, greedy-switch + Brandes-Köpf, wall-centered ports, earlier June realignment summaries). See also dated archive files (`history-2026-06-11-archived.md`, `history-2026-06-14-archived.md`, `history-2026-06-15-summarized.md`, `history-2026-06-16-summarized.md`).
 
 **Archive & Historical Notes:** The work logs from 2026-06-17 and earlier reference the OLD `packages/core/...` tree — current code lives under `src/`, and the single-backend/Scene realignment supersedes the multi-backend framing. See `history-archive.md` for the detailed context.
+
+---
+
+## 2026-07-09 — VS Code Extension Marketplace Icon
+
+Created `extension/resources/icon.svg` and `extension/resources/icon.png` (256×256) for the VS Code Marketplace listing.
+
+### Design approach
+
+**Motif:** Stylized trident (Triton sea-god motif) with three tines terminating in graph nodes (circles connected by curved edges) — fusing the brand identity with the diagram/node-graph product domain.
+
+**Palette (from src/theme/preset.ts):**
+- Background: navy→purple gradient (#0D1B2A → #1a1040) on 256×256 rounded-square (rx=48)
+- Trident: blue→purple vertical gradient (#4A90D9 → #7C3AED), stroke-width 14–18px
+- Node circles: blue outer (#4A90D9) and purple center (#7C3AED), white core (#F8FAFC), Gaussian glow filter
+- Edge connections: teal accent (#2DD4BF) curved paths linking the three node tips
+
+**Small-size legibility:** Verified at 32×32 — three glowing nodes and crossbar remain distinguishable.
+
+### Rasterization command
+
+```bash
+/opt/homebrew/bin/rsvg-convert -f png -w 256 -h 256 \
+  -o extension/resources/icon.png extension/resources/icon.svg
+```
+
+### Wiring
+
+Added `"icon": "resources/icon.png"` to `extension/package.json` (between `categories` and `galleryBanner`).
+
+### Ship verification
+
+`npx @vscode/vsce ls --no-dependencies` confirms `resources/icon.png` is included in the .vsix contents.
+
+## Learnings
+
+- **VS Code Marketplace requires PNG** (min 128×128, 256×256 ideal) — SVG cannot be used directly for the `icon` field.
+- **`extension/.vscodeignore`** whitelists `resources/**`, so any PNG/SVG added there ships automatically.
+- **rsvg-convert** on macOS (Homebrew) handles gradients, filters, and glow effects correctly; no need for Inkscape/headless Chrome for simple SVG rasterization.
+- **Icon needs own background** — Marketplace shows icons on both light/dark themes; relying on transparency looks broken. Always provide a solid/gradient background fill.
+- **Test at 32×32** — if the icon is unreadable at favicon size, it won't work in VS Code's sidebar, activity bar, or extension tiles.
+
+### 2026-07-09 Revision — Fixing the "Sad Face" Problem
+
+Initial design read as a sad face (two symmetric nodes = eyes, downward-curving crossbar = frown, invisible trident strokes). Revised with:
+
+1. **Bright high-contrast colors:** Changed from dark blue→purple gradient (invisible against dark background) to bright cyan→teal (#67E8F9 → #14B8A6)
+2. **Filled shapes instead of strokes:** rsvg-convert doesn't render gradients on strokes properly. Switched to filled `<rect>` elements with rounded corners (rx) to simulate thick strokes with gradient fill.
+3. **Straight crossbar:** Eliminated downward curve that created "frown" gestalt.
+4. **Proper composition:** Trident fills y=24 to y=222 (nearly full badge height), no large empty void.
+5. **Subordinate nodes:** Graph nodes at prong tips are smaller (r=9–11) and don't read as "eyes".
+
+### Key rsvg-convert learnings
+
+- **Gradients on strokes:** `stroke="url(#grad)"` on `<line>` elements does NOT render in rsvg-convert — the strokes become invisible regardless of gradient colors.
+- **Solution:** Use filled `<rect>` elements with `rx` for rounded ends, or filled `<path>` shapes. Gradients on `fill` work correctly.
+- **Test with solid color first:** When debugging visibility issues, test with a solid bright color (#22D3EE worked) before adding gradients to isolate the rendering issue.
