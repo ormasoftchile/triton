@@ -1,4 +1,4 @@
-import type { PosterDocument, PosterCell, CellContent } from './ir.js';
+import type { PosterDocument, PosterCell, CellContent, PosterNote, NotePosition } from './ir.js';
 import type { Scene, SceneElement, Rect, LayoutResult, NodeAnchor, NodeAnchorRegistry, OccupiedPort } from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { getModule } from '../../../frontend/registry.js';
@@ -64,7 +64,8 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       const scale = Math.min(contentW / Math.max(result.scene.viewBox.width, 1), 1);
       // If scale < MIN_EMBED_SCALE, the column already expanded; recompute
       const effectiveScale = Math.max(scale, MIN_EMBED_SCALE);
-      const neededH = result.scene.viewBox.height * effectiveScale + cellTitleH + inset * 2;
+      const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
+      const neededH = result.scene.viewBox.height * effectiveScale + cellTitleH + captionH + inset * 2;
       rowHeights[row] = Math.max(rowHeights[row]!, neededH);
     }
   }
@@ -138,8 +139,27 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
 
     // Embed child scene — content layer (above cross-link paths)
     const inset = unit / 2;
-    const contentRect: Rect = { x: cellX + inset, y: cellY + reservedTop + inset, width: cellW - inset * 2, height: cellH - reservedTop - inset * 2 };
+    const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
+    const contentRect: Rect = {
+      x: cellX + inset,
+      y: cellY + reservedTop + inset,
+      width: cellW - inset * 2,
+      height: cellH - reservedTop - captionH - inset * 2,
+    };
     cellContent.push(embedScene(result.scene, contentRect));
+
+    // Caption — muted text below the sub-diagram
+    if (cell.caption) {
+      const captionY = cellY + cellH - inset / 2;
+      cellContent.push({ type: 'text', content: cell.caption, position: { x: cellX + cellW / 2, y: captionY }, fontSize: cellTheme.typography.smallFontSize, fontFamily: cellTheme.typography.fontFamily, fill: cellTheme.palette.textMuted, anchor: 'middle' });
+    }
+
+    // Notes — freeform annotation overlays on top of the sub-diagram
+    if (cell.notes && cell.notes.length > 0) {
+      for (const note of cell.notes) {
+        cellContent.push(...buildNoteOverlay(note, contentRect, cellTheme));
+      }
+    }
 
     // Transform child anchors to poster coordinates and merge
     const scaleX = contentRect.width  / Math.max(result.scene.viewBox.width,  1);
@@ -452,6 +472,40 @@ function titleBoxHeight(theme: ResolvedTheme): number {
   const fs = theme.typography.baseFontSize;
   const padY = theme.panel.titleChrome === 'none' ? 0 : theme.spacing.unit * 0.4;
   return fs + padY * 2;
+}
+
+/** Height reserved at the bottom of a cell for a caption line. */
+function reservedCaptionHeight(theme: ResolvedTheme): number {
+  return theme.typography.smallFontSize + theme.spacing.unit;
+}
+
+/**
+ * Build a freeform note overlay anchored to a content rect.
+ * Positions: top-left/right, bottom-left/right, center.
+ * Renders as a semi-transparent pill behind the text.
+ */
+function buildNoteOverlay(note: PosterNote, rect: Rect, theme: ResolvedTheme): SceneElement[] {
+  const { palette, typography, spacing } = theme;
+  const fs = typography.smallFontSize;
+  const pad = spacing.unit * 0.5;
+  const textW = note.text.length * fs * 0.62 + pad * 2;
+  const boxH = fs + pad * 2;
+  const pos = note.position ?? 'top-right';
+
+  let bx: number, by: number;
+  switch (pos) {
+    case 'top-left':     bx = rect.x + spacing.unit * 0.5; by = rect.y + spacing.unit * 0.5; break;
+    case 'top-right':    bx = rect.x + rect.width - textW - spacing.unit * 0.5; by = rect.y + spacing.unit * 0.5; break;
+    case 'bottom-left':  bx = rect.x + spacing.unit * 0.5; by = rect.y + rect.height - boxH - spacing.unit * 0.5; break;
+    case 'bottom-right': bx = rect.x + rect.width - textW - spacing.unit * 0.5; by = rect.y + rect.height - boxH - spacing.unit * 0.5; break;
+    case 'center':       bx = rect.x + (rect.width - textW) / 2; by = rect.y + (rect.height - boxH) / 2; break;
+    default:             bx = rect.x + rect.width - textW - spacing.unit * 0.5; by = rect.y + spacing.unit * 0.5;
+  }
+
+  return [
+    { type: 'rect', bounds: { x: bx, y: by, width: textW, height: boxH }, fill: palette.surface, stroke: palette.primary, strokeWidth: 1, rx: boxH / 2, fillOpacity: 0.88 },
+    { type: 'text', content: note.text, position: { x: bx + textW / 2, y: by + pad + fs * 0.8 }, fontSize: fs, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.primary, anchor: 'middle' },
+  ];
 }
 
 /**

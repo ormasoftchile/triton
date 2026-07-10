@@ -56,6 +56,10 @@ export interface ArrayDoc {
   };
   readonly cells: readonly ArrayCell[];
   readonly ptrs: readonly ArrayPointer[];
+  /** Logical indices of cells to render with an accent highlight fill. */
+  readonly highlights?: readonly number[];
+  /** Contiguous range [start, end] (inclusive logical indices) to highlight. */
+  readonly window?: { readonly start: number; readonly end: number };
 }
 
 interface ArrayIndexMetadata {
@@ -84,6 +88,8 @@ function parse(input: string): ArrayDoc {
   let indexSide: ArrayIndexSide = 'before';
   let indexOrder: ArrayIndexOrder = 'normal';
   const ptrs: ArrayPointer[] = [];
+  let highlights: number[] | undefined;
+  let win: { start: number; end: number } | undefined;
 
   for (const line of lines(input)) {
     const t = tokenizeDirective(line);
@@ -119,6 +125,17 @@ function parse(input: string): ArrayDoc {
       continue;
     }
 
+    if (t[0] === 'highlight') {
+      highlights = t.slice(1).map(Number).filter(n => !isNaN(n) && Number.isInteger(n));
+      continue;
+    }
+
+    if (t[0] === 'window' && t[1]) {
+      const m = t[1].match(/^(\d+)-(\d+)$/);
+      if (m) win = { start: Number(m[1]), end: Number(m[2]) };
+      continue;
+    }
+
     if (t[0] === 'ptr' && t.length >= 4 && t[2] === '->') {
       ptrs.push({ id: t[1]!, target: parsePointerTarget(t[3]!), ...(t[4] !== undefined ? { label: t[4] } : {}) });
     }
@@ -130,6 +147,8 @@ function parse(input: string): ArrayDoc {
     index: { show: indexShow, side: indexSide, order: indexOrder },
     cells,
     ptrs,
+    ...(highlights !== undefined && highlights.length > 0 ? { highlights } : {}),
+    ...(win !== undefined ? { window: win } : {}),
   };
 }
 
@@ -259,10 +278,20 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
       return;
     }
 
-    elements.push(p.rect(slot, palette.surface, palette.border, 1.5, { rx: 3 }));
-    elements.push(p.text(cell.value, slot.x + cellW / 2, slot.y + cellH / 2 + 5, font, palette.text, { anchor: 'middle', weight: 'bold' }));
+    const logicalMaybe = meta.physicalToLogical[physical];
+    const logical: number | null = logicalMaybe ?? null;
+    const isHighlit = logical !== null && (
+      (doc.highlights?.includes(logical) ?? false) ||
+      (doc.window !== undefined && logical >= doc.window.start && logical <= doc.window.end)
+    );
 
-    const logical = meta.physicalToLogical[physical];
+    if (isHighlit) {
+      elements.push(p.rect(slot, palette.primary, palette.primary, 2, { rx: 3, fillOpacity: 0.22 }));
+    } else {
+      elements.push(p.rect(slot, palette.surface, palette.border, 1.5, { rx: 3 }));
+    }
+    elements.push(p.text(cell.value, slot.x + cellW / 2, slot.y + cellH / 2 + 5, font, isHighlit ? palette.primary : palette.text, { anchor: 'middle', weight: 'bold' }));
+
     if (doc.index.show && logical !== null) {
       elements.push(renderIndexText(p, theme, String(logical), slot, cellW, cellH, doc.axis, doc.index.side, indexPad));
     }
@@ -325,6 +354,8 @@ function normalizeArrayDoc(doc: ArrayDoc | any): ArrayDoc {
       if ('idx' in ptr) return { id: ptr.name ?? ptr.id, target: { raw: String(ptr.idx), value: Number(ptr.idx) } };
       return ptr;
     }),
+    ...(Array.isArray(doc.highlights) && doc.highlights.length > 0 ? { highlights: doc.highlights as number[] } : {}),
+    ...(doc.window !== undefined ? { window: doc.window as { start: number; end: number } } : {}),
   };
 }
 

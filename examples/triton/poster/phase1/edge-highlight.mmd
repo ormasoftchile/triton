@@ -1,0 +1,54 @@
+poster "Edge & Path Highlight — Tree & Graph"
+    columns 2
+
+    cell bt "Binary Tree DFS"
+        tree
+            A :active
+                B
+                    D
+                    E :active
+                C
+        path A -> B -> E
+        caption "DFS: A→B→E path highlighted"
+    end
+
+    cell bk "Backtracking"
+        tree
+            Root
+                Choice1
+                    Good
+                    Bad
+                Choice2
+                    Answer
+        path Root -> Choice2 -> Answer
+        note "backtrack from Bad" at top-right
+        caption "explore then backtrack"
+    end
+
+    cell dfs "DFS Graph"
+        nodegraph
+            directed
+            node A : parse
+            node B : scan
+            node C : emit
+            node D : build
+            A -> B : active
+            B -> C : active
+            B -> D
+        note "stack · go deep" at top-right
+        caption "DFS visits A→B→C first"
+    end
+
+    cell bfsn "BFS Graph"
+        nodegraph
+            directed
+            node S : active
+            node A : scan
+            node B : scan
+            node C : build
+            S -> A : active
+            S -> B : active
+            A -> C
+        note "queue · by level" at top-right
+        caption "BFS explores by level"
+    end

@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 436.7992 631.0601569719768" width="436.7992" height="631.0601569719768">
+  <defs>
+    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
+  </defs>
+  <rect x="0" y="0" width="436.7992" height="631.0601569719768" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Edge &amp; Path Highlight — Tree &amp; Graph</text>
+  <rect x="24" y="58" width="166.6" height="225.3726815621407" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="210.6" y="58" width="202.1992" height="225.3726815621407" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="303.3726815621407" width="166.6" height="303.68747540983605" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="210.6" y="303.3726815621407" width="202.1992" height="303.68747540983605" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Binary Tree DFS</text>
+  <g transform="translate(28, 84) scale(0.7288127337278542)">
+    <path d="M 102.76 54 L 81.8 106" stroke="#4A90D9" stroke-width="2.5" fill="none" />
+    <path d="M 120.83 54 L 162.53 106" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 69.77 136 L 49.04 188" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 81.8 136 L 102.76 188" stroke="#4A90D9" stroke-width="2.5" fill="none" />
+    <rect x="90.11779999999999" y="24" width="37.3786" height="30" fill="#4A90D9" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="108.80709999999999" y="43.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#000000" text-anchor="middle" font-weight="bold">A</text>
+    <rect x="57.058899999999994" y="106" width="37.3786" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="75.7482" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">B</text>
+    <rect x="24" y="188" width="38.1178" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="43.0589" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">D</text>
+    <rect x="90.1178" y="188" width="37.3786" height="30" fill="#4A90D9" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="108.8071" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#000000" text-anchor="middle" font-weight="bold">E</text>
+    <rect x="155.4964" y="106" width="38.1178" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="174.5553" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">C</text>
+  </g>
+  <text x="107.3" y="281.3726815621407" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">DFS: A→B→E path highlighted</text>
+  <text x="218.6" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Backtracking</text>
+  <g transform="translate(214.6, 93.53634078107035) scale(0.65)">
+    <path d="M 139.56 54 L 105.49 106" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 165.05 54 L 219.37 106" stroke="#4A90D9" stroke-width="2.5" fill="none" />
+    <path d="M 88.25 136 L 62.57 188" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 103.92 136 L 132.56 188" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 235.04 136 L 235.04 188" stroke="#4A90D9" stroke-width="2.5" fill="none" />
+    <rect x="120.18069999999999" y="24" width="58.4066" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="149.384" y="43.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root</text>
+    <rect x="55.9368" y="106" width="79.4472" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="95.6604" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Choice1</text>
+    <rect x="24" y="188" width="62.32939999999999" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="55.164699999999996" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Good</text>
+    <rect x="114.32939999999999" y="188" width="52.9914" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="140.8251" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Bad</text>
+    <rect x="195.3208" y="106" width="79.4472" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="235.0444" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Choice2</text>
+    <rect x="197.65179999999998" y="188" width="74.7852" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="235.0444" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Answer</text>
+  </g>
+  <text x="311.6996" y="281.3726815621407" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">explore then backtrack</text>
+  <rect x="274.0392" y="88" width="130.76" height="19" fill="#F8FAFC" fill-opacity="0.88" stroke="#4A90D9" stroke-width="1" rx="9.5" />
+  <text x="339.4192" y="100.8" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">backtrack from Bad</text>
+  <text x="32" y="318.5726815621407" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">DFS Graph</text>
+  <g transform="translate(28, 352.71641926705877) scale(0.65)">
+    <path d="M 110 64 L 110 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 120.38 168 L 153.62 232" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 99.62 168 L 66.38 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <rect x="78" y="24" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="110" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">parse</text>
+    <rect x="78" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="110" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">scan</text>
+    <rect x="132" y="232" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="164" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">emit</text>
+    <rect x="24" y="232" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="56" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">build</text>
+  </g>
+  <text x="107.3" y="605.0601569719768" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">DFS visits A→B→C first</text>
+  <rect x="72.3" y="333.3726815621407" width="110.3" height="19" fill="#F8FAFC" fill-opacity="0.88" stroke="#4A90D9" stroke-width="1" rx="9.5" />
+  <text x="127.44999999999999" y="346.1726815621407" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">stack · go deep</text>
+  <text x="218.6" y="318.5726815621407" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">BFS Graph</text>
+  <g transform="translate(214.6, 329.3726815621407) scale(0.7958983606557377)">
+    <path d="M 120.38 64 L 153.62 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 99.62 64 L 66.38 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 164 168 L 164 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <rect x="77.3037" y="24" width="65.39259999999999" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="110" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">active</text>
+    <rect x="132" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="164" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">scan</text>
+    <rect x="24" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="56" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">scan</text>
+    <rect x="132" y="232" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="164" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">build</text>
+  </g>
+  <text x="311.6996" y="605.0601569719768" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">BFS explores by level</text>
+  <rect x="287.6792" y="333.3726815621407" width="117.12" height="19" fill="#F8FAFC" fill-opacity="0.88" stroke="#4A90D9" stroke-width="1" rx="9.5" />
+  <text x="346.2392" y="346.1726815621407" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">queue · by level</text>
+</svg>

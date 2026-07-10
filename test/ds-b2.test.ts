@@ -138,3 +138,47 @@ describe('unionfind', () => {
     expect(r.ok && r.value.startsWith('<svg')).toBe(true);
   });
 });
+
+// ── Feature 4: nodegraph edge highlight ────────────────────────────────────
+
+describe('nodegraph edge highlight', () => {
+  it('parses edge with kind active', () => {
+    const ir = graph.parseMermaid([
+      'nodegraph',
+      '  directed',
+      '  A -> B : active',
+      '  B -> C',
+    ].join('\n'));
+    const active = ir.edges.find((e: any) => e.from === 'A' && e.to === 'B');
+    expect(active?.kind).toBe('active');
+    const plain = ir.edges.find((e: any) => e.from === 'B' && e.to === 'C');
+    expect(plain?.kind).toBeUndefined();
+  });
+
+  it('parses edge with kind dashed', () => {
+    const ir = graph.parseMermaid('nodegraph\n  A -> B : dashed\n');
+    expect(ir.edges[0]?.kind).toBe('dashed');
+    expect(ir.edges[0]?.label).toBeUndefined();
+  });
+
+  it('preserves normal labels when not a kind keyword', () => {
+    const ir = graph.parseMermaid('nodegraph\n  A -> B : calls\n');
+    expect(ir.edges[0]?.label).toBe('calls');
+    expect(ir.edges[0]?.kind).toBeUndefined();
+  });
+
+  it('renders active edges with primary color and thicker stroke', () => {
+    const ir = graph.parseMermaid([
+      'nodegraph',
+      '  directed',
+      '  node A : parse',
+      '  node B : emit',
+      '  A -> B : active',
+    ].join('\n'));
+    const { scene } = layoutGraph(ir, defaultTheme);
+    const paths = scene.elements.filter((e: any) => e.type === 'path' && !e.d?.includes('M0'));
+    const activePath = paths.find((p: any) => p.strokeWidth === 2.5);
+    expect(activePath).toBeDefined();
+    expect(activePath?.stroke).toBe(defaultTheme.palette.primary);
+  });
+});

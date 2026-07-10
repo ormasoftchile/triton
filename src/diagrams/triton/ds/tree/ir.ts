@@ -29,4 +29,6 @@ export interface TreeDocument extends BaseIR {
   readonly direction: TreeDirection;
   /** Flat, ordered node list; roots are nodes never referenced as a child. */
   readonly nodes: readonly TreeNode[];
+  /** Active edge pairs [parentId, childId] to render highlighted. */
+  readonly activePaths?: readonly [string, string][];
 }

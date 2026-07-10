@@ -167,6 +167,41 @@ describe('array', () => {
     expect(() => array.parseMermaid('array\n  cells 1 ...\n')).toThrow();
     expect(() => array.parseMermaid('array\n  cells 1 ... 2 ... 3\n')).toThrow();
   });
+
+  // ── Feature 1: highlight and window directives ──────────────────────────
+
+  it('parses highlight directive (individual cells)', () => {
+    const ir = array.parseMermaid('array\n  cells 1 2 3 4 5\n  highlight 1 3\n');
+    expect(ir.highlights).toEqual([1, 3]);
+    expect(ir.window).toBeUndefined();
+  });
+
+  it('parses window directive (contiguous range)', () => {
+    const ir = array.parseMermaid('array\n  cells 1 2 3 4 5\n  window 1-3\n');
+    expect(ir.window).toEqual({ start: 1, end: 3 });
+    expect(ir.highlights).toBeUndefined();
+  });
+
+  it('renders highlighted cells with primary fill and text', () => {
+    const ir = array.parseMermaid('array\n  cells 10 20 30\n  highlight 1\n');
+    const { scene } = layoutArray(ir, defaultTheme);
+    // cell 1 should have a primary-colored rect
+    const rects = scene.elements.filter((e): e is SceneRect => e.type === 'rect');
+    const highlightRect = rects.find(r => r.fillOpacity !== undefined && r.fillOpacity < 1);
+    expect(highlightRect).toBeDefined();
+    expect(highlightRect!.fill).toBe(defaultTheme.palette.primary);
+  });
+
+  it('renders window-highlighted cells (range 1-2)', () => {
+    const ir = array.parseMermaid('array\n  cells A B C D\n  window 1-2\n');
+    const { scene } = layoutArray(ir, defaultTheme);
+    const highlightRects = scene.elements.filter(
+      (e): e is SceneRect => e.type === 'rect' && e.fillOpacity !== undefined,
+    );
+    // logical indices 1 and 2 should be highlighted
+    expect(highlightRects.length).toBe(2);
+  });
+
 });
 
 describe('linkedlist', () => {

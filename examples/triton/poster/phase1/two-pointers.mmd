@@ -1,0 +1,54 @@
+poster "DSA Patterns — Phase 1 Demo"
+    columns 2
+
+    cell tp "1. Two Pointers"
+        array
+            cells 1 2 3 4 5 6 7 8
+            index
+            highlight 1 6
+            ptr L -> 1 "L"
+            ptr R -> 6 "R"
+        note "target=7" at top-right
+        caption "L+R converge, swap when needed"
+    end
+
+    cell sw "2. Sliding Window"
+        array
+            cells 2 1 5 2 3 4 1 1 2
+            index
+            window 2-4
+            ptr L -> 2 "L"
+            ptr R -> 4 "R"
+        note "k=3" at top-right
+        caption "slide → max sum of k elements"
+    end
+
+    cell bt "11. Backtracking"
+        tree
+            []
+                [1]
+                    [1,2]
+                        [1,2,3]
+                    [1,3]
+                [2]
+                    [2,3]
+        path [] -> [1] -> [1,2] -> [1,2,3]
+        note "backtrack ←" at top-right
+        caption "explore all subsets"
+    end
+
+    cell dfs "13. DFS"
+        nodegraph
+            directed
+            node S : active
+            node A : scan
+            node B : scan
+            node C : build
+            node D : build
+            S -> A : active
+            A -> C : active
+            A -> D
+            S -> B
+        note "stack · go deep" at top-right
+        caption "visit depth-first, mark visited"
+    end

@@ -30,7 +30,7 @@ import { rhu } from '../../../../util/round.js';
 import { ARROW_ID, arrowDef } from '../struct/shared.js';
 
 export interface GNode { id: string; label: string; }
-export interface GEdge { from: string; to: string; label?: string; }
+export interface GEdge { from: string; to: string; label?: string; kind?: 'active' | 'dashed'; }
 
 export interface GraphDoc extends BaseIR {
   title?: string;
@@ -66,8 +66,14 @@ function parse(input: string): Omit<GraphDoc, keyof BaseIR> {
     const m = line.match(EDGE_RE);
     if (m) {
       const from = m[1]!, to = m[3]!;
+      const rawLabel = m[4]?.trim();
+      let label: string | undefined;
+      let kind: GEdge['kind'] | undefined;
+      if (rawLabel === 'active') kind = 'active';
+      else if (rawLabel === 'dashed') kind = 'dashed';
+      else label = rawLabel;
       ensure(from); ensure(to);
-      edges.push({ from, to, ...(m[4] ? { label: m[4].trim() } : {}) });
+      edges.push({ from, to, ...(label ? { label } : {}), ...(kind ? { kind } : {}) });
     }
   }
 
@@ -105,13 +111,19 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     const b = placed.boxes.has(e.to) ? box(e.to) : undefined;
     if (!a || !b) continue;
     const { start, end } = connectSlots(a, b);
-    const opts = doc.directed ? { markerEnd: ARROW_ID } : {};
-    elements.push(p.path(`M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`, palette.textMuted, 1.5, opts));
+    const isActive = e.kind === 'active';
+    const edgeColor = isActive ? palette.primary : palette.textMuted;
+    const edgeWidth = isActive ? 2.5 : 1.5;
+    const pathOpts: Parameters<typeof p.path>[3] = {
+      ...(doc.directed ? { markerEnd: ARROW_ID } : {}),
+      ...(e.kind === 'dashed' ? { dash: '6 3' } : {}),
+    };
+    elements.push(p.path(`M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`, edgeColor, edgeWidth, pathOpts));
     if (e.label) {
       const mx = (start.x + end.x) / 2, my = (start.y + end.y) / 2;
       const w = measureText(e.label, small).width + 8;
       elements.push(p.rect({ x: mx - w / 2, y: my - 9, width: w, height: 16 }, palette.background, palette.background, 0, { rx: 3 }));
-      elements.push(p.text(e.label, mx, my + 3, small, palette.primary, { anchor: 'middle', weight: 'bold' }));
+      elements.push(p.text(e.label, mx, my + 3, small, isActive ? palette.primary : palette.textMuted, { anchor: 'middle', weight: 'bold' }));
     }
   }
 

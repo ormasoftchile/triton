@@ -176,3 +176,43 @@ Previously completed work:
 ## 2026-07-07 — Group D %% Headers (5 files)
 
 Added %% options header blocks to 4 Triton-native families + poster. 5 .mmd examples (architecture/block/packet/topology/numa*), 4 fragment updates. All SVGs exit 0.
+
+## 2026-07-10 — Poster Phase 1: Four New Primitives
+
+### Features Shipped
+
+#### 1. Per-cell highlight for `array` and `matrix`
+- **array**: `highlight N N ...` marks logical indices; `window N-M` marks a contiguous range. Highlighted cells render with `palette.primary` fill at `fillOpacity: 0.22`, primary stroke, primary text.
+- **matrix**: `highlight r,c r,c ...` marks specific (row,col) cells. Same accent style.
+- `StripCell` extended with `fillOpacity?: number` and `stroke?: Color` so matrix can pass highlight info through `buildStrip`.
+- Key files: `src/diagrams/triton/ds/struct/array.ts`, `src/diagrams/triton/ds/matrix/matrix.ts`, `src/scene/strip.ts`
+
+#### 2. Caption slot per poster cell
+- `caption "text"` as a directive inside a cell block (extracted from rawContent before sub-diagram parse).
+- Caption rendered as `palette.textMuted` text, centered, below the sub-diagram at bottom of card. Caption height reserved in `rowHeights` calculation.
+- Key files: `src/diagrams/triton/poster/ir.ts`, `src/diagrams/triton/poster/index.ts`, `src/diagrams/triton/poster/layout.ts`
+- **Extraction approach**: `extractCellAnnotations()` strips `caption "..."` and `note "..."` lines from rawContent BEFORE passing to sub-parsers. Grammar unchanged.
+
+#### 3. Freeform annotation overlay (`note`)
+- `note "text"` or `note "text" at top-right` positions a pill-shaped text box over the sub-diagram.
+- Positions: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `center` (default: `top-right`).
+- Rendered as a semi-transparent surface-fill + primary-border pill over the content rect.
+- Key files: same as caption above. `NotePosition` and `PosterNote` types added to `ir.ts`.
+
+#### 4. Edge/path highlight for `tree` and `nodegraph`
+- **tree**: `path A -> B -> C` directive (outside tree indentation). Pre-processed in `tree/index.ts` before grammar parse. Label→ID mapping used; results stored in `TreeDocument.activePaths: [string,string][]`. Active edges render in `palette.primary` at strokeWidth 2.5.
+- **nodegraph**: `A -> B : active` or `A -> B : dashed` edge modifier. `GEdge.kind?: 'active' | 'dashed'` added. Active edges: primary color, 2.5px stroke. Dashed edges: textMuted, dash="6 3".
+- Key files: `src/diagrams/triton/ds/tree/ir.ts`, `src/diagrams/triton/ds/tree/index.ts`, `src/diagrams/triton/ds/tree/layout.ts`, `src/diagrams/triton/ds/graph/graph.ts`
+
+### Bonus Fix
+- Added `tree` keyword to `inferCellKind()` in `poster/index.ts` — it was missing, causing tree content to degrade to text inside poster cells.
+
+### Test Results
+- pnpm build: ✓ (0 errors)
+- pnpm test: 499 passed / 0 failed (18 new tests added)
+
+### Gotchas
+- `physicalToLogical[physical]` has type `(number | null | undefined)` in TypeScript strict mode — need `?? null` coercion.
+- `require()` doesn't work in ESM test files — must use top-level `import` statements.
+- `extractCellAnnotations` must be applied BEFORE sub-diagram parsing, not after, or the sub-parser sees the directive line as garbage.
+- Grammar-level approach for caption/note would require CellContent lookahead change (complex). The rawContent stripping approach is simpler and keeps grammar clean.

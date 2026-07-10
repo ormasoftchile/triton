@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 588.4000000000001 587.8035234899329" width="588.4000000000001" height="587.8035234899329">
+  <defs>
+    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#4A90D9" /></marker>
+    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
+  </defs>
+  <rect x="0" y="0" width="588.4000000000001" height="587.8035234899329" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">DSA Patterns — Phase 1 Demo</text>
+  <rect x="24" y="58" width="247.20000000000005" height="152.025" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="291.20000000000005" y="58" width="273.2" height="152.025" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="230.025" width="247.20000000000005" height="333.77852348993287" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="291.20000000000005" y="230.025" width="273.2" height="333.77852348993287" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">1. Two Pointers</text>
+  <g transform="translate(28.000000000000014, 84) scale(0.65)">
+    <rect x="24" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="44" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1</text>
+    <text x="44" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">0</text>
+    <rect x="64" y="41" width="40" height="40" fill="#4A90D9" fill-opacity="0.22" stroke="#4A90D9" stroke-width="2" rx="3" />
+    <text x="84" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">2</text>
+    <text x="84" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">1</text>
+    <rect x="104" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="124" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">3</text>
+    <text x="124" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2</text>
+    <rect x="144" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="164" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">4</text>
+    <text x="164" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">3</text>
+    <rect x="184" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="204" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">5</text>
+    <text x="204" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">4</text>
+    <rect x="224" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="244" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">6</text>
+    <text x="244" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">5</text>
+    <rect x="264" y="41" width="40" height="40" fill="#4A90D9" fill-opacity="0.22" stroke="#4A90D9" stroke-width="2" rx="3" />
+    <text x="284" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">7</text>
+    <text x="284" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">6</text>
+    <rect x="304" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="324" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">8</text>
+    <text x="324" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">7</text>
+    <path d="M 84 111 L 84 81" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <text x="84" y="131" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">L</text>
+    <path d="M 284 111 L 284 81" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <text x="284" y="131" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">R</text>
+  </g>
+  <text x="147.60000000000002" y="208.025" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">L+R converge, swap when needed</text>
+  <rect x="200.64000000000004" y="88" width="62.56" height="19" fill="#F8FAFC" fill-opacity="0.88" stroke="#4A90D9" stroke-width="1" rx="9.5" />
+  <text x="231.92000000000004" y="100.8" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">target=7</text>
+  <text x="299.20000000000005" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">2. Sliding Window</text>
+  <g transform="translate(295.20000000000005, 84) scale(0.65)">
+    <rect x="24" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="44" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">2</text>
+    <text x="44" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">0</text>
+    <rect x="64" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="84" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1</text>
+    <text x="84" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">1</text>
+    <rect x="104" y="41" width="40" height="40" fill="#4A90D9" fill-opacity="0.22" stroke="#4A90D9" stroke-width="2" rx="3" />
+    <text x="124" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">5</text>
+    <text x="124" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2</text>
+    <rect x="144" y="41" width="40" height="40" fill="#4A90D9" fill-opacity="0.22" stroke="#4A90D9" stroke-width="2" rx="3" />
+    <text x="164" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">2</text>
+    <text x="164" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">3</text>
+    <rect x="184" y="41" width="40" height="40" fill="#4A90D9" fill-opacity="0.22" stroke="#4A90D9" stroke-width="2" rx="3" />
+    <text x="204" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">3</text>
+    <text x="204" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">4</text>
+    <rect x="224" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="244" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">4</text>
+    <text x="244" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">5</text>
+    <rect x="264" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="284" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1</text>
+    <text x="284" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">6</text>
+    <rect x="304" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="324" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1</text>
+    <text x="324" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">7</text>
+    <rect x="344" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
+    <text x="364" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">2</text>
+    <text x="364" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">8</text>
+    <path d="M 124 111 L 124 81" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <text x="124" y="131" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">L</text>
+    <path d="M 204 111 L 204 81" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <text x="204" y="131" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">R</text>
+  </g>
+  <text x="427.80000000000007" y="208.025" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">slide → max sum of k elements</text>
+  <rect x="527.94" y="88" width="28.46" height="19" fill="#F8FAFC" fill-opacity="0.88" stroke="#4A90D9" stroke-width="1" rx="9.5" />
+  <text x="542.1700000000001" y="100.8" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">k=3</text>
+  <text x="32" y="245.225" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">11. Backtracking</text>
+  <g transform="translate(28, 260.87800578748966) scale(0.848989234305412)">
+    <path d="M 133.25 54 L 106.82 106" stroke="#4A90D9" stroke-width="2.5" fill="none" />
+    <path d="M 157.19 54 L 213.76 106" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 91.58 136 L 65.15 188" stroke="#4A90D9" stroke-width="2.5" fill="none" />
+    <path d="M 107.9 136 L 138.04 188" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 57.53 218 L 57.53 270" stroke="#4A90D9" stroke-width="2.5" fill="none" />
+    <path d="M 230.08 136 L 230.08 188" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <rect x="122.9632" y="24" width="35.8204" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="140.8734" y="43.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">[]</text>
+    <rect x="77.3883" y="106" width="43.6268" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="99.2017" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">[1]</text>
+    <rect x="29.8583" y="188" width="55.3434" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="57.53" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">[1,2]</text>
+    <rect x="24" y="270" width="67.06" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="57.53" y="289.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">[1,2,3]</text>
+    <rect x="119.05999999999999" y="188" width="55.3434" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="146.7317" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">[1,3]</text>
+    <rect x="208.26170000000002" y="106" width="43.6268" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="230.07510000000002" y="125.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">[2]</text>
+    <rect x="202.40340000000003" y="188" width="55.3434" height="30" fill="#F8FAFC" stroke="#1E293B" stroke-width="2" rx="8" />
+    <text x="230.07510000000002" y="207.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">[2,3]</text>
+  </g>
+  <text x="147.60000000000002" y="561.8035234899329" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">explore all subsets</text>
+  <rect x="180.18000000000006" y="260.025" width="83.02" height="19" fill="#F8FAFC" fill-opacity="0.88" stroke="#4A90D9" stroke-width="1" rx="9.5" />
+  <text x="221.69000000000005" y="272.825" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">backtrack ←</text>
+  <text x="299.20000000000005" y="245.225" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">13. DFS</text>
+  <g transform="translate(295.20000000000005, 256.025) scale(0.8899328859060402)">
+    <path d="M 120.38 64 L 153.62 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 174.38 168 L 207.62 232" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 153.62 168 L 120.38 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 99.62 64 L 66.38 128" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <rect x="77.3037" y="24" width="65.39259999999999" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="110" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">active</text>
+    <rect x="132" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="164" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">scan</text>
+    <rect x="24" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="56" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">scan</text>
+    <rect x="186" y="232" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="218" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">build</text>
+    <rect x="78" y="232" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="110" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">build</text>
+  </g>
+  <text x="427.80000000000007" y="561.8035234899329" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">visit depth-first, mark visited</text>
+  <rect x="446.1000000000001" y="260.025" width="110.3" height="19" fill="#F8FAFC" fill-opacity="0.88" stroke="#4A90D9" stroke-width="1" rx="9.5" />
+  <text x="501.25000000000006" y="272.825" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">stack · go deep</text>
+</svg>

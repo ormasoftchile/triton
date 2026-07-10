@@ -1,4 +1,0 @@
-### 2026-07-08: Connector animation set and static degradation
-**By:** Brian
-**What:** Connector animation is now a shared typed vocabulary: `march`, `particle`, `draw`, `pulse`, `glow`, `comet`, `stream`, `flow`, `colorcycle`, plus `none` as suppression. The routing engines pass any recognized animation name through to `ScenePath.animated`; unknown values still fall back to the existing dashed/dotted march default or render plainly for solid links. SVG rendering uses SMIL path animations, sibling `animateMotion` particles, and an inline user-space gradient for `flow`.
-**Why:** Cristian needs to review every supported connector motion from one gallery while preserving static-export safety. Every animated connector keeps a visible base path; `draw` starts as a full line and then erases/redraws instead of starting invisible, and particle/comet/stream add motion elements alongside the normal stroke.

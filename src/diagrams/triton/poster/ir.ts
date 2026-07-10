@@ -9,6 +9,15 @@ export interface StatCell     { readonly kind: 'stat';     readonly value: strin
 
 export type CellContent = DiagramCell | TextCell | StatCell;
 
+// ─── Annotation ───────────────────────────────────────────────────────────────
+
+export type NotePosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+
+export interface PosterNote {
+  readonly text: string;
+  readonly position?: NotePosition;
+}
+
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 
 export interface PosterCell {
@@ -21,6 +30,10 @@ export interface PosterCell {
   /** Optional per-cell theme name; falls back to the poster theme when absent. */
   readonly theme?: string;
   readonly content: CellContent;
+  /** Optional muted caption rendered below the sub-diagram, inside the card. */
+  readonly caption?: string;
+  /** Optional freeform annotation overlays rendered on top of the sub-diagram. */
+  readonly notes?: readonly PosterNote[];
 }
 
 export interface PosterGrid {

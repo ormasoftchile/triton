@@ -230,18 +230,23 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
 
   // ─── Edges first (parent → child), so nodes draw over them ───
   const byId = new Map(ir.nodes.map(n => [n.id, n]));
+  // Build active-edge set for highlighted paths (e.g. DFS/BFS traversal)
+  const activeEdgeSet = new Set<string>((ir.activePaths ?? []).map(([a, b]) => `${a}:${b}`));
   for (const node of ir.nodes) {
     const pb = box(node.id);
     for (const cid of node.children) {
       const cb = box(cid);
       const { start, end } = connectSlots(pb, cb);
-      elements.push(p.path(`M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`, palette.textMuted, 1.5));
+      const isActive = activeEdgeSet.has(`${node.id}:${cid}`);
+      const edgeColor = isActive ? palette.primary : palette.textMuted;
+      const edgeWidth = isActive ? 2.5 : 1.5;
+      elements.push(p.path(`M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`, edgeColor, edgeWidth));
       const child = byId.get(cid)!;
       if (child.edgeLabel) {
         const mx = (start.x + end.x) / 2, my = (start.y + end.y) / 2;
         const w = measureText(child.edgeLabel, smallFont).width + 8;
         elements.push(p.rect({ x: mx - w / 2, y: my - 9, width: w, height: 16 }, palette.background, palette.background, 0, { rx: 3 }));
-        elements.push(p.text(child.edgeLabel, mx, my + 3, smallFont, palette.primary, { anchor: 'middle', weight: 'bold' }));
+        elements.push(p.text(child.edgeLabel, mx, my + 3, smallFont, isActive ? palette.primary : palette.textMuted, { anchor: 'middle', weight: 'bold' }));
       }
     }
   }
