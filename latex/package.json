@@ -1,7 +1,7 @@
 {
   "name": "@cristianormazabal/triton-latex",
   "description": "LaTeX integration for Triton — render diagrams to vector PDF for \\includegraphics.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "license": "MIT",
   "keywords": [
