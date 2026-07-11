@@ -139,6 +139,7 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
         content.innerHTML = msg.svg;
         errorBox.classList.remove('show');
         vscodeApi.setState({ svg: msg.svg, docUri: msg.docUri, doc: doc, theme: themeSelect.value });
+        refreshAnchorListeners();
       } else if (msg.type === 'theme') {
         themeSelect.value = msg.name || '';
         const state = vscodeApi.getState() || {};
@@ -155,11 +156,108 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
       document.body.classList.toggle('doc-mode', !!prev.doc);
       stage.classList.toggle('fit', !prev.doc);
       content.innerHTML = prev.svg;
+      refreshAnchorListeners();
     }
     // Tell the extension the webview is loaded and listening, so it can flush a
     // render that was produced before this script attached its listener (the
     // synchronous Markdown path would otherwise race the webview load).
     vscodeApi.postMessage({ type: 'ready' });
+
+    // ─── Node-reference tooltip ───────────────────────────────────────────────
+    // Alt+hover over any node in the diagram reveals its crosslink reference
+    // string (e.g. "mytree.n0" or bare "n0"). Clicking the tooltip copies it.
+
+    let altDown = false;
+    let tooltipTimer = null;
+
+    const tooltip = document.createElement('div');
+    tooltip.style.cssText =
+      'position:fixed;z-index:9999;display:none;padding:6px 10px;border-radius:4px;' +
+      'background:rgba(0,0,0,0.85);color:var(--vscode-foreground,#ccc);' +
+      'font-family:var(--vscode-editor-font-family,monospace);font-size:12px;' +
+      'pointer-events:auto;max-width:300px;cursor:pointer;' +
+      'box-shadow:0 2px 8px rgba(0,0,0,0.4);' +
+      'border:1px solid rgba(255,255,255,0.12);user-select:none;';
+    document.body.appendChild(tooltip);
+
+    function safeHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function parseManifest(svgEl) {
+      try {
+        const el = svgEl.querySelector('#triton-anchors');
+        if (!el) return {};
+        return JSON.parse(el.textContent || '{}');
+      } catch (_) { return {}; }
+    }
+
+    function hideTooltip() {
+      tooltip.style.display = 'none';
+      tooltip.dataset.ref = '';
+    }
+
+    function showTooltip(manifest, e, svgEl) {
+      const ctm = svgEl.getScreenCTM();
+      if (!ctm) { hideTooltip(); return; }
+      const pt = svgEl.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const sp = pt.matrixTransform(ctm.inverse());
+
+      const hits = Object.keys(manifest).filter(k => {
+        const b = manifest[k].bounds;
+        return sp.x >= b.x && sp.x <= b.x + b.width && sp.y >= b.y && sp.y <= b.y + b.height;
+      }).sort((a, b) => {
+        const ba = manifest[a].bounds, bb = manifest[b].bounds;
+        return (ba.width * ba.height) - (bb.width * bb.height);
+      });
+
+      if (hits.length === 0) { hideTooltip(); return; }
+      const ref = hits[0];
+      tooltip.innerHTML =
+        '<span style="font-weight:600">' + safeHtml(ref) + '</span>' +
+        '<br><span style="opacity:.55;font-size:10px">click to copy</span>';
+      tooltip.dataset.ref = ref;
+      const x = Math.min(e.clientX + 14, window.innerWidth - 240);
+      const y = Math.min(e.clientY + 14, window.innerHeight - 56);
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+      tooltip.style.display = 'block';
+    }
+
+    tooltip.addEventListener('click', () => {
+      const ref = tooltip.dataset.ref;
+      if (!ref) return;
+      navigator.clipboard.writeText(ref).then(() => {
+        const saved = tooltip.innerHTML;
+        tooltip.innerHTML = '<span style="color:var(--vscode-terminal-ansiGreen,#4ec9b0);font-weight:600">copied!</span>';
+        setTimeout(() => { if (tooltip.style.display !== 'none') tooltip.innerHTML = saved; }, 1200);
+      }).catch(() => {});
+    });
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Alt') altDown = true; });
+    document.addEventListener('keyup', (e) => { if (e.key === 'Alt') { altDown = false; hideTooltip(); } });
+    window.addEventListener('blur', () => { altDown = false; hideTooltip(); });
+
+    function attachToSvg(svgEl) {
+      if (svgEl._tritonAnchorsBound) return;
+      svgEl._tritonAnchorsBound = true;
+      const manifest = parseManifest(svgEl);
+      svgEl.addEventListener('mousemove', (e) => {
+        if (!altDown) { hideTooltip(); return; }
+        if (tooltipTimer) clearTimeout(tooltipTimer);
+        tooltipTimer = setTimeout(() => { showTooltip(manifest, e, svgEl); }, 16);
+      });
+      svgEl.addEventListener('mouseleave', () => {
+        if (tooltipTimer) { clearTimeout(tooltipTimer); tooltipTimer = null; }
+        hideTooltip();
+      });
+    }
+
+    function refreshAnchorListeners() {
+      content.querySelectorAll('svg').forEach(s => attachToSvg(s));
+    }
   </script>
 </body>
 </html>`;

@@ -368,14 +368,16 @@ class PreviewManager {
       return;
     }
 
-    // render() returns a Result<string> and never throws.
+    // compileAndRenderSync embeds the anchor manifest into the SVG so the
+    // webview tooltip can discover node reference strings without a separate
+    // message payload.
     const { themeInput, forcedThemeName } = this.themeArgs();
-    const result = await render(renderable.text, themeInput, 'svg', forcedThemeName);
-    // The active document may have changed while we awaited; only post if the
-    // preview is still bound to the document we rendered.
+    const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName);
+    // The active document may have changed while we were processing; only post
+    // if the preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
     if (result.ok) {
-      this.post({ type: 'svg', svg: result.value, docUri: doc.uri.toString(), doc: false });
+      this.post({ type: 'svg', svg: result.value.svg, docUri: doc.uri.toString(), doc: false });
     } else {
       this.post({ type: 'error', message: `[${result.error.code}] ${result.error.message}` });
     }
