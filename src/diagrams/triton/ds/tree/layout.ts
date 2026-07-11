@@ -284,7 +284,7 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
 
     if (node.badge !== undefined) {
       const bc = badgeColor(node.badge, theme);
-      elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.background, bc, 1.5));
+      elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.surface, bc, 1.5));
       elements.push(p.text(node.badge, b.x + b.width - 3, b.y + 7, smallFont, bc, { anchor: 'middle', weight: 'bold' }));
     }
   }
