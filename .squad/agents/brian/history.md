@@ -212,3 +212,6 @@ Injecting a `<script type="application/json">` block inside the SVG string and t
 ### launch.json: never --disable-extension your own dev id
 
 `--disable-extension=focus-space.triton-vscode` disables the development extension itself (the dev host loads it under that same id), causing the Triton command to vanish from the palette entirely. Only the *competing* marketplace extensions (`deckpilot-triton`, `deckpilot-mermaid`) should be disabled.
+## Learnings — 2026-07-11 (flex-center scroll-clipping fix)
+
+**Flex `safe center` for overflow:** `align-items: center; justify-content: center` on a flex container with `overflow: auto` clips the top/left overflow of oversized content — unreachable by scrolling. Fix: `align-items: safe center; justify-content: safe center` centers when content fits, falls back to start-alignment when it overflows, restoring scroll access. Applied to `#stage` in `extension/src/preview-html.ts`.

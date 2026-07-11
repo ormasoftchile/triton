@@ -60,7 +60,7 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
     }
     #stage {
       position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: safe center; justify-content: safe center;
       overflow: auto; padding: 16px; box-sizing: border-box;
     }
     #stage.fit { padding: 0; }
