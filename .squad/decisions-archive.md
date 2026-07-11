@@ -5403,3 +5403,205 @@ The P5 failure from review `ken-verdict-dagre-port.md` was:
 ### ✅ PASS
 
 The column snap fix is correct. "has" and "creates" are straight verticals. "places" routes cleanly via laneX≈181.63 in 5 segments. No regressions introduced. Pre-existing "places" label cosmetic clip remains (non-blocking, pre-dates this commit).
+### 2026-06-27: Layout Algorithm Research — David
+
+
+
+---
+
+# Edsger Visual Audit — Barbara's Class/State Fixes
+Date: 2026-06-27
+
+## rsvg-convert commands used
+```
+rsvg-convert -f png -w 1400 -o edsger-class-audit.png examples/class/class.svg
+rsvg-convert -f png -w 1400 -o edsger-state-audit.png examples/state/state.svg
+```
+(Written to project directory; /tmp is disallowed in this environment.)
+
+---
+
+## Class diagram — what I saw
+
+The diagram is titled **"E-Commerce Domain Model"** and presents two visual columns:
+- **Left column** (top to bottom): Customer → ShoppingCart → Order → OrderItem → Product
+- **Right column** (top to bottom): CreditCardPayment → Payment (interface)
+
+### Q1: Is the `Customer→ShoppingCart (has)` edge straight or does it have unnecessary bends?
+The edge is a **single diagonal segment** — it goes from the bottom of Customer slightly down-left to reach ShoppingCart's top. There are no unnecessary bends or multi-segment kinks. The "has" label is clearly visible beside the line. It is not perfectly vertical (the boxes are slightly offset horizontally), but it is a clean single-segment connector. **Acceptable.**
+
+### Q2: Is `CreditCardPayment` x-aligned with `Payment`? Is the connector between them straight?
+Yes. Both boxes are positioned in the right column at approximately the same horizontal centre. The connector is a **dashed vertical line** (realization arrow) going straight down from CreditCardPayment to the open triangle arrowhead on Payment's top border. The connector is straight. **Correct.**
+
+### Q3: Do the two edges arriving at `Order` arrive at different x-positions, or are they crowded?
+Two arrowheads arrive at Order's top border. The "creates" edge from ShoppingCart (carrying a "*" multiplicity label) arrives slightly left-of-centre on Order's top. A second arrow (from Customer, unlabelled on the last segment) arrives slightly right of centre / more centrally. They are **spread apart** — not crowded. **Good.**
+
+### Q4: Is the `Customer→Order` edge visible? Describe its path.
+Yes. A solid arrow runs **diagonally** from Customer's lower-right area, bypassing ShoppingCart, and arrives at Order's top-right area. It is a single-segment diagonal with no intermediate waypoints. Its path is unambiguous and visible. **Clean.**
+
+### Q5: Are there any other edges with unnecessary bends?
+No. The remaining edges — ShoppingCart→Order "creates", Order→OrderItem "contains" (with filled-diamond composition marker), OrderItem→Product "references" — are all either clean straight verticals or single-segment diagonals. None have unnecessary bends.
+
+### Q6: Overall: does the diagram look clean and professional?
+Yes. The layout is well-balanced, node spacing is generous, labels are readable, multiplicity decorators are properly placed, and the realization arrow on the right column is correct UML notation. The diagram reads naturally top-to-bottom.
+
+**Score: PASS**
+
+---
+
+## State diagram — what I saw
+
+The diagram is titled **"Order Payment Lifecycle"** and shows a UML state machine with a composite state boundary.
+
+### Q1: Does the `Processing` composite boundary overlap the `Idle` node?
+The Processing boundary rectangle (rounded, light-blue) is positioned at the upper-left of the diagram. The **Idle** node is at the upper-right, outside the boundary. The boundary does **not** fully overlap Idle, but its right edge runs very close to — and appears to **clip** — the area where the `order_placed` transition label would appear.
+
+### Q2: Are edge labels visible and not hidden behind the boundary?
+- **"valid"** (Validating → Charging): Clearly visible inside the composite, to the left. ✓
+- **"authorize [amount > 0]"** (Charging → Authorized): Visible below the boundary, readable. ✓
+- **"authorize [amount <= 0]"** (Charging → Failed): Visible, readable. ✓
+- **"order_placed"** (initial → Idle transition): **PARTIALLY HIDDEN.** Only `order_pla` is visible; the right edge of the Processing boundary clips the rest of the label text. The full word "order_placed" is not readable. ✗
+
+### Q3: Overall: does it look correct?
+No. The `order_placed` label on the initial→Idle transition is partially obscured by the Processing composite boundary's right edge. A reader cannot fully read that label without prior knowledge of the diagram. This is a real visual defect — not a minor styling issue.
+
+**Score: FAIL**
+
+---
+
+## Verdict
+
+| Diagram | Score  | Reason |
+|---------|--------|--------|
+| CLASS   | **PASS** | Clean layout, all edges correctly routed, no bends, labels readable |
+| STATE   | **FAIL** | `order_placed` label clipped by Processing boundary right edge |
+
+**Action required:** Barbara must fix the Processing composite boundary width or shift the `order_placed` label so it does not overlap the boundary rectangle in state/layout.ts.
+
+
+
+---
+
+# Visual Audit — Phase 1 & 2
+Date: 2026-06-27
+Auditor: Edsger
+
+## Methodology
+
+For each diagram:
+1. Ran `node scripts/preview.mjs examples/<type>/` from `/Volumes/Projects/triton`
+2. Rasterized each `.svg` to `.png` with `rsvg-convert -f png -o <name>.png <name>.svg`
+3. Called `view` on each PNG to see the actual rendered output
+4. For suspect diagrams, also rendered at 4× (`-w 1200`) and viewed again
+5. Cross-referenced SVG source for measurements where clipping was suspected
+
+---
+
+## Results
+
+| Diagram | Files Viewed | Score | Notes |
+|---------|-------------|-------|-------|
+| flowchart/ci-pipeline | ci-pipeline.png | PASS | Clean TB. Decision diamonds (Tests Pass?, Approved?). Yes/no edge labels clear. No overlaps. |
+| flowchart/flowchart | flowchart.png | PASS | Clean LR. Diamond "Validate" with valid/invalid branches. All labels inside nodes. |
+| flowchart/order-processing | order-processing.png | PASS | Clean LR. "Payment OK?" diamond. Reserve Stock / Decline Order branch clean. |
+| class | class.png | PASS WITH NOTES | TB chain Customer→ShoppingCart→Order→OrderItem→Product reads well. CreditCardPayment→Payment (dashed «interface» arrow) correct. Layout is tall and narrow (~420px wide) but all text is readable. Stereotype labels visible. |
+| state | state.png | **FAIL** | Edge label "order_placed" (Idle→Processing) is clipped by the Processing composite state boundary. Viewed at both native and 4× — "order_pl" visible then cut off. SVG confirms: text placed at x=149 with no text-anchor, running into the composite state rect which clips it. See Failures section. |
+| er | er.png | PASS | 5 entity tables. Crow's foot notation correct. Relationship labels (places, contains, categorizes, wishlist, ordered in) all readable. No overlaps. |
+| c4 | c4.png | PASS WITH NOTES | Enterprise boundary and inner BankBoundary both rendered. Banking Customer D and Authentication Provider correctly outside boundary (per source: they're declared outside Enterprise_Boundary). "Sends e-mails [SMTP]" edge label sits at boundary edge, slightly awkward but readable. |
+| architecture | architecture.png | PASS | LR layout. Client → API Server (in Cloud Services group) → Database + Storage. Icons visible. Group boundary clean. |
+| requirement | requirement.png | PASS | TB layout. 5 nodes. Stereotype labels («requirement», «element», «designConstraint», «functionalRequirement»). Dashed edges with «satisfies», «contains», «derives» labels readable. No overlaps. |
+| ds/graph | graph.png | **FAIL** | Two issues. (1) Title "Build dependency graph" is clipped — viewBox width is 163.9px but title text at font-size 18 requires ~200px. Displays as "Build dependenc" then cuts off. (2) The `B -> D` skip edge (resolve→emit without label) is drawn at identical x-coordinates as the chained edges (all at x=69.95), making it completely invisible — it underlies the A→B→C→D path. See Failures section. |
+
+---
+
+## Failures
+
+### FAIL 1 — state: edge label "order_placed" clipped by composite state boundary
+
+**What I saw:** At native resolution (320×952) and at 4× (1200px wide), the transition label for `Idle --> Processing : order_placed` reads "order_pl" then is visually cut off at the right boundary of the "Processing" composite state rectangle.
+
+**Root cause (from SVG inspection):** The text element is placed at `x="149" y="167.03"` with no `text-anchor` attribute (defaults to "start"). The word "order_placed" extends rightward past the composite state rect, but the composite state's background rect (or its SVG group clipping) masks the overflow. The composite state's right edge falls near x=175–195 at this diagram's coordinate scale. The text runs from x=149 to approximately x=215, so 20–65px of the label is hidden.
+
+**What Barbara needs to fix:** When routing labels for transitions that originate from or pass through composite state boundaries, the label must be placed outside the composite state's bounding box — either to the right of it, above the entry arrow, or with explicit padding so the label doesn't collide with the boundary rect. A quick fix is to compute the composite state's bounding rect and displace any label that falls within it outward.
+
+---
+
+### FAIL 2 — ds/graph: title clipped + skip-edge invisible
+
+**Issue A — Title clipped:**
+**What I saw:** Both at native (163.9×456) and at 4× (800px wide), the title reads "Build dependenc" and is truncated at the right edge of the image. The SVG viewBox width (163.9px) is computed from the widest node ("typecheck" = 91.9px + margins = ~163.9px) — but the title "Build dependency graph" at font-size 18 requires approximately 200px. The viewBox width does not account for the title text width.
+
+**What Barbara needs to fix:** The `nodegraph` layout must measure the title text width and ensure the viewBox `width = max(graph_width, title_text_width + left_margin)`. Currently the viewBox is sized to fit the graph nodes only.
+
+**Issue B — Skip edge invisible (B → D):**
+**What I saw:** The rendered graph shows a clean linear chain parse→resolve→typecheck→emit. There is no visual indication of the `B -> D` edge (resolve→emit direct). 
+
+**Root cause (SVG):** The path for B→D is `M 69.95 200 L 69.95 368` — a straight vertical line at x=69.95. The chain edges A→B, B→C, C→D are also all at x=69.95 (all nodes are center-aligned at the same x). The B→D edge is drawn behind the other edges and is completely invisible.
+
+**What Barbara needs to fix:** When a skip/long-range edge is present (source and destination are not adjacent layers), it must be routed to a different x-offset (e.g., offset right or left by a few pixels, or bent outward as a bezier) so it is visually distinguishable. The layout kernel should detect parallel edges at the same x and apply a small horizontal offset to skip edges. Alternatively, use a bezier curve that bows to one side.
+
+---
+
+## Verdict
+
+**PHASE 1: PASS**
+All three flowchart diagrams (ci-pipeline, flowchart, order-processing) render correctly. The Sugiyama upgrade produces clean TB and LR layouts with proper node shapes, edge routing, and readable labels. No failures.
+
+**PHASE 2: FAIL**
+Two of the seven kernel-caller diagram types have real rendering bugs:
+- `state` — edge label clipped by composite state boundary
+- `ds/graph` — title clipped by narrow viewBox + skip edge invisible
+
+Five of seven pass (class, er, c4, architecture, requirement). Phase 2 cannot be called complete until the two failures are resolved.
+
+
+---
+
+## Session 20260627 — Class Diagram BK Port: Decisions
+
+This session completed the BK (Brandes-Köpf) layout algorithm synthesis, dummy-node fixes, and skip-edge routing corrections for the class diagram layout.
+
+### Key Commits
+
+- `9783ff2` — Option A: BK dummy independence + lane routing
+- `ca4ae5e` — Dagre-faithful BK fixes (remove isDummy guard, add biasRight)
+- `b254d5d` — Obstacle-aware dummy snap
+- `d15b9b9` — Post-balance dummy snap + cascade fix
+- `1ef7cb7` — Dummy-protection conflicts (Phase 4)
+- `29725de` — Cascade port assignment restored
+- `23c3c84` — laneX cascade ideal (final)
+
+---
+
+
+---
+
+# BK Phase 4 Dummy-Protection Fix — Done
+
+**Date**: 2026-06-27  
+**Author**: Edsger  
+**Commit**: `1ef7cb7`
+
+## Summary
+
+Fixed the Z-shaped "places" edge in `examples/class/class.mmd` by adding dummy-protection conflicts to the BK coordinate assignment algorithm in `src/graph/layered.ts`.
+
+## The Bug
+
+`bends[0].x` was 41.09 while `Customer.x = Order.x = 89`. The dummy node for the skip edge Customer→Order ended up 47.9px to the left of the Customer column, creating a Z-shaped SVG path:
+
+```
+M 89 184 L 89 216 L 41.09 216 L 41.09 387 L 89 387 L 89 419
+```
+
+## Root Cause
+
+BK's type-1 conflict detection only protects **inner segments** (dummy→dummy edges) in skip chains spanning ≥3 layers. For a 2-layer skip (Customer→dummy→Order), there is no inner segment, so ShoppingCart (which shares Customer as predecessor and Order as successor with the dummy) steals the dummy's alignment slot in BK's reversed sweeps (`ur`, `dr`).
+
+- `ul`/`dl` sweeps: dummy aligns correctly with Customer → dummy.x = Customer.x
+- `ur`/`dr` sweeps: ShoppingCart wins the slot → dummy is orphaned at Customer.x − 95.8
+
+After 4-sweep balance: dummy = Customer − 47.9 = 41.09.
+
+## Fix
+
