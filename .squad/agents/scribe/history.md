@@ -86,3 +86,62 @@ Processed Bjarne's Mermaid sequenceDiagram parser decision (Tier 0 Inc 2).
 ## 2026-06-14 — Tier 2 Complete Documentation
 
 Merged tier 2 decision inbox. Recorded top-level decision: 'TIER 2 COMPLETE — all 4 chart types shipped'. Created orchestration logs for barbara and scribe. Wrote session log. Updated cross-agent histories. 1425 tests, determinism preserved. Commits 5b709cf, ecfc418.
+
+---
+
+## 2026-07-11 — Session Archival & Decision Merge
+
+**Status:** COMPLETE  
+**Date:** 2026-07-11T00:37:30Z  
+**Actions:** Archive check, inbox merge, orchestration logs, session log, history updates
+
+---
+
+## Work Summary
+
+### 1. Archival Check
+- **decisions.md size:** 112,882 bytes (over 51,200-byte hard gate)
+- **Archive policy:** Entries older than 7 days (before 2026-07-04)
+- **Result:** No entries older than 7 days; oldest decision is 2026-07-05
+- **Action:** No archiving performed
+
+### 2. Decision Inbox Merge
+- **Files processed:** 4
+  - `brian-badge-fill.md` (2026-07-10T20:20)
+  - `brian-circle-connectors.md` (2026-07-10T20:29)
+  - `ken-tree-fixes-qa.md` (2026-07-10)
+  - `leslie-node-ref-tooltip.md` (2026-07-10) — queued feature, NOT dropped
+- **Action:** Merged all 4 into `.squad/decisions.md` with separator
+- **Cleanup:** Deleted all 4 inbox files
+
+### 3. Orchestration Logs Written
+- `.squad/orchestration-log/2026-07-11T00:37:30Z-brian.md`
+- `.squad/orchestration-log/2026-07-11T00:37:30Z-ken.md`
+- `.squad/orchestration-log/2026-07-11T00:37:30Z-coordinator-release.md`
+
+### 4. Session Log Written
+- `.squad/log/2026-07-11T00:37:30Z-tree-fixes-0.1.7.md`
+
+### 5. History File Updates
+- Appended entries to `agents/brian/history.md`, `agents/ken/history.md`, `agents/scribe/history.md`
+
+### 6. History File Summarization
+- All history files checked; none exceed 15,360-byte threshold
+- No summarization needed
+
+---
+
+## Pre-/Post-Merge Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| decisions.md size | 112,882 bytes | 128,544 bytes |
+| Inbox files | 4 | 0 |
+| Orchestration logs | 0 | 3 |
+| Session log | 0 | 1 |
+
+---
+
+## Status
+
+✅ Complete. All .squad/ artifacts staged and ready for commit.

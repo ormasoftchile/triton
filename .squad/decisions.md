@@ -2413,3 +2413,231 @@ Both posters share an identical **compositional structure**:
 ---
 
 *Filed: .squad/decisions/inbox/leslie-poster-capability-analysis.md*
+
+---
+
+# Brian — AVL Badge Circle Solid Fill Fix
+
+**Author:** Brian (Layout Implementation Engineer)
+**Date:** 2026-07-10T20:20-04:00
+**Branch:** `ormasoftchile/refresh-ds-renders`
+
+## Problem
+
+Badge circles on tree nodes (AVL balance-factor counts, etc.) had `fill=palette.background`. In the VS Code preview, `palette.background` is `''` (empty string); `svg.ts` normalises empty fill to `fill="none"`, making the badge circle transparent. The node body showed through and the count text was hard to read.
+
+## Fix
+
+**File:** `src/diagrams/triton/ds/tree/layout.ts` (~line 287)
+
+```diff
+- elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.background, bc, 1.5));
++ elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.surface, bc, 1.5));
+```
+
+`palette.surface` is always a solid, opaque, theme-aware colour (e.g. `#F8FAFC` on the default theme). Badge text, stroke colour (`badgeColor`), radius, and position are unchanged.
+
+## Validation
+
+- `pnpm build`: ✓ clean
+- `pnpm test`: 499/499 ✓ (no test asserted the old `palette.background` fill)
+- `avl.png`: Badge circles are solid white/surface with green stroke (balance=0) and blue stroke (balance=±1). Count text is legible against the opaque background. No node body bleeds through.
+
+---
+
+# Brian — Circle Tree Node Connector Fix
+
+**Author:** Brian (Layout Implementation Engineer)
+**Date:** 2026-07-10T20:29-04:00
+**Branch:** `ormasoftchile/refresh-ds-renders`
+
+## Problem
+
+Tree edges to circle-shaped nodes were clipped to the bounding **box** border via `connectSlots → borderPoint`, not to the **circle** perimeter. On diagonal edges (widest spread = root level) the box-border point lies outside the circle arc, producing a visible gap of ~5–7 px. Near-vertical edges (deeper levels) show ~1 px discrepancy, invisible at normal scale.
+
+## Fix
+
+**File:** `src/diagrams/triton/ds/tree/layout.ts` — edge-drawing loop
+
+Added a local `circleBorder` helper that, given a node center, radius, and unit direction, returns the exact perimeter point. In the edge loop, each endpoint is now resolved per the **node's own shape**:
+
+- `shape === 'circle'` → perimeter point via `circleBorder`
+- `shape === 'rect' | 'pill' | 'strip'` → existing `connectSlots` box clip (unchanged)
+
+Mixed trees (circle parent + rect child, etc.) clip each end independently.
+
+```diff
+- const { start, end } = connectSlots(pb, cb);
++ const start = parentShape === 'circle'
++   ? circleBorder(pc, pb.width / 2, dir, 1)
++   : boxStart;
++ const end = childShape === 'circle'
++   ? circleBorder(cc, cb.width / 2, dir, -1)
++   : boxEnd;
+```
+
+No changes to edge color, width, labels, or any other layout logic.
+
+## Validation
+
+- `pnpm build`: ✓ clean
+- `pnpm test`: 499/499 ✓ (no test asserted old edge coordinates)
+- `avl.png` (1000 px wide): Root node (50) connectors touch the circle perimeter exactly at both sides — no gap. All other nodes similarly clean. Badge solid fill retained.
+- `heap.png` (all-circle tree): Every edge meets every circle flush, including the wide root spread and the deep near-vertical edge to node 10.
+- `nodegraph` unaffected — only `tree/layout.ts` was edited.
+
+---
+
+# Visual QA: Tree Rendering Fixes (PR #57)
+
+**Reviewer:** Ken (Visual QA)
+**Date:** 2026-07-10
+**Branch:** ormasoftchile/refresh-ds-renders
+
+---
+
+## Test 1: avl.svg
+
+**Command:** `rsvg-convert -f png -w 1000 -o avl-test.png examples/triton/ds/tree/avl.svg`
+
+**What I see:**
+- Root node "50" with two diagonal edges going to "30" (left) and "70" (right)
+- Both edges from root touch the circle perimeter exactly — no gap, no overshoot
+- Small badge circles visible at top-right of each node (balance factors: "1" on root and node 30; "0" on leaves)
+- Badge circles have OPAQUE solid fill (light gray/white background) — digits clearly legible
+- All other edges (30→10, 30→40, 10→5, 10→20, 70→60, 70→80) touch their respective circle perimeters cleanly
+
+**Result:** ✅ **PASS**
+
+---
+
+## Test 2: heap.svg
+
+**Command:** `rsvg-convert -f png -w 1000 -o heap-test.png examples/triton/ds/tree/heap.svg`
+
+**What I see:**
+- Root node "80" with two edges to "40" and "70"
+- Root edges touch circle perimeter cleanly — no floating gap
+- All-circle tree with 7 nodes (80, 40, 70, 20, 30, 50, 60, 10)
+- Every edge endpoint touches its respective circle exactly
+- No badges present (heap doesn't use balance factors) — correct behavior
+- Edge from "20" to "10" is nearly vertical, touches both circles flush
+
+**Result:** ✅ **PASS**
+
+---
+
+## Test 3: trie.svg
+
+**Command:** `rsvg-convert -f png -w 1000 -o trie-test.png examples/triton/ds/trie/trie.svg`
+
+**What I see:**
+- Root is a large empty circle (no label) at top
+- Internal "dot" circle nodes (empty circles representing prefixes c, d, a)
+- Terminal pill-shaped nodes: "cat", "car", "card", "do", "dog" — solid blue fill with black text
+- Edges from root circle to child circles: touch circle perimeter cleanly
+- Edges from circles to pills: touch pill borders cleanly at top center
+- Edge from "car" pill to "card" pill: vertical edge touches both pill tops/bottoms flush
+- Edge labels (c, d, a, t, r, o, g) positioned correctly on edges
+- No regression — pill edges still clip to pill borders, not to bounding boxes
+
+**Result:** ✅ **PASS**
+
+---
+
+## Test 4: rbtree.svg
+
+**Command:** `rsvg-convert -f png -w 1000 -o rbtree-test.png examples/triton/ds/tree/rbtree.svg`
+
+**What I see:**
+- Root node "13" (dark/black fill) with white text
+- Black nodes: 13, 8, 17, 6, 11, 15, 25 — all dark gray/charcoal fill
+- Red node: "1" — clearly red/coral fill, distinct from black nodes
+- Root edges (13→8, 13→17) touch circle perimeters flush — no gap
+- All other edges touch their circles exactly
+- Edge from "6" to "1" (red node) touches both circles cleanly
+- Color semantics preserved: red/black distinction clearly visible
+
+**Result:** ✅ **PASS**
+
+---
+
+## Overall Verdict
+
+### ✅ **OVERALL PASS**
+
+Both fixes verified working correctly:
+
+| Fix | Status | Evidence |
+|-----|--------|----------|
+| FIX 1: Solid badge fill | ✅ PASS | AVL badges have opaque white/gray fill; digits "0" and "1" fully legible |
+| FIX 2: Circle edge clipping | ✅ PASS | All 4 diagrams show edges touching circle perimeters exactly; no floating gaps at root or anywhere |
+
+### Defects Found
+
+**None.**
+
+All edge endpoints touch their target shapes (circles and pills) flush. Badge circles are opaque with legible digits. No regressions in trie pill-edge clipping.
+
+---
+
+*QA completed 2026-07-10 20:32 EDT*
+
+---
+
+# Node-Ref Tooltip: Feasibility Analysis + Implementation Plan
+
+**Author:** Leslie (Lead / Spec Architect)
+**Date:** 2026-07-10
+**Status:** PROPOSED — awaiting review; feature queued for implementation
+**Requested by:** Cristian (@ormasoftchile)
+
+---
+
+## Feature Request (verbatim)
+
+> "I'd like a way to interactively discover the id of any node on a poster. For instance, how to reference a node on an AVL tree — it's not obvious. Could the user hover the desired node and, holding the Alt key, get a tooltip showing the reference? That way the user knows the endpoint to use in a crosslink."
+
+---
+
+## Executive Summary
+
+**Recommended approach:** Embed a deterministic JSON anchor manifest inside the SVG (`<script type="application/json">`); webview extracts it and performs bounds hit-testing on Alt+hover. This unlocks interactive node discovery with minimal code footprint.
+
+**Implementation scope (MVP):** Poster cells + standalone DS diagrams. Phase 1 effort: 3–4 hours.
+
+---
+
+## B. File-by-File Changes (Checklist)
+
+### Core Package
+
+| File | Change |
+|------|--------|
+| `src/frontend/index.ts` | Add new export `compileAndRenderSync(input, themeInput?, rendererName?, forcedThemeName?): Result<{ svg: string; anchors: NodeAnchorRegistry }>` that returns both the rendered SVG string AND the anchor registry. |
+| `src/render/svg.ts` | Add helper `embedAnchorManifest(svg: string, anchors: NodeAnchorRegistry): string` that inserts `<script type="application/json" id="triton-anchors">…</script>` immediately before `</svg>`. |
+| `src/contracts/index.ts` | Re-export any new type (e.g. `RenderWithAnchors<T>`). |
+
+### Extension
+
+| File | Change |
+|------|--------|
+| `extension/src/extension.ts` | Call the new `compileAndRenderSync` in `renderInto()` and `renderMarkdownInto()`. |
+| `extension/src/preview-html.ts` | Add ~80 lines of tooltip logic: parse manifest, hit-test on Alt+hover, show/dismiss tooltip. |
+
+### Tests
+
+| File | Change |
+|------|--------|
+| `test/svg-embed-anchors.test.ts` (new) | Unit test `embedAnchorManifest`. |
+
+---
+
+## Note on Implementation Status
+
+This decision records a complete implementation plan. **The feature is NOT yet built** — it is queued for future work. All technical details, coordinate mapping, UX behaviour, and risk mitigation are documented above for the implementer.
+
+**Keep this decision in decisions.md** for reference when the tooltip feature is scheduled.
+
+---
+

@@ -253,3 +253,44 @@ Full verdict: `.squad/decisions/inbox/ken-verdict-9cf0847.md`
 Branch passes visual QA with both theming fixes confirmed and no regressions.
 
 **Timestamp:** 2026-07-10T19:17:43-04:00
+
+## 2026-07-10 — Tree Rendering Fixes QA (PR #57)
+
+**Status:** COMPLETE  
+**Date:** 2026-07-10 20:32 EDT  
+**Verdict:** ✅ PASS  
+**Branch:** `ormasoftchile/refresh-ds-renders`
+
+---
+
+## Test Coverage
+
+Verified both fixes across four tree diagram families:
+
+| Diagram | Rendering | Result |
+|---------|-----------|--------|
+| AVL tree | Badge solid fill + circle connectors | ✅ PASS |
+| Heap | All-circle tree, multi-level connector clipping | ✅ PASS |
+| Trie | Circle root + pill terminals, mixed edges | ✅ PASS |
+| Red-Black tree | Semantic node colors (red/black), connector flush | ✅ PASS |
+
+### Test Method
+
+- Used `rsvg-convert -f png -w 1000` to rasterize at high resolution
+- Visual inspection for:
+  - Badge circle opacity and text legibility
+  - Connector endpoints vs. circle perimeter (no gap, no overshoot)
+  - Semantic node colors preserved
+  - No regressions in other edge types (pill borders, etc.)
+
+### Defects Found
+
+**None.**
+
+All connectors touch target shapes flush; badges render opaque with legible digits; no visual regressions in any family.
+
+---
+
+## Release Status
+
+Approved for 0.1.7 release.
