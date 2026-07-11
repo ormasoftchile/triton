@@ -5,7 +5,7 @@ import type { ThemeInput } from '../../src/contracts/index.js';
 // `main`/`exports`, so `import 'triton'` is impossible). esbuild bundles this
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
-import { render } from '../../src/frontend/index.js';
+import { compileAndRenderSync } from '../../src/frontend/index.js';
 import { themePresetNames } from '../../src/theme/preset.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
@@ -165,7 +165,7 @@ interface Preview {
 }
 
 type WebviewMessage =
-  | { readonly type: 'svg'; readonly svg: string; readonly docUri: string; readonly doc: boolean }
+  | { readonly type: 'svg'; readonly svg: string; readonly anchors?: string; readonly docUri: string; readonly doc: boolean }
   | { readonly type: 'error'; readonly message: string }
   | { readonly type: 'theme'; readonly name: string };
 
@@ -368,14 +368,16 @@ class PreviewManager {
       return;
     }
 
-    // render() returns a Result<string> and never throws.
+    // compileAndRenderSync returns a clean SVG plus the anchor registry.
+    // Anchors travel as a separate JSON payload so the SVG string is byte-
+    // identical to renderSync output — safe to inject via innerHTML under CSP.
     const { themeInput, forcedThemeName } = this.themeArgs();
-    const result = await render(renderable.text, themeInput, 'svg', forcedThemeName);
-    // The active document may have changed while we awaited; only post if the
-    // preview is still bound to the document we rendered.
+    const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName);
+    // The active document may have changed while we were processing; only post
+    // if the preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
     if (result.ok) {
-      this.post({ type: 'svg', svg: result.value, docUri: doc.uri.toString(), doc: false });
+      this.post({ type: 'svg', svg: result.value.svg, anchors: JSON.stringify(result.value.anchors), docUri: doc.uri.toString(), doc: false });
     } else {
       this.post({ type: 'error', message: `[${result.error.code}] ${result.error.message}` });
     }

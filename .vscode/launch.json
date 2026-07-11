@@ -5,7 +5,10 @@
       "name": "Run Triton Extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/extension"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/extension",
+        "--disable-extensions"
+      ],
       "outFiles": ["${workspaceFolder}/extension/dist/**/*.cjs"],
       "sourceMaps": true,
       "preLaunchTask": "watch-extension"

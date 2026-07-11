@@ -1,4 +1,4 @@
-import type { Scene, SceneElement, Renderer } from '../contracts/index.js';
+import type { Scene, SceneElement, Renderer, NodeAnchorRegistry } from '../contracts/index.js';
 
 /**
  * Render a fully-resolved Scene to an SVG string.
@@ -320,6 +320,26 @@ function escapeAttr(text: string): string {
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+// ─── Anchor manifest embed ────────────────────────────────────────────────────
+
+/**
+ * Embed a JSON anchor manifest into an SVG string as an inert data script tag,
+ * immediately before the closing `</svg>`.
+ *
+ * The JSON object has keys sorted deterministically so the output is stable
+ * across invocations. Any `</` sequences inside the JSON are escaped as `<\/`
+ * so they cannot accidentally terminate the script element.
+ */
+export function embedAnchorManifest(svg: string, anchors: NodeAnchorRegistry): string {
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(anchors).sort()) {
+    sorted[key] = anchors[key];
+  }
+  const json = JSON.stringify(sorted).replace(/<\//g, '<\\/');
+  const block = `<script type="application/json" id="triton-anchors">${json}</script>`;
+  return svg.replace('</svg>', `${block}\n</svg>`);
 }
 
 // ─── Renderer object ──────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import type { Scene, ThemeInput, Result, BaseIR, LayoutResult } from '../contracts/index.js';
+import type { Scene, ThemeInput, Result, BaseIR, LayoutResult, NodeAnchorRegistry } from '../contracts/index.js';
 import { ok, err } from '../contracts/index.js';
 import { detect } from './detect.js';
 import { stripComments } from './preprocess.js';
@@ -51,7 +51,7 @@ import { trie } from '../diagrams/triton/ds/trie/trie.js';
 import { graph } from '../diagrams/triton/ds/graph/graph.js';
 import { unionfind } from '../diagrams/triton/ds/unionfind/unionfind.js';
 import { topology } from '../diagrams/triton/topology/topology.js';
-import { svgRenderer } from '../render/svg.js';
+import { svgRenderer, embedAnchorManifest } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
   straightRouter,
@@ -186,6 +186,43 @@ export function renderSync(
 
   try {
     return ok(renderer.render(compileResult.value.scene));
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    return err('LAYOUT_ERROR', message, cause);
+  }
+}
+
+/**
+ * Compile and render input text to SVG with an embedded anchor manifest.
+ *
+ * Identical parameter list to {@link renderSync}. Returns both the SVG string
+ * (with the anchor manifest embedded as an inert `<script type="application/json">`
+ * element) and the raw anchor registry for callers that need programmatic access.
+ *
+ * Use this in interactive contexts (e.g. VS Code preview) where node-reference
+ * discovery is desired. For plain SVG output (golden tests, markdown preview)
+ * use {@link renderSync} — it is intentionally kept anchor-manifest-free.
+ *
+ * Returns a Result — never throws.
+ */
+export function compileAndRenderSync(
+  input: string,
+  themeInput?: ThemeInput,
+  rendererName = 'svg',
+  forcedThemeName?: string,
+): Result<{ svg: string; anchors: NodeAnchorRegistry }> {
+  const compileResult = compileSync(input, themeInput, forcedThemeName);
+  if (!compileResult.ok) return compileResult;
+
+  const renderer = getRenderer<string>(rendererName);
+  if (!renderer) {
+    return err('UNKNOWN_RENDERER', `No renderer registered: ${rendererName}`);
+  }
+
+  try {
+    const { scene, anchors } = compileResult.value;
+    const svg = renderer.render(scene);
+    return ok({ svg, anchors });
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
     return err('LAYOUT_ERROR', message, cause);
