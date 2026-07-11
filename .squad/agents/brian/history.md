@@ -144,3 +144,71 @@ Two targeted visual-consistency improvements to tree layout:
 ## Release Status
 
 Version 0.1.7 published to npm (lockstep with triton-latex).
+
+---
+
+## Learnings — 2026-07-11 (node-ref-tooltip MVP, branch: ormasoftchile/node-ref-tooltip)
+
+### New APIs
+
+**`compileAndRenderSync(input, themeInput?, rendererName?, forcedThemeName?)`** — `src/frontend/index.ts`
+- Same parameter list as `renderSync`; returns `Result<{ svg: string; anchors: NodeAnchorRegistry }>`
+- Compiles → renders → calls `embedAnchorManifest` → returns both the enriched SVG and the raw anchors
+- Use in interactive contexts (VS Code preview) where node-ref discovery is wanted
+
+**`embedAnchorManifest(svg, anchors)`** — `src/render/svg.ts`
+- Inserts `<script type="application/json" id="triton-anchors">{sorted JSON}</script>` immediately before `</svg>`
+- Keys sorted with `Object.keys(anchors).sort()` for deterministic output
+- Escapes `</` → `<\/` inside the JSON to prevent early tag termination
+- Pure string function; has no side-effects on rendering geometry
+
+### renderSync stays anchor-free
+`renderSync` deliberately does NOT embed the manifest. All golden SVG tests use `renderSync`; any change to that function would cause golden breaks. `compileAndRenderSync` is the only render path that embeds the manifest.
+
+### Webview tooltip mechanism
+- The anchor manifest rides inside the SVG string as an inert `<script type="application/json">` data block (no CSP change needed)
+- In `preview-html.ts` the inline `<script nonce=...>` adds `attachToSvg(svgEl)` per SVG element, called via `refreshAnchorListeners()` after every `content.innerHTML = msg.svg` assignment
+- Alt key state is tracked globally (keydown/keyup/blur); on `mousemove` while Alt is held, a 16 ms debounce hit-tests all anchor bounds in SVG user space using `getScreenCTM().inverse()` + `createSVGPoint().matrixTransform()`
+- Smallest-area hit wins (innermost node); tooltip positioned near cursor with viewport clamping
+- `navigator.clipboard.writeText()` on tooltip click; brief "copied!" flash
+
+### Extension change
+`renderInto()` in `extension/src/extension.ts` now calls `compileAndRenderSync` (sync) instead of awaiting `render()`. The async wrapper `render` is retained for other callers (markdown path unchanged).
+
+
+---
+
+## Learnings — 2026-07-11 (dev-host extension-id collision fix)
+
+### Dev Extension Host collision with installed marketplace extensions
+
+When `extension/package.json` uses the same id (`focus-space.triton-vscode`) as an already-installed marketplace extension, F5 loads both under one id in the Extension Development Host. The result is a broken webview↔extension message handshake (blank preview). Similarly, `focus-space.deckpilot-triton` and `focus-space.deckpilot-mermaid` register competing Triton/Mermaid renderers that interfere with the dev build.
+
+**Fix:** Add `--disable-extension=<id>` flags to the `args` array in `.vscode/launch.json` for each conflicting extension. The dev-host still loads the local build via `--extensionDevelopmentPath`; only the named extensions are disabled (all others, including Copilot, remain active).
+
+**File:** `.vscode/launch.json` — three flags appended to `args`.
+
+---
+
+## Learnings — 2026-07-11 (anchor postMessage fix — CSP/innerHTML safety)
+
+### Don't embed `<script>` inside SVG sent to webview innerHTML
+
+Injecting a `<script type="application/json">` block inside the SVG string and then writing it via `content.innerHTML = msg.svg` caused the VS Code webview to blank (black render). The webview CSP blocks or interferes with any `<script>` encountered during innerHTML parsing, even inert data scripts.
+
+**Fix:** Keep the SVG string byte-identical to `renderSync` output (no `embedAnchorManifest` call in `compileAndRenderSync`). Anchors travel as a separate `anchors` field in the postMessage payload — serialised as `JSON.stringify(result.value.anchors)`. The webview script reads `msg.anchors` into a module-scope `currentAnchors` object and persists it in `vscodeApi.setState` alongside the SVG, so tooltip state survives webview reloads. `embedAnchorManifest` remains exported in `svg.ts` for future static-export use cases where no CSP applies.
+
+
+---
+
+## Learnings — 2026-07-11 (missing-import runtime bug + esbuild type-check gap)
+
+### esbuild does NOT type-check — undefined identifiers escape the build
+
+`compileAndRenderSync` was called in `extension/src/extension.ts` but the import on line 8 only listed `render`. esbuild bundles without running tsc, so this produced a valid `.cjs` file that threw `ReferenceError: compileAndRenderSync is not defined` at runtime. The build step showed no errors. The fix was simply correcting the import to `import { compileAndRenderSync } from '../../src/frontend/index.js'` (dropping the unused `render`).
+
+**Guard:** `extension/tsconfig.json` exists. Running `npx tsc -p extension/tsconfig.json --noEmit` catches undefined identifier errors (and also caught a missing `anchors` field on `WebviewMessage`). This should be run after any extension source change before relying on the F5 dev host.
+
+### launch.json: never --disable-extension your own dev id
+
+`--disable-extension=focus-space.triton-vscode` disables the development extension itself (the dev host loads it under that same id), causing the Triton command to vanish from the palette entirely. Only the *competing* marketplace extensions (`deckpilot-triton`, `deckpilot-mermaid`) should be disabled.

@@ -5,7 +5,7 @@ import type { ThemeInput } from '../../src/contracts/index.js';
 // `main`/`exports`, so `import 'triton'` is impossible). esbuild bundles this
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
-import { render } from '../../src/frontend/index.js';
+import { compileAndRenderSync } from '../../src/frontend/index.js';
 import { themePresetNames } from '../../src/theme/preset.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
@@ -165,7 +165,7 @@ interface Preview {
 }
 
 type WebviewMessage =
-  | { readonly type: 'svg'; readonly svg: string; readonly docUri: string; readonly doc: boolean }
+  | { readonly type: 'svg'; readonly svg: string; readonly anchors?: string; readonly docUri: string; readonly doc: boolean }
   | { readonly type: 'error'; readonly message: string }
   | { readonly type: 'theme'; readonly name: string };
 
