@@ -368,16 +368,16 @@ class PreviewManager {
       return;
     }
 
-    // compileAndRenderSync embeds the anchor manifest into the SVG so the
-    // webview tooltip can discover node reference strings without a separate
-    // message payload.
+    // compileAndRenderSync returns a clean SVG plus the anchor registry.
+    // Anchors travel as a separate JSON payload so the SVG string is byte-
+    // identical to renderSync output — safe to inject via innerHTML under CSP.
     const { themeInput, forcedThemeName } = this.themeArgs();
     const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName);
     // The active document may have changed while we were processing; only post
     // if the preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
     if (result.ok) {
-      this.post({ type: 'svg', svg: result.value.svg, docUri: doc.uri.toString(), doc: false });
+      this.post({ type: 'svg', svg: result.value.svg, anchors: JSON.stringify(result.value.anchors), docUri: doc.uri.toString(), doc: false });
     } else {
       this.post({ type: 'error', message: `[${result.error.code}] ${result.error.message}` });
     }

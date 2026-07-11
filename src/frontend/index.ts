@@ -221,8 +221,7 @@ export function compileAndRenderSync(
 
   try {
     const { scene, anchors } = compileResult.value;
-    const rawSvg = renderer.render(scene);
-    const svg = embedAnchorManifest(rawSvg, anchors);
+    const svg = renderer.render(scene);
     return ok({ svg, anchors });
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);

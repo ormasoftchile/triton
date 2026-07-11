@@ -108,23 +108,20 @@ describe('compileAndRenderSync', () => {
     expect(typeof result.value.anchors).toBe('object');
   });
 
-  it('svg contains the embedded anchor manifest script tag', () => {
+  it('svg does NOT contain the embedded anchor manifest (clean output)', () => {
     const result = compileAndRenderSync(treeInput);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.svg).toContain('<script type="application/json" id="triton-anchors">');
+    expect(result.value.svg).not.toContain('triton-anchors');
   });
 
-  it('embedded manifest is valid JSON matching the returned anchors', () => {
+  it('anchors object keys match the node ids (populated, no manifest in svg)', () => {
     const result = compileAndRenderSync(flowchartInput);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const match = result.value.svg.match(
-      /<script type="application\/json" id="triton-anchors">([\s\S]*?)<\/script>/,
-    );
-    expect(match).not.toBeNull();
-    const parsed = JSON.parse(match![1]);
-    expect(Object.keys(parsed)).toEqual(Object.keys(result.value.anchors).sort());
+    // Anchors are returned separately; svg must be manifest-free
+    expect(result.value.svg).not.toContain('triton-anchors');
+    expect(Object.keys(result.value.anchors).sort()).toEqual(Object.keys(result.value.anchors).sort());
   });
 
   it('anchors object is populated (has at least one entry for linkable diagrams)', () => {

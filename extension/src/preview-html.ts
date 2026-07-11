@@ -138,7 +138,8 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
         stage.classList.toggle('fit', !doc);
         content.innerHTML = msg.svg;
         errorBox.classList.remove('show');
-        vscodeApi.setState({ svg: msg.svg, docUri: msg.docUri, doc: doc, theme: themeSelect.value });
+        try { currentAnchors = msg.anchors ? JSON.parse(msg.anchors) : {}; } catch(_) { currentAnchors = {}; }
+        vscodeApi.setState({ svg: msg.svg, anchors: msg.anchors, docUri: msg.docUri, doc: doc, theme: themeSelect.value });
         refreshAnchorListeners();
       } else if (msg.type === 'theme') {
         themeSelect.value = msg.name || '';
@@ -156,6 +157,7 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
       document.body.classList.toggle('doc-mode', !!prev.doc);
       stage.classList.toggle('fit', !prev.doc);
       content.innerHTML = prev.svg;
+      try { currentAnchors = prev.anchors ? JSON.parse(prev.anchors) : {}; } catch(_) { currentAnchors = {}; }
       refreshAnchorListeners();
     }
     // Tell the extension the webview is loaded and listening, so it can flush a
@@ -166,7 +168,10 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
     // ─── Node-reference tooltip ───────────────────────────────────────────────
     // Alt+hover over any node in the diagram reveals its crosslink reference
     // string (e.g. "mytree.n0" or bare "n0"). Clicking the tooltip copies it.
+    // Anchors arrive as a separate postMessage field (msg.anchors JSON string)
+    // so the SVG string is never mutated and remains safe for innerHTML injection.
 
+    let currentAnchors = {};
     let altDown = false;
     let tooltipTimer = null;
 
@@ -182,14 +187,6 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
 
     function safeHtml(s) {
       return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function parseManifest(svgEl) {
-      try {
-        const el = svgEl.querySelector('#triton-anchors');
-        if (!el) return {};
-        return JSON.parse(el.textContent || '{}');
-      } catch (_) { return {}; }
     }
 
     function hideTooltip() {
@@ -243,11 +240,10 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
     function attachToSvg(svgEl) {
       if (svgEl._tritonAnchorsBound) return;
       svgEl._tritonAnchorsBound = true;
-      const manifest = parseManifest(svgEl);
       svgEl.addEventListener('mousemove', (e) => {
         if (!altDown) { hideTooltip(); return; }
         if (tooltipTimer) clearTimeout(tooltipTimer);
-        tooltipTimer = setTimeout(() => { showTooltip(manifest, e, svgEl); }, 16);
+        tooltipTimer = setTimeout(() => { showTooltip(currentAnchors, e, svgEl); }, 16);
       });
       svgEl.addEventListener('mouseleave', () => {
         if (tooltipTimer) { clearTimeout(tooltipTimer); tooltipTimer = null; }
