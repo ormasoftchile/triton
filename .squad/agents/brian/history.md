@@ -218,3 +218,7 @@ Per-id `--disable-extension=<id>` flags are insufficient when the dev extension 
 ## Learnings — 2026-07-11 (flex-center scroll-clipping fix)
 
 **Flex `safe center` for overflow:** `align-items: center; justify-content: center` on a flex container with `overflow: auto` clips the top/left overflow of oversized content — unreachable by scrolling. Fix: `align-items: safe center; justify-content: safe center` centers when content fits, falls back to start-alignment when it overflows, restoring scroll access. Applied to `#stage` in `extension/src/preview-html.ts`.
+
+## Learnings — 2026-07-11 (Alt-key tooltip gating)
+
+**Use `e.altKey` not `document keydown/keyup`:** Keyboard events only fire in the webview when it has focus; the user typically holds Option while hovering the preview from the editor, so `altDown` via keydown/keyup stays false and the tooltip never shows. `e.altKey` on the mousemove event is always correct regardless of focus. Removed the `altDown` var and all three key/blur listeners.

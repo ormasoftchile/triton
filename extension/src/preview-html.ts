@@ -172,7 +172,6 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
     // so the SVG string is never mutated and remains safe for innerHTML injection.
 
     let currentAnchors = {};
-    let altDown = false;
     let tooltipTimer = null;
 
     const tooltip = document.createElement('div');
@@ -233,15 +232,11 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
       }).catch(() => {});
     });
 
-    document.addEventListener('keydown', (e) => { if (e.key === 'Alt') altDown = true; });
-    document.addEventListener('keyup', (e) => { if (e.key === 'Alt') { altDown = false; hideTooltip(); } });
-    window.addEventListener('blur', () => { altDown = false; hideTooltip(); });
-
     function attachToSvg(svgEl) {
       if (svgEl._tritonAnchorsBound) return;
       svgEl._tritonAnchorsBound = true;
       svgEl.addEventListener('mousemove', (e) => {
-        if (!altDown) { hideTooltip(); return; }
+        if (!e.altKey) { hideTooltip(); return; }
         if (tooltipTimer) clearTimeout(tooltipTimer);
         tooltipTimer = setTimeout(() => { showTooltip(currentAnchors, e, svgEl); }, 16);
       });
