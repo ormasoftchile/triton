@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 372" width="300" height="372">
   <rect x="0" y="0" width="300" height="372" fill="#FFFFFF" />
-  <path d="M 134.36 66 L 95.64 118" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 165.64 66 L 204.36 118" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 72.18 160 L 52.82 212" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 87.82 160 L 107.18 212" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 137.46 61.84 L 92.54 122.16" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 162.54 61.84 L 207.46 122.16" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 72.67 158.68 L 52.33 213.32" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 87.33 158.68 L 107.67 213.32" stroke="#64748B" stroke-width="1.5" fill="none" />
   <path d="M 45 254 L 45 306" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 212.18 160 L 192.82 212" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 227.82 160 L 247.18 212" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 212.67 158.68 L 192.33 213.32" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 227.33 158.68 L 247.67 213.32" stroke="#64748B" stroke-width="1.5" fill="none" />
   <circle cx="150" cy="45" r="21" fill="#303a4b" stroke="#1E293B" stroke-width="2" />
   <text x="150" y="49.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">13</text>
   <circle cx="80" cy="139" r="21" fill="#303a4b" stroke="#1E293B" stroke-width="2" />
