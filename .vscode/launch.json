@@ -7,8 +7,7 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/extension",
-        "--disable-extension=focus-space.deckpilot-triton",
-        "--disable-extension=focus-space.deckpilot-mermaid"
+        "--disable-extensions"
       ],
       "outFiles": ["${workspaceFolder}/extension/dist/**/*.cjs"],
       "sourceMaps": true,

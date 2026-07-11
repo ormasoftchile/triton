@@ -180,13 +180,16 @@ Version 0.1.7 published to npm (lockstep with triton-latex).
 
 ## Learnings — 2026-07-11 (dev-host extension-id collision fix)
 
-### Dev Extension Host collision with installed marketplace extensions
+### Dev Extension Host: use `--disable-extensions` (plural) to avoid same-id collision
 
-When `extension/package.json` uses the same id (`focus-space.triton-vscode`) as an already-installed marketplace extension, F5 loads both under one id in the Extension Development Host. The result is a broken webview↔extension message handshake (blank preview). Similarly, `focus-space.deckpilot-triton` and `focus-space.deckpilot-mermaid` register competing Triton/Mermaid renderers that interfere with the dev build.
+When `extension/package.json` shares the same id (`focus-space.triton-vscode`) as an already-installed marketplace extension, F5 loads both under one id in the Extension Development Host — breaking the webview↔extension message handshake. Per-id `--disable-extension=<id>` flags cannot solve this: disabling the marketplace copy by id also disables the dev extension (same id). Disabling only competing ids (`deckpilot-triton`, `deckpilot-mermaid`) leaves the same-id marketplace copy active, causing collisions.
 
-**Fix:** Add `--disable-extension=<id>` flags to the `args` array in `.vscode/launch.json` for each conflicting extension. The dev-host still loads the local build via `--extensionDevelopmentPath`; only the named extensions are disabled (all others, including Copilot, remain active).
+**Fix:** Use `--disable-extensions` (plural) in `.vscode/launch.json` args. This disables ALL installed extensions in the dev host while still loading the extension under `--extensionDevelopmentPath` (which is not treated as an "installed" extension). Only the dev build runs — no same-id collision, no competing renderers.
 
-**File:** `.vscode/launch.json` — three flags appended to `args`.
+**Final args:**
+```json
+["--extensionDevelopmentPath=${workspaceFolder}/extension", "--disable-extensions"]
+```
 
 ---
 
@@ -209,9 +212,9 @@ Injecting a `<script type="application/json">` block inside the SVG string and t
 
 **Guard:** `extension/tsconfig.json` exists. Running `npx tsc -p extension/tsconfig.json --noEmit` catches undefined identifier errors (and also caught a missing `anchors` field on `WebviewMessage`). This should be run after any extension source change before relying on the F5 dev host.
 
-### launch.json: never --disable-extension your own dev id
+### launch.json: `--disable-extensions` supersedes per-id disable flags
 
-`--disable-extension=focus-space.triton-vscode` disables the development extension itself (the dev host loads it under that same id), causing the Triton command to vanish from the palette entirely. Only the *competing* marketplace extensions (`deckpilot-triton`, `deckpilot-mermaid`) should be disabled.
+Per-id `--disable-extension=<id>` flags are insufficient when the dev extension shares its id with a marketplace copy. Use `--disable-extensions` (plural) instead — it disables all installed extensions while preserving the `--extensionDevelopmentPath` dev build.
 ## Learnings — 2026-07-11 (flex-center scroll-clipping fix)
 
 **Flex `safe center` for overflow:** `align-items: center; justify-content: center` on a flex container with `overflow: auto` clips the top/left overflow of oversized content — unreachable by scrolling. Fix: `align-items: safe center; justify-content: safe center` centers when content fits, falls back to start-alignment when it overflows, restoring scroll access. Applied to `#stage` in `extension/src/preview-html.ts`.
