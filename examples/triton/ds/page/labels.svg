@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 336.24859999999995 230" width="336.24859999999995" height="230">
   <defs>
-    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
+    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#64748B" /></marker>
   </defs>
   <rect x="0" y="0" width="336.24859999999995" height="230" fill="#FFFFFF" />
   <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">quoted page tuple label</text>

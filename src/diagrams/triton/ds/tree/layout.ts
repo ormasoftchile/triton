@@ -232,11 +232,41 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
   const byId = new Map(ir.nodes.map(n => [n.id, n]));
   // Build active-edge set for highlighted paths (e.g. DFS/BFS traversal)
   const activeEdgeSet = new Set<string>((ir.activePaths ?? []).map(([a, b]) => `${a}:${b}`));
+
+  /** For circle-shaped nodes, snap the edge endpoint to the circle perimeter. */
+  function circleBorder(
+    center: { x: number; y: number },
+    radius: number,
+    dir: { x: number; y: number },
+    sign: 1 | -1,           // +1 = move in dir (parent side), -1 = move against dir (child side)
+  ): { x: number; y: number } {
+    return { x: rhu(center.x + sign * radius * dir.x), y: rhu(center.y + sign * radius * dir.y) };
+  }
+
   for (const node of ir.nodes) {
     const pb = box(node.id);
+    const parentShape = style.get(node.id)!.shape;
     for (const cid of node.children) {
       const cb = box(cid);
-      const { start, end } = connectSlots(pb, cb);
+      const childShape = style.get(cid)!.shape;
+
+      // Centers
+      const pc = { x: pb.x + pb.width / 2, y: pb.y + pb.height / 2 };
+      const cc = { x: cb.x + cb.width / 2, y: cb.y + cb.height / 2 };
+      const dx = cc.x - pc.x, dy = cc.y - pc.y;
+      const len = Math.hypot(dx, dy);
+      const dir = len > 0 ? { x: dx / len, y: dy / len } : { x: 0, y: 1 };
+
+      // Box-based fallback for non-circle shapes
+      const { start: boxStart, end: boxEnd } = connectSlots(pb, cb);
+
+      const start = parentShape === 'circle'
+        ? circleBorder(pc, pb.width / 2, dir, 1)
+        : boxStart;
+      const end = childShape === 'circle'
+        ? circleBorder(cc, cb.width / 2, dir, -1)
+        : boxEnd;
+
       const isActive = activeEdgeSet.has(`${node.id}:${cid}`);
       const edgeColor = isActive ? palette.primary : palette.textMuted;
       const edgeWidth = isActive ? 2.5 : 1.5;
@@ -284,7 +314,7 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
 
     if (node.badge !== undefined) {
       const bc = badgeColor(node.badge, theme);
-      elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.background, bc, 1.5));
+      elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.surface, bc, 1.5));
       elements.push(p.text(node.badge, b.x + b.width - 3, b.y + 7, smallFont, bc, { anchor: 'middle', weight: 'bold' }));
     }
   }
