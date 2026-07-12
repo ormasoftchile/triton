@@ -4960,3 +4960,273 @@ rsvg-convert does not render `<foreignObject>` HTML content. Notes would be blan
 ---
 
 *Analysis complete. No implementation in this deliverable.*
+# Design — Card Node (Icon-Left / Text-Right Two-Region Layout)
+
+**Author:** Leslie (Spec Architect)  
+**Date:** 2026-07-12T19:43:02-04:00  
+**Status:** DESIGN RECOMMENDATION — extends the cross-diagram icon attachment design (2026-07-12)
+
+---
+
+## Definitions
+
+- **Card node:** A flowchart (or general graph) node with an internal two-region horizontal layout — a left icon region and a right text region — functioning as a "card" or "box" visual.
+- **Two-region layout:** An intra-node composition where the node's bounding box is divided into a fixed-width LEFT column (icon) and a fluid RIGHT column (text block). Distinct from the standard single-region centered-label layout.
+- **Icon region:** A square sub-box on the left containing a mid-sized icon glyph, vertically centered within the node height.
+- **Text region:** The remaining right-side area containing a title line (bold) and optional body text (normal weight, word-wrapped).
+
+---
+
+## 1. Feasibility & Current Building Blocks
+
+### What EXISTS today:
+
+| Component | Location | What it provides |
+|-----------|----------|-----------------|
+| **Poster cell composition** | `src/diagrams/triton/poster/layout.ts:90–149` | Background rect + positioned title (`buildCellTitle` at line 527) + embedded content scene (`embedScene` at line 446). Demonstrates: chrome rect → reserved title region → content region. Reusable composition MODEL. |
+| **SceneElement primitives** | `src/scene/build.ts:1–100` | `Pen.rect()` with `RectOpts{rx, fillOpacity, opacity}`, `Pen.text()` with `TextOpts{weight, anchor, opacity}`, `Pen.group()` with transform. Sufficient for card chrome + text + icon container. |
+| **Node shape system** | `src/diagrams/mermaid/flowchart/ir.ts:3–6`, `layout.ts:542–570` | `NodeShape` union type; `renderNodeShape()` dispatches on `node.shape` to produce `SceneElement[]`. Extensible via new union member. |
+| **Node group rendering** | `src/diagrams/mermaid/flowchart/layout.ts:164–167` | Each node = `Pen.group([...shapeElements, textElement], {id: node.id})`. Internal sub-layout is possible within the group. |
+| **Fixed node dimensions** | `src/diagrams/mermaid/flowchart/layout.ts:12–13` | `NODE_W = 120; NODE_H = 40`. Card needs larger defaults (overridable). |
+| **Text metrics** | `src/text/metrics.ts:51` | `measureText(text, fontSizePx)` → `{width, height}`. Deterministic, platform-independent. |
+| **Text wrapping** | `src/text/wrap.ts:22` | `wrapText(text, fontSizePx, maxWidth, maxLines)` → `{lines: string[]}`. Word-boundary wrapping with ellipsis truncation. Already used by C4 (`c4/layout.ts:35–36`), kanban (`kanban/layout.ts:40`), timeline. |
+| **Icon slot (designed, not built)** | `.squad/decisions.md` (cross-diagram icon design) | `@{ icon: "prefix:name" }` metadata on `FlowNode`; `IconRef` IR type; `ResolvedIconRegistry` passed to core; mono/brand coloring rule. |
+| **Architecture icon rendering** | `src/diagrams/triton/architecture/layout.ts:91,111–137` | `iconGlyph()` renders icon within a node at a specific `(cx, cy)` coordinate. Shows how icon occupies space within a node group. |
+| **Theme-aware fills** | `src/scene/build.ts:72` (rect), poster cell chrome (`poster/layout.ts:123`) | `palette.surface` for card backgrounds, `palette.border` for stroke, `fillOpacity` for translucency. Poster cells already use `palette.background` + `palette.border` + `rx: 6`. |
+
+### What is MISSING:
+
+| Gap | Description |
+|-----|-------------|
+| **`card` shape variant** | `NodeShape` union (flowchart/ir.ts:3) has no `'card'` member. |
+| **Two-region intra-node layout** | No existing node has internal horizontal sub-divisions. All nodes use single centered text. The layout engine needs a `layoutCardNode()` function. |
+| **Variable node sizing** | Flowchart uses fixed `NODE_W/NODE_H`. Card nodes require content-driven sizing (measure title + body → compute width/height). |
+| **Multi-line text in nodes** | Flowchart nodes emit a single `<text>` element (layout.ts:167). Card needs multiple `<text>` elements (title + body lines). |
+| **Icon body as SceneElement** | The `iconGlyph()` in architecture uses hardcoded geometric primitives. The new icon system (P2) will provide resolved SVG body data. Card depends on this existing. |
+| **`body` field on FlowNode IR** | `FlowNode.label` is a single string (ir.ts:14). Card needs `body?: string` for the secondary text block. |
+
+---
+
+## 2. Extend vs New — RECOMMENDATION
+
+### Options evaluated:
+
+**(a) New NODE SHAPE variant** — Add `'card'` to `NodeShape` union; reuse `@{ shape: "card", icon: "..." }` metadata mechanism; extend `FlowNode` IR with optional `body` field; add `layoutCardNode()` to flowchart layout.
+
+**(b) New first-class node TYPE** — Separate grammar, IR, layout engine. Heavyweight; duplicates graph semantics.
+
+**(c) Reuse/generalize poster cell** — Extract poster cell composition as a standalone node. Poster cells are grid-based containers for embedded diagrams; they are NOT graph nodes (no edges, no port anchors). Forcing graph semantics onto cells requires invasive poster surgery.
+
+### DECISION: Option (a) — New shape variant `card`
+
+**Rationale:**
+1. The `@{ shape: "card", icon: "..." }` syntax is ALREADY designed (cross-diagram icon spec) — zero grammar invention needed.
+2. `NodeShape` is explicitly a union type designed for extension (`ir.ts:3–6`); adding `'card'` is one line.
+3. `renderNodeShape()` dispatches on `node.shape` (`layout.ts:542`); adding a `case 'card':` branch follows the existing pattern exactly.
+4. Card shares ALL graph semantics with other nodes (edges attach, subgraphs contain, layout positions) — it IS a node, not a separate concept.
+5. The poster cell model INFORMS the geometry (chrome rect + title region + content region), but card is not a poster cell — it's a node with internal layout.
+6. Cost of a new type (option b) is unjustified: the card has no unique graph semantics, only unique rendering.
+
+**Fallback:** If the fixed-sizing assumption in flowchart layout (`NODE_W/NODE_H`) proves too rigid, introduce a `NodeSizing` interface that allows per-node measured sizes (already implicitly needed for variable-width nodes). This is an improvement to the layout engine, not a reason to choose a different design path.
+
+---
+
+## 3. Internal Layout — Two-Region Box Geometry Contract
+
+### Composition:
+
+```
+┌─────────────────────────────────────────────────────┐
+│ ┌──────────┐  ┌──────────────────────────────────┐  │
+│ │          │  │ Title (bold, single-line)         │  │
+│ │   ICON   │  │──────────────────────────────────│  │
+│ │  (vcent) │  │ Body text (normal, multi-line,   │  │
+│ │          │  │ word-wrapped, max 3 lines)        │  │
+│ └──────────┘  └──────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+     LEFT                    RIGHT
+```
+
+### Sizing rules:
+
+| Parameter | Value | Derivation |
+|-----------|-------|-----------|
+| **Card min width** | `unit * 24` (~192px at unit=8) | Enough for icon + short title |
+| **Card max width** | `unit * 50` (~400px at unit=8) | Prevents excessively wide nodes |
+| **Card height** | Content-driven: `max(iconBoxH + 2*padY, titleH + bodyH + 2*padY)` | Taller of icon region or text region |
+| **Icon box width** | `unit * 5` (40px) | Fixed; square region |
+| **Icon box height** | Same as icon box width | Square; icon centered within |
+| **Icon glyph size** | `unit * 4` (32px) viewBox scaled | "Mid-sized" — larger than inline (1em≈14px), smaller than architecture full-node icon |
+| **Padding (outer)** | `unit * 1` all sides | Card chrome inset |
+| **Gap (icon↔text)** | `unit * 1.5` | Horizontal space between regions |
+| **Title font size** | `typography.baseFontSize` | Same as node labels |
+| **Title weight** | `bold` | Distinguishes from body |
+| **Body font size** | `typography.smallFontSize` | Secondary text, smaller |
+| **Body max lines** | 3 | Truncated with ellipsis via `wrapText()` |
+| **Body max width** | `cardWidth - iconBoxW - gap - 2*pad` | Fluid; fills remaining space |
+
+### Vertical alignment:
+
+- Icon region: vertically centered within card height.
+- Text region: title anchored at `padY + titleFontSize * 0.85` from card top; body lines flow below title with `lineHeight * 1.2` spacing.
+- If body is absent, title vertically centers in text region.
+
+### Coloring (theme-aware):
+
+| Element | Color source |
+|---------|-------------|
+| Card background rect | `palette.surface` with `fillOpacity: 0.85` |
+| Card border stroke | `palette.border`, `strokeWidth: 1`, `rx: 6` |
+| Title text | `palette.text` |
+| Body text | `palette.textMuted` |
+| Mono icon | `palette.primary` (tinted via `currentColor` rule) |
+| Brand icon | Verbatim (per icon-library coloring decision) |
+
+### Width computation algorithm (spec — NOT implementation):
+
+```
+textWidth = max(measureText(title, baseFontSize).width, longestBodyLineWidth)
+cardWidth = clamp(iconBoxW + gap + textWidth + 2*pad, minWidth, maxWidth)
+```
+
+If `textWidth` exceeds budget at `maxWidth`, body lines wrap via `wrapText(body, smallFontSize, bodyMaxWidth, 3)`.
+
+### Layout-engine flag:
+
+The flowchart layout engine (`src/diagrams/mermaid/flowchart/layout.ts`) uses fixed `NODE_W = 120; NODE_H = 40` for ALL nodes. Card nodes require **per-node measured dimensions**. This means:
+
+1. A sizing pass BEFORE layer assignment that computes `{width, height}` per node based on shape.
+2. The layer/position algorithm must use per-node dimensions (currently assumes uniform size).
+3. This is ~50% of the implementation effort — Brian/Edsger's domain.
+
+---
+
+## 4. Syntax Proposal
+
+### Primary: Flowchart `@{ shape: "card" }` (PROPOSED)
+
+```
+flowchart LR
+  A@{ shape: "card", icon: "azure:app-service" }["App Service\nHandles HTTP requests and routes to backend services"]
+  B@{ shape: "card", icon: "mdi:database" }["PostgreSQL\nPrimary data store"]
+  A -->|queries| B
+```
+
+**Syntax breakdown:**
+
+| Fragment | Status |
+|----------|--------|
+| `A` (node ID) | EXISTING |
+| `@{ shape: "card", icon: "..." }` | PROPOSED (cross-diagram icon design, extended with `shape`) |
+| `["label"]` | EXISTING (bracket-delimited label, `grammar.peggy:230`) |
+| `\n` inside label | PROPOSED — first `\n` separates title from body |
+| `-->|label|` | EXISTING |
+
+**Title/body separation:** The label string uses `\n` (literal backslash-n in source) as delimiter. First line = title; remaining lines = body. If no `\n`, entire label is title (no body). This matches Mermaid's existing `<br/>` convention but uses `\n` (which Triton already normalizes for multi-line text in kanban/timeline).
+
+### Alternative body syntax (if `\n` is insufficient):
+
+```
+flowchart LR
+  A@{ shape: "card", icon: "azure:app-service", title: "App Service", body: "Handles HTTP routing" }
+```
+
+This puts all content in the metadata block. More explicit but more verbose; prefer the label-based approach for v1.
+
+### Poster cell variant (secondary, future):
+
+```
+poster
+  grid 2x2
+  cell A "App Service" @{ icon: "azure:app-service", layout: "card" }
+    stat "99.9%" "uptime"
+```
+
+The `layout: "card"` hint on a poster cell would render it in card-node style (icon-left, title-right) rather than standard cell composition. This is a FUTURE extension — poster cells already have their own composition model. Not in scope for first cut.
+
+---
+
+## 5. Rendering & Static-PNG Safety
+
+### SVG output structure (per card node):
+
+```xml
+<g id="nodeA">
+  <!-- Card chrome -->
+  <rect x="..." y="..." width="..." height="..." fill="#surface" fill-opacity="0.85"
+        stroke="#border" stroke-width="1" rx="6" />
+  <!-- Icon region (mid-sized, 32×32 viewBox scaled) -->
+  <g transform="translate(iconX, iconY)">
+    <path d="..." fill="#primary" />  <!-- mono icon -->
+    <!-- OR for brand: multiple paths/gradients with explicit fills -->
+  </g>
+  <!-- Title -->
+  <text x="..." y="..." font-size="14" font-family="..." fill="#text" font-weight="bold">App Service</text>
+  <!-- Body lines -->
+  <text x="..." y="..." font-size="12" font-family="..." fill="#textMuted">Handles HTTP requests</text>
+  <text x="..." y="..." font-size="12" font-family="..." fill="#textMuted">and routes to backend</text>
+</g>
+```
+
+### Safety checklist:
+
+| Concern | Status |
+|---------|--------|
+| **Pure SVG** | ✓ — `<rect>` + `<g>` + `<path>` + `<text>`. No `<foreignObject>`. |
+| **rsvg-convert safe** | ✓ — All elements are basic SVG 1.1. No CSS `flexbox`, no HTML. Gradients (for brand icons) use `<linearGradient>` in `<defs>` — rsvg supports this. |
+| **Theme-aware** | ✓ — Card bg uses `palette.surface + fillOpacity`, text uses `palette.text/textMuted`, mono icons tint to `palette.primary`. |
+| **No `<image>` / external refs** | ✓ — Icons are inlined `<path>` data (from resolved IconifyJSON body). |
+| **Deterministic** | ✓ — Text metrics from embedded advance-width table (`text/metrics.ts`). No system font probing. |
+| **Gradient-ID namespacing** | Required for brand icons with `<linearGradient>` — already mandated by icon-library format design (content-hash prefix). |
+
+---
+
+## 6. Scope & Phasing Delta
+
+### Dependencies:
+
+```
+P0 (IconifyJSON format) → P1 (discovery) → P2 (icon slot on FlowNode) → P7-card (this)
+```
+
+Card DEPENDS ON P2 (icon slot exists on `FlowNode` IR + `@{...}` grammar extension). It adds:
+- `'card'` member to `NodeShape` union
+- `body?: string` field on `FlowNode` (or title/body parsed from label)
+- `layoutCardNode()` function in flowchart layout
+- Variable-width node support in the layout engine (if not already done for other shapes)
+
+### Effort estimate:
+
+| Work item | Hours | Owner |
+|-----------|-------|-------|
+| IR extension (`NodeShape + body` field) | 1h | Mark |
+| Grammar: `\n` parsing in label for title/body split | 2h | Mark |
+| `layoutCardNode()` — two-region geometry | 4–6h | Brian/Edsger |
+| Variable node sizing in flowchart layout engine | 6–10h | Brian/Edsger |
+| Tests (unit + snapshot) | 3h | Team |
+| **Total** | **16–22h** | — |
+
+### First cut (MVP) vs full:
+
+| Cut | Includes |
+|-----|----------|
+| **First cut** | Single-line title only (no body). Fixed card width. Icon slot from P2 reused verbatim. `case 'card':` in `renderNodeShape()` renders chrome rect + icon-left + title-right. |
+| **Full** | Multi-line body via `wrapText()`. Content-driven variable width. Poster cell `layout: "card"` variant. |
+
+First cut can ship WITH P2 (icon slot) — minimal incremental cost (~6h on top of P2). Full version follows as P7b.
+
+---
+
+## RECOMMENDATION
+
+**Extend via `@{ shape: "card" }` on the existing flowchart node system.** Reuse the poster cell's composition MODEL (chrome rect + positioned regions) but implement as a node-shape variant, not as a poster cell. The two-region intra-node layout is new geometry work (Brian/Edsger's domain) but uses existing primitives (`Pen.rect`, `Pen.text`, `Pen.group`, `wrapText`, `measureText`). The whole thing is pure SVG, rsvg-safe, and theme-aware.
+
+**Concrete syntax:**
+```
+flowchart LR
+  A@{ shape: "card", icon: "azure:app-service" }["App Service\nHTTP routing and load balancing"]
+  B@{ shape: "card", icon: "mdi:database" }["PostgreSQL\nPrimary data store"]
+  A -->|queries| B
+```
+
+**Phasing:** Ships as P7 after P2 (icon slot). First cut = title-only card + fixed width (~6h incremental). Full = multi-line body + variable width (+10–16h).
