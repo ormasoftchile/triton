@@ -1,0 +1,18 @@
+{
+  "name": "paper-theme",
+  "base": "default",
+  "palette": {
+    "primary": "#1A56DB",
+    "secondary": "#6B21A8",
+    "background": "#FFFFFF",
+    "surface": "#EFF6FF",
+    "border": "#BFDBFE",
+    "text": "#111827",
+    "textMuted": "#4B5563"
+  },
+  "typography": {
+    "fontFamily": "Latin Modern Roman, serif",
+    "monoFamily": "Latin Modern Mono, monospace",
+    "baseFontSize": 13
+  }
+}

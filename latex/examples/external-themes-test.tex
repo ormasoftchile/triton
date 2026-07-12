@@ -1,0 +1,47 @@
+% external-themes-test.tex — Phase-4 cache-key verification for \tritonthemefile
+%   and \tritonthemesdir macros.
+%
+% Build (from latex/examples/):
+%   pdflatex -shell-escape external-themes-test.tex
+%
+% Three-step cache invalidation proof:
+%   Step 1: \tritonthemefile{...acme-demo...}  → renders hash-A (cache miss)
+%   Step 2: \tritonthemefile{...paper-theme...}  → renders hash-B (different path → cache miss)
+%   Step 3: revert to \tritonthemefile{...acme-demo...} → hash-A again (cache HIT)
+%
+% After each step, inspect triton-external-theme-cache/ to see which PDFs exist.
+%
+% NOTE: The cache key includes the theme-file PATH, not its content hash.
+% If you edit a .triton-theme.json file in-place without changing its path,
+% the cached PDF will be stale. Clear with:  rm -r triton-external-theme-cache
+% or run:  latexmk -C
+% (Content-aware hashing is a deferred Tier-2 improvement.)
+
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{triton}
+
+% Point at the local CLI build (remove on a real install with triton-latex on PATH).
+\tritoncli{node /Volumes/Projects/triton/latex/dist/cli.cjs}
+
+% Use a cache dir we can easily inspect.
+\tritoncachedir{triton-external-theme-cache}
+
+% ── Step 1: acme-demo via --theme-file ────────────────────────────────────────
+% acme-demo primary: #6C3FC5
+\tritonthemefile{/Volumes/Projects/triton/examples/.triton/themes/acme-demo.triton-theme.json}
+% Step 2: change to paper-theme:
+%   \tritonthemefile{/Volumes/Projects/triton/latex/examples/.triton/themes/paper-theme.triton-theme.json}
+% Step 3: revert to acme-demo (should be a cache HIT — no re-render):
+%   \tritonthemefile{/Volumes/Projects/triton/examples/.triton/themes/acme-demo.triton-theme.json}
+
+\begin{document}
+
+\begin{triton}
+flowchart LR
+  A[Start] --> B{Choice}
+  B -->|yes| C[Done]
+  B -->|no| D[Retry]
+\end{triton}
+
+\end{document}

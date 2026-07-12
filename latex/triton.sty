@@ -50,6 +50,8 @@
 %   \tritonsetup{opts}                        default \includegraphics options
 %   \tritoncli{cmd}                           CLI invocation (default: triton-latex)
 %   \tritontheme{name}                        theme preset for inline renders
+%   \tritonthemefile{path}                    explicit .triton-theme.json file
+%   \tritonthemesdir{dir}                     directory of .triton-theme.json files
 %   \tritonscale{n}                           scale passed to the CLI (default 1)
 %   \tritoncachedir{dir}                      render cache (default \jobname.triton-cache)
 %
@@ -95,6 +97,19 @@
 \newcommand{\tritonscale}[1]{\def\triton@scale{#1}}
 \def\triton@themearg{}
 \newcommand{\tritontheme}[1]{\def\triton@themearg{\space--theme #1}}
+% \tritonthemefile{path} — pass an explicit .triton-theme.json file to the CLI.
+% The theme-file PATH is folded into the cache key (see \triton@render below).
+% KNOWN LIMITATION: the cache key includes the path, NOT the file content hash.
+% If you edit a .triton-theme.json in-place without changing its path, the cached
+% PDF will be stale. Clear the cache with: rm -r <cachedir>  or  latexmk -C
+% Content-aware hashing is deferred to a future Tier-2 release.
+\def\triton@themefilearg{}
+\newcommand{\tritonthemefile}[1]{\def\triton@themefilearg{\space--theme-file #1}}
+% \tritonthemesdir{dir} — directory of .triton-theme.json files; merged on top of
+% any auto-discovered .triton/themes/ ancestor.  Use with \tritontheme{name}.
+% Path is folded into the cache key (same in-place-edit caveat as above).
+\def\triton@themesdirarg{}
+\newcommand{\tritonthemesdir}[1]{\def\triton@themesdirarg{\space--themes-dir #1}}
 \def\triton@cachedir{\jobname.triton-cache}
 \newcommand{\tritoncachedir}[1]{\def\triton@cachedir{#1}}
 % Temp file the verbatim diagram source is written to before rendering. The
@@ -128,13 +143,13 @@
     % \triton@render, so this append is idempotent per render.
     % NOTE: echo (not printf) is used deliberately — printf treats %% as a
     % format escape; echo passes characters through verbatim, so '%%' stays '%%'.
-    \immediate\write18{echo '\@percentchar\@percentchar triton-key:\triton@themearg\space scale=\triton@scale' >> "\triton@tmpfile"}%
+    \immediate\write18{echo '\@percentchar\@percentchar triton-key:\triton@themearg\triton@themefilearg\triton@themesdirarg\space scale=\triton@scale' >> "\triton@tmpfile"}%
     \edef\triton@hash{\pdf@filemdfivesum{\triton@tmpfile}}%
     \edef\triton@pdf{\triton@cachedir/\triton@hash.pdf}%
     % Only render when this exact source has not been rendered before.
     \IfFileExists{\triton@pdf}{}{%
       \immediate\write18{\triton@cli\space render "\triton@tmpfile" -o
-        "\triton@pdf" --scale \triton@scale\triton@themearg}%
+        "\triton@pdf" --scale \triton@scale\triton@themearg\triton@themefilearg\triton@themesdirarg}%
     }%
     \IfFileExists{\triton@pdf}{%
       % \triton@curopts is a macro (e.g. width=\linewidth); graphicx mis-parses
