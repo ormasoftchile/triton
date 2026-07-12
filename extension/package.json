@@ -2,7 +2,7 @@
   "name": "triton-vscode",
   "displayName": "Triton",
   "description": "Live preview for Triton diagrams (and Mermaid) — deterministic SVG, rendered by the Triton compiler.",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "private": true,
   "publisher": "focus-space",
   "license": "MIT",

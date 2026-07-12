@@ -1,6 +1,6 @@
 {
   "name": "@cristianormazabal/triton-core",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Triton diagram compiler — deterministic SVG rendering for 50+ diagram types (Mermaid-compatible, trees, data structures, posters).",
   "type": "module",
   "license": "MIT",
