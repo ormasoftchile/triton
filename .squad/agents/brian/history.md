@@ -69,3 +69,89 @@
 - Phases 1–5 sequence by dependency graph (Phase 1 independent, Phases 2–5 blocked on 1+0).
 
 **Plan:** `.squad/decisions.md` (merged 2026-07-12T19:09Z); inbox files deleted.
+
+## Spawn brian-15 (2026-07-12)
+
+**Task:** Phase 3 — VS Code extension: `.triton/themes/` discovery + dropdown + live reload.
+**Result:** PR #64. 617/617 tests ✓. pnpm build:extension clean (1.4 MB bundle).
+
+### Files
+- NEW `extension/src/theme-registry.ts`
+- EDIT `extension/src/extension.ts`
+- EDIT `extension/src/preview-html.ts`
+- NEW `examples/.triton/themes/acme-demo.triton-theme.json`
+
+### Key implementation patterns
+
+**ThemeRegistry (vscode.Disposable pattern):**
+- Holds `Map<string, ResolvedTheme>` for custom themes only (built-ins live in `themePresetNames`)
+- `buildWatchers()` + `rebuildWatchers()` called at activation and on `onDidChangeWorkspaceFolders`
+- One `vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, '...'))` per folder
+- All watchers stored in `this.watchers[]`; `dispose()` clears both watchers and other disposables
+- `vscode.EventEmitter<void>` + `readonly onDidChange: vscode.Event<void>` = standard VS Code event pattern
+- Warning dedup: compare new warning strings against `lastWarnSet`; only show `showWarningMessage` for novel ones; also log to named output channel
+
+**Force-external-theme via themeInput trick (no core change):**
+- `getThemePreset(forcedThemeName)` only knows built-in preset names → cannot force external theme by name
+- But `ResolvedTheme` is structurally a superset of `ThemeInput` — directly assignable
+- Solution: pass `themeInput: resolvedExternalTheme as ThemeInput`, `forcedThemeName: undefined`
+- Core resolves `resolveTheme(themeInput, getThemePreset(metadataThemeName))` — the full external ResolvedTheme wins because every required field is already set; the base is irrelevant
+- This gives dropdown-wins precedence (external theme overrides diagram's own `theme:` metadata)
+
+**Dropdown custom group in preview-html.ts:**
+- `themeOptions(selectedTheme, customNames)` now exported
+- Renders `<option disabled>── Custom ──</option>` divider when `customNames.length > 0`
+- `shellHtml()` passes `customThemeNames` to `themeOptions()` at panel creation time
+- For live updates: new `themeOptions` webview message rebuilds `<select>.innerHTML` in-place, no panel teardown needed
+
+**Live-reload wiring:**
+- `registry.onDidChange` → `onThemeRegistryChange()` in PreviewManager
+- Posts `{type:'themeOptions', builtins, custom, selected}` → webview rebuilds dropdown
+- If selected theme vanished: resets workspaceState to '', posts `{type:'theme', name:''}`, re-renders with Auto
+- Re-renders active diagram via `renderInto()` so colours update immediately on file save
+
+**Headless-test boundary for extension work:**
+- Build validation: `pnpm build:extension` proves the bundle compiles and `node:fs` (from `discover.ts`) bundles fine for Node extension host
+- Unit test: fixture `examples/.triton/themes/acme-demo.triton-theme.json` validated via `discoverThemes()` against compiled `packages/core/dist/theme/discover.js` — proves data path the registry uses
+- NOT headlessly verifiable: dropdown rendering, theme selection UX, live-reload on file save — all require F5 / Extension Dev Host (interactive)
+
+## Spawn brian-16 (2026-07-12)
+
+**Task:** Phase 4 — triton-latex CLI theme-file/dir flags + auto-discovery + .sty macros.
+**Result:** PR TBD. 621/621 tests ✓ (617 baseline + 4 new). pnpm build:latex clean.
+
+### Files
+- EDIT `latex/src/cli.ts` — added `--theme-file` + `--themes-dir` flags; `resolveCliTheme()` resolver; updated USAGE
+- EDIT `latex/triton.sty` — `\tritonthemefile`, `\tritonthemesdir` macros; cache key extended; in-place-edit caveat documented
+- NEW `latex/examples/.triton/themes/paper-theme.triton-theme.json` — LaTeX-specific fixture for cache-key tests
+- NEW `latex/examples/external-themes-test.tex` — .sty cache-key verification workflow (.tex committed; .pdf gitignored)
+- NEW `test/latex-cli-theme.test.ts` — 4 vitest tests covering all resolution paths
+
+### Key implementation patterns
+
+**resolveCliTheme(args, inputDir): ResolvedTheme | undefined:**
+- Priority 1: `--theme-file <path>` → `loadThemeFile(resolve(themeFile))`; fatal on error (process.exit(1) + stderr).
+- Priority 2: build registry from auto-discovered `.triton/themes/` (walk-up from inputDir via `findTritonThemesDir`) THEN overlay `--themes-dir` on top (overrides on collision). `--theme <name>` looks up registry first, then falls back to `getThemePreset(name)` (built-in).
+- Priority 3: undefined → core uses frontmatter/default.
+- `renderFile` / `renderDir` take `ResolvedTheme | undefined` (replaced `themeName: string | undefined`).
+- `renderToSvg` takes `ResolvedTheme | undefined` directly (removed inline `getThemePreset` call).
+- `inputDir = dirname(resolve(input))` for `render`; `resolvedSrcDir` for `render-dir`.
+
+**New .sty macros:**
+- `\tritonthemefile{path}` → `\triton@themefilearg = " --theme-file path"`
+- `\tritonthemesdir{dir}` → `\triton@themesdirarg = " --themes-dir dir"`
+- Both appended to `\write18` render invocation after existing args.
+- Both included in the Phase-0 cache-key echo line for invalidation on path change.
+
+**Cache-key extension:**
+- Echo line now: `%%triton-key: <themearg><themefilearg><themesdirarg> scale=<scale>`
+- KNOWN LIMITATION: path is hashed, NOT content. Editing `.triton-theme.json` in-place without changing path leaves stale cache. Mitigation: `rm -r <cachedir>` or `latexmk -C`. Tier-2 deferral: content-aware hashing. Documented in both .sty comment and PR body.
+
+**Verification evidence:**
+- CLI: `--theme-file acme-demo.triton-theme.json` → SVG contains `#6C3FC5` (confirmed)
+- CLI: `--themes-dir examples/.triton/themes --theme acme-demo` → SVG contains `#6C3FC5` (confirmed)
+- CLI: auto-discovery (input under examples/) `--theme acme-demo` → SVG contains `#6C3FC5` (confirmed)
+- CLI: `--theme-file nonexistent.json` → exit 1 + stderr "Cannot read theme file" (confirmed)
+- .sty: Step-1 hash-A = 6445221D5AE2D84CB01D7B673F5B61A8 (acme-demo); Step-2 hash-B = 4BF6AD2691414D5C488C358654E41131 (paper-theme); Step-3 revert = cache HIT on hash-A (no re-render)
+
+**Validation note:** `$schema` key in `.triton-theme.json` files is rejected by strict `validateThemeInput()`. The committed `paper-theme.triton-theme.json` fixture correctly omits it. The `acme-demo.triton-theme.json` (from Phase 3) also omits `$schema` — good.
