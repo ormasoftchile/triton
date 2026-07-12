@@ -12,6 +12,7 @@ import { editorThemeInput } from './editor-theme.js';
 import { registerCompletion } from './completion.js';
 import { registerDiagnostics } from './diagnostics.js';
 import { shellHtml } from './preview-html.js';
+import { ThemeRegistry } from './theme-registry.js';
 
 // ─── Mermaid coexistence reconciliation (LOCKED decision) ──────────────────────
 //
@@ -167,7 +168,8 @@ interface Preview {
 type WebviewMessage =
   | { readonly type: 'svg'; readonly svg: string; readonly anchors?: string; readonly docUri: string; readonly doc: boolean }
   | { readonly type: 'error'; readonly message: string }
-  | { readonly type: 'theme'; readonly name: string };
+  | { readonly type: 'theme'; readonly name: string }
+  | { readonly type: 'themeOptions'; readonly builtins: readonly string[]; readonly custom: readonly string[]; readonly selected: string };
 
 class PreviewManager {
   // A single live preview that FOLLOWS the active editor, like the built-in
@@ -176,8 +178,21 @@ class PreviewManager {
   private preview: Preview | undefined;
   private debounce: ReturnType<typeof setTimeout> | undefined;
   private readonly disposables: vscode.Disposable[] = [];
+  private readonly registry: ThemeRegistry;
 
   constructor(private readonly context: vscode.ExtensionContext) {
+    this.registry = new ThemeRegistry();
+    context.subscriptions.push(this.registry);
+
+    // Build watchers and do initial discovery
+    this.registry.buildWatchers();
+    this.registry.refresh();
+
+    // When themes change: refresh dropdown + re-render; drop vanished selection
+    this.disposables.push(
+      this.registry.onDidChange(() => this.onThemeRegistryChange()),
+    );
+
     this.disposables.push(
       vscode.workspace.onDidChangeTextDocument((e) => this.onDocChange(e.document)),
       vscode.window.onDidChangeActiveTextEditor((editor) => this.onActiveEditor(editor)),
@@ -202,7 +217,7 @@ class PreviewManager {
         { viewColumn: column, preserveFocus: true },
         { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [] },
       );
-      panel.webview.html = shellHtml(panel.webview, this.label(doc.uri), this.selectedTheme());
+      panel.webview.html = shellHtml(panel.webview, this.label(doc.uri), this.selectedTheme(), this.registry.customNames());
       this.bindPanel(panel, doc.uri);
     } else {
       this.preview.docUri = doc.uri;
@@ -254,7 +269,7 @@ class PreviewManager {
 
   /** Restore a preview panel after a window reload (WebviewPanelSerializer). */
   async restore(panel: vscode.WebviewPanel, state: unknown): Promise<void> {
-    panel.webview.html = shellHtml(panel.webview, 'Triton', this.selectedTheme());
+    panel.webview.html = shellHtml(panel.webview, 'Triton', this.selectedTheme(), this.registry.customNames());
     const docUri =
       state && typeof state === 'object' && typeof (state as { docUri?: unknown }).docUri === 'string'
         ? (state as { docUri: string }).docUri
@@ -268,6 +283,40 @@ class PreviewManager {
     } catch {
       // Document no longer available; the webview keeps its restored SVG.
     }
+  }
+
+  /**
+   * Called when the theme registry fires onDidChange (file watcher or workspace
+   * folder change). Pushes fresh theme options to the webview, resets a vanished
+   * selection, and re-renders the active diagram.
+   */
+  private onThemeRegistryChange(): void {
+    const preview = this.preview;
+    if (!preview) return;
+
+    // If the selected theme no longer exists, fall back to Auto
+    const selected = this.selectedTheme();
+    const stillValid = selected === '' || this.registry.isKnown(selected);
+    if (!stillValid) {
+      void this.context.workspaceState.update(PREVIEW_THEME_KEY, '');
+      this.post({ type: 'theme', name: '' });
+    }
+
+    // Push updated options to the webview (in-place rebuild, no panel teardown)
+    this.post({
+      type: 'themeOptions',
+      builtins: [...themePresetNames],
+      custom: this.registry.customNames(),
+      selected: stillValid ? selected : '',
+    });
+
+    // Re-render the diagram so any live-edited theme colours apply immediately
+    const editor = vscode.window.activeTextEditor;
+    const doc =
+      editor && editor.document.uri.toString() === preview.docUri.toString()
+        ? editor.document
+        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+    if (doc) void this.renderInto(doc, 'explicit');
   }
 
   /** Follow the active editor when it switches to another diagram document. */
@@ -307,11 +356,11 @@ class PreviewManager {
 
   private selectedTheme(): string {
     const stored = this.context.workspaceState.get<string>(PREVIEW_THEME_KEY, '');
-    return themePresetNames.includes(stored) ? stored : '';
+    return this.registry.isKnown(stored) ? stored : '';
   }
 
   private normalizeThemeName(name: unknown): string {
-    return typeof name === 'string' && themePresetNames.includes(name) ? name : '';
+    return typeof name === 'string' && this.registry.isKnown(name) ? name : '';
   }
 
   private async setTheme(name: unknown): Promise<void> {
@@ -331,16 +380,24 @@ class PreviewManager {
 
   private themeArgs(): { readonly themeInput: ThemeInput; readonly forcedThemeName: string | undefined } {
     const selected = this.selectedTheme();
-    if (selected) {
-      return {
-        themeInput: { palette: { background: '' } },
-        forcedThemeName: selected,
-      };
+    if (!selected) {
+      // Auto — adaptive colors from the editor theme
+      return { themeInput: editorThemeInput(), forcedThemeName: undefined };
     }
-    return {
-      themeInput: editorThemeInput(),
-      forcedThemeName: undefined,
-    };
+    if (themePresetNames.includes(selected)) {
+      // Built-in preset: pass a transparent background and let core force the preset
+      return { themeInput: { palette: { background: '' } }, forcedThemeName: selected };
+    }
+    const custom = this.registry.resolve(selected);
+    if (custom) {
+      // External theme: pass the full ResolvedTheme as themeInput; forcedThemeName
+      // must be undefined so core doesn't try to look up the name in getThemePreset()
+      // (which only knows built-ins). The ResolvedTheme is a structural superset of
+      // ThemeInput, so it is directly assignable.
+      return { themeInput: custom as ThemeInput, forcedThemeName: undefined };
+    }
+    // Selected theme vanished (e.g. file deleted) → fall back to Auto
+    return { themeInput: editorThemeInput(), forcedThemeName: undefined };
   }
 
   private async renderInto(doc: vscode.TextDocument, mode: RenderMode): Promise<void> {

@@ -22,18 +22,33 @@ function escapeAttr(s: string): string {
   return escapeHtml(s).replace(/"/g, '&quot;');
 }
 
-function themeOptions(selectedTheme: string): string {
-  const normalized = themePresetNames.includes(selectedTheme) ? selectedTheme : '';
+/**
+ * Build the <select> option HTML for the theme dropdown.
+ *
+ * @param selectedTheme  Currently-selected theme name ('' = Auto).
+ * @param customNames    External custom theme names to append under a divider.
+ */
+export function themeOptions(selectedTheme: string, customNames: readonly string[] = []): string {
+  const knownNames = new Set([...themePresetNames, ...customNames]);
+  const normalized = knownNames.has(selectedTheme) ? selectedTheme : '';
   const options = [`<option value=""${normalized === '' ? ' selected' : ''}>Auto</option>`];
   for (const name of themePresetNames) {
     options.push(
       `<option value="${escapeAttr(name)}"${name === normalized ? ' selected' : ''}>${escapeHtml(name)}</option>`,
     );
   }
+  if (customNames.length > 0) {
+    options.push(`<option disabled>── Custom ──</option>`);
+    for (const name of customNames) {
+      options.push(
+        `<option value="${escapeAttr(name)}"${name === normalized ? ' selected' : ''}>${escapeHtml(name)}</option>`,
+      );
+    }
+  }
   return options.join('');
 }
 
-export function shellHtml(webview: PreviewWebview, title: string, selectedTheme = ''): string {
+export function shellHtml(webview: PreviewWebview, title: string, selectedTheme = '', customThemeNames: readonly string[] = []): string {
   const n = nonce();
   const csp = [
     `default-src 'none'`,
@@ -109,7 +124,7 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
 <body>
   <div id="toolbar">
     <label for="theme">Theme</label>
-    <select id="theme" title="Preview theme">${themeOptions(selectedTheme)}</select>
+    <select id="theme" title="Preview theme">${themeOptions(selectedTheme, customThemeNames)}</select>
     <button id="fit" title="Toggle zoom to fit">Fit</button>
     <button id="reset" title="Actual size">1:1</button>
   </div>
@@ -145,6 +160,26 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
         themeSelect.value = msg.name || '';
         const state = vscodeApi.getState() || {};
         vscodeApi.setState({ ...state, theme: themeSelect.value });
+      } else if (msg.type === 'themeOptions') {
+        // Rebuild the <select> options in-place after a file-watcher refresh.
+        // Avoids tearing down/rebuilding the whole webview panel.
+        const builtins = Array.isArray(msg.builtins) ? msg.builtins : [];
+        const custom = Array.isArray(msg.custom) ? msg.custom : [];
+        const selected = typeof msg.selected === 'string' ? msg.selected : '';
+        const allKnown = new Set([...builtins, ...custom]);
+        const normalised = allKnown.has(selected) ? selected : '';
+        let html = '<option value=""' + (normalised === '' ? ' selected' : '') + '>Auto</option>';
+        for (const name of builtins) {
+          html += '<option value="' + name + '"' + (name === normalised ? ' selected' : '') + '>' + name + '</option>';
+        }
+        if (custom.length > 0) {
+          html += '<option disabled>\u2500\u2500 Custom \u2500\u2500</option>';
+          for (const name of custom) {
+            html += '<option value="' + name + '"' + (name === normalised ? ' selected' : '') + '>' + name + '</option>';
+          }
+        }
+        themeSelect.innerHTML = html;
+        themeSelect.value = normalised;
       } else if (msg.type === 'error') {
         // Keep the last good SVG visible; show the error as a non-destructive banner.
         errorBox.textContent = msg.message;
