@@ -1,0 +1,41 @@
+{
+  "name": "example",
+  "base": "default",
+  "palette": {
+    "primary":    "#2563EB",
+    "secondary":  "#7C3AED",
+    "background": "#F8FAFC",
+    "surface":    "#FFFFFF",
+    "border":     "#CBD5E1",
+    "text":       "#0F172A",
+    "textMuted":  "#64748B",
+    "success":    "#16A34A",
+    "warning":    "#D97706",
+    "error":      "#DC2626"
+  },
+  "typography": {
+    "fontFamily":    "Inter, system-ui, -apple-system, sans-serif",
+    "monoFamily":    "JetBrains Mono, Fira Code, monospace",
+    "baseFontSize":  14,
+    "titleFontSize": 18,
+    "smallFontSize": 11,
+    "lineHeight":    1.4
+  },
+  "spacing": {
+    "unit":          8,
+    "nodePadding":   12,
+    "nodeGap":       40,
+    "diagramMargin": 24
+  },
+  "edges": {
+    "strokeWidth":  1.5,
+    "arrowSize":    8,
+    "labelFontSize": 12,
+    "curveTension": 0.25
+  },
+  "panel": {
+    "titleAlign":    "left",
+    "titlePosition": "inside",
+    "titleChrome":   "none"
+  }
+}

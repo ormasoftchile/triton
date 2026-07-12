@@ -15,6 +15,7 @@
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync } from 'node:fs';
 import { basename, dirname, extname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { renderSync } from '../../src/frontend/index.js';
 import { getThemePreset } from '../../src/theme/preset.js';
@@ -120,7 +121,7 @@ Examples:
  * `inputDir` is the directory of the diagram being rendered, used for walk-up
  * auto-discovery.  Never throws — errors are surfaced as process.exit(1) + stderr.
  */
-function resolveCliTheme(
+export function resolveCliTheme(
   args: Args,
   inputDir: string,
 ): ResolvedTheme | undefined {
@@ -285,10 +286,15 @@ async function main(): Promise<number> {
   return 1;
 }
 
-main()
-  .then((code) => process.exit(code))
-  .catch((cause) => {
-    const message = cause instanceof Error ? cause.message : String(cause);
-    console.error(`error: ${message}`);
-    process.exit(1);
-  });
+// Guard: run main() only when this file is the CLI entry point, not when imported
+// as a module for testing. Works in both vitest (ESM source) and the esbuild CJS
+// bundle (esbuild transforms import.meta.url → pathToFileURL(__filename).href).
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main()
+    .then((code) => process.exit(code))
+    .catch((cause) => {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      console.error(`error: ${message}`);
+      process.exit(1);
+    });
+}
