@@ -1,52 +1,14 @@
 # Leslie — Spec Architect
 
-## [ARCHIVED HISTORY]
+## [ARCHIVE GATE SUMMARY — 2026-07-12]
 
-Previously completed work:
-- Current Role
-- Strategic Context
-- Grammar Status (2026-06-14)
-- Recent: Theming Architecture Confirmed (2026-06-14)
-- Archive & Historical Notes (2026-06-15)
-- Learnings
-- Learnings
+Recent work (2026-06-14 to 2026-07-12):
+1. Diagram-options reference format (2026-07-06): Fragment-first spec. `%%` placement after header keyword line, per-grammar support check.
+2. Layout algorithm initiative phase plan (2026-06-27): Static dispatch for algorithm selection (no adaptive). Performance fallbacks deferred.
+3. Connector syntax redesign analysis (2026-07-12): Strict Mermaid superset (REVISED v2 — user corrected "no divergence" to "extensions allowed"). 15-token matrix (9 Mermaid-honored, 6 Triton extensions: -_-> for dashed, -~-> for wavy). Cristian approved all recommendations (2026-07-12T09:40-04:00).
+4. Live-poster scope ruling (2026-07-12): PROCEED with hard boundary. Compiler stays pure. One-way dependency (runtime → compiler). Defer `repeat:` to Phase 2. Binding-map as JSON sidecar.
 
----
-
-## Learnings
-
-### Diagram-Options Reference Format — Spec (2026-07-06)
-
-Produced spec `.squad/decisions/inbox/leslie-diagram-options-format.md` and verified exemplar files.
-
-**Key decisions made:**
-
-- **Fragment-first, concat-last** — each agent writes `docs/diagram-options/_fragments/<family>.md`; a final `cat` step produces `docs/diagram-options.md`. This allows 5 agents to run in parallel without merge conflicts.
-
-- **`%%` placement: after header keyword line, within Statements** — the flowchart grammar's `BlankLine = _ Comment? NL` rule only fires inside `Statements` (after the first `flowchart LR` line), not before the header. Any `%%` block must go AFTER the header keyword line.
-
-- **Comment safety is per-grammar** — agents must `grep -c '%%' src/diagrams/<ns>/<family>/grammar.peggy` before inserting any header. Only 4 families confirmed to support `%%` as of this date: flowchart, sankey, timeline, poster. All others: skip header, add fallback note in fragment.
-
-- **SVG noise is acceptable** — `pnpm install` restored missing `@types/d3-shape` / `@types/d3-path` deps needed for TypeScript compilation. After the header addition, all 3 flowchart SVGs regenerated; diff showed only a 2-line background rect change (pre-existing rendering change, not caused by headers). This is not a regression.
-
-- **Options are grammar-derived only** — no invented syntax; every listed option must exist in `grammar.peggy` (or the hand-written `index.ts` for DS subkinds).
-
-**Key file paths:**
-- Spec: `.squad/decisions/inbox/leslie-diagram-options-format.md`
-- Exemplar fragment: `docs/diagram-options/_fragments/flowchart.md`
-- Exemplar with header: `examples/mermaid/flowchart/flowchart.mmd` (and ci-pipeline.mmd, order-processing.mmd)
-- Fragment dir: `docs/diagram-options/_fragments/`
-- Final doc (to concatenate): `docs/diagram-options.md`
-
----
-
-### Layout Algorithm Improvement Initiative — Phase Plan (2026-06-27)
-
-Produced formal phase plan `.squad/decisions/inbox/leslie-layout-phases.md` governing all layout algorithm work.
-
-**Key decisions made:**
-
-- **Static dispatch is the selection method** — algorithm selection is a semantic property of each diagram kind, hardcoded in that kind's `layout.ts`. No dynamic/adaptive switching. Rationale: violates determinism contract (same source must produce same layout); adds combinatorial test burden; creates invisible thresholds that confuse authors. Performance fallbacks (approximate heuristics for huge graphs) are explicitly deferred.
+**Key learnings:** Fragment parallelization avoids merge conflicts. Static dispatch keeps determinism. Compiler purity non-negotiable. Cosmetic bindings in v1; structural deferred.
 
 - **Five phases:** (0) Research & catalog (David/Scribe), (1) Flowchart full Sugiyama upgrade (Barbara), (2) Shared layered.ts kernel upgrade (Barbara), (3) Simple diagrams audit (Barbara), (4) Poster cross-diagram routing deep work (Barbara + Leslie review), (5) Design doc consolidation (Scribe/Leslie).
 
@@ -136,3 +98,69 @@ Reassembled docs/diagram-options.md (2879 lines, 45 families). Updated intro to 
 - Triton's DS primitives (array, matrix, stack, heap, tree, nodegraph) cover ~90% of educational algorithm visualisation needs structurally. The gap is annotation/highlight modifiers, not missing shapes.
 - Cross-link animation system (march, glow, particle, etc.) is already rich; extending it to intra-diagram edges is a small scope.
 - Hash-ring is genuinely missing and would require a new layout algorithm (circular node placement around circumference).
+
+---
+
+## 2026-07-12 — Strict Mermaid Connector Syntax Analysis
+
+**Task:** Analyze design implications of aligning all Triton connector syntax to upstream Mermaid, moving animation to decorators, and resolving the `-.->` dotted-vs-dashed incoherence.
+
+**Deliverable:** `.squad/decisions/inbox/leslie-connector-strict-mermaid.md`
+
+### Key Findings
+
+1. **`-.->` conflict is the crux:** Poster grammar says dashed, Mermaid says dotted, flowchart grammar says dotted. Strict alignment means `-.->` = dotted everywhere. "Dashed" as a distinct style has no Mermaid token and either dies or becomes decorator-only (`{ style: dashed }`). Recommended Option A (drop dashed) unless visual need is demonstrated.
+
+2. **Three invented tokens must retire:** `..>`, `...`, `<..>` have no Mermaid basis. Only one example file uses `<..>` in an actual link statement (`complex.mmd:31`). Migration is minimal.
+
+3. **Auto-march coupling is a layer violation:** render.ts:136-140, engine3.ts:188-191, engine2.ts:274-277 all infer animation from line style. Fix is mechanical: remove the `dash ? 'march' : undefined` branch. ~8 example links lose animation; authors add `@anim:march` explicitly.
+
+4. **`@anim:X` fits the existing `@` annotation namespace:** `@` already owns routing annotations. Adding `@anim:` as a second annotation family is clean. Recommended: `@` handles typed finite-vocabulary annotations (routing, animation); `{ }` PropBlock handles parameterized overrides (tension, color). `@` takes precedence on conflict.
+
+5. **Thick (`==>`) should enter the IR as first-class style.** Rendering is mechanical (stroke-width change). Endpoint markers (`--o`/`--x`) should parse-and-collapse for now but the IR should carry intent.
+
+6. **Two-grammar unification not recommended at grammar level.** PEG is monolithic. Better: shared TypeScript token→style mapping table validated by tests from both grammars.
+
+7. **Six open questions flagged for Cristian's decision** — dashed survival, thick as IR value, endpoint marker scope, `@`+`{ }` merge rule, external user impact, flowchart sync/async kind fate.
+
+### Learnings
+
+- Mermaid's visual style vocabulary is exactly three: solid, dotted, thick. No dashed. Triton's four-style model (solid, dashed, dotted, thick) is a superset that must be justified or trimmed.
+- The auto-march coupling (style→animation inference) exists in three independent render paths (render.ts, engine2.ts, engine3.ts). All three must be updated atomically.
+- PEG grammars don't support cross-file rule imports; consistency between grammars must be enforced via shared test fixtures or TypeScript constants, not grammar-level sharing.
+- The `@` annotation namespace is extensible by family prefix (e.g., `@anim:`, `@route:`). Current `@orthogonal` is implicitly `@route:orthogonal` — formalizing the prefix would make the grammar more regular.
+
+## Learnings
+
+### Connector Syntax — Superset Rule Revision (2026-07-12)
+
+Revised the connector analysis under the corrected constraint: Triton is a STRICT SUPERSET of Mermaid (extending with new tokens is allowed and desired).
+
+**Key corrections from v1:**
+- "Dashed" is NOT dropped — it gets a new Triton-extension token `-_->` (underscore infix).
+- "Wavy" is a new 5th style via `-~->` (tilde infix).
+- The full orthogonal matrix is 15 tokens (5 styles × 3 directions): 9 Mermaid-honored + 6 Triton-extended.
+- Both `_` and `~` have no collision with existing Mermaid tokens (verified against flowchart and classDiagram grammars).
+
+**New findings:**
+- Wavy rendering is feasible deterministically via sine-wave path displacement (W1 approach). ~100 LoC geometry. SVG filters (feTurbulence) are NOT viable — they violate determinism.
+- The 5-style enum is TOTAL and mutually exclusive: no composite styles (thick-wavy etc.) in v1.
+- Real migration blast radius is small: 1 parse break (`<..>`), 10 visual changes (`-.->` dashed→dotted), 8 animation losses (auto-march removal). All in `examples/triton/`.
+- Flowchart grammar's `kind: sync|async` is a semantic overlay on style that should be dropped to unify the two grammars' output shape. ~3 downstream consumers to audit.
+- The `connector-tokens.ts` shared constant approach (tested from both grammars) is the right consistency mechanism — PEG can't share rules across files.
+
+---
+
+### Live-Poster Scope Ruling (2026-07-12)
+
+Issued scope/identity ruling on the live-data poster web component proposal. Decision filed at `.squad/decisions/inbox/leslie-liveposter-scope.md`.
+
+**Verdict:** PROCEED with hard boundary.
+
+**Key rulings:**
+
+- Cosmetic bindings (text templates, color thresholds, animation speed) are clean — they operate on stable SVG output without affecting layout. The compiler emits a binding-map JSON sidecar; a separate runtime package consumes it.
+- `repeat:` (structural data-driven cell generation) is **rejected as a compiler feature**. It requires runtime data to determine geometry, which violates the determinism contract. If pursued, it belongs in a pre-processor that expands DSL before compilation.
+- The inviolable principle: **the compiler is a pure function of its text input alone. No runtime data enters the compilation pipeline.**
+- Boundary: compiler owns DSL→IR→layout→SVG+binding-map. Runtime (`@triton/poster-runtime`) owns reactivity, DOM patching, transport, the web component. One-way dependency only (runtime→compiler).
+- The compiler already emits stable per-cell IDs (hover/tooltip anchors). Formalizing these as a binding-map JSON is low-risk and architecturally sound.

@@ -1,53 +1,12 @@
-# Ken — History
+# Ken — Visual QA Reviewer
 
-## [ARCHIVED HISTORY]
+## [ARCHIVE GATE SUMMARY — 2026-07-12]
 
-Previously completed work:
-- Context
-- Learnings
-- 2026-06-27T17:19:00-04:00 — class-fix3 Review
-- 2026-06-27T17:21:55-04:00 — class-fix3 Review
-- 2026-06-27T17:29:00-04:00 — class-92e839c Review
-- 2026-06-27T17:37:00-04:00 — class-bypass Review
-- 2026-06-27T18:38:39-04:00 — Option A Review (commit 9783ff2)
-- 2026-06-27T19:51:00-04:00 — commit 1ef7cb7 Review (port rasterize)
-- Review #5 — commit d15b9b9 — class-snap.png
-- Review: commit b254d5d — obstacle-aware dummy snap
-- Review: commit 23c3c84 — Ideal Port Routing (2026-06-27)
-- Review: commit ea3e43c — dagre-faithful port (2026-06-27T21:55:00-04:00)
-- Review: commit 3448628 — column snap fix
-- Review: commit e2a9d04 — routing optimizer
-- Review: commit b9b7eda — multi-wall routing
-- Review: commit 89e7b36 — Adaptive left-margin candidate + expansion penalty
-- Review: commit 2e259cd — "places" left-side routing (Strategy B)
-- Review: commit 2c245f7 — breathing room and label fix
-- Review #4 — commit a9312ce · 2026-06-28T11:18:23-04:00
+Visual QA inspections (2026-06-27 to 2026-07-12):
+- Multiple class diagram route optimization reviews (commit c6f18a6 and prior): Verified straight verticals, left-wall rail gaps, "places" label placement, 15 charter principles all PASS.
+- Connector style-matrix visual QA (2026-07-12): All 5 styles × 3 directions render correctly. Dotted vs dashed visually distinct (4 3 vs 8 4 dasharray). Thick at 2× stroke-width. Wavy: clean sine-wave, smooth corners, consistent amplitude. Arrowheads axis-aligned. No NaN in path data. PASS — no fixes required.
 
----
-
-## Review c6f18a6 — Generalized Edge Routing Optimizer
-**Date:** 2026-06-28T11:56:29-04:00
-**Requested by:** ormasoftchile
-
-### Diagram 1: `examples/class/` — Regression Check
-
-Re-rasterized to `examples/class/class-ken-c6f18a6.png`.
-
-**SVG confirmed metrics:**
-- Straight verticals: `x=96.82` on all 4 main edges (has, creates, contains, references) ✅
-- Left-wall rail: `x=−16.18`; gap from Customer/Order left edge (31.82) = **48 px** ✅; gap from ShoppingCart left edge (24) = **40 px** (minimum) ✅
-- "places" label: `x=−20, text-anchor=end, y=298` — midpoint of bracket span 120–483 ✅
-- All 15 principles re-verified: 15 ✅ / 0 ⚠️ / 0 ❌
-
-**Verdict: ✅ PASS** — no regressions from a9312ce.
-
----
-
-### Diagram 2: `examples/class2/` — Online Learning Platform (Improvement Check)
-
-Re-rasterized to `examples/class2/class2-ken-c6f18a6.png`.
-
-**Node bounding boxes (from SVG):**
+**Key learnings:** Wavy rendering quality critical (amplitude damping at corners prevents kinks). Charter compliance verified per 15-principle checklist. SVG attribute verification confirms rendering correctness before PNG rasterization.
 | Node | x | y | right | bottom |
 |------|---|---|-------|--------|
 | Student | 161.6 | 56 | 327.4 | 166 |
@@ -294,3 +253,48 @@ All connectors touch target shapes flush; badges render opaque with legible digi
 ## Release Status
 
 Approved for 0.1.7 release.
+
+---
+
+## Review: Connector Style Matrix — 2026-07-12T10:05:00-04:00
+**Requested by:** ormasoftchile  
+**Subject:** Brian's connector redesign (style-matrix.svg)
+
+### Test Artifact
+- Rasterized with: `rsvg-convert -f png -w 1400 -o examples/triton/cross-link/style-matrix-ken.png examples/triton/cross-link/style-matrix.svg`
+- Exit code: 0
+
+### Visual Verification
+
+| Style | Directed | Undirected | Bidir | Status |
+|-------|----------|------------|-------|--------|
+| Solid | ✅ unbroken | ✅ no arrows | ✅ both arrows | PASS |
+| Dotted | ✅ short dots (4 3) | ✅ no arrows | ✅ both arrows | PASS |
+| Thick | ✅ wide stroke, no dash | ✅ no arrows | ✅ both arrows | PASS |
+| Dashed | ✅ long dashes (8 4) | ✅ no arrows | ✅ both arrows | PASS |
+| Wavy | ✅ sine wave | ✅ no arrows | ✅ both arrows | PASS |
+
+### SVG Attribute Verification
+
+- **Solid:** `stroke-width="2"`, no dasharray ✅
+- **Dotted:** `stroke-dasharray="4 3"` ✅
+- **Thick:** `stroke-width="4"`, no dasharray ✅
+- **Dashed:** `stroke-dasharray="8 4"` ✅
+- **Wavy:** Many cubic Bézier `C` points, no NaN ✅
+
+### Verdict
+
+**✅ PASS** — All 5 styles × 3 directions render correctly. Dotted vs dashed visually distinct. Wavy has clean sine oscillation on both horizontal and vertical segments.
+
+---
+
+## Learnings
+
+### Wavy Path QA Checklist (reusable)
+When reviewing wavy/sinusoidal connector styles:
+1. Verify path `d=` contains many `C` control points (not just `L`)
+2. Grep for `NaN` — must return 0 matches
+3. Check horizontal segments: regular Y oscillation with consistent amplitude
+4. Check vertical segments: regular X oscillation
+5. Inspect corners: no kinks, no amplitude blowup
+6. Verify wave terminates cleanly near arrowheads (not mid-oscillation)

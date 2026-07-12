@@ -1,3 +1,942 @@
+# Design Analysis: Connector Syntax — Strict Mermaid Superset (REVISED)
+
+**Author:** Leslie (Lead / Spec Architect)
+**Date:** 2026-07-12T09:33-04:00
+**Status:** ANALYSIS (v2) — supersedes v1. Awaiting Cristian's review.
+**Revision cause:** Corrected constraint — Triton is a STRICT SUPERSET of Mermaid (extending with new tokens is desired), not "no divergence."
+
+---
+
+## 0. The Corrected Rule
+
+> Triton connector syntax is a STRICT SUPERSET of Mermaid.
+> - Every Mermaid token retains Mermaid's exact meaning (never contradicted).
+> - Extending Mermaid with NEW tokens is explicitly ALLOWED and desired.
+> - `-.->` = dotted (Mermaid). `==>` = thick (Mermaid). `--o`/`--x` = marker (Mermaid).
+> - Mermaid's dot-lengthening (`-..->`, `-...->`) means "longer dotted" — not repurposable.
+
+This changes the prior analysis fundamentally: "dashed" and "wavy" are NOT dropped — they get NEW Triton-extension tokens.
+
+---
+
+## 1. Full Token Matrix (Direction × Style)
+
+### 1.1 Decided Directed Tokens
+
+| Style   | Directed | Origin  | Infix  |
+|---------|----------|---------|--------|
+| Solid   | `-->`    | Mermaid | `--`   |
+| Dotted  | `-.->`   | Mermaid | `-.-`  |
+| Thick   | `==>`    | Mermaid | `==`   |
+| Dashed  | `-_->`   | Triton  | `-_-`  |
+| Wavy    | `-~->`   | Triton  | `-~-`  |
+
+### 1.2 Undirected (open, no arrowhead)
+
+Mermaid's undirected form: remove arrowheads, extend the trailing segment.
+
+| Style   | Undirected | Origin  | Rationale |
+|---------|-----------|---------|-----------|
+| Solid   | `---`     | Mermaid | Established. |
+| Dotted  | `-.-`     | Mermaid | Established (flowchart grammar line 170). |
+| Thick   | `===`     | Mermaid | Established. |
+| Dashed  | `-_-`     | Triton  | Minimal — same infix, no arrow. |
+| Wavy    | `-~-`     | Triton  | Same pattern. |
+
+**Ambiguity check:** `-_-` could be misread as an emoticon, but within a `link` statement context it's unambiguous. `-~-` has no collision with any Mermaid token (Mermaid uses `~` only in classDiagram generics, never in edge tokens). ✅ No collision.
+
+### 1.3 Bidirectional (arrowheads both ends)
+
+Mermaid's bidirectional form: wrap infix with `<` and `>`.
+
+| Style   | Bidirectional | Origin  | Rationale |
+|---------|--------------|---------|-----------|
+| Solid   | `<-->`       | Mermaid | Established. |
+| Dotted  | `<-.->`      | Mermaid | Established. |
+| Thick   | `<==>`       | Mermaid | Established. |
+| Dashed  | `<-_->`      | Triton  | Follows `<` + infix + `>` pattern. |
+| Wavy    | `<-~->`      | Triton  | Follows pattern. |
+
+**Ambiguity check for `<-_->`:** The `<` followed by `-_-` followed by `>` is lexically unambiguous — no Mermaid token starts `<-_`. The PEG ordered-choice parser will match the longest alternative first; listing `<-_->` before `-->` handles it cleanly. ✅
+
+**Ambiguity check for `<-~->`:** Same analysis. `<-~` is not a prefix of any Mermaid token. ✅
+
+### 1.4 Longer Forms (Mermaid length-extension)
+
+Mermaid allows `--->` (one extra `-`), `---->`, `-..->`(one extra `.`), etc. to hint at "longer rendering." Under the superset rule these MUST retain their Mermaid meaning (just longer solid/dotted). Triton currently supports `--->`in flowchart (maps to solid) and `-..->` (maps to dotted). These are NOT repurposable for dashed/wavy.
+
+For Triton extensions, length-extending is NOT proposed (no `-__->` or `-~~->`). This keeps the grammar finite and unambiguous.
+
+### 1.5 Complete Orthogonal Matrix
+
+```
+            Directed   Undirected   Bidirectional   Origin
+Solid       -->        ---          <-->            Mermaid
+Dotted      -.->       -.-          <-.->           Mermaid
+Thick       ==>        ===          <==>            Mermaid
+Dashed      -_->       -_-          <-_->           Triton
+Wavy        -~->       -~-          <-~->           Triton
+```
+
+15 tokens total. 9 Mermaid-honored, 6 Triton-extended.
+
+### 1.6 Collision/Risk Assessment
+
+| Token  | Risk | Notes |
+|--------|------|-------|
+| `-_->` | LOW  | `_` in node IDs is common (`my_node`), but PEG ordered-choice with the arrow rule listed before identifier matching eliminates ambiguity in link statements. Must verify PEG rule ordering. |
+| `-~->` | LOW  | `~` is unused in Mermaid flowchart/poster grammar. Mermaid classDiagram uses `~GenericType~` but that's a different grammar entirely. No conflict. |
+| `<-_->` | LOW | Same as `-_->`. |
+| `<-~->` | LOW | Same as `-~->`. |
+| `-_-`  | LOW  | Could be confused with undirected solid `---` visually by humans, but lexically distinct (underscore vs hyphen). |
+| `-~-`  | LOW  | Lexically distinct from `-.-` (dot vs tilde). |
+
+**One nuance:** If a node ID starts with `>` (unlikely but legal in some grammar variants), then `A -_->B` could be misparsed as `A -_-` (undirected) followed by `>B`. PEG ordered-choice resolves this: list `-_->` BEFORE `-_-` in the grammar. This is the standard PEG arrow-ordering technique already used for `-->` vs `---`.
+
+---
+
+## 2. Rendering Feasibility
+
+### 2.1 Solid, Dotted, Dashed — Trivial
+
+All three use `stroke-dasharray`:
+- Solid: no dasharray (or `none`)
+- Dotted: `4 3` (current engine3.ts:1043) / `4 3` (render.ts:308 as `'4 3'`)
+- Dashed: `8 4` (current render.ts:307)
+
+No rendering work needed beyond keeping the existing `edgeStyleToDash()` function.
+
+### 2.2 Thick — Trivial
+
+Thick = `stroke-width` increase. The renderer already sets `stroke-width` per connector (default ~1.5px). Adding a `thick` branch that emits `stroke-width: 3` (or 2.5) is a one-line conditional. No dasharray. No path geometry change.
+
+### 2.3 Wavy — The Risky One
+
+A "wavy" line is NOT achievable via `stroke-dasharray` or `stroke-width` alone. It requires **modifying the path geometry itself** or applying a visual effect. Options:
+
+#### Option W1: Hand-Generated Sine-Wave Path
+
+Replace the connector's straight/orthogonal/bezier `d` attribute with a path that oscillates sinusoidally about the original route.
+
+**How it works:**
+1. Compute the original route (polyline or bezier) — this already happens (render.ts:874 shows cubic bezier emission, and the orthogonal router produces point arrays).
+2. Walk the route at uniform intervals (e.g., every 6px).
+3. At each sample point, compute the route's local tangent and normal.
+4. Displace the point along the normal by `A * sin(2π * t / λ)` where A=amplitude (~3px) and λ=wavelength (~12px).
+5. Emit the displaced points as a smooth path (cubic bezier through displaced points, or a simple polyline with enough resolution).
+
+**Determinism:** ✅ Fully deterministic — same route → same displaced path. No randomness involved. The sine function is pure.
+
+**Cost:**
+- Computation: O(N) where N = route length / sample interval. For a typical 200px connector with 6px intervals: ~33 samples. Trivial.
+- SVG size: slightly larger path `d` attribute (more control points). Negligible.
+- Complexity: moderate implementation effort (~50-80 lines of geometry code). Needs careful handling at corners (orthogonal bends) — the sine wave should reset phase or damp amplitude at 90° turns.
+
+**Visual quality:** Good. Consistent, professional-looking wavy line. Used by diagram tools like draw.io.
+
+#### Option W2: SVG `<pattern>` Stroke
+
+Use a custom `stroke-dasharray` that approximates waviness? Not possible — dasharray only controls on/off stroke segments, not displacement.
+
+Alternatively, use a `<pattern>` element as a stroke paint? SVG `stroke` doesn't support pattern fills on the stroke path in a way that produces waviness. ❌ Not viable.
+
+#### Option W3: SVG Filter (feTurbulence + feDisplacementMap)
+
+Apply an SVG filter that displaces the connector path using a turbulence function.
+
+**Problems:**
+- **Determinism violation:** `feTurbulence` uses a `seed` parameter, but the visual result depends on the element's bounding box, zoom level, and renderer implementation. Different SVG viewers may render slightly differently. This VIOLATES Triton's determinism contract.
+- **Performance:** filters are expensive to render, especially on many connectors.
+- **Control:** hard to get a clean, uniform sine wave — turbulence is inherently noisy.
+
+❌ **Not recommended** — violates determinism, poor control.
+
+#### Option W4: CSS `text-decoration: wavy` Trick
+
+Not applicable to SVG paths. ❌
+
+#### Recommendation: W1 (Sine-Wave Path Displacement)
+
+**Implementation sketch for the renderer:**
+```typescript
+function wavifyPath(points: Point[], amplitude: number, wavelength: number): string {
+  // 1. Compute cumulative arc-length along polyline
+  // 2. Re-sample at uniform intervals (wavelength/4)
+  // 3. At each sample, compute normal, displace by A*sin(phase)
+  // 4. Fit cubic beziers through displaced points
+  // Return SVG path `d` string
+}
+```
+
+This function would be called in render.ts where the connector path is emitted (around line 874 for bezier, or where orthogonal point arrays are serialized to SVG `<path>` elements). The existing `routePath` field on `PendingRoute` would receive the wavified path string instead of the straight/bezier one when `style === 'wavy'`.
+
+**Effort estimate:** ~100 lines of new geometry code + tests. Medium effort. Not trivial, not huge.
+
+**Open sub-question:** Should wavy combine with thick? (i.e., thick-wavy?) The matrix above treats them as orthogonal styles (you get one). If thick-wavy is needed, that's a rendering combination (wider stroke + displaced path). Feasible but adds combinatorial rendering branches. **Recommend: styles are mutually exclusive for v1.** Thick-wavy is a future extension via `{ style: thick-wavy }` prop if ever needed.
+
+---
+
+## 3. IR Vocabulary
+
+### 3.1 Style Enum
+
+```typescript
+// src/contracts/crosslink.ts
+export type CrossLinkEdgeStyle =
+  | 'solid'      // ──────
+  | 'dotted'     // · · · ·
+  | 'dashed'     // - - - -
+  | 'thick'      // ━━━━━━
+  | 'wavy';      // ∿∿∿∿∿∿
+```
+
+This is the TOTAL style enum — every valid style has exactly one name. No aliases. No composite styles.
+
+### 3.2 Direction Enum (unchanged)
+
+```typescript
+export type CrossLinkDirection =
+  | 'directed'       // -->
+  | 'undirected'     // ---
+  | 'bidirectional'; // <-->
+```
+
+### 3.3 Endpoint Marker (new, additive)
+
+```typescript
+export type CrossLinkEndpointMarker =
+  | 'arrow'    // > (default for directed)
+  | 'circle'   // o
+  | 'cross'    // x
+  | 'none';    // (no marker)
+```
+
+Fields on `CrossLink`:
+```typescript
+readonly startMarker?: CrossLinkEndpointMarker;  // default: none (or arrow for bidir)
+readonly endMarker?: CrossLinkEndpointMarker;    // default: arrow for directed
+```
+
+This replaces the current implicit behavior where `direction: 'directed'` always implies an arrow end-marker. Now the marker is explicit in the IR (even if the grammar defaults it).
+
+### 3.4 Separation Principle
+
+| Concern | IR field | Set by |
+|---------|----------|--------|
+| Line visual class | `style` | Syntax token (grammar) |
+| Traversal direction | `direction` | Syntax token (grammar) |
+| Endpoint shape | `startMarker`, `endMarker` | Syntax token or future decorator |
+| Animation | `animation` | `@anim:` decorator or `{ anim: }` prop |
+| Routing | `routing`, `curveStyle` | `@route` decorator or `{ route: }` prop |
+| Port constraints | `exitWall`, `entryWall` | `@` wall hints |
+| Freeform | `props` | `{ ... }` PropBlock |
+
+---
+
+## 4. Decorator Design
+
+### 4.1 Two Annotation Families
+
+| Family | Prefix | Values | Example |
+|--------|--------|--------|---------|
+| Routing | `@straight`, `@orthogonal`, `@bezier`, `@polyline` | fixed set + optional `:WallPair` | `@orthogonal:EW` |
+| Animation | `@anim:` | `march`, `particle`, `draw`, `pulse`, `glow`, `comet`, `stream`, `flow`, `colorcycle`, `none` | `@anim:march` |
+
+### 4.2 `@` vs `{ }` Division
+
+| `@` annotations own | `{ }` PropBlock owns |
+|---------------------|---------------------|
+| Routing algorithm (typed, finite) | `tension` (numeric) |
+| Wall hints (typed, finite) | `color` (string) |
+| Animation name (typed, finite) | Future per-link overrides |
+| — | `style` override (escape hatch) |
+| — | `route` (alternative form) |
+| — | `anim` (alternative form) |
+
+### 4.3 Precedence Rule
+
+When both `@` and `{ }` specify the same semantic key:
+- **`@` wins.** It's syntactically closer to the edge and represents the author's explicit typed intent.
+- `{ anim: particle } @anim:march` → animation = march (@ wins).
+- `{ route: bezier } @straight` → routing = straight (@ wins).
+
+### 4.4 Grammar Extension for `@anim:`
+
+```peg
+Annotation
+  = "@anim:" value:AnimValue     { return { family: 'anim', value }; }
+  / "@" route:RouteWord walls:(":" WallPair)?
+      { return { family: 'route', route, ...(walls ? walls[1] : {}) }; }
+  / "@" walls:WallPair           { return { family: 'route', ...walls }; }
+
+AnimValue
+  = "march" / "particle" / "draw" / "pulse" / "glow"
+  / "comet" / "stream" / "flow" / "colorcycle" / "none"
+```
+
+**Open question (Q4 from v1, still open):** Should we formalize a MERGE rule document? E.g., `@bezier:EW @anim:comet { tension: 0.5 }` means routing=bezier, exitWall=E, entryWall=W, anim=comet, tension=0.5. All three sources merge; `@` wins on conflict. I recommend YES — a 3-line precedence rule in the spec prevents future confusion.
+
+### 4.5 Multiple `@` Annotations
+
+Can a link carry both `@orthogonal:EW` AND `@anim:march`? YES — they're different families. Grammar: one or more `Annotation` separated by whitespace after the edge label.
+
+```
+link A.x --> B.y "label" @orthogonal:EW @anim:march { tension: 0.5 }
+```
+
+---
+
+## 5. Two-Grammar Problem
+
+### 5.1 Current State
+
+| Grammar | File | Arrow rule | Output shape | Styles supported |
+|---------|------|-----------|--------------|-----------------|
+| Flowchart | `src/diagrams/mermaid/flowchart/grammar.peggy:157-172` | `EdgeArrow` | `{ kind, style }` | solid, dotted (thick/markers collapsed) |
+| Poster | `src/diagrams/triton/poster/grammar.peggy:175-183` | `Arrow` | `{ direction, style }` | solid, dashed, dotted |
+
+### 5.2 What Must Change
+
+Both grammars must recognize the full 5-style × 3-direction matrix (15 tokens). Additionally:
+- Flowchart must map thick to `style: 'thick'` (not collapse to solid).
+- Flowchart must recognize `-_->` and `-~->` extensions.
+- Poster must adopt the Mermaid-correct tokens and retire the invented ones.
+
+### 5.3 Shared Token Mapping (Recommended Approach)
+
+Create `src/contracts/connector-tokens.ts`:
+
+```typescript
+/** Canonical token → style mapping. Both grammars must agree with this. */
+export const CONNECTOR_STYLE_MAP: Record<string, CrossLinkEdgeStyle> = {
+  '--':  'solid',
+  '-.-': 'dotted',
+  '==':  'thick',
+  '-_-': 'dashed',
+  '-~-': 'wavy',
+} as const;
+```
+
+Both grammars' **test suites** assert against this table: for each entry in `CONNECTOR_STYLE_MAP`, the grammar must parse the corresponding directed/undirected/bidirectional token and emit the correct style value. This catches drift without coupling the PEG files at the source level.
+
+### 5.4 Flowchart `kind: sync | async` Question
+
+The flowchart grammar currently emits `kind: 'async'` for dotted edges. This is a semantic interpretation layered on top of style. Under the 5-style model:
+- Is `-.->` (dotted) always "async"? What about `-_->` (dashed) — also async? What about `-~->` (wavy)?
+- The `kind` concept conflates style with semantics.
+
+**Recommendation:** Drop `kind` from the flowchart edge IR. Replace with `style` only. If "async" semantics are needed downstream (e.g., for sequence diagrams), derive them from style at the consumer level, not in the grammar. This aligns the two grammars' output shapes.
+
+**Effort:** Low — `kind` is used in ~3 places downstream (sequence-style rendering logic). Replacing `kind === 'async'` with `style === 'dotted'` is mechanical.
+
+### 5.5 Effort/Risk Assessment
+
+| Task | Effort | Risk |
+|------|--------|------|
+| Add 6 new tokens to poster grammar | Low (6 PEG alternatives) | Low |
+| Remove 3 retired tokens from poster grammar | Low | Low (hard break) |
+| Add 4 new tokens to flowchart grammar (`-_->`, `-~->`, `<-_->`, `<-~->`) + fix thick | Medium (rewrite EdgeArrow rule) | Medium — must not break existing Mermaid flowchart parsing |
+| Create `connector-tokens.ts` + cross-grammar tests | Low | Low |
+| Drop `kind` from flowchart | Low-Medium | Medium — downstream consumers need audit |
+
+---
+
+## 6. Migration
+
+### 6.1 Tokens Being Retired
+
+Under the superset rule, these poster-only tokens are NON-Mermaid AND now redundant:
+
+| Retired Token | Meaning | Replaced By | Mermaid Equivalent |
+|---------------|---------|-------------|-------------------|
+| `..>`  | dotted directed | `-.->` | `-.->` |
+| `...`  | dotted undirected | `-.-` | `-.-` |
+| `<..>` | dotted bidirectional | `<-.->` | `<-.->` |
+
+### 6.2 Semantic Change
+
+| Token | Old Meaning (poster) | New Meaning (superset) | Change Type |
+|-------|---------------------|----------------------|-------------|
+| `-.->` | dashed | dotted | **BREAKING** — visual change |
+| `-.-`  | dashed | dotted | **BREAKING** — visual change |
+| `<-.->` | dashed | dotted | **BREAKING** — visual change |
+
+Authors who wanted "dashed" must migrate to `-_->` / `-_-` / `<-_->`.
+
+### 6.3 Real Usage Counts (from examples/triton/)
+
+| Pattern | Actual link-statement uses | Comment-header mentions | Files |
+|---------|---------------------------|------------------------|-------|
+| `..>` (directed dotted, retired) | 0 actual links | 7 (all `%%` headers) | 0 real usage |
+| `...` (undirected dotted, retired) | 0 actual links | 7 (all `%%` headers) | 0 real usage (DS `...` is array elision, different grammar) |
+| `<..>` (bidir dotted, retired) | **1** (`complex.mmd:31`) | 7 (`%%` headers) | 1 real usage |
+| `-.->` (currently=dashed, becomes=dotted) | **10** actual links | 7 (`%%` headers) | 6 files |
+| `{ anim: ... }` | **11** actual links | 0 | 3 files |
+
+### 6.4 Blast Radius
+
+- **1 parse break:** `complex.mmd:31` uses `<..>` → must become `<-.->` (bidirectional dotted).
+- **10 visual changes:** All `-.->` links currently render as dashed (`8 4`); they will become dotted (`4 3`). Authors who wanted dashed must change to `-_->`.
+- **~8 animation losses:** Links using `-.->` without explicit `{ anim: X }` will lose auto-march. They must add `@anim:march` if animation was intended.
+- **7 `%%` comment headers:** Cosmetic update to show the new token vocabulary.
+- **0 real `..>` or `...` link-statement uses** (only in comments) → no parse breaks from retiring those beyond the comment text.
+
+### 6.5 Recommended Migration Strategy
+
+**Hard break.** Rationale:
+1. Pre-1.0 project — now is the time.
+2. Total blast radius: 1 parse error + 10 visual changes + 8 animation losses = 19 edits across 6 files.
+3. All affected files are in `examples/triton/` (internal).
+4. A deprecation shim would pollute the grammar permanently for 19 edits.
+
+**Migration script (mechanical):**
+1. `<..>` → `<-.->` (1 occurrence)
+2. `..>` → `-.->` in link statements (0 occurrences — only comments)
+3. `...` → `-.-` in link statements (0 occurrences — only comments)
+4. For each `-.->` link where the author intended DASHED (not dotted): change to `-_->`
+5. For each `-.->` link that should keep marching animation: add `@anim:march`
+6. Update `%%` headers in all poster examples.
+
+**Open question (Q5 from v1, RESOLVED by Cristian):** Hard break is confirmed appropriate for a pre-1.0 internal-examples-only project.
+
+---
+
+## 7. Open Questions (Updated)
+
+| # | Question | Status | Options |
+|---|----------|--------|---------|
+| Q1 | ~~Does "dashed" survive?~~ | **RESOLVED** | YES — as `-_->` (Triton extension). |
+| Q2 | ~~Does "thick" enter the IR?~~ | **RESOLVED** | YES — first-class `CrossLinkEdgeStyle` value. `==>` honored per Mermaid. |
+| Q3 | Endpoint markers (`--o`/`--x`) — scope? | OPEN | Full render support vs. parse-and-collapse. Recommend: parse & record in IR (`endMarker` field), render later. Low priority. |
+| Q4 | `@` + `{ }` merge rule formalized? | OPEN | Recommend YES: `@` wins on conflict; both compose. Needs a 3-line spec statement. |
+| Q5 | ~~External users?~~ | **RESOLVED** | Hard break — pre-1.0, internal examples only. |
+| Q6 | Drop flowchart `kind: sync/async`? | OPEN | Recommend YES — replace with `style` only. Audit ~3 downstream consumers. |
+| Q7 | **NEW:** Wavy rendering — sine displacement vs. alternative? | OPEN | Recommend W1 (sine-wave path displacement). ~100 LoC geometry. Needs amplitude/wavelength constants decided (suggest A=3px, λ=12px). Should these be configurable via `{ amplitude: N }`? |
+| Q8 | **NEW:** Styles mutually exclusive or composable? | OPEN | Recommend mutually exclusive for v1. `thick-wavy` or `thick-dashed` would be future `{ style: "thick-wavy" }` escape hatches if needed. The 5-value enum stays flat. |
+| Q9 | **NEW:** Should `-_->` / `-~->` also be recognized in the flowchart grammar? | OPEN | If we claim "same token means same thing everywhere" (Section 5), then YES. But flowchart is Mermaid-family — adding Triton extensions there blurs the boundary. Alternative: flowchart stays Mermaid-only (3 styles); poster has 5. Recommend: YES, add them — the superset rule applies to ALL Triton grammars, not just poster. |
+
+---
+
+## 8. Summary of Decisions vs. Open Items
+
+### Decided (by Cristian + this analysis)
+
+1. ✅ 5-style enum: solid, dotted, dashed, thick, wavy
+2. ✅ Dashed = `-_->` (underscore infix, Triton extension)
+3. ✅ Wavy = `-~->` (tilde infix, Triton extension)
+4. ✅ `-.->` = dotted (Mermaid-honored, no contradiction)
+5. ✅ `==>` = thick (Mermaid-honored)
+6. ✅ Animation decoupled from style → `@anim:` decorator
+7. ✅ Auto-march default REMOVED (all styles static unless decorated)
+8. ✅ Retired tokens: `..>`, `...`, `<..>` — hard break
+
+### Still Open (need Cristian's call or further design)
+
+1. Endpoint markers scope (Q3)
+2. `@`/`{ }` merge rule formalization (Q4)
+3. Flowchart `sync/async` kind removal (Q6)
+4. Wavy rendering constants (Q7)
+5. Style composability (Q8)
+6. Extension tokens in flowchart grammar (Q9)
+
+---
+
+## Appendix A: Affected Source Files
+
+| File | Change needed |
+|------|--------------|
+| `src/contracts/crosslink.ts` | Expand `CrossLinkEdgeStyle` to 5 values; add `startMarker`/`endMarker` |
+| `src/contracts/connector-tokens.ts` | **NEW** — shared token→style map |
+| `src/diagrams/triton/poster/grammar.peggy:175-183` | Rewrite Arrow rule (15 tokens, retire 3) |
+| `src/diagrams/mermaid/flowchart/grammar.peggy:157-172` | Extend EdgeArrow (add thick/dashed/wavy) |
+| `src/crosslink/render.ts:136-140` | Remove auto-march coupling |
+| `src/crosslink/render.ts:306-310` | Extend `edgeStyleToDash()` for 5 styles (wavy=undefined, thick=undefined) |
+| `src/crosslink/render.ts` (path emission) | Add `wavifyPath()` for wavy style |
+| `src/crosslink/engine3.ts:188-191` | Remove auto-march coupling |
+| `src/crosslink/engine3.ts:1042-1043` | Extend `edgeStyleToDash()` |
+| `src/crosslink/engine2.ts:274-277` | Remove auto-march coupling |
+| `src/crosslink/engine2.ts:911` | Extend `edgeStyleToDash()` |
+| `examples/triton/cross-link/*.mmd` | Migration (tokens + add `@anim:march` where needed) |
+| `examples/triton/poster/*.mmd` | Update `%%` comment headers |
+
+## Appendix B: `edgeStyleToDash()` After Change
+
+```typescript
+function edgeStyleToDash(style: CrossLinkEdgeStyle): string | undefined {
+  switch (style) {
+    case 'dotted': return '4 3';
+    case 'dashed': return '8 4';
+    case 'solid':  return undefined;
+    case 'thick':  return undefined;  // thick uses stroke-width, not dasharray
+    case 'wavy':   return undefined;  // wavy uses path displacement, not dasharray
+  }
+}
+```
+
+## Appendix C: Rendering Pipeline for Wavy
+
+```
+Input:  route points (polyline from router)
+        style = 'wavy'
+
+Step 1: Compute cumulative arc-length array for route points.
+Step 2: Re-sample at intervals of λ/4 (= 3px if λ=12px).
+Step 3: At each sample point:
+        - Compute tangent vector (direction of route at that point).
+        - Compute normal (perpendicular to tangent).
+        - Displace point along normal by A * sin(2π * arcLen / λ).
+Step 4: Fit smooth cubic beziers through displaced points (Catmull-Rom → Bezier conversion).
+Step 5: Emit SVG path `d` attribute from the bezier control points.
+
+Output: Deterministic wavy path. Same input route → same output always.
+```
+
+Corner handling: At 90° bends (orthogonal routing), reset the sine phase to 0 and linearly ramp amplitude from 0 to A over one wavelength. This prevents ugly kinks at corners.
+
+---
+
+## RESOLUTION (2026-07-12T09:40-04:00) — Cristian approved ALL recommendations. "go."
+
+- Q3 markers `--o`/`--x`: PARSE & record in IR (`endMarker`), render later. ✅
+- Q4 `@`+`{}` merge rule: FORMALIZE — `@` wins on conflict; both compose. ✅
+- Q6 flowchart `sync/async` kind: DROP, replace with `style` only (audit ~3 consumers). ✅
+- Q7 wavy constants: FIXED defaults A=3px, λ=12px; author override via `{ amplitude:N, wavelength:N }`. ✅
+- Q8 styles: MUTUALLY EXCLUSIVE for v1 (flat 5-value enum, no thick-wavy). ✅
+- Q9 extension tokens `-_->`/`-~->` recognized in FLOWCHART grammar too, via ONE shared token→style map. ✅
+- Migration: HARD BREAK (pre-1.0). Retire `..>`/`...`/`<..>`. Examples authored under old `-.->` (=dashed+auto-march)
+  migrate to `-_-> @anim:march` to preserve visual+motion intent; `<..>` → `<-.->`.
+
+STATUS: APPROVED → implementation.
+# Connector Syntax Redesign — Implementation Notes
+
+**Author:** Brian (Layout Implementation Engineer)
+**Date:** 2026-07-12T10:00-04:00
+**Status:** COMPLETE (uncommitted — awaiting Cristian review)
+**Spec source:** `.squad/decisions/inbox/leslie-connector-strict-mermaid.md` (approved 2026-07-12T09:40)
+
+---
+
+## What Changed
+
+### 1. Contracts (`src/contracts/crosslink.ts`)
+
+- `CrossLinkEdgeStyle`: `'solid' | 'dotted' | 'dashed' | 'thick' | 'wavy'` (was 3 values, now 5; styles are mutually exclusive)
+- New type `CrossLinkEndpointMarker = 'arrow' | 'circle' | 'cross' | 'none'`
+- New fields on `CrossLink`: `startMarker?`, `endMarker?`
+- Animation comment updated: removed auto-march default language
+
+### 2. New Module (`src/contracts/connector-tokens.ts`)
+
+Single source of truth for the 15-token matrix (5 styles × 3 directions). `CONNECTOR_TOKEN_MAP` and `CONNECTOR_INFIX_STYLE` exported. Both grammars' test suites validate against this table.
+
+### 3. Poster Grammar (`src/diagrams/triton/poster/grammar.peggy`)
+
+- **Retired tokens** (HARD BREAK): `..>`, `...`, `<..>` — non-Mermaid, now redundant
+- **Arrow rule** rewritten: 19 alternatives covering full 5×3 matrix + longer Mermaid forms
+- **`@anim:<name>` decorator** added: extends the `@`-annotation family
+- **Multiple annotations**: `LinkDecl` accepts `anns:(_ "@" Annotation)*` (zero-or-more)
+- **`@` wins on conflict**: `{}` props applied first, `@` annotations overwrite last
+
+### 4. Flowchart Grammar (`src/diagrams/mermaid/flowchart/grammar.peggy`)
+
+- **`EdgeArrow`** expanded to 21 alternatives: full 5-style × 3-direction matrix + Mermaid marker tokens (`--o`, `--x`) + longer forms (`--->`, `-..->`, `===>`)
+- **`kind` field DROPPED**: `addEdge()` no longer accepts or emits `kind`. `style` only.
+- `bidirectional`, `undirected`, `endMarker` now propagated via `edgeProps` parameter
+
+### 5. Flowchart IR (`src/diagrams/mermaid/flowchart/ir.ts`)
+
+- Removed `EdgeKind` type alias
+- Removed `kind` from `FlowEdge`
+- `EdgeStyle` = `'solid' | 'dashed' | 'dotted' | 'thick' | 'wavy'`
+- Added `EdgeEndMarker` type
+- Added `endMarker?` to `FlowEdge`
+
+### 6. Flowchart Layout (`src/diagrams/mermaid/flowchart/layout.ts`)
+
+- All `edge.kind === 'async'` → `edge.style === 'dotted'`
+- Thick edges: `strokeWidth = edgeTheme.strokeWidth * 2`
+
+### 7. Animation Decoupled (render.ts, engine2.ts, engine3.ts)
+
+All three engines: removed `dash ? 'march' : undefined` default. Every style is STATIC unless explicitly decorated with `@anim:<name>` or `{ anim: <name> }`.
+
+### 8. `edgeStyleToDash()` (all three engines)
+
+```typescript
+solid  → undefined
+dotted → '4 3'
+dashed → '8 4'
+thick  → undefined  // stroke-width bump instead
+wavy   → undefined  // path displacement instead
+```
+
+### 9. Thick Rendering
+
+`PendingRoute` / `WorkingRoute` now carry `strokeWidth` field. Thick connectors emit `(edgeTheme.strokeWidth + 0.5) * 2` (~4px) vs default `(edgeTheme.strokeWidth + 0.5)` (~2px).
+
+### 10. Wavy Rendering (`wavifyPath` — `src/crosslink/render.ts`, exported)
+
+Pure sine-wave path displacement. Algorithm:
+1. Cumulative arc-length at original polyline vertices
+2. Uniform resample at λ/4 intervals
+3. At each sample: compute local tangent + normal; displace by `A·sin(2π·s/λ)`
+4. Corner damping: amplitude ramps 0→A over one wavelength at each 90° bend
+5. Catmull-Rom → cubic Bézier fit for smooth output
+
+Fixed defaults: A=3px, λ=12px. Override: `{ amplitude:N, wavelength:N }`.  
+Applied in render.ts, engine3.ts (poster path), engine2.ts.
+
+### 11. Example Migrations
+
+| File | Changes |
+|------|---------|
+| `examples/triton/cross-link/complex.mmd` | `<..>` → `<-.->` (bidir dotted); `-.->` → `-_-> @anim:march` |
+| `examples/triton/cross-link/platform.mmd` | 3× `-.->` → `-_-> @anim:march` |
+| `examples/triton/cross-link/anim-gallery.mmd` | `-.->` → `-_->` (kept `{ anim: march }`) |
+| `examples/triton/cross-link/mixed-routing.mmd` | 4× `-.->` → `-_-> @anim:march` |
+| `examples/triton/cross-link/basic.mmd` | `-.->` → `-_-> @anim:march` |
+| `examples/triton/poster/spanning.mmd` | `-.->` → `-_->` (kept `{ anim: comet }`) |
+| `examples/mermaid/animated/flow-particles.mmd` | `-.->` → `-_->` (keeps particle); `..>` → `-.->` |
+| `examples/mermaid/animated/marching-ants.mmd` | 2× `-.->` → `-_-> @anim:march`; `..>` → `-.->` |
+| 7× poster `%%` comment headers | Updated arrow vocabulary |
+
+---
+
+## Deviations
+
+1. **`--o` / `--x` circle/cross markers**: **Parsed and recorded in IR** (`endMarker: 'circle'` / `'cross'`) but **render falls back to the default arrow**. Per spec: "parse & record; render later." ✓
+
+2. **Engine2 → render.ts import**: `engine2.ts` now imports `wavifyPath` from `render.ts`. No circular dependency (engine2 did not previously import from render). Same pattern used for engine3.
+
+3. **Poster grammar: `-..->` added** (longer dotted directed): Consistent with Mermaid length-extension semantics and the flowchart grammar. Not explicitly listed in spec's poster section but required by the superset rule.
+
+4. **Old `kind: 'sync'` in some test fixtures** (anchors.test.ts, flowchart-cycle.test.ts, flowchart-layout.test.ts): These construct `FlowEdge` objects with the removed `kind` field. Benign extra-property noise — esbuild/vitest doesn't type-check; `kind` is silently ignored at runtime. Not cleaned up in those files (out of scope for this change); tests still pass.
+
+---
+
+## Test Count
+
+| | Count |
+|---|---|
+| Baseline (before) | 512 |
+| After (all green) | **541** |
+| New tests added | **+29** |
+
+New tests: 8 in `flowchart-grammar.test.ts` (5-style matrix, `kind` removal, thick, longer forms, `<==>`) + 14 in `poster.test.ts` connector suite + 8 in `wavifyPath` unit suite — minus 1 updated.
+
+---
+
+## Build Status
+
+- `pnpm build` ✓ clean
+- `pnpm test` ✓ 541/541 passing
+- Preview: `node scripts/preview.mjs examples/triton/cross-link/`
+
+---
+
+## Visual QA Package
+
+**PNG:** `examples/triton/cross-link/style-matrix.png`
+
+**rsvg-convert command:**
+```
+rsvg-convert -f png -w 1400 -o examples/triton/cross-link/style-matrix.png examples/triton/cross-link/style-matrix.svg
+```
+
+**What I see in the PNG** (for Ken's independent QA):
+
+The diagram is titled "Connector Style Matrix" and shows a 5-column × 5-row poster grid. Each row represents one of the 5 connector styles; each column shows a different connector scenario.
+
+- **Row 1 – Solid**: Continuous, unbroken lines. The directed connector (Source→Target) has a clean arrowhead. The undirected connector (A→B) is just a line with no arrowhead. The bidirectional connector (Source↔C) has arrowheads at both ends. Particle animation on the bidir is not visible in the static PNG.
+
+- **Row 2 – Dotted**: Short-segment dotted lines (`4 3` dasharray). Visually distinct from dashed — shorter gaps and dots.
+
+- **Row 3 – Thick**: Noticeably wider stroke (~2× compared to rows 1/2/4/5). Arrowheads scale with the wider stroke. The undirected "thick —" connector between A and B shows a clearly heavier line.
+
+- **Row 4 – Dashed**: Longer dashes (`8 4` dasharray), visually distinct from dotted. The "March" column shows the dashed bidir connector that carries `@anim:march` — not visible in static PNG.
+
+- **Row 5 – Wavy**: **The sine-wave displacement is clearly visible.** The horizontal segments show a regular oscillating waveform. The vertical segments show horizontal oscillation. The directed "wavy →" connector between Source and Target has an arrowhead at the end of the wave. The undirected "wavy —" between A and B shows the wave clearly. The bidirectional "wavy ↔" at the bottom of the diagram spans the full width with a clearly wavy path.
+
+All 5 styles are visually distinguishable. All 3 directions (directed, undirected, bidirectional) render correctly for each style.
+
+---
+
+## Git Status
+
+Uncommitted. 30 files modified + 4 new files. No PR opened per instructions.
+
+```
+New files:
+  examples/triton/cross-link/style-matrix.mmd
+  examples/triton/cross-link/style-matrix.png
+  examples/triton/cross-link/style-matrix.svg
+  src/contracts/connector-tokens.ts
+```
+# Ken's Visual QA Verdict: Connector Style Matrix
+
+**Date:** 2026-07-12T10:05:00-04:00  
+**Reviewer:** Ken (Visual QA Reviewer)  
+**Subject:** Brian's connector redesign — style-matrix.svg
+
+---
+
+## VERDICT: **PASS**
+
+---
+
+## Rasterization Command
+
+```bash
+rsvg-convert -f png -w 1400 -o examples/triton/cross-link/style-matrix-ken.png examples/triton/cross-link/style-matrix.svg
+```
+
+Exit code: 0 (success)
+
+---
+
+## Visual Inspection (Ken-owned PNG)
+
+### Row 1: Solid
+
+| Direction | Observation | Status |
+|-----------|-------------|--------|
+| Directed (→) | Unbroken blue line, single arrowhead at target end, axis-aligned | ✅ |
+| Undirected (—) | Unbroken red line, NO arrowheads | ✅ |
+| Bidir (↔) | Unbroken yellow/gold line spanning across 3 columns, arrowheads at BOTH ends | ✅ |
+| Animated | Visible animated dot traveling along path | ✅ |
+
+### Row 2: Dotted
+
+| Direction | Observation | Status |
+|-----------|-------------|--------|
+| Directed (→) | Short dots (visibly shorter than dashed), yellow/gold, single arrowhead | ✅ |
+| Undirected (—) | Short dots, cyan, NO arrowheads | ✅ |
+| Bidir (↔) | Short dots, cyan, spans 3 cols, arrowheads BOTH ends | ✅ |
+
+### Row 3: Thick
+
+| Direction | Observation | Status |
+|-----------|-------------|--------|
+| Directed (→) | Visibly wider stroke (~2x), purple, NO dashes, single arrowhead | ✅ |
+| Undirected (—) | Visibly wider stroke, green, NO dashes, NO arrowheads | ✅ |
+| Bidir (↔) | Visibly wider stroke, purple, spans 3 cols, arrowheads BOTH ends | ✅ |
+
+### Row 4: Dashed
+
+| Direction | Observation | Status |
+|-----------|-------------|--------|
+| Directed (→) | Longer dashes (visibly longer than dotted), pink/rose, single arrowhead | ✅ |
+| Undirected (—) | Longer dashes, purple/violet, NO arrowheads | ✅ |
+| Bidir (↔) | Longer dashes, green, spans 3 cols, "March" animation, arrowheads BOTH ends | ✅ |
+
+### Row 5: Wavy
+
+| Direction | Observation | Status |
+|-----------|-------------|--------|
+| Directed (→) | Regular sine-wave oscillation on horizontal segment, blue, single arrowhead | ✅ |
+| Undirected (—) | Regular sine-wave oscillation, red, NO arrowheads | ✅ |
+| Bidir (↔) | Complex routed path with sine-wave on BOTH horizontal AND vertical segments, pink, arrowheads BOTH ends, "Glow" animation | ✅ |
+
+**Wavy Quality Notes:**
+- Horizontal wavy segments: clean, regular amplitude (~3px), consistent wavelength
+- Vertical wavy segments (bidir path): clean sine pattern, properly rotated for vertical direction
+- Corner transitions: smooth, no kinks or discontinuities
+- No amplitude blowup at corners
+- Wave terminates cleanly near arrowheads
+
+---
+
+## SVG Attribute Verification
+
+### Solid Paths (Lines 34-36)
+- `stroke-width="2"`, NO `stroke-dasharray` → ✅ Correct
+- marker-end for directed, marker-start+marker-end for bidir, none for undirected → ✅ Correct
+
+### Dotted Paths (Lines 40-42)
+- `stroke-dasharray="4 3"` → ✅ Correct (short dots)
+- `stroke-width="2"` → ✅ Standard width
+
+### Thick Paths (Lines 43-45)
+- `stroke-width="4"` → ✅ Correct (2x standard)
+- NO `stroke-dasharray` → ✅ Correct (solid thick line)
+
+### Dashed Paths (Lines 46-48)
+- `stroke-dasharray="8 4"` → ✅ Correct (longer dashes than dotted)
+- `stroke-width="2"` → ✅ Standard width
+
+### Wavy Paths (Lines 49-55)
+- Contains MANY `C` (cubic Bézier) control points → ✅ Real displaced curve
+- NO `NaN` values → ✅ Clean numeric coordinates
+- Consistent amplitude pattern in path data → ✅ Deterministic sine wave
+- Example: `C 158.78 679.25 160.27 681.73 161.26 681.75 C 162.25 681.76 163.25 679.82 164.24 678.82...` shows regular Y oscillation
+
+### Labels (Lines 231-245)
+- All 15 labels present (5 styles × 3 directions)
+- Labels positioned above/below their respective paths
+- Font-weight="bold", appropriate colors matching connector stroke
+- No overlapping with boxes or paths
+
+---
+
+## Charter Compliance
+
+| Principle | Status |
+|-----------|--------|
+| Rectilinear routing for orthogonal paths | ✅ (solid/dotted/dashed/thick use L segments) |
+| Arrowhead axis-alignment | ✅ (all arrowheads follow last segment direction) |
+| Readable labels | ✅ (all 15 labels visible, no clipping) |
+| No box overlaps | ✅ (connectors route around/between boxes) |
+| No floating whitespace | ✅ (content fills viewport appropriately) |
+| No NaN in path data | ✅ (grep returned 0 matches) |
+| Dotted vs Dashed visually distinct | ✅ (4 3 vs 8 4 clearly different) |
+
+---
+
+## Summary
+
+All 5 line styles × 3 directions render correctly. Dash arrays match spec, thick has elevated stroke-width without dashes, wavy uses genuine sinusoidal displacement. Arrowheads appear only where expected. No visual defects detected.
+
+**Result:** PASS — no fixes required, Brian not locked out.
+
+---
+
+# Live-Data Poster Web Component — Debate Archive (2026-07-12)
+
+**Context:** Five team members submitted structured debate positions on the proposal to build a reactive web component for live-data binding to poster DSL-compiled SVGs. This archive preserves the full analysis and convergences for future reference.
+
+---
+
+## Five Positions Submitted
+
+### 1. Devil's Advocate: David (Research Lead)
+**File:** decisions/inbox/david-liveposter-devilsadvocate.md (2026-07-12T10:??-04:00)  
+**Verdict:** Against — focuses on industry incumbents (Grafana, Kibana, Datadog for dashboarding; Vega/Vega-Lite for reactive dataviz; Lit/Svelte/Alpine for reactive DOM; React Flow/Mermaid/Node-RED for live diagrams) and the wheel-reinvention risks of custom expression eval + reactive engine.
+
+**One genuine exception:** Zero-JS, LLM-Generatable System Topology Overlays — a narrow niche where live-poster wins ("the htmx of architecture diagrams"). Verdict: BUILD ONLY IF scoped tightly (no custom expression eval, no custom reactive engine, strictly for system overlays).
+
+**Key insight:** The "deterministic pure function + stable anchor manifest" is not unique — it's the fundamental premise of React/Vue/Svelte/D3. Not a novel paradigm, just an SVG generator proposing a clumsy VDOM.
+
+---
+
+### 2. Steelman Pro: Bjarne (Ingestion Design)
+**File:** decisions/inbox/bjarne-liveposter-pro.md (2026-07-12T10:16:19-04:00)  
+**Verdict:** For — three genuine differentiators: (1) author-in-git, diffable, version-controlled vs Grafana's opaque JSON; (2) LLM-friendly DSL (small grammar, reliable LLM generation); (3) pure function → trivially embeddable, SSR-free without React. The anchor manifest is exactly the binding surface the compiler already emits.
+
+**Ingestion contract:** Data-in surface is `el.data = {...}`. Binding expressions: three forms only (path expressions for `{{value}}`; threshold comparisons for `@color:condition?color:color`; numeric paths for `@speed:`). **No eval. No arbitrary expressions.** Safe grammar, ~150-line hand-written recursive-descent parser. Missing keys render em-dash fallback.
+
+**Hard constraints Bjarne would NOT compromise on:**
+1. No eval in expression language (ever)
+2. Binding descriptors classified at compile time as cosmetic or structural
+3. Missing data must never crash (em-dash fallback non-negotiable)
+4. Single normalized data setter (`el.data = {...}`)
+5. `repeat:` (structural bindings) is v2 concern — defer, ship v1 with cosmetic only (text, color, animation speed)
+
+---
+
+### 3. Scope & Identity Ruling: Leslie (Lead / Spec Architect)
+**File:** decisions/inbox/leslie-liveposter-scope.md (2026-07-12T10:16:19-04:00)  
+**Verdict:** PROCEED — with hard boundary. The reactive web component does NOT corrupt Triton's identity *provided* the compiler never imports, depends on, or references any runtime/reactive code. Dependency is strictly one-way: `runtime → compiler`, never the reverse.
+
+**The critical invariant Leslie enforces:**
+> The compiler is a pure function of its text input. No runtime data, no external state, no network, no signals enter the compilation pipeline. If you need data to determine geometry, you are outside the compiler.
+
+**Minimal coherent version:**
+1. Compiler emits binding-map JSON (manifest of `{ cellId, bindingType, expression }`)
+2. Separate package (`@triton/poster-runtime`) owns all reactivity
+3. `repeat:` deferred to Phase 2+ (requires pre-expansion before compiler)
+4. No reverse dependency (compiler doesn't import runtime)
+
+Leslie rejects: `repeat:` as first-class compiler binding decorator; any import from runtime into compiler; shipping runtime inside compiler package.
+
+---
+
+### 4. Data Modeling: Mark (IR & Data Modeling)
+**File:** decisions/inbox/mark-liveposter-datamodel.md (2026-07-12T10:19:24-04:00)  
+**Verdict:** Modelable — with one hard caveat. Binding descriptors can be added cleanly to IR as orthogonal metadata layer. **Type system can declare but not enforce the cosmetic/structural boundary** — overflow-driven relayout is a rendering concern, not an IR bug.
+
+**Key invariants Mark requires:**
+1. Separation: `PosterBindings` artifact separate from `PosterDocument`
+2. Target validity: Every binding target resolves to existing cell/anchor id at compile time
+3. No raw expressions: All transforms are `TransformRef` (name+args), not eval strings
+4. `repeat` is unconditionally structural (separate type `StructuralBinding` with no `cosmetic` option)
+5. Semantic output types from transforms (theme color tokens, not literal CSS values)
+
+**The one leak Mark accepts:** Cosmetic bindings tagged cosmetic that cause visual overflow/reflow at render time — type system correctly doesn't own this; it's rendering-layer responsibility to document and handle.
+
+---
+
+### 5. Cost Assessment: Brian (Layout Implementation Engineer)
+**File:** decisions/inbox/brian-liveposter-cost.md (2026-07-12T10:19-04:00)  
+**Verdict:** Three implementation tiers.
+
+**Tier 1 (full-recompile + imperative `el.data` + cosmetic text interpolation):** Cheap and worth-it. ~200-300 LoC. No contract changes, no surgical patcher. Viable at 1 Hz (5-15ms per compile). **2-3 day effort.** This is the recommended v1.
+
+**Tier 2 (binding map + surgical cosmetic patching, no geometry):** Expensive but feasible. ~2-3 weeks. Contract changes, ID stamping in layout engines, SVG renderer changes, binding-map emitter, DOM patcher. Unblocks 5-10 Hz without flicker. Ship only if Tier 1 proves too janky.
+
+**Tier 3 (structural bindings, expression evaluator, SSR/hydrate, FLIP animations):** Cost-trap for v1. Each is 1+ week, introduces permanent maintenance surface. Defer indefinitely unless committed production use case drives it.
+
+**Brian's anchor-manifest assessment:** NOT "half the binding map" — it's ~20%. Current manifest has no SVG element IDs, no semantic role tagging, no data-path concept. Would require a separate `BindingMap` artifact to be useful for surgical patching.
+
+**Maintenance burden:** Reactive runtime adds ~40% more ongoing maintenance surface. Custom Elements v1 lifecycle, memory leaks, reconnection logic, signal/store integration, VS Code webview CSP issues — all new permanent surfaces.
+
+---
+
+## Unanimous Convergence: Five Constraints All Agreed
+
+| Constraint | Consensus |
+|---|---|
+| **No eval** | No arbitrary expression evaluation. Grammar is hand-parseable (~150 LoC max). |
+| **Compiler remains pure** | Dependency is one-way: `runtime → compiler`, never reversed. |
+| **Cosmetic bindings in v1** | Text interpolation, color binding, animation speed. No structural/relayout bindings. |
+| **CSS custom props for styling** | No custom color-expression evaluator; let CSS handle thresholds via semantic tokens. |
+| **`repeat:` deferred** | Structural data-driven cell generation is Phase 2+. Not in v1. |
+| **Binding-map as JSON sidecar** | Compiler emits it as inert metadata, separate package consumes it. |
+| **Graceful degradation** | Missing data renders as em-dash placeholder, never crashes or shows `undefined`. |
+| **Single data setter** | All transport adapters (polling, SSE, WS, imperative) funnel through `el.data = {...}`. |
+
+---
+
+## Devil's Advocate & Steelman Convergence
+
+**David (against) + Bjarne (for) agreed on the same narrow niche:** LLM-generatable system topology overlays in Markdown/HTML — "the htmx of architecture diagrams." This is genuine product-market fit Grafana/Vega don't own. Both saw the path forward: narrow scope, no custom expression eval, let CSS handle styling.
+
+---
+
+## Final Recommendation (Scribe consolidation, 2026-07-12T10:30-04:00)
+
+**Leslie's hard boundary + Mark's type-system model + Brian's Tier 1 scope = coherent path forward:**
+
+Build **Tier 1 (full-recompile cosmetic binding)** with Leslie's pure-compiler invariant enforced:
+- Compiler emits binding-map JSON (inert metadata)
+- Runtime package (`@triton/poster-runtime`) lives outside compiler
+- No reverse import (runtime never imported by compiler)
+- Mark's IR model holds the type contract
+- Brian's 2-3 day estimate stands
+
+**Verdict: Cautious green light, narrow scope, Tier 1 only.**
+
+Conditional: if 1 Hz + full-recompile proves too janky in real use, revisit Tier 2 (surgical patching). Do not pre-build Tier 2.
+
+**Recommendation: ~2-3 day sprint to Tier 1 MVP + user feedback cycle before Tier 2 commitment.**
+
+---
+
+## Attachment: Full Debate Papers
+
+The five positions are preserved in full in the session artifact archive for future reference:
+- `david-liveposter-devilsadvocate.md` — Full critique + niche analysis
+- `bjarne-liveposter-pro.md` — Full ingestion contract + killer use cases  
+- `leslie-liveposter-scope.md` — Full identity + layering stress-test
+- `mark-liveposter-datamodel.md` — Full type-system analysis + schema contract
+- `brian-liveposter-cost.md` — Full Tier breakdown + maintenance burden
+
+Archive location: `.squad/decisions-archive/live-poster-debate-2026-07-12/` (kept for future reference).
+
+---
+
+
+---
+
 # Phase 2: Theming Fixes Shipped (Primitives Dropped)
 
 **Author:** Brian (Layout Implementation Engineer)  
