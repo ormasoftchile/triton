@@ -46,16 +46,16 @@
         "command": "triton.openPreview",
         "title": "Open Preview",
         "icon": {
-          "light": "./resources/preview.svg",
-          "dark": "./resources/preview.svg"
+          "light": "./resources/preview-light.svg",
+          "dark": "./resources/preview-dark.svg"
         }
       },
       {
         "command": "triton.openPreviewToSide",
         "title": "Open Preview to the Side",
         "icon": {
-          "light": "./resources/preview.svg",
-          "dark": "./resources/preview.svg"
+          "light": "./resources/preview-side-light.svg",
+          "dark": "./resources/preview-side-dark.svg"
         }
       }
     ],
