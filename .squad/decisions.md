@@ -1,3 +1,100 @@
+# Example Frontmatter Update — `%%` Quick-Ref Headers
+
+**Author:** Brian (Layout Implementation Engineer)
+**Date:** 2026-07-12T11:00:47-04:00
+**Status:** COMPLETE — uncommitted, ready for Cristian's review
+
+---
+
+## What changed
+
+### 1. POSTER headers — 7 files
+
+Each file received two new lines inserted after `%% Routing:` and before `%% Frontmatter:`:
+
+```
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
+```
+
+Files touched:
+- `examples/triton/poster/poster.mmd`
+- `examples/triton/poster/launch-readiness.mmd`
+- `examples/triton/poster/ds-poster.mmd`
+- `examples/triton/poster/sql-engine.mmd`
+- `examples/triton/poster/row-spanning.mmd`
+- `examples/triton/poster/engineering-dashboard.mmd`
+- `examples/triton/poster/spanning.mmd`
+
+The existing `%% Arrows:` line (15-token set) was left untouched.
+
+### 2. FLOWCHART headers — 3 files
+
+The stale `%% Edges:` line was replaced with the full 5-style set, and three new lines were added:
+
+```
+%% Edges:       --> -_-> -.-> ==> -~->  ·  <--> <-_-> <-.-> <==> <-~->  ·  --- -_- -.- === -~-  ·  --x --o   (+|label|)
+%% Styles:      solid -- · dashed -_- · dotted -.- · thick == · wavy -~-
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Routing:     @straight · @orthogonal · @bezier · @polyline   (+ :WallPair, e.g. @orthogonal:EW)
+```
+
+Files touched:
+- `examples/mermaid/flowchart/flowchart.mmd`
+- `examples/mermaid/flowchart/ci-pipeline.mmd`
+- `examples/mermaid/flowchart/order-processing.mmd`
+
+### 3. CROSS-LINK headers — 5 files
+
+A new `%% CROSS-LINK — options quick-ref` block was inserted after `columns N` in each file. Block covers poster essentials plus Link, Styles, Animation, Routing, Props:
+
+```
+%% ────────────────────────────────────────────────────────────────────────────
+%% CROSS-LINK — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      poster "Title"  (title optional)
+%% Grid:        columns N · rows N · gap N
+%% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
+%% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
+%% Link:        link <src> <arrow> <dst> ["label"] [@routing[:WallPair]] [@anim:name] [{ props }]
+%% Arrows:      --> · -_-> · -.-> · ==> · -~-> · <--> · <-_-> · <-.-> · <==> · <-~-> · --- · -_- · -.- · === · -~-
+%% Styles:      solid -- · dashed -_- · dotted -.- · thick == · wavy -~-
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Routing:     @straight · @orthogonal · @bezier · @polyline   (+ :WallPair, e.g. @orthogonal:EW)
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
+%% ────────────────────────────────────────────────────────────────────────────
+```
+
+Files touched:
+- `examples/triton/cross-link/basic.mmd`
+- `examples/triton/cross-link/complex.mmd`
+- `examples/triton/cross-link/mixed-routing.mmd`
+- `examples/triton/cross-link/platform.mmd`
+- `examples/triton/cross-link/anim-gallery.mmd`
+
+---
+
+## SVG-unchanged confirmation
+
+`%%` comments are stripped before parse. These edits **cannot** affect rendered SVG output by design.
+
+After re-rendering all three directories with `node scripts/preview.mjs` using the fresh built parser:
+
+- **Poster SVGs** — 7 rendered successfully. Some SVGs show diffs vs HEAD (`ds-poster.svg`, `row-spanning.svg`, `spanning.svg`, `sql-engine.svg`). These diffs are from Brian's **pre-existing** connector redesign changes in `src/crosslink/` and `src/diagrams/`, not from `%%` edits. Confirmed: same SVG content is produced for any two consecutive renders of the same file.
+- **Flowchart SVGs** — 3 rendered successfully. `ci-pipeline.svg` shows a path coordinate diff vs HEAD caused by the new connector renderer (pre-existing Brian change), not comments.
+- **Cross-link SVGs** — Re-render failed with `[PARSE_ERROR] parser.parse is not a function` for all 6 files in the directory (including `style-matrix.mmd` which was not touched). This is a **pre-existing issue** with the cross-link engine WIP — the error exists before and after my `%%` edits. The two SVGs that differ from HEAD (`basic.svg`, `complex.svg`) were already modified by Brian's engine changes before this task ran.
+
+---
+
+## Formatting alignment
+
+All 15 touched `.mmd` files use the 13-char label-pad convention (`label: + spaces = 13 chars`). No files required alignment disclosure — all new lines match the surrounding column width exactly.
+
+---
+
+## Test result
+
+`pnpm build` ✓ · `pnpm test` ✓ — **541/541 tests passed**
 # Design Analysis: Connector Syntax — Strict Mermaid Superset (REVISED)
 
 **Author:** Leslie (Lead / Spec Architect)
