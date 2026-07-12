@@ -18,7 +18,8 @@ export type DiagramErrorCode =
   | 'LAYOUT_ERROR'
   | 'UNKNOWN_DIAGRAM'
   | 'UNSUPPORTED_FORMAT'
-  | 'UNKNOWN_RENDERER';
+  | 'UNKNOWN_RENDERER'
+  | 'THEME_VALIDATION_ERROR';
 
 export interface DiagramError {
   readonly code: DiagramErrorCode;

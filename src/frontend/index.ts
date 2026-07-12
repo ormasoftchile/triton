@@ -6,6 +6,7 @@ import { registerDiagram, getModule } from './registry.js';
 import { registerRenderer, getRenderer } from '../render/registry.js';
 import { defaultTheme, getThemePreset } from '../theme/preset.js';
 import { resolveTheme } from '../theme/resolver.js';
+import { validateThemeInput, isBuiltinThemeName } from '../theme/validate.js';
 import { flowchart } from '../diagrams/mermaid/flowchart/index.js';
 import { timeline } from '../diagrams/mermaid/timeline/index.js';
 import { poster } from '../diagrams/triton/poster/index.js';
@@ -264,3 +265,7 @@ export async function render(
 ): Promise<Result<string>> {
   return renderSync(input, themeInput, rendererName, forcedThemeName);
 }
+
+// ─── Theme validation (re-exported for npm consumers) ─────────────────────────
+
+export { validateThemeInput, isBuiltinThemeName } from '../theme/validate.js';
