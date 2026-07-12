@@ -54,3 +54,19 @@ Algomaster.io reference posters (DSA 15 Patterns, Load Balancing): 0 fully repli
 - Phase 5: Docs + examples (2–3h).
 
 **Status:** APPROVED. Phase 0 start cleared. Archived to `.squad/decisions.md`.
+
+---
+
+## 2026-07-12 — Icons/Images/Notes Analysis (Current State + Options)
+
+**Current state findings:**
+- **Icons:** Two partial implementations. Architecture diagram has 5 hardcoded SVG-primitive icon glyphs (`iconGlyph()` in `layout.ts`). Mindmap parses `::icon()` but renders only a 4px dot — icon name is discarded at render time. No general icon registry or system.
+- **Images:** Zero support. `SceneElement` union has no image variant. No `<image>`, `<foreignObject>`, or data URI handling anywhere.
+- **Comments:** `stripComments()` in `preprocess.ts` is complete and correct. Full-line `%%` only, no inline trailing, frontmatter-preserved, pure-YAML untouched. DS parsers rely on central stripping via `lines()` helper.
+- **Notes (rendered):** Sequence diagram has `SeqNote` (over/left/right participants). Poster has `PosterNote` (5-position overlay pill). General overlay system (`RawNote → Annotation`) exists but is anchored-annotation-only.
+
+**Key constraint discovered:** Offline + static-PNG (rsvg-convert) rules out webfont font-awesome icons — rsvg-convert does not fetch webfonts, glyphs render as tofu. The only PNG-safe icon path is inline SVG `<path>` data. Similarly, `<foreignObject>` HTML content is not rendered by rsvg-convert, ruling out HTML-based rich notes.
+
+**Recommendation:** Inline SVG path icon registry (Option A), data-URI images deferred (Option E), extend overlay system for notes (Option G). Analysis written to `.squad/decisions/inbox/leslie-icons-images-notes-analysis.md`.
+
+**Finalized (2026-07-12T18:25:05-04:00):** Integrated David's Mermaid research. Key additions: (1) Mermaid's `fa:` default path emits `<foreignObject><i class>` — blank in rsvg-convert — confirmed incompatible; only Iconify SyncLoader inline-`<path>` path is safe. (2) classDiagram `note "text"` is the ONLY free-floating note in all of Mermaid. (3) Existing `.squad/skills/scene-icon-glyph/SKILL.md` and `image-primitive/SKILL.md` are prior design work that aligns with recommendations — reconciled. (4) Explicit call: accept `fa:fa-xxx` syntax but map to curated icon subset with `?` fallback, never emit `<foreignObject>`. Analysis status: FINAL.

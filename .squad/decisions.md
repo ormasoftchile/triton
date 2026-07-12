@@ -3497,3 +3497,827 @@ Update `\write18` invocation to include new args:
 5. Full test coverage for each phase before merge.
 
 
+
+
+---
+
+# Research & Recommendation — Icons/Images/Notes (not yet approved to build) — 2026-07-12T18:25:05-04:00
+
+**Status:** RESEARCH & RECOMMENDATION — Documents an investigation and architectural recommendation; not a shipped design decision.
+
+---
+
+## Research Lead: David
+**Date:** 2026-07-12T18:16:46-04:00
+**For:** Leslie (decision), Mark (IR schema)
+
+### David's Research Memo: Mermaid Icons, Images, and Notes/Comments
+
+## Preamble
+
+This memo evaluates Mermaid's icon, image, and note/comment mechanisms through the lens of
+Triton's constraints: **deterministic, offline, SVG-first, static PNG via rsvg-convert, no
+browser, no JS runtime at render time, no network I/O.**
+
+All claims are traced to sources cited in the bibliography.
+
+---
+
+## A. ICONS
+
+### A1. Font Awesome in Flowcharts — `fa:fa-xxx` / `fab:fa-xxx` syntax
+
+**Syntax example:**
+```
+flowchart TD
+  A[fa:fa-user User] --> B[fab:fa-github GitHub]
+```
+
+**How it works:**  
+Function `replaceIconSubstring()` in
+`packages/mermaid/src/rendering-util/createText.ts`
+applies regex `/(fa[bklrs]?):fa-([\w-]+)/g` to node label text.
+It follows **one of two paths**:
+
+| Path | Condition | SVG output | FA webfont needed? |
+|------|-----------|------------|--------------------|
+| A (inline vector) | Prefix is registered in the Iconify store | `iconToHTML(replaceIDs(renderData.body), …)` — SVG `<path>` data inlined | **No** |
+| B (class fallback) | Prefix NOT registered | `<i class='fa fa-xxx'></i>` inside `<foreignObject>` | **Yes** |
+
+**Critical constraint — `htmlLabels` setting:**  
+The `fa:` replacement only runs inside the HTML label path. When `flowchart.htmlLabels: true`
+(the default in browsers), Mermaid uses `<foreignObject>` to embed HTML. When
+`htmlLabels: false`, the string `fa:fa-user` renders as literal text.
+
+**Server-side / static SVG (mermaid-cli / puppeteer):**  
+mermaid-cli uses Puppeteer. For path B (no registered iconify pack), the `<i>` element in
+the `<foreignObject>` requires the FA CSS *loaded inside the puppeteer page*. Without it,
+the glyph slot is empty — the SVG ships a `<foreignObject>` with a blank `<i>` element.
+
+**Rasterization safety (rsvg-convert / cairosvg):**  
+`<foreignObject>` is **not supported by rsvg-convert** (libsvg2 explicitly drops it) and
+is ignored by cairosvg. Even if the `<i>` tag somehow survived, the font glyph would only
+render if the Font Awesome OTF/TTF is **installed** as a system font — not from a CDN.
+
+**Verdict for Triton:** Path B (default, no iconify registration) is incompatible with
+static PNG. Path A (iconify registration) is offline-safe IF the pack JSON is pre-bundled.
+
+**Source:**
+- `packages/mermaid/src/rendering-util/createText.ts` → `replaceIconSubstring()`
+- `packages/mermaid/src/rendering-util/icons.ts` → `getIconSVG()`
+- GitHub issue: https://github.com/mermaid-js/mermaid/issues/3404
+
+---
+
+### A2. Mindmap `::icon(fa fa-xxx)` syntax
+
+**Syntax example:**
+```
+mindmap
+  Root
+    A
+    ::icon(fa fa-book)
+```
+
+**How it works:**  
+The `::icon(className)` syntax in mindmap applies CSS classes to an `<i>` element rendered
+inside the mindmap node. From the official docs: *"The styling for the font based icons are
+added during the integration so that they are available for the web page. This is not
+something a diagram author can do but has to be done with the site administrator or the
+integrator."* (source: [mindmap.md](https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/syntax/mindmap.md))
+
+This is **purely CSS-class based** — no inline vector paths. The icon body is an `<i>` tag
+with the given class names. The font must be present in the rendering environment.
+
+**For Triton (no browser, rsvg-convert):**  
+`::icon()` in mindmap is **incompatible with static offline PNG**. It will produce empty
+glyph slots identically to the `fa:` fallback path.
+
+**Verdict:** Fundamentally font-dependent. Do not map to a Triton icon primitive.
+
+---
+
+### A3. Iconify / `registerIconPacks` — the inline-vector mechanism
+
+**How it works:**  
+`packages/mermaid/src/rendering-util/icons.ts`:
+
+```ts
+export const registerIconPacks = (iconLoaders: IconLoader[]) => { … }
+```
+
+Two loader forms:
+- `AsyncIconLoader`: `{ name, loader: () => fetch('CDN/logos.json').then(r=>r.json()) }` — **network call at first use**
+- `SyncIconLoader`: `{ name, icons: iconifyJSONData }` — **pre-bundled, no network**
+
+The `getIconSVG()` function:
+1. Resolves the icon from the store (loading async if needed)
+2. Calls `iconToSVG(iconData, customisations)` → produces `body` string of SVG path data
+3. Calls `iconToHTML(replaceIDs(renderData.body), attributes)` → wraps in `<svg>` element
+4. Returns sanitized inline SVG string
+
+**Output:** The icon becomes a self-contained `<svg>` subtree with `<path>` elements — no
+external font reference. This IS self-contained.
+
+**Fallback for unknown icons:**  
+If registration fails or pack not found, `unknownIcon` is used:
+```ts
+export const unknownIcon: IconifyIcon = {
+  body: '<g><rect width="80" height="80" .../><text ...>?</text></g>',
+  …
+};
+```
+— always renders deterministically.
+
+**CDN vs. offline:**  
+The `AsyncIconLoader` path calls `fetch()` at render time → breaks determinism and offline.
+The `SyncIconLoader` path with pre-bundled JSON is **fully offline and deterministic**.
+
+**Licensing:**  
+Iconify is MIT licensed. Individual icon packs have their own licenses — `logos:` (CC0 for
+most, some brand logos with trademark restrictions), `mdi:` (Apache 2.0), `fa:` free icons
+(CC BY 4.0 + Font Awesome Free license for OFL fonts). Triton must evaluate per-pack.
+
+**Recolor / theming:**  
+Iconify icons using `currentColor` in their SVG body inherit CSS color. Many tech/logo icons
+have **hardcoded fill colors** (e.g., `logos:aws` is orange by design). Abstract icons
+(`mdi:`, `heroicons:`) typically use `currentColor`. Theme-aware recoloring is possible for
+the latter.
+
+**Source:**  
+- `packages/mermaid/src/rendering-util/icons.ts`
+- `packages/mermaid/src/docs/config/icons.md`
+- `@iconify/utils` package: `iconToSVG`, `iconToHTML`, `replaceIDs`
+
+---
+
+### A4. Flowchart Icon Shape (v11.3.0+)
+
+**Syntax example:**
+```
+flowchart TD
+  A@{ icon: "logos:aws", form: "square", label: "AWS Service", pos: "t", h: 60 }
+```
+
+**Parameters:**
+| Param | Values | Notes |
+|-------|--------|-------|
+| `icon` | `"prefix:name"` | Requires registered iconify pack |
+| `form` | `square`, `circle`, `rounded`, (none) | Background shape |
+| `label` | string | Optional text label |
+| `pos` | `t`, `b` | Label above or below icon |
+| `h` | number (≥48) | Height in px |
+
+**Implementation:**  
+`packages/mermaid/src/rendering-util/rendering-elements/shapes/icon.ts` — calls
+`getIconSVG(node.icon, { height, width, fallbackPrefix: '' })` and appends the returned
+SVG markup via `.html()`.
+
+**Output form:** `<g>` containing inline SVG icon body. Self-contained IF the pack is
+pre-bundled. Otherwise requires network fetch.
+
+**Architecture-beta icons:**  
+Pre-bundled in `packages/mermaid/src/diagrams/architecture/architectureIcons.ts`:
+`database`, `server`, `disk`, `internet`, `cloud`, `blank`, `unknown`. These are always
+available offline (baked into the mermaid bundle). All use `wrapIcon()` which wraps inline
+`<path>` elements in a blue square. Custom icons require `registerIconPacks()`.
+
+**Source:**  
+- `packages/mermaid/src/rendering-util/rendering-elements/shapes/icon.ts`
+- `packages/mermaid/src/diagrams/architecture/architectureIcons.ts`
+- Mermaid docs: https://mermaid.js.org/syntax/flowchart.html (v11.3.0+ section)
+
+---
+
+### A5. Other Icon Mechanisms
+
+- **classDiagram:** No icon support.
+- **C4 diagrams:** Use built-in shape types (Person, System, Container, etc.) — purely
+  geometric SVG, no icon facility.
+- **gitGraph, gantt, timeline, sequence:** No icon support.
+- **Mindmap classes (`:::className`):** CSS-only, same font-dependency concern as `::icon()`.
+
+---
+
+## B. IMAGES
+
+### B1. Flowchart Image Shape (v11.3.0+)
+
+**Syntax example:**
+```
+flowchart TD
+  A@{ img: "https://example.com/logo.png", label: "Logo", pos: "t", w: 200, h: 60, constraint: "on" }
+```
+
+**Parameters:**
+| Param | Default | Notes |
+|-------|---------|-------|
+| `img` | — | URL or data: URI |
+| `label` | — | Optional text |
+| `pos` | `b` | `t` = label above, `b` = label below |
+| `w` | natural width | Overrides image width |
+| `h` | natural height | Overrides image height |
+| `constraint` | `off` | `on` = preserve aspect ratio |
+
+**Implementation:**  
+`packages/mermaid/src/rendering-util/rendering-elements/shapes/imageSquare.ts`:
+
+```ts
+const img = new Image();
+img.src = node?.img ?? '';
+await img.decode();           // ← DOM/browser required
+const imageNaturalWidth = img.naturalWidth;
+…
+image.attr('href', node.img); // ← URL set directly on SVG <image>
+```
+
+**Key observations:**
+
+1. **`new Image()` / `img.decode()`**: requires a browser DOM. In Node.js without
+   jsdom/puppeteer, this breaks. mermaid-cli (Puppeteer) provides the DOM.
+
+2. **`<image href="URL">`**: The URL is embedded verbatim in the SVG output. The SVG
+   `<image>` element is a *reference*, not embedded data. When opened standalone or
+   rasterized with rsvg-convert:
+   - Remote URLs (`https://…`) require network access at **rasterization time** — breaks
+     offline and determinism.
+   - Local file paths resolve relative to CWD at rasterization time.
+   - `data:` URIs are inlined in the SVG and are fully self-contained.
+
+3. **rsvg-convert behavior:** rsvg-convert *does* support `<image href>`. It will fetch
+   remote URLs (network call at rasterization time) or resolve local paths. For static
+   offline PNG, `data:` URIs are the only safe option.
+
+**Offline-safe path:**  
+Use `img: "data:image/png;base64,..."` — the base64 data is embedded in the `.mmd` source
+and survives SVG→PNG conversion without any network call.
+
+**Source:**  
+- `packages/mermaid/src/rendering-util/rendering-elements/shapes/imageSquare.ts`
+- Mermaid docs: https://mermaid.js.org/syntax/flowchart.html (v11.3.0+ Special shapes section)
+
+---
+
+### B2. Image Support in Other Diagram Types
+
+| Diagram type | Image support | Notes |
+|-------------|--------------|-------|
+| architecture-beta | None | Services use Iconify icons only |
+| C4 | None | Uses fixed shape types (Person, System, etc.) |
+| mindmap | None | `::icon()` font-class only |
+| sequenceDiagram | None | — |
+| classDiagram | None | — |
+| stateDiagram | None | — |
+| gitGraph | None | — |
+| gantt | None | — |
+| ER diagram | None | — |
+| block diagram | None | — |
+
+No other diagram type besides flowchart provides an `img:` or `imageUrl` shape.
+
+---
+
+## C. NOTES AND COMMENTS
+
+### C1. Comments — Source annotations not rendered
+
+**Mechanism:**  
+`packages/mermaid/src/diagram-api/comments.ts`:
+
+```ts
+export const cleanupComments = (text: string): string => {
+  return text.replace(/^\s*%%(?!{)[^\n]+\n?/gm, '').trimStart();
+};
+```
+
+- Strips any line starting with `%%` (with optional leading whitespace) that is **not** followed by `{`
+- Runs in `preprocessDiagram()` at `packages/mermaid/src/preprocess.ts`, **before any grammar parser**
+- Comments are therefore grammar-agnostic: every diagram type supports `%%` comments
+- Inline trailing comments (`A --> B %% this is ignored`) also work because the regex matches anything on a line starting with `%%`
+
+**`%%{init: ...}%%` directives — NOT comments:**  
+The `(?!{)` negative lookahead in the regex explicitly protects `%%{...}%%` blocks from
+being stripped. These are processed by `processDirectives()` → `utils.detectInit()` before
+comment stripping. They configure theme, fontSize, diagram-specific options at parse time.
+They are **config directives**, not comments.
+
+**Allowed positions:**  
+`%%` comments may appear anywhere in the diagram source — before the diagram type keyword,
+between elements, after statements. The pre-parse strip is position-agnostic.
+
+**Source:**  
+- `packages/mermaid/src/diagram-api/comments.ts`
+- `packages/mermaid/src/preprocess.ts` → `preprocessDiagram()`
+
+---
+
+### C2. Rendered Notes — Visible annotations in diagrams
+
+#### sequenceDiagram
+
+**Syntax:**
+```
+sequenceDiagram
+  participant Alice
+  participant Bob
+  Note right of Bob: Bob thinks
+  Note left of Alice: Alice waits
+  Note over Alice,Bob: A typical interaction
+```
+
+**Rendering:** A rectangular box with a subtle border, positioned to the right/left of
+the participant lifeline, or spanning across two participants. Multi-line via `<br/>`.
+
+**Positions:** `right of`, `left of`, `over` (spanning 1–2 participants)
+
+**Source:** `packages/mermaid/src/docs/syntax/sequenceDiagram.md` — "Notes" section
+
+---
+
+#### stateDiagram-v2
+
+**Syntax (block, multi-line):**
+```
+stateDiagram-v2
+  state1: The important state
+  note right of state1
+    Multi-line content.
+    More text here.
+  end note
+  note left of state2 : Inline single-line note
+```
+
+**Positions:** `right of`, `left of`
+
+**Rendering:** A filled rectangular box (styled per theme) attached to the target state.
+
+**Source:** `packages/mermaid/src/docs/syntax/stateDiagram.md` — "Notes" section
+
+---
+
+#### classDiagram
+
+**Syntax:**
+```
+classDiagram
+  note "This is a general floating note"
+  note for Duck "can fly\ncan swim"
+  Animal <|-- Duck
+```
+
+**Two note forms:**
+1. `note "text"` — a global floating note not attached to any class
+2. `note for ClassName "text"` — a note attached to a specific class
+
+**Rendering:** A folded-corner "sticky note" box. `\n` or `<br>` for line breaks.
+
+**Important:** This is the **only diagram type in Mermaid with a truly free-floating note**
+(the global `note "text"` form). It is not attached to an element.
+
+**Source:** `packages/mermaid/src/docs/syntax/classDiagram.md` — "Notes" section
+
+---
+
+#### C4 diagrams
+
+No `note` annotation element. The `NOTE` constant in `c4Db.ts` refers to a
+**relationship line style** (dashed/solid variants), not an annotation box.
+
+**Source:** `packages/mermaid/src/diagrams/c4/c4Db.ts`
+
+---
+
+#### Other diagram types — no `note` support
+
+| Diagram | Note support |
+|---------|-------------|
+| gitGraph | None |
+| gantt | None |
+| timeline | None |
+| mindmap | None |
+| ER diagram | None |
+| journey | None |
+| kanban | None |
+| block | None |
+| architecture-beta | None (labels on nodes/groups only) |
+| requirement | None |
+
+No diagram type has free-floating callout boxes or speech bubbles not attached to an
+element, except the global `note "text"` in classDiagram.
+
+---
+
+## Summary Table
+
+| Feature | SVG output form | Self-contained? | Offline? | Raster-safe? | Theme-recolorable? |
+|---------|----------------|-----------------|----------|-------------|---------------------|
+| `fa:fa-xxx` + iconify registered | Inline `<path>` | ✅ | ✅ (if SyncLoader) | ✅ | ✅ if `currentColor` |
+| `fa:fa-xxx` fallback (`<i>` tag) | `<foreignObject><i class>` | ❌ | ❌ | ❌ | N/A |
+| `::icon(fa ...)` mindmap | `<foreignObject><i class>` | ❌ | ❌ | ❌ | N/A |
+| Iconify icon shape (SyncLoader) | Inline `<path>` | ✅ | ✅ | ✅ | if `currentColor` |
+| Iconify icon shape (AsyncLoader CDN) | Inline `<path>` | ✅ | ❌ | ✅ | if `currentColor` |
+| Architecture built-in icons | Inline `<path>` | ✅ | ✅ | ✅ | ❌ (hardcoded fills) |
+| `img: "https://..."` | `<image href=url>` | ❌ | ❌ | ❌ | N/A |
+| `img: "data:..."` | `<image href=data:...>` | ✅ | ✅ | ✅ | N/A |
+| `%%` comment | stripped pre-parse | — | — | — | — |
+| `%%{init:...}%%` directive | config, stripped pre-parse | — | — | — | — |
+| sequence `Note over …` | `<rect>` + `<text>` | ✅ | ✅ | ✅ | ✅ |
+| state `note right of …` | `<rect>` + `<text>` | ✅ | ✅ | ✅ | ✅ |
+| class `note "…"` / `note for …` | sticky-note `<rect>` | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## What I Recommend Triton Should Look At
+
+*The following is labeled recommendation, not research fact.*
+
+### Compatible with Triton's constraints
+
+1. **Iconify SyncLoader (pre-bundled packs)** — the inline vector path approach is the
+   right model for Triton icons. A curated Triton icon bundle (shipping a subset of
+   `@iconify-json/mdi` or similar as a JSON file bundled with Triton Core) provides:
+   - Zero network dependency
+   - Fully self-contained SVG
+   - Rsvg-convert-safe rasterization
+   - Theme-recolorable for icons using `currentColor`
+   - Deterministic output (same icon name → same paths)
+
+2. **`data:` URIs for images** — the only offline/deterministic image embedding path.
+   Triton could accept `img:` in the IR and validate that the value is a `data:` URI (or
+   resolve a local file path and base64-encode it at compile time, similar to what
+   `loadImageAsset()` already does in `.squad/skills/image-primitive/SKILL.md`).
+   The existing `ImagePrimitive` + `loadImageAsset()` pattern in Triton Core is exactly
+   right for this.
+
+3. **Note primitives (sequence/state/class)** — All three note types render to pure SVG
+   geometry (`<rect>` + `<text>`). They are fully self-contained and rsvg-convert-safe.
+   Triton could introduce a `NotePrimitive` in the Scene IR for these.
+
+### Fundamentally at odds with Triton's constraints
+
+4. **Font Awesome `<i>` tag fallback** — `<foreignObject>` is dropped by rsvg-convert.
+   Even if Triton parsed `fa:fa-xxx` syntax, it **must not** emit an `<i>` element.
+   The only safe path is pre-registering a bundled iconify pack for `fa:` prefix so the
+   inline-vector path (Path A) is always taken. Shipping the FA Free icon pack as a
+   bundled JSON at build time is viable; using the CDN loader is not.
+
+5. **Mindmap `::icon()` CSS-class icons** — entirely font-dependent. Triton would need to
+   replace this with a different mechanism (e.g., map `::icon(mdi mdi-book)` to a bundled
+   `mdi:book` Iconify lookup).
+
+6. **Remote `img:` URLs** — breaks determinism and offline requirement. Triton should
+   reject non-`data:` and non-local-file-path values for image nodes with a compile-time
+   error, not a silent fallback.
+
+7. **Iconify AsyncLoader (CDN fetch)** — the default example in Mermaid's docs
+   (`fetch('https://unpkg.com/@iconify-json/logos@1/icons.json')`) is incompatible with
+   Triton. Triton must pre-bundle any icon pack it supports.
+
+### The inline-vector principle
+
+The core offline-safety criterion for icons is simple:
+> **Self-contained SVG requires that icon data be inlined as `<path>` elements, not
+> referenced as a font glyph or an external URL.**
+
+Iconify's `SyncLoader` + `iconToHTML()` achieves this. Triton's existing
+`PathPrimitive`-based icon registry (documented in `.squad/skills/scene-icon-glyph/SKILL.md`)
+already follows this principle correctly. Any Mermaid superset syntax that adds icons
+should resolve to this same primitive path.
+
+---
+
+## Bibliography
+
+1. Mermaid source — icon registry: `packages/mermaid/src/rendering-util/icons.ts`  
+   https://github.com/mermaid-js/mermaid/blob/develop/packages/mermaid/src/rendering-util/icons.ts
+
+2. Mermaid source — FA label substitution: `packages/mermaid/src/rendering-util/createText.ts`  
+   https://github.com/mermaid-js/mermaid/blob/develop/packages/mermaid/src/rendering-util/createText.ts
+
+3. Mermaid source — flowchart icon shape: `packages/mermaid/src/rendering-util/rendering-elements/shapes/icon.ts`  
+   https://github.com/mermaid-js/mermaid/blob/develop/packages/mermaid/src/rendering-util/rendering-elements/shapes/icon.ts
+
+4. Mermaid source — flowchart image shape: `packages/mermaid/src/rendering-util/rendering-elements/shapes/imageSquare.ts`  
+   https://github.com/mermaid-js/mermaid/blob/develop/packages/mermaid/src/rendering-util/rendering-elements/shapes/imageSquare.ts
+
+5. Mermaid source — architecture built-in icons: `packages/mermaid/src/diagrams/architecture/architectureIcons.ts`  
+   https://github.com/mermaid-js/mermaid/blob/develop/packages/mermaid/src/diagrams/architecture/architectureIcons.ts
+
+6. Mermaid source — comment stripping: `packages/mermaid/src/diagram-api/comments.ts`  
+   https://github.com/mermaid-js/mermaid/blob/develop/packages/mermaid/src/diagram-api/comments.ts
+
+7. Mermaid source — preprocessDiagram: `packages/mermaid/src/preprocess.ts`  
+   https://github.com/mermaid-js/mermaid/blob/develop/packages/mermaid/src/preprocess.ts
+
+8. Mermaid docs — icon pack registration: https://mermaid.js.org/config/icons.html  
+   Raw: https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/config/icons.md
+
+9. Mermaid docs — flowchart (icon shape, image shape, FA syntax):  
+   https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/syntax/flowchart.md
+
+10. Mermaid docs — sequenceDiagram notes:  
+    https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/syntax/sequenceDiagram.md
+
+11. Mermaid docs — stateDiagram notes + comments:  
+    https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/syntax/stateDiagram.md
+
+12. Mermaid docs — classDiagram notes + comments:  
+    https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/syntax/classDiagram.md
+
+13. Mermaid docs — mindmap icon syntax:  
+    https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/syntax/mindmap.md
+
+14. Mermaid docs — architecture-beta:  
+    https://raw.githubusercontent.com/mermaid-js/mermaid/develop/packages/mermaid/src/docs/syntax/architecture.md
+
+15. GitHub issue — FA icons not showing in exported SVGs:  
+    https://github.com/mermaid-js/mermaid/issues/3404
+
+16. Triton internal — scene-icon-glyph skill:  
+    `.squad/skills/scene-icon-glyph/SKILL.md`
+
+17. Triton internal — image-primitive skill:  
+    `.squad/skills/image-primitive/SKILL.md`
+
+18. @iconify/utils NPM package (iconToSVG, iconToHTML):  
+    https://www.npmjs.com/package/@iconify/utils
+
+19. Font Awesome Free license: OFL-1.1 for fonts; CC BY 4.0 for icons  
+    https://fontawesome.com/license/free
+
+
+---
+
+## Spec Architect: Leslie
+**Date:** 2026-07-12T18:25:05-04:00
+**Inputs:** David's research, Triton codebase investigation
+
+### Leslie's Options & Tradeoffs Analysis
+
+## Part 1 — Current State in Triton
+
+### 1.1 Icons
+
+Triton has **two partial icon implementations**, neither of which is a general-purpose icon system:
+
+**Architecture diagram — hand-drawn line glyphs** (`src/diagrams/triton/architecture/layout.ts:110–143`). The `iconGlyph()` function renders 5 hardcoded icon names (`server`, `database`, `cloud`, `internet`, `disk`) as small SVG primitives (rects, circles, paths) using the `Pen` API. These are **inline vector**, palette-aware (use `hue` + `palette.surface`), deterministic, and PNG-safe. But they are a closed set: any name outside the 5 keywords falls through to a generic rounded rectangle.
+
+**Mindmap — `::icon()` parsed, barely rendered** (`src/diagrams/mermaid/mindmap/index.ts:30–32`, `layout.ts:86`). The parser captures `::icon(fa-xxx)` syntax into `node.icon?: string`, but the layout renders it as nothing more than a **4px colored dot** next to the node (`p.circle(…, 4, n.hue, …)`). The icon name string is entirely ignored for rendering purposes. This is Mermaid-syntax compatibility at the parse level only.
+
+**Prior design work on record:** `.squad/skills/scene-icon-glyph/SKILL.md` documents a `PathPrimitive`-based icon registry pattern with a `translate(cx,cy) scale(s) translate(-12,-12)` centering formula for 24×24 viewBox icons. This skill was written for the timeline compiler but describes a generalizable approach. The pattern is sound and should be the foundation for any general icon system.
+
+**Verdict:** No general icon system exists. The `scene-icon-glyph` skill documents the right rendering pattern; it needs a registry and grammar integration.
+
+### 1.2 Images
+
+**No image support in the current shipping codebase.** The `SceneElement` discriminated union (`src/contracts/scene.ts`) defines exactly 5 element types: `rect`, `circle`, `path`, `text`, `group`. There is no `SceneImage` variant. The SVG renderer (`src/render/svg.ts`) has no `<image>` or `<foreignObject>` emission path.
+
+**Prior design work on record:** `.squad/skills/image-primitive/SKILL.md` documents an `ImagePrimitive` type + `loadImageAsset(src, baseDir?)` loader that resolves paths/data-URIs to embedded `data:` URIs. The skill covers SVG, PNG/resvg, and Skia backends, with graceful failure for missing files. This is a complete design; it would need to be adapted to Triton's current Scene model.
+
+### 1.3 Comments (non-rendered)
+
+**Central `%%` stripping works correctly** (`src/frontend/preprocess.ts`):
+
+- `stripComments()` runs before grammar dispatch, centrally.
+- **Full-line only:** a line is a comment iff its first non-whitespace chars are `%%`. Such lines are removed entirely.
+- **No inline trailing comments:** `A --> B %% note` is NOT stripped. The docstring explicitly says this is intentional — distinguishing trailing `%%` from `%%` inside node labels like `A["50%% off"]` is unsafe without a full parse.
+- **Frontmatter preserved:** `---…---` YAML frontmatter blocks pass through verbatim. Only the Mermaid body after the closing fence is stripped.
+- **Pure-YAML untouched:** if input starts with `type:`, returned unchanged.
+
+**DS parsers** use `lines()` from `src/diagrams/triton/ds/struct/shared.ts:20–22` — a simple `split('\n').map(trim).filter(Boolean)`. These parsers have **no `%%` handling of their own**; they rely entirely on central `stripComments()` having already run. The `tokenizeDirective()` function (`shared.ts:28–29`) explicitly documents: "Full-line comment handling remains centralized before diagram parsers run; this tokenizer intentionally does not strip inline `%%` text."
+
+**Comparison with Mermaid:** Mermaid's `cleanupComments()` uses regex `^\s*%%(?!{)[^\n]+` — the `(?!{)` lookahead protects `%%{init:…}%%` config directives from stripping. Triton has no `%%{init:…}%%` directive system; its equivalent is YAML frontmatter. The approaches are functionally equivalent for their respective config mechanisms.
+
+**Comment handling is complete and consistent.** No gaps, no action needed.
+
+### 1.4 Rendered Notes/Callouts (visible annotations)
+
+**Two existing domain-specific implementations:**
+
+**Sequence diagram notes** (`src/diagrams/mermaid/sequence/ir.ts:22–26`, `layout.ts:99–106`). `SeqNote` has `placement: 'over' | 'left' | 'right'` and `participants: string[]`. Rendered as a warning-colored semi-transparent rounded rect with centered text. Fully theme-aware (uses `palette.warning`, `palette.text`). Positioned inline in the event stream.
+
+**Poster note overlays** (`src/diagrams/triton/poster/ir.ts:12–18`, `poster/index.ts:124`, `poster/layout.ts:494–518`). `PosterNote` with `text` and optional `position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'`. Parsed from `note "text" [at position]` directives inside poster cell content. Rendered as a semi-transparent pill overlay. Fully theme-aware.
+
+**General overlay system** (`src/contracts/overlay.ts`). Two-layer architecture: `RawNote` (grammar output: element target + text + optional offset) → `Annotation` (resolved position, anchor reference) via overlay compiler (`src/overlay/compiler.ts`). Called by most layout engines via `applyOverlays()`. Designed for **anchored annotations** (callout box + connector to diagram element), not free-floating commentary.
+
+### 1.5 Rendering Pipeline Constraints
+
+**Scene model is SVG-primitive-only.** Five element types: rect, circle, path, text, group. No image, no foreignObject, no raw SVG passthrough. This is by design — the Scene is "pure geometry and style" (`scene.ts:14`).
+
+**SVG renderer** (`src/render/svg.ts`) emits clean SVG with SMIL animations for connector effects. The `fillVal()` helper normalizes empty `fill` to `"none"`. No `<image>` or `<foreignObject>` code paths exist.
+
+**Static PNG via rsvg-convert.** Key implications for this analysis:
+- **No JavaScript execution** — no dynamic font loading.
+- **No webfont fetching** — Font Awesome glyphs = blank boxes unless font is installed system-wide.
+- **SMIL animations frozen** — `<animate>` elements ignored (accepted degradation — connector animations exist but produce static lines in PNG).
+- **`<image href="data:…">` works** — rsvg-convert handles data URIs.
+- **`<image href="https://…">`** — unreliable; depends on network at rasterization time.
+- **`<foreignObject>` dropped entirely** — rsvg-convert / libsvg2 explicitly skips it.
+
+**Theme-awareness.** The palette model (`src/contracts/theme.ts`) provides 10 semantic colors (primary, secondary, background, surface, border, text, textMuted, success, warning, error). All existing visual elements use palette tokens.
+
+---
+
+## Part 2 — What Mermaid Offers vs What's Triton-Safe
+
+### Icons: Mermaid Mechanisms Evaluated
+
+| Mermaid Mechanism | SVG Output | Offline? | PNG-Safe? | Theme-Recolorable? | **Triton Verdict** |
+|---|---|---|---|---|---|
+| `fa:fa-xxx` + Iconify SyncLoader (pre-bundled) | Inline `<path>` | ✅ | ✅ | ✅ if `currentColor` | **Compatible** — the right model |
+| `fa:fa-xxx` fallback (no registered pack) | `<foreignObject><i class>` | ❌ | ❌ | N/A | **Incompatible** — this is Mermaid's DEFAULT |
+| `::icon(fa ...)` mindmap | `<foreignObject><i class>` | ❌ | ❌ | N/A | **Incompatible** — purely font-dependent |
+| Iconify icon shape + SyncLoader (v11.3+) | Inline `<path>` | ✅ | ✅ | ✅ if `currentColor` | **Compatible** |
+| Iconify icon shape + AsyncLoader (CDN) | Inline `<path>` | ❌ | ✅ | ✅ if `currentColor` | ❌ network at render |
+| architecture-beta built-ins | Inline `<path>` | ✅ | ✅ | ❌ hardcoded fills | **Compatible** (Triton already does this) |
+
+**The critical insight:** Mermaid's `fa:fa-xxx` syntax looks simple but hides a **dangerous fork**. Default Mermaid registers NO FA icon pack → the default path emits `<foreignObject><i class="fa fa-xxx">` → blank in rsvg-convert. Only when an integrator calls `registerIconPacks()` with a SyncLoader does the inline `<path>` path activate. Most Mermaid users in browsers never notice because the browser loads the webfont from a CDN. Triton must not inherit this ambiguity.
+
+### Images: Mermaid Mechanisms Evaluated
+
+| Mermaid Mechanism | SVG Output | Offline? | PNG-Safe? | Theme? | **Triton Verdict** |
+|---|---|---|---|---|---|
+| `img: "https://…"` (v11.3+) | `<image href=URL>` | ❌ | ❌ | ❌ | **Incompatible** |
+| `img: "data:…"` (v11.3+) | `<image href=data:…>` | ✅ | ✅ | ❌ | **Compatible** (host resolves) |
+
+**Note:** Mermaid's image shape uses `new Image().decode()` for natural dimensions — requires browser DOM. Triton must handle sizing differently (explicit w/h or host-layer dimension extraction).
+
+### Notes: Mermaid Mechanisms Evaluated
+
+| Mermaid Mechanism | SVG Output | Offline? | PNG-Safe? | Theme? | **Triton Verdict** |
+|---|---|---|---|---|---|
+| sequence `Note over/left/right` | `<rect>` + `<text>` | ✅ | ✅ | ✅ | **Compatible** (already implemented) |
+| state `note right/left of` | `<rect>` + `<text>` | ✅ | ✅ | ✅ | **Compatible** — model if adding state diagrams |
+| class `note "text"` (free-floating) | `<rect>` + `<text>` | ✅ | ✅ | ✅ | **Compatible** — the ONLY free-floating note in Mermaid |
+| class `note for X "text"` (attached) | `<rect>` + `<text>` | ✅ | ✅ | ✅ | **Compatible** — maps to `RawNote` overlay |
+
+**Key finding:** classDiagram's `note "text"` is the **only free-floating annotation in all of Mermaid**. Every other note type requires an element target. Gantt, timeline, gitGraph, mindmap, C4 — none have notes.
+
+---
+
+## Part 3 — Options & Tradeoffs
+
+### 3.1 ICONS
+
+#### Option A: Inline SVG Path Registry (Bundled) — RECOMMENDED
+
+Ship a curated set of icons as SVG path data strings in a registry module. Each icon is a `d="…"` value rendered via `ScenePath` with the transform pattern documented in `scene-icon-glyph/SKILL.md`.
+
+| Criterion | Assessment |
+|-----------|-----------|
+| Determinism & offline | ✅ Fully self-contained. Pure function of text — no I/O. |
+| Static PNG safety | ✅ `<path>` elements rasterize perfectly in rsvg-convert. |
+| Theme-awareness | ✅ Stroke/fill from palette. Monochrome vector recolors trivially. |
+| Authoring ergonomics | Good. `icon: server` or `::icon(server)` in syntax. |
+| Licensing & bundling | Options: (a) hand-draw a small set; (b) bundle Lucide (ISC), Tabler (MIT), or Heroicons (MIT) — all have clean single-path SVGs. FA Free SVGs are CC BY 4.0 / MIT. |
+| Layout impact | ⚠️ Needs box reservation — icon size must be known at layout time. This is Edsger/Brian's domain. The `scene-icon-glyph` skill's sizing rules (barHeight−4, ms.size×0.65) provide a starting pattern. |
+| Bundle size | ~200–500 bytes per icon as path data. 100 icons ≈ 20–50 KB. Acceptable. |
+
+**Reconciliation with existing skill:** The `scene-icon-glyph/SKILL.md` pattern (24×24 viewBox, translate-scale-translate transform, `currentColor` fill convention, strokeWidth:2 / strokeLinecap:round for stroked icons) is exactly the right rendering approach. What's missing is: (1) a registry module exposing icon path data by name, (2) grammar integration beyond architecture/timeline.
+
+#### Option B: User-Supplied SVG (Data URI or File → Host Resolution)
+
+Allow users to reference SVG files. Host layer reads file → core receives SVG content string. Adapts the `loadImageAsset()` pattern from `image-primitive/SKILL.md`.
+
+| Criterion | Assessment |
+|-----------|-----------|
+| Determinism & offline | ⚠️ Host does I/O; core is pure. Acceptable if host resolves before render. |
+| Static PNG safety | ⚠️ Depends on SVG content. Simple paths = safe. SVGs with embedded fonts/scripts = unsafe. |
+| Theme-awareness | ❌ User SVGs have their own colors. Auto-recolor requires SVG manipulation (complex, fragile). |
+| Layout impact | SVG viewBox gives intrinsic size, but user SVGs vary wildly. |
+
+**Verdict: Tier-2 feature** for advanced users needing specific logos. Not the default path.
+
+#### Option C: Webfont Icons (Font Awesome via `<text>` or `<foreignObject>`) — REJECTED
+
+| Criterion | Assessment |
+|-----------|-----------|
+| Determinism & offline | ❌ Webfont must be available at render/rasterize time. |
+| Static PNG safety | ❌ rsvg-convert does not fetch webfonts. `<foreignObject>` is dropped entirely. |
+
+**Verdict: Fundamentally incompatible with Triton's core constraints.** This is Mermaid's default `fa:` path (Path B) and it's the one approach Triton MUST NOT copy.
+
+#### Option D: Emoji / Unicode Symbols — NOT DESIGNED
+
+Rendering depends on system fonts. Not deterministic across environments. Emoji are multi-color bitmaps — `fill` has no effect. Acceptable as a "users can put Unicode in labels" escape hatch (already works), but not a designed icon feature.
+
+#### Explicit Call on `fa:` Syntax
+
+**Triton SHOULD accept `fa:fa-xxx` syntax** for Mermaid superset compatibility, but MUST resolve it exclusively via the inline-vector path (never `<foreignObject>`, never webfont). Two sub-options:
+
+| Sub-option | Approach | Tradeoff |
+|---|---|---|
+| **A-1: Bundle FA Free JSON** | Ship `@iconify-json/fa6-solid` (~150 KB gzipped) + `@iconify-json/fa6-regular` as bundled JSON. `fa:fa-xxx` → icon registry lookup → inline `<path>`. | Adds ~300 KB to bundle. Full FA Free coverage. Licensing: SIL OFL (font) + MIT (CSS/SVGs). Must attribute. |
+| **A-2: Map to curated subset** | Map `fa:fa-database` → Triton's bundled `database` icon. Unknown FA names → compile-time warning + fallback glyph (question-mark icon). | Smaller bundle. Incomplete coverage — some `fa:` names won't resolve. Clear error messaging. |
+
+**Recommendation: A-2 (curated subset with clear fallback).** Reasons: (1) keeps bundle small; (2) avoids licensing complexity of shipping full FA set; (3) compile-time warnings teach users what's available; (4) the fallback `?` glyph (matching Mermaid's `unknownIcon` pattern) is honest — better than silent blank boxes.
+
+### 3.2 IMAGES
+
+#### Option E: `SceneImage` Element with Data URI — RECOMMENDED (deferred)
+
+Add a `SceneImage` element type. Host resolves files to `data:image/…;base64,…` before render. Core emits `<image href="data:…">`. Adapts the `image-primitive/SKILL.md` design.
+
+| Criterion | Assessment |
+|-----------|-----------|
+| Determinism & offline | ✅ Data URI is self-contained. Host does I/O; core is pure. |
+| Static PNG safety | ✅ rsvg-convert handles `<image href="data:…">`. |
+| Theme-awareness | ❌ Raster images cannot recolor to palette. |
+| Authoring ergonomics | Moderate — `image("logo.png")` in syntax, host resolves to data URI. |
+| Layout impact | ⚠️ Needs explicit width/height in syntax (Mermaid uses `new Image().decode()` for natural dimensions — requires browser DOM, which Triton doesn't have). Host-layer dimension extraction or mandatory size params. Edsger/Brian's domain. |
+
+**Reconciliation with existing skill:** The `image-primitive/SKILL.md` design (`ImagePrimitive`, `loadImageAsset()`, `data:` URI mandate, graceful null for missing files, `borderRadius` clip support) is a complete blueprint. Main adaptation needed: map to Triton's `SceneElement` union rather than the skill's `Primitive` union.
+
+**Explicit rejection:** Remote `https://…` URLs MUST be rejected at compile time with a clear error. Triton should not silently fetch or silently fail — it should tell the author "remote URLs are not supported; use a local file path or data URI."
+
+#### Option F: External URL `<image href="https://…">` — REJECTED
+
+Breaks offline + determinism. Incompatible.
+
+### 3.3 NOTES / COMMENTS
+
+#### The Two Meanings — Separated Crisply
+
+**Comments** = non-rendered `%%` lines. Already complete. `stripComments()` handles full-line `%%` centrally. DS parsers rely on central stripping. No inline trailing comment stripping (intentionally safe). No `%%{init:…}%%` directive concern (Triton uses YAML frontmatter instead). **No further work needed.**
+
+**Rendered notes** = visible callout/annotation boxes in the output SVG. A **new visual feature** (beyond the two existing domain-specific implementations). What should a Triton "note" mean?
+
+#### Taxonomy of Rendered Notes
+
+| Note Type | Example Syntax | Semantics | Existing in Triton? |
+|---|---|---|---|
+| **Element-attached** | `note on A: "explains A"` | Callout box + connector line to a specific node/element | Partial — `RawNote → Annotation` overlay system exists; sequence `Note over` works |
+| **Free-floating** | `note "general remark"` | Positioned box not connected to any element | Poster `note "text" at pos` only; general overlay system doesn't support it |
+| **Region/spanning** | `note over A,B: "context"` | Note spanning multiple elements | Sequence only (`Note over A,B`) |
+
+#### Option G: Extend the General Overlay System — RECOMMENDED
+
+The `RawNote → Annotation` pipeline exists. Extend it for broader coverage:
+
+| Criterion | Assessment |
+|-----------|-----------|
+| Determinism & offline | ✅ Pure text → geometry. No I/O. |
+| Static PNG safety | ✅ `<rect>` + `<text>`. Fully safe. |
+| Theme-awareness | ✅ Overlay renderer already uses palette tokens. Poster notes use `palette.surface` fill + `palette.primary` stroke/text. |
+| Authoring ergonomics | Natural: `note on NodeA: "explanation"` (attached), `note "remark"` (free-floating). Consistent with Mermaid's sequence/class syntax. |
+| Layout impact | ⚠️ Anchored notes need element bounding boxes (overlay system already handles this). Free-floating notes need absolute or relative positioning. De-collision with existing elements follows poster's `chromeRects` / `textOccupied` precedent. **Edsger/Brian's domain** — the overlay layout pass (`src/overlay/layout.ts`) already does anchor resolution; extending it for free-floating notes requires a positioning strategy (corner-based like poster, or coordinate-based). |
+
+**What the Mermaid landscape tells us:** Only 3 of Mermaid's 15+ diagram types support notes (sequence, state, class). Adding notes to flowcharts, timelines, or mindmaps would be a Triton-original feature — there's no Mermaid syntax to be superset-compatible with. This gives Triton freedom to design clean syntax without legacy constraints.
+
+#### Option H: Markdown-Rich Note Boxes — DEFERRED
+
+Multi-line notes with bold/italic/lists/code rendered as SVG text spans. Desirable but high-cost — this is a text layout engine problem. `<foreignObject>` with HTML would be simpler but **breaks rsvg-convert**. Defer to Phase 2+.
+
+#### Option I: `<foreignObject>` HTML Notes — REJECTED
+
+rsvg-convert does not render `<foreignObject>` HTML content. Notes would be blank boxes in PNG. Incompatible.
+
+---
+
+## RECOMMENDATION
+
+### Icons — Option A (Inline SVG Path Registry) with `fa:` mapped to curated subset (A-2)
+
+**Do this.** The `scene-icon-glyph/SKILL.md` pattern is the rendering foundation. Build on it:
+
+1. **Icon registry module** (`src/icons/registry.ts`) — map of name → `{ paths: PathDef[], viewBox: '0 0 24 24' }`. Seed with 20–30 icons from Lucide (ISC license): covers `server`, `database`, `cloud`, `globe`, `user`, `lock`, `shield`, `gear`, `warning`, `check`, `file`, `folder`, `code`, `terminal`, `chart-bar`, `heart`, `star`, `search`, `bell`, `mail`, `key`, `camera`, `download`, `upload`, `clock`, `calendar`.
+2. **`fa:fa-xxx` syntax** — parse it (Mermaid superset), map `fa-database` → `database`, `fa-server` → `server`, etc. Unknown names → compile-time warning + `?` fallback glyph. Do NOT emit `<foreignObject>` or webfont references under any circumstances.
+3. **Extend mindmap** — `::icon(database)` → actual icon glyph, not a 4px dot.
+4. **Extend architecture** — replace the 5 hardcoded `iconGlyph()` functions with registry lookups.
+5. **Layout reservation** — each icon occupies a fixed bounding box (e.g., 16×16, 20×20, 24×24 depending on context). The `scene-icon-glyph` skill's sizing formulas apply. Edsger/Brian own the box-reservation implementation per diagram type.
+
+**Avoid:** Webfont icons, `<foreignObject>`, AsyncLoader CDN fetch, full FA bundle.
+
+### Images — Option E (Data URI via Host), deferred
+
+**Defer unless concrete demand emerges.** The `image-primitive/SKILL.md` design is a ready blueprint. When needed:
+
+1. Add `SceneImage` to Scene model.
+2. Host resolves `image("file.png")` → `data:` URI via `loadImageAsset()` pattern.
+3. Core emits `<image href="data:…" width="…" height="…">`.
+4. **Reject remote URLs at compile time** with a clear error message.
+5. Require explicit `width` and `height` in syntax (no browser DOM for natural dimensions).
+
+### Notes — Option G (Extend General Overlay System)
+
+**Do this.** The overlay infrastructure exists; the work is grammar rules + de-collision:
+
+1. **Attached notes** — `note on <element>: "text"` syntax in flowchart, timeline, and future diagram types. Maps to `RawNote` → `Annotation` → callout box + connector. The overlay compiler and layout engine handle this today.
+2. **Free-floating notes** — `note "text" [at <position>]` syntax. Generalizes poster's `PosterNote` model to all diagram types. Position can be corner-based (`top-left`, etc.) or eventually coordinate-based.
+3. **Theme-aware rendering** — notes use `palette.surface` fill (semi-transparent), `palette.primary` or `palette.warning` stroke/text, theme font. Matches existing poster/sequence note styling.
+4. **De-collision** — notes register as occupied rects so cross-link labels / other overlays avoid them. Follows the `chromeRects` / `textOccupied` precedent from poster layout.
+
+**Comments (`%%`)** — no action. Already complete and correct.
+
+### Suggested Phasing
+
+| Phase | Scope | Estimated Effort |
+|---|---|---|
+| **Phase 1** | Icon registry module + architecture/mindmap integration. Attached notes via overlay system in flowchart. | 8–12 hours |
+| **Phase 2** | `fa:fa-xxx` syntax mapping. Free-floating notes. Icon support in flowchart nodes. | 6–10 hours |
+| **Phase 3** | User-supplied SVG icons (Option B). Multi-line note text. | 8–12 hours |
+| **Deferred** | Image primitive (`SceneImage` + host resolution). Rich Markdown notes. | On demand |
+
+---
+
+*Analysis complete. No implementation in this deliverable.*
