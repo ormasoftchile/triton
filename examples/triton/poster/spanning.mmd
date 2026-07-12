@@ -8,8 +8,10 @@ poster "Cell Spanning"
 %% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
 %% Span:        [N] (col-only)  ·  [NxM] (col × row)
 %% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
-%% Arrows:      --> · -.-> · ..> · <--> · <-.-> · <..> · --- · -.- · ...
+%% Arrows:      --> · -_-> · -.-> · ==> · -~-> · <--> · <-_-> · <-.-> · <==> · <-~-> · --- · -_- · -.- · === · -~-
 %% Routing:     @straight · @orthogonal · @bezier · @polyline
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
 %% Frontmatter: --- yaml block --- (before header)
 %% Comments:    %% text  (stripped before parse)
 %% ────────────────────────────────────────────────────────────────────────────
@@ -36,5 +38,8 @@ poster "Cell Spanning"
         linkedlist 3 7 9
     end
     cell bal "AVL tree"
-        avl insert 50 30 70 20 40 60
+        avl insert 50 30 70 20 40 60 80 90 15 18
     end
+
+    link hero.n3 --> idx.n4 @straight:SE { anim: particle }
+    link list.n1 -_-> bal.n0 @orthogonal:NW { anim: comet }

@@ -1,5 +1,19 @@
 poster "Cross-Link Basic Demo"
   columns 2
+%% ────────────────────────────────────────────────────────────────────────────
+%% CROSS-LINK — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      poster "Title"  (title optional)
+%% Grid:        columns N · rows N · gap N
+%% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
+%% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
+%% Link:        link <src> <arrow> <dst> ["label"] [@routing[:WallPair]] [@anim:name] [{ props }]
+%% Arrows:      --> · -_-> · -.-> · ==> · -~-> · <--> · <-_-> · <-.-> · <==> · <-~-> · --- · -_- · -.- · === · -~-
+%% Styles:      solid -- · dashed -_- · dotted -.- · thick == · wavy -~-
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Routing:     @straight · @orthogonal · @bezier · @polyline   (+ :WallPair, e.g. @orthogonal:EW)
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
+%% ────────────────────────────────────────────────────────────────────────────
 
   cell A "Frontend Services" :: flow
     flowchart LR
@@ -14,5 +28,5 @@ poster "Cross-Link Basic Demo"
       orders --> queue[Message Queue]
   end
 
-  link A.gateway --> B.gateway "routes to"
-  link A.auth -.-> B.orders "validates"
+  link A.gateway --> B.gateway "routes to" @straight:EW
+  link A.auth -_-> B.orders "validates" @orthogonal:ES @anim:march

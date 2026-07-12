@@ -193,6 +193,17 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     for (const op of (result.occupiedPorts ?? [])) {
       allOccupiedPorts.push({ ...op, nodeKey: `${cellId}.${op.nodeKey}` });
     }
+
+    // Collect chrome rects (e.g. internal header bars) and transform them to
+    // poster coordinates so the cross-link label de-collision pass can avoid them.
+    for (const cr of (result.chromeRects ?? [])) {
+      textOccupied.push({
+        x:      cr.x * scale + offsetX,
+        y:      cr.y * scale + offsetY,
+        width:  cr.width  * scale,
+        height: cr.height * scale,
+      });
+    }
   }
 
   const totalW = padding * 2 + sumWithGaps(colWidths,  0, grid.columns, gap) - gap;

@@ -37,3 +37,6 @@ Earlier sessions: diagram-options reference completion, LaTeX integration analys
 ## 2026-07-07 — Group B %% Headers (5 files)
 
 Added %% options header blocks to 5 Group B Mermaid families (sequence/journey/gantt/gitgraph/kanban). Updated 5 fragments: removed fallback notes, added ### Comments sections. Serial render (parallel race in class/layout.js pre-existing).
+
+## Learnings
+- **2026-07-12:** Evaluated the `<triton-poster>` live-data concept. Concluded that building custom reactivity, templating (`{{val}}`), and expression parsing (`x > 80 ? red : green`) for SVG patching is redundant and directly reinvents the core premise of React/Svelte/Lit (`UI = f(state)` + VDOM/keys) and tools like Vega or Grafana Canvas. Recommended against building a custom reactive engine. The only viable niche is "Zero-JS, LLM-generatable system topology overlays" using native CSS custom properties for state instead of a bespoke evaluator.

@@ -86,11 +86,13 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     if (!fromRect || !toRect) continue;
 
     const dash = edge.style === 'dotted' ? '6 3' : edge.style === 'dashed' ? '8 4' : undefined;
+    const sw   = edge.style === 'thick'  ? edgeTheme.strokeWidth * 2 : edgeTheme.strokeWidth;
+    const color = edge.style === 'dotted' ? palette.textMuted : palette.primary;
 
     // Self-loop (A → A): a small loop off one side, never a zero-length line.
     if (edge.from === edge.to) {
       const loop = selfLoopRoute(fromRect, isLR);
-      elements.push(p.path(loop.path, edge.kind === 'async' ? palette.textMuted : palette.primary, edgeTheme.strokeWidth, {
+      elements.push(p.path(loop.path, color, sw, {
         ...(dash !== undefined ? { dash } : {}),
         markerEnd: ARROW_MARKER_ID,
       }));
@@ -105,7 +107,7 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     // Back-edge (feedback): bow out to one side around the intervening nodes.
     if (backEdges.has(ei)) {
       const bow = backEdgeRoute(fromRect, toRect, isLR);
-      elements.push(p.path(bow.path, edge.kind === 'async' ? palette.textMuted : palette.primary, edgeTheme.strokeWidth, {
+      elements.push(p.path(bow.path, color, sw, {
         ...(dash !== undefined ? { dash } : {}),
         markerEnd: ARROW_MARKER_ID,
       }));
@@ -139,7 +141,7 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
       toDir: toAnchor.portDir,
     });
 
-    elements.push(p.path(route.path, edge.kind === 'async' ? palette.textMuted : palette.primary, edgeTheme.strokeWidth, {
+    elements.push(p.path(route.path, color, sw, {
       ...(dash !== undefined ? { dash } : {}),
       markerEnd: ARROW_MARKER_ID,
     }));

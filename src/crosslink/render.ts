@@ -133,11 +133,12 @@ export function renderCrossLinks(
     });
 
     const dash = edgeStyleToDash(link.style);
-    // Animation: explicit DSL value wins; default is 'march' for dashed/dotted, nothing for solid.
+    // Animation: explicit DSL value only. All styles are STATIC by default.
+    // Motion requires explicit @anim:<name> or { anim: <name> }.
     const animation: RenderedConnectorAnimation | undefined =
       link.animation === 'none'     ? undefined :
       isRenderedConnectorAnimation(link.animation) ? link.animation :
-      dash                          ? 'march'    : undefined;
+      undefined;
     let markerEnd: string | undefined;
     let markerStart: string | undefined;
     if (link.direction === 'directed') {
@@ -150,6 +151,13 @@ export function renderCrossLinks(
       needsBiArrow = true;
     }
 
+    const strokeWidth = link.style === 'thick'
+      ? (edgeTheme.strokeWidth + 0.5) * 2
+      : (edgeTheme.strokeWidth + 0.5);
+    const isWavy = link.style === 'wavy';
+    const wavyAmplitude  = (link.props?.amplitude  as number | undefined) ?? 3;
+    const wavyWavelength = (link.props?.wavelength as number | undefined) ?? 12;
+
     pendingRoutes.push({
       points: route.points,
       routePath: routeStyle !== 'orthogonal' ? route.path : undefined,
@@ -158,6 +166,10 @@ export function renderCrossLinks(
       toDir,
       color,
       dash,
+      strokeWidth,
+      isWavy,
+      wavyAmplitude,
+      wavyWavelength,
       animation,
       markerEnd,
       markerStart,
@@ -214,13 +226,18 @@ export function renderCrossLinks(
   for (let prIdx = 0; prIdx < pendingRoutes.length; prIdx++) {
     const pr = pendingRoutes[prIdx]!;
     // Bezier/straight routes use the router's SVG path; orthogonal rebuilds from points
-    const path = pr.routePath ?? pr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    let path = pr.routePath ?? pr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+    // Wavy style: displace path geometry with a sine wave
+    if (pr.isWavy) {
+      path = wavifyPath([...pr.points], pr.wavyAmplitude, pr.wavyWavelength);
+    }
 
     const pathEl: SceneElement = {
       type: 'path',
       d: path,
       stroke: pr.color,
-      strokeWidth: edgeTheme.strokeWidth + 0.5,
+      strokeWidth: pr.strokeWidth,
       ...(pr.dash      ? { strokeDasharray: pr.dash }     : {}),
       ...(pr.animation ? { animated: pr.animation }       : {}),
       ...(pr.markerEnd   ? { markerEnd: pr.markerEnd }   : {}),
@@ -305,9 +322,11 @@ function sideToPortDir(side: CardinalSide): PortDirection {
 
 function edgeStyleToDash(style: CrossLinkEdgeStyle): string | undefined {
   switch (style) {
-    case 'dashed': return '8 4';
     case 'dotted': return '4 3';
-    default: return undefined;
+    case 'dashed': return '8 4';
+    case 'solid':  return undefined;
+    case 'thick':  return undefined;  // thick uses stroke-width bump, not dasharray
+    case 'wavy':   return undefined;  // wavy uses path displacement, not dasharray
   }
 }
 
@@ -1040,6 +1059,10 @@ interface PendingRoute {
   toDir: PortDirection | undefined;
   color: string;
   dash: string | undefined;
+  strokeWidth: number;
+  isWavy: boolean;
+  wavyAmplitude: number;
+  wavyWavelength: number;
   animation: RenderedConnectorAnimation | undefined;
   markerEnd: string | undefined;
   markerStart: string | undefined;
@@ -1111,4 +1134,139 @@ function separateOverlappingChannels(routes: PendingRoute[], gap: number): void 
       }
     }
   }
+}
+
+// ─── Wavy Path Generation ────────────────────────────────────────────────────
+
+/**
+ * Replace a polyline route with a sine-wave displaced version.
+ *
+ * Algorithm (fully deterministic):
+ * 1. Compute cumulative arc-length at each original vertex.
+ * 2. Re-sample the polyline at uniform intervals of λ/4.
+ * 3. At each sample, compute the local tangent and its perpendicular normal.
+ * 4. Displace the sample along the normal by A·sin(2π·s/λ) where s is the
+ *    cumulative arc-length.  At 90° corners the amplitude ramps linearly from
+ *    0 to A over one wavelength so kinks stay clean.
+ * 5. Fit smooth cubic Béziers through displaced samples (Catmull-Rom-to-Bézier).
+ *
+ * Returns an SVG path `d` string.  Same input → same output (no randomness).
+ */
+export function wavifyPath(
+  points: readonly Point[],
+  amplitude: number,
+  wavelength: number,
+): string {
+  if (points.length < 2) {
+    return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  }
+
+  const sampleInterval = wavelength / 4;
+
+  // ── Step 1: cumulative arc-lengths at original vertices ───────────────────
+  const arcLen: number[] = [0];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]!, b = points[i]!;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    arcLen.push(arcLen[i - 1]! + Math.sqrt(dx * dx + dy * dy));
+  }
+  const totalLen = arcLen[arcLen.length - 1]!;
+  if (totalLen < 1) {
+    return `M ${points[0]!.x} ${points[0]!.y}`;
+  }
+
+  // ── Step 2: re-sample at uniform intervals ────────────────────────────────
+  // Include start and end explicitly.
+  const sampleCount = Math.max(2, Math.ceil(totalLen / sampleInterval) + 1);
+  const samples: Point[] = [];
+  const sampleArcLens: number[] = [];
+
+  // Find polyline point at given arc-length parameter
+  function polylineAt(s: number): { pt: Point; tangentX: number; tangentY: number } {
+    s = Math.max(0, Math.min(s, totalLen));
+    for (let i = 1; i < points.length; i++) {
+      if (arcLen[i]! >= s - 1e-9) {
+        const segStart = arcLen[i - 1]!;
+        const segEnd   = arcLen[i]!;
+        const segLen   = segEnd - segStart;
+        const t = segLen < 1e-9 ? 0 : (s - segStart) / segLen;
+        const a = points[i - 1]!, b = points[i]!;
+        const pt = { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const tx = len > 1e-9 ? dx / len : 1;
+        const ty = len > 1e-9 ? dy / len : 0;
+        return { pt, tangentX: tx, tangentY: ty };
+      }
+    }
+    const last = points[points.length - 1]!, prev = points[points.length - 2]!;
+    const dx = last.x - prev.x, dy = last.y - prev.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    return { pt: last, tangentX: len > 1e-9 ? dx / len : 1, tangentY: len > 1e-9 ? dy / len : 0 };
+  }
+
+  // Build corner-proximity map: ramp amplitude to 0 at each 90° bend
+  // A "corner" is any vertex where the turning angle > 45°.
+  const cornerArcLens: number[] = [];
+  for (let i = 1; i < points.length - 1; i++) {
+    const a = points[i - 1]!, b = points[i]!, c = points[i + 1]!;
+    const d1x = b.x - a.x, d1y = b.y - a.y;
+    const d2x = c.x - b.x, d2y = c.y - b.y;
+    const len1 = Math.sqrt(d1x * d1x + d1y * d1y);
+    const len2 = Math.sqrt(d2x * d2x + d2y * d2y);
+    if (len1 < 1e-9 || len2 < 1e-9) continue;
+    const dot = (d1x / len1) * (d2x / len2) + (d1y / len1) * (d2y / len2);
+    if (dot < 0.7) { // angle > ~45°
+      cornerArcLens.push(arcLen[i]!);
+    }
+  }
+
+  function cornerAmplitudeFactor(s: number): number {
+    let minDist = Infinity;
+    for (const cs of cornerArcLens) {
+      minDist = Math.min(minDist, Math.abs(s - cs));
+    }
+    if (minDist >= wavelength) return 1;
+    return minDist / wavelength; // ramp 0..1 over one wavelength from corner
+  }
+
+  for (let k = 0; k < sampleCount; k++) {
+    const s = (k / (sampleCount - 1)) * totalLen;
+    const { pt, tangentX, tangentY } = polylineAt(s);
+    // Normal: perpendicular to tangent (rotate 90°)
+    const nx = -tangentY;
+    const ny = tangentX;
+    const phase = (2 * Math.PI * s) / wavelength;
+    const cornerFactor = cornerAmplitudeFactor(s);
+    const displacement = amplitude * cornerFactor * Math.sin(phase);
+    samples.push({ x: pt.x + nx * displacement, y: pt.y + ny * displacement });
+    sampleArcLens.push(s);
+  }
+
+  // ── Step 5: Catmull-Rom to cubic Bézier ──────────────────────────────────
+  // For each interior sample i, compute Catmull-Rom tangents and emit a
+  // cubic Bézier from samples[i-1] to samples[i].
+  const tension = 0.5; // standard Catmull-Rom tension
+  let d = `M ${f(samples[0]!.x)} ${f(samples[0]!.y)}`;
+
+  for (let i = 1; i < samples.length; i++) {
+    const p0 = samples[Math.max(0, i - 2)]!;
+    const p1 = samples[i - 1]!;
+    const p2 = samples[i]!;
+    const p3 = samples[Math.min(samples.length - 1, i + 1)]!;
+
+    const cp1x = p1.x + (p2.x - p0.x) * tension / 3;
+    const cp1y = p1.y + (p2.y - p0.y) * tension / 3;
+    const cp2x = p2.x - (p3.x - p1.x) * tension / 3;
+    const cp2y = p2.y - (p3.y - p1.y) * tension / 3;
+
+    d += ` C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(p2.x)} ${f(p2.y)}`;
+  }
+
+  return d;
+}
+
+/** Format a number to 2 decimal places for SVG path output. */
+function f(n: number): string {
+  return Math.round(n * 100) / 100 + '';
 }

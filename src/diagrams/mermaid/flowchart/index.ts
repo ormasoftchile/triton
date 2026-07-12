@@ -4,7 +4,7 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { layoutFlowchart } from './layout.js';
 import * as parser from './parser.js';
 
-export type { FlowDocument, FlowNode, FlowEdge, FlowSubgraph, FlowDirection, NodeShape, NodeStatus, EdgeKind, EdgeStyle } from './ir.js';
+export type { FlowDocument, FlowNode, FlowEdge, FlowSubgraph, FlowDirection, NodeShape, NodeStatus, EdgeStyle, EdgeEndMarker } from './ir.js';
 
 export const flowchart: DiagramModule<FlowDocument> = {
   parseMermaid(input: string): FlowDocument {

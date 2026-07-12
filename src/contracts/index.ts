@@ -111,6 +111,7 @@ export type {
   NodeAddress,
   CrossLinkEdgeStyle,
   CrossLinkDirection,
+  CrossLinkEndpointMarker,
   RenderedConnectorAnimation as CrossLinkRenderedAnimation,
   CrossLinkAnimation as CrossLinkAnimationName,
   CrossLink,

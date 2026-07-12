@@ -31,6 +31,7 @@ import type { PortDirection } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
 import { createRouter } from '../routing/router.js';
+import { wavifyPath } from './render.js';
 
 export interface CrossLinkRenderResult {
   readonly defs:     string[];
@@ -100,15 +101,19 @@ interface CommittedRoute {
 }
 
 interface WorkingRoute {
-  points:       Point[];
-  isBezier?:    true;
-  color:        string;
-  dash?:        string;
-  animation?:   RenderedConnectorAnimation;
-  markerEnd?:   string;
-  markerStart?: string;
-  label?:       string;
-  labelPlacement?: 'path-midpoint';
+  points:           Point[];
+  isBezier?:        true;
+  color:            string;
+  dash?:            string;
+  strokeWidth?:     number;
+  isWavy?:          boolean;
+  wavyAmplitude?:   number;
+  wavyWavelength?:  number;
+  animation?:       RenderedConnectorAnimation;
+  markerEnd?:       string;
+  markerStart?:     string;
+  label?:           string;
+  labelPlacement?:  'path-midpoint';
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
@@ -185,10 +190,11 @@ export function routeAndRenderCrossLinks3(
     }
 
     const dash = edgeStyleToDash(link.style);
+    // Animation: explicit DSL value only. All styles are STATIC by default.
     const animation: RenderedConnectorAnimation | undefined =
       link.animation === 'none'     ? undefined :
       isRenderedConnectorAnimation(link.animation) ? link.animation :
-      dash                          ? 'march'    : undefined;
+      undefined;
 
     let markerEnd:   string | undefined;
     let markerStart: string | undefined;
@@ -199,12 +205,21 @@ export function routeAndRenderCrossLinks3(
       markerStart = BI_ARROW_ID;
     }
 
+    const strokeWidth = link.style === 'thick'
+      ? (edgeTheme.strokeWidth + 0.5) * 2
+      : undefined;
+    const isWavy      = link.style === 'wavy';
+    const wavyAmp     = (link.props?.amplitude  as number | undefined) ?? 3;
+    const wavyLambda  = (link.props?.wavelength as number | undefined) ?? 12;
+
     const origIdx = links.indexOf(link);
     workingByOriginalIdx.set(origIdx >= 0 ? origIdx : workingByOriginalIdx.size, {
       points: [...best.rawPts],
       ...(best.committed.isBezier ? { isBezier: true as const } : {}),
       color,
       ...(dash        ? { dash }        : {}),
+      ...(strokeWidth ? { strokeWidth } : {}),
+      ...(isWavy      ? { isWavy: true, wavyAmplitude: wavyAmp, wavyWavelength: wavyLambda } : {}),
       ...(animation   ? { animation }   : {}),
       ...(markerEnd   ? { markerEnd }   : {}),
       ...(markerStart ? { markerStart } : {}),
@@ -274,9 +289,13 @@ export function routeAndRenderCrossLinks3(
 
   for (let i = 0; i < workingRoutes.length; i++) {
     const wr = workingRoutes[i]!;
-    const path = wr.isBezier
+    let path = wr.isBezier
       ? `M ${wr.points[0]!.x} ${wr.points[0]!.y} C ${wr.points[1]!.x} ${wr.points[1]!.y} ${wr.points[2]!.x} ${wr.points[2]!.y} ${wr.points[3]!.x} ${wr.points[3]!.y}`
       : wr.points.map((p, pi) => `${pi === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+    if (wr.isWavy) {
+      path = wavifyPath([...wr.points], wr.wavyAmplitude ?? 3, wr.wavyWavelength ?? 12);
+    }
 
     if (wr.markerEnd   === ARROW_ID)    needsArrow   = true;
     if (wr.markerStart === BI_ARROW_ID) needsBiArrow = true;
@@ -285,7 +304,7 @@ export function routeAndRenderCrossLinks3(
       type:        'path',
       d:           path,
       stroke:      wr.color,
-      strokeWidth: edgeTheme.strokeWidth + 0.5,
+      strokeWidth: wr.strokeWidth ?? (edgeTheme.strokeWidth + 0.5),
       ...(wr.dash        ? { strokeDasharray: wr.dash }    : {}),
       ...(wr.animation   ? { animated: wr.animation }      : {}),
       ...(wr.markerEnd   ? { markerEnd: wr.markerEnd }     : {}),
@@ -1039,8 +1058,9 @@ function labelAnchor(pts: readonly Point[]): Point {
 }
 
 function edgeStyleToDash(style: string | undefined): string | undefined {
+  if (style === 'dotted') return '4 3';
   if (style === 'dashed') return '8 4';
-  if (style === 'dotted') return '3 4';
+  // 'solid', 'thick', 'wavy', undefined → no dasharray
   return undefined;
 }
 

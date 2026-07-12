@@ -14,9 +14,7 @@
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
   <path d="M 306.6 368 L 262.6 368 L 262.6 561.1904761904763" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 470.6 561.1904761904763 L 470.6 128 L 426.6 128" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="3 4" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)">
-    <animate attributeName="stroke-dashoffset" from="0" to="-7" dur="0.8s" repeatCount="indefinite"/>
-  </path>
+  <path d="M 470.6 561.1904761904763 L 470.6 128 L 426.6 128" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)" />
   <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">UI Layer</text>
   <g transform="translate(28, 135.8095238095238) scale(0.9047619047619048)">
     <g id="app">

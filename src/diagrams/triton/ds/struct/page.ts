@@ -118,7 +118,10 @@ export function layoutPage(doc: PageDoc, theme: ResolvedTheme): LayoutResult {
     elements,
     defs: [arrowDef(palette.textMuted)],
   };
-  return { scene, anchors: anchors as NodeAnchorRegistry };
+  // Expose the PageHeader bar as chrome so the poster label de-collision pass
+  // keeps cross-link labels from landing on top of it.
+  const chromeRects = [{ x: px, y: py, width: pageW, height: HEADER }];
+  return { scene, anchors: anchors as NodeAnchorRegistry, chromeRects };
 }
 
 function pxForCenteredContent(innerLeft: number, innerW: number, contentW: number): number {

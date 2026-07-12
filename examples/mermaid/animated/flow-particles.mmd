@@ -23,5 +23,5 @@ poster "Flow Particles — Per-Connector Animation"
 
   link FE.browser --> BE.api "requests" { anim: particle }
   link BE.service --> DB.pg "writes"
-  link BE.api -.-> CACHE.redis "caches" { anim: particle }
-  link CACHE.redis ..> DB.pg "invalidates"
+  link BE.api -_-> CACHE.redis "caches" { anim: particle }
+  link CACHE.redis -.-> DB.pg "invalidates"

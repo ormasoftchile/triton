@@ -1,5 +1,19 @@
 poster "ML Platform — Training & Serving Pipeline"
   columns 3
+%% ────────────────────────────────────────────────────────────────────────────
+%% CROSS-LINK — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      poster "Title"  (title optional)
+%% Grid:        columns N · rows N · gap N
+%% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
+%% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
+%% Link:        link <src> <arrow> <dst> ["label"] [@routing[:WallPair]] [@anim:name] [{ props }]
+%% Arrows:      --> · -_-> · -.-> · ==> · -~-> · <--> · <-_-> · <-.-> · <==> · <-~-> · --- · -_- · -.- · === · -~-
+%% Styles:      solid -- · dashed -_- · dotted -.- · thick == · wavy -~-
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Routing:     @straight · @orthogonal · @bezier · @polyline   (+ :WallPair, e.g. @orthogonal:EW)
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
+%% ────────────────────────────────────────────────────────────────────────────
 
   cell INGEST "Data Ingestion" :: flow
     flowchart LR
@@ -44,11 +58,11 @@ poster "ML Platform — Training & Serving Pipeline"
 
   link INGEST.registry --> TRAIN.scheduler "triggers training"
   link TRAIN.mlflow --> SERVE.router "promotes model"
-  link SERVE.canary -.-> MONITOR.prom "reports metrics"
-  link SERVE.stable -.-> MONITOR.prom "reports metrics"
+  link SERVE.canary -_-> MONITOR.prom "reports metrics" @anim:march
+  link SERVE.stable -_-> MONITOR.prom "reports metrics" @anim:march
   link MONITOR.alertmgr --> TRAIN.scheduler "retrains on drift"
   link CICD.deploy --> SERVE.gateway "rolls out"
-  link CICD.tests -.-> MONITOR.grafana "posts results"
+  link CICD.tests -_-> MONITOR.grafana "posts results" @anim:march
   link INFRA.k8s --> SERVE.stable "hosts"
   link INFRA.vault --> SERVE.gateway "injects secrets"
 

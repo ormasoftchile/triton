@@ -55,8 +55,13 @@
     return id;
   }
 
-  function addEdge(from, to, label, kind, style, ann) {
-    const e = { from, to, label: label || undefined, kind: kind || 'sync', style: style || 'solid' };
+  function addEdge(from, to, label, style, ann, edgeProps) {
+    const e = { from, to, label: label || undefined, style: style || 'solid' };
+    if (edgeProps) {
+      if (edgeProps.bidirectional) e.bidirectional = true;
+      if (edgeProps.undirected)    e.undirected    = true;
+      if (edgeProps.endMarker)     e.endMarker     = edgeProps.endMarker;
+    }
     if (ann) {
       if (ann.routing)   e.routing   = ann.routing;
       if (ann.exitWall)  e.exitWall  = ann.exitWall;
@@ -142,7 +147,7 @@ EdgeChain
   = head:NodeRef rest:(_ edge:EdgeOp _ target:NodeRef ann:(_ "@" RouteAnnotation)? { return { edge, target, ann: ann ? ann[2] : null }; })+ {
       let prev = head;
       for (const { edge, target, ann } of rest) {
-        addEdge(prev.id, target.id, edge.label, edge.kind, edge.style, ann);
+        addEdge(prev.id, target.id, edge.label, edge.style, ann, edge);
         prev = target;
       }
       return { type: 'chain' };
@@ -155,20 +160,29 @@ EdgeLabel
   = "|" text:$[^|]+ "|" { return text.trim(); }
 
 EdgeArrow
-  = "<-.->" { return { kind: 'async', style: 'dotted' }; }
-  / "<-->"  { return { kind: 'sync',  style: 'solid'  }; }
-  / "<==>"  { return { kind: 'sync',  style: 'solid'  }; }
-  / "-..->" { return { kind: 'async', style: 'dotted' }; }
-  / "-.-> " { return { kind: 'async', style: 'dotted' }; }
-  / "-.->"  { return { kind: 'async', style: 'dotted' }; }
-  / "--->"  { return { kind: 'sync',  style: 'solid'  }; }
-  / "-->"   { return { kind: 'sync',  style: 'solid'  }; }
-  / "==>"   { return { kind: 'sync',  style: 'solid'  }; }
-  / "--x"   { return { kind: 'sync',  style: 'solid'  }; }
-  / "--o"   { return { kind: 'sync',  style: 'solid'  }; }
-  / "-.-"   { return { kind: 'async', style: 'dotted' }; }
-  / "---"   { return { kind: 'sync',  style: 'solid'  }; }
-  / "==="   { return { kind: 'sync',  style: 'solid'  }; }
+  // ── Bidirectional ─────────────────────────────────────────────────────────
+  = "<-~->" { return { style: 'wavy',   bidirectional: true  }; }
+  / "<-_->" { return { style: 'dashed', bidirectional: true  }; }
+  / "<-.->" { return { style: 'dotted', bidirectional: true  }; }
+  / "<==>"  { return { style: 'thick',  bidirectional: true  }; }
+  / "<-->"  { return { style: 'solid',  bidirectional: true  }; }
+  // ── Directed — extension tokens before Mermaid tokens ─────────────────────
+  / "-~->"  { return { style: 'wavy'   }; }
+  / "-_->"  { return { style: 'dashed' }; }
+  / "-..->" { return { style: 'dotted' }; }
+  / "-.->"  { return { style: 'dotted' }; }
+  / "===>"  { return { style: 'thick'  }; }
+  / "==>"   { return { style: 'thick'  }; }
+  / "--->"  { return { style: 'solid'  }; }
+  / "-->"   { return { style: 'solid'  }; }
+  / "--x"   { return { style: 'solid', endMarker: 'cross'  }; }
+  / "--o"   { return { style: 'solid', endMarker: 'circle' }; }
+  // ── Undirected ────────────────────────────────────────────────────────────
+  / "-~-"   { return { style: 'wavy',   undirected: true }; }
+  / "-_-"   { return { style: 'dashed', undirected: true }; }
+  / "-.-"   { return { style: 'dotted', undirected: true }; }
+  / "==="   { return { style: 'thick',  undirected: true }; }
+  / "---"   { return { style: 'solid',  undirected: true }; }
 
 // ─── Route Annotations (wall hints) ───────────────────────────────────────────
 // Attach a routing/wall hint to an edge, e.g. A -->|label| B @orthogonal:EW

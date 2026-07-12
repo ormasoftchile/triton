@@ -146,3 +146,16 @@ Header content strictly grammar-derived (matches each fragment). No invented tok
 ## 2026-07-07 — Group A %% Headers (5 files)
 
 Added %% options header blocks to 5 Group A Mermaid families (class/state/er/c4/requirement). Updated 5 fragments: removed fallback notes, added ### Comments sections. All SVGs exit 0.
+
+## Learnings
+
+**Live-poster pro steelman (2026-07-12):**
+Wrote the pro advocate position on the live-data poster web component concept (requested by Cristian).
+Ingestion design ground truth:
+- The data-in contract is `el.data = flat-or-nested JSON`; the ingestion layer resolves it to a `{ cellId -> { field -> value } }` map against the compiler's anchor manifest.
+- Binding forms: path expressions (`{{path}}`), threshold expressions (`@color:`), numeric path (`@speed:`). All three are statically parseable to an IR — no eval, no runtime code execution. Grammar fits in ~150-line recursive-descent parser.
+- Failure contract: missing key → em-dash, type mismatch → ignore + warn, stale/no data → `data-binding-pending` attribute + placeholder. Never crash, never surface `undefined`.
+- Transport adapters (imperative setter, `data-src` polling, SSE, WS) all funnel through single `el.data` setter. Tab-hidden: polling pauses, SSE/WS stays connected.
+- Hard scope call: `repeat:` (structural, data-driven cell generation) is v2. v1 = cosmetic bindings only (text, color, animation speed) with surgical patch. Mixing structural + cosmetic in v1 blows scope.
+- Three killer use cases: (1) embedded status board in git-versioned docs, (2) LLM-generated ops dashboard from incident prompt, (3) incident replay via pure-function time-travel.
+- Position filed at `.squad/decisions/inbox/bjarne-liveposter-pro.md`.

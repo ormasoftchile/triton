@@ -1,5 +1,19 @@
 poster "Connector Animation Gallery"
   columns 2
+%% ────────────────────────────────────────────────────────────────────────────
+%% CROSS-LINK — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      poster "Title"  (title optional)
+%% Grid:        columns N · rows N · gap N
+%% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
+%% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
+%% Link:        link <src> <arrow> <dst> ["label"] [@routing[:WallPair]] [@anim:name] [{ props }]
+%% Arrows:      --> · -_-> · -.-> · ==> · -~-> · <--> · <-_-> · <-.-> · <==> · <-~-> · --- · -_- · -.- · === · -~-
+%% Styles:      solid -- · dashed -_- · dotted -.- · thick == · wavy -~-
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Routing:     @straight · @orthogonal · @bezier · @polyline   (+ :WallPair, e.g. @orthogonal:EW)
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
+%% ────────────────────────────────────────────────────────────────────────────
 
   cell MARCH_A "march" :: flow
     flowchart LR
@@ -91,7 +105,7 @@ poster "Connector Animation Gallery"
       y[Target]
   end
 
-  link MARCH_A.x -.-> MARCH_B.y "march" { anim: march }
+  link MARCH_A.x -_-> MARCH_B.y "march" { anim: march }
   link PARTICLE_A.x --> PARTICLE_B.y "particle" { anim: particle }
   link DRAW_A.x --> DRAW_B.y "draw" { anim: draw }
   link PULSE_A.x --> PULSE_B.y "pulse" { anim: pulse }
