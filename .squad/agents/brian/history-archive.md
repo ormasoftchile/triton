@@ -320,3 +320,25 @@ Cristian decided to drop intervals and hashring primitives entirely. Only the tw
 Removed: src/diagrams/triton/ds/intervals/, src/diagrams/triton/ds/hashring/, test/intervals.test.ts, test/hashring.test.ts, examples/triton/poster/phase2/, all DiagramKind union entries, detect.ts patterns, frontend/index.ts imports+registers, poster/index.ts inferCellKind entries.
 
 Final: pnpm build clean, 499/499 tests (back to Phase 1 baseline). Zero references to 'intervals' or 'hashring' in src/test (the one match in array.ts is a local variable, unrelated).
+
+---
+
+## 2026-07-12 — Pre-External-Theming Work (Spawns brian-6 through brian-11)
+
+### Spawn brian-6 — Example Audit
+Audited all 84 .mmd files. Found 0 bad, 1 redundant (launch-readiness.mmd). Removed 14 files total (1 .mmd + 1 .svg + 12 theme SVGs). Tests: 541 → 540.
+
+### Spawn brian-7 — Label Overlap Fix  
+Removed engineering-dashboard.mmd redundancy. Fixed cross-link label overlap via chromeRects contract extension. Tests: 540 → 539.
+
+### Spawn brian-8 — Release v0.1.9
+Cut v0.1.9: Connector superset syntax + example cleanup. PR #59, merged 9b09b76.
+
+### Spawn brian-9 — Dark Mode Icon Fix
+Fixed preview toolbar icons invisible in dark mode. Root cause: `stroke="currentColor"` renders BLACK on VS Code toolbar icons. Created color-baked variants (preview-light.svg, preview-dark.svg).
+
+### Spawn brian-10 — Preview-To-Side Glyph
+Added distinct split/side glyph for `triton.openPreviewToSide` (preview-side-light.svg / preview-side-dark.svg) vs plain glyph for `triton.openPreview`.
+
+### Spawn brian-11 — Release v0.1.10
+Cut v0.1.10: Icon dark-mode + distinct-glyph fixes. PR #60, merged b6fc192.
