@@ -1,0 +1,39 @@
+% cachekey-test.tex — verify that theme + scale changes invalidate the render cache.
+%
+% Build (from this directory):
+%   pdflatex -shell-escape cachekey-test.tex
+%
+% Steps:
+%   1. Compile as-is             → records hash-A  (\tritontheme{default}, scale 1)
+%   2. Change to executive theme → must produce hash-B  (cache miss → re-render)
+%   3. Change scale to 2         → must produce hash-C
+%   4. Revert to step-1 settings → must hit hash-A  (cache hit, no re-render)
+
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{triton}
+
+% Point at the local CLI build (remove on a real install with triton-latex on PATH).
+\tritoncli{node ../dist/cli.cjs}
+
+% Use a cache dir we can easily inspect.
+\tritoncachedir{triton-cachekey-test-cache}
+
+% ── Change this line to test each scenario ───────────────────────────────────
+% Step 1 (default, scale 1):
+\tritontheme{default}
+\tritonscale{1}
+% Step 2: \tritontheme{executive}  \tritonscale{1}
+% Step 3: \tritontheme{executive}  \tritonscale{2}
+% Step 4: back to \tritontheme{default}  \tritonscale{1}
+
+\begin{document}
+
+\begin{triton}
+flowchart LR
+  A[Start] --> B{Choice}
+  B -->|yes| C[Done]
+  B -->|no| D[Retry]
+\end{triton}
+
+\end{document}

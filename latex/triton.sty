@@ -120,6 +120,15 @@
 % holds the \includegraphics options. Content-hash → cache → shell-out → include.
 \newcommand{\triton@render}{%
   \ifnum\pdf@shellescape=\@ne
+    % Fold theme + scale into the hashed file so that changing \tritontheme{}
+    % or \tritonscale{} correctly invalidates the cache. The appended line is a
+    % full-line %% comment, stripped by stripComments() before the CLI parses
+    % the diagram, so the compiler never sees it and IR/SVG output is
+    % byte-identical. The temp file is freshly written before every call to
+    % \triton@render, so this append is idempotent per render.
+    % NOTE: echo (not printf) is used deliberately — printf treats %% as a
+    % format escape; echo passes characters through verbatim, so '%%' stays '%%'.
+    \immediate\write18{echo '\@percentchar\@percentchar triton-key:\triton@themearg\space scale=\triton@scale' >> "\triton@tmpfile"}%
     \edef\triton@hash{\pdf@filemdfivesum{\triton@tmpfile}}%
     \edef\triton@pdf{\triton@cachedir/\triton@hash.pdf}%
     % Only render when this exact source has not been rendered before.
