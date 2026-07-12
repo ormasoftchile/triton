@@ -1,3 +1,282 @@
+# Research & Design — Icon Library Import Format (IconifyJSON packs; not yet approved to build)
+
+**Authors:** David (Research Lead), Leslie (Spec Architect)  
+**Date:** 2026-07-12T18:50:49-04:00  
+**Status:** FINAL DESIGN RECOMMENDATION — Pending approval to begin Phase P0-P6 (22–30 hours) implementation. NOT YET approved to build.
+
+---
+
+## Background
+
+Triton users need a way to reference and embed icons (especially Azure architecture icons for cloud diagrams) inline in diagrams. David conducted licensing + format research; Leslie designed the import/discovery/rendering mechanism.
+
+**Key finding (David):** Microsoft's Azure Architecture Icons (705+) are licensed for "architectural diagrams, training materials, or documentation" only. Third-party tool bundling would be redistribution outside permitted use — Microsoft reserves all other rights. **Verdict: Triton cannot ship Azure icons; must be bring-your-own-pack (BYOP) model.**
+
+**Candidate format (David + Leslie):** IconifyJSON (the `@iconify/types@2.0.0` schema used by Iconify's 150+ official packs). Single `.json` file; deterministic; compile-time resolution; ecosystem tooling available.
+
+---
+
+## David's Findings: Azure Licensing & Format Research
+
+### 1. Azure Architecture Icons — Official Distribution & Licensing
+
+| Attribute | Fact |
+|-----------|------|
+| Official page | https://learn.microsoft.com/en-us/azure/architecture/icons/ |
+| Download URL | `https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip` |
+| Format | ZIP of individual `.svg` files (also `.png` included) |
+| Count | **705+ icons** as of July 2026 (updated monthly; +10–13 per batch) |
+| Folder structure | Category subfolders: `Compute/`, `Networking/`, `AI + Machine Learning/`, `Databases/`, `Storage/`, `Security/`, `Developer Tools/`, `Identity/`, … (17+ categories matching Azure portal navigation) |
+| SVG naming | `{Service Name}_{Category}.svg` — e.g. `Virtual Machines_Compute.svg`, `Key Vault_Security.svg` |
+| Colors | **Multicolor, NOT monochrome.** Hardcoded Azure brand fills: `#0078D4` (blue), teal, gradients. Do NOT use `currentColor`. Cannot be palette-tinted. Render verbatim regardless of surrounding CSS. |
+
+### Color detail (critical for Triton)
+
+The official Azure icons embed Microsoft brand gradients directly in SVG `<path>` fills and `<linearGradient>` defs. They look visually rich but are completely opaque to theming. A Triton dark theme cannot invert or tint them. They will always show Azure's corporate color palette.
+
+### Licensing terms — verbatim from the official page
+
+> "Microsoft permits the use of these icons in architectural diagrams, training materials, or documentation. You can copy, distribute, and display the icons only for the permitted use unless granted explicit permission by Microsoft. Microsoft reserves all other rights."
+
+**Source:** https://learn.microsoft.com/en-us/azure/architecture/icons/
+
+#### Redistribution verdict
+
+**Triton CANNOT bundle or redistribute Azure SVG files.** The "permitted use" is limited to architectural diagrams, training, and documentation. Packaging them inside a third-party compiler tool's npm/tar distribution would be redistribution outside the permitted use — Microsoft explicitly reserves all other rights. This is a hard constraint.
+
+**Consequence for Triton:** Azure icons must be **user-supplied** ("bring your own pack" / BYOP model). Triton provides the import pipeline documentation; the user provides the icons.
+
+### 2. Azure Icons on Iconify — Coverage Audit (July 2026)
+
+| Source | What's there | Monochrome? | Count |
+|--------|-------------|-------------|-------|
+| `@iconify-json/logos` | `logos:microsoft-azure`, `logos:azure`, `logos:azure-icon` — brand logos only | ❌ hardcoded fills | 3 |
+| `@iconify-json/simple-icons` | `simple-icons:azuredevops`, `simple-icons:azurefunctions`, `simple-icons:azurepipelines`, `simple-icons:azureartifacts`, `simple-icons:azuredataexplorer` — dev-brand marks | ✅ `currentColor` | 5 |
+| `@iconify-json/devicon` | `devicon:azure-original` — generic Azure hex logo | ❌ hardcoded fills | 1 |
+| **`@iconify-json/azure`** | **Does not exist.** Not in `iconify/icon-sets` JSON dir (confirmed July 2026). | — | 0 |
+
+**Confirmed:** No Iconify pack covers the 705+ official Azure architecture service icons (App Service, AKS, Virtual Network, Key Vault, Cosmos DB, etc.). The full set is absent from Iconify due to Microsoft's licensing restriction.
+
+### 3. The `IconifyJSON` Pack Format — The Candidate Static Format
+
+The `@iconify/types@2.0.0` TypeScript definition provides the schema:
+
+```typescript
+interface IconifyIcon {
+  body: string;    // inner SVG markup — NO <svg> wrapper
+  rotate?: number; // 0–3 (×90°)
+  hFlip?: boolean;
+  vFlip?: boolean;
+  hidden?: boolean;
+  width?: number;
+  height?: number;
+}
+
+interface IconifyJSON {
+  prefix: string;                          // "azure", "mdi", "logos", …
+  provider?: string;
+  icons: { [name: string]: IconifyIcon };  // name = bare name, no prefix
+  aliases?: { [name: string]: { parent: string } };
+  width?: number;
+  height?: number;
+  left?: number;
+  top?: number;
+  lastModified?: number;
+  not_found?: string[];
+}
+```
+
+**Source:** `https://cdn.jsdelivr.net/npm/@iconify/types@2.0.0/types.d.ts`
+
+### Monochrome vs multicolor — the mechanism
+
+| Property | Monochrome | Multicolor (brand) |
+|----------|------------|-------------------|
+| `body` fill | `fill="currentColor"` | `fill="#0078D4"`, `fill="url(#grad1)"`, etc. |
+| Triton behavior | Set CSS `color` on `<svg>` wrapper → inherits palette token | Emit body verbatim → brand colors appear as-is |
+| Theming | ✅ Recolorable | ❌ Fixed brand colors |
+| Example packs | MDI, Lucide, Heroicons, simple-icons | logos:*, Azure architecture icons |
+
+### File sizes (measured July 2026)
+
+| Pack | Icons | Raw JSON size | Note |
+|------|-------|--------------|------|
+| `@iconify-json/mdi` | 7,638 | 3.0 MB | monochrome, simple paths |
+| `@iconify-json/logos` | 2,091 | 7.4 MB | multicolor, complex paths |
+| `@iconify-json/simple-icons` | 3,720 | ~2 MB (est) | monochrome |
+| **Azure pack (estimated)** | **705** | **2–5 MB** | multicolor, complex gradient paths |
+
+### Converting Azure SVGs → IconifyJSON: The `importDirectory` Pipeline
+
+User runs once per Azure release using `@iconify/tools`:
+
+```bash
+npm install @iconify/tools
+```
+
+```js
+import { importDirectory, cleanupSVG } from '@iconify/tools';
+import { writeFileSync } from 'fs';
+
+const collection = await importDirectory('./Azure_Public_Service_Icons/SVG', {
+  prefix: 'azure',
+});
+
+for (const name of collection.keys()) {
+  const icon = collection.getIcon(name);
+  await cleanupSVG(icon);  // strips <title>, <desc>, fixes malformed SVG
+  collection.setIcon(name, icon);
+}
+
+writeFileSync('./azure.json', JSON.stringify(collection.export()));
+console.log(`Exported ${collection.count()} icons to azure.json`);
+```
+
+After running: user has `azure.json` (~2–5 MB). They reference it in their Triton diagram.
+
+### Why IconifyJSON over alternatives
+
+| Format | Description | Cons for Triton |
+|--------|-------------|----------------|
+| **Directory of `.svg` files** | `azure/virtual-machines.svg`, `azure/key-vault.svg`, … | N file I/O reads per compile; no single artifact; hard to distribute; no schema; no standard tooling |
+| **SVG `<symbol>` sprite** | One SVG with `<symbol id="azure-...">` blocks | Must inject entire sprite into output (bulk); non-standard for pack distribution; no JSON tooling |
+
+**IconifyJSON wins:** single artifact, standard schema, load-once/lookup-by-name, ecosystem tooling (`@iconify/utils`, `@iconify/tools`), compact per-icon bodies, deterministic.
+
+---
+
+## Leslie's Design: Static Icon-Library Import Mechanism
+
+### Discovery & Location — Mirror Themes
+
+```
+project/
+├── .triton/
+│   ├── themes/
+│   │   └── acme.triton-theme.json       ← existing (v0.1.15)
+│   └── icons/
+│       ├── lucide.triton-icons.json      ← bundled default (MIT)
+│       └── azure.triton-icons.json       ← user-supplied (BYOP)
+```
+
+**Discovery function (`findTritonIconsDir`):** Walk up from start directory looking for `.triton/icons/`, return absolute path when found. Direct analogy to `findTritonThemesDir` (`src/theme/discover.ts:129–148`).
+
+**Scan for `.triton-icons.json` files:** Validate each file — must have `prefix` (slug format), `icons` (object with at least one entry), each icon must have `body` (non-empty string).
+
+**Prefix determination:** `prefix` field in JSON is AUTHORITATIVE. Filename stem is fallback ONLY if `prefix` field is absent.
+
+**CLI Flags (analogous to `--themes-dir`/`--theme-file`):**
+
+| Flag | Meaning |
+|------|---------|
+| `--icons-dir <dir>` | Directory of `.triton-icons.json` files. Merged on top of auto-discovered `.triton/icons/`. |
+| `--icon-pack <path>` | Path to a single `.triton-icons.json` file. Additive (can repeat). Errors are fatal. |
+
+### Purity Boundary — Where Resolution Happens
+
+**Rule (same as themes):** Host discovers icon packs, resolves referenced icons to their SVG body data, and passes resolved icon bodies INTO core as structured data. Core never touches the filesystem.
+
+**Injection point:** Add `icons?: ResolvedIconRegistry` as a new optional parameter on `compileSync`/`renderSync` (at `src/frontend/index.ts`). This parallels `themeInput?: ThemeInput` exactly.
+
+```
+HOST LAYER (I/O)                          CORE (pure)
+─────────────────────────────────────     ─────────────────────────────────────
+1. Discover .triton/icons/ dir            
+2. Load + validate all packs              
+3. Build ResolvedIconRegistry:            
+   Map<prefix, Map<name, ResolvedIcon>>   
+   where ResolvedIcon = {                 
+     body: string,                        
+     width: number, height: number,       
+     left: number, top: number,           
+     isBrand: boolean                     
+   }                                      
+4. Pass registry into core as data        → compileSync(input, themeInput?, icons?)
+                                          → renderSync(input, themeInput?, icons?)
+```
+
+### Reference Syntax in Diagrams
+
+```mermaid
+architecture
+  service vm[Azure VM] {
+    icon: "azure:app-service"
+  }
+```
+
+**Grammar:** `icon: "prefix:name"` property on node declarations. Value = quoted string.
+
+**No prefix = default pack:** `icon: "server"` resolves against bundled Lucide (if available).
+
+### Monochrome vs Brand/Multicolor — Detection & Rendering
+
+**Classification (per-icon, at pack-load time):**
+
+Scan body string for `fill="..."` or `stroke="..."` attributes. If any value is NOT one of: `"none"`, `"currentColor"`, `"inherit"` → classify as BRAND (`isBrand = true`); else MONOCHROME.
+
+**Rendering behavior at emit:**
+
+- **Monochrome:** Wrap body in `<svg ... style="color: ${paletteColor}">`. `currentColor` inherits the palette token.
+- **Brand:** Wrap body in `<svg ...>` with NO color override. Body's hardcoded fills render as-is.
+- **Gradient IDs:** Azure icons use local `<defs><linearGradient id="a">`. When multiple Azure icons appear in same output SVG, IDs may collide. Renderer MUST namespace gradient IDs per icon instance (e.g. `icon-{n}-a`).
+
+### Licensing & Bundling
+
+| Category | Policy |
+|----------|--------|
+| **Bundled default set** | Triton MAY bundle ONLY icons under permissive licenses (MIT, Apache-2.0, ISC). Recommendation: **Lucide** (MIT, 1400+ icons, monochrome `currentColor`, perfect for palette-tinting). |
+| **User-imported packs (BYOP)** | User downloads the official vendor icon set (Azure, AWS, GCP), converts to `.triton-icons.json` via provided tooling, and supplies the pack. Triton NEVER redistributes vendor icons in any form. |
+| **Conversion tooling** | `triton-icons convert` CLI helper (uses `@iconify/tools` `importDirectory` + `cleanupSVG`). Does NOT call `parseColors()` (preserves brand fills). Normalizes filenames to kebab-case. |
+
+### Determinism, Caching, Sizing
+
+- Icon bodies resolved at compile time from static JSON files on disk. No network; no runtime font loading.
+- Same input + same packs → identical SVG output. Guaranteed.
+- **Cache-key:** LaTeX cache key (`latex/triton.sty`) MUST fold in icon pack paths AND content-hash (SHA-256 of pack JSON). Eliminates stale-cache problem.
+- **Sizing:** Icon-specific dimensions from pack: `width` / `height` / `left` / `top`. Define icon's `viewBox`. Renderer wraps body in `<svg viewBox="...">` at emit time.
+
+### Suggested Phasing
+
+| Phase | Scope | Estimate | Dependencies |
+|-------|-------|----------|--------------|
+| **P0** | Format spec finalized. JSON Schema for `.triton-icons.json`. Validator + types (`src/contracts/icons.ts`). | 2–3h | None |
+| **P1** | Discovery module (`src/icons/discover.ts`) — mirrors `src/theme/discover.ts`. `findTritonIconsDir`, `discoverIconPacks`, `loadIconPack`. Mono/brand classification at load. | 3–4h | P0 |
+| **P2** | Core API extension — `icons?: ResolvedIconRegistry` parameter. Icon body emit in renderer. Gradient-ID namespacing. | 3–4h | P0, P1 |
+| **P3** | CLI integration (`latex/src/icon-resolve.ts`) — `--icons-dir`, `--icon-pack` flags. Cache-key update in `triton.sty` (content-hash). | 3–4h | P1, P2 |
+| **P4** | VS Code extension — `IconPackRegistry`, watchers, preview re-render. Icon-name autocomplete. | 4–5h | P1 |
+| **P5** | Conversion CLI tool (`triton-icons convert`). Uses `@iconify/tools`. Kebab-case normalization. `--mono` flag. Docs + Azure BYOP guide. | 3–4h | P0 |
+| **P6** | Grammar integration — `icon: "prefix:name"` syntax in flowchart, architecture, poster, mindmap, topology. Fallback to geometric primitives. | 4–6h | P2 |
+
+**Total:** ~22–30 hours. **Critical path:** P0 → P1 → P2 → P6.
+
+---
+
+## Recommendation & Next Steps
+
+**Approve:** Adopt IconifyJSON (`.triton-icons.json` files under `.triton/icons/`) as Triton's universal icon pack format.
+
+- **Bundled default:** Lucide (MIT, 1400+, monochrome).
+- **Azure:** BYOP model; user converts vendor SVGs via `@iconify/tools` + Triton's conversion helper.
+- **Core architecture:** Host discovers/resolves → passes `ResolvedIconRegistry` into core (mirrors theme purity boundary).
+- **Grammar:** `icon: "prefix:name"` syntax (new node property).
+- **Determinism:** Compile-time inline; content-hash in cache key.
+- **Phasing:** P0–P6, ~22–30 hours, starting after this design is approved.
+
+**NOT approved to build.** Awaiting leadership sign-off before Phase P0 begins.
+
+---
+
+## Sources & References
+
+- **Azure Icon Licensing:** https://learn.microsoft.com/en-us/azure/architecture/icons/
+- **IconifyJSON Schema:** @iconify/types@2.0.0, `types.d.ts`
+- **Conversion Tools:** `@iconify/tools` npm package (importDirectory, cleanupSVG)
+- **Ecosystem:** Iconify 150+ packs on CDN; `@iconify-json/*` npm
+- **Theme Discovery Precedent:** `src/theme/discover.ts`
+
+
+---
+
 # Example Cleanup — 2026-07-12T11:07:34-04:00
 
 **Author:** Brian (Backend/Implementation Engineer)  
