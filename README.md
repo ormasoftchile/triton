@@ -49,6 +49,14 @@ pnpm build
 Each diagram kind has runnable examples under [`examples/`](examples/)
 (`.mmd` source beside its rendered `.svg`).
 
+## Theming
+
+Diagrams render with a built-in theme preset (`default`, `executive`, `minimal`,
+and more). You can author a custom `.triton-theme.json` file that works in both
+the VS Code extension and the LaTeX package — same file, both hosts.
+
+→ **[External Themes guide](docs/external-themes.md)**
+
 ## Development
 
 All code is ESM-only, TypeScript-strict, targeting Node >= 20 (ES2022).

@@ -42,6 +42,28 @@ not, to avoid stomping an already-installed Mermaid extension:
 | `triton.enableMermaid` | `false` | Passively handle Mermaid (`.mmd` / ```` ```mermaid ````) content. The explicit command always works regardless. |
 | `triton.preview.debounceMs` | `150` | Delay after the last edit before the preview re-renders. |
 
+## Custom themes
+
+Place `.triton-theme.json` files in `.triton/themes/` inside any workspace folder:
+
+```
+my-project/
+└── .triton/
+    └── themes/
+        └── my-brand.triton-theme.json
+```
+
+- **Auto-discovery:** the extension scans `.triton/themes/` on activation and
+  watches for changes. No configuration required.
+- **Theme dropdown:** custom themes appear under a `── Custom ──` divider below
+  the built-in presets in the preview panel's theme picker.
+- **Live reload:** saving a theme file re-renders the active preview immediately.
+- **Fallback:** if the selected theme file is deleted, the selection reverts to
+  **Auto** and a warning appears in the **Triton Themes** output channel.
+
+See [docs/external-themes.md](../docs/external-themes.md) for the full format
+reference and a cross-host worked example (same file in VS Code + LaTeX).
+
 ## Build
 
 ```sh

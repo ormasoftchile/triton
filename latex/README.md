@@ -104,6 +104,8 @@ by any character (here `|`) and an optional `\includegraphics` key list:
 | `\tritonsetup{<opts>}` | Default `\includegraphics` options (default `width=\linewidth`). |
 | `\tritoncli{<cmd>}` | CLI invocation (default `triton-latex`). |
 | `\tritontheme{<name>}` | Theme preset passed to the CLI for inline renders. |
+| `\tritonthemefile{<path>}` | Load an external `.triton-theme.json` by file path. |
+| `\tritonthemesdir{<dir>}` | Scan a directory for `*.triton-theme.json` files. |
 | `\tritonscale{<n>}` | Scale passed to the CLI (default `1`). |
 | `\tritoncachedir{<dir>}` | Render cache directory (default `\jobname.triton-cache`). |
 | `\triton[<opts>]{<name>}` | **Precompile fallback:** `\includegraphics` of `<dir>/<name>.pdf`. |
@@ -147,6 +149,49 @@ node dist/cli.cjs render diagram.mmd -o out.pdf --theme executive --scale 2
 ```
 
 Installed as the `triton-latex` bin when the package is linked.
+
+## External themes
+
+Use a `.triton-theme.json` file to apply a custom colour palette and typography
+to every inline diagram in your document.
+
+### `.sty` macros
+
+```latex
+\tritonthemefile{.triton/themes/my-brand.triton-theme.json}
+% — OR —
+\tritonthemesdir{.triton/themes}   % scan a directory, then use \tritontheme{name}
+```
+
+`\tritonthemefile{<path>}` passes `--theme-file <path>` to the CLI for every
+inline `\begin{triton}` render in the document. `\tritonthemesdir{<dir>}` passes
+`--themes-dir <dir>`; combine it with `\tritontheme{<name>}` to select a theme by
+name from the discovered registry.
+
+### CLI flags
+
+```sh
+# Load a specific theme file
+node dist/cli.cjs render diagram.mmd -o out.pdf \
+  --theme-file .triton/themes/my-brand.triton-theme.json
+
+# Scan a directory and select by name
+node dist/cli.cjs render diagram.mmd -o out.pdf \
+  --themes-dir .triton/themes --theme my-brand
+```
+
+### ⚠️ Cache caveat
+
+The cache key includes the theme-file **path**, not its **content**. After editing
+a `.triton-theme.json` in place, clear the cache before recompiling:
+
+```sh
+latexmk -C          # preferred
+rm -r <jobname>.triton-cache  # or manually
+```
+
+See [docs/external-themes.md](../docs/external-themes.md) for the full format
+reference, field list, built-in preset names, and cross-host worked example.
 
 ## Overleaf / no-shell-escape fallback
 
