@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://triton.dev/schemas/triton-theme.schema.json",
+  "title": "TritonThemeInput",
+  "description": "Partial theme override for Triton diagrams. All fields are optional; missing fields inherit from the base preset.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Theme identifier. Must be a lowercase slug (a-z, 0-9, hyphens). 1–64 characters.",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "base": {
+      "type": "string",
+      "description": "Built-in preset to merge this theme over. Must be one of the known preset names.",
+      "enum": [
+        "default",
+        "executive",
+        "minimal",
+        "consulting",
+        "product",
+        "release",
+        "ai-timeline",
+        "bytebytego",
+        "gitline",
+        "our-timeline",
+        "subject-timeline",
+        "showcase"
+      ]
+    },
+    "palette": {
+      "type": "object",
+      "description": "Color palette overrides. Each value must be a CSS hex color (#RGB or #RRGGBB).",
+      "additionalProperties": false,
+      "properties": {
+        "primary":    { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Primary accent — edges, active indicators, highlights." },
+        "secondary":  { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Secondary accent — secondary highlights, badges." },
+        "background": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Canvas / page background." },
+        "surface":    { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Node / card fill." },
+        "border":     { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Default border and stroke." },
+        "text":       { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Primary readable text." },
+        "textMuted":  { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "De-emphasised / secondary text." },
+        "success":    { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Semantic: success state." },
+        "warning":    { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Semantic: warning state." },
+        "error":      { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Semantic: error / blocked state." }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "description": "Typography overrides.",
+      "additionalProperties": false,
+      "properties": {
+        "fontFamily":    { "type": "string", "description": "Sans-serif font stack for body text." },
+        "monoFamily":    { "type": "string", "description": "Monospace font stack for code / data labels." },
+        "baseFontSize":  { "type": "number", "exclusiveMinimum": 0, "description": "Base body text size in px." },
+        "titleFontSize": { "type": "number", "exclusiveMinimum": 0, "description": "Diagram title / section heading size in px." },
+        "smallFontSize": { "type": "number", "exclusiveMinimum": 0, "description": "Labels, captions, timestamps in px." },
+        "lineHeight":    { "type": "number", "exclusiveMinimum": 0, "description": "Line height multiplier (unitless, e.g. 1.4)." }
+      }
+    },
+    "spacing": {
+      "type": "object",
+      "description": "Spacing overrides. All values are non-negative numbers (px).",
+      "additionalProperties": false,
+      "properties": {
+        "unit":          { "type": "number", "minimum": 0, "description": "Base grid unit in px." },
+        "nodePadding":   { "type": "number", "minimum": 0, "description": "Padding inside node/card shapes." },
+        "nodeGap":       { "type": "number", "minimum": 0, "description": "Gap between adjacent nodes." },
+        "diagramMargin": { "type": "number", "minimum": 0, "description": "Margin between diagram content and viewBox edge." }
+      }
+    },
+    "edges": {
+      "type": "object",
+      "description": "Edge rendering overrides.",
+      "additionalProperties": false,
+      "properties": {
+        "strokeWidth":   { "type": "number", "minimum": 0, "description": "Default edge stroke width in px." },
+        "arrowSize":     { "type": "number", "minimum": 0, "description": "Arrowhead size in px." },
+        "labelFontSize": { "type": "number", "minimum": 0, "description": "Font size for edge labels in px." },
+        "curveTension":  { "type": "number", "minimum": 0, "maximum": 1, "description": "Bezier curve tension, 0 (straight) to 1 (full arc)." }
+      }
+    },
+    "panel": {
+      "type": "object",
+      "description": "Titled-container chrome — how the title of a framed panel is placed and decorated.",
+      "additionalProperties": false,
+      "properties": {
+        "titleAlign": {
+          "type": "string",
+          "enum": ["left", "center", "right"],
+          "description": "Horizontal alignment of the panel title within the panel width."
+        },
+        "titlePosition": {
+          "type": "string",
+          "enum": ["inside", "on-border", "above"],
+          "description": "Vertical placement of the title relative to the panel's top edge."
+        },
+        "titleChrome": {
+          "type": "string",
+          "enum": ["none", "box", "pill"],
+          "description": "Decorative container drawn behind the title."
+        }
+      }
+    }
+  }
+}
