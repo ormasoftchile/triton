@@ -5230,3 +5230,236 @@ flowchart LR
 ```
 
 **Phasing:** Ships as P7 after P2 (icon slot). First cut = title-only card + fixed width (~6h incremental). Full = multi-line body + variable width (+10–16h).
+
+---
+
+# Syntax Evaluation — `@key:value` Node Annotations vs `@{ k: v }` Object Form
+
+**Author:** Leslie (Spec Architect)  
+**Date:** 2026-07-12T19:51:10-04:00  
+**Status:** DESIGN EVALUATION — informs card-node syntax (extends leslie-card-node.md)
+
+---
+
+## Grounding: What `@` Annotations Look Like Today
+
+### Current grammar (flowchart only):
+
+The `@` annotation mechanism exists EXCLUSIVELY on edges. Cite: `src/diagrams/mermaid/flowchart/grammar.peggy:147`:
+
+```peg
+EdgeChain
+  = head:NodeRef rest:(_ edge:EdgeOp _ target:NodeRef ann:(_ "@" RouteAnnotation)? { ... })+ { ... }
+```
+
+The `ann:(_ "@" RouteAnnotation)?` appears AFTER the target `NodeRef` in each edge-chain segment. It attaches to the EDGE (populates `FlowEdge.routing`, `.exitWall`, `.entryWall` — see `grammar.peggy:67–68`, `ir.ts:31–35`).
+
+### `RouteAnnotation` rule (`grammar.peggy:191–193`):
+
+```peg
+RouteAnnotation
+  = route:RouteWord walls:(":" WallPair)? { return { routing: route, ...(walls ? walls[1] : {}) }; }
+  / walls:WallPair { return walls; }
+```
+
+### Token structure: `@<RouteWord>:<WallPair>`
+
+- `RouteWord` = `straight | orthogonal | bezier | polyline` (line 195–199)
+- `WallPair` = 1–2 single-char walls `N|S|E|W` (line 201–203)
+- Example: `@orthogonal:EW` → `{routing: 'orthogonal', exitWall: 'E', entryWall: 'W'}`
+- The colon here separates route-type from wall-pair — it is NOT a generic key:value separator.
+
+### Crucially: `@` NEVER attaches to nodes today.
+
+`NodeRef` (`grammar.peggy:210–213`) and `NodeDecl` (`grammar.peggy:215–216`) have NO `@` parsing:
+
+```peg
+NodeRef = id:NodeId shape:Shape? { ... }
+NodeDecl = ref:NodeRef !(_ EdgeArrow) { ... }
+```
+
+---
+
+## Analysis
+
+### 1. Consistency
+
+**For `@key:value`:** Triton's flowchart already uses `@token:token` post-fix annotations (on edges). Extending `@` to nodes means ONE annotation sigil for the whole grammar — "if you want to annotate anything, it's always `@`". Reads naturally:
+
+```
+A ["App Service"] @shape:card @icon:azure:app-service
+```
+
+**Against `@key:value`:** The existing `@orthogonal:EW` is NOT a generic key:value mechanism — it's a closed-form rule (`RouteWord ":" WallPair`). Calling the new `@shape:card` form "the same mechanism" is misleading: the grammar rules are structurally different. The similarity is only cosmetic (both start with `@` and contain `:`).
+
+**For `@{...}`:** Mermaid v11+ uses `@{ shape: "...", icon: "..." }` for node metadata. Triton is a Mermaid superset. Adopting `@{...}` means Mermaid-authored diagrams parse without modification. However, Triton has ALREADY diverged from Mermaid on edges (Mermaid has no `@orthogonal:EW`).
+
+**Verdict:** `@key:value` is MORE consistent with Triton's established dialect. Triton is NOT obligated to follow Mermaid where its own convention is superior. The `@` sigil meaning "post-declaration annotation" is already Triton-native. Extending it to nodes is a natural generalization.
+
+### 2. Parser Feasibility & Ambiguity
+
+#### The double-colon problem: `@icon:azure:app-service`
+
+This token has the structure `@<key>:<prefix>:<name>`. Three colon-separated segments. Can it parse unambiguously?
+
+**Yes — with a bounded-key approach.** The grammar rule would be:
+
+```peg
+NodeAnnotation
+  = "@" key:AnnotationKey ":" value:AnnotationValue { return { key, value }; }
+
+AnnotationKey
+  = $([a-z][a-z0-9-]*) // lowercase identifier: "shape", "icon", "variant"
+
+AnnotationValue
+  = $([^\s@\[\](){}]+)  // everything up to whitespace or next structural char
+```
+
+Under this rule, `@icon:azure:app-service` parses as:
+- key = `icon`
+- value = `azure:app-service` (greedy match to next whitespace/structural delimiter)
+
+The colons INSIDE the value are consumed by the greedy `AnnotationValue` rule. No ambiguity — key is always the FIRST segment (before the first `:`), value is EVERYTHING after.
+
+#### Collision analysis:
+
+| Concern | Risk |
+|---------|------|
+| **vs `@orthogonal:EW` (edge)** | None — edge annotations occur at a different grammar position (after target NodeRef in EdgeChain). Node annotations occur after `Shape?` in `NodeRef`/`NodeDecl`. Positionally unambiguous. |
+| **vs `["label"]` (shape delimiters)** | None — `@` annotations follow AFTER the shape/label brackets. `A["App Service"] @shape:card` — the `]` closes the label, whitespace separates, `@` begins annotation. PEG ordered-choice handles this cleanly. |
+| **vs edge syntax** | `NodeDecl` uses negative lookahead `!(_ EdgeArrow)` (grammar.peggy:216). Annotations are consumed BEFORE that check. No conflict. |
+| **vs `:prefix:name:` inline icons** | None — inline icons occur INSIDE label text (between `[...]`). Node annotations occur OUTSIDE brackets. Different lexical scope. |
+| **vs `@{...}` (Mermaid-style)** | Can coexist! `@{` is syntactically distinct from `@key:` — PEG ordered choice: try `@{` first (object form), then `@key:value` (bare form). Both can be supported simultaneously. |
+
+#### Multiple annotations:
+
+```
+A ["App Service"] @shape:card @icon:azure:app-service @status:active
+```
+
+Parsed as: `NodeRef` (id + shape/label) followed by zero-or-more `(_ NodeAnnotation)*`. Each `@` starts a new annotation. Whitespace is the separator. Unambiguous.
+
+### 3. Extensibility
+
+**`@key:value` (space-separated list):**
+```
+A ["Title"] @shape:card @icon:azure:app-service @variant:compact @status:active
+```
+
+Pros:
+- Reads left-to-right; each annotation is independently parseable.
+- Adding a new key requires NO grammar change — `AnnotationKey` is open-ended.
+- Individual annotations can be omitted/reordered freely.
+- Grep-friendly: `grep '@icon:' *.mmd` finds all icon uses.
+
+Cons:
+- Long lines with many annotations. No grouping.
+- Value syntax is limited to single tokens (no spaces, no complex values without quoting).
+
+**`@{ k: v, k: v }` (object form):**
+```
+A@{ shape: "card", icon: "azure:app-service", variant: "compact", status: "active" }["Title"]
+```
+
+Pros:
+- Compact for many keys.
+- Values can be quoted strings (spaces, special chars).
+- Familiar JSON-like syntax.
+
+Cons:
+- Requires a mini-JSON parser in the grammar (handle quotes, commas, nested `:` in values).
+- Position is ambiguous: Mermaid puts `@{...}` BEFORE the label brackets; Triton's `@` convention is AFTER.
+- More complex grammar rule (bracket matching vs simple token scanning).
+
+**Verdict:** `@key:value` scales BETTER for typical use (1–3 annotations). For the rare case needing complex values (e.g., a body with spaces), we can support `@body:"multi word text"` — a quoted-value variant. The grammar stays simpler than full `@{...}` parsing.
+
+### 4. Quoted values for body text:
+
+```
+A ["App Service"] @shape:card @icon:azure:app-service @body:"HTTP routing and load balancing"
+```
+
+Grammar extension:
+```peg
+AnnotationValue
+  = "\"" v:$[^"]* "\"" { return v; }   // quoted (allows spaces)
+  / $([^\s@\[\](){}]+)                  // bare token
+```
+
+This handles the multi-word body case without needing the full `@{...}` object parser.
+
+---
+
+## RECOMMENDATION
+
+### Adopt `@key:value` as Triton-native node annotation syntax.
+
+**Rationale:**
+1. `@` is ALREADY Triton's annotation sigil (edges: `grammar.peggy:147`). Extending to nodes unifies the convention.
+2. Parser is simpler (no JSON-subset parser; just `@key:value-token`).
+3. Unambiguous in all positions — no collision with existing syntax.
+4. `@icon:azure:app-service` parses cleanly (first `:` = key/value separator; remaining consumed by greedy value rule).
+5. Grep-friendly, composable, independently parseable annotations.
+
+**Regarding `@{...}` (Mermaid compat):** Support as a PARSE-TIME ALIAS that lowers to the same IR. If a user writes `A@{ icon: "azure:app-service" }["label"]`, parse it and emit the same `FlowNode.icon` field. But the CANONICAL Triton syntax is `@key:value`. Documentation and examples use the bare form.
+
+### Concrete grammar rule (for NodeRef/NodeDecl):
+
+```peg
+NodeRef
+  = id:NodeId shape:Shape? anns:(_ NodeAnnotation)* {
+      const meta = Object.fromEntries(anns.map(a => [a[1].key, a[1].value]));
+      return { id: registerNode(id, shape?.label, shape?.shape, meta) };
+    }
+
+NodeAnnotation
+  = "@" key:AnnotationKey ":" value:AnnotationValue { return { key, value }; }
+
+AnnotationKey
+  = $([a-z][a-z0-9-]*)
+
+AnnotationValue
+  = "\"" v:$[^"]* "\"" { return v; }
+  / $([^\s@\[\](){}\n;]+)
+```
+
+### `registerNode` signature change:
+
+```typescript
+function registerNode(id: string, label: string | null, shape: NodeShape | null, meta?: Record<string, string>): string
+```
+
+The `meta` map carries `shape`, `icon`, `status`, `variant`, etc. The parser maps `meta.shape === 'card'` → `NodeShape = 'card'`; `meta.icon` → `IconRef { prefix, name }`.
+
+### Final card-node syntax (CANONICAL):
+
+```
+flowchart LR
+  A ["App Service"] @shape:card @icon:azure:app-service
+  B ["PostgreSQL\nPrimary data store"] @shape:card @icon:mdi:database
+  A -->|queries| B @orthogonal:EW
+```
+
+Note: edge annotations (`@orthogonal:EW`) and node annotations (`@shape:card`) use the SAME sigil at DIFFERENT grammar positions — after the target node in an edge chain (edge annotation) vs after the shape bracket in a node declaration (node annotation). Positionally unambiguous.
+
+### Title/body separation (unchanged from card-node design):
+
+- `\n` inside the label bracket splits title from body.
+- OR: `@body:"descriptive text here"` as an explicit annotation (for cases where the body shouldn't be inside brackets).
+- Both lower to `FlowNode.label` (title) + `FlowNode.body` (body text).
+
+---
+
+## Summary Table
+
+| Criterion | `@key:value` | `@{ k: v }` | Winner |
+|-----------|-------------|-------------|--------|
+| Triton consistency | ✓ extends existing `@` sigil | ✗ Mermaid-borrowed, no Triton precedent | `@key:value` |
+| Parser simplicity | Simple (greedy token) | Complex (JSON-subset) | `@key:value` |
+| Ambiguity risk | None (positional) | `@{` position unclear (before/after label?) | `@key:value` |
+| Mermaid compat | ✗ (but alias supported) | ✓ native | `@{ k: v }` |
+| Extensibility (1–3 attrs) | ✓ clean | ✓ clean | Tie |
+| Extensibility (complex values) | Needs quoting | Native (quoted strings) | `@{ k: v }` |
+| Grep-ability | ✓ `grep @icon:` | ✗ varies by formatting | `@key:value` |
+
+**Final call:** `@key:value` is the Triton-native form. `@{...}` is a supported parse-time alias for Mermaid compatibility. Both lower to the same IR.
