@@ -1,3 +1,363 @@
+# Design — Cross-Diagram Icon Attachment (extends Icon Library Import; not yet approved to build)
+
+**Author:** Leslie (Spec Architect)  
+**Date:** 2026-07-12T19:31:45-04:00  
+**Status:** DESIGN RECOMMENDATION — extends the Icon Library Import Format (finalized 2026-07-12)
+
+---
+
+## Definitions
+
+- **Icon token:** The universal `prefix:name` string (e.g. `azure:app-service`, `mdi:server`) that identifies one icon in a loaded pack.
+- **Node-shape icon:** An icon that decorates a node/box/cell as a visual glyph — like architecture's `service db(database)[DB]`. The icon IS the node's primary visual or a prominent badge.
+- **Inline-label icon:** An icon embedded INSIDE a text label/run, mixed with prose — rendered as an inline glyph alongside words.
+- **IconRef:** The shared IR token that carries a resolved icon reference through the pipeline.
+
+---
+
+## 1. Diagram Family Survey — Icon Attachment Points
+
+### Diagram types WHERE icons attach (node-shape and/or inline-label):
+
+| Diagram | Attachment point | Form(s) | IR file (citation) |
+|---------|-----------------|---------|-------------------|
+| **architecture** | `service`/`group` icon slot | Node-shape (EXISTING) | `src/diagrams/triton/architecture/ir.ts:6,13` |
+| **flowchart** | `FlowNode` (box/shape) | Node-shape (PROPOSED) | `src/diagrams/mermaid/flowchart/ir.ts:12–16` |
+| **flowchart** | `FlowNode.label`, `FlowEdge.label` | Inline-label (PROPOSED) | `src/diagrams/mermaid/flowchart/ir.ts:14,30` |
+| **mindmap** | `MindNode.icon` | Node-shape (EXISTING slot) | `src/diagrams/mermaid/mindmap/ir.ts:5` |
+| **sequence** | `SeqParticipant` | Node-shape (PROPOSED) | `src/diagrams/mermaid/sequence/ir.ts:4–7` |
+| **sequence** | `SeqMessage.text`, `SeqNote.text` | Inline-label (PROPOSED) | `src/diagrams/mermaid/sequence/ir.ts:16,25` |
+| **state** | `StateNode` | Node-shape (PROPOSED) | `src/diagrams/mermaid/state/ir.ts:6–10` |
+| **class** | `ClassBox` (stereotype decoration) | Node-shape (PROPOSED) | `src/diagrams/mermaid/class/ir.ts:8–12` |
+| **c4** | `C4Node` (person/system/container) | Node-shape (PROPOSED) | `src/diagrams/mermaid/c4/ir.ts:3–7` |
+| **block** | `BlockNode` | Node-shape (PROPOSED) | `src/diagrams/triton/block/ir.ts:4–7` |
+| **poster** | `PosterCell.title`, `StatCell.label` | Inline-label (PROPOSED) | `src/diagrams/triton/poster/ir.ts:6,22` |
+| **er** | `ErEntity` (header badge) | Node-shape (PROPOSED, low-priority) | `src/diagrams/mermaid/er/ir.ts:8–11` |
+| **journey** | `JourneyTask` | Inline-label (PROPOSED, low-priority) | `src/diagrams/mermaid/journey/ir.ts:4–8` |
+
+### Diagram types WHERE icons DO NOT make sense:
+
+| Diagram | Reason |
+|---------|--------|
+| **gantt** | Tasks are time bars on a timeline; no discrete node/box. Icon on a bar adds visual noise, not information. |
+| **gitgraph** | Commits are small circles on lanes; structural, not semantic. No user-facing "node label" to decorate. |
+| **pie / radar / quadrant / xychart** | Data-driven charts; axes/slices are numeric, not entity-based. Icons do not attach to a data point. |
+| **sankey** | Flow widths encode quantity; nodes are thin labels. No box surface to decorate. |
+| **kanban** | Card titles are text-centric; could accept inline-label later but not in first cut. |
+| **packet** | Bit-field headers; structural, numeric. No semantic entity. |
+| **ds family** (array/linkedlist/memory/page/queue/stack/tree) | Cells contain VALUES (numbers, strings). An icon in a cell conflicts with value semantics. The `tokenizeDirective` in `src/diagrams/triton/ds/struct/shared.ts:36–68` parses bare and quoted tokens as data values. Not icon targets. |
+
+---
+
+## 2. Two Attachment Forms — Precise Definition
+
+### 2A. Node-Shape Icon
+
+**Definition:** An optional `icon` property on a node/box/cell IR, referencing a `prefix:name` token. Rendered as the primary or decorative glyph for that node.
+
+**Syntax approach — per grammar family:**
+
+#### Architecture (EXISTING — no change)
+```
+service api(azure:app-service)[API Server]
+```
+Grammar: `src/diagrams/triton/architecture/grammar.peggy:34` — already parses `(icon)`.
+
+#### Flowchart (PROPOSED — metadata block)
+Triton's flowchart grammar (`src/diagrams/mermaid/flowchart/grammar.peggy`) does NOT currently parse `@{...}` shape metadata. The grammar defines shapes via bracket delimiters (lines 222–232). However, Mermaid v11+ supports `@{ icon: "...", shape: "..." }` node metadata.
+
+**Proposal:** Extend the flowchart grammar to accept an optional `@{...}` metadata block after a node definition. This is Mermaid-superset-compatible — we adopt their syntax where it exists:
+
+```
+flowchart LR
+  A@{ icon: "azure:app-service", shape: "rounded-rect" }["App Service"]
+  B@{ icon: "mdi:database" }["Database"]
+  A --> B
+```
+
+When `@{icon: "prefix:name"}` is present, the node renders with that icon above/inside its label. This requires a grammar extension at `grammar.peggy:211` (the `NodeRef` rule).
+
+#### Mindmap (EXISTING slot — redefine token)
+The `::icon(...)` syntax already exists (`src/diagrams/mermaid/mindmap/index.ts:31–32`). Currently accepts raw class names (FA). **Redefine:** the parenthesized value is now interpreted as a `prefix:name` token:
+```
+mindmap
+  Root
+    Cloud Infra
+      ::icon(azure:virtual-network)
+    Database
+      ::icon(mdi:database)
+```
+No grammar change needed — the regex at `index.ts:31` already captures `[^)]*`. Resolution changes from CSS class to IconRef.
+
+#### Sequence (PROPOSED — participant metadata)
+```
+sequenceDiagram
+  participant A as App Service @{ icon: "azure:app-service" }
+  participant B as Database @{ icon: "mdi:database" }
+```
+The `@{...}` block appended after the participant label/alias. Renders icon inside the participant header box.
+
+#### State (PROPOSED — state declaration metadata)
+```
+stateDiagram-v2
+  state "Processing" as proc @{ icon: "mdi:cog" }
+  state "Done" as done @{ icon: "mdi:check-circle" }
+```
+
+#### Class (PROPOSED — stereotype-position icon)
+```
+classDiagram
+  class UserService {
+    <<service>> @{ icon: "mdi:account" }
+    +getUser() User
+  }
+```
+Icon renders in the class header, adjacent to the stereotype.
+
+#### C4 (PROPOSED — node function parameter)
+C4 already has a `kind` that drives shape (person/system). Icon is additive:
+```
+C4Context
+  System(api, "API Gateway", "Routes requests", $icon="azure:api-management")
+```
+The `$icon=` parameter mirrors Mermaid C4's `$sprite` convention, avoiding grammar conflict with positional args.
+
+#### Block (PROPOSED — metadata block)
+```
+block-beta
+  columns 3
+  A@{ icon: "mdi:server" }["Server"] B["Cache"] C["DB"]
+```
+
+### 2B. Inline-Label Icon
+
+**Definition:** An icon glyph embedded inline within a text run (label, note, message text). Resolves to an inline SVG `<path>`/`<g>` element positioned as a glyph alongside text.
+
+**Token design constraints:**
+- Must be UNAMBIGUOUS against the quoted-string tokenizer (`src/diagrams/triton/ds/struct/shared.ts:36–68` — uses `"..."` quoting with `\"` escape only).
+- Must not collide with `%%` comment stripping (centralized, line-level).
+- Must not collide with Mermaid's `fa:fa-x` (which we are NOT adopting — it fires only under htmlLabels, unsuitable for static SVG).
+- Must not collide with existing delimiters: `[]`, `()`, `{}`, `<>`, `|...|`, `::`, `-->`.
+
+**Proposed token:** `:prefix:name:` (colon-wrapped icon reference)
+
+Rationale:
+- Leading+trailing colon is unambiguous: bare colons in labels don't follow `word:word:` pattern (would need two colons wrapping a slash-free identifier pair).
+- Mirrors emoji shortcode convention (`:smile:`) — familiar to users.
+- The regex `/:([a-z0-9-]+:[a-z0-9-]+):/` matches exactly `prefix:name` — no false positives against English prose, URLs (which have `://`), or timestamp text (`HH:MM`).
+- Survives inside quoted strings and bracket-delimited labels.
+
+**Examples:**
+```
+flowchart LR
+  A["Deploy to :azure:app-service: production"]
+  B["Check :mdi:database: health"]
+  A --> B
+```
+
+```
+sequenceDiagram
+  A ->> B: Deploy :azure:aks: cluster
+  Note over B: :mdi:check-circle: Complete
+```
+
+**Rendering:** The inline icon resolves to an SVG `<path>` (or `<g>`) element inserted into the text `<text>` element's flow at glyph position. For rsvg-convert compatibility (static PNG), the icon MUST be a `<g>` sibling at the correct x-offset — NOT foreignObject, NOT `<image>`. The text metrics engine reserves `width × height` (default: 1em × 1em) for the icon glyph.
+
+---
+
+## 3. One Token, Many Hosts — Shared Resolution
+
+The SAME `prefix:name` token powers BOTH attachment forms. Resolution path:
+
+```
+Grammar parse → IR carries IconRef → Renderer resolves body from ResolvedIconRegistry → SVG emit
+```
+
+**IconRef IR shape (Mark's domain — proposed, not built):**
+
+```typescript
+/** Carried by any IR node/label that references an icon. */
+export interface IconRef {
+  readonly prefix: string;   // e.g. "azure"
+  readonly name: string;     // e.g. "app-service"
+}
+```
+
+**Where IconRef appears in extended IRs:**
+
+| IR interface | New field | Type |
+|--------------|-----------|------|
+| `FlowNode` | `icon?: IconRef` | Optional |
+| `MindNode` | `icon?: IconRef` (retyped from `string`) | Optional |
+| `SeqParticipant` | `icon?: IconRef` | Optional |
+| `StateNode` | `icon?: IconRef` | Optional |
+| `ClassBox` | `icon?: IconRef` | Optional |
+| `C4Node` | `icon?: IconRef` | Optional |
+| `BlockNode` | `icon?: IconRef` | Optional |
+| `ArchService` / `ArchGroup` | `icon: string \| IconRef` (backward compat) | Required (string for built-ins) |
+| All `label`/`text` fields | Inline tokens parsed at render time | N/A (string stays string; inline `:p:n:` resolved during SVG emit) |
+
+**One resolver, one rendering path:**
+- The host passes `ResolvedIconRegistry` (Map<prefix, Map<name, ResolvedIcon>>) into core — already designed in the icon-library format spec.
+- Core's renderer calls a single `resolveIcon(registry, ref): ResolvedIcon | null` function regardless of which diagram type requested it.
+- Missing icons → fallback to geometric primitive (the existing `iconGlyph` function at `src/diagrams/triton/architecture/layout.ts:111` already does this for architecture; generalize it).
+
+---
+
+## 4. Rendering Placement & Layout
+
+### Node-shape icon placement:
+- **Default:** Icon above label text, centered horizontally within the node box. (Architecture currently does this — `layout.ts:91`: icon at `y + 24` from top of rect.)
+- **Compact variant:** Icon left of label (leading glyph), when node width >> height.
+- **Icon-only:** If label is empty, icon fills the node as primary glyph.
+
+### Inline-label icon placement:
+- Icon rendered inline at glyph position, baseline-aligned with surrounding text.
+- Reserved box: 1em × 1em (matching line-height), scaled from icon's `viewBox`.
+- For multi-line text, the icon stays on its line — no float/wrap behavior.
+
+### Mono vs brand rule (unchanged):
+- `currentColor` body → tint to palette hue (the node's computed stroke/text color).
+- Hardcoded fill values → render verbatim (brand icon).
+- Detection is per-icon at resolve time — already specified in icon-library format.
+
+### Layout cost (Edsger/Brian's domain — flagged, not designed):
+- Each diagram's layout engine must account for icon box reservation.
+- Architecture already does this. Flowchart/state/class/block require box-height increase. Sequence requires participant header expansion.
+- Inline icons require text-metrics adjustment (reserve glyph width in the text measurement pass).
+- **This is per-diagram layout work. Each diagram family's `layout.ts` must be updated.**
+
+---
+
+## 5. Concrete Examples
+
+### Example A — Flowchart Node Icon (PROPOSED)
+
+```mermaid
+flowchart LR
+  A@{ icon: "azure:app-service" }["App Service"]
+  B@{ icon: "mdi:database" }["PostgreSQL"]
+  A -->|queries| B
+```
+
+- `@{ icon: "..." }` = **PROPOSED** (not in current grammar at `grammar.peggy:211`)
+- `["label"]` = EXISTING shape syntax (`grammar.peggy:230`)
+- `-->|label|` = EXISTING edge syntax (`grammar.peggy:163`)
+
+### Example B — Sequence Participant Icon (PROPOSED)
+
+```mermaid
+sequenceDiagram
+  participant client as Client @{ icon: "mdi:laptop" }
+  participant api as API @{ icon: "azure:api-management" }
+  client ->> api: POST /deploy :azure:aks:
+```
+
+- `participant X as Y` = EXISTING
+- `@{ icon: "..." }` on participant = **PROPOSED**
+- `:azure:aks:` in message text = **PROPOSED** inline-label icon
+
+### Example C — Mindmap Node Icon (EXISTING slot, NEW token format)
+
+```mermaid
+mindmap
+  Cloud Architecture
+    Compute
+      ::icon(azure:virtual-machines)
+    Networking
+      ::icon(azure:virtual-network)
+    Storage
+      ::icon(azure:storage-accounts)
+```
+
+- `::icon(...)` = EXISTING syntax (`src/diagrams/mermaid/mindmap/index.ts:31`)
+- `azure:virtual-machines` inside parens = **PROPOSED** (was FA class name)
+
+### Example D — Class Stereotype Icon (PROPOSED)
+
+```mermaid
+classDiagram
+  class OrderService {
+    <<service>> @{ icon: "mdi:cart" }
+    +createOrder(items) Order
+    +cancelOrder(id) void
+  }
+```
+
+- `<<stereotype>>` = EXISTING
+- `@{ icon: "..." }` after stereotype = **PROPOSED**
+
+### Example E — Inline-Label Icon in Flowchart (PROPOSED)
+
+```mermaid
+flowchart TD
+  A["Deploy :azure:app-service: to prod"]
+  B{"Check :mdi:heart-pulse: health"}
+  A --> B
+```
+
+- `["text"]` label = EXISTING
+- `:prefix:name:` within text = **PROPOSED** inline-label token
+
+---
+
+## 6. Applicability Matrix & Phasing Delta
+
+### Per-Diagram Applicability Matrix
+
+| Diagram | Node-shape icon | Inline-label icon | Phase |
+|---------|:-:|:-:|-------|
+| architecture | ✅ EXISTING | ❌ N/A (labels are short) | Done |
+| flowchart | ✅ | ✅ | P6a (first cut) |
+| mindmap | ✅ (slot exists) | ❌ (single-word labels) | P6a |
+| sequence | ✅ (participant) | ✅ (message/note text) | P6a |
+| state | ✅ | ❌ (labels too short) | P6b |
+| class | ✅ (stereotype) | ❌ (member signatures) | P6b |
+| c4 | ✅ | ❌ (descriptions are prose) | P6b |
+| block | ✅ | ✅ | P6b |
+| poster | ❌ (cells hold sub-diagrams) | ✅ (title/caption) | P6c |
+| er | ✅ (low value) | ❌ | P6c (if demand) |
+| journey | ❌ | ✅ (task labels) | P6c (if demand) |
+| gantt | ❌ | ❌ | Never |
+| gitgraph | ❌ | ❌ | Never |
+| pie/radar/quadrant/xy | ❌ | ❌ | Never |
+| sankey | ❌ | ❌ | Never |
+| packet | ❌ | ❌ | Never |
+| ds family | ❌ | ❌ | Never |
+
+### Phasing Delta (extends existing P6 bucket)
+
+The existing P6 phase ("Grammar integration — 4–6h") becomes:
+
+| Sub-phase | Scope | Effort | Depends on |
+|-----------|-------|--------|------------|
+| **P6a** | Flowchart `@{icon}` grammar + IR, mindmap IconRef reinterpretation, sequence participant icon. Inline-label tokenizer (shared). | 6–8h | P2 |
+| **P6b** | State, class, c4, block node-shape icon. | 4–5h | P6a |
+| **P6c** | Poster inline-label, er/journey (if demand). | 2–3h | P6a |
+
+**Revised P6 total:** 12–16h (up from 4–6h) — reflects the cross-diagram scope.
+**Revised overall total:** ~30–40h (up from 22–30h).
+
+The inline-label tokenizer (`:prefix:name:` regex + resolve) is built ONCE in P6a and shared by all diagrams that support inline icons. The `@{...}` metadata parser is also built once (flowchart) and reused by sequence/state/class/block.
+
+---
+
+## RECOMMENDATION
+
+1. **Two attachment forms:**
+   - **Node-shape icon** via `@{ icon: "prefix:name" }` metadata (for grammars without a dedicated icon slot) or existing `(icon)` / `::icon(...)` syntax (architecture, mindmap).
+   - **Inline-label icon** via `:prefix:name:` colon-wrapped token inside any text/label string.
+
+2. **Shared IR:** A single `IconRef { prefix, name }` type carried by all diagram IRs. One resolver function. One SVG emit path. Host provides the registry; core stays pure.
+
+3. **First cut (P6a):** Flowchart + mindmap + sequence. These cover the highest user demand (cloud architecture diagrams often combine flowchart for topology + sequence for interactions).
+
+4. **Mermaid compatibility:** Adopt `@{ icon: "..." }` where Mermaid v11+ defines it (flowchart shape metadata). Triton extends it to other grammars consistently. The `:prefix:name:` inline form is Triton-original (Mermaid's `fa:fa-x` is htmlLabels-only and deprecated for static SVG).
+
+5. **No grammar conflicts:** The `@{` token does not appear in any current Triton grammar. The `:prefix:name:` pattern does not collide with `%%` comments, `|...|` edge labels, `::` (only appears as line-start `::icon`), or quoted-string delimiters.
+
+---
+
 # Research & Design — Icon Library Import Format (IconifyJSON packs; not yet approved to build)
 
 **Authors:** David (Research Lead), Leslie (Spec Architect)  
