@@ -129,6 +129,15 @@ export interface LayoutResult {
    * Empty or absent for non-linkable diagram types.
    */
   readonly occupiedPorts?: readonly OccupiedPort[];
+  /**
+   * Bounding boxes of internal diagram chrome (e.g. header bars, region
+   * headers) that cross-link labels must avoid.  Reported in local diagram
+   * coordinates; the composition layer scales + offsets them to poster space
+   * before feeding them into the label de-collision pass.
+   * Optional — diagrams that have no chrome that could occlude labels may
+   * omit this field.
+   */
+  readonly chromeRects?: readonly Rect[];
 }
 
 /**

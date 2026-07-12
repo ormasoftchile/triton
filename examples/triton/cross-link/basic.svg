@@ -7,8 +7,8 @@
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Cross-Link Basic Demo</text>
   <rect x="24" y="58" width="160" height="254.3809523809524" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="204" y="58" width="325.2" height="254.3809523809524" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <path d="M 158.28571428571428 183.75238095238097 L 223.6 183.75238095238097" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 254.0952380952381 L 242.94285714285715 254.0952380952381 L 242.94285714285715 206.5904761904762 L 327.6 206.5904761904762" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+  <path d="M 158.28571428571428 196.1904761904762 L 223.6 196.1904761904762" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 158.28571428571428 268.57142857142856 L 366.6 268.57142857142856 L 366.6 209.1904761904762" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
   <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Frontend Services</text>
@@ -48,6 +48,6 @@
       <text x="404" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Message Queue</text>
     </g>
   </g>
-  <text x="199.38571428571427" y="177.1904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">routes to</text>
-  <text x="200.6142857142857" y="252.09523809523807" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">validates</text>
+  <text x="182.49999999999997" y="194.1904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">routes to</text>
+  <text x="262.4428571428572" y="266.57142857142856" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">validates</text>
 </svg>

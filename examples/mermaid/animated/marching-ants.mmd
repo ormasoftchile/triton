@@ -22,6 +22,6 @@ poster "Marching Ants — Edge Animation"
   end
 
   link FE.browser --> BE.api "requests"
-  link BE.service -.-> CACHE.redis "caches"
-  link BE.api -.-> DB.pg "persists"
-  link CACHE.redis ..> DB.pg "invalidates"
+  link BE.service -_-> CACHE.redis "caches" @anim:march
+  link BE.api -_-> DB.pg "persists" @anim:march
+  link CACHE.redis -.-> DB.pg "invalidates"

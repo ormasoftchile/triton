@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 928 762" width="928" height="762">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
+    <marker id="triton-crosslink-arrow-both" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto"><polygon points="8 0, 0 2.8, 8 5.6" fill="currentColor" /></marker>
+  </defs>
+  <rect x="0" y="0" width="928" height="762" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Connector Style Matrix</text>
+  <rect x="24" y="58" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="58" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="58" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="564" y="58" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="744" y="58" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="198" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="198" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="198" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="564" y="198" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="744" y="198" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="338" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="338" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="338" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="564" y="338" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="744" y="338" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="478" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="478" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="478" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="564" y="478" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="744" y="478" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="618" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="204" y="618" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="384" y="618" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="564" y="618" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="744" y="618" width="160" height="120" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 158.28571428571428 118.74603174603175 L 229.71428571428572 118.74603174603175" stroke="#2563EB" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 518.2857142857143 114.52380952380952 L 589.7142857142857 114.52380952380952" stroke="#DC2626" stroke-width="2" fill="none" />
+  <path d="M 158.28571428571428 139.25396825396825 L 174.28571428571428 139.25396825396825 L 174.28571428571428 186 L 753.7142857142857 186 L 753.7142857142857 139.25396825396825 L 769.7142857142857 139.25396825396825" stroke="#CA8A04" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)" />
+  <circle r="4" fill="#CA8A04">
+    <animateMotion dur="1.5s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 158.286 139.254 L 174.286 139.254 L 174.286 186 L 753.714 186 L 753.714 139.254 L 754.714 139.254"/>
+  </circle>
+  <path d="M 158.28571428571428 258.74603174603175 L 229.71428571428572 258.74603174603175" stroke="#CA8A04" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 518.2857142857143 254.52380952380955 L 589.7142857142857 254.52380952380955" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="4 3" />
+  <path d="M 158.28571428571428 279.25396825396825 L 174.28571428571428 279.25396825396825 L 174.28571428571428 326 L 753.7142857142857 326 L 753.7142857142857 279.25396825396825 L 769.7142857142857 279.25396825396825" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)" />
+  <path d="M 158.28571428571428 398.74603174603175 L 229.71428571428572 398.74603174603175" stroke="#9333EA" stroke-width="4" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 518.2857142857143 394.5238095238095 L 589.7142857142857 394.5238095238095" stroke="#16A34A" stroke-width="4" fill="none" />
+  <path d="M 158.28571428571428 419.25396825396825 L 174.28571428571428 419.25396825396825 L 174.28571428571428 466 L 753.7142857142857 466 L 753.7142857142857 419.25396825396825 L 769.7142857142857 419.25396825396825" stroke="#9333EA" stroke-width="4" fill="none" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)" />
+  <path d="M 158.28571428571428 538.7460317460318 L 229.71428571428572 538.7460317460318" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 518.2857142857143 534.5238095238095 L 589.7142857142857 534.5238095238095" stroke="#7C3AED" stroke-width="2" fill="none" stroke-dasharray="8 4" />
+  <path d="M 158.28571428571428 559.2539682539682 L 174.28571428571428 559.2539682539682 L 174.28571428571428 606 L 753.7142857142857 606 L 753.7142857142857 559.2539682539682 L 769.7142857142857 559.2539682539682" stroke="#16A34A" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)">
+    <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
+  </path>
+  <path d="M 158.29 678.75 C 158.78 679.25 160.27 681.73 161.26 681.75 C 162.25 681.76 163.25 679.82 164.24 678.82 C 165.23 677.82 166.22 675.79 167.21 675.75 C 168.21 675.71 169.2 677.6 170.19 678.6 C 171.18 679.6 172.17 681.68 173.17 681.74 C 174.16 681.8 175.15 679.97 176.14 678.97 C 177.13 677.97 178.13 675.84 179.12 675.76 C 180.11 675.67 181.1 677.45 182.1 678.45 C 183.09 679.44 184.08 681.62 185.07 681.73 C 186.06 681.84 187.06 680.11 188.05 679.12 C 189.04 678.13 190.03 675.91 191.02 675.77 C 192.02 675.64 193.01 677.31 194 678.3 C 194.99 679.29 195.98 681.55 196.98 681.71 C 197.97 681.87 198.96 680.25 199.95 679.27 C 200.94 678.28 201.94 675.98 202.93 675.8 C 203.92 675.61 204.91 677.17 205.9 678.15 C 206.9 679.13 207.89 681.47 208.88 681.68 C 209.87 681.89 210.87 680.39 211.86 679.41 C 212.85 678.44 213.84 676.06 214.83 675.83 C 215.83 675.6 216.82 677.04 217.81 678.01 C 218.8 678.97 219.79 681.39 220.79 681.64 C 221.78 681.9 222.77 680.52 223.76 679.56 C 224.75 678.6 225.75 676.15 226.74 675.87 C 227.73 675.59 229.22 677.53 229.71 677.86" stroke="#2563EB" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
+  <path d="M 518.29 674.52 C 518.78 675.02 520.27 677.51 521.26 677.52 C 522.25 677.54 523.25 675.6 524.24 674.6 C 525.23 673.6 526.22 671.56 527.21 671.53 C 528.21 671.49 529.2 673.38 530.19 674.37 C 531.18 675.37 532.17 677.46 533.17 677.52 C 534.16 677.58 535.15 675.75 536.14 674.75 C 537.13 673.75 538.13 671.62 539.12 671.54 C 540.11 671.45 541.1 673.23 542.1 674.23 C 543.09 675.22 544.08 677.39 545.07 677.5 C 546.06 677.62 547.06 675.89 548.05 674.9 C 549.04 673.9 550.03 671.69 551.02 671.55 C 552.02 671.42 553.01 673.09 554 674.08 C 554.99 675.07 555.98 677.32 556.98 677.48 C 557.97 677.65 558.96 676.03 559.95 675.04 C 560.94 674.06 561.94 671.76 562.93 671.58 C 563.92 671.39 564.91 672.95 565.9 673.93 C 566.9 674.91 567.89 677.25 568.88 677.46 C 569.87 677.67 570.87 676.17 571.86 675.19 C 572.85 674.22 573.84 671.84 574.83 671.61 C 575.83 671.37 576.82 672.81 577.81 673.78 C 578.8 674.75 579.79 677.16 580.79 677.42 C 581.78 677.68 582.77 676.3 583.76 675.34 C 584.75 674.37 585.75 671.93 586.74 671.65 C 587.73 671.36 589.22 673.31 589.71 673.64" stroke="#DC2626" stroke-width="2" fill="none" />
+  <path d="M 158.29 699.25 C 158.79 699.75 160.29 702.25 161.29 702.25 C 162.29 702.25 163.29 700.05 164.29 699.25 C 165.28 698.46 166.28 697.5 167.28 697.5 C 168.28 697.5 169.28 698.92 170.28 699.25 C 171.28 699.59 172.62 699.17 173.28 699.5 C 173.95 699.84 173.91 700.46 174.29 701.25 C 174.66 702.04 175.53 703.25 175.54 704.25 C 175.54 705.25 174.95 706.25 174.29 707.25 C 173.62 708.25 171.54 709.25 171.54 710.25 C 171.54 711.25 173.32 712.25 174.28 713.25 C 175.24 714.25 177.28 715.25 177.29 716.25 C 177.29 717.25 175.29 718.25 174.29 719.25 C 173.29 720.25 171.29 721.25 171.29 722.25 C 171.28 723.25 173.28 724.25 174.28 725.25 C 175.28 726.25 177.28 727.25 177.29 728.25 C 177.29 729.25 175.28 730.25 174.29 731.25 C 173.3 732.25 171.35 733.25 171.35 734.25 C 171.35 735.25 173.55 736.25 174.28 737.25 C 175.01 738.25 175.72 739.25 175.72 740.25 C 175.73 741.25 174.49 742.28 174.29 743.25 C 174.09 744.22 173.99 745.6 174.53 746.06 C 175.07 746.52 176.53 746.27 177.53 746 C 178.53 745.73 179.53 744.44 180.53 744.44 C 181.53 744.44 182.53 745.23 183.53 745.99 C 184.53 746.75 185.53 749 186.53 749 C 187.53 749 188.53 747.01 189.53 746.01 C 190.53 745.01 191.53 743 192.53 743 C 193.53 743 194.53 744.99 195.53 745.99 C 196.53 746.99 197.53 748.99 198.53 749 C 199.53 749.01 200.53 747.02 201.53 746.02 C 202.53 745.02 203.53 743.01 204.53 743 C 205.53 742.99 206.53 744.98 207.53 745.98 C 208.53 746.98 209.53 748.99 210.53 749 C 211.53 749.01 212.53 747.02 213.53 746.02 C 214.53 745.02 215.53 743.01 216.53 743 C 217.53 742.99 218.53 744.98 219.53 745.98 C 220.53 746.98 221.53 748.99 222.53 749 C 223.53 749.01 224.53 747.02 225.53 746.02 C 226.53 745.02 227.53 743.01 228.53 743 C 229.53 742.99 230.53 744.98 231.53 745.98 C 232.53 746.98 233.53 748.99 234.53 749 C 235.53 749.01 236.53 747.02 237.53 746.02 C 238.53 745.02 239.53 743.01 240.53 743 C 241.53 742.99 242.52 744.98 243.52 745.98 C 244.52 746.98 245.52 748.99 246.52 749 C 247.52 749.01 248.52 747.02 249.52 746.02 C 250.52 745.02 251.52 743.01 252.52 743 C 253.52 742.99 254.52 744.97 255.52 745.97 C 256.52 746.97 257.52 748.99 258.52 749 C 259.52 749.01 260.52 747.03 261.52 746.03 C 262.52 745.03 263.52 743.01 264.52 743 C 265.52 742.99 266.52 744.97 267.52 745.97 C 268.52 746.97 269.52 748.99 270.52 749 C 271.52 749.01 272.52 747.03 273.52 746.03 C 274.52 745.03 275.52 743.01 276.52 743 C 277.52 742.99 278.52 744.97 279.52 745.97 C 280.52 746.97 281.52 748.99 282.52 749 C 283.52 749.01 284.52 747.03 285.52 746.03 C 286.52 745.03 287.52 743.01 288.52 743 C 289.52 742.99 290.52 744.97 291.52 745.97 C 292.52 746.97 293.52 748.99 294.52 749 C 295.52 749.01 296.52 747.03 297.52 746.03 C 298.52 745.03 299.52 743.01 300.52 743 C 301.52 742.99 302.52 744.97 303.52 745.97 C 304.52 746.97 305.52 748.99 306.52 749 C 307.52 749.01 308.52 747.03 309.52 746.04 C 310.52 745.04 311.52 743.01 312.52 743 C 313.52 742.99 314.52 744.96 315.52 745.96 C 316.52 746.96 317.52 748.99 318.52 749 C 319.52 749.01 320.52 747.04 321.52 746.04 C 322.52 745.04 323.52 743.01 324.52 743 C 325.52 742.99 326.52 744.96 327.52 745.96 C 328.52 746.96 329.52 748.99 330.52 749 C 331.51 749.01 332.51 747.04 333.51 746.04 C 334.51 745.04 335.51 743.01 336.51 743 C 337.51 742.99 338.51 744.96 339.51 745.96 C 340.51 746.96 341.51 748.99 342.51 749 C 343.51 749.01 344.51 747.04 345.51 746.04 C 346.51 745.04 347.51 743.01 348.51 743 C 349.51 742.99 350.51 744.96 351.51 745.96 C 352.51 746.96 353.51 748.99 354.51 749 C 355.51 749.01 356.51 747.04 357.51 746.04 C 358.51 745.04 359.51 743.01 360.51 743 C 361.51 742.99 362.51 744.96 363.51 745.96 C 364.51 746.96 365.51 748.98 366.51 749 C 367.51 749.01 368.51 747.05 369.51 746.05 C 370.51 745.05 371.51 743.02 372.51 743 C 373.51 742.98 374.51 744.95 375.51 745.95 C 376.51 746.95 377.51 748.98 378.51 749 C 379.51 749.02 380.51 747.05 381.51 746.05 C 382.51 745.05 383.51 743.02 384.51 743 C 385.51 742.98 386.51 744.95 387.51 745.95 C 388.51 746.95 389.51 748.98 390.51 749 C 391.51 749.02 392.51 747.05 393.51 746.05 C 394.51 745.05 395.51 743.02 396.51 743 C 397.51 742.98 398.51 744.95 399.51 745.95 C 400.51 746.95 401.51 748.98 402.51 749 C 403.51 749.02 404.51 747.05 405.51 746.05 C 406.51 745.05 407.51 743.02 408.51 743 C 409.51 742.98 410.51 744.95 411.51 745.95 C 412.51 746.95 413.51 748.98 414.51 749 C 415.51 749.02 416.51 747.05 417.51 746.05 C 418.51 745.05 419.51 743.02 420.5 743 C 421.5 742.98 422.5 744.95 423.5 745.94 C 424.5 746.94 425.5 748.98 426.5 749 C 427.5 749.02 428.5 747.06 429.5 746.06 C 430.5 745.06 431.5 743.02 432.5 743 C 433.5 742.98 434.5 744.94 435.5 745.94 C 436.5 746.94 437.5 748.98 438.5 749 C 439.5 749.02 440.5 747.06 441.5 746.06 C 442.5 745.06 443.5 743.02 444.5 743 C 445.5 742.98 446.5 744.94 447.5 745.94 C 448.5 746.94 449.5 748.98 450.5 749 C 451.5 749.02 452.5 747.06 453.5 746.06 C 454.5 745.06 455.5 743.02 456.5 743 C 457.5 742.98 458.5 744.94 459.5 745.94 C 460.5 746.94 461.5 748.98 462.5 749 C 463.5 749.02 464.5 747.06 465.5 746.06 C 466.5 745.06 467.5 743.02 468.5 743 C 469.5 742.98 470.5 744.94 471.5 745.94 C 472.5 746.94 473.5 748.98 474.5 749 C 475.5 749.02 476.5 747.06 477.5 746.06 C 478.5 745.06 479.5 743.02 480.5 743 C 481.5 742.98 482.5 744.93 483.5 745.93 C 484.5 746.93 485.5 748.98 486.5 749 C 487.5 749.02 488.5 747.07 489.5 746.07 C 490.5 745.07 491.5 743.02 492.5 743 C 493.5 742.98 494.5 744.93 495.5 745.93 C 496.5 746.93 497.5 748.98 498.5 749 C 499.5 749.02 500.5 747.07 501.5 746.07 C 502.5 745.07 503.5 743.02 504.5 743 C 505.5 742.98 506.5 744.93 507.5 745.93 C 508.49 746.93 509.49 748.98 510.49 749 C 511.49 749.02 512.49 747.07 513.49 746.07 C 514.49 745.07 515.49 743.02 516.49 743 C 517.49 742.98 518.49 744.93 519.49 745.93 C 520.49 746.93 521.49 748.97 522.49 749 C 523.49 749.02 524.49 747.07 525.49 746.07 C 526.49 745.07 527.49 743.03 528.49 743 C 529.49 742.98 530.49 744.93 531.49 745.93 C 532.49 746.93 533.49 748.97 534.49 749 C 535.49 749.02 536.49 747.08 537.49 746.08 C 538.49 745.08 539.49 743.03 540.49 743 C 541.49 742.98 542.49 744.92 543.49 745.92 C 544.49 746.92 545.49 748.97 546.49 749 C 547.49 749.02 548.49 747.08 549.49 746.08 C 550.49 745.08 551.49 743.03 552.49 743 C 553.49 742.98 554.49 744.92 555.49 745.92 C 556.49 746.92 557.49 748.97 558.49 749 C 559.49 749.03 560.49 747.08 561.49 746.08 C 562.49 745.08 563.49 743.03 564.49 743 C 565.49 742.97 566.49 744.92 567.49 745.92 C 568.49 746.92 569.49 748.97 570.49 749 C 571.49 749.03 572.49 747.08 573.49 746.08 C 574.49 745.08 575.49 743.03 576.49 743 C 577.49 742.97 578.49 744.92 579.49 745.92 C 580.49 746.92 581.49 748.97 582.49 749 C 583.49 749.03 584.49 747.08 585.49 746.08 C 586.49 745.08 587.49 743.03 588.49 743 C 589.49 742.97 590.49 744.92 591.49 745.92 C 592.49 746.91 593.49 748.97 594.49 749 C 595.49 749.03 596.49 747.09 597.48 746.09 C 598.48 745.09 599.48 743.03 600.48 743 C 601.48 742.97 602.48 744.91 603.48 745.91 C 604.48 746.91 605.48 748.97 606.48 749 C 607.48 749.03 608.48 747.09 609.48 746.09 C 610.48 745.09 611.48 743.03 612.48 743 C 613.48 742.97 614.48 744.91 615.48 745.91 C 616.48 746.91 617.48 748.97 618.48 749 C 619.48 749.03 620.48 747.09 621.48 746.09 C 622.48 745.09 623.48 743.03 624.48 743 C 625.48 742.97 626.48 744.91 627.48 745.91 C 628.48 746.91 629.48 748.97 630.48 749 C 631.48 749.03 632.48 747.09 633.48 746.09 C 634.48 745.09 635.48 743.03 636.48 743 C 637.48 742.97 638.48 744.91 639.48 745.91 C 640.48 746.91 641.48 748.97 642.48 749 C 643.48 749.03 644.48 747.09 645.48 746.09 C 646.48 745.09 647.48 743.03 648.48 743 C 649.48 742.97 650.48 744.91 651.48 745.9 C 652.48 746.9 653.48 748.97 654.48 749 C 655.48 749.03 656.48 747.1 657.48 746.1 C 658.48 745.1 659.48 743.03 660.48 743 C 661.48 742.97 662.48 744.9 663.48 745.9 C 664.48 746.9 665.48 748.97 666.48 749 C 667.48 749.03 668.48 747.1 669.48 746.1 C 670.48 745.1 671.48 743.03 672.48 743 C 673.48 742.97 674.48 744.9 675.48 745.9 C 676.48 746.9 677.48 748.96 678.48 749 C 679.48 749.03 680.48 747.1 681.48 746.1 C 682.48 745.1 683.48 743.04 684.48 743 C 685.48 742.97 686.47 744.9 687.47 745.9 C 688.47 746.9 689.47 748.96 690.47 749 C 691.47 749.03 692.47 747.1 693.47 746.1 C 694.47 745.1 695.47 743.04 696.47 743 C 697.47 742.97 698.47 744.9 699.47 745.9 C 700.47 746.9 701.47 748.96 702.47 749 C 703.47 749.03 704.47 747.1 705.47 746.11 C 706.47 745.11 707.47 743.04 708.47 743 C 709.47 742.97 710.47 744.89 711.47 745.89 C 712.47 746.89 713.47 748.96 714.47 749 C 715.47 749.03 716.47 747.11 717.47 746.11 C 718.47 745.11 719.47 743.04 720.47 743 C 721.47 742.97 722.47 744.89 723.47 745.89 C 724.47 746.89 725.47 748.96 726.47 749 C 727.47 749.03 728.47 747.11 729.47 746.11 C 730.47 745.11 731.47 743.04 732.47 743 C 733.47 742.97 734.47 744.89 735.47 745.89 C 736.47 746.89 737.47 748.96 738.47 749 C 739.47 749.03 740.47 747 741.47 746.11 C 742.47 745.23 743.47 743.72 744.47 743.69 C 745.47 743.66 746.47 745.42 747.47 745.94 C 748.47 746.46 749.47 746.8 750.47 746.81 C 751.47 746.82 753.04 746.6 753.47 746 C 753.89 745.41 752.99 744.21 753.03 743.25 C 753.06 742.29 753.18 741.25 753.66 740.25 C 754.14 739.25 755.87 738.25 755.9 737.25 C 755.93 736.25 754.69 735.25 753.83 734.25 C 752.96 733.25 750.75 732.25 750.72 731.25 C 750.68 730.25 752.6 729.25 753.6 728.25 C 754.6 727.25 756.67 726.25 756.71 725.25 C 756.75 724.25 754.83 723.25 753.83 722.25 C 752.83 721.25 750.76 720.25 750.72 719.25 C 750.68 718.25 752.6 717.25 753.6 716.25 C 754.59 715.25 756.67 714.25 756.71 713.25 C 756.75 712.25 754.66 711.25 753.82 710.25 C 752.99 709.25 751.74 708.25 751.72 707.25 C 751.69 706.25 753.25 705.25 753.66 704.25 C 754.08 703.25 754.04 702.08 754.21 701.25 C 754.39 700.42 754.13 699.76 754.72 699.26 C 755.3 698.76 756.72 698.27 757.72 698.25 C 758.72 698.24 759.72 698.6 760.72 699.18 C 761.72 699.77 762.72 701.72 763.71 701.75 C 764.71 701.78 765.71 700.29 766.71 699.38 C 767.71 698.46 769.21 696.78 769.71 696.26" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" marker-start="url(#triton-crosslink-arrow-both)">
+    <animate attributeName="stroke-opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite"/>
+  </path>
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Solid</text>
+  <g transform="translate(28, 89.19047619047619) scale(0.9047619047619048)">
+    <g id="src">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">→ Directed</text>
+  <g transform="translate(208, 89.19047619047619) scale(0.9047619047619048)">
+    <g id="dst">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="392" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Undirected</text>
+  <g transform="translate(388, 89.19047619047619) scale(0.9047619047619048)">
+    <g id="a">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">A</text>
+    </g>
+  </g>
+  <text x="572" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">↔ Bidir</text>
+  <g transform="translate(568, 89.19047619047619) scale(0.9047619047619048)">
+    <g id="b">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">B</text>
+    </g>
+  </g>
+  <text x="752" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Animated</text>
+  <g transform="translate(748, 89.19047619047619) scale(0.9047619047619048)">
+    <g id="c">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">C</text>
+    </g>
+  </g>
+  <text x="32" y="213.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Dotted</text>
+  <g transform="translate(28, 229.1904761904762) scale(0.9047619047619048)">
+    <g id="src">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="213.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">→ Directed</text>
+  <g transform="translate(208, 229.1904761904762) scale(0.9047619047619048)">
+    <g id="dst">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="392" y="213.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Undirected</text>
+  <g transform="translate(388, 229.1904761904762) scale(0.9047619047619048)">
+    <g id="a">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">A</text>
+    </g>
+  </g>
+  <text x="572" y="213.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">↔ Bidir</text>
+  <g transform="translate(568, 229.1904761904762) scale(0.9047619047619048)">
+    <g id="b">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">B</text>
+    </g>
+  </g>
+  <text x="752" y="213.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Animated</text>
+  <g transform="translate(748, 229.1904761904762) scale(0.9047619047619048)">
+    <g id="c">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">C</text>
+    </g>
+  </g>
+  <text x="32" y="353.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Thick</text>
+  <g transform="translate(28, 369.1904761904762) scale(0.9047619047619048)">
+    <g id="src">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="353.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">→ Directed</text>
+  <g transform="translate(208, 369.1904761904762) scale(0.9047619047619048)">
+    <g id="dst">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="392" y="353.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Undirected</text>
+  <g transform="translate(388, 369.1904761904762) scale(0.9047619047619048)">
+    <g id="a">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">A</text>
+    </g>
+  </g>
+  <text x="572" y="353.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">↔ Bidir</text>
+  <g transform="translate(568, 369.1904761904762) scale(0.9047619047619048)">
+    <g id="b">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">B</text>
+    </g>
+  </g>
+  <text x="752" y="353.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Animated</text>
+  <g transform="translate(748, 369.1904761904762) scale(0.9047619047619048)">
+    <g id="c">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">C</text>
+    </g>
+  </g>
+  <text x="32" y="493.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Dashed</text>
+  <g transform="translate(28, 509.1904761904762) scale(0.9047619047619048)">
+    <g id="src">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="493.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">→ Directed</text>
+  <g transform="translate(208, 509.1904761904762) scale(0.9047619047619048)">
+    <g id="dst">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="392" y="493.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Undirected</text>
+  <g transform="translate(388, 509.1904761904762) scale(0.9047619047619048)">
+    <g id="a">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">A</text>
+    </g>
+  </g>
+  <text x="572" y="493.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">↔ Bidir</text>
+  <g transform="translate(568, 509.1904761904762) scale(0.9047619047619048)">
+    <g id="b">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">B</text>
+    </g>
+  </g>
+  <text x="752" y="493.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">March</text>
+  <g transform="translate(748, 509.1904761904762) scale(0.9047619047619048)">
+    <g id="c">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">C</text>
+    </g>
+  </g>
+  <text x="32" y="633.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Wavy</text>
+  <g transform="translate(28, 649.1904761904761) scale(0.9047619047619048)">
+    <g id="src">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Source</text>
+    </g>
+  </g>
+  <text x="212" y="633.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">→ Directed</text>
+  <g transform="translate(208, 649.1904761904761) scale(0.9047619047619048)">
+    <g id="dst">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target</text>
+    </g>
+  </g>
+  <text x="392" y="633.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Undirected</text>
+  <g transform="translate(388, 649.1904761904761) scale(0.9047619047619048)">
+    <g id="a">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">A</text>
+    </g>
+  </g>
+  <text x="572" y="633.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">↔ Bidir</text>
+  <g transform="translate(568, 649.1904761904761) scale(0.9047619047619048)">
+    <g id="b">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">B</text>
+    </g>
+  </g>
+  <text x="752" y="633.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Glow</text>
+  <g transform="translate(748, 649.1904761904761) scale(0.9047619047619048)">
+    <g id="c">
+      <rect x="24" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">C</text>
+    </g>
+  </g>
+  <text x="191.5857142857143" y="116.74603174603175" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2563EB" text-anchor="middle" font-weight="bold">solid →</text>
+  <text x="565.9047619047619" y="104.9047619047619" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#DC2626" text-anchor="middle" font-weight="bold">solid —</text>
+  <text x="464" y="184" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#CA8A04" text-anchor="middle" font-weight="bold">solid ↔</text>
+  <text x="182.09523809523807" y="244.90476190476193" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#CA8A04" text-anchor="middle" font-weight="bold">dotted →</text>
+  <text x="565.9047619047619" y="244.90476190476193" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0891B2" text-anchor="middle" font-weight="bold">dotted —</text>
+  <text x="464" y="324" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0891B2" text-anchor="middle" font-weight="bold">dotted ↔</text>
+  <text x="191.5857142857143" y="396.74603174603175" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">thick →</text>
+  <text x="565.9047619047619" y="384.9047619047619" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">thick —</text>
+  <text x="464" y="464" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">thick ↔</text>
+  <text x="182.09523809523807" y="524.9047619047619" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">dashed →</text>
+  <text x="565.9047619047619" y="524.9047619047619" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">dashed —</text>
+  <text x="464" y="604" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">dashed ↔</text>
+  <text x="187.68571428571428" y="676.7460317460316" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2563EB" text-anchor="middle" font-weight="bold">wavy →</text>
+  <text x="560.3142857142857" y="672.5238095238094" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#DC2626" text-anchor="middle" font-weight="bold">wavy —</text>
+  <text x="464" y="744" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">wavy ↔</text>
+</svg>

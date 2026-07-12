@@ -29,6 +29,7 @@ import type { PortDirection } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
 import { createRouter } from '../routing/router.js';
+import { wavifyPath } from './render.js';
 
 export interface CrossLinkRenderResult {
   readonly defs: string[];
@@ -81,15 +82,19 @@ interface CommittedRoute {
 
 /** A route being built before SVG emission. */
 interface WorkingRoute {
-  points:      Point[];
+  points:           Point[];
   /** True when points = [from, cp1, cp2, to] — render with SVG C command. */
-  isBezier?:   true;
-  color:       string;
-  dash?:       string;
-  animation?:  RenderedConnectorAnimation;
-  markerEnd?:  string;
-  markerStart?: string;
-  label?:      string;
+  isBezier?:        true;
+  color:            string;
+  dash?:            string;
+  strokeWidth?:     number;
+  isWavy?:          boolean;
+  wavyAmplitude?:   number;
+  wavyWavelength?:  number;
+  animation?:       RenderedConnectorAnimation;
+  markerEnd?:       string;
+  markerStart?:     string;
+  label?:           string;
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
@@ -271,10 +276,11 @@ export function routeAndRenderCrossLinks2(
     }
 
     const dash = edgeStyleToDash(link.style);
+    // Animation: explicit DSL value only. All styles are STATIC by default.
     const animation: RenderedConnectorAnimation | undefined =
       link.animation === 'none'     ? undefined :
       isRenderedConnectorAnimation(link.animation) ? link.animation :
-      dash                          ? 'march'    : undefined;
+      undefined;
 
     let markerEnd:   string | undefined;
     let markerStart: string | undefined;
@@ -285,13 +291,22 @@ export function routeAndRenderCrossLinks2(
       markerStart = BI_ARROW_ID;
     }
 
+    const strokeWidth = link.style === 'thick'
+      ? (edgeTheme.strokeWidth + 0.5) * 2
+      : undefined; // undefined → use default at emission
+    const isWavy     = link.style === 'wavy';
+    const wavyAmp    = (link.props?.amplitude  as number | undefined) ?? 3;
+    const wavyLambda = (link.props?.wavelength as number | undefined) ?? 12;
+
     // Record with original link index so colours match original declaration order
     const origIdx = links.indexOf(link);
     workingByOriginalIdx.set(origIdx >= 0 ? origIdx : workingByOriginalIdx.size, {
       points: [...bestPoints],
-      ...(bestIsBezier ? { isBezier: true as const } : {}),
+      ...(bestIsBezier  ? { isBezier: true as const } : {}),
       color,
       ...(dash        ? { dash }        : {}),
+      ...(strokeWidth ? { strokeWidth } : {}),
+      ...(isWavy      ? { isWavy: true, wavyAmplitude: wavyAmp, wavyWavelength: wavyLambda } : {}),
       ...(animation   ? { animation }   : {}),
       ...(markerEnd   ? { markerEnd }   : {}),
       ...(markerStart ? { markerStart } : {}),
@@ -361,9 +376,13 @@ export function routeAndRenderCrossLinks2(
 
   for (let i = 0; i < workingRoutes.length; i++) {
     const wr = workingRoutes[i]!;
-    const path = wr.isBezier
+    let path = wr.isBezier
       ? `M ${wr.points[0]!.x} ${wr.points[0]!.y} C ${wr.points[1]!.x} ${wr.points[1]!.y} ${wr.points[2]!.x} ${wr.points[2]!.y} ${wr.points[3]!.x} ${wr.points[3]!.y}`
       : wr.points.map((p, pi) => `${pi === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+    if (wr.isWavy) {
+      path = wavifyPath([...wr.points], wr.wavyAmplitude ?? 3, wr.wavyWavelength ?? 12);
+    }
 
     if (wr.markerEnd   === ARROW_ID)    needsArrow   = true;
     if (wr.markerStart === BI_ARROW_ID) needsBiArrow = true;
@@ -372,7 +391,7 @@ export function routeAndRenderCrossLinks2(
       type:        'path',
       d:           path,
       stroke:      wr.color,
-      strokeWidth: edgeTheme.strokeWidth + 0.5,
+      strokeWidth: wr.strokeWidth ?? (edgeTheme.strokeWidth + 0.5),
       ...(wr.dash        ? { strokeDasharray: wr.dash }    : {}),
       ...(wr.animation   ? { animated: wr.animation }      : {}),
       ...(wr.markerEnd   ? { markerEnd: wr.markerEnd }     : {}),
@@ -910,8 +929,10 @@ function deCollideLabels(
 
 function edgeStyleToDash(style: CrossLinkEdgeStyle): string | undefined {
   switch (style) {
-    case 'dashed': return '8 4';
     case 'dotted': return '4 3';
-    default:       return undefined;
+    case 'dashed': return '8 4';
+    case 'solid':  return undefined;
+    case 'thick':  return undefined;
+    case 'wavy':   return undefined;
   }
 }

@@ -1,5 +1,19 @@
 poster "Microservices Architecture — Cross-Link Map"
   columns 2
+%% ────────────────────────────────────────────────────────────────────────────
+%% CROSS-LINK — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      poster "Title"  (title optional)
+%% Grid:        columns N · rows N · gap N
+%% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
+%% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
+%% Link:        link <src> <arrow> <dst> ["label"] [@routing[:WallPair]] [@anim:name] [{ props }]
+%% Arrows:      --> · -_-> · -.-> · ==> · -~-> · <--> · <-_-> · <-.-> · <==> · <-~-> · --- · -_- · -.- · === · -~-
+%% Styles:      solid -- · dashed -_- · dotted -.- · thick == · wavy -~-
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Routing:     @straight · @orthogonal · @bezier · @polyline   (+ :WallPair, e.g. @orthogonal:EW)
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
+%% ────────────────────────────────────────────────────────────────────────────
 
   cell UI "UI Layer" :: flow
     flowchart LR
@@ -26,7 +40,7 @@ poster "Microservices Architecture — Cross-Link Map"
       consumer --> metrics[Metrics]
   end
 
-  link API.catalog -.-> DATA.redis "cache hit?" @orthogonal:WW
+  link API.catalog -_-> DATA.redis "cache hit?" @orthogonal:WW @anim:march
   link API.orders --> ASYNC.kafka "publishes" @orthogonal:WN
-  link ASYNC.metrics <..> API.gw "health" @orthogonal:NE
+  link ASYNC.metrics <-.-> API.gw "health" @orthogonal:NE
 

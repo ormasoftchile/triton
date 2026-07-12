@@ -23,7 +23,7 @@ describe('flowchart grammar', () => {
   it('handles dotted edges -.->', () => {
     const r = parse(`flowchart TD\nA -.-> B\n`);
     expect(r.flow.edges[0]!.style).toBe('dotted');
-    expect(r.flow.edges[0]!.kind).toBe('async');
+    expect(r.flow.edges[0]!.kind).toBeUndefined(); // kind field removed — style only
   });
 
   it('parses all node shapes', () => {
@@ -126,5 +126,50 @@ describe('flowchart grammar', () => {
     expect(r.flow.edges[1]!.routing).toBe('straight');
     expect(r.flow.edges[1]!.exitWall).toBeUndefined();
     expect(r.flow.edges[1]!.entryWall).toBeUndefined();
+  });
+
+  // ── 5-style matrix: new tokens ─────────────────────────────────────────────
+  it('parses all 5 directed styles', () => {
+    const r = parse(`flowchart LR\nA --> B\nA -.-> B\nA ==> B\nA -_-> B\nA -~-> B\n`);
+    const styles = r.flow.edges.map((e: any) => e.style);
+    expect(styles).toEqual(['solid', 'dotted', 'thick', 'dashed', 'wavy']);
+  });
+
+  it('parses all 5 undirected styles', () => {
+    const r = parse(`flowchart LR\nA --- B\nA -.- B\nA === B\nA -_- B\nA -~- B\n`);
+    const styles = r.flow.edges.map((e: any) => e.style);
+    expect(styles).toEqual(['solid', 'dotted', 'thick', 'dashed', 'wavy']);
+  });
+
+  it('parses all 5 bidirectional styles', () => {
+    const r = parse(`flowchart LR\nA <--> B\nA <-.-> B\nA <==> B\nA <-_-> B\nA <-~-> B\n`);
+    const styles = r.flow.edges.map((e: any) => e.style);
+    expect(styles).toEqual(['solid', 'dotted', 'thick', 'dashed', 'wavy']);
+  });
+
+  it('FlowEdge has no kind field (kind dropped, style only)', () => {
+    const r = parse(`flowchart TD\nA -.-> B\nA --> C\n`);
+    for (const edge of r.flow.edges) {
+      expect(edge.kind).toBeUndefined();
+    }
+  });
+
+  it('Mermaid thick tokens ==> and === map to style thick', () => {
+    const r = parse(`flowchart LR\nA ==> B\nA === B\n`);
+    expect(r.flow.edges[0]!.style).toBe('thick');
+    expect(r.flow.edges[1]!.style).toBe('thick');
+  });
+
+  it('Mermaid longer forms --->, -..->, ===> still work', () => {
+    const r = parse(`flowchart LR\nA ---> B\nA -..-> B\nA ===> B\n`);
+    expect(r.flow.edges[0]!.style).toBe('solid');
+    expect(r.flow.edges[1]!.style).toBe('dotted');
+    expect(r.flow.edges[2]!.style).toBe('thick');
+  });
+
+  it('Mermaid bidirectional <==> maps to thick', () => {
+    const r = parse(`flowchart LR\nA <==> B\n`);
+    expect(r.flow.edges[0]!.style).toBe('thick');
+    expect(r.flow.edges[0]!.bidirectional).toBe(true);
   });
 });

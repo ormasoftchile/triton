@@ -54,17 +54,32 @@ export interface NodeAddress {
 
 // ─── Edge Style ───────────────────────────────────────────────────────────────
 
-/** Visual style of a cross-diagram edge. */
+/** Visual style of a cross-diagram edge. Styles are mutually exclusive. */
 export type CrossLinkEdgeStyle =
   | 'solid'      // ──────
+  | 'dotted'     // · · · ·
   | 'dashed'     // - - - -
-  | 'dotted';    // · · · ·
+  | 'thick'      // ━━━━━━
+  | 'wavy';      // ∿∿∿∿∿∿
 
 /** Direction of a cross-diagram edge. */
 export type CrossLinkDirection =
-  | 'directed'   // -->
-  | 'undirected' // ---
+  | 'directed'       // -->
+  | 'undirected'     // ---
   | 'bidirectional'; // <-->
+
+/**
+ * Shape of an endpoint marker.
+ * 'arrow'  — standard arrowhead (default for directed/bidirectional)
+ * 'circle' — open circle (Mermaid --o)
+ * 'cross'  — cross mark (Mermaid --x)
+ * 'none'   — no marker (default for undirected)
+ */
+export type CrossLinkEndpointMarker =
+  | 'arrow'
+  | 'circle'
+  | 'cross'
+  | 'none';
 
 // ─── Cross-Link (Atomic) ─────────────────────────────────────────────────────
 
@@ -79,6 +94,16 @@ export interface CrossLink {
   readonly to: NodeAddress;
   readonly direction: CrossLinkDirection;
   readonly style: CrossLinkEdgeStyle;
+  /**
+   * Shape of the start-endpoint marker.
+   * Defaults: 'arrow' for bidirectional; 'none' for directed/undirected.
+   */
+  readonly startMarker?: CrossLinkEndpointMarker;
+  /**
+   * Shape of the end-endpoint marker.
+   * Defaults: 'arrow' for directed/bidirectional; 'none' for undirected.
+   */
+  readonly endMarker?: CrossLinkEndpointMarker;
   /** Optional label rendered at the route midpoint. */
   readonly label?: string;
   /**
@@ -103,8 +128,7 @@ export interface CrossLink {
   /**
    * Animation applied to the rendered connector.
    *
-   * 'march'    — marching ants (stroke-dashoffset cycle). Only visible when
-   *              the edge style is dashed or dotted; silently ignored on solid.
+   * 'march'    — marching ants (stroke-dashoffset cycle). Works best on dashed/dotted.
    * 'particle' — a dot travels along the path. Works on any edge style.
    * 'draw'     — dashoffset reveal/erase loop over the approximate path length.
    * 'pulse'    — breathing stroke-width animation.
@@ -113,10 +137,10 @@ export interface CrossLink {
    * 'stream'   — multiple staggered particles.
    * 'flow'     — animated gradient band along the connector direction.
    * 'colorcycle' — stroke hue cycle.
-   * 'none'     — explicitly suppresses the default animation for this edge.
+   * 'none'     — explicitly suppresses animation for this edge.
    *
-   * When omitted the renderer applies defaults:
-   *   dashed → 'march', dotted → 'march', solid → no animation.
+   * When omitted the connector renders STATIC (no animation by default).
+   * Motion must be explicitly requested via `@anim:<name>` or `{ anim: <name> }`.
    */
   readonly animation?: CrossLinkAnimation;
   /**

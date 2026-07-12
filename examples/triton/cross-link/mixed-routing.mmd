@@ -1,5 +1,19 @@
 poster "Mixed Routing Styles"
   columns 2
+%% ────────────────────────────────────────────────────────────────────────────
+%% CROSS-LINK — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:      poster "Title"  (title optional)
+%% Grid:        columns N · rows N · gap N
+%% Cell:        cell [id] ["Title"] [span] [:: kind] [@theme t] … end
+%% Kinds:       flowchart · flow · timeline · stat · text · <identifier>
+%% Link:        link <src> <arrow> <dst> ["label"] [@routing[:WallPair]] [@anim:name] [{ props }]
+%% Arrows:      --> · -_-> · -.-> · ==> · -~-> · <--> · <-_-> · <-.-> · <==> · <-~-> · --- · -_- · -.- · === · -~-
+%% Styles:      solid -- · dashed -_- · dotted -.- · thick == · wavy -~-
+%% Animation:   @anim:march · particle · draw · pulse · glow · comet · stream · flow · colorcycle · none
+%% Routing:     @straight · @orthogonal · @bezier · @polyline   (+ :WallPair, e.g. @orthogonal:EW)
+%% Props:       { anim:… route:… style:… color:… }   (@ annotations win over { } on conflict)
+%% ────────────────────────────────────────────────────────────────────────────
 
   cell AUTH "Authentication" :: flow
     flowchart LR
@@ -30,11 +44,11 @@ poster "Mixed Routing Styles"
   end
 
   link AUTH.session --> API.gw "validates" @orthogonal
-  link AUTH.tokens -.-> API.cache "syncs tokens" @bezier
+  link AUTH.tokens -_-> API.cache "syncs tokens" @bezier @anim:march
   link API.dispatch --> WORKER.queue "enqueues" @straight
-  link API.cache -.-> STORE.redis "reads cache" @bezier
+  link API.cache -_-> STORE.redis "reads cache" @bezier @anim:march
   link WORKER.exec --> STORE.pg "writes results" @orthogonal
-  link WORKER.dlq -.-> STORE.s3 "archives" { route: bezier, tension: 0.8 }
+  link WORKER.dlq -_-> STORE.s3 "archives" @anim:march { route: bezier, tension: 0.8 }
   link STORE.replica --> API.cache "feeds cache" @bezier
-  link AUTH.oauth -.-> STORE.pg "stores grants" @straight
+  link AUTH.oauth -_-> STORE.pg "stores grants" @straight @anim:march
 

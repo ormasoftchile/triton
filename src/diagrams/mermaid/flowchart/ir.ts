@@ -15,16 +15,18 @@ export interface FlowNode {
   readonly subgraph?: string;
 }
 
-export type EdgeKind  = 'sync' | 'async';
-export type EdgeStyle = 'solid' | 'dashed' | 'dotted';
+export type EdgeStyle = 'solid' | 'dashed' | 'dotted' | 'thick' | 'wavy';
+
+/** Endpoint marker shape for flowchart edges. */
+export type EdgeEndMarker = 'arrow' | 'circle' | 'cross' | 'none';
 
 export interface FlowEdge {
   readonly from: string;
   readonly to: string;
   readonly label?: string;
-  readonly kind: EdgeKind;
   readonly style: EdgeStyle;
   readonly bidirectional?: boolean;
+  readonly endMarker?: EdgeEndMarker;
   /** Optional routing style hint (straight | orthogonal | bezier | polyline). */
   readonly routing?: RouteStyle;
   /** Optional wall hint: force the edge to exit `from` on this side. */

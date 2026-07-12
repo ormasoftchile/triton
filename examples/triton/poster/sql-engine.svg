@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 659.9000000000001 521.9622516556292" width="659.9000000000001" height="521.9622516556292">
   <defs>
-    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#64748B" /></marker>
-    <marker id="struct-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#4A90D9" /></marker>
+    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#64748B" /></marker>
+    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#4A90D9" /></marker>
     <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
   </defs>
   <rect x="0" y="0" width="659.9000000000001" height="521.9622516556292" fill="#FFFFFF" />
@@ -18,15 +18,15 @@
     <path d="M 167.99 57 L 108.4 109" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 202.33 57 L 252.37 110.5" stroke="#64748B" stroke-width="1.5" fill="none" />
     <path d="M 266.39 140.5 L 266.39 194" stroke="#64748B" stroke-width="1.5" fill="none" />
-    <rect x="141.72039999999998" y="24" width="90.35739999999998" height="33" fill="#F8FAFC" stroke="#9b51e0" stroke-width="2" rx="8" />
+    <rect x="141.72039999999998" y="24" width="90.35739999999998" height="33" fill="#F8FAFC" stroke="#7C3AED" stroke-width="2" rx="8" />
     <text x="186.89909999999998" y="42" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Hash Join</text>
     <text x="186.89909999999998" y="55" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rows: 980</text>
-    <rect x="24" y="109" width="130.9896" height="33" fill="#F8FAFC" stroke="#2f80ed" stroke-width="2" rx="8" />
+    <rect x="24" y="109" width="130.9896" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="89.4948" y="127" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Seq Scan orders</text>
     <text x="89.4948" y="140" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rows: 10000</text>
     <rect x="236.02859999999998" y="110.5" width="60.730599999999995" height="30" fill="#F8FAFC" stroke="#64748B" stroke-width="2" rx="8" />
     <text x="266.3939" y="130.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Hash</text>
-    <rect x="182.9896" y="194" width="166.80859999999998" height="33" fill="#F8FAFC" stroke="#2f80ed" stroke-width="2" rx="8" />
+    <rect x="182.9896" y="194" width="166.80859999999998" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="266.3939" y="212" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Index Scan customers</text>
     <text x="266.3939" y="225" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">idx: idx_cust</text>
   </g>
@@ -93,6 +93,6 @@
     <path d="M 158 81.1 L 286 93.97" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
   </g>
   <text x="377.6935683707136" y="108.49139072847682" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">scan uses index</text>
-  <text x="216.65000000000003" y="399.56225165562915" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">leaf points to page</text>
+  <text x="216.65000000000003" y="415.76225165562914" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">leaf points to page</text>
   <text x="409.90000000000003" y="454.7622516556292" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#9333EA" text-anchor="middle" font-weight="bold">tuple is a row</text>
 </svg>

@@ -1,0 +1,169 @@
+%% ─────────────────────────────────────────────────────────────────────────────
+%% style-matrix.mmd — Connector Style × Direction Matrix Demo
+%% ─────────────────────────────────────────────────────────────────────────────
+%% Exercises ALL 5 styles × 3 directions + @anim: decorator + wavy rendering.
+%% Tokens used:
+%%   Directed:      -->  -.->  ==>  -_->  -~->
+%%   Undirected:    ---  -.-   ===  -_-   -~-
+%%   Bidirectional: <-->  <-.->  <==>  <-_->  <-~->
+%%   Animation:     @anim:march  @anim:particle  @anim:glow
+%% ─────────────────────────────────────────────────────────────────────────────
+poster "Connector Style Matrix"
+  columns 5
+
+  %% ── Column 1: Solid ───────────────────────────────────────────────────────
+  cell SOL_SRC "Solid" :: flow
+    flowchart LR
+      src[Source]
+  end
+
+  cell SOL_DIR "→ Directed" :: flow
+    flowchart LR
+      dst[Target]
+  end
+
+  cell SOL_UND "Undirected" :: flow
+    flowchart LR
+      a[A]
+  end
+
+  cell SOL_BDIR "↔ Bidir" :: flow
+    flowchart LR
+      b[B]
+  end
+
+  cell SOL_ANIM "Animated" :: flow
+    flowchart LR
+      c[C]
+  end
+
+  %% ── Column 2: Dotted ──────────────────────────────────────────────────────
+  cell DOT_SRC "Dotted" :: flow
+    flowchart LR
+      src[Source]
+  end
+
+  cell DOT_DIR "→ Directed" :: flow
+    flowchart LR
+      dst[Target]
+  end
+
+  cell DOT_UND "Undirected" :: flow
+    flowchart LR
+      a[A]
+  end
+
+  cell DOT_BDIR "↔ Bidir" :: flow
+    flowchart LR
+      b[B]
+  end
+
+  cell DOT_ANIM "Animated" :: flow
+    flowchart LR
+      c[C]
+  end
+
+  %% ── Column 3: Thick ───────────────────────────────────────────────────────
+  cell THK_SRC "Thick" :: flow
+    flowchart LR
+      src[Source]
+  end
+
+  cell THK_DIR "→ Directed" :: flow
+    flowchart LR
+      dst[Target]
+  end
+
+  cell THK_UND "Undirected" :: flow
+    flowchart LR
+      a[A]
+  end
+
+  cell THK_BDIR "↔ Bidir" :: flow
+    flowchart LR
+      b[B]
+  end
+
+  cell THK_ANIM "Animated" :: flow
+    flowchart LR
+      c[C]
+  end
+
+  %% ── Column 4: Dashed ─────────────────────────────────────────────────────
+  cell DSH_SRC "Dashed" :: flow
+    flowchart LR
+      src[Source]
+  end
+
+  cell DSH_DIR "→ Directed" :: flow
+    flowchart LR
+      dst[Target]
+  end
+
+  cell DSH_UND "Undirected" :: flow
+    flowchart LR
+      a[A]
+  end
+
+  cell DSH_BDIR "↔ Bidir" :: flow
+    flowchart LR
+      b[B]
+  end
+
+  cell DSH_ANIM "March" :: flow
+    flowchart LR
+      c[C]
+  end
+
+  %% ── Column 5: Wavy ────────────────────────────────────────────────────────
+  cell WAV_SRC "Wavy" :: flow
+    flowchart LR
+      src[Source]
+  end
+
+  cell WAV_DIR "→ Directed" :: flow
+    flowchart LR
+      dst[Target]
+  end
+
+  cell WAV_UND "Undirected" :: flow
+    flowchart LR
+      a[A]
+  end
+
+  cell WAV_BDIR "↔ Bidir" :: flow
+    flowchart LR
+      b[B]
+  end
+
+  cell WAV_ANIM "Glow" :: flow
+    flowchart LR
+      c[C]
+  end
+
+  %% ── Cross-links ───────────────────────────────────────────────────────────
+
+  %% Solid
+  link SOL_SRC.src --> SOL_DIR.dst "solid →"
+  link SOL_UND.a --- SOL_BDIR.b "solid —"
+  link SOL_SRC.src <--> SOL_ANIM.c "solid ↔" @anim:particle
+
+  %% Dotted (Mermaid -.->)
+  link DOT_SRC.src -.-> DOT_DIR.dst "dotted →"
+  link DOT_UND.a -.- DOT_BDIR.b "dotted —"
+  link DOT_SRC.src <-.-> DOT_ANIM.c "dotted ↔"
+
+  %% Thick (Mermaid ==>)
+  link THK_SRC.src ==> THK_DIR.dst "thick →"
+  link THK_UND.a === THK_BDIR.b "thick —"
+  link THK_SRC.src <==> THK_ANIM.c "thick ↔"
+
+  %% Dashed (Triton -_->)
+  link DSH_SRC.src -_-> DSH_DIR.dst "dashed →"
+  link DSH_UND.a -_- DSH_BDIR.b "dashed —"
+  link DSH_SRC.src <-_-> DSH_ANIM.c "dashed ↔" @anim:march
+
+  %% Wavy (Triton -~->)
+  link WAV_SRC.src -~-> WAV_DIR.dst "wavy →"
+  link WAV_UND.a -~- WAV_BDIR.b "wavy —"
+  link WAV_SRC.src <-~-> WAV_ANIM.c "wavy ↔" @anim:glow

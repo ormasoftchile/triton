@@ -114,25 +114,37 @@ CellKind
 // ─── Cross-Link Declarations ─────────────────────────────────────────────────
 
 LinkDecl
-  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef label:(_ QuotedString)? ann:(_ "@" RouteAnnotation)? block:(_ PropBlock)? _ NL {
+  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef label:(_ QuotedString)? anns:(_ "@" Annotation)* block:(_ PropBlock)? _ NL {
+      // Start with props from { } block (lower precedence)
       const result = {};
-      if (ann) Object.assign(result, ann[2]);
       if (block) {
         const b = block[1];
-        // Map { route: X } → routing field
         if (b.route) { result.routing = b.route; delete b.route; }
-        // Map { anim: X } → animation field
         if (b.anim)  { result.animation = b.anim;  delete b.anim;  }
-        // Map { curveStyle: X } or { curve: X } → curveStyle field
         if (b.curveStyle) { result.curveStyle = b.curveStyle; delete b.curveStyle; }
         if (b.curve)      { result.curveStyle = b.curve;      delete b.curve;      }
         if (Object.keys(b).length > 0) result.props = b;
+      }
+      // Apply @ annotations last — @ WINS on conflict (superset rule §4.3)
+      for (const ann of anns) {
+        Object.assign(result, ann[2]);
       }
       addLink(from, arrow, to, label ? label[1] : null, Object.keys(result).length > 0 ? result : null);
       return { type: 'link' };
     }
 
 // ─── Annotations & Properties ────────────────────────────────────────────────
+
+Annotation
+  = "anim:" value:AnimValue { return { animation: value }; }
+  / route:RouteWord walls:(":" WallPair)? {
+      return { routing: route, ...(walls ? walls[1] : {}) };
+    }
+  / walls:WallPair { return walls; }
+
+AnimValue
+  = "march" / "particle" / "draw" / "pulse" / "glow"
+  / "comet" / "stream" / "flow" / "colorcycle" / "none"
 
 RouteAnnotation
   = route:RouteWord walls:(":" WallPair)? {
@@ -171,17 +183,32 @@ PropValue
   / Identifier
 
 // ─── Arrows ──────────────────────────────────────────────────────────────────
+// PEG ordered-choice: list extension+longest tokens BEFORE shorter ones.
+// Bidirectional before directed (so <--> matches before -->).
+// Directed before undirected (so -_-> matches before -_-).
 
 Arrow
-  = "<-->"  { return { direction: 'bidirectional', style: 'solid' }; }
-  / "<-.->" { return { direction: 'bidirectional', style: 'dashed' }; }
-  / "<..>"  { return { direction: 'bidirectional', style: 'dotted' }; }
-  / "-->"   { return { direction: 'directed', style: 'solid' }; }
-  / "-.->"  { return { direction: 'directed', style: 'dashed' }; }
-  / "..>"   { return { direction: 'directed', style: 'dotted' }; }
-  / "---"   { return { direction: 'undirected', style: 'solid' }; }
-  / "-.-"   { return { direction: 'undirected', style: 'dashed' }; }
-  / "..."   { return { direction: 'undirected', style: 'dotted' }; }
+  // ── Bidirectional ───────────────────────────────────────────────────────
+  = "<-~->" { return { direction: 'bidirectional', style: 'wavy'   }; }
+  / "<-_->" { return { direction: 'bidirectional', style: 'dashed' }; }
+  / "<-.->" { return { direction: 'bidirectional', style: 'dotted' }; }
+  / "<==>"  { return { direction: 'bidirectional', style: 'thick'  }; }
+  / "<-->"  { return { direction: 'bidirectional', style: 'solid'  }; }
+  // ── Directed ────────────────────────────────────────────────────────────
+  / "-~->"  { return { direction: 'directed', style: 'wavy'   }; }
+  / "-_->"  { return { direction: 'directed', style: 'dashed' }; }
+  / "-..->" { return { direction: 'directed', style: 'dotted' }; }
+  / "-.->"  { return { direction: 'directed', style: 'dotted' }; }
+  / "===>"  { return { direction: 'directed', style: 'thick'  }; }
+  / "==>"   { return { direction: 'directed', style: 'thick'  }; }
+  / "--->"  { return { direction: 'directed', style: 'solid'  }; }
+  / "-->"   { return { direction: 'directed', style: 'solid'  }; }
+  // ── Undirected ──────────────────────────────────────────────────────────
+  / "-~-"   { return { direction: 'undirected', style: 'wavy'   }; }
+  / "-_-"   { return { direction: 'undirected', style: 'dashed' }; }
+  / "-.-"   { return { direction: 'undirected', style: 'dotted' }; }
+  / "==="   { return { direction: 'undirected', style: 'thick'  }; }
+  / "---"   { return { direction: 'undirected', style: 'solid'  }; }
 
 // ─── Node References ─────────────────────────────────────────────────────────
 
