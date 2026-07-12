@@ -18,10 +18,9 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { renderSync } from '../../src/frontend/index.js';
-import { getThemePreset } from '../../src/theme/preset.js';
 import type { ResolvedTheme } from '../../src/contracts/theme.js';
-import { discoverThemes, loadThemeFile, findTritonThemesDir } from '../../src/theme/discover.js';
 import { svgToPdf } from './pdf.js';
+import { resolveCliTheme } from './theme-resolve.js';
 
 // ─── Arg parsing (tiny, dependency-free) ────────────────────────────────────────
 
@@ -107,64 +106,6 @@ Examples:
   triton-latex render diagram.mmd -o out.pdf --themes-dir .triton/themes --theme acme
   triton-latex render-dir diagrams/ -o figures/                         # batch → *.pdf
 `;
-
-// ─── Theme resolution ────────────────────────────────────────────────────────────
-
-/**
- * Resolve the theme to apply for a render, honoring the flag priority rules:
- *
- *   1. --theme-file <path>  → load that exact file; fatal on error.
- *   2. Build registry: auto-discover .triton/themes/ ancestor + --themes-dir overlay.
- *      --theme <name>        → registry lookup, else fall back to built-in preset.
- *   3. No flags              → undefined (core uses frontmatter / default preset).
- *
- * `inputDir` is the directory of the diagram being rendered, used for walk-up
- * auto-discovery.  Never throws — errors are surfaced as process.exit(1) + stderr.
- */
-export function resolveCliTheme(
-  args: Args,
-  inputDir: string,
-): ResolvedTheme | undefined {
-  // Priority 1: explicit theme file
-  if (args.themeFile) {
-    const result = loadThemeFile(resolve(args.themeFile));
-    if (!result.ok) {
-      console.error(`error: --theme-file: ${result.error.message}`);
-      process.exit(1);
-    }
-    return result.value;
-  }
-
-  // Priority 2: build name registry
-  const registry = new Map<string, ResolvedTheme>();
-
-  // Auto-discover .triton/themes/ walking up from inputDir
-  const autoDir = findTritonThemesDir(inputDir);
-  if (autoDir) {
-    const { themes, warnings } = discoverThemes(autoDir);
-    for (const [name, theme] of themes) registry.set(name, theme);
-    for (const w of warnings) console.error(`warning: ${w}`);
-  }
-
-  // --themes-dir override (merged on top; overrides auto on collision)
-  if (args.themesDir) {
-    const { themes, warnings } = discoverThemes(resolve(args.themesDir));
-    for (const [name, theme] of themes) registry.set(name, theme);
-    for (const w of warnings) console.error(`warning: ${w}`);
-  }
-
-  // --theme <name>: registry first, then built-in preset
-  if (args.theme) {
-    if (registry.has(args.theme)) {
-      return registry.get(args.theme)!;
-    }
-    // Falls back to built-in preset (getThemePreset returns default if unknown)
-    return getThemePreset(args.theme);
-  }
-
-  // No theme flags — core decides
-  return undefined;
-}
 
 // ─── Rendering ──────────────────────────────────────────────────────────────────
 
@@ -256,7 +197,13 @@ async function main(): Promise<number> {
       return 1;
     }
     const inputPath = resolve(input);
-    const themeInput = resolveCliTheme(args, dirname(inputPath));
+    let themeInput: ResolvedTheme | undefined;
+    try {
+      themeInput = resolveCliTheme(args, dirname(inputPath));
+    } catch (e) {
+      console.error(`error: ${(e as Error).message}`);
+      return 1;
+    }
     await renderFile(inputPath, resolve(args.out), themeInput, args.scale);
     console.log(`✓ ${input} → ${args.out}`);
     return 0;
@@ -270,7 +217,13 @@ async function main(): Promise<number> {
       return 1;
     }
     const resolvedSrcDir = resolve(srcDir);
-    const themeInput = resolveCliTheme(args, resolvedSrcDir);
+    let themeInput: ResolvedTheme | undefined;
+    try {
+      themeInput = resolveCliTheme(args, resolvedSrcDir);
+    } catch (e) {
+      console.error(`error: ${(e as Error).message}`);
+      return 1;
+    }
     const { rendered, failed } = await renderDir(
       resolvedSrcDir,
       resolve(args.out),
