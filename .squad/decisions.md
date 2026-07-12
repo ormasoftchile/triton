@@ -3031,3 +3031,468 @@ Shipped in v0.1.10. Build passed. Icons verified by Cristian on dark/light backg
 - Distinct side-preview glyph (openPreviewToSide now visually distinct from openPreview)
 
 ---
+---
+
+# Decision: External Theming + triton.sty Cache-Key Fix — Design & 6-Phase Implementation Plan (Approved 2026-07-12)
+
+**Design Author:** Leslie (Spec Architect)  
+**Decision Authority:** Cristian (via Copilot Coordinator)  
+**Date:** 2026-07-12T14:39:00-04:00 (analysis) → 2026-07-12T15:00:00-04:00 (decisions)  
+**Status:** APPROVED — ready for Phase 0 start
+
+---
+
+## Executive Summary
+
+Leslie completed a full architectural analysis of external theme files and their integration into the triton ecosystem. The design is **fully feasible** — external theme files are inherently I/O (reads from disk/network), so they must be loaded by hosts (VS Code, CLI, LaTeX), not the compiler. The compiler already has the right seam: `renderSync(input, themeInput?, ...)` and `compileSync(input, themeInput?, ...)`.
+
+**Cristian approved the 6-phase Tier-1 implementation plan** (est. 16–20 hours) and resolved all 5 open questions. Key decisions override Leslie's draft design where they conflict.
+
+---
+
+## Cristian's Decisions on 5 Open Questions
+
+1. **Unknown-key policy = STRICT / ERROR** ⚠️  
+   Theme files with unknown keys are **REJECTED** (not a warning). This **OVERRIDES Leslie's draft** (which proposed forward-compat warning). The `validateThemeInput()` function must return an error on any unknown top-level or nested key. Rationale: catch typos early during adoption.
+
+2. **Name derivation = from filename when `name` omitted**  
+   If a theme file has no `name` field, derive it from the filename: `acme-corp.triton-theme.json` → name `"acme-corp"`. The `name` field is optional.
+
+3. **`base` key = supported, optional, defaults to `"default"`**  
+   Partial theme files can declare a `base` preset to merge over: `"base": "executive"`. If absent, `"default"` is used. Merging happens via the existing `resolveTheme(input, getThemePreset(base))`.
+
+4. **File extension = `.triton-theme.json`**  
+   Self-documenting, JSON-tooling-friendly, glob-able. Not `.tritontheme` or `.theme.json`.
+
+5. **Phase 0 cache-key mechanism = shell `printf >> tempfile`**  
+   Append a `%% triton-key: <theme> scale=<n>` comment line to the LaTeX temp file before hashing. The `%%` prefix ensures `stripComments()` removes it before compilation — it affects the file hash but never the IR/SVG. Shell is always available (required by `-shell-escape` anyway).
+
+---
+
+## Leslie's Architectural Analysis (Full Context)
+
+### Design Principles
+
+**Verdict: Fully feasible. The existing architecture already has the right seam.**
+
+The compiler (`triton-core`) is a pure function of text. External themes are inherently I/O — reading from disk or network — so the compiler must never load them itself.
+
+The current API already supports external themes in principle:
+
+```typescript
+renderSync(input, themeInput?: ThemeInput, rendererName?, forcedThemeName?)
+compileSync(input, themeInput?: ThemeInput, forcedThemeName?)
+```
+
+A host (VS Code, CLI, web app) reads any JSON file, deserializes it into a `ThemeInput`, and passes it to `renderSync()` / `compileSync()`. The compiler receives a data object — it neither knows nor cares where it came from. The merge substrate (`resolveTheme()` in `src/theme/resolver.ts`) already handles partial-over-base merging.
+
+**What triton-core exposes (new):**
+- A **validation function** — `validateThemeInput(unknown): Result<ThemeInput>` — confirming a parsed JSON blob conforms to the `ThemeInput` shape. This keeps schema knowledge in the compiler (where types live) without introducing I/O.
+- Optionally, a **JSON Schema** (`triton-theme.schema.json`) published alongside the package for IDE autocomplete in `.json` theme files.
+
+**What each host does (new):**
+- Reads the external file (fs, fetch, vscode.workspace.fs)
+- Calls `JSON.parse()`
+- Calls `validateThemeInput()` to confirm shape
+- Passes the validated `ThemeInput` into the existing render API
+
+**What does NOT change in the compiler:** zero. No new parameters, no new I/O paths, no new dependencies.
+
+### File Format & Schema
+
+**JSON is the only reasonable choice.** `ThemeInput` and `ResolvedTheme` are already JSON-serializable TypeScript interfaces. No translation layer needed. YAML would add a parser dependency; TOML would add friction; CSS custom properties would lose typed structure.
+
+#### Full Theme vs. Partial Override
+
+Both are supported, because `resolveTheme()` already handles both:
+
+| Mode | File contains | Base resolution |
+|------|---------------|-----------------|
+| **Full theme** | All fields present (a `ResolvedTheme`) | Used as-is; no base needed |
+| **Partial override** | Subset of fields (a `ThemeInput`) + optional `base` key | Merged over named preset or `default` |
+
+A partial file example:
+
+```json
+{
+  "$schema": "https://unpkg.com/triton-core/triton-theme.schema.json",
+  "base": "executive",
+  "name": "acme-corporate",
+  "palette": {
+    "primary": "#003366",
+    "secondary": "#CC9900"
+  }
+}
+```
+
+#### Validation & Failure Mode
+
+Consistent with Triton's "never crash" ethos:
+- Invalid JSON → diagnostic warning + fall back to `default` theme
+- Valid JSON but wrong shape → diagnostic warning + fall back to `default` theme
+- Missing file → diagnostic warning + fall back to `default` theme
+
+The compiler never sees bad data; the host validates before passing it through.
+
+### Reference Mechanism — How Diagrams Point at External Themes
+
+Diagrams reference external themes via **frontmatter `theme:` key** (Option D from Leslie's original analysis):
+
+```mermaid
+---
+theme: ./corporate.triton-theme.json
+---
+flowchart LR
+  A --> B
+```
+
+The host resolves the path relative to the diagram's location, loads the file, validates it, and passes it as `themeInput` to the render API. Simple, familiar (like Mermaid's existing frontmatter), and doesn't bloat the diagram syntax.
+
+---
+
+## Implementation Plan (§10) — 6 Phases, All Tier-1
+
+### Dependency Graph
+
+```
+Phase 0 (cache-key fix)          ← independent, ship immediately
+Phase 1 (triton-core validator)  ← foundational
+Phase 2 (shared loader util)     ← depends on Phase 1
+Phase 3 (VS Code extension)      ← depends on Phase 2
+Phase 4 (triton-latex)           ← depends on Phase 0, Phase 2
+Phase 5 (docs + examples)        ← depends on all above
+```
+
+### Phase 0 — triton.sty Cache-Key Fix
+
+**Goal:** Ensure `\tritontheme` and `\tritonscale` changes invalidate cached inline-render PDFs.
+
+**Files touched:**
+- `latex/triton.sty` (lines 120–127: the `\triton@render` macro)
+
+**Concrete change:**
+
+The `%% triton-key:` comment appended to the LaTeX temp file must encode current render parameters, making the hash incorporate theme + scale identity. Insert this in `\endtriton` after `\end{VerbatimOut}` but before `\triton@render`:
+
+```latex
+\def\endtriton{%
+  \end{VerbatimOut}%
+  \immediate\write18{printf '\@percentchar\@percentchar triton-key: \triton@themearg\space scale=\triton@scale\string\n' >> "\triton@tmpfile"}%
+  \triton@render
+  \triton@nextsetfalse
+}
+```
+
+Similarly for `\tritoninline`:
+
+```latex
+\NewDocumentCommand{\tritoninline}{O{\triton@opts} v}{%
+  \def\triton@curopts{#1}%
+  \immediate\openout\triton@inlinestream=\triton@tmpfile\relax
+  \immediate\write\triton@inlinestream{#2}%
+  \immediate\write\triton@inlinestream{\@percentchar\@percentchar triton-key: \triton@themearg\space scale=\triton@scale}%
+  \immediate\closeout\triton@inlinestream
+  \triton@render
+}
+```
+
+**Acceptance criteria:**
+1. Change `\tritontheme{X}` to `\tritontheme{Y}` → next `pdflatex -shell-escape` re-renders (cache miss).
+2. Change `\tritonscale{1}` to `\tritonscale{2}` → re-renders.
+3. No change to source, theme, or scale → cache hit (no re-render).
+4. The `%% triton-key:` line is stripped by `stripComments()` in core and never affects the IR/SVG.
+
+**Tests:**
+- Manual: `latex/examples/inline-demo.tex` — compile, check cache dir for PDF, change `\tritontheme`, recompile, verify new PDF appears with different hash.
+- Automated: add a shell script `latex/test-cache-invalidation.sh` that compiles twice (same source, different theme) and asserts two distinct PDFs in the cache dir.
+- Existing `pnpm test` (core) verifies `stripComments()` removes `%%` lines (already covered by the 404-test suite).
+
+**Dependencies:** None. Ships independently.
+
+**Effort:** ~1 hour (TeX macro surgery + manual verification).
+
+---
+
+### Phase 1 — triton-core: Validator + JSON Schema
+
+**Goal:** Expose a pure validation function and a published JSON Schema so hosts can validate external theme files against the canonical type.
+
+**Files touched:**
+- NEW: `src/theme/validate.ts` — the `validateThemeInput()` function
+- NEW: `src/theme/schema.json` — the JSON Schema (generated or hand-written)
+- EDIT: `src/theme/index.ts` — NEW barrel file re-exporting resolver, preset, validate
+- EDIT: `src/frontend/index.ts` — re-export `validateThemeInput` for npm consumers
+- EDIT: `test/theme.test.ts` — new test cases for validator
+
+**Validation rules (per Cristian's decision, unknown keys = ERROR):**
+- Input must be a non-null object
+- `name`: optional string, 1–64 chars, `[a-z0-9-]` (slug format)
+- `base`: optional string (must be a known preset name if present)
+- `palette`: optional object; each field if present must be a valid CSS hex color (`#RGB` or `#RRGGBB`)
+- `typography.fontFamily` / `monoFamily`: string, no `url()` or `expression()` (security)
+- `typography.*FontSize`, `lineHeight`: positive number
+- `spacing.*`: non-negative number
+- `edges.*`: non-negative number; `curveTension` 0–1
+- `panel.titleAlign`: one of `'left'|'center'|'right'`
+- `panel.titlePosition`: one of `'inside'|'on-border'|'above'`
+- `panel.titleChrome`: one of `'none'|'box'|'pill'`
+- **Unknown top-level or nested keys: REJECTED (error, not warning)**
+
+**JSON Schema (`src/theme/schema.json`):**
+- `$id`: `"https://triton.dev/schemas/triton-theme.schema.json"` (or npm unpkg URL)
+- Covers ThemeInput shape with `additionalProperties: false` per group
+
+**Export surface:**
+- `src/frontend/index.ts` adds: `export { validateThemeInput, isBuiltinThemeName } from '../theme/validate.js';`
+
+**Tests (`test/theme.test.ts`):**
+- `validateThemeInput({})` → `ok({})` (empty ThemeInput is valid)
+- `validateThemeInput({ palette: { primary: '#FF0000' } })` → `ok(...)`
+- `validateThemeInput({ palette: { primary: 'not-a-color' } })` → `err(...)`
+- `validateThemeInput("string")` → `err(...)`
+- `validateThemeInput({ unknownKey: 1 })` → `err(...)` (STRICT policy)
+- `validateThemeInput({ palette: { unknownField: '#FFF' } })` → `err(...)`
+- `isBuiltinThemeName('executive')` → `true`
+- `isBuiltinThemeName('acme')` → `false`
+- The schema file validates against JSON Schema meta-schema
+
+**Dependencies:** None (pure addition to core).
+
+**Effort:** ~3–4 hours (validator logic + schema + tests).
+
+---
+
+### Phase 2 — Shared Theme Loader Utility
+
+**Goal:** A small, reusable module that scans a directory for `.triton-theme.json` files, validates them, and returns a name→ResolvedTheme registry. Used by both the VS Code extension and the triton-latex CLI.
+
+**Files touched:**
+- NEW: `src/theme/discover.ts`
+- EDIT: `src/frontend/index.ts` — add export
+- NEW: `test/theme-discover.test.ts`
+
+**Interface:**
+
+```typescript
+export interface ThemeDiscoveryResult {
+  readonly themes: ReadonlyMap<string, ResolvedTheme>;
+  readonly warnings: readonly string[];
+}
+
+export function discoverThemes(dir: string): ThemeDiscoveryResult { ... }
+export function loadThemeFile(path: string): Result<ResolvedTheme> { ... }
+export function findTritonThemesDir(startDir: string): string | undefined { ... }
+```
+
+**Resolution logic:**
+1. Parse JSON
+2. `validateThemeInput(json)` — reject on error
+3. If `json.base` is set, resolve over that preset: `resolveTheme(input, getThemePreset(json.base))`
+4. If no `base`, resolve over `default`: `resolveTheme(input, getThemePreset('default'))`
+5. If `isBuiltinThemeName(resolvedTheme.name)` → add warning, skip registration
+6. If no `name` field → derive from filename (e.g., `acme-corporate.triton-theme.json` → `acme-corporate`)
+
+**Tests:**
+- Create temp fixture dirs with valid/invalid theme files
+- Verify discovery returns correct map + warnings
+- Verify built-in name collision is caught
+- Verify `findTritonThemesDir` walk-up logic
+
+**Dependencies:** Phase 1 (needs `validateThemeInput`, `isBuiltinThemeName`).
+
+**Effort:** ~2–3 hours.
+
+---
+
+### Phase 3 — VS Code Extension
+
+**Goal:** The extension auto-discovers `.triton/themes/` at activation, registers external themes, augments the dropdown, watches for changes, and re-renders on theme file edits.
+
+**Files touched:**
+- NEW: `extension/src/theme-registry.ts` — external theme registry + discovery + watcher
+- EDIT: `extension/src/extension.ts` — integrate registry into `PreviewManager`
+- EDIT: `extension/src/preview-html.ts` — dropdown includes custom themes
+
+**Core class:**
+
+```typescript
+export class ThemeRegistry implements vscode.Disposable {
+  refresh(): void { ... }                    // scan for theme files
+  allNames(): readonly string[] { ... }       // all (built-in + custom)
+  customNames(): readonly string[] { ... }    // custom only
+  resolve(name: string): ResolvedTheme | undefined { ... }
+  isKnown(name: string): boolean { ... }
+  dispose(): void { ... }
+  onDidChange: vscode.Event<void>
+}
+```
+
+**Integration:**
+- Instantiate `ThemeRegistry` in `activate()`, call `registry.refresh()`
+- `PreviewManager.selectedTheme()` validates against `registry.isKnown()` (instead of just `themePresetNames`)
+- `themeArgs()`: resolve custom theme names via `registry.resolve(name)` → pass full `ResolvedTheme` as `themeInput`
+- Listen to `registry.onDidChange` → re-render active preview
+- File watchers: one per workspace folder
+
+**Dropdown augmentation:**
+- Built-in group (all presets)
+- Custom group (if any, with divider)
+- Both groups selectable
+
+**Name collision handling:**
+- `discoverThemes()` already excludes built-in-colliding names with warnings
+- Extension surfaces warnings via `vscode.window.showWarningMessage()`
+
+**Tests:**
+- Unit tests for `ThemeRegistry` (mock vscode, filesystem)
+- Integration: activate with fixture workspace containing `.triton/themes/`
+
+**Dependencies:** Phase 2 (`discoverThemes`, `loadThemeFile`).
+
+**Effort:** ~4–5 hours.
+
+---
+
+### Phase 4 — triton-latex CLI + .sty
+
+**Goal:** The CLI gains `--theme-file` and `--themes-dir` flags + `.triton/themes/` auto-discovery. The `.sty` gains macros to forward these. The Phase-0 cache key is extended to cover external theme identity.
+
+**Files touched:**
+- EDIT: `latex/src/cli.ts` — new flags, theme resolution logic
+- EDIT: `latex/triton.sty` — new macros + extended cache key
+- EDIT: `latex/examples/` — add example with external theme
+
+**CLI additions:**
+
+```typescript
+interface Args {
+  readonly themeFile?: string;    // NEW: --theme-file <path>
+  readonly themesDir?: string;    // NEW: --themes-dir <dir>
+  readonly theme?: string;        // existing: --theme <name>
+}
+```
+
+**Theme resolution:**
+1. Explicit `--theme-file` (highest priority)
+2. Build registry: `--themes-dir` + auto-discovered `.triton/themes/` + built-ins
+3. Resolve `--theme` against registry + built-ins
+
+**LaTeX macros:**
+
+```latex
+\def\triton@themefilearg{}
+\newcommand{\tritonthemefile}[1]{\def\triton@themefilearg{\space--theme-file #1}}
+
+\def\triton@themesdirarg{}
+\newcommand{\tritonthemesdir}[1]{\def\triton@themesdirarg{\space--themes-dir #1}}
+```
+
+Update `\write18` invocation to include new args:
+
+```latex
+\immediate\write18{\triton@cli\space render "\triton@tmpfile" -o
+  "\triton@pdf" --scale \triton@scale\triton@themearg\triton@themefilearg\triton@themesdirarg}%
+```
+
+**Cache key extension:**
+
+```latex
+\immediate\write18{printf '\@percentchar\@percentchar triton-key: \triton@themearg\triton@themefilearg\triton@themesdirarg\space scale=\triton@scale\string\n' >> "\triton@tmpfile"}%
+```
+
+**Tests:**
+- Unit: `latex/test/cli-theme.test.ts` — test theme resolution with fixtures
+- Integration: shell script renders with `--theme-file`, verifies SVG contains expected colors
+- Manual: `latex/examples/inline-demo.tex` updated with `\tritonthemesdir` + example
+
+**Note:** Cache includes theme path/name but NOT file content hash. If user edits a `.triton-theme.json` file without changing its path, the cache is stale. Mitigation: document that `\tritoncachedir` should be cleaned after editing theme files. Tier-2 improvement: content-aware hashing.
+
+**Dependencies:** Phase 0 (cache-key fix), Phase 2 (discovery/validation).
+
+**Effort:** ~3–4 hours.
+
+---
+
+### Phase 5 — Documentation + Examples
+
+**Goal:** A template theme file, updated READMEs, and a worked cross-host example proving the same theme works in VS Code + LaTeX.
+
+**Files touched:**
+- NEW: `examples/.triton/themes/example.triton-theme.json` — canonical template
+- NEW: `docs/external-themes.md` — user-facing guide
+- EDIT: `latex/README.md` — document new flags + macros
+- EDIT: `extension/README.md` — document `.triton/themes/` convention
+- NEW: `latex/examples/.triton/themes/paper-theme.triton-theme.json` — LaTeX-specific example
+- EDIT: `latex/examples/inline-demo.tex` — use the custom theme
+
+**Template theme (`examples/.triton/themes/example.triton-theme.json`):**
+
+```json
+{
+  "$schema": "../../../src/theme/schema.json",
+  "name": "example-custom",
+  "base": "default",
+  "palette": {
+    "primary": "#2563EB",
+    "secondary": "#7C3AED",
+    "background": "#FAFAFA"
+  },
+  "typography": {
+    "fontFamily": "Inter, system-ui, sans-serif"
+  }
+}
+```
+
+**`docs/external-themes.md` sections:**
+1. Overview (what external themes are, the `.triton-theme.json` format)
+2. File format reference (all fields, the `base` key, the `$schema` key)
+3. VS Code: `.triton/themes/` convention, dropdown, live reload
+4. LaTeX/CLI: `--theme-file`, `--themes-dir`, auto-discovery, `\tritonthemefile`, `\tritonthemesdir`
+5. Authoring guide: start from a preset, override what you need
+6. Cross-host example: same file used in VS Code preview + LaTeX paper
+7. Troubleshooting: cache invalidation, name collisions, validation errors
+
+**Tests:**
+- `example.triton-theme.json` passes `validateThemeInput()` (unit test)
+- Documentation reviewed for accuracy
+
+**Dependencies:** All prior phases.
+
+**Effort:** ~2–3 hours.
+
+---
+
+### Summary Table
+
+| Phase | Scope | Effort | Ships in Tier-1? | Depends on |
+|-------|-------|--------|------------------|------------|
+| 0 | `.sty` cache-key fix | 1h | ✅ | — |
+| 1 | Core validator + schema | 3–4h | ✅ | — |
+| 2 | Shared loader/discover | 2–3h | ✅ | Phase 1 |
+| 3 | VS Code extension | 4–5h | ✅ | Phase 2 |
+| 4 | triton-latex CLI + .sty | 3–4h | ✅ | Phase 0, 2 |
+| 5 | Docs + examples | 2–3h | ✅ (minimal) | All |
+| **Total** | | **~16–20h** | | |
+
+### Explicit Deferrals (Tier-2+)
+
+| Item | Reason | Prerequisite |
+|------|--------|--------------|
+| `triton.themes.paths` VS Code setting | Convention-based discovery covers 95% | Phase 3 shipped |
+| User-scoped global themes (~/.triton/) | Wait for demand | Phase 3 shipped |
+| Refactor built-in presets into .json data files | Dogfooding / cleanup, not user-facing | Phase 1 shipped |
+| Content-aware cache hashing (CLI returns hash) | Phase 0 fix is sufficient for Tier-1 | Phase 4 shipped |
+| Theme inheritance chains (A extends B extends preset) | Premature complexity | Phase 1 shipped |
+| Remote URL themes | Security risk, breaks determinism | Never (permanent deferral) |
+| `<optgroup>` HTML in dropdown | Polish | Phase 3 shipped |
+
+---
+
+## Next Steps
+
+1. **Phase 0** starts immediately (cache-key fix in triton.sty).
+2. **Phase 1** follows (core validator + schema) — can proceed in parallel with Phase 0 since they're independent.
+3. **Phases 2–5** sequence by dependency graph.
+4. Each phase = own PR + `[version:patch]` bump.
+5. Full test coverage for each phase before merge.
+

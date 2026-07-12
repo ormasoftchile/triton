@@ -58,3 +58,14 @@
 - Example cleanup (2026-07-12): All 84 .mmd files rendered cleanly (0 bad). The only true redundancy found was `examples/triton/poster/launch-readiness.mmd` — a 2-column poster with flowchart+stat+timeline+text cells identical in structure to `poster.mmd`. Removed it + its .svg + 12 theme SVGs (14 files total). Every other file has at least one distinct layout, directive, axis, diagram type, or feature combination. The `examples.test.ts` uses dynamic discovery so removing one .mmd reduces the test count by exactly 1 (541→540). High-count dirs: mermaid/timeline (9 distinct layouts), ds/tree (9 distinct diagram types: avl/btree/heap/rbtree/radix/segtree + plan/tree/decision), ds/queue (4 types × 2 axis = 8), poster (distinct grid widths + spanning features). `git rm -f` required because the file had uncommitted `%%`-only connector-syntax header changes.
 - Cross-link label overlap (2026-07-12): The cross-link label de-collision pass only avoids `allNodeBounds` (anchor node rects) and `occupiedRects` (cell/poster titles). Internal visual chrome of child diagrams — e.g., the PageHeader bar in `page.ts` — is invisible to it. The de-collision can actually CAUSE overlap: if a label's initial position sits just below a chrome bar, a node below the label can push it UP into the bar. Fix layer: `LayoutResult` contract (`src/contracts/anchors.ts`) — added `chromeRects?: readonly Rect[]`; `page.ts` populates it with the PageHeader bar; poster `layout.ts` transforms and adds them to `textOccupied` (= `fixedRects` for de-collision). Any future child diagram with wide header chrome should do the same. The fix is zero-cost for diagrams that don't set `chromeRects`.
 - openPreviewToSide icon (2026-07-12): Gets a distinct split/side glyph (preview-side-light.svg / preview-side-dark.svg) — rounded rect with vertical divider + checkmark in right pane — so the two editor-title toolbar buttons can be visually told apart (like VS Code markdown).
+
+## External Theming Plan Approved (2026-07-12)
+
+**Note:** Leslie's design analysis + 6-phase Tier-1 implementation plan for external `.triton-theme.json` files approved by Cristian (5 decisions resolved). Plan includes phases that may involve Brian (layout-independent; primarily core validator, shared discovery, CLI, docs).
+
+**Key decisions affecting implementation:**
+- Unknown-key policy = STRICT / ERROR (not forward-compat warning).
+- Phase 0 (triton.sty cache-key fix) can start immediately.
+- Phases 1–5 sequence by dependency graph (Phase 1 independent, Phases 2–5 blocked on 1+0).
+
+**Plan:** `.squad/decisions.md` (merged 2026-07-12T19:09Z); inbox files deleted.
