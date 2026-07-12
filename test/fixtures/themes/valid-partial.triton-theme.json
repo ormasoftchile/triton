@@ -1,0 +1,7 @@
+{
+  "name": "acme-brand",
+  "base": "default",
+  "palette": {
+    "primary": "#E63946"
+  }
+}

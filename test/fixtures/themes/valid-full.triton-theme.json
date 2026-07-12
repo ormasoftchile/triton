@@ -1,0 +1,41 @@
+{
+  "name": "acme-full",
+  "base": "executive",
+  "palette": {
+    "primary": "#1A1A2E",
+    "secondary": "#16213E",
+    "background": "#FFFFFF",
+    "surface": "#F5F5F5",
+    "border": "#CCCCCC",
+    "text": "#222222",
+    "textMuted": "#666666",
+    "success": "#2ECC71",
+    "warning": "#F39C12",
+    "error": "#E74C3C"
+  },
+  "typography": {
+    "fontFamily": "Helvetica Neue, Arial, sans-serif",
+    "monoFamily": "Courier New, monospace",
+    "baseFontSize": 13,
+    "titleFontSize": 16,
+    "smallFontSize": 10,
+    "lineHeight": 1.5
+  },
+  "spacing": {
+    "unit": 8,
+    "nodePadding": 10,
+    "nodeGap": 32,
+    "diagramMargin": 20
+  },
+  "edges": {
+    "strokeWidth": 2,
+    "arrowSize": 9,
+    "labelFontSize": 11,
+    "curveTension": 0.3
+  },
+  "panel": {
+    "titleAlign": "center",
+    "titlePosition": "on-border",
+    "titleChrome": "box"
+  }
+}

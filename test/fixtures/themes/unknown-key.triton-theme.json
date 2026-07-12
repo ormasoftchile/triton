@@ -1,0 +1,7 @@
+{
+  "name": "acme-unknown",
+  "palette": {
+    "primary": "#FF0000"
+  },
+  "unknownKey": "this-should-fail-validation"
+}
