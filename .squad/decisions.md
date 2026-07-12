@@ -2959,3 +2959,75 @@ Created a full-color 256×256 icon with an unmistakable trident motif:
 
 ---
 
+---
+
+# Decision: Preview Icon Fixes — Dark Mode & Distinct Glyph (2026-07-12)
+
+## Summary
+
+Fixed two preview command icon issues in the VS Code extension:
+
+1. **Dark mode visibility** — Both `triton.openPreview` and `triton.openPreviewToSide` buttons were invisible on dark toolbars.
+2. **Visual distinction** — Both buttons displayed identical glyphs, making them indistinguishable.
+
+## Root Cause
+
+Original `preview.svg` used `stroke="currentColor"` / `fill="currentColor"`. VS Code resolves `currentColor` to black when rendering contributed command icons as background images. Black is visible on light toolbars, invisible on dark.
+
+## Fix
+
+**Dark Mode Visibility:**
+- Created `extension/resources/preview-light.svg` (ink `#424242` — light-theme icon foreground)
+- Created `extension/resources/preview-dark.svg` (ink `#C5C5C5` — dark-theme icon foreground)
+- Updated both command icon blocks in `extension/package.json` to reference light/dark variants
+
+**Visual Distinction:**
+- Created `extension/resources/preview-side-light.svg` (stroke `#424242`, side-pane glyph)
+- Created `extension/resources/preview-side-dark.svg` (stroke `#C5C5C5`, side-pane glyph)
+- Updated `triton.openPreviewToSide` command icon block in `extension/package.json` to use side variants
+- `triton.openPreview` retains the plain preview glyph
+
+## Geometry
+
+- **preview.svg** (plain pane): Single rounded rect + icon
+- **preview-side.svg** (side pane): Two-pane split (rounded rect + vertical divider at x=8 + checkmark in right pane)
+
+Both variants are fully color-baked (hardcoded hex, no `currentColor`).
+
+## Verification
+
+High-contrast modes (HC-dark, HC-light) fall back to the appropriate light/dark variant. Reload Extension Dev Host and confirm both buttons are visible in the editor title bar on dark themes.
+
+## Status
+
+Shipped in v0.1.10. Build passed. Icons verified by Cristian on dark/light backgrounds before release.
+
+---
+
+# Releases: v0.1.9 & v0.1.10
+
+## v0.1.9
+
+**Date:** 2026-07-12  
+**PR:** #59  
+**Commit:** squash-merge 9b09b76  
+**Published:** npm publish succeeded via publish-npm.yml  
+**Packages:** @bradygaster/triton-core, @bradygaster/triton-latex, @bradygaster/triton-extension  
+
+**Contents:**
+- Connector superset syntax finalized (march, particle, draw, pulse, glow, comet, stream, flow, colorcycle animations)
+- Example cleanup (84 files audited, 1 redundant removed)
+
+## v0.1.10
+
+**Date:** 2026-07-12  
+**PR:** #60  
+**Commit:** squash-merge b6fc192  
+**Published:** npm publish succeeded via publish-npm.yml (run 29204094255)  
+**Packages:** @bradygaster/triton-core, @bradygaster/triton-latex, @bradygaster/triton-extension  
+
+**Contents:**
+- Preview icon dark-mode fix (color-baked light/dark variants)
+- Distinct side-preview glyph (openPreviewToSide now visually distinct from openPreview)
+
+---
