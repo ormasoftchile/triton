@@ -6636,3 +6636,143 @@ this.iconRegistry.onDidChange(() => this.onIconRegistryChange());
 - `extension/src/extension.ts` — import IconRegistry; add `iconRegistry` field + watcher lifecycle; `onIconRegistryChange` handler; pass `iconRegistry.iconPacks()` into both render calls
 - `extension/src/markdown.ts` — add `icons?: IconPackMap` to `renderFencedBlock`, thread into `renderSync`
 - `src/frontend/index.ts` — add `icons?: IconPackMap` to `compileAndRenderSync`, forward to `compileSync`
+# Decision: Icon Pack Converter (P5a)
+
+**Date:** 2026-07-12T21:11:40-04:00  
+**Author:** Bjarne (Ingestion Design)  
+**Status:** Implemented
+
+---
+
+## Context
+
+The icon feature (P0–P7) is functionally complete. Users need a way to author their own icon packs — converting an existing directory of SVG files (e.g. Azure architecture icons) into a valid `*.triton-icons.json` pack. Without this, the pack format is useful but hard to populate.
+
+## Decision
+
+Build `scripts/convert-icons.mjs` — a standalone CLI converter using `@iconify/tools` as the canonical SVG processing library.
+
+### What was decided
+
+1. **Placement:** `scripts/convert-icons.mjs` (not `src/`). Converter is an authoring tool, not part of the core render path. It must never be imported from `src/**`.
+
+2. **Dependency:** `@iconify/tools` added as `devDependency` only. Core (`triton-core` / `packages/core/`) stays a pure function of text with zero runtime dependencies on authoring tooling. The decision is explicit in the converter's header comment.
+
+3. **Pipeline:** `importDirectory` → per-icon `cleanupSVG` + `runSVGO` → `iconSet.export()` → sanitise to Triton-allowed keys → `validateIconPack`.
+
+4. **Output sanitisation required:** `iconSet.export()` from `@iconify/tools` emits extra fields (`lastModified`, `info`, `not_found`) that Triton's strict validator (`additionalProperties: false`) rejects. The converter explicitly filters to only `TRITON_TOP_LEVEL_KEYS` and `TRITON_ICON_DATA_KEYS` before writing.
+
+5. **Uniform dimension hoisting:** If all icons share the same `width`/`height`, those are hoisted to the pack level (individual icon dims stripped). This keeps output compact and consistent with how existing fixture packs look.
+
+6. **Name normalisation:** Kebab-case, lowercase, replace non-alnum runs with `-`, prepend `icon-` if result fails NAME_RE. Implemented in `keyword` callback of `importDirectory`.
+
+7. **Inline `detectColorMode`:** The converter reimplements the same heuristic from `src/icons/resolver.ts` for CLI reporting (monochrome vs brand breakdown). Does not import from `src/` — avoids coupling the authoring tool to the compiled TypeScript.
+
+8. **Test strategy:** Fixture-based round-trip in `test/icon-converter.test.ts`. Fixture SVGs at `test/fixtures/svg-icons/` (3 files: 1 brand, 2 monochrome). Test imports `convertIconDirectory` directly, validates with `validateIconPack`. No subprocess. 9 new tests.
+
+9. **CLI validation:** Script imports `validateIconPack` from `packages/core/dist/icons/validate.js` at runtime (dynamic import, graceful fallback if dist not built). Users see a clear `✓ passes validateIconPack` in the output.
+
+## Alternatives considered
+
+- **Write converter as a `.ts` file under `src/` or `tools/`** — rejected. Would pull `@iconify/tools` into the core build graph, violating the pure-core constraint.  
+- **Use `exportJSONPackage` directly** — rejected. It writes files, has its own path logic, and the output structure differs from what `validateIconPack` allows (extra fields). Manual `export()` + sanitise gives us full control.
+- **Don't use `@iconify/tools`, parse SVGs manually** — rejected. The task explicitly requires `@iconify/tools` as the canonical library, and its SVG cleanup + SVGO pipeline is non-trivial to replicate correctly.
+
+## Consequences
+
+- Any user can now run `node scripts/convert-icons.mjs <dir> <prefix>` to author an icon pack.
+- `@iconify/tools` is a devDep — not shipped in `packages/core`, not in the extension bundle.
+- 796 total tests (was 787). All green.
+- `pnpm typecheck` 0 errors. `pnpm build` clean.
+- Mark (docs) can reference the script in authoring documentation without waiting for any further changes.
+# Decision: Icon & Card Node User-Facing Documentation (P5b)
+
+**Author:** Mark (IR & Data Modeling)
+**Date:** 2026-07-12T21:11:40-04:00
+**Status:** Delivered — pending Scribe merge
+
+---
+
+## Summary
+
+`docs/icons-and-card-nodes.md` has been authored as the single user-facing
+reference for the complete icon feature (P0–P7, 787 tests).
+
+---
+
+## Decisions made
+
+### 1. Doc location: `docs/icons-and-card-nodes.md`
+
+The repo uses a flat `docs/` directory for feature references
+(`external-themes.md`, `publishing.md`, `diagram-options.md`, etc.).
+The new file follows the same convention — one file per feature, kebab-case
+name, no sub-directory.
+
+### 2. Style matches `docs/external-themes.md`
+
+`external-themes.md` is the closest prior art (same "bring-your-own file"
+authoring pattern). Style applied: h1 title, intro paragraph, `---` dividers,
+numbered `## Contents`, `---`-separated `## Sections`, h3/h4 subsections,
+Markdown tables for reference grids, fenced code blocks with language tags.
+
+### 3. Every syntax claim grounded against source
+
+All syntax snippets were verified before writing:
+
+| Claim | Source verified against |
+|-------|------------------------|
+| Pack JSON schema (fields, types, patterns) | `src/icons/schema.json`, `src/icons/validate.ts` |
+| Error codes `ICON_VALIDATION_ERROR` / `ICON_NOT_FOUND` | `src/contracts/result.ts`, `src/icons/validate.ts`, `src/icons/resolver.ts` |
+| Token grammar `prefix:name` | `src/icons/resolver.ts` (`PREFIX_RE`, `NAME_RE`) |
+| `detectColorMode` heuristic | `src/icons/resolver.ts` |
+| ViewBox merge order + alias composition rules | `src/icons/resolver.ts` |
+| `.triton/icons/` discovery + last-wins rule | `src/icons/discover.ts` |
+| `@icon:prefix:name` and `@shape:card` annotation syntax | `src/diagrams/mermaid/flowchart/grammar.peggy` (NodeDecl + AnnotationValue rules) |
+| Card layout (icon-left, text-right, `\n` title/body split) | `examples/triton/icons/cards-render.ts` |
+| CLI flags `--icons-dir` / `--icon-pack` and three-tier precedence | `latex/src/cli.ts`, `latex/src/icon-resolve.ts` |
+| `\tritoniconsdir{}` / `\tritoniconpack{}` macros + MD5 cache key | `latex/triton.sty` |
+| VS Code multi-root scan + `FileSystemWatcher` live reload | `extension/src/icon-registry.ts` |
+| `rsvg-convert` static-PNG element support | `examples/triton/icons/cards-render.ts` (doc comment) |
+
+### 4. Converter script: generic description + TODO marker
+
+Bjarne's `@iconify/tools`-based converter script was not yet merged
+(`.squad/decisions/inbox/bjarne-icon-p5-converter.md` was absent at writing
+time). The doc describes the converter generically and leaves an inline
+`<!-- TODO -->` comment for the exact invocation. Once Bjarne's PR lands,
+update the code block in §6 of `docs/icons-and-card-nodes.md` with the
+real command.
+
+---
+
+## Sections in the delivered doc
+
+1. Pack file format (schema, validation errors, minimal example)
+2. Where packs live (`.triton/icons/`, multi-root, duplicate-prefix rule)
+3. Diagram syntax (`@icon:prefix:name`, `@shape:card`, card layout, worked example)
+4. VS Code preview (auto-discovery, live reload, warnings)
+5. LaTeX / CLI (`--icons-dir`, `--icon-pack`, precedence table, `triton.sty` macros, cache invalidation)
+6. Authoring a pack from SVGs (converter script reference + colour-mode guidance)
+7. Static-PNG notes (`<path>` survives; `<foreignObject>`/animations don't)
+8. Troubleshooting (common error codes + remedies)
+
+---
+
+## Open items
+
+| Item | Owner | Blocker? |
+|------|-------|----------|
+| Replace generic converter command with exact CLI invocation | Bjarne | No — marked TODO in doc |
+
+## Update — 2026-07-12T21:24:51-04:00
+
+**Bjarne's `scripts/convert-icons.mjs` merged.** §6 TODO resolved.
+
+Verified against source:
+- **Invocation:** `node scripts/convert-icons.mjs <svg-dir> <prefix> [--out <file>] [--no-svgo]`
+- **Default output:** `<prefix>.triton-icons.json` in cwd.
+- **Pipeline:** `importDirectory` → `cleanupSVG` + optional `runSVGO` → sanitise to Triton-allowed keys only → hoist uniform dims to pack level → `validateIconPack` (if dist built) → write.
+- **`@iconify/tools`** is a `devDependency`; normal `pnpm install` covers it.
+- TODO marker removed from `docs/icons-and-card-nodes.md` §6; table row above is now resolved.
+| Add `docs/icons-and-card-nodes.md` to README or a docs index if one is created | Anyone | No |
