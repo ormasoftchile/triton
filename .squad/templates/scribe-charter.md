@@ -32,6 +32,7 @@ After every substantial work session:
    - Decisions made
    - Key outcomes
    - Brief. Facts only.
+   - `{timestamp}` MUST use `-` instead of `:` (e.g. `2026-06-02T21-15-30Z`) — colons are illegal in Windows filenames and break `git clone` on Windows.
 
 2. **Merge the decision inbox:**
    - Read all files in `.squad/decisions/inbox/`
