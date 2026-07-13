@@ -148,3 +148,43 @@ that pattern-match over all element types:
 2. `src/diagrams/triton/ds/queue/shared.ts` — `translateElement()`: return translated copy with `rhu()` rounding.
 3. `src/diagrams/triton/ds/struct/array.ts` — `translateElement()`: same pattern as queue/shared.ts.
 These are non-exhaustive switches (TS2366). All three were fixed for `SceneIcon` in P2 follow-up (2026-07-12).
+
+## Learnings — P7: Card Node (2026-07-12T20:34:10-04:00)
+
+### Card layout: two-region composition
+- Card = bg rect + LEFT icon region (40×40px, icon glyph 32px centered within) + RIGHT text region (title bold + body wrapped ≤3 lines)
+- `splitCardLabel(label)` splits on `/\\n|\n/` — handles both actual newline chars and literal `\n` two-char escape sequences (as written in .mmd files)
+- Title top-aligned when body present; vertically centered (y = card_center + fontSize*0.35) when title-only
+- Body wrapped via `wrapText(bodyText, smallFontSize, rightW, 3)` at render time (rightW = card.width − 2*pad − iconBox − iconGap)
+- Icon region ALWAYS reserved (even when no icon) — text starts at `pad + iconBox + iconGap` from card left edge
+
+### Per-node sizing mechanism
+- `measureCardNode(node, typography)` called before BK coordinate assignment for every `shape==='card'` node
+- Result stored in `nodeSizeMap: Map<string, {width, height}>` (non-cards use default NODE_W×NODE_H)
+- Map passed as optional last argument to `assignCoordinatesBK`
+- BK modification: `globalCrossSize` = max cross-size across ALL nodes in ALL layers (uniform slot width)
+- Main axis: per-layer `layerMainSizes[]` computed; cumulative `fwdMainPos[]` used instead of uniform `margin + layerNum * mainStep`
+- Each node centered within its slot: `x = slotLeft + (globalCrossSize − nodeW) / 2` and `y = layerTop + (layerMainSize − nodeH) / 2`
+- `nodePos` Rects reflect ACTUAL node bounds → edges attach to real card bounds (not phantom 120×40)
+
+### Card constants (Leslie's geometry contract)
+- `CARD_PAD = 8` (unit*1), `CARD_ICON_BOX = 40` (unit*5), `CARD_ICON_GAP = 12` (unit*1.5)
+- `CARD_MIN_W = 192` (unit*24), `CARD_MAX_W = 400` (unit*50), `CARD_MAX_BODY_LINES = 3`
+- Card height = `max(CARD_ICON_BOX=40, textH) + 2*CARD_PAD` where `textH = titleLH + bodyH`
+- Short body (< icon box height) → card height dominated by icon box: `max(40, titleLH+shortBodyH) = 40`
+
+### Title/body split corner case
+- Test: "card with body is taller" only holds if bodyH makes textH > CARD_ICON_BOX (40px).
+  Short one-line bodies (textH < 40) produce the same height as title-only cards.
+  Test must use a body that wraps to ≥2 lines (textH > 40) to prove height increase.
+
+### DISCLOSED deviations from ideal per-node sizing:
+1. **Cross-axis slot size is global max** — in mixed diagrams (card + small nodes in same layer), small nodes get extra horizontal gaps equal to the difference between global max cross-size and their own cross-size. This is visually acceptable and guarantees no overlaps without restructuring BK.
+2. **Icon region always reserved** — a card with no icon reserves the icon column width (text starts at pad+iconBox+iconGap). Text does not reflow to full-width when icon is absent. Minor wasted space.
+3. **Body width uses maxRightW at CARD_MAX_W for measureCardNode** — wrapping in `measureCardNode` uses maxRightW = 332px; actual render uses actual rightW. If body fits in fewer lines at 332px but could differ at actual width, there is a minor inconsistency. In practice, actual rightW ≤ maxRightW so actual render may wrap MORE aggressively, which is safe (no overflow).
+
+### Files changed
+- `src/diagrams/mermaid/flowchart/layout.ts` — card constants, `splitCardLabel`, `measureCardNode`, per-node sizing in BK, card render loop, `'card'` case in `renderNodeShape`
+- `test/flowchart-card.test.ts` — 27 new tests
+- `examples/triton/icons/cards-render.ts` — render script
+- `examples/triton/icons/cards.svg` + `cards.png` — visual verification artifacts

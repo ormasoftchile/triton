@@ -185,3 +185,27 @@ array, graph/nodegraph, hashmap, matrix, queue (4 files), stack, tree (9 files: 
 ## 2026-07-07 — Group E %% Headers (22 ds subkinds)
 
 Added %% header blocks to 20 ds example files across 9 subdirectories. Updated all 22 ds fragment docs: removed fallback notes, added ### Comments sections. All SVGs exit 0.
+
+## 2026-07-12 — Card-Edge Bounds Fix (Brian-lockout revision)
+
+### Root Cause
+`edgeAnchor()` in `src/diagrams/mermaid/flowchart/layout.ts` (line ~820) had an overly permissive heuristic for flipping forward edges to off-axis (E/W) ports. The condition `offAxis > onAxis && offAxis > r.width / 2` triggered for wide card nodes (383px) because horizontal center-to-center displacement (~212px) barely exceeded half the card width (~192px). This caused TB forward edges to depart from E/W walls (mid-height y=52) instead of the S/N walls (bottom y=80, top y=120).
+
+### Fix
+Added main-axis proximity guard to `edgeAnchor`: the off-axis port flip now requires `onAxis < r.height` (vertical) or `onAxis < r.width` (horizontal). Cross-layer forward edges (where onAxis ≥ node height) always use the flow-direction ports (S for TB exit, N for TB entry). Same-layer or overlapping nodes may still use off-axis ports when appropriate.
+
+### Corrected Spatial Contract
+The node Rect used for edge routing = measured per-node size (from `nodeSizeMap`, via `assignCoordinatesBK`). `NODE_W`/`NODE_H` are defaults for unmeasured shapes only. `wallAnchor`, the anchor registry, and `wallT` all receive the nodePos rects which already carry measured dimensions. The only code defect was the `edgeAnchor` heuristic incorrectly choosing wall sides, not incorrect rect dimensions.
+
+### Call Sites Fixed
+- `edgeAnchor()` line ~820 (vertical branch): added `&& onAxis < r.height`
+- `edgeAnchor()` line ~808 (horizontal branch): added `&& onAxis < r.width`
+
+### Validation
+- `pnpm build` ✓, `pnpm typecheck` ✓, `pnpm test` 774/774 pass (zero failures)
+- Regenerated `examples/triton/icons/cards.svg`: edges now depart y=80 (card bottom) and arrive y=120 (card top) — zero float gap
+
+### Learnings
+- The nodePos map from `assignCoordinatesBK` already carried correct measured dimensions — the rects were fine. The bug was purely in wall-selection heuristic logic, not in rect construction.
+- Wide nodes (cards) can have center-to-center horizontal displacement exceeding half their width even for nodes in adjacent layers, defeating the old heuristic.
+- This was a Brian-lockout revision per reviewer protocol.
