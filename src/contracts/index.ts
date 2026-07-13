@@ -43,6 +43,7 @@ export type {
   ScenePath,
   SceneText,
   SceneGroup,
+  SceneIcon,
   SceneElement,
   Scene,
 } from './scene.js';
@@ -95,6 +96,18 @@ export type {
 export { ok, err } from './result.js';
 
 export type { Renderer } from './renderer.js';
+
+export type {
+  IconRotate,
+  IconTransforms,
+  IconData,
+  IconAlias,
+  IconifyJSON,
+  IconRef,
+  IconViewBox,
+  ResolvedIcon,
+  IconPackMap,
+} from './icons.js';
 
 export type {
   CardinalSide,

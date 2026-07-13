@@ -6,6 +6,7 @@ import { getRouter } from '../../../routing/registry.js';
 import { defaultRouter } from '../../../routing/router.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { pen } from '../../../scene/build.js';
+import { resolveIcon } from '../../../icons/resolver.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -153,6 +154,7 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   }
 
   // Nodes
+  const icons = options?.icons;
   for (const node of ir.nodes) {
     const r = nodePos.get(node.id);
     if (!r) continue;
@@ -163,6 +165,18 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
     nodeElements.push(...renderNodeShape(node, r, fill, stroke, edgeTheme.strokeWidth));
     nodeElements.push(p.text(node.label, r.x + NODE_W / 2, r.y + NODE_H / 2 + typography.baseFontSize * 0.35, typography.baseFontSize, palette.text, { anchor: 'middle' }));
+
+    // Emit icon at the leading (left) edge of the node if @icon was declared.
+    // P7 (Brian) will replace this with the full card two-region layout.
+    if (node.icon !== undefined && icons !== undefined) {
+      const resolved = resolveIcon(node.icon, icons);
+      if (resolved.ok) {
+        const iconSize = NODE_H - 8;
+        const iconX = r.x + 4;
+        const iconY = r.y + (NODE_H - iconSize) / 2;
+        nodeElements.push(p.icon(resolved.value, iconX, iconY, iconSize, { color: palette.text }));
+      }
+    }
 
     elements.push(p.group(nodeElements, { id: node.id }));
   }

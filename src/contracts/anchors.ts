@@ -174,4 +174,10 @@ export interface PortHint {
 export interface LayoutOptions {
   /** Port placement hints from the composition layer. */
   readonly portHints?: readonly PortHint[];
+  /**
+   * Loaded icon packs passed from the host layer.
+   * Used by layout engines that support @icon node annotations (e.g. flowchart).
+   * Core never touches the filesystem — the host builds this map and passes it in.
+   */
+  readonly icons?: import('./icons.js').IconPackMap;
 }

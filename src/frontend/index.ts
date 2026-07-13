@@ -1,4 +1,5 @@
-import type { Scene, ThemeInput, Result, BaseIR, LayoutResult, NodeAnchorRegistry } from '../contracts/index.js';
+import type { Scene, ThemeInput, Result, BaseIR, LayoutResult, NodeAnchorRegistry, LayoutOptions } from '../contracts/index.js';
+import type { IconPackMap } from '../contracts/icons.js';
 import { ok, err } from '../contracts/index.js';
 import { detect } from './detect.js';
 import { stripComments } from './preprocess.js';
@@ -132,6 +133,7 @@ export function compileSync(
   input: string,
   themeInput?: ThemeInput,
   forcedThemeName?: string,
+  icons?: IconPackMap,
 ): Result<LayoutResult> {
   const cleaned = stripComments(input);
   const { format, diagramType } = detect(cleaned);
@@ -156,7 +158,8 @@ export function compileSync(
       ? resolveTheme(ir.themeOverride, withModuleDefaults)
       : withModuleDefaults;
 
-    const result = module.layout(ir, finalTheme);
+    const layoutOptions: LayoutOptions | undefined = icons !== undefined ? { icons } : undefined;
+    const result = module.layout(ir, finalTheme, layoutOptions);
     return ok(result);
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
@@ -176,8 +179,9 @@ export function renderSync(
   themeInput?: ThemeInput,
   rendererName = 'svg',
   forcedThemeName?: string,
+  icons?: IconPackMap,
 ): Result<string> {
-  const compileResult = compileSync(input, themeInput, forcedThemeName);
+  const compileResult = compileSync(input, themeInput, forcedThemeName, icons);
   if (!compileResult.ok) return compileResult;
 
   const renderer = getRenderer<string>(rendererName);

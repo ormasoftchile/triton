@@ -9,9 +9,10 @@
  */
 
 import type {
-  SceneElement, SceneText, SceneRect, SceneCircle, ScenePath, SceneGroup,
+  SceneElement, SceneText, SceneRect, SceneCircle, ScenePath, SceneGroup, SceneIcon,
   Rect, Point, Color, FontWeight, TextAnchor, ResolvedTheme,
 } from '../contracts/index.js';
+import type { ResolvedIcon } from '../contracts/icons.js';
 import type { RenderedConnectorAnimation } from '../contracts/animations.js';
 
 export interface TextOpts {
@@ -41,6 +42,12 @@ export interface GroupOpts {
   opacity?: number;
 }
 
+export interface IconOpts {
+  /** CSS color token for monochrome tint (e.g. "#1e293b"). Ignored for brand icons. */
+  color?: string;
+  opacity?: number;
+}
+
 export interface Pen {
   /** Text at (x, y) with the theme font family; size + fill are explicit. */
   text(content: string, x: number, y: number, size: number, fill: Color, opts?: TextOpts): SceneText;
@@ -48,6 +55,15 @@ export interface Pen {
   circle(center: Point, radius: number, fill: Color, stroke: Color, strokeWidth: number, opts?: { opacity?: number }): SceneCircle;
   path(d: string, stroke: Color, strokeWidth: number, opts?: PathOpts): ScenePath;
   group(children: readonly SceneElement[], opts?: GroupOpts): SceneGroup;
+  /**
+   * Place a resolved icon at (x, y) fitting into a `size × size` box.
+   *
+   * This is the P6 seam: Bjarne's layout engine calls this after resolving
+   * an icon token from a node IR (FlowNode.icon, MindNode.icon, etc.).
+   * The renderer centers and scales the icon's viewBox into the target box,
+   * applies palette tinting for monochrome icons, and namespaces brand IDs.
+   */
+  icon(resolvedIcon: ResolvedIcon, x: number, y: number, size: number, opts?: IconOpts): SceneIcon;
 }
 
 /** Create a Pen bound to a theme's font family. */
@@ -93,6 +109,13 @@ export function pen(theme: ResolvedTheme): Pen {
         ...(opts.id !== undefined        ? { id: opts.id } : {}),
         ...(opts.transform !== undefined ? { transform: opts.transform } : {}),
         ...(opts.opacity !== undefined   ? { opacity: opts.opacity } : {}),
+      };
+    },
+    icon(resolvedIcon, x, y, size, opts = {}) {
+      return {
+        type: 'icon' as const, icon: resolvedIcon, x, y, size,
+        ...(opts.color !== undefined   ? { color: opts.color } : {}),
+        ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
       };
     },
   };

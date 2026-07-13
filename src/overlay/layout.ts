@@ -247,6 +247,8 @@ function elementBoundsAt(el: SceneElement, ox: number, oy: number): Rect | null 
     }
     case 'path':
       return null;
+    case 'icon':
+      return { x: el.x + ox, y: el.y + oy, width: el.size, height: el.size };
   }
 }
 

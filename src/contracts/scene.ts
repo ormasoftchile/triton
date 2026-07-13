@@ -17,6 +17,7 @@
 
 import type { Color, FontFamily, FontWeight, Point, Rect, TextAnchor } from './primitives.js';
 import type { RenderedConnectorAnimation } from './animations.js';
+import type { ResolvedIcon } from './icons.js';
 
 // ─── Element Variants ─────────────────────────────────────────────────────────
 
@@ -85,6 +86,52 @@ export interface SceneText {
 }
 
 /**
+ * SceneIcon — render a resolved icon into SVG at a target position and size.
+ *
+ * This is the P2 render primitive: "given a ResolvedIcon at (x, y) fitting
+ * into a `size × size` box, draw it as pure SVG."
+ *
+ * **P6 seam** — Bjarne's grammar/layout (P6) produces SceneIcon by:
+ *   1. Resolving the icon token from a node IR (FlowNode.icon, MindNode.icon,
+ *      SeqParticipant.icon, etc.) via resolveIcon().
+ *   2. Setting x/y to the icon box top-left within the node's layout rect
+ *      (e.g. centered above the label at `nodeX + (nodeW - iconSize)/2`).
+ *   3. Setting size to the reserved icon dimension from theme spacing
+ *      (e.g. theme.spacing.iconSize or a fixed 32 px default).
+ *   4. Optionally setting color to a palette CSS color token for monochrome
+ *      tint (e.g. theme.palette.text or "#1e293b"); omit for inherit.
+ *
+ * Coordinate convention: x/y is the TOP-LEFT of the icon's target bounding
+ * box. The SVG renderer centers the icon's content (preserving aspect ratio)
+ * inside that box.
+ *
+ * colorMode contract (enforced by SVG renderer):
+ *   'monochrome' → sets `style="color:{color}"` on the SVG wrapper so
+ *                  currentColor fills in the body tint to the theme color.
+ *   'brand'      → emits body verbatim with no color override; gradient and
+ *                  clip IDs are namespaced per instance to prevent collisions.
+ */
+export interface SceneIcon {
+  readonly type: 'icon';
+  /** Fully resolved icon — body, viewBox, transforms, colorMode. */
+  readonly icon: ResolvedIcon;
+  /** Top-left x of the target bounding box (scene units). */
+  readonly x: number;
+  /** Top-left y of the target bounding box (scene units). */
+  readonly y: number;
+  /** Side length of the square target bounding box (scene units). */
+  readonly size: number;
+  /**
+   * CSS color value for monochrome tint (e.g. "#1e293b", "var(--color-text)").
+   * Applied as `style="color:{color}"` on the nested SVG wrapper so that
+   * `currentColor` in the body inherits this tint. Ignored for brand icons.
+   * When absent the renderer omits the style attribute (inherits from context).
+   */
+  readonly color?: string;
+  readonly opacity?: number;
+}
+
+/**
  * SceneGroup — a logical grouping of elements.
  *
  * Groups exist for two purposes:
@@ -108,7 +155,8 @@ export type SceneElement =
   | SceneCircle
   | ScenePath
   | SceneText
-  | SceneGroup;
+  | SceneGroup
+  | SceneIcon;
 
 // ─── Scene Root ───────────────────────────────────────────────────────────────
 

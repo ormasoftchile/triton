@@ -209,6 +209,8 @@ function translateElement(element: SceneElement, dx: number, dy: number): SceneE
       return { ...element, position: { x: rhu(element.position.x + dx), y: rhu(element.position.y + dy) } };
     case 'group':
       return { ...element, children: translateElements(element.children, dx, dy) };
+    case 'icon':
+      return { ...element, x: rhu(element.x + dx), y: rhu(element.y + dy) };
   }
 }
 

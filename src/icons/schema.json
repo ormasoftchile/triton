@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://triton.dev/schemas/triton-icons.schema.json",
+  "title": "TritonIconPack",
+  "description": "An IconifyJSON icon pack for use with Triton diagrams. Place as *.triton-icons.json in .triton/icons/.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["prefix", "icons"],
+  "properties": {
+    "prefix": {
+      "type": "string",
+      "description": "Pack identifier. Must start with a lowercase letter, followed by lowercase alphanumeric or hyphens. Examples: \"azure\", \"mdi\", \"lucide\".",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "icons": {
+      "type": "object",
+      "description": "Icon entries keyed by bare name (no prefix). Each key matches [a-z0-9][a-z0-9-]*. At least one entry required.",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/IconData"
+      }
+    },
+    "aliases": {
+      "type": "object",
+      "description": "Optional alternate names for existing icons within this pack. Alias transforms compose on top of the parent icon.",
+      "additionalProperties": {
+        "$ref": "#/definitions/IconAlias"
+      }
+    },
+    "width": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Default viewport width in px for icons that do not specify their own. System default: 16."
+    },
+    "height": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Default viewport height in px. System default: 16."
+    },
+    "left": {
+      "type": "number",
+      "description": "Default viewport x-origin in px. System default: 0."
+    },
+    "top": {
+      "type": "number",
+      "description": "Default viewport y-origin in px. System default: 0."
+    }
+  },
+  "definitions": {
+    "IconData": {
+      "type": "object",
+      "description": "Per-icon SVG body and optional dimension/transform overrides.",
+      "additionalProperties": false,
+      "required": ["body"],
+      "properties": {
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Inner SVG markup. No <svg> wrapper. Required and non-empty."
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Icon-specific viewport width in px. Overrides pack-level width."
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Icon-specific viewport height in px. Overrides pack-level height."
+        },
+        "left": {
+          "type": "number",
+          "description": "Icon-specific viewport x-origin in px."
+        },
+        "top": {
+          "type": "number",
+          "description": "Icon-specific viewport y-origin in px."
+        },
+        "rotate": {
+          "type": "integer",
+          "enum": [0, 1, 2, 3],
+          "description": "Quarter-turn rotation: 0=0°, 1=90°, 2=180°, 3=270° clockwise."
+        },
+        "hFlip": {
+          "type": "boolean",
+          "description": "Mirror horizontally (left ↔ right)."
+        },
+        "vFlip": {
+          "type": "boolean",
+          "description": "Mirror vertically (top ↔ bottom)."
+        }
+      }
+    },
+    "IconAlias": {
+      "type": "object",
+      "description": "Alias pointing to a parent icon within the same pack. Transforms compose on top of the parent.",
+      "additionalProperties": false,
+      "required": ["parent"],
+      "properties": {
+        "parent": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Bare name of the parent icon within the same pack."
+        },
+        "rotate": {
+          "type": "integer",
+          "enum": [0, 1, 2, 3],
+          "description": "Additional rotation composed on top of parent's rotation (mod 4)."
+        },
+        "hFlip": {
+          "type": "boolean",
+          "description": "Additional horizontal flip (XORed with parent's hFlip)."
+        },
+        "vFlip": {
+          "type": "boolean",
+          "description": "Additional vertical flip (XORed with parent's vFlip)."
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Override viewport width for this alias."
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Override viewport height for this alias."
+        },
+        "left": {
+          "type": "number",
+          "description": "Override viewport x-origin for this alias."
+        },
+        "top": {
+          "type": "number",
+          "description": "Override viewport y-origin for this alias."
+        }
+      }
+    }
+  }
+}

@@ -1,9 +1,11 @@
 import type { BaseIR, CardinalSide, RouteStyle } from '../../../contracts/index.js';
+import type { IconRef } from '../../../contracts/icons.js';
 
 export type NodeShape =
   | 'rect' | 'rounded-rect' | 'circle' | 'diamond' | 'stadium'
   | 'subroutine' | 'cylinder' | 'hexagon'
-  | 'parallelogram' | 'parallelogram-alt' | 'asymmetric';
+  | 'parallelogram' | 'parallelogram-alt' | 'asymmetric'
+  | 'card';
 
 export type NodeStatus = 'default' | 'active' | 'success' | 'warning' | 'error' | 'muted';
 
@@ -13,6 +15,8 @@ export interface FlowNode {
   readonly shape: NodeShape;
   readonly status?: NodeStatus;
   readonly subgraph?: string;
+  /** Parsed icon reference from an @icon:<prefix:name> node annotation. */
+  readonly icon?: IconRef;
 }
 
 export type EdgeStyle = 'solid' | 'dashed' | 'dotted' | 'thick' | 'wavy';

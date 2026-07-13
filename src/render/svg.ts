@@ -1,4 +1,5 @@
-import type { Scene, SceneElement, Renderer, NodeAnchorRegistry } from '../contracts/index.js';
+import type { Scene, SceneElement, SceneIcon, Renderer, NodeAnchorRegistry } from '../contracts/index.js';
+import type { IconTransforms } from '../contracts/icons.js';
 
 /**
  * Render a fully-resolved Scene to an SVG string.
@@ -119,6 +120,10 @@ function renderElement(el: SceneElement, depth: number, markerMetrics: Map<strin
       return `${attrs} />`;
     }
 
+    case 'icon': {
+      return renderIcon(el, depth);
+    }
+
     case 'group': {
       const id        = el.id        != null ? ` id="${escapeAttr(el.id)}"` : '';
       const transform = el.transform != null ? ` transform="${escapeAttr(el.transform)}"` : '';
@@ -130,6 +135,120 @@ function renderElement(el: SceneElement, depth: number, markerMetrics: Map<strin
       return `${pad}<g${id}${transform}${opacity}>\n${inner}\n${pad}</g>`;
     }
   }
+}
+
+// ─── Icon Rendering ───────────────────────────────────────────────────────────
+
+/**
+ * Module-level counter for namespacing brand icon gradient/clip IDs.
+ * Incremented once per brand icon emitted; never reset (monotonic within a
+ * process lifetime). Produces unique prefixes like "icn0-", "icn1-", etc.
+ */
+let iconEmitCounter = 0;
+
+/** Render a SceneIcon as a nested <svg> element. */
+function renderIcon(el: SceneIcon, depth: number): string {
+  const pad = '  '.repeat(depth);
+  const { icon, x, y, size } = el;
+  const { viewBox, transforms, colorMode } = icon;
+
+  const vbW = viewBox.width;
+  const vbH = viewBox.height;
+  const vbL = viewBox.left;
+  const vbT = viewBox.top;
+
+  // Scale to fit size×size box preserving aspect ratio; center inside box.
+  const scale   = Math.min(size / vbW, size / vbH);
+  const scaledW = formatNum(vbW * scale);
+  const scaledH = formatNum(vbH * scale);
+  const offX    = formatNum(x + (size - vbW * scale) / 2);
+  const offY    = formatNum(y + (size - vbH * scale) / 2);
+
+  // Monochrome tint via CSS color inheritance.
+  const styleAttr  = colorMode === 'monochrome' && el.color
+    ? ` style="color:${escapeAttr(el.color)}"`
+    : '';
+  const opacityAttr = el.opacity != null ? ` opacity="${el.opacity}"` : '';
+
+  // Build body — namespace brand IDs or use verbatim.
+  const body = colorMode === 'brand'
+    ? namespaceIconIds(icon.body, `icn${iconEmitCounter++}`)
+    : icon.body;
+
+  // Transform (rotate/flip) applied inside the icon's viewBox coordinate space.
+  const cx = vbL + vbW / 2;
+  const cy = vbT + vbH / 2;
+  const innerTransform = buildIconTransform(transforms, cx, cy);
+
+  const vbAttr = `${vbL} ${vbT} ${formatNum(vbW)} ${formatNum(vbH)}`;
+  const inner  = innerTransform
+    ? `${pad}  <g transform="${innerTransform}">${body}</g>`
+    : `${pad}  ${body}`;
+
+  return [
+    `${pad}<svg x="${offX}" y="${offY}" width="${scaledW}" height="${scaledH}" viewBox="${vbAttr}"${styleAttr}${opacityAttr}>`,
+    inner,
+    `${pad}</svg>`,
+  ].join('\n');
+}
+
+/**
+ * Build an SVG transform string that applies rotate then flip around (cx, cy).
+ * Returns null when no transform is needed (identity).
+ *
+ * Transform order (icon spec): rotate first, then flips.
+ * SVG applies transforms right-to-left, so the string is:
+ *   translate(cx cy) scale(sf vf) rotate(deg) translate(-cx -cy)
+ * which maps to: move center to origin → rotate → flip → move back.
+ */
+function buildIconTransform(t: IconTransforms, cx: number, cy: number): string | null {
+  if (t.rotate === 0 && !t.hFlip && !t.vFlip) return null;
+
+  const deg = t.rotate * 90;
+  const sf  = t.hFlip ? -1 : 1;
+  const vf  = t.vFlip ? -1 : 1;
+  const cxs = formatNum(cx);
+  const cys = formatNum(cy);
+
+  const parts: string[] = [];
+  parts.push(`translate(${cxs} ${cys})`);
+  if (t.hFlip || t.vFlip) parts.push(`scale(${sf} ${vf})`);
+  if (t.rotate !== 0)     parts.push(`rotate(${deg})`);
+  parts.push(`translate(${formatNum(-cx)} ${formatNum(-cy)})`);
+
+  return parts.join(' ');
+}
+
+/**
+ * Namespace all id="..." values in a brand icon body and rewrite matching
+ * url(#id) and href="#id" references. Prevents ID collisions when multiple
+ * brand icons with gradients or clip-paths appear in the same SVG document.
+ *
+ * Strategy: collect all id= values, then globally replace them and their refs.
+ * Uses a per-emit prefix (e.g. "icn3") generated from the module counter.
+ */
+function namespaceIconIds(body: string, prefix: string): string {
+  const idRe  = /\bid="([^"]+)"/g;
+  const ids   = new Set<string>();
+  let m: RegExpExecArray | null;
+
+  while ((m = idRe.exec(body)) !== null) {
+    ids.add(m[1]!);
+  }
+  if (ids.size === 0) return body;
+
+  let result = body;
+  for (const id of ids) {
+    const newId = `${prefix}-${id}`;
+    // id declarations
+    result = result.split(`id="${id}"`).join(`id="${newId}"`);
+    // url(#id) fill/stroke refs
+    result = result.split(`url(#${id})`).join(`url(#${newId})`);
+    // href="#id" (xlink or plain)
+    result = result.split(`href="#${id}"`).join(`href="#${newId}"`);
+    result = result.split(`href='#${id}'`).join(`href='#${newId}'`);
+  }
+  return result;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

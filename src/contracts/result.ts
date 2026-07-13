@@ -19,7 +19,9 @@ export type DiagramErrorCode =
   | 'UNKNOWN_DIAGRAM'
   | 'UNSUPPORTED_FORMAT'
   | 'UNKNOWN_RENDERER'
-  | 'THEME_VALIDATION_ERROR';
+  | 'THEME_VALIDATION_ERROR'
+  | 'ICON_VALIDATION_ERROR'
+  | 'ICON_NOT_FOUND';
 
 export interface DiagramError {
   readonly code: DiagramErrorCode;

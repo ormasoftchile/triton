@@ -208,12 +208,27 @@ Wall
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 
 NodeRef
-  = id:NodeId shape:Shape? {
+  = id:NodeId _ shape:Shape? {
       return { id: registerNode(id, shape ? shape.label : null, shape ? shape.shape : null) };
     }
 
 NodeDecl
-  = ref:NodeRef !(_ EdgeArrow) { return { type: 'node', ...ref }; }
+  = ref:NodeRef anns:(_ "@" key:$([a-z][a-z0-9-]*) ":" value:AnnotationValue { return { key, value }; })* !(_ EdgeArrow) {
+      if (anns.length > 0) {
+        const node = nodeMap.get(ref.id);
+        if (node) {
+          for (const ann of anns) {
+            if (ann.key === 'shape')    node.shape = ann.value;
+            if (ann.key === 'icon')     node.iconToken = ann.value;
+          }
+        }
+      }
+      return { type: 'node', ...ref };
+    }
+
+AnnotationValue
+  = '"' val:$[^"]* '"' { return val; }
+  / $([^ \t\r\n@\[\](){};]+)
 
 NodeId
   = !("end" ![a-zA-Z0-9_]) !("subgraph" ![a-zA-Z0-9_]) id:$([a-zA-Z_][a-zA-Z0-9_]*) { return id; }
