@@ -393,3 +393,126 @@ Objectives achieved: (1) Label fix: LABEL_EXTRA=48 provides ~112px canvas cleara
 
 Geometry: viewBox −90 to 390; lane rail at x=−16.18; ShoppingCart left x=24 (widest box) → **40.18px gap**; Customer/Order left x=31.82 → **48px gap**. "places" label at x=−20 (text-anchor end) with ~35px canvas margin to viewBox edge — zero clipping risk. All 15 visual principles satisfied; no regressions from prior PASS verdicts. Arrowhead semantically correct (open chevron →); all edges stroke #64748B 1.3/1.4pt; vertical plumb maintained (spine x≈96.82). Net effect: comfortable 40px bracket-to-box separation without wasting canvas; left margin occupies ~74px of 90px expansion — efficient.
 
+
+---
+
+## Decision: P3 — Icon CLI wiring + sty content-hash cache key
+
+**Author:** Brian (Layout Implementation Engineer)  
+**Date:** 2026-07-12T21:11:40-04:00  
+**Status:** IMPLEMENTED
+
+### Context
+
+P0/P1/P2/P6/P7 shipped icon pack discovery, contract, rendering (774 tests). P3 wires icon packs into the triton-latex CLI and folds pack content into the TeX render cache key.
+
+### Decisions
+
+#### 1. `latex/src/icon-resolve.ts` — core-only module pattern
+
+**Decision:** All CLI icon-resolution logic lives in a standalone `icon-resolve.ts` that imports ONLY `node:fs`, `node:path`, and `../../src/**` (Triton core). It is **never** imported from `cli.ts` tests.
+
+**Rationale:** vitest runs `pnpm test` at root before `latex/node_modules` is installed and `latex/dist` exists. `cli.ts` imports `./pdf.js` → pdfkit (latex-only dep). Any test file that imports `cli.ts` would fail without the latex build. The core-only pattern (introduced with `theme-resolve.ts`) keeps tests hermetic. `icon-resolve.ts` mirrors `theme-resolve.ts` exactly.
+
+**Precedence (lowest → highest):**
+1. Auto-discovery — `findTritonIconsDir(inputDir)` + `discoverIconPacks` (Bjarne's API)
+2. `--icons-dir <dir>` — overlaid on auto, overrides on duplicate prefix
+3. `--icon-pack <path>` — loaded last, highest precedence; throws on error
+
+Duplicate prefix: last-wins (consistent with `discoverIconPacks` policy).
+
+#### 2. `latex/src/cli.ts` — flag wiring
+
+**Decision:** Add `--icons-dir` and `--icon-pack` to `parseArgs`, resolve via `resolveCliIcons(args, inputDir)` wrapped in try/catch → `console.error + exit(1)`. Pass resulting `IconPackMap` as the 5th argument of `renderSync`. Both `render` and `render-dir` commands updated.
+
+**Rationale:** Mirrors the theme flag pattern exactly, keeping CLI structure uniform.
+
+#### 3. `latex/triton.sty` — icon macros + content-hash cache key
+
+**Decision:**
+- `\tritoniconsdir{dir}` → appends `--icons-dir dir` to CLI invocation; dir path folded into `%% triton-key` comment (path-only, same caveat as themes).
+- `\tritoniconpack{path}` → appends `--icon-pack path` to CLI invocation; **content-hashed** via `\pdf@filemdfivesum{path}` (pdftexcmds, already required). The MD5 of the pack file's content is embedded in the `%% triton-key` comment, so editing a pack in-place invalidates the cache automatically.
+
+**Why better than themes:** Themes use path-only cache keys (documented limitation in sty lines 102–105). Icon packs improve on this: explicit `--icon-pack` files are content-hashed. Cache invalidation on in-place edit is guaranteed for the `--icon-pack` case.
+
+**Residual limitation (disclosed):** `--icons-dir` packs and auto-discovered packs are still keyed by path only (not content). Full content-hashing of a directory of JSON files would require a `\write18` shell pipeline that is fragile across platforms (no portable `md5sum`/`shasum` invocation that works on macOS + Linux + Windows). Clear cache manually with `rm -r <cachedir>` or `latexmk -C` when editing packs inside a directory in-place.
+
+#### 4. Tests
+
+**Decision:** `test/latex-cli-icons.test.ts` imports `resolveCliIcons` from `../latex/src/icon-resolve.js` (source, core-only). Covers all five scenarios: `--icon-pack` loads specific pack, `--icons-dir` loads a dir, auto-discovery via ancestor `.triton/icons/`, precedence/merge order (all three layers), bad `--icon-pack` throws.
+
+Fixtures added:
+- `test/fixtures/icons/valid-heroicons.triton-icons.json` — third valid pack for merge tests
+- `test/fixtures/icons-discovery/.triton/icons/azure.triton-icons.json` — auto-discovery walk-up test
+
+**CI verification:** `rm -rf latex/dist latex/node_modules && pnpm test` → 787/787 ✓ (proves zero pdfkit dependency).
+
+### Test totals after P3
+- Before P3: 774 tests
+- After P3: **787 tests** (+13)
+- After `rm -rf latex/dist latex/node_modules`: **787/787 ✓**
+
+---
+
+## Decision: P4 Icon Registry — Extension Multi-Root Scan + Render Threading
+
+**Agent:** Bjarne (Ingestion Design)  
+**Date:** 2026-07-12T21:11:40-04:00  
+**Status:** Implemented
+
+### Context
+
+P4 extends the VS Code extension to discover `.triton/icons/` packs from workspace folders and pass the loaded `IconPackMap` into the render pipeline. This is the extension-side complement to P1 (`discoverIconPacks`) and the P6 `icons` param on `renderSync`/`compileSync`.
+
+### Decision
+
+#### 1. `IconRegistry` mirrors `ThemeRegistry` exactly
+
+`extension/src/icon-registry.ts` is the icon twin of `ThemeRegistry`:
+
+| Concern | ThemeRegistry | IconRegistry |
+|---------|--------------|--------------|
+| Discovery fn | `discoverThemes(dir)` | `discoverIconPacks(dir)` |
+| Storage | `Map<string, ResolvedTheme>` | `Map<string, IconifyJSON>` (i.e. `IconPackMap`) |
+| Merge key | theme name | pack prefix |
+| Duplicate policy | last-scanned wins + warning | same |
+| Watcher glob | `.triton/themes/*.triton-theme.json` | `.triton/icons/*.triton-icons.json` |
+| Output accessor | `resolve(name)`, `customNames()` | `iconPacks()` (returns full map) |
+| Event | `onDidChange` | `onDidChange` |
+| Lifecycle | `buildWatchers()` + `refresh()` at activation | same |
+
+Rationale: exact structural mirror keeps the codebase coherent and makes the pattern immediately recognizable to any contributor who has worked with `ThemeRegistry`.
+
+#### 2. `compileAndRenderSync` extended with optional `icons` param
+
+`src/frontend/index.ts: compileAndRenderSync` previously had no `icons` parameter (unlike `renderSync`/`compileSync` which already had it from P6). Added `icons?: IconPackMap` as 5th optional param, forwarded into `compileSync`. The extension webview render path uses `compileAndRenderSync` (for the anchors), so this was the required extension point.
+
+#### 3. `renderFencedBlock` extended with optional `icons` param
+
+`extension/src/markdown.ts: renderFencedBlock` adds `icons?: IconPackMap` as 5th param, forwarded into `renderSync`. This covers:
+- The built-in Markdown preview fence renderer
+- The PreviewManager's multi-block Markdown stacked render
+
+#### 4. Threading pattern in PreviewManager
+
+`IconRegistry` is instantiated alongside `ThemeRegistry` in `PreviewManager.__constructor__`:
+```ts
+this.iconRegistry = new IconRegistry();
+context.subscriptions.push(this.iconRegistry);
+this.iconRegistry.buildWatchers();
+this.iconRegistry.refresh();
+this.iconRegistry.onDidChange(() => this.onIconRegistryChange());
+```
+
+`onIconRegistryChange` is a thin re-render trigger (no dropdown or state to update — icons are stateless from the webview's perspective). Both render paths use `this.iconRegistry.iconPacks()` at render time, so any watcher-triggered `refresh()` is automatically picked up on the next call.
+
+#### 5. No unit tests for `IconRegistry` (mirrors ThemeRegistry)
+
+`ThemeRegistry` has no unit tests in the test suite — extension code is integration-tested manually via the VS Code host. `IconRegistry` follows the same policy. Validation: `pnpm typecheck` (0 errors), `pnpm build` (clean extension bundle), `pnpm test` (774/774 pass).
+
+### Files Changed
+
+- `extension/src/icon-registry.ts` — new (IconRegistry class)
+- `extension/src/extension.ts` — import IconRegistry; add `iconRegistry` field + watcher lifecycle; `onIconRegistryChange` handler; pass `iconRegistry.iconPacks()` into both render calls
+- `extension/src/markdown.ts` — add `icons?: IconPackMap` to `renderFencedBlock`, thread into `renderSync`
+- `src/frontend/index.ts` — add `icons?: IconPackMap` to `compileAndRenderSync`, forward to `compileSync`

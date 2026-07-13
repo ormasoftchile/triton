@@ -342,3 +342,24 @@ Added distinct split/side glyph for `triton.openPreviewToSide` (preview-side-lig
 
 ### Spawn brian-11 — Release v0.1.10
 Cut v0.1.10: Icon dark-mode + distinct-glyph fixes. PR #60, merged b6fc192.
+
+---
+
+## 2026-07-12 Session Summary — P3 Icon CLI Wiring
+
+**Spawns:** brian-20 (P3)  
+**Status:** DONE — 787 tests (+13 over prior 774)  
+**Key changes:**
+- `latex/src/icon-resolve.ts` (core-only module pattern)
+- CLI flags `--icons-dir`, `--icon-pack` with precedence resolution
+- sty content-hash cache key for `--icon-pack` via `\pdf@filemdfivesum`
+- 13 new tests in `test/latex-cli-icons.test.ts`
+- Fixtures: valid-heroicons, azure auto-discovery
+
+**Decisions merged to decisions.md:**
+- P3 — Icon CLI wiring + sty content-hash cache key
+
+**Residual limitation:** `--icons-dir` and auto-discovered packs keyed by path only (not content). Clear cache manually if editing in-place.
+
+**CI verification:** `rm -rf latex/dist latex/node_modules && pnpm test` → 787/787 ✓
+
