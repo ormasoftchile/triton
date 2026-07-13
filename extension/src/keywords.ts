@@ -300,8 +300,8 @@ const STACK: KeywordEntry[] = [
 ];
 const HASHMAP: KeywordEntry[] = [
   { label: 'title', insert: 'title ${1:Title}', snippet: true, detail: 'Hash map title', doc: 'Top title.' },
-  { label: 'buckets', insert: 'buckets ${1:5}', snippet: true, detail: 'Bucket count', doc: 'Number of buckets.' },
-  { label: 'bucket', insert: 'bucket ${1:0}: ${2:alice->1, bob->2}', snippet: true, detail: 'Bucket entries', doc: '`bucket 0: alice->1, bob->2`.' },
+  { label: 'buckets', insert: 'buckets ${1:5}', snippet: true, detail: 'Bucket count or labels', doc: 'Use a count (`buckets 5`) or labels (`buckets name, email`).' },
+  { label: 'bucket', insert: 'bucket ${1:0}: ${2:alice->1, bob->2}', snippet: true, detail: 'Bucket entries', doc: '`bucket 0: alice->1, bob->2` or `bucket name: alice->1`.' },
 ];
 const MATRIX: KeywordEntry[] = [
   { label: 'title', insert: 'title ${1:Title}', snippet: true, detail: 'Matrix title', doc: 'Top title.' },

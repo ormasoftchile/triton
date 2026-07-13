@@ -66,6 +66,7 @@ describe('hashmap', () => {
   it('parses bucket count and chained entries', () => {
     const ir = hashmap.parseMermaid('hashmap\n  buckets 5\n  bucket 0: alice->1, bob->2\n  bucket 2: carol->3\n');
     expect(ir.buckets).toBe(5);
+    expect(ir.bucketLabels).toEqual(['0', '1', '2', '3', '4']);
     expect(ir.chains).toHaveLength(2);
     expect(ir.chains[0]).toEqual({ index: 0, entries: [{ key: 'alice', value: '1' }, { key: 'bob', value: '2' }] });
     expect(ir.chains[1]!.index).toBe(2);
@@ -74,6 +75,27 @@ describe('hashmap', () => {
   it('grows the bucket count to fit the highest referenced index', () => {
     const ir = hashmap.parseMermaid('hashmap\n  bucket 4: x->1\n');
     expect(ir.buckets).toBe(5);
+    expect(ir.bucketLabels).toEqual(['0', '1', '2', '3', '4']);
+  });
+
+  it('parses string bucket labels and routes chains by label', () => {
+    const ir = hashmap.parseMermaid('hashmap\n  buckets name, email, phone\n  bucket name: alice->1\n  bucket phone: bob->2\n');
+    expect(ir.buckets).toBe(3);
+    expect(ir.bucketLabels).toEqual(['name', 'email', 'phone']);
+    expect(ir.chains).toEqual([
+      { index: 'name', entries: [{ key: 'alice', value: '1' }] },
+      { index: 'phone', entries: [{ key: 'bob', value: '2' }] },
+    ]);
+  });
+
+  it('supports quoted bucket labels and widens the bucket column', () => {
+    const ir = hashmap.parseMermaid('hashmap\n  buckets "user name", "email address"\n  bucket "email address": carol->carol@example.com\n');
+    const { scene, anchors } = layoutHashmap(ir, defaultTheme);
+    expect(textOf(scene, 'user name')).toBeDefined();
+    expect(textOf(scene, 'email address')).toBeDefined();
+    expect(anchors.b1).toBeDefined();
+    expect(anchors.b1e0).toBeDefined();
+    expect(anchors.b0!.bounds.width).toBeGreaterThan(46);
   });
 
   it('renders one anchor per bucket plus one per chained entry', () => {
