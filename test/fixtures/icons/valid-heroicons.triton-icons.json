@@ -1,0 +1,13 @@
+{
+  "prefix": "heroicons",
+  "width": 24,
+  "height": 24,
+  "icons": {
+    "check": {
+      "body": "<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"/>"
+    },
+    "x": {
+      "body": "<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"/>"
+    }
+  }
+}

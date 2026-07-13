@@ -13,6 +13,7 @@ import { registerCompletion } from './completion.js';
 import { registerDiagnostics } from './diagnostics.js';
 import { shellHtml } from './preview-html.js';
 import { ThemeRegistry } from './theme-registry.js';
+import { IconRegistry } from './icon-registry.js';
 
 // ─── Mermaid coexistence reconciliation (LOCKED decision) ──────────────────────
 //
@@ -179,18 +180,28 @@ class PreviewManager {
   private debounce: ReturnType<typeof setTimeout> | undefined;
   private readonly disposables: vscode.Disposable[] = [];
   private readonly registry: ThemeRegistry;
+  private readonly iconRegistry: IconRegistry;
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.registry = new ThemeRegistry();
+    this.iconRegistry = new IconRegistry();
     context.subscriptions.push(this.registry);
+    context.subscriptions.push(this.iconRegistry);
 
     // Build watchers and do initial discovery
     this.registry.buildWatchers();
     this.registry.refresh();
+    this.iconRegistry.buildWatchers();
+    this.iconRegistry.refresh();
 
     // When themes change: refresh dropdown + re-render; drop vanished selection
     this.disposables.push(
       this.registry.onDidChange(() => this.onThemeRegistryChange()),
+    );
+
+    // When icon packs change: re-render so the new icons are picked up immediately
+    this.disposables.push(
+      this.iconRegistry.onDidChange(() => this.onIconRegistryChange()),
     );
 
     this.disposables.push(
@@ -330,6 +341,18 @@ class PreviewManager {
     void this.renderInto(doc, 'explicit');
   }
 
+  /** Re-render the current preview when icon packs change (file watcher or workspace folder change). */
+  private onIconRegistryChange(): void {
+    const preview = this.preview;
+    if (!preview) return;
+    const editor = vscode.window.activeTextEditor;
+    const doc =
+      editor && editor.document.uri.toString() === preview.docUri.toString()
+        ? editor.document
+        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+    if (doc) void this.renderInto(doc, 'explicit');
+  }
+
   /** Re-render the current preview when the editor's color theme changes. */
   private onColorThemeChange(): void {
     const preview = this.preview;
@@ -429,7 +452,7 @@ class PreviewManager {
     // Anchors travel as a separate JSON payload so the SVG string is byte-
     // identical to renderSync output — safe to inject via innerHTML under CSP.
     const { themeInput, forcedThemeName } = this.themeArgs();
-    const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName);
+    const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks());
     // The active document may have changed while we were processing; only post
     // if the preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
@@ -468,7 +491,7 @@ class PreviewManager {
     const { themeInput, forcedThemeName } = this.themeArgs();
     const html = blocks
       .map((b, i) =>
-        labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, themeInput, forcedThemeName)),
+        labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, themeInput, forcedThemeName, this.iconRegistry.iconPacks())),
       )
       .join('\n');
 

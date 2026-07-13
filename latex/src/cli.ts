@@ -19,8 +19,10 @@ import { fileURLToPath } from 'node:url';
 
 import { renderSync } from '../../src/frontend/index.js';
 import type { ResolvedTheme } from '../../src/contracts/theme.js';
+import type { IconPackMap } from '../../src/contracts/icons.js';
 import { svgToPdf } from './pdf.js';
 import { resolveCliTheme } from './theme-resolve.js';
+import { resolveCliIcons } from './icon-resolve.js';
 
 // ─── Arg parsing (tiny, dependency-free) ────────────────────────────────────────
 
@@ -31,6 +33,8 @@ interface Args {
   readonly theme?: string;
   readonly themeFile?: string;
   readonly themesDir?: string;
+  readonly iconPack?: string;
+  readonly iconsDir?: string;
   readonly scale: number;
   readonly help: boolean;
 }
@@ -41,6 +45,8 @@ function parseArgs(argv: string[]): Args {
   let theme: string | undefined;
   let themeFile: string | undefined;
   let themesDir: string | undefined;
+  let iconPack: string | undefined;
+  let iconsDir: string | undefined;
   let scale = 1;
   let help = false;
 
@@ -60,6 +66,12 @@ function parseArgs(argv: string[]): Args {
       case '--themes-dir':
         themesDir = argv[++i];
         break;
+      case '--icon-pack':
+        iconPack = argv[++i];
+        break;
+      case '--icons-dir':
+        iconsDir = argv[++i];
+        break;
       case '--scale':
         scale = Number(argv[++i]) || 1;
         break;
@@ -72,7 +84,7 @@ function parseArgs(argv: string[]): Args {
     }
   }
 
-  return { command: positionals.shift(), positionals, out, theme, themeFile, themesDir, scale, help };
+  return { command: positionals.shift(), positionals, out, theme, themeFile, themesDir, iconPack, iconsDir, scale, help };
 }
 
 const USAGE = `triton-latex — render Triton diagrams to vector PDF for LaTeX.
@@ -90,6 +102,12 @@ Options:
   --themes-dir <dir>        Directory of .triton-theme.json files to register; merged
                             on top of auto-discovered .triton/themes/ (overrides on
                             name collision). Use with --theme <name>.
+  --icon-pack <path>        Path to a .triton-icons.json icon pack file. Loaded at
+                            highest precedence (overrides --icons-dir and auto-discovery
+                            on duplicate prefix). Fails loudly on load or validation error.
+  --icons-dir <dir>         Directory of .triton-icons.json files to register; merged
+                            on top of auto-discovered .triton/icons/ (overrides on
+                            duplicate prefix). Use alongside --icon-pack as needed.
   --scale <number>          Uniform scale for the PDF page box (default 1).
   -h, --help                Show this help.
 
@@ -99,11 +117,19 @@ Theme resolution order:
      --theme <name>          → look up name in registry, then fall back to built-in preset
   3. No theme flags          → core uses diagram frontmatter / default preset
 
+Icon resolution order:
+  1. --icon-pack <path>     → load that exact file (errors are fatal); highest precedence
+  2. --icons-dir <dir>      → discover packs in dir, merged over auto-discovery
+  3. Auto-discovery          → walk up from input file looking for .triton/icons/
+  (No icon flags + no .triton/icons/ found → no custom icon packs loaded)
+
 Examples:
   triton-latex render diagram.mmd -o figures/diagram.pdf
   triton-latex render diagram.mmd -o diagram.svg                        # SVG pass-through
   triton-latex render diagram.mmd -o out.pdf --theme-file my.triton-theme.json
   triton-latex render diagram.mmd -o out.pdf --themes-dir .triton/themes --theme acme
+  triton-latex render diagram.mmd -o out.pdf --icon-pack icons/azure.triton-icons.json
+  triton-latex render diagram.mmd -o out.pdf --icons-dir .triton/icons
   triton-latex render-dir diagrams/ -o figures/                         # batch → *.pdf
 `;
 
@@ -112,8 +138,12 @@ Examples:
 const DIAGRAM_EXTS = new Set(['.triton', '.mmd']);
 
 /** Render one source file to an SVG string, throwing a clean Error on failure. */
-function renderToSvg(source: string, themeInput: ResolvedTheme | undefined): string {
-  const result = renderSync(source, themeInput);
+function renderToSvg(
+  source: string,
+  themeInput: ResolvedTheme | undefined,
+  icons: IconPackMap,
+): string {
+  const result = renderSync(source, themeInput, undefined, undefined, icons);
   if (!result.ok) {
     throw new Error(`${result.error.code}: ${result.error.message}`);
   }
@@ -125,10 +155,11 @@ async function renderFile(
   inputPath: string,
   outPath: string,
   themeInput: ResolvedTheme | undefined,
+  icons: IconPackMap,
   scale: number,
 ): Promise<void> {
   const source = readFileSync(inputPath, 'utf8');
-  const svg = renderToSvg(source, themeInput);
+  const svg = renderToSvg(source, themeInput, icons);
 
   // The inline LaTeX environment renders into a content-hashed cache dir
   // (e.g. `\jobname.triton-cache/<hash>.pdf`) that may not exist yet — single
@@ -149,6 +180,7 @@ async function renderDir(
   srcDir: string,
   outDir: string,
   themeInput: ResolvedTheme | undefined,
+  icons: IconPackMap,
   scale: number,
 ): Promise<{ rendered: number; failed: string[] }> {
   mkdirSync(outDir, { recursive: true });
@@ -166,7 +198,7 @@ async function renderDir(
     const name = basename(file, extname(file));
     const outPath = join(outDir, `${name}.pdf`);
     try {
-      await renderFile(inputPath, outPath, themeInput, scale);
+      await renderFile(inputPath, outPath, themeInput, icons, scale);
       console.log(`  ✓ ${file} → ${name}.pdf`);
       rendered++;
     } catch (cause) {
@@ -198,13 +230,20 @@ async function main(): Promise<number> {
     }
     const inputPath = resolve(input);
     let themeInput: ResolvedTheme | undefined;
+    let icons: IconPackMap;
     try {
       themeInput = resolveCliTheme(args, dirname(inputPath));
     } catch (e) {
       console.error(`error: ${(e as Error).message}`);
       return 1;
     }
-    await renderFile(inputPath, resolve(args.out), themeInput, args.scale);
+    try {
+      icons = resolveCliIcons(args, dirname(inputPath));
+    } catch (e) {
+      console.error(`error: ${(e as Error).message}`);
+      return 1;
+    }
+    await renderFile(inputPath, resolve(args.out), themeInput, icons, args.scale);
     console.log(`✓ ${input} → ${args.out}`);
     return 0;
   }
@@ -218,8 +257,15 @@ async function main(): Promise<number> {
     }
     const resolvedSrcDir = resolve(srcDir);
     let themeInput: ResolvedTheme | undefined;
+    let icons: IconPackMap;
     try {
       themeInput = resolveCliTheme(args, resolvedSrcDir);
+    } catch (e) {
+      console.error(`error: ${(e as Error).message}`);
+      return 1;
+    }
+    try {
+      icons = resolveCliIcons(args, resolvedSrcDir);
     } catch (e) {
       console.error(`error: ${(e as Error).message}`);
       return 1;
@@ -228,6 +274,7 @@ async function main(): Promise<number> {
       resolvedSrcDir,
       resolve(args.out),
       themeInput,
+      icons,
       args.scale,
     );
     console.log(`\n${rendered} rendered, ${failed.length} failed.`);

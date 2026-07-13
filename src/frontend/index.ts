@@ -215,8 +215,9 @@ export function compileAndRenderSync(
   themeInput?: ThemeInput,
   rendererName = 'svg',
   forcedThemeName?: string,
+  icons?: IconPackMap,
 ): Result<{ svg: string; anchors: NodeAnchorRegistry }> {
-  const compileResult = compileSync(input, themeInput, forcedThemeName);
+  const compileResult = compileSync(input, themeInput, forcedThemeName, icons);
   if (!compileResult.ok) return compileResult;
 
   const renderer = getRenderer<string>(rendererName);

@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import type { ThemeInput } from '../../src/contracts/index.js';
+import type { IconPackMap } from '../../src/contracts/icons.js';
 import { renderSync } from '../../src/frontend/index.js';
 import { editorThemeInput } from './editor-theme.js';
 
@@ -117,6 +118,7 @@ export function renderFencedBlock(
   baseDir: string | undefined,
   theme?: ThemeInput,
   forcedThemeName?: string,
+  icons?: IconPackMap,
 ): string {
   let source = rawBody;
 
@@ -127,7 +129,7 @@ export function renderFencedBlock(
     source = read.text;
   }
 
-  const result = renderSync(source, theme, 'svg', forcedThemeName);
+  const result = renderSync(source, theme, 'svg', forcedThemeName, icons);
   if (result.ok) return svgContainer(result.value);
   return errorBlock(`[${result.error.code}] ${result.error.message}`);
 }
