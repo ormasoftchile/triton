@@ -7,12 +7,73 @@ import { defaultRouter } from '../../../routing/router.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { pen } from '../../../scene/build.js';
 import { resolveIcon } from '../../../icons/resolver.js';
+import { measureText } from '../../../text/metrics.js';
+import { wrapText } from '../../../text/wrap.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const NODE_W = 120;
 const NODE_H = 40;
 const ARROW_MARKER_ID = 'triton-arrow';
+
+// Card node geometry (Leslie's contract: unit=8px baseline)
+const CARD_PAD          = 8;   // outer padding on all sides
+const CARD_ICON_BOX     = 40;  // icon region square side (unit*5)
+const CARD_ICON_GAP     = 12;  // horizontal gap between icon and text (unit*1.5)
+const CARD_MIN_W        = 192; // minimum card width (unit*24)
+const CARD_MAX_W        = 400; // maximum card width (unit*50)
+const CARD_MAX_BODY_LINES = 3;
+
+// ─── Card Node Helpers ────────────────────────────────────────────────────────
+
+/**
+ * Split a card node label into title and body at the first `\n` boundary.
+ * Handles both actual newline characters and the two-char `\n` escape sequence.
+ * Title = first line; body = everything after (empty string if no separator).
+ */
+function splitCardLabel(label: string): { title: string; body: string } {
+  const idx = label.search(/\\n|\n/);
+  if (idx === -1) return { title: label.trim(), body: '' };
+  const sep = label[idx] === '\n' ? 1 : 2; // actual newline=1, backslash-n escape=2
+  return { title: label.slice(0, idx).trim(), body: label.slice(idx + sep).trim() };
+}
+
+/**
+ * Measure the bounding box a card node requires based on its title/body content.
+ * Width is clamped to [CARD_MIN_W, CARD_MAX_W]; height is content-driven.
+ */
+function measureCardNode(
+  node: FlowNode,
+  typography: ResolvedTheme['typography'],
+): { width: number; height: number } {
+  const { title, body } = splitCardLabel(node.label);
+
+  // Title width: bold renders ~10% wider than regular
+  const titleW  = measureText(title, typography.baseFontSize).width * 1.1;
+  const titleLH = typography.baseFontSize * 1.2;
+
+  // Right-region max width at CARD_MAX_W (used to measure body at maximum possible size)
+  const maxRightW = CARD_MAX_W - CARD_ICON_BOX - CARD_ICON_GAP - 2 * CARD_PAD;
+
+  let bodyH = 0;
+  let bodyW = 0;
+  if (body) {
+    const wrapped = wrapText(body, typography.smallFontSize, maxRightW, CARD_MAX_BODY_LINES);
+    bodyH = wrapped.lines.length * typography.smallFontSize * 1.2;
+    bodyW = wrapped.lines.reduce(
+      (mx, l) => Math.max(mx, measureText(l, typography.smallFontSize).width),
+      0,
+    );
+  }
+
+  const textW  = Math.max(titleW, bodyW);
+  const width  = Math.min(CARD_MAX_W, Math.max(CARD_MIN_W,
+    CARD_ICON_BOX + CARD_ICON_GAP + textW + 2 * CARD_PAD));
+  const textH  = body ? titleLH + bodyH : titleLH;
+  const height = Math.max(CARD_ICON_BOX, textH) + 2 * CARD_PAD;
+
+  return { width, height };
+}
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
@@ -40,10 +101,22 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   let maxNodesInLayer = 0;
   for (const [, nodes] of orderedByLayer) maxNodesInLayer = Math.max(maxNodesInLayer, nodes.length);
 
+  // Per-node sizes: card nodes are content-driven; all others use NODE_W×NODE_H.
+  const nodeSizeMap = new Map<string, { width: number; height: number }>();
+  for (const node of ir.nodes) {
+    nodeSizeMap.set(
+      node.id,
+      node.shape === 'card'
+        ? measureCardNode(node, typography)
+        : { width: NODE_W, height: NODE_H },
+    );
+  }
+
   const nodePos = assignCoordinatesBK(
     orderedByLayer, ir.edges, backEdges,
     isLR, isReverse, maxNodesInLayer,
     NODE_W, NODE_H, colGap, rowGap, margin,
+    nodeSizeMap,
   );
 
   // ── Build scene elements ───────────────────────────────────────────────────
@@ -162,19 +235,78 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     const nodeElements: SceneElement[] = [];
     const fill   = nodeStatusFill(node, palette);
     const stroke = palette.border;
+    const sw     = edgeTheme.strokeWidth;
 
-    nodeElements.push(...renderNodeShape(node, r, fill, stroke, edgeTheme.strokeWidth));
-    nodeElements.push(p.text(node.label, r.x + NODE_W / 2, r.y + NODE_H / 2 + typography.baseFontSize * 0.35, typography.baseFontSize, palette.text, { anchor: 'middle' }));
+    if (node.shape === 'card') {
+      // ── Card two-region composition ──────────────────────────────────────
+      // Background chrome: palette.surface + fillOpacity + border + rx:6
+      nodeElements.push(p.rect(r, fill, stroke, sw, { rx: 6, fillOpacity: 0.85 }));
 
-    // Emit icon at the leading (left) edge of the node if @icon was declared.
-    // P7 (Brian) will replace this with the full card two-region layout.
-    if (node.icon !== undefined && icons !== undefined) {
-      const resolved = resolveIcon(node.icon, icons);
-      if (resolved.ok) {
-        const iconSize = NODE_H - 8;
-        const iconX = r.x + 4;
-        const iconY = r.y + (NODE_H - iconSize) / 2;
-        nodeElements.push(p.icon(resolved.value, iconX, iconY, iconSize, { color: palette.text }));
+      const { title, body } = splitCardLabel(node.label);
+      const iconX  = r.x + CARD_PAD;
+      const iconY  = r.y + (r.height - CARD_ICON_BOX) / 2;
+      const textX  = r.x + CARD_PAD + CARD_ICON_BOX + CARD_ICON_GAP;
+      const rightW = r.width - 2 * CARD_PAD - CARD_ICON_BOX - CARD_ICON_GAP;
+
+      // LEFT: icon region — vertically centered, 32px glyph within 40px box
+      if (node.icon !== undefined && icons !== undefined) {
+        const resolved = resolveIcon(node.icon, icons);
+        if (resolved.ok) {
+          const glyphSize = CARD_ICON_BOX - 8; // 32px
+          const gx = iconX + (CARD_ICON_BOX - glyphSize) / 2;
+          const gy = iconY + (CARD_ICON_BOX - glyphSize) / 2;
+          nodeElements.push(p.icon(resolved.value, gx, gy, glyphSize, { color: palette.primary }));
+        }
+      }
+
+      // RIGHT: title + optional body
+      const bodyText = body ? body.replace(/\\n|\n/g, ' ').trim() : '';
+      const wrapped  = bodyText
+        ? wrapText(bodyText, typography.smallFontSize, rightW, CARD_MAX_BODY_LINES)
+        : { lines: [] };
+      const hasBody  = wrapped.lines.length > 0;
+
+      // Title baseline: top-aligned when body present, vertically centered otherwise
+      const titleBaseY = hasBody
+        ? r.y + CARD_PAD + typography.baseFontSize * 0.85
+        : r.y + r.height / 2 + typography.baseFontSize * 0.35;
+
+      nodeElements.push(
+        p.text(title, textX, titleBaseY, typography.baseFontSize, palette.text, { weight: 'bold' }),
+      );
+
+      if (hasBody) {
+        const titleLH = typography.baseFontSize * 1.2;
+        let bodyY = r.y + CARD_PAD + titleLH + typography.smallFontSize * 0.85;
+        for (const line of wrapped.lines) {
+          nodeElements.push(
+            p.text(line, textX, bodyY, typography.smallFontSize, palette.textMuted),
+          );
+          bodyY += typography.smallFontSize * 1.2;
+        }
+      }
+
+    } else {
+      // ── Default single-region composition (all non-card shapes) ──────────
+      nodeElements.push(...renderNodeShape(node, r, fill, stroke, sw));
+      nodeElements.push(p.text(
+        node.label,
+        r.x + r.width / 2,
+        r.y + r.height / 2 + typography.baseFontSize * 0.35,
+        typography.baseFontSize,
+        palette.text,
+        { anchor: 'middle' },
+      ));
+
+      // Generic icon placement (P6 behaviour for non-card nodes with @icon)
+      if (node.icon !== undefined && icons !== undefined) {
+        const resolved = resolveIcon(node.icon, icons);
+        if (resolved.ok) {
+          const iconSize = NODE_H - 8;
+          const ix = r.x + 4;
+          const iy = r.y + (NODE_H - iconSize) / 2;
+          nodeElements.push(p.icon(resolved.value, ix, iy, iconSize, { color: palette.text }));
+        }
       }
     }
 
@@ -456,7 +588,12 @@ function assignCoordinatesBK(
   colGap: number,
   rowGap: number,
   margin: number,
+  nodeSizes?: Map<string, { width: number; height: number }>,
 ): Map<string, Rect> {
+  // Per-node dimension helpers with fallback to uniform defaults.
+  const getW = (id: string) => nodeSizes?.get(id)?.width  ?? nodeW;
+  const getH = (id: string) => nodeSizes?.get(id)?.height ?? nodeH;
+
   // Forward-edge predecessor and successor maps.
   const predMap = new Map<string, string[]>();
   const succMap = new Map<string, string[]>();
@@ -473,16 +610,48 @@ function assignCoordinatesBK(
   const numLayers = layerKeys.length;
 
   // Cross-axis = x for TB layout, y for LR layout.
-  const crossSize = isLR ? nodeH : nodeW;
-  const mainSize  = isLR ? nodeW : nodeH;
-  const crossGap  = isLR ? rowGap : colGap;
-  const mainGap   = isLR ? colGap : rowGap;
-  const crossStep = crossSize + crossGap;
-  const mainStep  = mainSize  + mainGap;
+  // Compute the GLOBAL maximum cross-size across all nodes. This single step
+  // is used for within-layer spacing so that nodes of different widths never
+  // overlap. Nodes narrower than the slot are centred within it.
+  // DISCLOSED: in mixed diagrams (cards + small nodes in the same layer), small
+  // nodes receive extra cross-axis spacing equal to the slot overshoot. This is
+  // visually acceptable and guarantees no overlaps without restructuring BK.
+  const crossGap = isLR ? rowGap : colGap;
+  const mainGap  = isLR ? colGap : rowGap;
+
+  let globalCrossSize = isLR ? nodeH : nodeW;
+  for (const [, nodes] of byLayer) {
+    for (const n of nodes) {
+      const cs = isLR ? getH(n.id) : getW(n.id);
+      if (cs > globalCrossSize) globalCrossSize = cs;
+    }
+  }
+  const crossStep = globalCrossSize + crossGap;
+
+  // Per-layer max main size — used for cumulative layer positions.
+  const layerMainSizes: number[] = layerKeys.map(lk => {
+    const nodes = byLayer.get(lk)!;
+    let mx = isLR ? nodeW : nodeH;
+    for (const n of nodes) {
+      const ms = isLR ? getW(n.id) : getH(n.id);
+      if (ms > mx) mx = ms;
+    }
+    return mx;
+  });
+
+  // Cumulative layer main-axis positions (forward order: layer 0 first).
+  const fwdMainPos: number[] = [];
+  let cumMain = margin;
+  for (let li = 0; li < numLayers; li++) {
+    fwdMainPos.push(cumMain);
+    cumMain += layerMainSizes[li]! + mainGap;
+  }
 
   /**
    * Run one coordinate pass (top-down or bottom-up).
-   * Returns a map of node id → cross-axis left-edge position.
+   * Returns a map of node id → cross-axis SLOT left-edge position.
+   * (Individual nodes may be narrower; they are centred within their slot
+   *  in the final rect-emission loop below.)
    */
   function onePass(topDown: boolean): Map<string, number> {
     const crossPos = new Map<string, number>();
@@ -528,22 +697,34 @@ function assignCoordinatesBK(
   const pass2 = onePass(false);  // successor-aligned   (bottom-up)
 
   // Average the two passes and emit Rect entries.
+  // Each node is centred within its cross-axis slot and within its layer band.
   const nodePos = new Map<string, Rect>();
   for (let li = 0; li < numLayers; li++) {
-    const layerIdx = layerKeys[li]!;
-    const layerNum = isReverse ? numLayers - 1 - li : li;
-    const nodes    = byLayer.get(layerIdx)!;
-    const mainPos  = margin + layerNum * mainStep;
+    const layerIdx    = layerKeys[li]!;
+    const nodes       = byLayer.get(layerIdx)!;
+    const layerMainSz = layerMainSizes[li]!;
+
+    // Main-axis position: for isReverse, the layer drawn "first" (index 0)
+    // maps to the farthest forward position; assign in reverse order.
+    const mainPos = isReverse ? fwdMainPos[numLayers - 1 - li]! : fwdMainPos[li]!;
 
     for (const node of nodes) {
-      const c1 = pass1.get(node.id) ?? margin;
-      const c2 = pass2.get(node.id) ?? margin;
-      const crossP = (c1 + c2) / 2;
+      const c1     = pass1.get(node.id) ?? margin;
+      const c2     = pass2.get(node.id) ?? margin;
+      const slotLeft = (c1 + c2) / 2;
+
+      const nw = getW(node.id);
+      const nh = getH(node.id);
+
+      // Centre the node within its cross slot and within the layer's main band.
+      const crossOffset = (globalCrossSize - (isLR ? nh : nw)) / 2;
+      const mainOffset  = (layerMainSz     - (isLR ? nw : nh)) / 2;
+
       nodePos.set(node.id, {
-        x:      isLR ? mainPos : crossP,
-        y:      isLR ? crossP  : mainPos,
-        width:  nodeW,
-        height: nodeH,
+        x:      isLR ? mainPos + mainOffset : slotLeft + crossOffset,
+        y:      isLR ? slotLeft + crossOffset : mainPos + mainOffset,
+        width:  nw,
+        height: nh,
       });
     }
   }
@@ -571,6 +752,8 @@ function renderNodeShape(node: FlowNode, r: Rect, fill: string, stroke: string, 
         { type: 'rect', bounds: r, fill, stroke, strokeWidth: sw },
         { type: 'rect', bounds: { x: x + 6, y, width: w - 12, height: h }, fill: 'none', stroke, strokeWidth: sw * 0.5 },
       ];
+    case 'card':
+      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 6 }];
     default:
       return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 2 }];
   }
@@ -620,8 +803,11 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
     const offAxis = Math.abs(dy);
     const onAxis  = Math.abs(dx);
 
-    // If the peer is more off-axis than on-axis, use top/bottom port
-    if (offAxis > onAxis && offAxis > r.height / 2) {
+    // If the peer is more off-axis than on-axis AND the nodes are close on
+    // the main axis (same or overlapping layer), use top/bottom port.
+    // The onAxis < r.width guard prevents wide nodes in clearly different
+    // layers from incorrectly flipping to off-axis ports.
+    if (offAxis > onAxis && offAxis > r.height / 2 && onAxis < r.width) {
       return dy > 0
         ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
         : { point: { x: cx, y: r.y },             portDir: 'N' };
@@ -636,7 +822,10 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
     const offAxis = Math.abs(dx);
     const onAxis  = Math.abs(dy);
 
-    if (offAxis > onAxis && offAxis > r.width / 2) {
+    // Only flip to E/W port when the peer is close on the main axis (within
+    // one node-height vertically), indicating same-layer or overlapping nodes.
+    // Cross-layer forward edges always use S/N (flow-direction) ports.
+    if (offAxis > onAxis && offAxis > r.width / 2 && onAxis < r.height) {
       return dx > 0
         ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
         : { point: { x: r.x,           y: cy }, portDir: 'W' };
