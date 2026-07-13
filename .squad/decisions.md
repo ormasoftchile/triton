@@ -5463,3 +5463,624 @@ Note: edge annotations (`@orthogonal:EW`) and node annotations (`@shape:card`) u
 | Grep-ability | ✓ `grep @icon:` | ✗ varies by formatting | `@key:value` |
 
 **Final call:** `@key:value` is the Triton-native form. `@{...}` is a supported parse-time alias for Mermaid compatibility. Both lower to the same IR.
+# Design Decision — Icon IR Contract (P0)
+
+**Author:** Mark (IR & Data Modeling)
+**Date:** 2026-07-12T19:58:19-04:00
+**Status:** FINAL — built, typechecked, 65/65 tests passing
+
+---
+
+## Context
+
+This decision documents the finalized P0 icon IR contract for Triton's icon system. It is the authoritative reference for:
+
+- **Brian** (P2: SVG emit) — the `ResolvedIcon` shape Brian's renderer consumes
+- **Bjarne** (P6: grammar) — the `IconRef` token grammar Bjarne's parsers must produce
+
+It implements Phase P0 of the icon phasing plan in the "Research & Design — Icon Library Import Format" decision (finalized 2026-07-12).
+
+---
+
+## Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/contracts/icons.ts` | Type contract — all icon types |
+| `src/contracts/result.ts` | Added `ICON_VALIDATION_ERROR`, `ICON_NOT_FOUND` error codes |
+| `src/contracts/index.ts` | Re-exports all icon types from the contracts barrel |
+| `src/icons/schema.json` | JSON Schema draft-07 for `.triton-icons.json` pack files |
+| `src/icons/validate.ts` | `validateIconPack(json): Result<IconifyJSON>` — pure validator |
+| `src/icons/resolver.ts` | `parseIconRef`, `resolveIcon`, `detectColorMode` — pure resolution |
+| `test/icons.test.ts` | 65 unit tests — all passing |
+
+---
+
+## IR Contract
+
+### `IconData` — per-icon entry in a pack
+
+```typescript
+interface IconData {
+  body: string;           // inner SVG markup — NO <svg> wrapper. Required, non-empty.
+  width?: number;         // viewport width px — overrides pack-level default
+  height?: number;        // viewport height px — overrides pack-level default
+  left?: number;          // viewport x-origin px
+  top?: number;           // viewport y-origin px
+  rotate?: 0 | 1 | 2 | 3; // quarter-turns clockwise
+  hFlip?: boolean;        // mirror left↔right
+  vFlip?: boolean;        // mirror top↔bottom
+}
+```
+
+### `IconAlias` — alternate name within a pack
+
+```typescript
+interface IconAlias {
+  parent: string;         // bare name of parent icon in same pack. Required.
+  rotate?: 0 | 1 | 2 | 3; // additional rotation (added mod 4 on top of parent)
+  hFlip?: boolean;        // additional hFlip (XORed with parent's hFlip)
+  vFlip?: boolean;        // additional vFlip (XORed with parent's vFlip)
+  width?: number;         // override viewport width for this alias
+  height?: number;
+  left?: number;
+  top?: number;
+}
+```
+
+### `IconifyJSON` — a loaded pack
+
+```typescript
+interface IconifyJSON {
+  prefix: string;                          // [a-z][a-z0-9-]* — authoritative pack key
+  icons: Record<string, IconData>;         // keyed by bare name: [a-z0-9][a-z0-9-]*
+  aliases?: Record<string, IconAlias>;
+  width?: number;   // pack-level default viewport width  (system fallback: 16)
+  height?: number;  // pack-level default viewport height (system fallback: 16)
+  left?: number;    // pack-level default x-origin        (system fallback: 0)
+  top?: number;     // pack-level default y-origin        (system fallback: 0)
+}
+```
+
+### `IconRef` — carried by diagram IRs
+
+```typescript
+interface IconRef {
+  prefix: string;   // e.g. "azure"
+  name: string;     // e.g. "app-service"
+}
+```
+
+**Token grammar** (canonical — enforced by `parseIconRef`):
+
+```
+prefix  ::= [a-z][a-z0-9-]*
+name    ::= [a-z0-9][a-z0-9-]*
+iconRef ::= prefix ":" name
+```
+
+Examples: `azure:app-service`, `mdi:server`, `lucide:0-circle`
+
+### `IconPackMap` — host → core injection point
+
+```typescript
+type IconPackMap = Map<string, IconifyJSON>;
+// keyed by pack.prefix (authoritative, not filename)
+```
+
+Built by P1 (host discovery layer). Passed into core alongside `ThemeInput`. Core never touches the filesystem.
+
+---
+
+## `ResolvedIcon` — the P0↔P2 seam
+
+**This is the contract Brian's SVG emitter consumes.** The resolver produces this; Brian's render layer (P2) consumes it. Brian never touches packs, aliases, or dimension merging.
+
+```typescript
+interface ResolvedIcon {
+  body: string;                          // inner SVG, no <svg> wrapper, ready to embed
+  viewBox: {                             // final merged dimensions
+    width: number;                       // always positive
+    height: number;                      // always positive
+    left: number;
+    top: number;
+  };
+  transforms: {
+    rotate: 0 | 1 | 2 | 3;             // clockwise quarter-turns
+    hFlip: boolean;                      // mirror left↔right
+    vFlip: boolean;                      // mirror top↔bottom
+  };
+  colorMode: 'monochrome' | 'brand';
+}
+```
+
+### Rendering contract for Brian (P2)
+
+**`colorMode = 'monochrome'`:**
+- Wrap body in `<svg viewBox="${left} ${top} ${width} ${height}" style="color: {paletteToken}">`
+- `currentColor` in body inherits the palette tint → icon is recolorable.
+
+**`colorMode = 'brand'`:**
+- Wrap body in `<svg viewBox="${left} ${top} ${width} ${height}">` — NO color override.
+- Hardcoded fills (e.g. Azure's `#0078D4`) render verbatim.
+- ⚠️ **MUST namespace gradient IDs per icon instance.** Brand icons (Azure) use local `<linearGradient id="a">` inside body. When multiple brand icons appear in the same output SVG, IDs collide. Brian must rewrite `id="a"` → `id="icon-{n}-a"` and `url(#a)` → `url(#icon-{n}-a)` for each instance. This is a P2 responsibility.
+
+### ViewBox merge order (highest priority first)
+
+1. Alias-level dimension overrides (when ref was an alias)
+2. Icon-level dimension overrides
+3. Pack-level dimension defaults
+4. System defaults: `width=16, height=16, left=0, top=0`
+
+### Transform composition (alias on top of icon)
+
+```
+rotate = (iconRotate + aliasRotate) mod 4
+hFlip  = iconHFlip XOR aliasHFlip
+vFlip  = iconVFlip XOR aliasVFlip
+```
+
+---
+
+## Mono/Brand Detection Heuristic
+
+Implemented as `detectColorMode(body: string): 'monochrome' | 'brand'` in `src/icons/resolver.ts`.
+
+**Algorithm:**
+
+1. If body contains `<linearGradient` or `<radialGradient` → **brand** (gradient defs always = brand, even if fills use `url(#id)`).
+2. Scan all `fill="..."` and `stroke="..."` attribute values.
+3. If any value is not in `{none, currentColor, inherit}` (case-insensitive) → **brand**.
+4. Otherwise → **monochrome**.
+
+**Rationale:** Monochrome packs (MDI, Lucide, Heroicons, simple-icons) use only `currentColor`/`none` fills, making them palette-tintable. Brand packs (Azure architecture icons, logos-pack) embed hardcoded hex colors and gradient defs that must render verbatim.
+
+**Known limitation:** String-scan heuristic, not a full SVG parser. Handles well-formed `@iconify/tools` output. Pathological cases (fill/stroke in CSS `<style>` blocks or non-attribute text) could produce false positives, but these are rare in standard IconifyJSON packs.
+
+---
+
+## Token Grammar for Bjarne (P6)
+
+When extending grammars to support icon references, parsers MUST produce `IconRef` values where:
+
+- `prefix` matches `^[a-z][a-z0-9-]*$`
+- `name` matches `^[a-z0-9][a-z0-9-]*$`
+
+**Node-shape icon syntax** (quoted string in diagram grammar):
+```
+icon: "prefix:name"
+```
+Parse the quoted value with `parseIconRef` from `src/icons/resolver.ts`. It returns `Result<IconRef>` — check `.ok` and surface parse errors as `ICON_NOT_FOUND` diagnostics.
+
+**Inline-label icon syntax** (in text runs, per cross-diagram design):
+```
+:prefix:name:
+```
+Regex: `/:([a-z][a-z0-9-]*:[a-z0-9][a-z0-9-]+):/g` — colon-wrapped, unambiguous against prose and timestamps. Parse the inner `prefix:name` with `parseIconRef`.
+
+---
+
+## Purity Boundary
+
+All functions in `src/icons/validate.ts` and `src/icons/resolver.ts` are **pure**:
+- No `fs`, no `fetch`, no `process`.
+- Input: already-parsed JSON or string tokens.
+- Output: `Result<T>` — never throws.
+
+This matches the theme purity model: host discovers and loads packs (P1), core only resolves what it's given.
+# Decision: Icon Pack Discovery API (P1)
+
+**Author:** Bjarne (Ingestion Design)  
+**Date:** 2026-07-12T19:59:40-04:00  
+**Status:** SHIPPED — `src/icons/discover.ts` implemented, 14/14 tests passing  
+**Refs:** `.squad/decisions.md` § "Icon Library Import Format"; Mark's P0 (`src/contracts/icons.ts`, `src/icons/validate.ts`)
+
+---
+
+## Summary
+
+P1 ships the host-side bridge from `.triton/icons/*.triton-icons.json` files on disk to the `IconPackMap` that core consumes. Pure discovery plumbing — no rendering, no grammar changes.
+
+---
+
+## API Surface
+
+### `findTritonIconsDir(startDir: string): string | undefined`
+
+Walk up from `startDir` checking for a `.triton/icons/` directory at each level. Returns the absolute path of the first match, or `undefined` if none found within 10 levels (filesystem-root guard). Never throws.
+
+### `discoverIconPacks(dir: string): IconDiscoveryResult`
+
+Scans `dir` for every `*.triton-icons.json` file. For each file:
+
+1. Read (fs.readFileSync) → on error: collect warning, skip.
+2. JSON.parse → on failure: collect warning (`"Invalid JSON in icon pack file …"`), skip.
+3. Call `validateIconPack(parsed)` (Mark's pure validator from `src/icons/validate.ts`) → on `err`: collect warning (`"… failed validation: …"`), skip.
+4. Use validated pack's `prefix` field as the map key.
+5. On duplicate prefix: **last-wins** (see rule below), collect warning.
+
+Returns `{ map: IconPackMap; warnings: readonly string[] }`.
+
+**Missing directory:** If `readdirSync` throws, returns empty map + one warning (`"Cannot read icons directory …"`). Never throws to the caller.
+
+### `loadIconPacks(startDir: string): IconDiscoveryResult`
+
+Convenience entry point for hosts. Combines `findTritonIconsDir` + `discoverIconPacks`. If no `.triton/icons/` dir is found: returns `{ map: new Map(), warnings: [] }` (a project without icon packs is valid — no noise).
+
+---
+
+## Duplicate-Prefix Resolution Rule
+
+**Rule: last-wins.**
+
+When two `*.triton-icons.json` files in the same `.triton/icons/` directory declare the same `prefix`, the file that appears later in `readdirSync` order is stored in the map and the earlier entry is silently replaced. A warning is appended:
+
+```
+Duplicate icon pack prefix "azure": "azure-v2.triton-icons.json" overrides an earlier definition
+```
+
+**Rationale:** Mirrors theme discovery's duplicate-name policy (`discoverThemes` last-wins + warning). Predictable, deterministic on a given OS, and consistent across the codebase.
+
+**Implication for CLI (P3) and extension (P4):** If a user wants to override a pack, they can ship a second file with the same `prefix` and rely on alphabetically-later filename winning. The warning in the output makes the override visible. If strict no-duplicates behavior is preferred at a later phase, the warnings array already surfaces it.
+
+---
+
+## Structural Design Notes
+
+- **Mirrors `src/theme/discover.ts` exactly**: same walk-up algorithm, same MAX_LEVELS=10, same result shape, same warning text patterns.
+- **FS isolation enforced**: `src/icons/discover.ts` MUST NOT be imported from `src/index.ts` or `src/frontend/index.ts`. Hosts import by relative path: `import { loadIconPacks } from '../../src/icons/discover.js'`.
+- **Key is `prefix`, not filename**: the authoritative key in `IconPackMap` is the validated `prefix` field inside the JSON, not the filename. A file named `azure-icons.triton-icons.json` with `"prefix": "azure"` is keyed as `"azure"`.
+- **No barrel re-export**: consistent with how theme/discover.ts is consumed — no central barrel re-exports it.
+
+---
+
+## File Inventory
+
+| File | Role |
+|------|------|
+| `src/icons/discover.ts` | Host discovery module (FS I/O) |
+| `src/icons/validate.ts` | Pure validator (Mark's P0, called here) |
+| `src/contracts/icons.ts` | `IconifyJSON`, `IconPackMap` types (Mark's P0) |
+| `test/icon-discover.test.ts` | 14 tests — all passing |
+| `test/fixtures/icons/valid-mdi.triton-icons.json` | Fixture: valid pack, prefix="mdi" |
+| `test/fixtures/icons/valid-lucide.triton-icons.json` | Fixture: valid pack, prefix="lucide" |
+| `test/fixtures/icons/bad-json.triton-icons.json` | Fixture: malformed JSON |
+| `test/fixtures/icons/invalid-pack.triton-icons.json` | Fixture: valid JSON, empty icons (fails validation) |
+
+---
+
+## For CLI (P3) and Extension (P4)
+
+Both hosts should call `loadIconPacks(projectRoot)` at startup (or on workspace change) and pass the resulting `map` into core's render pipeline as `IconPackMap`. The `warnings` array should be surfaced in output (CLI: stderr; extension: Problems panel or output channel).
+
+The duplicate-prefix warning is the signal for a user who accidentally ships two packs with the same prefix. No action needed unless they want deterministic ordering — renaming the file to control sort order is sufficient.
+# Decision: P2 Icon Emit — SceneIcon Contract
+
+**Date:** 2026-07-12
+**Author:** Brian (Layout Implementation Engineer)
+**Status:** Accepted
+**Phase:** P2 (Icon Render Primitive)
+**Audience:** Bjarne (P6 Grammar/Layout), any renderer author
+
+---
+
+## Summary
+
+P2 ships the SVG render primitive for icons: `SceneIcon`. This document records the
+exact contract that Bjarne's grammar/layout (P6) must populate to place an icon in a
+scene — field names, semantics, and placement conventions.
+
+---
+
+## The SceneIcon seam (what P6 produces)
+
+```ts
+interface SceneIcon {
+  readonly type: 'icon';                // discriminant — always the string literal 'icon'
+  readonly icon: ResolvedIcon;          // resolved icon from resolveIcon() in src/icons/resolver.ts
+  readonly x: number;                   // top-left x of the icon's target bounding box (scene units)
+  readonly y: number;                   // top-left y of the icon's target bounding box (scene units)
+  readonly size: number;                // side length of the square target bounding box
+  readonly color?: string;             // CSS color for monochrome tint (e.g. "#1e293b")
+  readonly opacity?: number;           // optional element-level opacity (0–1)
+}
+```
+
+### Where it lives
+
+- Contract: `src/contracts/scene.ts` — `SceneIcon` interface, added to `SceneElement` union
+- Barrel: `src/contracts/index.ts` — exported as `SceneIcon`
+- Pen helper: `src/scene/build.ts` — `pen.icon(resolvedIcon, x, y, size, opts?)`
+
+---
+
+## How P6 (Bjarne) populates it
+
+1. **Resolve the icon token** from the node IR (e.g. `FlowNode.icon`, `MindNode.icon`,
+   `SeqParticipant.icon`) using `resolveIcon(ref, iconPacks)` from `src/icons/resolver.ts`.
+   The result is a `ResolvedIcon` — the `icon` field of `SceneIcon`.
+
+2. **Set `x` and `y`** to the top-left of the icon's reserved box within the node's
+   layout rect. Typical placement: icon centered horizontally above the label:
+   ```
+   x = nodeLeft + (nodeWidth  - iconSize) / 2
+   y = nodeTop  + iconTopPadding
+   ```
+
+3. **Set `size`** to the icon box dimension. Recommended: use a theme spacing token
+   (e.g. `theme.spacing.iconSize` when that field exists, or a fixed `32` px default).
+   The renderer scales the icon's viewBox into this square while preserving aspect ratio.
+
+4. **Set `color`** (optional) to a palette CSS color for monochrome tinting, typically
+   the node/text foreground color (e.g. `theme.palette.text`). Omit to let the icon
+   inherit `currentColor` from its SVG context. Ignored for `colorMode='brand'` icons.
+
+5. **Emit via Pen:**
+   ```ts
+   const p = pen(theme);
+   const iconEl = p.icon(resolved, x, y, iconSize, { color: theme.palette.text });
+   elements.push(iconEl);
+   ```
+
+---
+
+## Renderer behavior (what Brian implemented)
+
+### Coordinate transform
+
+The renderer uses a nested `<svg>` element:
+```xml
+<svg x="{cx}" y="{cy}" width="{scaledW}" height="{scaledH}"
+     viewBox="{vbLeft} {vbTop} {vbW} {vbH}"
+     [style="color:{color}"]
+     [opacity="{opacity}"]>
+  [<g transform="...">] <!-- only if rotate/flip needed -->
+    {icon.body}
+  [</g>]
+</svg>
+```
+
+- `cx`, `cy` = centered position within the `size × size` target box
+- `scaledW`, `scaledH` = icon dimensions scaled to fit the box (aspect ratio preserved)
+- `scale = min(size / viewBox.width, size / viewBox.height)`
+
+### Monochrome tinting
+
+`colorMode='monochrome'` → the nested `<svg>` gets `style="color:{color}"`.
+The icon body uses `fill="currentColor"` and inherits the tint. No fill attribute is
+added directly to body elements — the CSS color inheritance mechanism handles it.
+
+### Brand verbatim
+
+`colorMode='brand'` → the nested `<svg>` gets NO `style` attribute (no color override).
+The body's hardcoded fills (e.g. `fill="#0078D4"`) and gradients render exactly as-is.
+
+### Gradient ID namespacing
+
+Brand icons with `<linearGradient id="...">` or `<radialGradient id="...">` in their
+body have all `id=` values rewritten with a per-emit prefix (`icn{N}-{id}`) to prevent
+collisions when multiple brand icons appear in the same output SVG document.
+
+The counter (`iconEmitCounter`) is a module-level monotonic integer in `src/render/svg.ts`.
+This is deterministic within a single render call but not across separate calls — that
+is acceptable for SVG output since IDs are scoped to a single document.
+
+### Transforms
+
+`ResolvedIcon.transforms` (rotate 0–3 × 90°, hFlip, vFlip) are applied inside the
+nested `<svg>` via a `<g transform="...">` wrapping the body. Transform is applied
+around the icon's viewBox center. No `<g>` is emitted for identity transforms.
+
+### rsvg-convert safety
+
+The renderer emits only `<svg>` and `<g>` as structural wrappers. The icon body is
+passed verbatim. No `<foreignObject>` or `<image>` is ever generated.
+
+---
+
+## Notes for P6
+
+- `resolveIcon()` returns a `Result<ResolvedIcon>`. If it returns `err(...)`, emit a
+  fallback geometric primitive (e.g. a grey circle placeholder) rather than crashing.
+  The existing architecture layout already does this at `layout.ts:111`.
+
+- `SceneIcon` elements should be emitted in painter's order (back-to-front).
+  Typically an icon is emitted AFTER the node background rect but BEFORE the label text.
+
+- For inline-label icons (`:prefix:name:` token in text), P6a will need a different
+  approach — see the inline-icon spec in `.squad/decisions.md`. `SceneIcon` covers
+  node-shape icons only.
+# Decision — Flowchart Node Annotation Grammar + `renderSync` `icons` Param (P6)
+
+**Date:** 2026-07-12  
+**Author:** Bjarne (Ingestion Design)  
+**Status:** ADOPTED — implemented, 0 typecheck errors, 747/747 tests green  
+**Phase:** P6 — wire `@key:value` node annotations end-to-end for flowchart  
+**Supersedes/extends:** "Syntax Evaluation — `@key:value` Node Annotations" (decisions.md §5236)
+
+---
+
+## Decision summary
+
+Flowchart node declarations now accept repeatable trailing `@key:value` annotations.
+`@icon:<prefix:name>` is wired end-to-end: grammar → `FlowNode.icon: IconRef` → layout
+`pen.icon()` → SVG renderer. `@shape:card` is parsed and stored; full card geometry is P7.
+
+---
+
+## 1. Grammar — final `NodeAnnotation` rule
+
+File: `src/diagrams/mermaid/flowchart/grammar.peggy`
+
+### NodeRef (extended)
+
+```peggy
+NodeRef
+  = id:NodeId _ shape:Shape? {
+      return { id: registerNode(id, shape ? shape.label : null, shape ? shape.shape : null) };
+    }
+```
+
+Added `_` (optional whitespace) between `NodeId` and `Shape?` so the canonical
+decisions-doc form `A ["App Service"]` (space before bracket) is accepted.
+Existing no-space form `A["App Service"]` continues to work.
+
+### NodeDecl (extended)
+
+```peggy
+NodeDecl
+  = ref:NodeRef anns:(_ "@" key:$([a-z][a-z0-9-]*) ":" value:AnnotationValue { return { key, value }; })* !(_ EdgeArrow) {
+      const node = nodeMap.get(ref.id);
+      if (node) {
+        for (const ann of anns) {
+          if (ann.key === 'shape') node.shape = ann.value;
+          if (ann.key === 'icon')  node.iconToken = ann.value;
+        }
+      }
+      return { type: 'node', ...ref };
+    }
+
+AnnotationValue
+  = '"' val:$[^"]* '"' { return val; }
+  / $([^ \t\r\n@\[\](){};]+)
+```
+
+### Key design points
+
+| Property | Value |
+|---|---|
+| Attachment site | `NodeDecl` only (standalone node lines). NOT on `NodeRef` inside edge chains. |
+| Positional disambiguation | Edge annotations (`@orthogonal:EW`) appear AFTER the last target `NodeRef` in an EdgeChain. Node annotations appear after the shape bracket on a standalone line. PEG ordered-choice + `!(_ EdgeArrow)` lookahead guarantee no overlap. |
+| Value grammar | Unquoted: greedy `[^ \t\r\n@\[\](){};]+` stops at whitespace or next `@`. Quoted: `"..."`. |
+| Double-colon rule | `@icon:azure:app-service` — key = `icon`, value = `azure:app-service`. First `:` separates key from value. Remaining colons are part of the value (greedy). |
+| `\s` warning | Peggy character classes do NOT support `\s` as a whitespace shorthand. `\s` in a Peggy `[...]` is literal backslash + 's'. Always enumerate: `[ \t\r\n]`. |
+| Multiple annotations | Space-separated: `@shape:card @icon:azure:app-service @status:active`. Parsed left-to-right. |
+
+### Canonical example
+
+```mermaid
+flowchart TD
+A ["App Service"] @shape:card @icon:azure:app-service
+B ["PostgreSQL"] @icon:mdi:database
+A --> B
+```
+
+---
+
+## 2. IR — `FlowNode.icon` and `'card'` shape
+
+File: `src/diagrams/mermaid/flowchart/ir.ts`
+
+```typescript
+export type NodeShape =
+  | 'rect' | 'rounded-rect' | 'circle' | 'diamond' | 'stadium'
+  | 'subroutine' | 'cylinder' | 'hexagon'
+  | 'parallelogram' | 'parallelogram-alt' | 'asymmetric'
+  | 'card';          // ← P6 addition; full card layout is P7 (Brian)
+
+export interface FlowNode {
+  // ... existing fields ...
+  /** Parsed icon reference from an @icon:<prefix:name> node annotation. */
+  readonly icon?: IconRef;
+}
+```
+
+`parseMermaid` calls `parseIconRef(node.iconToken)` and throws `Flowchart parse error: invalid @icon value "${token}": ${msg}` on failure.
+
+---
+
+## 3. `renderSync` / `compileSync` — `icons?: IconPackMap` parameter
+
+File: `src/frontend/index.ts`
+
+```typescript
+export function renderSync(
+  input: string,
+  themeInput?: ThemeInput,
+  rendererName = 'svg',
+  forcedThemeName?: string,
+  icons?: IconPackMap,          // ← P6 addition
+): Result<string>
+
+export function compileSync(
+  input: string,
+  themeInput?: ThemeInput,
+  forcedThemeName?: string,
+  icons?: IconPackMap,          // ← P6 addition
+): Result<LayoutResult>
+```
+
+`icons` is appended as the last optional parameter on both functions. It is wired
+into `LayoutOptions { icons }` and passed to `module.layout`. Callers that don't
+need icons (the vast majority) pass nothing; existing call sites are unaffected.
+
+### `LayoutOptions` extension
+
+File: `src/contracts/anchors.ts`
+
+```typescript
+export interface LayoutOptions {
+  readonly portHints?: readonly PortHint[];
+  readonly icons?: IconPackMap;  // ← P6 addition
+}
+```
+
+All existing diagram layout engines accept `options?: LayoutOptions` and ignore
+unknown fields — fully backward-compatible.
+
+---
+
+## 4. Layout — icon emit
+
+File: `src/diagrams/mermaid/flowchart/layout.ts`
+
+For each `FlowNode` with `icon` defined, if `options?.icons` is set:
+
+```typescript
+const resolved = resolveIcon(node.icon, icons);
+if (resolved.ok) {
+  const iconSize = NODE_H - 8;   // 32px for default 40px node height
+  const iconX = r.x + 4;        // 4px margin from left edge
+  const iconY = r.y + (NODE_H - iconSize) / 2;  // vertically centered
+  nodeElements.push(p.icon(resolved.value, iconX, iconY, iconSize, { color: palette.text }));
+}
+```
+
+If no pack map is passed or the icon is unresolvable, the node renders normally
+(no icon). Silent degradation — not a hard error at layout time.
+
+---
+
+## 5. P6 → P7 boundary (for Brian / CLI P3)
+
+| Concern | P6 (this work) | P7 (Brian) |
+|---|---|---|
+| `@icon` parse → IR | ✅ done | — |
+| `@shape:card` parse → IR | ✅ done | — |
+| icon at leading edge of node | ✅ simple placement | replaced |
+| Card two-region layout (icon-left / text-right) | ❌ `@shape:card` renders as plain rect | ✅ to do |
+| Variable node sizing for card | ❌ | ✅ to do |
+
+Brian's P7 trigger: `node.shape === 'card'` in `renderNodeShape`. Everything else
+(FlowNode.icon, resolveIcon call, pen.icon API) is already in place.
+
+---
+
+## 6. For CLI P3 / extension P4
+
+To pass icon packs to core, build an `IconPackMap` and pass it to `renderSync`:
+
+```typescript
+import { renderSync } from 'triton-core';
+import type { IconPackMap } from 'triton-core/contracts';
+
+const packs: IconPackMap = new Map([
+  ['azure', loadedAzurePack],
+  ['mdi', loadedMdiPack],
+]);
+
+const result = renderSync(diagramText, themeInput, 'svg', undefined, packs);
+```
+
+The map is built by the CLI/extension host (file I/O is the host's job); core
+stays pure. This mirrors how `ThemeInput` is passed in.

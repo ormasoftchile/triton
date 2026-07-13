@@ -75,3 +75,42 @@ Universal %% comment support feature complete. All 45 diagram families now accep
 - **Five required invariants:** (1) IR/binding separation; (2) target-id cross-validation at compile time; (3) no raw expressions in IR; (4) `repeat` unconditionally structural; (5) semantic token output types from transforms.
 
 **Position file:** `.squad/decisions/inbox/mark-liveposter-datamodel.md`
+
+## Learnings — 2026-07-12T19:58:19-04:00
+
+### P0: Icon IR Contract (src/contracts/icons.ts + src/icons/)
+
+**Task:** Build the pure-core icon data foundation: types, schema, validator, resolver, and unit tests. No I/O, no grammar, no SVG emit.
+
+**IR contract defined:**
+
+- **`IconData`** — per-icon entry in a pack: `{ body: string; width?: number; height?: number; left?: number; top?: number; rotate?: 0|1|2|3; hFlip?: boolean; vFlip?: boolean }`. `body` is inner SVG markup with no `<svg>` wrapper.
+
+- **`IconAlias`** — alternate name within a pack: `{ parent: string; rotate?; hFlip?; vFlip?; width?; height?; left?; top? }`. Transforms compose on top of parent icon. Rotate adds mod 4; hFlip/vFlip XOR.
+
+- **`IconifyJSON`** — a loaded pack: `{ prefix: string; icons: Record<string, IconData>; aliases?: Record<string, IconAlias>; width?; height?; left?; top? }`. Pack-level dims are defaults for icons that omit their own.
+
+- **`IconRef`** — parsed reference: `{ prefix: string; name: string }`. Token grammar: `prefix=[a-z][a-z0-9-]*`, `name=[a-z0-9][a-z0-9-]*`, raw form `prefix:name`.
+
+- **`ResolvedIcon`** — P0↔P2 seam: `{ body: string; viewBox: IconViewBox; transforms: IconTransforms; colorMode: 'monochrome'|'brand' }`. `viewBox` is the merged result of icon→pack→defaults (16×16, left=0, top=0).
+
+- **`IconPackMap`** — `Map<string, IconifyJSON>`, keyed by prefix. Built by host (P1), passed into core.
+
+**P0↔P2 seam (ResolvedIcon):** Brian's SVG emitter receives a fully resolved `ResolvedIcon` and never touches packs or aliases. It wraps `body` in `<svg viewBox="${left} ${top} ${width} ${height}">`. For `colorMode='monochrome'` it sets `style="color: {paletteToken}"` on the wrapper so `currentColor` inherits. For `colorMode='brand'` it sets no color override — brand fills render verbatim.
+
+**Mono/brand heuristic (detectColorMode):** Scan body for `fill="..."` and `stroke="..."` attribute values. If any value is not in `{none, currentColor, inherit}` (case-insensitive) → brand. Also if body contains `<linearGradient` or `<radialGradient` → brand. Otherwise → monochrome.
+
+**Token grammar for Bjarne (P6):** `prefix=[a-z][a-z0-9-]*`, `name=[a-z0-9][a-z0-9-]*`, full token `prefix:name`. Inline form (for label text): `:prefix:name:` (colon-wrapped, per cross-diagram design).
+
+**Files created:**
+- `src/contracts/icons.ts` — type contract (IconData, IconAlias, IconifyJSON, IconRef, IconViewBox, IconTransforms, ResolvedIcon, IconPackMap)
+- `src/contracts/result.ts` — added `ICON_VALIDATION_ERROR` and `ICON_NOT_FOUND` error codes
+- `src/contracts/index.ts` — re-exported all icon types
+- `src/icons/schema.json` — JSON Schema draft-07 for `.triton-icons.json` pack files
+- `src/icons/validate.ts` — `validateIconPack(json): Result<IconifyJSON>`, strict unknown-key errors
+- `src/icons/resolver.ts` — `parseIconRef`, `resolveIcon`, `detectColorMode`; pure, no I/O
+- `test/icons.test.ts` — 65 unit tests, all passing
+
+**Test results:** 65/65 passed. `pnpm typecheck` clean.
+
+**Decision filed:** `.squad/decisions/inbox/mark-icon-p0-ir.md`

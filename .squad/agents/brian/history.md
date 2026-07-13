@@ -92,3 +92,59 @@ See `.squad/decisions.md` for full context.
 - Processed edges by span (longest first); skip-cross-column → direct-same-column ordering.
 
 **Archived spawns (brian-1 through brian-11):** Moved to history-archive.md. Includes early poster primitives, example audits, v0.1.9–v0.1.10 releases, and icon dark-mode fixes.
+
+---
+
+## Learnings — P2 Icon Render (2026-07-12)
+
+**Scene icon element (P6 seam Bjarne populates):**
+- Type name: `SceneIcon` (discriminant `type: 'icon'`)
+- Fields:
+  - `icon: ResolvedIcon` — fully resolved icon from `resolveIcon()` (P0 output)
+  - `x: number` — top-left x of the target bounding box (scene coords)
+  - `y: number` — top-left y of the target bounding box (scene coords)
+  - `size: number` — side length of the square target box (scene units)
+  - `color?: string` — CSS color token for monochrome tint (e.g. `"#1e293b"`); ignored for brand icons
+  - `opacity?: number` — optional element opacity
+- Location: `src/contracts/scene.ts` (added to `SceneElement` union), exported from `src/contracts/index.ts`
+- Pen helper: `pen.icon(resolvedIcon, x, y, size, opts?)` in `src/scene/build.ts`
+
+**Mono-tint vs brand-verbatim emit rules:**
+- `colorMode='monochrome'` → add `style="color:{color}"` on the nested `<svg>` wrapper; body's `currentColor` inherits the tint. No separate fill attribute is emitted.
+- `colorMode='brand'` → emit body verbatim inside nested `<svg>` with NO color style override. Brand hex fills (e.g. `#0078D4`) and gradients render as-is.
+
+**Gradient ID namespacing approach:**
+- Module-level `iconEmitCounter` (monotonic integer) increments once per brand icon emitted.
+- Prefix: `icn{n}` (e.g. `icn0`, `icn7`).
+- All `id="foo"` in the brand body → `id="icn{n}-foo"`.
+- Matching `url(#foo)` and `href="#foo"` refs → `url(#icn{n}-foo)` / `href="#icn{n}-foo"`.
+- Monochrome icons are never namespaced (no IDs in their bodies by convention).
+
+**Transform strategy:**
+- `ResolvedIcon.transforms` (rotate 0–3 × 90°, hFlip, vFlip) are applied in viewBox coordinate space inside the nested `<svg>`.
+- Transform string (SVG right-to-left): `translate(cx cy) scale(sf vf) rotate(deg) translate(-cx -cy)` where cx/cy = viewBox center.
+- When transforms are identity (rotate=0, hFlip=false, vFlip=false), no `<g>` wrapper is emitted.
+
+**Aspect-ratio scaling:**
+- `scale = min(size / vbW, size / vbH)` — fills one axis, leaves padding on the other.
+- Icon is centered within the `size × size` box (offset = `(size - scaled) / 2`).
+- Nested `<svg x y width height viewBox>` approach — clean coordinate isolation.
+
+**rsvg safety:**
+- Renderer adds only `<svg>`, `<g>`, and passes body verbatim (no `<foreignObject>`, no `<image>`).
+
+**File paths:**
+- Contract: `src/contracts/scene.ts` — `SceneIcon` interface
+- Exports: `src/contracts/index.ts` — added `SceneIcon` to barrel
+- Pen: `src/scene/build.ts` — `icon()` method on `Pen`
+- Emit: `src/render/svg.ts` — `renderIcon()`, `buildIconTransform()`, `namespaceIconIds()`, `iconEmitCounter`
+- Tests: `test/icon-render.test.ts` — 25 tests, all passing
+- Example: `examples/triton/icons/icon-render.ts` → `icon-render.svg` → `icon-render.png`
+
+**⚠️ SceneElement union membership — exhaustive switch sites to update:**
+Adding any new member to the `SceneElement` union requires updating three switch sites
+that pattern-match over all element types:
+1. `src/overlay/layout.ts` — `elementBoundsAt()`: return bounds `{ x: el.x+ox, y: el.y+oy, width, height }`.
+2. `src/diagrams/triton/ds/queue/shared.ts` — `translateElement()`: return translated copy with `rhu()` rounding.
+3. `src/diagrams/triton/ds/struct/array.ts` — `translateElement()`: same pattern as queue/shared.ts.
+These are non-exhaustive switches (TS2366). All three were fixed for `SceneIcon` in P2 follow-up (2026-07-12).
