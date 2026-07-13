@@ -1,0 +1,6 @@
+flowchart TD
+  A ["App Service\nHandles HTTP request routing and load balancing for web traffic"] @shape:card @icon:mdi:server
+  B ["PostgreSQL\nPrimary relational data store used by all backend services"] @shape:card @icon:mdi:database
+  C ["Cache Layer\nIn-memory key-value store"] @shape:card
+  A -->|queries| B
+  A -->|caches| C
