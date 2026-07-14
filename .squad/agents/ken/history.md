@@ -263,3 +263,10 @@ When validating grid layouts, confirm:
 
 Brian added new architecture-beta visual surfaces: connector styles, connector animations, route hints, and service/group icon alignment. A visual pass is recommended on mixed connector/icon examples to verify rendering quality beyond parser/layout test coverage.
 
+
+
+## 2026-07-14 — Group-aware Architecture Placement Visual QA
+
+**Status:** IN FLIGHT at Scribe cutoff.
+
+Assigned to review architecture example renders for containment correctness and regressions after Brian's group-aware placement fix. No `ken-group-aware-visual-qa.md` inbox deliverable was present when Scribe merged the local decision inbox.

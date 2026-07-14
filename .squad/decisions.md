@@ -6186,3 +6186,358 @@ Triton's grammar (`src/diagrams/mermaid/architecture/grammar.peggy`) covers a us
 **By:** Brian
 **What:** Added `examples/mermaid/architecture/triton-features.mmd` as a real edge-to-cloud data platform diagram demonstrating Triton-only architecture-beta extensions: dashed/wavy connector matrix entries (including directed, undirected, and bidirectional forms), connector animations with both `@anim` and `{ anim }`, route controls with orthogonal wall hints plus straight/bezier/polyline examples, and service/group `@iconalign` compass anchors. Rendered it to `examples/mermaid/architecture/triton-features.svg`.
 **Why:** Existing architecture examples only exercised plain Mermaid syntax, so contributors had no verified source/render artifact covering Triton's additive architecture-beta feature set. Verification used `node scripts/preview.mjs examples/mermaid/architecture`, SVG feature greps/checks for stroke styles, animations, markers, and icon-alignment effects, plus `pnpm exec vitest run test/architecture-grammar.test.ts` (100/100 passing).
+
+
+---
+
+### 2026-07-14: Group-aware directional grid placement for architecture-beta
+**By:** Edsger
+**What:** Replace the flat node-only `directionalGridPlacer` call with a hierarchy-aware clustered grid placer. Groups become atomic placement clusters at their parent level; each group recursively lays out its own direct members and child groups in a local sub-grid. `computeGroupRect()` can remain a tight bounding-box pass because the placer guarantees that non-descendants are never placed inside a group's occupied rectangle.
+**Why:** The current BFS in `src/diagrams/mermaid/architecture/gridPlacer.ts` has no `group`/`parent` input, so directional edges scatter group members. `layout.ts` then computes group boxes from member bounding boxes (`computeGroupRect`, lines 193-208), causing a scattered group to span unrelated ungrouped services such as `users` in `examples/mermaid/architecture/triton-features.mmd`.
+
+---
+
+## Current code facts this spec depends on
+
+- `directionalGridPlacer(nodes, edges)` returns `Map<id,{col,row}>` for services and junctions only. It builds bidirectional adjacency from edge side pairs, BFS-places first visits, handles disconnected components by seeding at `maxCol + 2`, bumps cell collisions down the same column, then normalizes to non-negative cells.
+- `layoutArchitecture()` converts cells to pixels with fixed service cell pitch: `x = col * (svcW + 90) + margin`, `y = row * (svcH + 44) + margin`.
+- `ArchService.group` and `ArchJunction.group` are optional immediate containing group IDs. `ArchGroup.parent` is the optional containing group ID for nested groups.
+- `computeGroupRect(gId)` draws a group as the padded axis-aligned bounding box of direct service/junction members plus recursively included child group rects. Groups do not have grid cells today.
+- `align` is currently a post-pixel median snap. If left unchanged it can re-scatter group members after placement, so it must become containment-aware or be moved before final expansion.
+- Edge routing consumes final node rects. `{group}` endpoint modifiers only swap a service rect for its computed group rect when choosing the port; they do not require groups to be router obstacles.
+
+---
+
+## Required layout invariants
+
+1. **Containment invariant:** For every group `G`, every service/junction geometrically inside `rect(G)` must be a descendant of `G`. Child group rects inside `G` are allowed.
+2. **Cohesion invariant:** A group's descendants are laid out as one contiguous cluster in the parent coordinate system. No sibling item of that group may be placed inside the cluster rectangle.
+3. **Nesting invariant:** If `child.parent === parent`, then `rect(parent)` contains `rect(child)` after padding.
+4. **Directional invariant:** L/R/T/B side constraints are honored exactly when they do not violate containment/cohesion or collide with an already placed item; otherwise they degrade deterministically with first-wins conflict handling, as the current BFS already does.
+5. **Determinism invariant:** Same IR declaration order and edge order produce identical coordinates.
+
+Priority order when constraints conflict:
+
+1. **Group containment/cohesion wins over all directional constraints.** A member may not be pulled out of its group to satisfy an edge to an external node.
+2. **Intra-container directional constraints win over local compaction and no-edge packing.** Within a group, edges between that group's direct children shape the local sub-grid.
+3. **Inter-container directional constraints position whole clusters, not individual descendants.** An edge from `stream` in `platform` to `dashboard` in `ops` positions `platform` relative to `ops` at the root level; it does not move `stream` inside `platform`.
+4. **Align is soft.** It may snap items only within their least common containing cluster and must never break containment. If exact alignment would overlap sibling clusters or enclose a non-descendant, skip or degrade that align and optionally warn.
+
+This priority is intentional: architecture groups are semantic containment. A visually false containment is worse than a longer or less direct edge route.
+
+---
+
+## Data structures
+
+Add a group-aware placement wrapper; do not make `computeGroupRect()` responsible for repairing bad geometry.
+
+```ts
+type ContainerId = string | '__root__';
+type ItemId = `node:${string}` | `group:${string}`;
+
+interface Item {
+  id: ItemId;
+  kind: 'leaf' | 'group';
+  sourceId: string;          // service/junction/group id without prefix
+  width: number;             // integer local grid width in service-cell units
+  height: number;            // integer local grid height in service-cell units
+  order: number;             // declaration order, groups/services/junctions stable
+  cluster?: Cluster;         // present for kind === 'group'
+}
+
+interface Cluster {
+  containerId: ContainerId;  // group id, or root
+  items: Item[];             // direct child nodes + direct child groups
+  itemPos: Map<ItemId, Cell>; // top-left item positions in this local sub-grid
+  nodePos: Map<string, Cell>; // descendant service/junction final local positions
+  width: number;
+  height: number;
+}
+
+interface Constraint {
+  from: ItemId;
+  to: ItemId;
+  fromSide: 'L' | 'R' | 'T' | 'B';
+  toSide: 'L' | 'R' | 'T' | 'B';
+  edgeOrder: number;
+}
+```
+
+Precompute:
+
+- `groupById` from `ir.groups`.
+- `parentOfGroup[groupId] = group.parent ?? '__root__'`.
+- `ownerOfNode[nodeId] = service.group/junction.group ?? '__root__'`.
+- `isDescendantNode(nodeId, containerId)` by walking `ownerOfNode` through group parents.
+- `directChildItem(containerId, nodeId)`:
+  - if the node's owner is `containerId`, return `node:${nodeId}`;
+  - otherwise walk the owner group upward until its parent is `containerId`, then return `group:${thatGroupId}`.
+
+Unknown group IDs should not crash layout. Treat a node whose `group` is unknown as root-owned and optionally warn. A group whose `parent` is unknown is top-level and optionally warn.
+
+---
+
+## Algorithm
+
+### 1. Build the containment forest
+
+Use a synthetic `__root__` container. Each container's direct children are:
+
+1. child groups whose `parent` is the container, in `ir.groups` declaration order;
+2. services whose `group` is the container, in `ir.services` declaration order;
+3. junctions whose `group` is the container, in `ir.junctions` declaration order.
+
+The exact group/service/junction ordering may choose services before groups if Brian prefers current render intuition, but it must be explicit and stable. Tests should assert determinism, not the aesthetic ordering.
+
+### 2. Recursively build clusters bottom-up
+
+For each group, first build clusters for its child groups. A leaf service/junction item has `width=1,height=1`. A group item has the width/height returned by its recursive cluster.
+
+For a container `C`, collect placement constraints from original edges:
+
+- Include an edge only if both endpoints are descendant nodes of `C`.
+- Collapse each endpoint to its direct child item under `C` using `directChildItem(C, endpointId)`.
+- If both endpoints collapse to the same item, ignore the edge at this level; it is either handled inside that child group or is an internal self/cycle.
+- Otherwise add a `Constraint` between those two direct child items using the original `fromSide`/`toSide` and the original edge order.
+
+Then place the direct child items as non-overlapping rectangles in `C`'s local grid.
+
+### 3. Place variable-size items with direction-aware rectangle BFS
+
+Generalize the current BFS from unit nodes to rectangle items. The BFS still uses side-pair semantics, but a neighbor's candidate top-left must leave at least one empty grid lane between rectangles.
+
+For a current item `A` at `(ax, ay)` with size `(aw, ah)` and neighbor `B` size `(bw, bh)`:
+
+- If the side pair implies west, `bx = ax - bw - 1`.
+- If east, `bx = ax + aw + 1`.
+- If no horizontal movement, `bx = ax`.
+- If north, `by = ay - bh - 1`.
+- If south, `by = ay + ah + 1`.
+- If no vertical movement, `by = ay`.
+
+The direction implied by a side pair is the same as today's `DELTA` table:
+
+- horizontal component: `L => west`, `R => east`;
+- vertical component: `T => north`, `B => south`;
+- mixed pairs produce diagonal components.
+
+If the candidate rectangle overlaps an occupied sibling rectangle, search deterministic nearby alternatives that preserve every constrained half-plane if possible. For a horizontal-only edge, scan rows near the candidate (`y+1,y-1,y+2,y-2,...`) while keeping the required east/west relation. For a vertical-only edge, scan columns similarly. For diagonal constraints, scan expanding Manhattan rings and keep both half-plane signs. If no sign-preserving location is available within a small bounded search based on occupied extent, fall back to the first free rectangle to the right of the occupied extent and optionally warn.
+
+Disconnected items are seeded after the current occupied extent at `maxX + 1`, same row `0`, preserving declaration order.
+
+After placement, normalize the container's local coordinates to non-negative. Compose descendant node positions by adding each item top-left to its internal node positions.
+
+### Core clustering pseudocode
+
+```ts
+function buildCluster(container: ContainerId): Cluster {
+  const childGroups = groups.filter(g => parentOfGroup(g.id) === container);
+  const groupItems = childGroups.map(g => itemFromCluster(buildCluster(g.id)));
+  const leafItems = directServicesAndJunctions(container).map(n => leafItem(n));
+  const items = stableContainerOrder(groupItems, leafItems);
+
+  const constraints: Constraint[] = [];
+  for (const [edgeOrder, e] of edges.entries()) {
+    if (!isDescendantNode(e.from, container)) continue;
+    if (!isDescendantNode(e.to, container)) continue;
+
+    const a = directChildItem(container, e.from);
+    const b = directChildItem(container, e.to);
+    if (!a || !b || a === b) continue;
+
+    constraints.push({
+      from: a,
+      to: b,
+      fromSide: upperSide(e.fromSide),
+      toSide: upperSide(e.toSide),
+      edgeOrder,
+    });
+  }
+
+  const itemPos = placeItemsAsRectangles(items, constraints);
+
+  const nodePos = new Map<string, Cell>();
+  for (const item of items) {
+    const base = itemPos.get(item.id)!;
+    if (item.kind === 'leaf') {
+      nodePos.set(item.sourceId, base);
+    } else {
+      for (const [nodeId, local] of item.cluster!.nodePos) {
+        nodePos.set(nodeId, { col: base.col + local.col, row: base.row + local.row });
+      }
+    }
+  }
+
+  normalize(itemPos, nodePos);
+  return boundsCluster(container, items, itemPos, nodePos);
+}
+
+function placeItemsAsRectangles(items: Item[], constraints: Constraint[]): Map<ItemId, Cell> {
+  const adj = buildBidirectionalAdjacency(constraints); // preserve edgeOrder, first-wins per pair
+  const pos = new Map<ItemId, Cell>();
+  const occupied: RectCell[] = [];
+
+  for (const seed of seedsInDeterministicOrder(items, adj)) {
+    if (!pos.has(seed.id)) {
+      const seedCell = occupied.length === 0 ? { col: 0, row: 0 } : { col: maxRight(occupied) + 1, row: 0 };
+      place(seed, seedCell, pos, occupied);
+    }
+
+    const queue = [seed];
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      for (const c of adj.get(curr.id) ?? []) {
+        const next = itemById(c.to);
+        if (pos.has(next.id)) continue;
+
+        const candidate = candidateFromSidePair(curr, pos.get(curr.id)!, next, c.fromSide, c.toSide);
+        const free = firstNonOverlappingCandidate(candidate, curr, next, c, occupied);
+        place(next, free, pos, occupied);
+        queue.push(next);
+      }
+    }
+  }
+
+  normalizeItemPositions(pos);
+  return pos;
+}
+```
+
+### 4. Root cluster output
+
+`buildCluster('__root__')` returns descendant `nodePos` for all services and junctions. The public result remains `Map<id,{col,row}>`, so `layout.ts` can keep its pixel conversion and `computeGroupRect()` implementation.
+
+Implementation options:
+
+- Preferred: add a new exported function such as `groupAwareDirectionalGridPlacer(ir)` or `directionalGridPlacer(nodes, edges, { groups, services, junctions })` and have `layoutArchitecture()` call it.
+- Acceptable wrapper: keep current `directionalGridPlacer()` unchanged for tests and implement `directionalClusterGridPlacer(ir)` beside it.
+
+Do not put clustering into `computeGroupRect()`. Rect computation must remain a pure measurement of already-correct positions.
+
+---
+
+## Align handling
+
+The existing post-pixel median snap is unsafe because it can move one member away from its group after clustering. Replace it with one of these safe forms:
+
+1. **Preferred:** apply align in local cluster coordinates before final pixel conversion.
+   - For each `align`, compute the least common container of all listed nodes.
+   - Map each node to its direct child item under that container.
+   - If all listed nodes are inside the same direct child item, recurse/handle it inside that child cluster.
+   - If they span multiple direct child items, snap those child item rectangles on the requested axis, then rerun collision repair and normalization for that container.
+2. **Minimum safe implementation:** keep a post-pass, but move entire direct child clusters at the least common container, never individual descendants across group boundaries. After snapping, rerun sibling rectangle collision repair and recompute all descendant pixels.
+
+Rules:
+
+- Intra-group align remains supported: `align row [stream, lake]` can snap members inside `platform` if it does not create an overlap.
+- Cross-group align remains supported softly by moving `platform` and `ops` clusters at their least common container, not by dragging `stream` out of `platform`.
+- If alignment would cause a non-descendant to be enclosed by a group rect, skip/degrade the align and warn. Containment wins.
+
+---
+
+## Edge routing impact
+
+No router contract change is required.
+
+- `rectOf(id)` still returns final service/junction pixel rects.
+- `allBoxes` can remain flat service/junction obstacles.
+- `{group}` endpoints continue to use `computeGroupRect(service.group)` for the port rectangle. Tighter group placement makes these ports more accurate.
+- Cross-group and external edges may become longer because member-specific external pulls are collapsed to whole-cluster placement. That is the intended tradeoff to preserve truthful containment.
+
+---
+
+## Acceptance criteria and concrete tests
+
+### A. Repro test: `triton-features.mmd`
+
+Add an integration test that parses `examples/mermaid/architecture/triton-features.mmd`, runs `layoutArchitecture()`, and extracts service and group rects. If group rects are not directly identifiable in the scene, factor a test-only helper or assert through the grid placer before rendering.
+
+Required assertions:
+
+```ts
+const users = serviceRect('users');
+const platform = groupRect('platform');
+const stream = serviceRect('stream');
+const lake = serviceRect('lake');
+const warehouse = serviceRect('warehouse');
+
+expect(rectContainsRect(platform, users)).toBe(false);
+expect(rectIntersectsInterior(platform, users)).toBe(false); // stronger preferred assertion
+
+const platformMembers = unionBounds([stream, lake, warehouse]);
+expect(platform.width).toBeLessThanOrEqual(platformMembers.width + 40 + 1);  // pad=20 each side, rounding slack
+expect(platform.height).toBeLessThanOrEqual(platformMembers.height + 54 + 1); // pad top/bottom plus label offset
+
+for (const nonMember of ['users', 'gateway', 'collector', 'dashboard', 'backup']) {
+  expect(rectContainsRect(platform, serviceRect(nonMember))).toBe(false);
+}
+```
+
+Also assert the current semantic cluster shape at grid level, without over-constraining absolute coordinates:
+
+```ts
+const cells = groupAwareDirectionalGridPlacer(ir);
+const platformCells = ['stream', 'lake', 'warehouse'].map(id => cells.get(id)!);
+expect(maxCol(platformCells) - minCol(platformCells)).toBeLessThanOrEqual(1);
+expect(maxRow(platformCells) - minRow(platformCells)).toBeLessThanOrEqual(1);
+for (const [id, cell] of cells) {
+  if (!['stream', 'lake', 'warehouse'].includes(id)) {
+    expect(cellInsideBounds(cell, bounds(platformCells))).toBe(false);
+  }
+}
+```
+
+For this file, the expected local platform layout is compact: `stream` above `lake`, and `warehouse` east of `lake`, because of `stream:B - T:lake` and `lake:R - L:warehouse`. Absolute root coordinates should not be asserted.
+
+### B. Unit tests for clustering
+
+1. **No-edge group cohesion:** a group with three services and no internal edges lays them out in declaration order as adjacent local cells; an ungrouped service is outside the group rect.
+2. **Cross-group edge is cluster-level:** if `a1 in A` connects `R--L` to `b1 in B`, the root places group `B` east of group `A`, while `a1` remains inside `A` and `b1` remains inside `B`.
+3. **External edge does not scatter members:** if `a1 in A` has an edge to `x` and `a2 in A` has a conflicting edge to `y`, `a1` and `a2` remain in one `A` cluster; first-wins/edge-order determines only where `A` sits relative to `x/y`.
+4. **Nested groups:** `inner.parent = outer`; services in `inner` produce `rect(inner)` inside `rect(outer)`. A service that is a direct member of `outer` is outside `inner` but inside `outer`.
+5. **Sibling exclusion:** for every group `G`, no direct sibling leaf or sibling group rect intersects `G`'s occupied rectangle at the parent level.
+6. **Align safety:** an align spanning `platform.stream` and ungrouped `users` must not move `stream` out of `platform` and must not move `users` into `platform`. Exact row equality is optional if it would violate containment.
+
+### C. Global invariant test helper
+
+Add a reusable architecture layout invariant helper:
+
+```ts
+assertNoForeignNodeInsideGroup(ir, positionsOrRects): void
+```
+
+For every group `g` and every service/junction `n` that is not a descendant of `g`, assert that `rect(g)` does not contain `rect(n)` and preferably does not intersect its interior. Run it on all architecture examples, not just `triton-features.mmd`.
+
+---
+
+## Edge cases
+
+- **Empty groups:** `computeGroupRect()` currently returns `undefined`; preserve that. Empty groups produce no cluster item unless they have child groups with content.
+- **Single-member groups:** cluster size is `1x1`; group rect is exactly that member plus existing padding/label offset.
+- **Groups with members but no internal edges:** pack members contiguously in declaration order. Single row is acceptable; a deterministic shelf pack is also acceptable if specified and tested.
+- **Only child groups, no direct nodes:** group cluster size is the bounding rectangle of child group items.
+- **Cross-group edges:** collapse to constraints between the nearest direct child items at the least common container. Multiple member-level edges between the same two clusters are conflict candidates; preserve edge-order first-wins.
+- **Edges from a group member to an ancestor/sibling's member:** handled at the lowest container where endpoints are in different direct child items.
+- **Junctions:** treat exactly like services for ownership and placement; `ArchJunction.group` participates in containment.
+- **Unknown node in edge:** preserve current behavior: skip placement constraint if endpoint is not a known service/junction.
+- **Cycles and contradictory constraints:** preserve current first-visit/first-wins semantics, but apply them to item IDs at each container.
+- **Variable-size cluster collisions:** resolve by moving the newly placed item, never by resizing or splitting an existing group cluster.
+
+---
+
+## Summary for Brian
+
+Make placement recursive. A group is not a rectangle repair problem; it is an atomic cluster in its parent's grid. Lay out each group internally from edges among its direct children, collapse external/cross-group edges to constraints between whole clusters at the least common container, and only then expand final service/junction cells for the existing pixel conversion. Containment/cohesion beats directional exactness; directional edges still determine relative placement inside a container whenever they can. Align must move local items or whole clusters, never individual nodes across containment boundaries. `computeGroupRect()` and edge routing can stay structurally the same once the grid positions satisfy the containment invariant.
+
+---
+
+### 2026-07-14: Group-aware architecture placement implementation
+**By:** Brian
+**What:** Implemented `groupAwareDirectionalGridPlacer(ir)` beside the legacy flat placer and wired `layoutArchitecture()` to use it. Placement is now recursive: each group is a cluster in its parent grid, cross-group/external edges collapse to constraints between direct child clusters, and align runs in containment-safe cluster coordinates rather than dragging individual nodes across group boundaries. Added clustering unit tests, the triton-features repro, and an all-architecture-examples foreign-node invariant.
+**Why:** The flat placer scattered group members and made `computeGroupRect()` draw inflated bounding boxes that visually swallowed non-members. Keeping `computeGroupRect()` as pure measurement is correct once placement itself preserves containment/cohesion.
+
+**Spec deviations:** I used adjacent grid cells for rectangle constraints (`east = current.col + current.width`) rather than inserting an empty grid cell (`+ 1`). The spec's prose requested an empty lane, but its concrete assertions require `stream/lake/warehouse` to span at most 1 col/row and no-edge groups to use adjacent local cells. In Triton's renderer, adjacent grid cells already include the pixel `colGap`/`rowGap`, so this preserves visible spacing while satisfying the acceptance tests.
+
+**Validation:** Baseline before changes: `pnpm test` = 928/928 passing. After changes: `pnpm test` = 936/936 passing; `pnpm typecheck` clean. Rendered with `node scripts/preview.mjs examples/mermaid/architecture`.
+
+**Numeric SVG proof:** In regenerated `examples/mermaid/architecture/triton-features.svg`, `platform` / "Core Data Platform" rect is `(x=444, y=90, w=390, h=210)`. `users` / "Branch Users" rect is `(x=24, y=124, w=130, h=56)`. Users is outside because `users.x + users.w = 154 < platform.x = 444`; there is no intersection/containment. The old broken platform width was ~908px on a 908px canvas; the fixed platform width is 390px.

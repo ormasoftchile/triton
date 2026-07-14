@@ -136,3 +136,10 @@ Implemented four additive architecture-beta extensions in path-scoped commits: c
 - Brian added `examples/mermaid/architecture/triton-features.mmd` and rendered `triton-features.svg` as the canonical showcase for Triton architecture-beta extensions: connector matrix styles, connector animations, route/wall hints, and `@iconalign`.
 - Verification reported: architecture preview rendered and `test/architecture-grammar.test.ts` passed 100/100.
 - Coordinator committed the example artifacts as `fb7a645`; Scribe merged the decision note and wrote orchestration/session logs.
+
+
+## 2026-07-14 — Group-aware Architecture Placement Implementation
+
+**Status:** ✅ COMPLETE — engine fix committed as `29f875c`; decision merged by Scribe.
+
+Implemented `groupAwareDirectionalGridPlacer(ir)` with recursive clusters, layout wiring, containment-safe align behavior, invariant helpers, and containment/nested/align/repro tests. Validation reported: 936 tests green, typecheck and build clean; out-of-scope showcase `.mmd` edits were reverted before commit.

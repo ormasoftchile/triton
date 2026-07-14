@@ -64,3 +64,10 @@ Brian's implementation found delta table inversion in T/B rows:
 - **First-visit determinism**: BFS cycle handling (first-visit wins) guarantees deterministic output without explicit conflict resolution
 - **Disconnected graph resilience**: Multi-start BFS with column offset handles graph with isolated nodes cleanly
 - **Mermaid fidelity**: Triton's pure-BFS approach matches Mermaid's grid output without fcose post-processing
+
+
+## 2026-07-14 — Group-aware Architecture Placement Spec
+
+**Status:** ✅ COMPLETE — decision merged by Scribe.
+
+Specified recursive clustered grid placement for architecture-beta: groups are atomic clusters at their parent level, child groups lay out locally, cross-group/external edges collapse to direct child cluster constraints, and align must never break containment.
