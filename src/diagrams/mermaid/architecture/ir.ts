@@ -1,4 +1,5 @@
 import type { BaseIR, CrossLinkAnimation, CrossLinkEdgeStyle, CrossLinkEndpointMarker } from '../../../contracts/index.js';
+import type { PortDirection, RouteStyle } from '../../../contracts/index.js';
 
 export interface ArchService {
   readonly id: string;
@@ -43,6 +44,12 @@ export interface ArchEdge {
   readonly endMarker: CrossLinkEndpointMarker;
   /** Optional SMIL connector animation; omitted or 'none' renders a static edge. */
   readonly animation?: CrossLinkAnimation;
+  /** Optional route style override; omitted keeps the architecture default orthogonal route. */
+  readonly routing?: RouteStyle;
+  /** Optional route exit wall hint. Does not affect grid placement. */
+  readonly exitWall?: PortDirection;
+  /** Optional route entry wall hint. Does not affect grid placement. */
+  readonly entryWall?: PortDirection;
 }
 
 export interface ArchAlign {

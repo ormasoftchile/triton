@@ -22,13 +22,13 @@
  */
 
 import type { ArchitectureDocument, ArchGroup } from './ir.js';
-import type { Scene, SceneElement, LayoutResult, Rect, PortDirection, LayoutOptions } from '../../../contracts/index.js';
+import type { Scene, SceneElement, LayoutResult, Rect, PortDirection, LayoutOptions, RouteStyle } from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { categoricalHue } from '../../../palette/categorical.js';
 import { directionalGridPlacer } from './gridPlacer.js';
-import { orthogonalRouter } from '../../../routing/router.js';
+import { createRouter } from '../../../routing/router.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 import { parseIconRef, resolveIcon } from '../../../icons/resolver.js';
 import { wavifyPath } from '../../../crosslink/render.js';
@@ -243,15 +243,16 @@ export function layoutArchitecture(
 
     const pa       = port(fromRect, e.fromSide);
     const pb       = port(toRect,   e.toSide);
-    const fromDir  = sideToDir(e.fromSide);
-    const toDir    = sideToDir(e.toSide);
+    const fromDir  = e.exitWall ?? sideToDir(e.fromSide);
+    const toDir    = e.entryWall ?? sideToDir(e.toSide);
 
     const obstacles: Rect[] = allBoxes
       .filter(bx => bx.id !== e.from && bx.id !== e.to)
       .map(bx => ({ x: bx.x, y: bx.y + yOff, width: bx.width, height: bx.height }));
 
-    const route = orthogonalRouter.route({
-      from: pa, to: pb, style: 'orthogonal',
+    const routing: RouteStyle = e.routing ?? 'orthogonal';
+    const route = createRouter(routing).route({
+      from: pa, to: pb, style: routing,
       obstacles, padding: 10,
       fromDir, toDir,
     });

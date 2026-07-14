@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import * as parser from '../src/diagrams/mermaid/architecture/parser.js';
 import type { ArchitectureDocument, ArchEdge, ArchJunction, ArchGroup } from '../src/diagrams/mermaid/architecture/ir.js';
-import type { ScenePath } from '../src/contracts/index.js';
+import type { ScenePath, SceneRect } from '../src/contracts/index.js';
 import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { CONNECTOR_ANIMATIONS } from '../src/contracts/animations.js';
@@ -151,12 +151,24 @@ describe('arrow direction', () => {
 // ── Connector rendering ──────────────────────────────────────────────────────
 
 describe('connector rendering', () => {
-  function edgePath(token: string, tail = ''): ScenePath {
+  function layoutFor(token: string, tail = '') {
     const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R ${token} L:b${tail}`));
-    const { scene } = layoutArchitecture(ir, defaultTheme);
+    return layoutArchitecture(ir, defaultTheme).scene;
+  }
+
+  function edgePath(token: string, tail = ''): ScenePath {
+    const scene = layoutFor(token, tail);
     const paths = scene.elements.filter((el): el is ScenePath => el.type === 'path');
     expect(paths).toHaveLength(1);
     return paths[0]!;
+  }
+
+  function serviceRects(tail = '') {
+    const scene = layoutFor('-->', tail);
+    return scene.elements
+      .filter((el): el is SceneRect => el.type === 'rect')
+      .map(el => el.bounds)
+      .filter(bounds => bounds.width === 130 && bounds.height === 56);
   }
 
   it('keeps plain Mermaid --> rendering unstyled except for the existing arrow marker', () => {
@@ -227,6 +239,65 @@ describe('connector rendering', () => {
   it('rejects invalid animation names', () => {
     expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:spin'))).toThrow();
     expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { anim: spin }'))).toThrow();
+  });
+
+  it.each(['straight', 'orthogonal', 'bezier', 'polyline'] as const)('parses @route:%s', (style) => {
+    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:${style}`));
+    expect(ir.edges[0]!.routing).toBe(style);
+  });
+
+  it('parses property-block route form', () => {
+    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { route: bezier }'));
+    expect(ir.edges[0]!.routing).toBe('bezier');
+  });
+
+  it('@route wins over { route: ... } on conflict', () => {
+    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:bezier { route: straight }'));
+    expect(ir.edges[0]!.routing).toBe('bezier');
+    expect(edgePath('-->', ' @route:bezier { route: straight }').d).toContain('C');
+  });
+
+  it('renders route styles through the selected router', () => {
+    const straight = edgePath('-->', ' @route:straight');
+    const orthogonal = edgePath('-->', ' @route:orthogonal @orthogonal:SS');
+    const bezier = edgePath('-->', ' @route:bezier');
+    const polyline = edgePath('-->', ' @route:polyline');
+    expect(straight.d).not.toContain('C');
+    expect(orthogonal.d).not.toBe(straight.d);
+    expect(bezier.d).toContain('C');
+    expect(polyline.d).toBe(straight.d);
+  });
+
+  it('parses @orthogonal wall hints and changes only path geometry', () => {
+    const hinted = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @orthogonal:SS'));
+    expect(hinted.edges[0]!.routing).toBe('orthogonal');
+    expect(hinted.edges[0]!.exitWall).toBe('S');
+    expect(hinted.edges[0]!.entryWall).toBe('S');
+
+    const plainPath = edgePath('-->').d;
+    const hintedPath = edgePath('-->', ' @orthogonal:SS').d;
+    expect(hintedPath).not.toBe(plainPath);
+    expect(serviceRects(' @orthogonal:SS')).toEqual(serviceRects());
+  });
+
+  it('allows animation and route annotations on the same edge', () => {
+    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R -.-> L:b @anim:flow @route:bezier'));
+    expect(ir.edges[0]!.animation).toBe('flow');
+    expect(ir.edges[0]!.routing).toBe('bezier');
+    const path = edgePath('-.->', ' @anim:flow @route:bezier');
+    expect(path.animated).toBe('flow');
+    expect(path.d).toContain('C');
+  });
+
+  it('rejects invalid route styles and wall hints', () => {
+    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:spin'))).toThrow();
+    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { route: spin }'))).toThrow();
+    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @orthogonal:EQ'))).toThrow();
+  });
+
+  it('omitted routing remains the same as explicit orthogonal default', () => {
+    expect(parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b')).edges[0]!.routing).toBeUndefined();
+    expect(edgePath('-->').d).toBe(edgePath('-->', ' @route:orthogonal').d);
   });
 });
 

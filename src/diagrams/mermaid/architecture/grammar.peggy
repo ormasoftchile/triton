@@ -14,6 +14,7 @@
   import { CONNECTOR_ANIMATIONS } from '../../../contracts/animations.js';
 
   const ANIMATION_SET = new Set([...CONNECTOR_ANIMATIONS, 'none']);
+  const ROUTE_STYLE_SET = new Set(['straight', 'orthogonal', 'bezier', 'polyline']);
 
   const CONNECTOR_TOKEN_MAP = {
     '<-->':  { direction: 'bidirectional', style: 'solid',  startMarker: 'arrow', endMarker: 'arrow' },
@@ -52,6 +53,13 @@
     }
     return value;
   }
+
+  function assertRouteStyle(value) {
+    if (!ROUTE_STYLE_SET.has(value)) {
+      throw new Error(`Invalid connector route style "${value}"`);
+    }
+    return value;
+  }
 }}
 
 Document
@@ -73,7 +81,7 @@ Document
           const group = l.inGroup || (l.indent > curIndent && curGroup ? curGroup : undefined);
           junctions.push({ id: l.id, ...(group ? { group } : {}) });
         } else if (l.t === 'edge') {
-          edges.push({ from: l.from, fromSide: l.fromSide, fromGroup: l.fromGroup, to: l.to, toSide: l.toSide, toGroup: l.toGroup, arrowLeft: l.arrowLeft, arrowRight: l.arrowRight, style: l.style, startMarker: l.startMarker, endMarker: l.endMarker, ...(l.animation !== undefined ? { animation: l.animation } : {}) });
+          edges.push({ from: l.from, fromSide: l.fromSide, fromGroup: l.fromGroup, to: l.to, toSide: l.toSide, toGroup: l.toGroup, arrowLeft: l.arrowLeft, arrowRight: l.arrowRight, style: l.style, startMarker: l.startMarker, endMarker: l.endMarker, ...(l.animation !== undefined ? { animation: l.animation } : {}), ...(l.routing !== undefined ? { routing: l.routing } : {}), ...(l.exitWall !== undefined ? { exitWall: l.exitWall } : {}), ...(l.entryWall !== undefined ? { entryWall: l.entryWall } : {}) });
         } else if (l.t === 'align') {
           aligns.push({ axis: l.axis, members: l.members });
         }
@@ -112,6 +120,9 @@ EdgeLine
         startMarker: arrow.startMarker,
         endMarker: arrow.endMarker,
         ...(extra.animation !== undefined ? { animation: extra.animation } : {}),
+        ...(extra.routing !== undefined ? { routing: extra.routing } : {}),
+        ...(extra.exitWall !== undefined ? { exitWall: extra.exitWall } : {}),
+        ...(extra.entryWall !== undefined ? { entryWall: extra.entryWall } : {}),
       };
     }
 
@@ -133,13 +144,14 @@ ConnectorArrow
 
 EdgeTail
   = anns:(_ "@" Annotation)* block:(_ PropBlock)? rest:$[^\n]* {
-      if (/@anim:/.test(rest)) {
-        throw new Error('Invalid connector animation annotation');
+      if (/@(?:anim|route|orthogonal):/.test(rest)) {
+        throw new Error('Invalid connector annotation');
       }
       const result = {};
       if (block) {
         const b = block[1];
         if (b.anim !== undefined) result.animation = assertAnim(b.anim);
+        if (b.route !== undefined) result.routing = assertRouteStyle(b.route);
       }
       for (const ann of anns) {
         Object.assign(result, ann[2]);
@@ -149,9 +161,21 @@ EdgeTail
 
 Annotation
   = "anim:" value:AnimValue { return { animation: value }; }
+  / "route:" value:RouteStyleValue { return { routing: value }; }
+  / "orthogonal:" walls:WallPair { return { routing: 'orthogonal', ...walls }; }
 
 AnimValue
   = value:Ident { return assertAnim(value); }
+
+RouteStyleValue
+  = value:Ident { return assertRouteStyle(value); }
+
+WallPair
+  = exit:Wall entry:Wall { return { exitWall: exit, entryWall: entry }; }
+  / exit:Wall ![A-Za-z0-9_] { return { exitWall: exit }; }
+
+Wall
+  = w:("N" / "S" / "E" / "W") { return w; }
 
 PropBlock
   = "{" _ first:PropEntry rest:(_ "," _ PropEntry)* _ "}" {
