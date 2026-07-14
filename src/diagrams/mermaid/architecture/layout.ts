@@ -10,14 +10,12 @@
  *   2. Junctions      — small 4-way split nodes; edges enter/leave on any side.
  *   3. Arrowheads     — driven by arrowLeft / arrowRight; axis-aligned markers.
  *   4. {group} edges  — port sits on the enclosing group boundary, not the service box.
- *   5. Align          — row/column constraints applied as post-grid position nudges.
+ *   5. Align          — containment-safe row/column constraints in cluster placement.
  *   6. Nested groups  — parent groups visually contain child groups.
  *   7. Iconify icons  — prefix:name tokens resolved through LayoutOptions.icons;
  *                       unresolvable tokens fall back to the built-in glyph.
  *
  * Deviations / limitations (disclosed):
- *   - Align constraints are applied as a post-BFS median-snap. Edge directions
- *     take precedence; align is a fixup for disconnected nodes or user overrides.
  *   - Iconify resolution requires the host to supply LayoutOptions.icons.
  */
 
@@ -27,7 +25,7 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { categoricalHue } from '../../../palette/categorical.js';
-import { directionalGridPlacer } from './gridPlacer.js';
+import { groupAwareDirectionalGridPlacer } from './gridPlacer.js';
 import { createRouter } from '../../../routing/router.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 import { parseIconRef, resolveIcon } from '../../../icons/resolver.js';
@@ -138,10 +136,7 @@ export function layoutArchitecture(
 
   // ── Directional grid placement ────────────────────────────────────────────
   const colGap = 90, rowGap = 44;
-  const gridCells = directionalGridPlacer(
-    [...ir.services, ...ir.junctions],
-    ir.edges,
-  );
+  const gridCells = groupAwareDirectionalGridPlacer(ir);
 
   // Convert grid cells → pixel coords; mutable for align post-processing.
   const positions = new Map<string, { x: number; y: number }>();
@@ -150,32 +145,6 @@ export function layoutArchitecture(
       x: cell.col * (svcW + colGap) + margin,
       y: cell.row * (svcH + rowGap) + margin,
     });
-  }
-
-  // ── Apply align constraints (approximated as median-snap) ─────────────────
-  for (const align of ir.aligns) {
-    const coords = align.members
-      .map(id => positions.get(id))
-      .filter((pos): pos is { x: number; y: number } => !!pos);
-    if (coords.length < 2) continue;
-
-    if (align.axis === 'row') {
-      // Pin all members to the median y of the group.
-      const ys = coords.map(c => c.y).sort((a, b) => a - b);
-      const medY = ys[Math.floor(ys.length / 2)]!;
-      for (const id of align.members) {
-        const pos = positions.get(id);
-        if (pos) pos.y = medY;
-      }
-    } else {
-      // column — pin to median x.
-      const xs = coords.map(c => c.x).sort((a, b) => a - b);
-      const medX = xs[Math.floor(xs.length / 2)]!;
-      for (const id of align.members) {
-        const pos = positions.get(id);
-        if (pos) pos.x = medX;
-      }
-    }
   }
 
   // ── rectOf: adjusted position + node size + yOffset ─────────────────────

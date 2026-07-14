@@ -11,9 +11,17 @@
  *   - align post-processing (via layout integration)
  */
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { directionalGridPlacer } from '../src/diagrams/mermaid/architecture/gridPlacer.js';
+import { directionalGridPlacer, groupAwareDirectionalGridPlacer } from '../src/diagrams/mermaid/architecture/gridPlacer.js';
 import type { GridPlacerResult } from '../src/diagrams/mermaid/architecture/gridPlacer.js';
+import type { ArchitectureDocument, ArchEdge } from '../src/diagrams/mermaid/architecture/ir.js';
+import * as parser from '../src/diagrams/mermaid/architecture/parser.js';
+import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.js';
+import { defaultTheme } from '../src/theme/preset.js';
+import type { Rect, SceneRect } from '../src/contracts/index.js';
+import { stripComments } from '../src/frontend/preprocess.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -27,6 +35,162 @@ function get(m: Map<string, GridPlacerResult>, id: string): [number, number] {
   const r = m.get(id);
   if (!r) throw new Error(`Node "${id}" not in result`);
   return [r.col, r.row];
+}
+
+function parseArchitecture(src: string): ArchitectureDocument {
+  return parser.parse(stripComments(src)) as ArchitectureDocument;
+}
+
+function archEdge(from: string, fromSide: string, to: string, toSide: string): ArchEdge {
+  return {
+    from, fromSide, fromGroup: false,
+    to, toSide, toGroup: false,
+    arrowLeft: false, arrowRight: false,
+    style: 'solid',
+    startMarker: 'none',
+    endMarker: 'none',
+  };
+}
+
+function archDoc(partial: Partial<ArchitectureDocument>): ArchitectureDocument {
+  return {
+    metadata: {},
+    groups: [],
+    services: [],
+    junctions: [],
+    edges: [],
+    aligns: [],
+    overlays: [],
+    ...partial,
+  } as ArchitectureDocument;
+}
+
+function cellBounds(cells: GridPlacerResult[]): { minCol: number; maxCol: number; minRow: number; maxRow: number } {
+  return {
+    minCol: Math.min(...cells.map(c => c.col)),
+    maxCol: Math.max(...cells.map(c => c.col)),
+    minRow: Math.min(...cells.map(c => c.row)),
+    maxRow: Math.max(...cells.map(c => c.row)),
+  };
+}
+
+function cellInsideBounds(cell: GridPlacerResult, b: ReturnType<typeof cellBounds>): boolean {
+  return cell.col >= b.minCol && cell.col <= b.maxCol && cell.row >= b.minRow && cell.row <= b.maxRow;
+}
+
+function rectContainsRect(a: Rect, b: Rect): boolean {
+  return b.x >= a.x && b.y >= a.y && b.x + b.width <= a.x + a.width && b.y + b.height <= a.y + a.height;
+}
+
+function rectIntersectsInterior(a: Rect, b: Rect): boolean {
+  return b.x < a.x + a.width && b.x + b.width > a.x && b.y < a.y + a.height && b.y + b.height > a.y;
+}
+
+function cellRectsOverlap(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function unionBounds(rects: readonly Rect[]): Rect {
+  const minX = Math.min(...rects.map(r => r.x));
+  const minY = Math.min(...rects.map(r => r.y));
+  const maxX = Math.max(...rects.map(r => r.x + r.width));
+  const maxY = Math.max(...rects.map(r => r.y + r.height));
+  return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+}
+
+function groupsByDepthForTest(ir: ArchitectureDocument) {
+  const result: ArchitectureDocument['groups'][number][] = [];
+  const added = new Set<string>();
+  function add(g: ArchitectureDocument['groups'][number]) {
+    if (added.has(g.id)) return;
+    if (g.parent) {
+      const parent = ir.groups.find(pg => pg.id === g.parent);
+      if (parent) add(parent);
+    }
+    result.push(g);
+    added.add(g.id);
+  }
+  for (const g of ir.groups) add(g);
+  return result;
+}
+
+function renderedRects(ir: ArchitectureDocument): { services: Map<string, Rect>; groups: Map<string, Rect> } {
+  const scene = layoutArchitecture(ir, defaultTheme).scene;
+  const rects = scene.elements.filter((el): el is SceneRect => el.type === 'rect');
+  const serviceBoxes = rects
+    .filter(r => r.bounds.width === 130 && r.bounds.height === 56 && r.rx === 8)
+    .map(r => r.bounds);
+  const groupBoxes = rects
+    .filter(r => r.rx === 10 && r.strokeWidth === 1.4)
+    .map(r => r.bounds);
+
+  const services = new Map<string, Rect>();
+  ir.services.forEach((s, i) => services.set(s.id, serviceBoxes[i]!));
+  const groups = new Map<string, Rect>();
+  groupsByDepthForTest(ir).forEach((g, i) => groups.set(g.id, groupBoxes[i]!));
+  return { services, groups };
+}
+
+function descendantsOfGroup(ir: ArchitectureDocument, groupId: string): Set<string> {
+  const groupById = new Map(ir.groups.map(g => [g.id, g]));
+  function ownsGroup(id: string | undefined): boolean {
+    while (id) {
+      if (id === groupId) return true;
+      id = groupById.get(id)?.parent;
+    }
+    return false;
+  }
+  return new Set([
+    ...ir.services.filter(s => ownsGroup(s.group)).map(s => s.id),
+    ...ir.junctions.filter(j => ownsGroup(j.group)).map(j => j.id),
+  ]);
+}
+
+function layoutRectsForInvariant(ir: ArchitectureDocument): { nodes: Map<string, Rect>; groups: Map<string, Rect> } {
+  const svcW = 130, svcH = 56, jctW = 16, jctH = 16, colGap = 90, rowGap = 44;
+  const margin = defaultTheme.spacing.diagramMargin;
+  const titleH = ir.metadata.title ? defaultTheme.typography.titleFontSize + 14 : 0;
+  const cells = groupAwareDirectionalGridPlacer(ir);
+  const nodes = new Map<string, Rect>();
+  for (const s of ir.services) {
+    const c = cells.get(s.id);
+    if (c) nodes.set(s.id, { x: c.col * (svcW + colGap) + margin, y: c.row * (svcH + rowGap) + margin + titleH, width: svcW, height: svcH });
+  }
+  for (const j of ir.junctions) {
+    const c = cells.get(j.id);
+    if (c) nodes.set(j.id, { x: c.col * (svcW + colGap) + margin, y: c.row * (svcH + rowGap) + margin + titleH, width: jctW, height: jctH });
+  }
+
+  const groups = new Map<string, Rect>();
+  function groupRect(gId: string): Rect | undefined {
+    if (groups.has(gId)) return groups.get(gId)!;
+    const members = [
+      ...ir.services.filter(s => s.group === gId).map(s => nodes.get(s.id)).filter((r): r is Rect => !!r),
+      ...ir.junctions.filter(j => j.group === gId).map(j => nodes.get(j.id)).filter((r): r is Rect => !!r),
+      ...ir.groups.filter(g => g.parent === gId).map(g => groupRect(g.id)).filter((r): r is Rect => !!r),
+    ];
+    if (members.length === 0) return undefined;
+    const u = unionBounds(members);
+    const rect = { x: u.x - 20, y: u.y - 34, width: u.width + 40, height: u.height + 54 };
+    groups.set(gId, rect);
+    return rect;
+  }
+  for (const g of ir.groups) groupRect(g.id);
+  return { nodes, groups };
+}
+
+function assertNoForeignNodeInsideGroup(ir: ArchitectureDocument): void {
+  const { nodes, groups } = layoutRectsForInvariant(ir);
+  for (const g of ir.groups) {
+    const gr = groups.get(g.id);
+    if (!gr) continue;
+    const descendants = descendantsOfGroup(ir, g.id);
+    for (const [id, nr] of nodes) {
+      if (descendants.has(id)) continue;
+      expect(rectContainsRect(gr, nr), `${id} must not be contained by ${g.id}`).toBe(false);
+      expect(rectIntersectsInterior(gr, nr), `${id} must not intersect ${g.id}`).toBe(false);
+    }
+  }
 }
 
 // ── Canonical 2×2 grid (mermaid.live validation gate) ─────────────────────────
@@ -262,5 +426,160 @@ describe('case-insensitive side letters', () => {
     const [ac] = get(m, 'a');
     const [bc] = get(m, 'b');
     expect(bc).toBe(ac + 1); // b is east of a
+  });
+});
+
+// ── Group-aware clustered placement ──────────────────────────────────────────
+
+describe('group-aware directional cluster placement', () => {
+  it('keeps a no-edge group cohesive and excludes an ungrouped service', () => {
+    const ir = archDoc({
+      groups: [{ id: 'g', label: 'G', icon: 'cloud' }],
+      services: [
+        { id: 'a', label: 'A', icon: 'server', group: 'g' },
+        { id: 'b', label: 'B', icon: 'server', group: 'g' },
+        { id: 'c', label: 'C', icon: 'server', group: 'g' },
+        { id: 'x', label: 'X', icon: 'server' },
+      ],
+    });
+    const cells = groupAwareDirectionalGridPlacer(ir);
+    const group = cellBounds(['a', 'b', 'c'].map(id => cells.get(id)!));
+    expect(group.maxRow - group.minRow).toBe(0);
+    expect(group.maxCol - group.minCol).toBe(2);
+    expect(cellInsideBounds(cells.get('x')!, group)).toBe(false);
+  });
+
+  it('collapses a cross-group edge to a cluster-level constraint', () => {
+    const ir = archDoc({
+      groups: [
+        { id: 'A', label: 'A', icon: 'cloud' },
+        { id: 'B', label: 'B', icon: 'cloud' },
+      ],
+      services: [
+        { id: 'a1', label: 'A1', icon: 'server', group: 'A' },
+        { id: 'a2', label: 'A2', icon: 'server', group: 'A' },
+        { id: 'b1', label: 'B1', icon: 'server', group: 'B' },
+        { id: 'b2', label: 'B2', icon: 'server', group: 'B' },
+      ],
+      edges: [archEdge('a1', 'R', 'b1', 'L')],
+    });
+    const cells = groupAwareDirectionalGridPlacer(ir);
+    const aBounds = cellBounds(['a1', 'a2'].map(id => cells.get(id)!));
+    const bBounds = cellBounds(['b1', 'b2'].map(id => cells.get(id)!));
+    expect(bBounds.minCol).toBeGreaterThan(aBounds.maxCol);
+    expect(aBounds.maxRow - aBounds.minRow).toBe(0);
+    expect(bBounds.maxRow - bBounds.minRow).toBe(0);
+  });
+
+  it('does not scatter group members for conflicting external edges', () => {
+    const ir = archDoc({
+      groups: [{ id: 'A', label: 'A', icon: 'cloud' }],
+      services: [
+        { id: 'a1', label: 'A1', icon: 'server', group: 'A' },
+        { id: 'a2', label: 'A2', icon: 'server', group: 'A' },
+        { id: 'x', label: 'X', icon: 'server' },
+        { id: 'y', label: 'Y', icon: 'server' },
+      ],
+      edges: [archEdge('a1', 'R', 'x', 'L'), archEdge('a2', 'L', 'y', 'R')],
+    });
+    const cells = groupAwareDirectionalGridPlacer(ir);
+    const aBounds = cellBounds(['a1', 'a2'].map(id => cells.get(id)!));
+    expect(aBounds.maxCol - aBounds.minCol).toBeLessThanOrEqual(1);
+    expect(aBounds.maxRow - aBounds.minRow).toBe(0);
+    expect(cellInsideBounds(cells.get('x')!, aBounds)).toBe(false);
+    expect(cellInsideBounds(cells.get('y')!, aBounds)).toBe(false);
+  });
+
+  it('keeps nested group rectangles contained while excluding direct siblings from the child', () => {
+    const ir = archDoc({
+      groups: [
+        { id: 'outer', label: 'Outer', icon: 'cloud' },
+        { id: 'inner', label: 'Inner', icon: 'cloud', parent: 'outer' },
+      ],
+      services: [
+        { id: 'inside', label: 'Inside', icon: 'server', group: 'inner' },
+        { id: 'direct', label: 'Direct', icon: 'server', group: 'outer' },
+      ],
+    });
+    const { nodes, groups } = layoutRectsForInvariant(ir);
+    expect(rectContainsRect(groups.get('outer')!, groups.get('inner')!)).toBe(true);
+    expect(rectContainsRect(groups.get('inner')!, nodes.get('direct')!)).toBe(false);
+    expect(rectContainsRect(groups.get('outer')!, nodes.get('direct')!)).toBe(true);
+  });
+
+  it('excludes sibling leaves and sibling groups from each group cluster', () => {
+    const ir = archDoc({
+      groups: [
+        { id: 'A', label: 'A', icon: 'cloud' },
+        { id: 'B', label: 'B', icon: 'cloud' },
+      ],
+      services: [
+        { id: 'a1', label: 'A1', icon: 'server', group: 'A' },
+        { id: 'a2', label: 'A2', icon: 'server', group: 'A' },
+        { id: 'b1', label: 'B1', icon: 'server', group: 'B' },
+        { id: 'root', label: 'Root', icon: 'server' },
+      ],
+    });
+    const cells = groupAwareDirectionalGridPlacer(ir);
+    const aBounds = cellBounds(['a1', 'a2'].map(id => cells.get(id)!));
+    const bBounds = cellBounds(['b1'].map(id => cells.get(id)!));
+    expect(cellInsideBounds(cells.get('root')!, aBounds)).toBe(false);
+    expect(cellRectsOverlap(aBounds.minCol, aBounds.minRow, aBounds.maxCol - aBounds.minCol + 1, aBounds.maxRow - aBounds.minRow + 1, bBounds.minCol, bBounds.minRow, 1, 1)).toBe(false);
+  });
+
+  it('keeps cross-boundary align containment-safe', () => {
+    const ir = archDoc({
+      groups: [{ id: 'platform', label: 'Platform', icon: 'cloud' }],
+      services: [
+        { id: 'stream', label: 'Stream', icon: 'server', group: 'platform' },
+        { id: 'lake', label: 'Lake', icon: 'database', group: 'platform' },
+        { id: 'users', label: 'Users', icon: 'internet' },
+      ],
+      edges: [archEdge('stream', 'B', 'lake', 'T')],
+      aligns: [{ axis: 'row', members: ['stream', 'users'] }],
+    });
+    const { nodes, groups } = layoutRectsForInvariant(ir);
+    expect(rectContainsRect(groups.get('platform')!, nodes.get('stream')!)).toBe(true);
+    expect(rectContainsRect(groups.get('platform')!, nodes.get('lake')!)).toBe(true);
+    expect(rectContainsRect(groups.get('platform')!, nodes.get('users')!)).toBe(false);
+    expect(rectIntersectsInterior(groups.get('platform')!, nodes.get('users')!)).toBe(false);
+  });
+
+  it('fixes the triton-features platform ballooning repro', () => {
+    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'), 'utf8'));
+    const { services, groups } = renderedRects(ir);
+    const platform = groups.get('platform')!;
+    const users = services.get('users')!;
+    const members = ['stream', 'lake', 'warehouse'].map(id => services.get(id)!);
+    const platformMembers = unionBounds(members);
+
+    expect(rectContainsRect(platform, users)).toBe(false);
+    expect(rectIntersectsInterior(platform, users)).toBe(false);
+    expect(platform.width).toBeLessThanOrEqual(platformMembers.width + 40 + 1);
+    expect(platform.height).toBeLessThanOrEqual(platformMembers.height + 54 + 1);
+    for (const nonMember of ['users', 'gateway', 'collector', 'dashboard', 'backup']) {
+      expect(rectContainsRect(platform, services.get(nonMember)!)).toBe(false);
+    }
+
+    const cells = groupAwareDirectionalGridPlacer(ir);
+    const platformCells = ['stream', 'lake', 'warehouse'].map(id => cells.get(id)!);
+    const bounds = cellBounds(platformCells);
+    expect(bounds.maxCol - bounds.minCol).toBeLessThanOrEqual(1);
+    expect(bounds.maxRow - bounds.minRow).toBeLessThanOrEqual(1);
+    for (const [id, cell] of cells) {
+      if (!['stream', 'lake', 'warehouse'].includes(id)) {
+        expect(cellInsideBounds(cell, bounds)).toBe(false);
+      }
+    }
+    expect(cells.get('stream')!.row).toBeLessThan(cells.get('lake')!.row);
+    expect(cells.get('warehouse')!.col).toBeGreaterThan(cells.get('lake')!.col);
+  });
+
+  it('keeps foreign nodes outside every architecture example group', () => {
+    const dir = join(process.cwd(), 'examples/mermaid/architecture');
+    for (const file of ['architecture.mmd', 'arrows.mmd', 'align-grid.mmd', 'group-edges.mmd', 'junctions.mmd', 'nested-groups.mmd', 'triton-features.mmd']) {
+      const ir = parseArchitecture(readFileSync(join(dir, file), 'utf8'));
+      assertNoForeignNodeInsideGroup(ir);
+    }
   });
 });
