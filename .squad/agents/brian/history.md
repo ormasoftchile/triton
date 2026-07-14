@@ -131,3 +131,8 @@ Validation: `pnpm typecheck` ✓, `pnpm build` ✓, `pnpm vitest run test/archit
 
 Implemented four additive architecture-beta extensions in path-scoped commits: connectors (`a033279`), animations (`49eb68d`), routing hints (`460921c`), and icon alignment/group icons (`8dd87dc`). Defaults remain Mermaid-compatible/byte-identical where unspecified; final targeted tests 123/123 green with typecheck and build clean.
 
+## Team Updates (Scribe Session 2026-07-14T19:16:40-04:00)
+
+- Brian added `examples/mermaid/architecture/triton-features.mmd` and rendered `triton-features.svg` as the canonical showcase for Triton architecture-beta extensions: connector matrix styles, connector animations, route/wall hints, and `@iconalign`.
+- Verification reported: architecture preview rendered and `test/architecture-grammar.test.ts` passed 100/100.
+- Coordinator committed the example artifacts as `fb7a645`; Scribe merged the decision note and wrote orchestration/session logs.
