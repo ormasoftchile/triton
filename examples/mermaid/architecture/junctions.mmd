@@ -1,0 +1,11 @@
+architecture-beta
+%% Feature: junctions — 4-way edge split nodes
+service left(server)[Left]
+service right(server)[Right]
+service top(cloud)[Top]
+service bottom(database)[Bottom]
+junction jct
+left:R --> L:jct
+jct:R --> L:right
+jct:T --> B:top
+jct:B --> T:bottom

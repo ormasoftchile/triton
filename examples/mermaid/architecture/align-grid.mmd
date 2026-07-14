@@ -1,0 +1,13 @@
+architecture-beta
+%% Feature: align constraints — row + column grid
+service a(server)[A]
+service b(server)[B]
+service c(database)[C]
+service d(database)[D]
+align row a b
+align column a c
+align column b d
+a:R --> L:b
+a:B --> T:c
+b:B --> T:d
+c:R --> L:d

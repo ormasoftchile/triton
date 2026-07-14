@@ -1,0 +1,12 @@
+architecture-beta
+%% Feature: nested groups — explicit "in" syntax required for group nesting
+group cloud(cloud)[Cloud]
+group backend(server)[Backend] in cloud
+service api(server)[API] in backend
+service cache(database)[Cache] in backend
+group data(database)[Data] in cloud
+service db(database)[Database] in data
+service client(internet)[Client]
+client:R --> L:api
+api:R --> L:cache
+api:B --> T:db

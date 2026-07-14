@@ -1,0 +1,15 @@
+architecture-beta
+%% Feature: all four arrow forms
+service a(server)[Alpha]
+service b(server)[Beta]
+service c(server)[Gamma]
+service d(server)[Delta]
+service e(server)[Epsilon]
+%% undirected: no arrows
+a:R -- L:b
+%% rightward arrow: -->
+b:R --> L:c
+%% leftward arrow: <--
+c:R <-- L:d
+%% bidirectional: <-->
+d:R <--> L:e
