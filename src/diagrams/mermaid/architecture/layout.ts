@@ -21,8 +21,8 @@
  *   - Iconify resolution requires the host to supply LayoutOptions.icons.
  */
 
-import type { ArchitectureDocument, ArchGroup } from './ir.js';
-import type { Scene, SceneElement, LayoutResult, Rect, PortDirection, LayoutOptions, RouteStyle } from '../../../contracts/index.js';
+import type { ArchitectureDocument, ArchGroup, ArchIconAlign } from './ir.js';
+import type { Scene, SceneElement, LayoutResult, Rect, PortDirection, LayoutOptions, RouteStyle, TextAnchor } from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
@@ -68,6 +68,32 @@ function edgeDash(style: string | undefined): string | undefined {
 
 function edgeStrokeWidth(style: string | undefined, base: number): number {
   return style === 'thick' ? base * 2 : base;
+}
+
+function iconCenter(r: Rect, align: ArchIconAlign | undefined): { x: number; y: number } {
+  switch (align ?? 'N') {
+    case 'S':  return { x: r.x + r.width / 2, y: r.y + r.height - 24 };
+    case 'E':  return { x: r.x + r.width - 24, y: r.y + r.height / 2 };
+    case 'W':  return { x: r.x + 24, y: r.y + r.height / 2 };
+    case 'NE': return { x: r.x + r.width - 24, y: r.y + 24 };
+    case 'NW': return { x: r.x + 24, y: r.y + 24 };
+    case 'SE': return { x: r.x + r.width - 24, y: r.y + r.height - 24 };
+    case 'SW': return { x: r.x + 24, y: r.y + r.height - 24 };
+    case 'C':  return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    case 'N':
+    default:   return { x: r.x + r.width / 2, y: r.y + 24 };
+  }
+}
+
+function serviceLabelPlacement(r: Rect, align: ArchIconAlign | undefined): { x: number; y: number; anchor: TextAnchor } {
+  switch (align) {
+    case 'W':  return { x: r.x + 46, y: r.y + r.height - 9, anchor: 'start' };
+    case 'E':  return { x: r.x + r.width - 46, y: r.y + r.height - 9, anchor: 'end' };
+    case 'S':
+    case 'SE':
+    case 'SW': return { x: r.x + r.width / 2, y: r.y + 21, anchor: 'middle' };
+    default:   return { x: r.x + r.width / 2, y: r.y + r.height - 9, anchor: 'middle' };
+  }
 }
 
 // ─── Group sort (parent before child for back-to-front rendering) ─────────────
@@ -186,6 +212,7 @@ export function layoutArchitecture(
 
   // ── Build element list ────────────────────────────────────────────────────
   const elements: SceneElement[] = [];
+  const warnedIcons = new Set<string>();
 
   // Title
   if (ir.metadata.title) {
@@ -205,8 +232,13 @@ export function layoutArchitecture(
       { x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) },
       hue + '14', hue, 1.4, { rx: 10 },
     ));
+    if (g.iconAlign) {
+      const c = iconCenter(r, g.iconAlign);
+      elements.push(...resolveIconElems(p, g.icon, c.x, c.y, hue, palette, iconPacks, warnedIcons));
+    }
+    const labelX = g.iconAlign === 'NW' || g.iconAlign === 'W' ? r.x + 42 : r.x + 12;
     elements.push(p.text(
-      g.label, rhu(r.x + 12), rhu(r.y + 16),
+      g.label, rhu(labelX), rhu(r.y + 16),
       typography.smallFontSize, hue, { weight: 'bold' },
     ));
   });
@@ -273,7 +305,6 @@ export function layoutArchitecture(
   }
 
   // ── Service nodes ─────────────────────────────────────────────────────────
-  const warnedIcons = new Set<string>();
   ir.services.forEach((s, i) => {
     const r = rectOf(s.id);
     if (!r) return;
@@ -288,12 +319,14 @@ export function layoutArchitecture(
     ));
 
     // Icon: try iconify resolution first, fall back to built-in glyph.
-    const iconElems = resolveIconElems(p, s.icon, r.x + r.width / 2, r.y + 24, hue, palette, iconPacks, warnedIcons);
+    const iconPos = iconCenter(r, s.iconAlign);
+    const iconElems = resolveIconElems(p, s.icon, iconPos.x, iconPos.y, hue, palette, iconPacks, warnedIcons);
     elements.push(...iconElems);
 
+    const label = serviceLabelPlacement(r, s.iconAlign);
     elements.push(p.text(
-      s.label, rhuInt(r.x + r.width / 2), rhu(r.y + r.height - 9),
-      font, palette.text, { weight: 'bold', anchor: 'middle' },
+      s.label, rhuInt(label.x), rhu(label.y),
+      font, palette.text, { weight: 'bold', anchor: label.anchor },
     ));
   });
 

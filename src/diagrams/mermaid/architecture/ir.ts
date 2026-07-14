@@ -1,11 +1,14 @@
 import type { BaseIR, CrossLinkAnimation, CrossLinkEdgeStyle, CrossLinkEndpointMarker } from '../../../contracts/index.js';
 import type { PortDirection, RouteStyle } from '../../../contracts/index.js';
 
+export type ArchIconAlign = 'N' | 'S' | 'E' | 'W' | 'NE' | 'NW' | 'SE' | 'SW' | 'C';
+
 export interface ArchService {
   readonly id: string;
   readonly label: string;
   readonly icon: string;
   readonly group?: string;
+  readonly iconAlign?: ArchIconAlign;
 }
 
 export interface ArchGroup {
@@ -14,6 +17,7 @@ export interface ArchGroup {
   readonly icon: string;
   /** ID of the enclosing group when this group is nested inside another. */
   readonly parent?: string;
+  readonly iconAlign?: ArchIconAlign;
 }
 
 /** A junction is a 4-way edge split node — no icon or label. */

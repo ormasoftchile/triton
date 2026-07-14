@@ -15,6 +15,7 @@
 
   const ANIMATION_SET = new Set([...CONNECTOR_ANIMATIONS, 'none']);
   const ROUTE_STYLE_SET = new Set(['straight', 'orthogonal', 'bezier', 'polyline']);
+  const ICON_ALIGN_SET = new Set(['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW', 'C']);
 
   const CONNECTOR_TOKEN_MAP = {
     '<-->':  { direction: 'bidirectional', style: 'solid',  startMarker: 'arrow', endMarker: 'arrow' },
@@ -60,6 +61,14 @@
     }
     return value;
   }
+
+  function assertIconAlign(value) {
+    const upper = String(value).toUpperCase();
+    if (!ICON_ALIGN_SET.has(upper)) {
+      throw new Error(`Invalid icon alignment "${value}"`);
+    }
+    return upper;
+  }
 }}
 
 Document
@@ -72,11 +81,11 @@ Document
       let curGroup, curIndent = -1;
       for (const l of lines.filter(Boolean)) {
         if (l.t === 'group') {
-          groups.push({ id: l.id, label: l.label, icon: l.icon, ...(l.inGroup ? { parent: l.inGroup } : {}) });
+          groups.push({ id: l.id, label: l.label, icon: l.icon, ...(l.inGroup ? { parent: l.inGroup } : {}), ...(l.iconAlign !== undefined ? { iconAlign: l.iconAlign } : {}) });
           curGroup = l.id; curIndent = l.indent;
         } else if (l.t === 'service') {
           const group = l.inGroup || (l.indent > curIndent && curGroup ? curGroup : undefined);
-          services.push({ id: l.id, label: l.label, icon: l.icon, ...(group ? { group } : {}) });
+          services.push({ id: l.id, label: l.label, icon: l.icon, ...(group ? { group } : {}), ...(l.iconAlign !== undefined ? { iconAlign: l.iconAlign } : {}) });
         } else if (l.t === 'junction') {
           const group = l.inGroup || (l.indent > curIndent && curGroup ? curGroup : undefined);
           junctions.push({ id: l.id, ...(group ? { group } : {}) });
@@ -92,13 +101,13 @@ Document
 Line = GroupLine / ServiceLine / JunctionLine / AlignLine / EdgeLine / BlankLine
 
 GroupLine
-  = ind:$[ \t]* "group"i __ id:Ident "(" icon:$[^)\n]* ")" "[" label:$[^\]\n]* "]" inG:(__ "in"i __ g:Ident { return g; })? RestIgnore LineEnd {
-      return { t: 'group', indent: ind.length, id, icon: icon.trim(), label: label.trim(), inGroup: inG || undefined };
+  = ind:$[ \t]* "group"i __ id:Ident "(" icon:$[^)\n]* ")" "[" label:$[^\]\n]* "]" inG:(__ "in"i __ g:Ident { return g; })? tail:NodeTail LineEnd {
+      return { t: 'group', indent: ind.length, id, icon: icon.trim(), label: label.trim(), inGroup: inG || undefined, ...(tail.iconAlign !== undefined ? { iconAlign: tail.iconAlign } : {}) };
     }
 
 ServiceLine
-  = ind:$[ \t]* "service"i __ id:Ident "(" icon:$[^)\n]* ")" "[" label:$[^\]\n]* "]" inG:(__ "in"i __ g:Ident { return g; })? RestIgnore LineEnd {
-      return { t: 'service', indent: ind.length, id, icon: icon.trim(), label: label.trim(), inGroup: inG || undefined };
+  = ind:$[ \t]* "service"i __ id:Ident "(" icon:$[^)\n]* ")" "[" label:$[^\]\n]* "]" inG:(__ "in"i __ g:Ident { return g; })? tail:NodeTail LineEnd {
+      return { t: 'service', indent: ind.length, id, icon: icon.trim(), label: label.trim(), inGroup: inG || undefined, ...(tail.iconAlign !== undefined ? { iconAlign: tail.iconAlign } : {}) };
     }
 
 JunctionLine
@@ -190,6 +199,28 @@ PropEntry
 
 PropValue
   = value:Ident { return value; }
+
+NodeTail
+  = anns:(_ "@" NodeAnnotation)* block:(_ PropBlock)? rest:$[^\n]* {
+      if (/@iconalign:/.test(rest)) {
+        throw new Error('Invalid icon alignment annotation');
+      }
+      const result = {};
+      if (block) {
+        const b = block[1];
+        if (b.iconalign !== undefined) result.iconAlign = assertIconAlign(b.iconalign);
+      }
+      for (const ann of anns) {
+        Object.assign(result, ann[2]);
+      }
+      return result;
+    }
+
+NodeAnnotation
+  = "iconalign:" value:IconAlignValue { return { iconAlign: value }; }
+
+IconAlignValue
+  = value:Ident { return assertIconAlign(value); }
 
 // align row|column id id ...  (≥2 members)
 AlignLine

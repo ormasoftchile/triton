@@ -10,8 +10,8 @@
 
 import { describe, it, expect } from 'vitest';
 import * as parser from '../src/diagrams/mermaid/architecture/parser.js';
-import type { ArchitectureDocument, ArchEdge, ArchJunction, ArchGroup } from '../src/diagrams/mermaid/architecture/ir.js';
-import type { ScenePath, SceneRect } from '../src/contracts/index.js';
+import type { ArchitectureDocument, ArchEdge, ArchIconAlign, ArchJunction, ArchGroup } from '../src/diagrams/mermaid/architecture/ir.js';
+import type { ScenePath, SceneRect, SceneText } from '../src/contracts/index.js';
 import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
 import { CONNECTOR_ANIMATIONS } from '../src/contracts/animations.js';
@@ -383,6 +383,90 @@ describe('iconify prefix:name icon tokens', () => {
   it('plain icon names (no colon) still work', () => {
     const ir = parse(header('service api(server)[API]'));
     expect(ir.services[0].icon).toBe('server');
+  });
+});
+
+// ── Icon alignment ───────────────────────────────────────────────────────────
+
+describe('icon alignment', () => {
+  const aligns: readonly ArchIconAlign[] = ['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW', 'C'];
+
+  function serviceIconScene(align?: string) {
+    const suffix = align ? ` ${align}` : '';
+    const ir = parse(header(`service a(custom)[A]${suffix}`));
+    return layoutArchitecture(ir, defaultTheme).scene;
+  }
+
+  function serviceRect(scene = serviceIconScene()) {
+    return scene.elements.find((el): el is SceneRect =>
+      el.type === 'rect' && el.bounds.width === 130 && el.bounds.height === 56,
+    )!;
+  }
+
+  function iconRect(scene = serviceIconScene()) {
+    return scene.elements.find((el): el is SceneRect =>
+      el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
+    )!;
+  }
+
+  function expectedIconRect(r: SceneRect['bounds'], align: ArchIconAlign) {
+    const centers: Record<ArchIconAlign, { x: number; y: number }> = {
+      N:  { x: r.x + r.width / 2, y: r.y + 24 },
+      S:  { x: r.x + r.width / 2, y: r.y + r.height - 24 },
+      E:  { x: r.x + r.width - 24, y: r.y + r.height / 2 },
+      W:  { x: r.x + 24, y: r.y + r.height / 2 },
+      NE: { x: r.x + r.width - 24, y: r.y + 24 },
+      NW: { x: r.x + 24, y: r.y + 24 },
+      SE: { x: r.x + r.width - 24, y: r.y + r.height - 24 },
+      SW: { x: r.x + 24, y: r.y + r.height - 24 },
+      C:  { x: r.x + r.width / 2, y: r.y + r.height / 2 },
+    };
+    const c = centers[align];
+    return { x: c.x - 9, y: c.y - 9, width: 18, height: 18 };
+  }
+
+  it.each(aligns)('parses service @iconalign:%s', (align) => {
+    const ir = parse(header(`service a(custom)[A] @iconalign:${align}`));
+    expect(ir.services[0]!.iconAlign).toBe(align);
+  });
+
+  it.each(aligns)('parses group @iconalign:%s', (align) => {
+    const ir = parse(header(`group g(custom)[G] @iconalign:${align}`));
+    expect(ir.groups[0]!.iconAlign).toBe(align);
+  });
+
+  it.each(aligns)('places service icon for %s', (align) => {
+    const scene = serviceIconScene(`@iconalign:${align}`);
+    expect(iconRect(scene).bounds).toEqual(expectedIconRect(serviceRect(scene).bounds, align));
+  });
+
+  it('keeps omitted service icon alignment at the old fixed top-center position', () => {
+    const scene = serviceIconScene();
+    const r = serviceRect(scene).bounds;
+    expect(iconRect(scene).bounds).toEqual({ x: r.x + r.width / 2 - 9, y: r.y + 24 - 9, width: 18, height: 18 });
+  });
+
+  it('@iconalign wins over { iconalign: ... } on services and adjusts the label away from side icons', () => {
+    const ir = parse(header('service a(custom)[A] @iconalign:E { iconalign: W }'));
+    expect(ir.services[0]!.iconAlign).toBe('E');
+    const scene = serviceIconScene('@iconalign:E { iconalign: W }');
+    const label = scene.elements.find((el): el is SceneText => el.type === 'text' && el.content === 'A')!;
+    expect(label.anchor).toBe('end');
+  });
+
+  it('property-block iconalign works on groups and renders the group icon when specified', () => {
+    const ir = parse(header('group g(custom)[G] { iconalign: NW }\n  service a(server)[A]'));
+    expect(ir.groups[0]!.iconAlign).toBe('NW');
+    const scene = layoutArchitecture(ir, defaultTheme).scene;
+    const groupIcon = scene.elements.find((el): el is SceneRect =>
+      el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
+    );
+    expect(groupIcon).toBeDefined();
+  });
+
+  it('rejects invalid icon alignment', () => {
+    expect(() => parse(header('service a(custom)[A] @iconalign:TOP'))).toThrow();
+    expect(() => parse(header('group g(custom)[G] { iconalign: TOP }'))).toThrow();
   });
 });
 
