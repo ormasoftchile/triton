@@ -928,3 +928,96 @@ Issues observed across multiple diagram types, ranked by severity:
 | architecture | ⚠️ | Edge routing |
 
 **Legend:** ✅ = Pass | ⚠️ = Minor issues | ❌ = Significant divergence
+
+---
+
+## Architecture-beta Grid Layout Re-Review
+
+> **Visual QA by Ken** — 2026-07-13T21:52:00-04:00
+>
+> Re-review after Brian replaced the layout engine with BFS grid placer (`gridPlacer.ts`).
+> Previous round FAILED align-grid due to B/D overlap. This round verifies the fix.
+
+### 1. architecture.svg — **PASS** ✅
+
+Baseline architecture renders correctly with proper grid placement:
+- ✅ Group "Cloud Services" contains API Server + Database (top row inside group)
+- ✅ Storage bottom-left, Client bottom-right (outside group)
+- ✅ Edge routing: `client:R → B:api` vertical down-then-across, `api:R → L:db` horizontal, `api:B → T:storage` vertical
+- ✅ All arrowheads axis-aligned
+- ✅ No node overlaps
+- ✅ Labels readable
+
+### 2. arrows.svg — **PASS** ✅
+
+All 4 arrow forms render correctly in horizontal row:
+- ✅ `--` (Alpha–Beta): no arrowheads — correct
+- ✅ `-->` (Beta→Gamma): right arrowhead only — correct
+- ✅ `<--` (Gamma←Delta): left arrowhead only — correct
+- ✅ `<-->` (Delta↔Epsilon): both arrowheads — correct
+- ✅ All edges rectilinear, arrowheads axis-aligned
+
+### 3. junctions.svg — **PASS** ✅
+
+4-way junction renders correctly:
+- ✅ Junction dot visible at center split point
+- ✅ Left → Junction with arrowhead
+- ✅ Junction splits to Top (up), Right (right), Bottom (down)
+- ✅ Clean edge meets at junction, no crossings through unrelated nodes
+- ✅ All arrowheads axis-aligned
+
+### 4. group-edges.svg — **PASS** ✅
+
+{group} edge modifier works:
+- ✅ Group A contains Service A1 + Service A2
+- ✅ Group B (nested) contains Service B1
+- ✅ Edge from A1 → B1 routes correctly
+- ✅ Horizontal edge from B1 exits right of Group A boundary, loops around to A2
+- ✅ No node overlap, group boundaries distinct
+
+### 5. nested-groups.svg — **PASS** ✅
+
+Nested group containment renders correctly:
+- ✅ Cloud (outer purple) contains Backend + Data groups
+- ✅ Backend (teal) contains API + Cache
+- ✅ Data (orange) contains Database
+- ✅ Client outside all groups, connects to API
+- ✅ API → Cache horizontal, API → Database vertical
+- ✅ Clear visual hierarchy with proper padding
+- ✅ No box overlaps
+
+### 6. align-grid.svg — **PASS** ✅ (FIXED!)
+
+**The B/D overlap defect from last round is FIXED.**
+
+SVG coordinates confirm proper 2×2 grid:
+```
+A: x=24,  y=24   (top-left, purple)
+B: x=244, y=24   (top-right, teal)
+C: x=24,  y=124  (bottom-left, orange)
+D: x=244, y=124  (bottom-right, indigo)
+```
+
+Visual verification:
+- ✅ A and B share same Y (row-aligned) ✓
+- ✅ C and D share same Y (row-aligned) ✓
+- ✅ A and C share same X (column-aligned) ✓
+- ✅ B and D share same X (column-aligned) ✓
+- ✅ All 4 nodes distinctly visible at separate positions
+- ✅ Edges: A→B horizontal, A→C vertical, B→D vertical, C→D horizontal
+- ✅ No overlapping node boxes
+
+### Summary Table
+
+| Example | Verdict | Notes |
+|---------|---------|-------|
+| architecture.svg | ✅ PASS | Grid placement correct |
+| arrows.svg | ✅ PASS | All 4 arrow forms correct |
+| junctions.svg | ✅ PASS | 4-way junction clean |
+| group-edges.svg | ✅ PASS | {group} boundary attachment works |
+| nested-groups.svg | ✅ PASS | Nested containment correct |
+| align-grid.svg | ✅ PASS | **B/D overlap FIXED** |
+
+**Overall Grid Layout verdict: 6/6 PASS**
+
+The new BFS grid placer in `gridPlacer.ts` correctly implements directional side semantics. The critical align-grid overlap bug from the previous Sugiyama-based layout is resolved.
