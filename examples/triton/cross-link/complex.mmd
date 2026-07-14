@@ -40,7 +40,7 @@ poster "Microservices Architecture — Cross-Link Map"
       consumer --> metrics[Metrics]
   end
 
-  link API.catalog -_-> DATA.redis "cache hit?" @orthogonal:WW @anim:march
+  link API.catalog -_-> DATA.redis "cache hit?" @bezier:WN @anim:march
   link API.orders --> ASYNC.kafka "publishes" @orthogonal:WN
   link ASYNC.metrics <-.-> API.gw "health" @orthogonal:NE
 

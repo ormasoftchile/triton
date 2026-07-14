@@ -256,3 +256,10 @@ When validating grid layouts, confirm:
 - Column-aligned nodes share X coordinate
 - All nodes occupy distinct (x,y) positions
 - Edge routing matches the declared side connections
+
+---
+
+## 2026-07-13 — Visual QA follow-up: architecture-beta extensions
+
+Brian added new architecture-beta visual surfaces: connector styles, connector animations, route hints, and service/group icon alignment. A visual pass is recommended on mixed connector/icon examples to verify rendering quality beyond parser/layout test coverage.
+

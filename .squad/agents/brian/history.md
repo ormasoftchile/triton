@@ -100,3 +100,34 @@ For detailed history, see `history-archive.md`.
 - `groupsByDepth(groups)` — topological sort for rendering order, ~line 56
 - `resolveIconElems(...)` — iconify resolution with glyph fallback, ~line 325
 - `iconGlyph(...)` — built-in line-art glyph, ~line 360
+
+## Learnings — 2026-07-13 Phase 1: architecture Triton connectors
+
+Implemented connector-style parsing/rendering for architecture-beta only. Mermaid arrows remain supported; Triton matrix adds dotted/dashed/thick/wavy directed, undirected, and bidirectional forms. Rendering maps dotted/dashed to dash arrays, thick to 2x stroke width, and wavy through `wavifyPath`; routing/animations/icon placement intentionally deferred.
+
+Validation: `pnpm typecheck` ✓, `pnpm build` ✓, `pnpm vitest run test/architecture-grammar.test.ts test/gridPlacer.test.ts` ✓ (67 tests).
+
+## Learnings — 2026-07-13 Phase 2: architecture connector animations
+
+Implemented architecture-beta connector animation syntax only. Edges now accept `@anim:<name>` and `{ anim: <name> }`, validate against shared `CONNECTOR_ANIMATIONS` plus `none`, and apply poster precedence (`@` wins over `{}`). Layout threads non-`none` animation to `ScenePath.animated`; routing and icon alignment remain untouched.
+
+Validation: `pnpm typecheck` ✓, `pnpm build` ✓, `pnpm vitest run test/architecture-grammar.test.ts test/gridPlacer.test.ts` ✓ (81 tests).
+
+## Learnings — 2026-07-13 Phase 3: architecture connector routing control
+
+Implemented architecture-beta routing-control syntax only. Edges now accept `@route:<straight|orthogonal|bezier|polyline>`, `{ route: <style> }`, and canonical Triton wall hints like `@orthogonal:EW`; `@` annotations win over `{}`. Layout selects the shared router by style and applies `exitWall`/`entryWall` only to RouteRequest directions after directional grid placement. Node placement remains driven solely by L/R/T/B grid semantics. Note: `polylineRouter` currently delegates to straight routing until explicit waypoints are added to RouteRequest.
+
+Validation: `pnpm typecheck` ✓, `pnpm build` ✓, `pnpm vitest run test/architecture-grammar.test.ts test/gridPlacer.test.ts` ✓ (92 tests).
+
+## Learnings — 2026-07-13 Phase 4: architecture icon alignment
+
+Implemented architecture-beta node icon alignment syntax. Services and groups now parse `@iconalign:<N|S|E|W|NE|NW|SE|SW|C>` and `{ iconalign: <dir> }`, with `@` winning over `{}`. Service default remains the previous fixed top-center placement; non-default positions compute compass/badge icon centers and adjust service labels away from side/bottom icons. Group icons render only when `iconAlign` is specified, preserving existing Mermaid/no-annotation output; specified group icons use the same compass placement.
+
+Validation: `pnpm typecheck` ✓, `pnpm build` ✓, `pnpm vitest run test/architecture-grammar.test.ts test/gridPlacer.test.ts` ✓ (123 tests).
+
+---
+
+## 2026-07-13 — architecture-beta Triton extensions
+
+Implemented four additive architecture-beta extensions in path-scoped commits: connectors (`a033279`), animations (`49eb68d`), routing hints (`460921c`), and icon alignment/group icons (`8dd87dc`). Defaults remain Mermaid-compatible/byte-identical where unspecified; final targeted tests 123/123 green with typecheck and build clean.
+

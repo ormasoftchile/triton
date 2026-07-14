@@ -6864,3 +6864,42 @@ Triton's grammar (`src/diagrams/mermaid/architecture/grammar.peggy`) covers a us
 | Side tokens l/r/t/b (lowercase) | ✓ | ✓ | `Side = $[LRTBlrtb]` |
 
 **Scope for follow-up:** Items marked ✗ represent a follow-up implementation task. Priority order: nested groups → junctions → edge labels → align directive → iconText/title.
+
+---
+
+### 2026-07-13: architecture-beta Triton extensions should be additive overlays on Mermaid grid semantics
+**By:** Brian
+**What:** Keep Mermaid architecture-beta L/R/T/B side pairs as placement constraints, then layer Triton-specific connector style/routing/animation and icon-placement fields onto `ArchEdge`/`ArchService` as additive syntax. Do not replace the directional grid placer with Sugiyama for routing; use routing only after grid placement.
+**Why:** The current architecture layout already uses `directionalGridPlacer()` for Mermaid parity. Triton connector routing can reuse the existing orthogonal/router + ScenePath animation support, but only after preserving the side-derived grid; otherwise architecture-beta regresses to the previously rejected direction-blind layout.
+
+---
+
+### 2026-07-13T22:36-04:00: architecture-beta Triton extensions — locked syntax spec
+
+**By:** ormasoftchile (via Squad coordinator)
+**Context:** Owner reviewed Brian's architecture-beta gap analysis and locked the syntax for four Triton extensions. All extensions are additive/opt-in — plain Mermaid architecture-beta must render identically.
+
+**Decisions:**
+1. **Connectors — AUGMENT, not replace.** Keep Mermaid arrows (`--`, `-->`, `<--`, `<-->`) AND add the Triton connector matrix (`-.->` dotted, `-_->` dashed, `==>` thick, `-~->` wavy, plus their undirected/bidirectional forms).
+2. **Icon placement — `@iconalign:<dir>`.** NOT `@icon:` (collides with existing link syntax). Compass anchors: `N S E W NE NW SE SW C`. Applies to services and groups. Default remains top-center when unspecified.
+3. **Connector animations — full Triton vocabulary.** `@anim:<name>` following the poster pattern; expose all of flow/march/pulse/draw/glow/particle/comet/stream/colorcycle.
+4. **Routing — route-style + wall hints only (no explicit waypoints this pass).** `@route:orthogonal` (straight/orthogonal/bezier/polyline) plus wall hints like `@orthogonal:EW`. Mermaid `L/R/T/B` sides REMAIN node PLACEMENT constraints via directionalGridPlacer; routing hints affect only the path, never node placement.
+
+**Build order:** connectors → animations → routing → icon-align.
+
+---
+
+### 2026-07-13T22:00:27-04:00: User directive — architecture-beta icons: Triton diverges from Mermaid
+
+**By:** ormasoftchile (Cristian) (via Copilot)
+
+**What:** For architecture-beta (and Triton diagrams generally), Triton intentionally DIVERGES from Mermaid on icons. Triton keeps using its OWN icon-pack model — the BYOP `IconPackMap` resolved by `src/icons/resolver.ts` (`parseIconRef`/`resolveIcon`), with packs discovered from `.triton/icons/*.triton-icons.json` at the workspace root (IconRegistry). We do NOT bundle Mermaid's default icon packs (logos/AWS/Azure), and we do NOT chase Mermaid's iconify-CDN behavior.
+
+**Behavior (unchanged, now explicitly the intended design):**
+- Prefixed token `prefix:name` (e.g. `azure:app-service`) → resolved via Triton's IconPackMap when the host supplies `LayoutOptions.icons`.
+- Bare token (e.g. `server`, `database`, `cloud`, `disk`) → Triton's built-in line-art glyph (`iconGlyph()` in architecture/layout.ts).
+- No network, no CDN — offline-safe (avoids the lencr/OCSP nag).
+
+**Consequence / follow-up:** Issue #70 remains valid but is REFRAMED — it is purely host plumbing: wire `scripts/preview.mjs` and the VS Code extension to pass the packs discovered by IconRegistry into `LayoutOptions.icons`. It is NOT about bundling Mermaid packs.
+
+**Why:** User request — deliberate product divergence from Mermaid. Triton's offline BYOP pack model is the canonical icon path; do not "fix" architecture-beta by adopting Mermaid's bundled-pack / CDN approach.

@@ -145,3 +145,13 @@ Merged tier 2 decision inbox. Recorded top-level decision: 'TIER 2 COMPLETE — 
 ## Status
 
 ✅ Complete. All .squad/ artifacts staged and ready for commit.
+
+---
+
+### 2026-07-13 — architecture-beta Triton extensions session
+
+- Decisions archive gate: decisions.md 327277 bytes; archive threshold 7 days; archived 0 entries (0 bytes).
+- Inbox processed: 3 file(s): brian-arch-beta-triton-ext.md, coordinator-arch-beta-triton-ext-spec.md, copilot-directive-icons-20260713T2200.md; duplicates skipped: none.
+- Wrote orchestration log `2026-07-13T22-36-30-0400-brian.md` and session log `2026-07-13T22-36-30-0400-arch-beta-triton-extensions.md`.
+- Cross-agent notes appended to Brian and Ken histories; no histories exceeded summarization threshold.
+
