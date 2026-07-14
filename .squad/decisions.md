@@ -6776,3 +6776,57 @@ Verified against source:
 - **`@iconify/tools`** is a `devDependency`; normal `pnpm install` covers it.
 - TODO marker removed from `docs/icons-and-card-nodes.md` §6; table row above is now resolved.
 | Add `docs/icons-and-card-nodes.md` to README or a docs index if one is created | Anyone | No |
+# Decision: Reclassify architecture as Mermaid family
+
+**Author:** Brian (Layout Implementation Engineer)  
+**Date:** 2026-07-13T19:54:34-04:00  
+**Status:** EXECUTED
+
+---
+
+## What moved
+
+| Item | Old path | New path |
+|------|----------|----------|
+| Source directory | `src/diagrams/triton/architecture/` | `src/diagrams/mermaid/architecture/` |
+| Examples | `examples/triton/architecture/` | `examples/mermaid/architecture/` |
+| Docs fragment | `docs/diagram-options/_fragments/triton-architecture.md` | `docs/diagram-options/_fragments/architecture.md` |
+| Import in `src/frontend/index.ts` | `../diagrams/triton/architecture/index.js` | `../diagrams/mermaid/architecture/index.js` |
+| `docs/diagram-options.md` TOC | Listed under `### Triton Diagrams` | Moved to end of `### Mermaid Diagrams` |
+| `docs/diagram-options.md` section | Under `## Triton Diagrams` block | After `## Xychart`, before `## Triton Diagrams` |
+
+All moves done with `git mv` to preserve history.
+
+## Why
+
+`architecture-beta` is a real Mermaid diagram type. `src/frontend/detect.ts` has always returned `{ format: 'mermaid', diagramType: 'architecture' }` — the family folder placement was inconsistent. Moving it to `mermaid/` aligns source, examples, and docs with the detection truth.
+
+Diagrams that remain genuinely Triton-original (kept in `triton/`): `block`, `packet`, `poster`, `topology`, and all DS families.
+
+## Fragment assembly mechanism
+
+`docs/diagram-options.md` is **hand-maintained** — not generated from fragments automatically. The `_fragments/` subdirectory holds the canonical fragment source, but embedding into `diagram-options.md` is done by manual copy. No build step or generator script assembles them.
+
+## architecture-beta syntax gap summary
+
+Triton's grammar (`src/diagrams/mermaid/architecture/grammar.peggy`) covers a usable subset. Gaps versus Mermaid official:
+
+| Feature | Mermaid architecture-beta | Triton support | Evidence |
+|---------|--------------------------|----------------|----------|
+| `group id(icon)[label]` | ✓ | ✓ | `GroupLine` rule |
+| `group id(icon)[label] in parent` (nested groups) | ✓ | ✗ | `GroupLine` has no `in` clause; `ArchGroup` has no `parent` field |
+| `service id(icon)[label]` | ✓ | ✓ | `ServiceLine` rule |
+| `service id(icon)[label] in group` | ✓ | ✓ | `inG` capture in `ServiceLine`; indent-based fallback |
+| `junction id` / `junction id in group` | ✓ | ✗ | No grammar rule; no `ArchJunction` IR type |
+| Edge `A:Side --> Side:B` (directed) | ✓ | ✓ | `EdgeLine` rule, `-->` |
+| Edge `A:Side -- Side:B` (undirected) | ✓ | ✓ | `EdgeLine` rule, `--` |
+| Edge `A:Side <--> Side:B` (bidirectional) | ✓ | ✓ | `EdgeLine` rule, `<-->` |
+| Edge title/label `A:L --> R:B : "label"` | ✓ | ✗ | `ArchEdge` has no `title` field; `EdgeLine` drops rest-of-line |
+| Group boundary modifier `A{group}:Side --> ...` | ✓ | ✗ | Not parsed |
+| `align vertical\|horizontal\|bend id id ...` | ✓ | ✗ | No grammar rule; no layout-hint IR |
+| `iconText` (alt text) on service/group | ✓ | ✗ | No IR field; grammar only captures `(icon)` slot |
+| Diagram `title` / `accTitle` / `accDescr` | ✓ | ✗ | `metadata` in IR is empty; not parsed |
+| Side tokens L/R/T/B (uppercase) | ✓ | ✓ | `Side = $[LRTBlrtb]` |
+| Side tokens l/r/t/b (lowercase) | ✓ | ✓ | `Side = $[LRTBlrtb]` |
+
+**Scope for follow-up:** Items marked ✗ represent a follow-up implementation task. Priority order: nested groups → junctions → edge labels → align directive → iconText/title.

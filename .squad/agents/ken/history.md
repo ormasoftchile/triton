@@ -115,3 +115,16 @@ When cells contain prominent chrome elements (colored header bars, badges), the 
 3. Confirm no NaN/degenerate values in path data
 4. Check all other connectors remain intact after the fix
 
+---
+
+## Coordination Note — 2026-07-13T20:03:00Z
+
+**Brian's Completed Work (2026-07-13):** Reclassified `architecture` diagram type from triton → mermaid family.
+- **Why:** `architecture-beta` is a real Mermaid diagram type. Detection already returned `{ format: 'mermaid', diagramType: 'architecture' }`. Source/examples/docs folder placement now matches this truth.
+- **Moves:** `src/diagrams/triton/architecture/` → `src/diagrams/mermaid/architecture/`, examples/docs fragments relocated, `src/frontend/index.ts` import updated.
+- **Verification:** pnpm build ✅, typecheck ✅, 799 tests ✅, detect() behavior unchanged.
+- **Syntax Gaps:** 11 documented (nested groups, junctions, edge labels, align, iconText, title/accTitle unsupported in Triton's subset).
+- **Decision:** `.squad/decisions.md` (merged from inbox 2026-07-13)
+
+This reclassification affects visual QA scope: `examples/mermaid/architecture/` is now the canonical example location for diagram-options verification.
+
