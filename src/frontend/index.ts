@@ -28,7 +28,7 @@ import { sankey } from '../diagrams/mermaid/sankey/index.js';
 import { mindmap } from '../diagrams/mermaid/mindmap/index.js';
 import { gitgraph } from '../diagrams/mermaid/gitgraph/index.js';
 import { c4 } from '../diagrams/mermaid/c4/index.js';
-import { architecture } from '../diagrams/triton/architecture/index.js';
+import { architecture } from '../diagrams/mermaid/architecture/index.js';
 import { packet } from '../diagrams/triton/packet/index.js';
 import { tree } from '../diagrams/triton/ds/tree/index.js';
 import { plan } from '../diagrams/triton/ds/tree/plan.js';

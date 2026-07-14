@@ -27,10 +27,10 @@ Nearly every example `.mmd` file carries an inline options-header block written 
 - [State](#state)
 - [Timeline](#timeline)
 - [Xychart](#xychart)
+- [Architecture](#architecture)
 
 ### Triton Diagrams
 
-- [Architecture](#architecture)
 - [Block](#block)
 - [Packet](#packet)
 - [Poster](#poster)

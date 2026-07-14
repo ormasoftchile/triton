@@ -12,7 +12,7 @@
   <path d="M 84 304 L 84 324 L 124 324 L 124 344" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 124 384 L 124 404 L 84 404 L 84 424" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="104" y="400" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">yes</text>
-  <path d="M 184 364 L 184 364 L 184 444 L 184 444" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 124 384 L 124 404 L 244 404 L 244 424" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="184" y="400" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">no</text>
   <path d="M 84 464 L 84 484 L 124 484 L 124 504" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="commit">
