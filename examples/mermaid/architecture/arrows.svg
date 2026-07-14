@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 1108 154" width="1108" height="154">
+  <defs>
+    <marker id="arch-arrow-end" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
+    <marker id="arch-arrow-start" markerWidth="10" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="-24" y="-24" width="1108" height="154" fill="#FFFFFF" />
+  <path d="M 154 52 L 244 52" stroke="#4A90D9" stroke-width="1.6" fill="none" />
+  <path d="M 374 52 L 464 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 594 52 L 684 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-start="url(#arch-arrow-start)" />
+  <path d="M 814 52 L 904 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" marker-start="url(#arch-arrow-start)" />
+  <rect x="24" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <rect x="79" y="39" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="79" y="46" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="79" y="53" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <text x="89" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Alpha</text>
+  <rect x="244" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="244" y="24" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
+  <rect x="299" y="39" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="299" y="46" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="299" y="53" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <text x="309" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Beta</text>
+  <rect x="464" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="464" y="24" width="130" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
+  <rect x="519" y="39" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <rect x="519" y="46" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <rect x="519" y="53" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <text x="529" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Gamma</text>
+  <rect x="684" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="684" y="24" width="130" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
+  <rect x="739" y="39" width="20" height="5" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="1" />
+  <rect x="739" y="46" width="20" height="5" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="1" />
+  <rect x="739" y="53" width="20" height="5" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="1" />
+  <text x="749" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Delta</text>
+  <rect x="904" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="904" y="24" width="130" height="8" fill="#DB2777" stroke="#DB2777" stroke-width="0" rx="4" />
+  <rect x="959" y="39" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <rect x="959" y="46" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <rect x="959" y="53" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <text x="969" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Epsilon</text>
+</svg>

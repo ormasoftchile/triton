@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 668 354" width="668" height="354">
+  <defs>
+    <marker id="arch-arrow-end" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
+    <marker id="arch-arrow-start" markerWidth="10" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="-24" y="-24" width="668" height="354" fill="#FFFFFF" />
+  <path d="M 154 152 L 199 152 L 199 132 L 244 132" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 260 132 L 362 132 L 362 152 L 464 152" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 252 124 L 252 102 L 309 102 L 309 80" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 252 140 L 252 182 L 309 182 L 309 224" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <rect x="24" y="124" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="124" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <rect x="79" y="139" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="79" y="146" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="79" y="153" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <text x="89" y="171" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Left</text>
+  <rect x="464" y="124" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="464" y="124" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
+  <rect x="519" y="139" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="519" y="146" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="519" y="153" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <text x="529" y="171" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Right</text>
+  <rect x="244" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="244" y="24" width="130" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
+  <circle cx="303" cy="50" r="6" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" />
+  <circle cx="315" cy="50" r="6" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" />
+  <circle cx="309" cy="45" r="7" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" />
+  <rect x="299" y="50" width="20" height="6" fill="#F8FAFC" stroke="#F8FAFC" stroke-width="0" />
+  <text x="309" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Top</text>
+  <rect x="244" y="224" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="244" y="224" width="130" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
+  <rect x="300" y="239" width="18" height="18" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="5" />
+  <path d="M 300 245 Q 309 249, 318 245" stroke="#5B4FCF" stroke-width="1.3" fill="none" />
+  <text x="309" y="271" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Bottom</text>
+  <circle cx="252" cy="132" r="4" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" />
+  <path d="M 248 132 L 256 132 M 252 128 L 252 136" stroke="#4A90D9" stroke-width="1.6" fill="none" />
+</svg>
