@@ -1,4 +1,4 @@
-import type { BaseIR, CrossLinkEdgeStyle, CrossLinkEndpointMarker } from '../../../contracts/index.js';
+import type { BaseIR, CrossLinkAnimation, CrossLinkEdgeStyle, CrossLinkEndpointMarker } from '../../../contracts/index.js';
 
 export interface ArchService {
   readonly id: string;
@@ -41,6 +41,8 @@ export interface ArchEdge {
   readonly startMarker: CrossLinkEndpointMarker;
   /** Marker rendered at the path end. */
   readonly endMarker: CrossLinkEndpointMarker;
+  /** Optional SMIL connector animation; omitted or 'none' renders a static edge. */
+  readonly animation?: CrossLinkAnimation;
 }
 
 export interface ArchAlign {

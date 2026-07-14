@@ -14,6 +14,7 @@ import type { ArchitectureDocument, ArchEdge, ArchJunction, ArchGroup } from '..
 import type { ScenePath } from '../src/contracts/index.js';
 import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
+import { CONNECTOR_ANIMATIONS } from '../src/contracts/animations.js';
 
 function parse(src: string): ArchitectureDocument {
   return parser.parse(src) as ArchitectureDocument;
@@ -150,8 +151,8 @@ describe('arrow direction', () => {
 // ── Connector rendering ──────────────────────────────────────────────────────
 
 describe('connector rendering', () => {
-  function edgePath(token: string): ScenePath {
-    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R ${token} L:b`));
+  function edgePath(token: string, tail = ''): ScenePath {
+    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R ${token} L:b${tail}`));
     const { scene } = layoutArchitecture(ir, defaultTheme);
     const paths = scene.elements.filter((el): el is ScenePath => el.type === 'path');
     expect(paths).toHaveLength(1);
@@ -191,6 +192,41 @@ describe('connector rendering', () => {
     expect(wavy.strokeWidth).toBe(1.6);
     expect(wavy.d).not.toBe(solid.d);
     expect(wavy.d).toContain('C');
+  });
+
+  it.each(CONNECTOR_ANIMATIONS)('parses @anim:%s and renders it on the connector path', (anim) => {
+    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:${anim}`));
+    expect(ir.edges[0]!.animation).toBe(anim);
+    expect(edgePath('-->', ` @anim:${anim}`).animated).toBe(anim);
+  });
+
+  it('parses property-block animation form', () => {
+    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { anim: pulse }'));
+    expect(ir.edges[0]!.animation).toBe('pulse');
+    expect(edgePath('-->', ' { anim: pulse }').animated).toBe('pulse');
+  });
+
+  it('@anim wins over { anim: ... } on conflict', () => {
+    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:flow { anim: pulse }'));
+    expect(ir.edges[0]!.animation).toBe('flow');
+    expect(edgePath('-->', ' @anim:flow { anim: pulse }').animated).toBe('flow');
+  });
+
+  it('tolerates multiple animation annotations on one edge', () => {
+    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:pulse @anim:glow'));
+    expect(ir.edges[0]!.animation).toBe('glow');
+    expect(edgePath('-->', ' @anim:pulse @anim:glow').animated).toBe('glow');
+  });
+
+  it('omitted animation and explicit none render as static paths', () => {
+    expect(edgePath('-->').animated).toBeUndefined();
+    expect(edgePath('-->', ' @anim:none').animated).toBeUndefined();
+    expect(edgePath('-->', ' { anim: none }').animated).toBeUndefined();
+  });
+
+  it('rejects invalid animation names', () => {
+    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:spin'))).toThrow();
+    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { anim: spin }'))).toThrow();
   });
 });
 

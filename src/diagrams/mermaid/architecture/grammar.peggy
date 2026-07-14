@@ -11,6 +11,10 @@
 //   - icon slot accepts iconify-style `prefix:name` tokens
 
 {{
+  import { CONNECTOR_ANIMATIONS } from '../../../contracts/animations.js';
+
+  const ANIMATION_SET = new Set([...CONNECTOR_ANIMATIONS, 'none']);
+
   const CONNECTOR_TOKEN_MAP = {
     '<-->':  { direction: 'bidirectional', style: 'solid',  startMarker: 'arrow', endMarker: 'arrow' },
     '<-.->': { direction: 'bidirectional', style: 'dotted', startMarker: 'arrow', endMarker: 'arrow' },
@@ -41,6 +45,13 @@
       endMarker: desc.endMarker,
     };
   }
+
+  function assertAnim(value) {
+    if (!ANIMATION_SET.has(value)) {
+      throw new Error(`Invalid connector animation "${value}"`);
+    }
+    return value;
+  }
 }}
 
 Document
@@ -62,7 +73,7 @@ Document
           const group = l.inGroup || (l.indent > curIndent && curGroup ? curGroup : undefined);
           junctions.push({ id: l.id, ...(group ? { group } : {}) });
         } else if (l.t === 'edge') {
-          edges.push({ from: l.from, fromSide: l.fromSide, fromGroup: l.fromGroup, to: l.to, toSide: l.toSide, toGroup: l.toGroup, arrowLeft: l.arrowLeft, arrowRight: l.arrowRight, style: l.style, startMarker: l.startMarker, endMarker: l.endMarker });
+          edges.push({ from: l.from, fromSide: l.fromSide, fromGroup: l.fromGroup, to: l.to, toSide: l.toSide, toGroup: l.toGroup, arrowLeft: l.arrowLeft, arrowRight: l.arrowRight, style: l.style, startMarker: l.startMarker, endMarker: l.endMarker, ...(l.animation !== undefined ? { animation: l.animation } : {}) });
         } else if (l.t === 'align') {
           aligns.push({ axis: l.axis, members: l.members });
         }
@@ -90,7 +101,8 @@ JunctionLine
 // Edge: fromEp:Side ConnectorArrow Side:toEp
 // Arrow order matters — longest match first to avoid prefix ambiguity.
 EdgeLine
-  = _ fromEp:EdgeEndpoint ":" fromSide:Side _ arrow:ConnectorArrow _ toSide:Side ":" toEp:EdgeEndpoint RestIgnore LineEnd {
+  = _ fromEp:EdgeEndpoint ":" fromSide:Side _ arrow:ConnectorArrow _ toSide:Side ":" toEp:EdgeEndpoint tail:EdgeTail LineEnd {
+      const extra = tail || {};
       return {
         t: 'edge',
         from: fromEp.id, fromSide, fromGroup: fromEp.grp,
@@ -99,6 +111,7 @@ EdgeLine
         style: arrow.style,
         startMarker: arrow.startMarker,
         endMarker: arrow.endMarker,
+        ...(extra.animation !== undefined ? { animation: extra.animation } : {}),
       };
     }
 
@@ -117,6 +130,42 @@ ConnectorArrow
       if (token === "--")  return { left: false, right: false, style: 'solid', startMarker: 'none', endMarker: 'none' };
       return edgeFromConnectorToken(token);
     }
+
+EdgeTail
+  = anns:(_ "@" Annotation)* block:(_ PropBlock)? rest:$[^\n]* {
+      if (/@anim:/.test(rest)) {
+        throw new Error('Invalid connector animation annotation');
+      }
+      const result = {};
+      if (block) {
+        const b = block[1];
+        if (b.anim !== undefined) result.animation = assertAnim(b.anim);
+      }
+      for (const ann of anns) {
+        Object.assign(result, ann[2]);
+      }
+      return result;
+    }
+
+Annotation
+  = "anim:" value:AnimValue { return { animation: value }; }
+
+AnimValue
+  = value:Ident { return assertAnim(value); }
+
+PropBlock
+  = "{" _ first:PropEntry rest:(_ "," _ PropEntry)* _ "}" {
+      const result = {};
+      result[first.key] = first.value;
+      for (const r of rest) { result[r[3].key] = r[3].value; }
+      return result;
+    }
+
+PropEntry
+  = key:Ident _ ":" _ value:PropValue { return { key, value }; }
+
+PropValue
+  = value:Ident { return value; }
 
 // align row|column id id ...  (≥2 members)
 AlignLine

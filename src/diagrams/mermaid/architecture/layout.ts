@@ -265,6 +265,7 @@ export function layoutArchitecture(
     if (e.startMarker === 'arrow' || (!e.startMarker && e.arrowLeft)) pathOpts.markerStart = ARROW_START_ID;
     const dash = edgeDash(style);
     if (dash) pathOpts.dash = dash;
+    if (e.animation && e.animation !== 'none') pathOpts.animated = e.animation;
 
     const path = style === 'wavy' ? wavifyPath(route.points, 3, 12) : route.path;
     elements.push(p.path(path, palette.primary, edgeStrokeWidth(style, 1.6), pathOpts));
