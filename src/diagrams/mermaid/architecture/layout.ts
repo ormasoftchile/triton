@@ -1,21 +1,24 @@
 /**
  * @file diagrams/architecture/layout.ts — Cloud architecture diagram.
  *
- * Phase B implementation — renders all IR features:
- *   1. Junctions      — small 4-way split nodes; edges enter/leave on any side.
- *   2. Arrowheads     — driven by arrowLeft / arrowRight; axis-aligned markers.
- *   3. {group} edges  — port sits on the enclosing group boundary, not the service box.
- *   4. Align          — row/column constraints applied as post-layout position nudges.
- *   5. Nested groups  — parent groups visually contain child groups.
- *   6. Iconify icons  — prefix:name tokens resolved through LayoutOptions.icons;
+ * Phase C implementation — replaces Sugiyama layered layout with a
+ * direction-constrained BFS grid placer that honours L/R/T/B side semantics.
+ * All other rendering features from Phase B remain unchanged.
+ *
+ * Features:
+ *   1. Directional grid placement — BFS from directional edge constraints
+ *   2. Junctions      — small 4-way split nodes; edges enter/leave on any side.
+ *   3. Arrowheads     — driven by arrowLeft / arrowRight; axis-aligned markers.
+ *   4. {group} edges  — port sits on the enclosing group boundary, not the service box.
+ *   5. Align          — row/column constraints applied as post-grid position nudges.
+ *   6. Nested groups  — parent groups visually contain child groups.
+ *   7. Iconify icons  — prefix:name tokens resolved through LayoutOptions.icons;
  *                       unresolvable tokens fall back to the built-in glyph.
  *
  * Deviations / limitations (disclosed):
- *   - Align constraints are approximated by a median-snap pass after layeredLayout.
- *     They do not feed back into crossing-minimisation or layer assignment.
+ *   - Align constraints are applied as a post-BFS median-snap. Edge directions
+ *     take precedence; align is a fixup for disconnected nodes or user overrides.
  *   - Iconify resolution requires the host to supply LayoutOptions.icons.
- *     If icons is absent or the token is unresolvable the built-in glyph is used
- *     and a console.warn is emitted once per unresolved token.
  */
 
 import type { ArchitectureDocument, ArchGroup } from './ir.js';
@@ -24,7 +27,7 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { categoricalHue } from '../../../palette/categorical.js';
-import { layeredLayout, type GraphNode, type GraphEdge } from '../../../graph/layered.js';
+import { directionalGridPlacer } from './gridPlacer.js';
 import { orthogonalRouter } from '../../../routing/router.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 import { parseIconRef, resolveIcon } from '../../../icons/resolver.js';
@@ -89,20 +92,26 @@ export function layoutArchitecture(
   const svcW = 130, svcH = 56;
   const jctW = 16,  jctH = 16; // junctions are small crosshair nodes
 
-  // ── Build graph nodes: services + junctions ───────────────────────────────
-  const nodes: GraphNode[] = [
-    ...ir.services.map(s => ({ id: s.id, width: svcW, height: svcH })),
-    ...ir.junctions.map(j => ({ id: j.id, width: jctW, height: jctH })),
-  ];
-  const graphEdges: GraphEdge[] = ir.edges.map(e => ({ from: e.from, to: e.to }));
-  const laid = layeredLayout(nodes, graphEdges, {
-    direction: 'LR', layerGap: 90, nodeGap: 44, margin: margin + 26,
-  });
+  // ── Node sizes (services vs junctions) ───────────────────────────────────
+  const nodeSizes = new Map<string, { width: number; height: number }>();
+  for (const s of ir.services)  nodeSizes.set(s.id, { width: svcW, height: svcH });
+  for (const j of ir.junctions) nodeSizes.set(j.id, { width: jctW, height: jctH });
 
-  // ── Mutable positions (for align post-processing) ─────────────────────────
-  const positions = new Map<string, { x: number; y: number }>(
-    [...laid.boxes.entries()].map(([id, b]) => [id, { x: b.x, y: b.y }]),
+  // ── Directional grid placement ────────────────────────────────────────────
+  const colGap = 90, rowGap = 44;
+  const gridCells = directionalGridPlacer(
+    [...ir.services, ...ir.junctions],
+    ir.edges,
   );
+
+  // Convert grid cells → pixel coords; mutable for align post-processing.
+  const positions = new Map<string, { x: number; y: number }>();
+  for (const [id, cell] of gridCells) {
+    positions.set(id, {
+      x: cell.col * (svcW + colGap) + margin,
+      y: cell.row * (svcH + rowGap) + margin,
+    });
+  }
 
   // ── Apply align constraints (approximated as median-snap) ─────────────────
   for (const align of ir.aligns) {
@@ -130,14 +139,14 @@ export function layoutArchitecture(
     }
   }
 
-  // ── rectOf: adjusted position + original size + yOffset ──────────────────
+  // ── rectOf: adjusted position + node size + yOffset ─────────────────────
   const titleH = ir.metadata.title ? typography.titleFontSize + 14 : 0;
   const yOff = titleH;
   const rectOf = (id: string): Rect | undefined => {
     const pos = positions.get(id);
-    const b   = laid.boxes.get(id);
-    if (!pos || !b) return undefined;
-    return { x: pos.x, y: pos.y + yOff, width: b.width, height: b.height };
+    const sz  = nodeSizes.get(id);
+    if (!pos || !sz) return undefined;
+    return { x: pos.x, y: pos.y + yOff, width: sz.width, height: sz.height };
   };
 
   // ── Compute group rects (memoised, recursive for nested groups) ───────────
@@ -189,8 +198,12 @@ export function layoutArchitecture(
     ));
   });
 
-  // ── Edges ────────────────────────────────────────────────────────────────
-  const allBoxes = [...laid.boxes.values()];
+  // ── Flat box list for orthogonalRouter obstacle detection ────────────────
+  const allBoxes: Array<{ id: string; x: number; y: number; width: number; height: number }> = [];
+  for (const [id, pos] of positions) {
+    const sz = nodeSizes.get(id);
+    if (sz) allBoxes.push({ id, x: pos.x, y: pos.y, width: sz.width, height: sz.height });
+  }
 
   for (const e of ir.edges) {
     // Resolve from-port — use group boundary when fromGroup=true.
