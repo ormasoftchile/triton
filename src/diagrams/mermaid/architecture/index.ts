@@ -4,7 +4,7 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { layoutArchitecture } from './layout.js';
 import * as parser from './parser.js';
 
-export type { ArchitectureDocument, ArchService, ArchGroup, ArchEdge } from './ir.js';
+export type { ArchitectureDocument, ArchService, ArchGroup, ArchJunction, ArchEdge, ArchAlign } from './ir.js';
 
 export const architecture: DiagramModule<ArchitectureDocument> = {
   parseMermaid(input: string): ArchitectureDocument {
