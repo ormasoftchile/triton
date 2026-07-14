@@ -5,12 +5,15 @@
  * group-edge {group} modifier on both endpoints, align row/column directives,
  * and iconify-style `prefix:name` tokens in the icon slot.
  *
- * These are parse/IR tests only — no rendering assertions.
+ * Most tests are parse/IR assertions; connector tests also cover render output.
  */
 
 import { describe, it, expect } from 'vitest';
 import * as parser from '../src/diagrams/mermaid/architecture/parser.js';
 import type { ArchitectureDocument, ArchEdge, ArchJunction, ArchGroup } from '../src/diagrams/mermaid/architecture/ir.js';
+import type { ScenePath } from '../src/contracts/index.js';
+import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.js';
+import { defaultTheme } from '../src/theme/preset.js';
 
 function parse(src: string): ArchitectureDocument {
   return parser.parse(src) as ArchitectureDocument;
@@ -88,24 +91,106 @@ describe('arrow direction', () => {
     const e = edge('--');
     expect(e.arrowLeft).toBe(false);
     expect(e.arrowRight).toBe(false);
+    expect(e.style).toBe('solid');
+    expect(e.startMarker).toBe('none');
+    expect(e.endMarker).toBe('none');
   });
 
   it('--> produces arrowLeft=false, arrowRight=true', () => {
     const e = edge('-->');
     expect(e.arrowLeft).toBe(false);
     expect(e.arrowRight).toBe(true);
+    expect(e.style).toBe('solid');
+    expect(e.startMarker).toBe('none');
+    expect(e.endMarker).toBe('arrow');
   });
 
   it('<-- produces arrowLeft=true, arrowRight=false', () => {
     const e = edge('<--');
     expect(e.arrowLeft).toBe(true);
     expect(e.arrowRight).toBe(false);
+    expect(e.style).toBe('solid');
+    expect(e.startMarker).toBe('arrow');
+    expect(e.endMarker).toBe('none');
   });
 
   it('<--> produces arrowLeft=true, arrowRight=true', () => {
     const e = edge('<-->');
     expect(e.arrowLeft).toBe(true);
     expect(e.arrowRight).toBe(true);
+    expect(e.style).toBe('solid');
+    expect(e.startMarker).toBe('arrow');
+    expect(e.endMarker).toBe('arrow');
+  });
+
+  it.each([
+    ['-.->', 'dotted', false, true],
+    ['-_->', 'dashed', false, true],
+    ['==>', 'thick', false, true],
+    ['-~->', 'wavy', false, true],
+    ['-.-', 'dotted', false, false],
+    ['-_-', 'dashed', false, false],
+    ['===', 'thick', false, false],
+    ['-~-', 'wavy', false, false],
+    ['---', 'solid', false, false],
+    ['<-.->', 'dotted', true, true],
+    ['<-_->', 'dashed', true, true],
+    ['<==>', 'thick', true, true],
+    ['<-~->', 'wavy', true, true],
+  ] as const)('parses Triton connector %s as %s', (token, style, left, right) => {
+    const e = edge(token);
+    expect(e.style).toBe(style);
+    expect(e.arrowLeft).toBe(left);
+    expect(e.arrowRight).toBe(right);
+    expect(e.startMarker).toBe(left ? 'arrow' : 'none');
+    expect(e.endMarker).toBe(right ? 'arrow' : 'none');
+  });
+});
+
+// ── Connector rendering ──────────────────────────────────────────────────────
+
+describe('connector rendering', () => {
+  function edgePath(token: string): ScenePath {
+    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R ${token} L:b`));
+    const { scene } = layoutArchitecture(ir, defaultTheme);
+    const paths = scene.elements.filter((el): el is ScenePath => el.type === 'path');
+    expect(paths).toHaveLength(1);
+    return paths[0]!;
+  }
+
+  it('keeps plain Mermaid --> rendering unstyled except for the existing arrow marker', () => {
+    const path = edgePath('-->');
+    expect(path.strokeDasharray).toBeUndefined();
+    expect(path.strokeWidth).toBe(1.6);
+    expect(path.markerEnd).toBe('arch-arrow-end');
+    expect(path.markerStart).toBeUndefined();
+  });
+
+  it('renders dotted connectors with a dotted dash pattern', () => {
+    const path = edgePath('-.->');
+    expect(path.strokeDasharray).toBe('6 3');
+    expect(path.strokeWidth).toBe(1.6);
+  });
+
+  it('renders dashed connectors with a dashed dash pattern', () => {
+    const path = edgePath('-_->');
+    expect(path.strokeDasharray).toBe('8 4');
+    expect(path.strokeWidth).toBe(1.6);
+  });
+
+  it('renders thick connectors with a wider stroke', () => {
+    const path = edgePath('==>');
+    expect(path.strokeDasharray).toBeUndefined();
+    expect(path.strokeWidth).toBe(3.2);
+  });
+
+  it('renders wavy connectors by replacing the orthogonal polyline with a curved wave path', () => {
+    const solid = edgePath('-->');
+    const wavy = edgePath('-~->');
+    expect(wavy.strokeDasharray).toBeUndefined();
+    expect(wavy.strokeWidth).toBe(1.6);
+    expect(wavy.d).not.toBe(solid.d);
+    expect(wavy.d).toContain('C');
   });
 });
 

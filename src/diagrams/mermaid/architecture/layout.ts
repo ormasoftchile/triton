@@ -31,6 +31,7 @@ import { directionalGridPlacer } from './gridPlacer.js';
 import { orthogonalRouter } from '../../../routing/router.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 import { parseIconRef, resolveIcon } from '../../../icons/resolver.js';
+import { wavifyPath } from '../../../crosslink/render.js';
 
 // ─── Marker IDs ──────────────────────────────────────────────────────────────
 
@@ -55,6 +56,18 @@ function sideToDir(side: string): PortDirection {
     case 'T': return 'N';
     default:  return 'S';
   }
+}
+
+function edgeDash(style: string | undefined): string | undefined {
+  switch (style) {
+    case 'dotted': return '6 3';
+    case 'dashed': return '8 4';
+    default: return undefined;
+  }
+}
+
+function edgeStrokeWidth(style: string | undefined, base: number): number {
+  return style === 'thick' ? base * 2 : base;
 }
 
 // ─── Group sort (parent before child for back-to-front rendering) ─────────────
@@ -243,12 +256,18 @@ export function layoutArchitecture(
       fromDir, toDir,
     });
 
-    // Drive arrowhead markers from arrowLeft / arrowRight.
-    const pathOpts: Parameters<typeof p.path>[3] = {};
-    if (e.arrowRight) pathOpts.markerEnd   = ARROW_END_ID;
-    if (e.arrowLeft)  pathOpts.markerStart = ARROW_START_ID;
+    const style = e.style ?? 'solid';
 
-    elements.push(p.path(route.path, palette.primary, 1.6, pathOpts));
+    // Drive arrowhead markers from marker fields, with arrowLeft/Right fallback
+    // for older JSON IR created before Triton connector styles existed.
+    const pathOpts: Parameters<typeof p.path>[3] = {};
+    if (e.endMarker === 'arrow' || (!e.endMarker && e.arrowRight)) pathOpts.markerEnd = ARROW_END_ID;
+    if (e.startMarker === 'arrow' || (!e.startMarker && e.arrowLeft)) pathOpts.markerStart = ARROW_START_ID;
+    const dash = edgeDash(style);
+    if (dash) pathOpts.dash = dash;
+
+    const path = style === 'wavy' ? wavifyPath(route.points, 3, 12) : route.path;
+    elements.push(p.path(path, palette.primary, edgeStrokeWidth(style, 1.6), pathOpts));
   }
 
   // ── Service nodes ─────────────────────────────────────────────────────────

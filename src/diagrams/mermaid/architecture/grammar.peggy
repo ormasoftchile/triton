@@ -5,11 +5,42 @@
 //   - services (with optional `in <groupId>`)
 //   - junctions (4-way split nodes, with optional `in <groupId>`)
 //   - side-anchored edges with arrow direction (--  -->  <--  <-->)
+//     plus Triton connector styles (-.-> -_-> ==> -~-> and undirected/bidir forms)
 //     and optional {group} endpoint modifier
 //   - align directives (align row/column <id> <id> ...)
 //   - icon slot accepts iconify-style `prefix:name` tokens
 
 {{
+  const CONNECTOR_TOKEN_MAP = {
+    '<-->':  { direction: 'bidirectional', style: 'solid',  startMarker: 'arrow', endMarker: 'arrow' },
+    '<-.->': { direction: 'bidirectional', style: 'dotted', startMarker: 'arrow', endMarker: 'arrow' },
+    '<==>':  { direction: 'bidirectional', style: 'thick',  startMarker: 'arrow', endMarker: 'arrow' },
+    '<-_->': { direction: 'bidirectional', style: 'dashed', startMarker: 'arrow', endMarker: 'arrow' },
+    '<-~->': { direction: 'bidirectional', style: 'wavy',   startMarker: 'arrow', endMarker: 'arrow' },
+
+    '-->':   { direction: 'directed', style: 'solid',  startMarker: 'none', endMarker: 'arrow' },
+    '-.->':  { direction: 'directed', style: 'dotted', startMarker: 'none', endMarker: 'arrow' },
+    '==>':   { direction: 'directed', style: 'thick',  startMarker: 'none', endMarker: 'arrow' },
+    '-_->':  { direction: 'directed', style: 'dashed', startMarker: 'none', endMarker: 'arrow' },
+    '-~->':  { direction: 'directed', style: 'wavy',   startMarker: 'none', endMarker: 'arrow' },
+
+    '---':   { direction: 'undirected', style: 'solid',  startMarker: 'none', endMarker: 'none' },
+    '-.-':   { direction: 'undirected', style: 'dotted', startMarker: 'none', endMarker: 'none' },
+    '===':   { direction: 'undirected', style: 'thick',  startMarker: 'none', endMarker: 'none' },
+    '-_-':   { direction: 'undirected', style: 'dashed', startMarker: 'none', endMarker: 'none' },
+    '-~-':   { direction: 'undirected', style: 'wavy',   startMarker: 'none', endMarker: 'none' },
+  };
+
+  function edgeFromConnectorToken(token) {
+    const desc = CONNECTOR_TOKEN_MAP[token];
+    return {
+      left: desc.startMarker === 'arrow',
+      right: desc.endMarker === 'arrow',
+      style: desc.style,
+      startMarker: desc.startMarker,
+      endMarker: desc.endMarker,
+    };
+  }
 }}
 
 Document
@@ -31,7 +62,7 @@ Document
           const group = l.inGroup || (l.indent > curIndent && curGroup ? curGroup : undefined);
           junctions.push({ id: l.id, ...(group ? { group } : {}) });
         } else if (l.t === 'edge') {
-          edges.push({ from: l.from, fromSide: l.fromSide, fromGroup: l.fromGroup, to: l.to, toSide: l.toSide, toGroup: l.toGroup, arrowLeft: l.arrowLeft, arrowRight: l.arrowRight });
+          edges.push({ from: l.from, fromSide: l.fromSide, fromGroup: l.fromGroup, to: l.to, toSide: l.toSide, toGroup: l.toGroup, arrowLeft: l.arrowLeft, arrowRight: l.arrowRight, style: l.style, startMarker: l.startMarker, endMarker: l.endMarker });
         } else if (l.t === 'align') {
           aligns.push({ axis: l.axis, members: l.members });
         }
@@ -56,22 +87,36 @@ JunctionLine
       return { t: 'junction', indent: ind.length, id, inGroup: inG || undefined };
     }
 
-// Edge: fromEp:Side Arrow Side:toEp
+// Edge: fromEp:Side ConnectorArrow Side:toEp
 // Arrow order matters — longest match first to avoid prefix ambiguity.
 EdgeLine
-  = _ fromEp:EdgeEndpoint ":" fromSide:Side _ arrow:Arrow _ toSide:Side ":" toEp:EdgeEndpoint RestIgnore LineEnd {
-      return { t: 'edge', from: fromEp.id, fromSide, fromGroup: fromEp.grp, to: toEp.id, toSide, toGroup: toEp.grp, arrowLeft: arrow.left, arrowRight: arrow.right };
+  = _ fromEp:EdgeEndpoint ":" fromSide:Side _ arrow:ConnectorArrow _ toSide:Side ":" toEp:EdgeEndpoint RestIgnore LineEnd {
+      return {
+        t: 'edge',
+        from: fromEp.id, fromSide, fromGroup: fromEp.grp,
+        to: toEp.id, toSide, toGroup: toEp.grp,
+        arrowLeft: arrow.left, arrowRight: arrow.right,
+        style: arrow.style,
+        startMarker: arrow.startMarker,
+        endMarker: arrow.endMarker,
+      };
     }
 
 // Optional {group} modifier: means the edge attaches at the service's enclosing group boundary.
 EdgeEndpoint
   = id:Ident grp:("{group}" { return true; })? { return { id, grp: grp === true }; }
 
-Arrow
-  = "<-->" { return { left: true,  right: true  }; }
-  / "-->"  { return { left: false, right: true  }; }
-  / "<--"  { return { left: true,  right: false }; }
-  / "--"   { return { left: false, right: false }; }
+ConnectorArrow
+  = token:(
+      "<-~->" / "<-_->" / "<-.->" / "<==>" / "<-->"
+    / "-~->" / "-_->" / "-.->" / "==>" / "-->"
+    / "<--"
+    / "-~-" / "-_-" / "-.-" / "===" / "---" / "--"
+    ) {
+      if (token === "<--") return { left: true, right: false, style: 'solid', startMarker: 'arrow', endMarker: 'none' };
+      if (token === "--")  return { left: false, right: false, style: 'solid', startMarker: 'none', endMarker: 'none' };
+      return edgeFromConnectorToken(token);
+    }
 
 // align row|column id id ...  (≥2 members)
 AlignLine

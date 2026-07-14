@@ -1,4 +1,4 @@
-import type { BaseIR } from '../../../contracts/index.js';
+import type { BaseIR, CrossLinkEdgeStyle, CrossLinkEndpointMarker } from '../../../contracts/index.js';
 
 export interface ArchService {
   readonly id: string;
@@ -35,6 +35,12 @@ export interface ArchEdge {
   readonly arrowLeft: boolean;
   /** Arrow points right (towards to): `-->` or `<-->`. */
   readonly arrowRight: boolean;
+  /** Triton connector visual style. Plain Mermaid architecture arrows default to solid. */
+  readonly style: CrossLinkEdgeStyle;
+  /** Marker rendered at the path start. */
+  readonly startMarker: CrossLinkEndpointMarker;
+  /** Marker rendered at the path end. */
+  readonly endMarker: CrossLinkEndpointMarker;
 }
 
 export interface ArchAlign {
