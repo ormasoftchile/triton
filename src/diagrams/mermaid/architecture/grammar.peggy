@@ -153,7 +153,7 @@ ConnectorArrow
 
 EdgeTail
   = anns:(_ "@" Annotation)* block:(_ PropBlock)? rest:$[^\n]* {
-      if (/@(?:anim|route|orthogonal):/.test(rest)) {
+      if (/@(?:anim|route|orthogonal|bezier|straight|polyline):/.test(rest)) {
         throw new Error('Invalid connector annotation');
       }
       const result = {};
@@ -171,13 +171,19 @@ EdgeTail
 Annotation
   = "anim:" value:AnimValue { return { animation: value }; }
   / "route:" value:RouteStyleValue { return { routing: value }; }
-  / "orthogonal:" walls:WallPair { return { routing: 'orthogonal', ...walls }; }
+  / style:WallRouteStyle ":" walls:WallPair { return { routing: style, ...walls }; }
 
 AnimValue
   = value:Ident { return assertAnim(value); }
 
 RouteStyleValue
   = value:Ident { return assertRouteStyle(value); }
+
+WallRouteStyle
+  = "orthogonal" { return 'orthogonal'; }
+  / "bezier" { return 'bezier'; }
+  / "straight" { return 'straight'; }
+  / "polyline" { return 'polyline'; }
 
 WallPair
   = exit:Wall entry:Wall { return { exitWall: exit, entryWall: entry }; }

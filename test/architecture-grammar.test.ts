@@ -280,6 +280,32 @@ describe('connector rendering', () => {
     expect(serviceRects(' @orthogonal:SS')).toEqual(serviceRects());
   });
 
+  it.each([
+    ['bezier', 'EW', 'E', 'W'],
+    ['straight', 'SN', 'S', 'N'],
+    ['polyline', 'E', 'E', undefined],
+  ] as const)('parses @%s:%s wall shorthand', (style, walls, exitWall, entryWall) => {
+    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @${style}:${walls}`));
+    expect(ir.edges[0]!.routing).toBe(style);
+    expect(ir.edges[0]!.exitWall).toBe(exitWall);
+    expect(ir.edges[0]!.entryWall).toBe(entryWall);
+  });
+
+  it('uses per-style wall hints for non-orthogonal port selection', () => {
+    const path = edgePath('-->', ' @bezier:SN');
+    const [from, to] = serviceRects();
+    expect(path.d).toContain('C');
+    expect(path.d).toContain(`M ${from.x + from.width / 2} ${from.y + from.height}`);
+    expect(path.d).toContain(`${to.x + to.width / 2} ${to.y}`);
+  });
+
+  it('@ wall shorthand wins over { route: ... } on conflict', () => {
+    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:EW { route: straight }'));
+    expect(ir.edges[0]!.routing).toBe('bezier');
+    expect(ir.edges[0]!.exitWall).toBe('E');
+    expect(ir.edges[0]!.entryWall).toBe('W');
+  });
+
   it('allows animation and route annotations on the same edge', () => {
     const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R -.-> L:b @anim:flow @route:bezier'));
     expect(ir.edges[0]!.animation).toBe('flow');
@@ -293,6 +319,8 @@ describe('connector rendering', () => {
     expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:spin'))).toThrow();
     expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { route: spin }'))).toThrow();
     expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @orthogonal:EQ'))).toThrow();
+    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:XY'))).toThrow();
+    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:'))).toThrow();
   });
 
   it('omitted routing remains the same as explicit orthogonal default', () => {
