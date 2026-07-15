@@ -5,5 +5,5 @@ group grp_a(cloud)[Group A]
   service svc_a2(server)[Service A2]
 group grp_b(cloud)[Group B]
   service svc_b1(database)[Service B1]
-svc_a1{group}:R --> L:svc_b1{group}
-svc_a2:R --> L:svc_b1
+svc_a1{group}:R --> L:svc_b1{group} @straight:EW
+svc_a2:R --> L:svc_b1 @straight:EW

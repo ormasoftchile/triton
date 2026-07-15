@@ -30,6 +30,7 @@ import { createRouter } from '../../../routing/router.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 import { parseIconRef, resolveIcon } from '../../../icons/resolver.js';
 import { wavifyPath } from '../../../crosslink/render.js';
+import { measureText } from '../../../text/metrics.js';
 
 // ─── Marker IDs ──────────────────────────────────────────────────────────────
 
@@ -38,12 +39,40 @@ const ARROW_START_ID = 'arch-arrow-start'; // ← points against path direction
 
 // ─── Geometry helpers ─────────────────────────────────────────────────────────
 
-function port(r: Rect, side: string): { x: number; y: number } {
+const MIN_SERVICE_W = 130;
+const MIN_SERVICE_H = 56;
+const SERVICE_PAD = 12;
+const ICON_SIZE = 24;
+const ICON_LANE_W = 34;
+const ICON_BAND_H = 30;
+const SERVICE_TOP_BAR_H = 8;
+const CENTER_ICON_GAP = 8;
+
+function normalizedIconAlign(align: ArchIconAlign | undefined): ArchIconAlign {
+  return align ?? 'N';
+}
+
+function isSideIconAlign(align: ArchIconAlign): boolean {
+  return align === 'E' || align === 'W';
+}
+
+function serviceSize(label: string, align: ArchIconAlign | undefined, font: number): { width: number; height: number } {
+  const a = normalizedIconAlign(align);
+  const measured = measureText(label, font);
+  const laneW = isSideIconAlign(a) ? ICON_LANE_W : 0;
+  const width = Math.ceil(Math.max(MIN_SERVICE_W, laneW + measured.width + SERVICE_PAD * 2));
+  const height = a === 'C'
+    ? Math.ceil(Math.max(MIN_SERVICE_H, SERVICE_TOP_BAR_H + ICON_SIZE + CENTER_ICON_GAP + measured.height + SERVICE_PAD))
+    : MIN_SERVICE_H;
+  return { width, height };
+}
+
+function port(r: Rect, side: string, t = 0.5): { x: number; y: number } {
   switch (side.toUpperCase()) {
-    case 'L': return { x: r.x,                  y: r.y + r.height / 2 };
-    case 'R': return { x: r.x + r.width,         y: r.y + r.height / 2 };
-    case 'T': return { x: r.x + r.width / 2,     y: r.y                };
-    default:  return { x: r.x + r.width / 2,     y: r.y + r.height     };
+    case 'L': return { x: r.x,                  y: r.y + r.height * t };
+    case 'R': return { x: r.x + r.width,         y: r.y + r.height * t };
+    case 'T': return { x: r.x + r.width * t,     y: r.y                };
+    default:  return { x: r.x + r.width * t,     y: r.y + r.height     };
   }
 }
 
@@ -65,6 +94,25 @@ function dirToSide(dir: PortDirection): string {
   }
 }
 
+function rectCenter(r: Rect): Point {
+  return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+}
+
+function endpointSide(edge: ArchitectureDocument['edges'][number], isSource: boolean): string {
+  const wall = isSource ? edge.exitWall : edge.entryWall;
+  return wall ? dirToSide(wall) : (isSource ? edge.fromSide : edge.toSide);
+}
+
+function tangentKeyForSide(side: string, otherCenter: Point): number {
+  switch (side.toUpperCase()) {
+    case 'T':
+    case 'B':
+      return otherCenter.x;
+    default:
+      return otherCenter.y;
+  }
+}
+
 function edgeDash(style: string | undefined): string | undefined {
   switch (style) {
     case 'dotted': return '6 3';
@@ -78,29 +126,76 @@ function edgeStrokeWidth(style: string | undefined, base: number): number {
 }
 
 function iconCenter(r: Rect, align: ArchIconAlign | undefined): { x: number; y: number } {
-  switch (align ?? 'N') {
-    case 'S':  return { x: r.x + r.width / 2, y: r.y + r.height - 24 };
-    case 'E':  return { x: r.x + r.width - 24, y: r.y + r.height / 2 };
-    case 'W':  return { x: r.x + 24, y: r.y + r.height / 2 };
-    case 'NE': return { x: r.x + r.width - 24, y: r.y + 24 };
-    case 'NW': return { x: r.x + 24, y: r.y + 24 };
-    case 'SE': return { x: r.x + r.width - 24, y: r.y + r.height - 24 };
-    case 'SW': return { x: r.x + 24, y: r.y + r.height - 24 };
-    case 'C':  return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  const a = normalizedIconAlign(align);
+  const sideY = r.y + SERVICE_TOP_BAR_H + (r.height - SERVICE_TOP_BAR_H) / 2;
+  const topY = r.y + SERVICE_TOP_BAR_H + ICON_SIZE / 2;
+  const bottomY = r.y + r.height - ICON_SIZE / 2 - 4;
+  switch (a) {
+    case 'S':  return { x: r.x + r.width / 2, y: bottomY };
+    case 'E':  return { x: r.x + r.width - ICON_LANE_W / 2, y: sideY };
+    case 'W':  return { x: r.x + ICON_LANE_W / 2, y: sideY };
+    case 'NE': return { x: r.x + r.width - ICON_LANE_W / 2, y: topY };
+    case 'NW': return { x: r.x + ICON_LANE_W / 2, y: topY };
+    case 'SE': return { x: r.x + r.width - ICON_LANE_W / 2, y: bottomY };
+    case 'SW': return { x: r.x + ICON_LANE_W / 2, y: bottomY };
+    case 'C':  return { x: r.x + r.width / 2, y: topY };
     case 'N':
-    default:   return { x: r.x + r.width / 2, y: r.y + 24 };
+    default:   return { x: r.x + r.width / 2, y: topY };
   }
 }
 
-function serviceLabelPlacement(r: Rect, align: ArchIconAlign | undefined): { x: number; y: number; anchor: TextAnchor } {
-  switch (align) {
-    case 'W':  return { x: r.x + 46, y: r.y + r.height - 9, anchor: 'start' };
-    case 'E':  return { x: r.x + r.width - 46, y: r.y + r.height - 9, anchor: 'end' };
+function labelBaseline(y: number, height: number, font: number): number {
+  return y + height / 2 + font * 0.35;
+}
+
+function serviceLabelPlacement(r: Rect, align: ArchIconAlign | undefined, font: number): { x: number; y: number; anchor: TextAnchor } {
+  const a = normalizedIconAlign(align);
+  switch (a) {
+    case 'W':
+      return { x: r.x + ICON_LANE_W + SERVICE_PAD, y: labelBaseline(r.y + SERVICE_TOP_BAR_H, r.height - SERVICE_TOP_BAR_H, font), anchor: 'start' };
+    case 'E':
+      return { x: r.x + SERVICE_PAD, y: labelBaseline(r.y + SERVICE_TOP_BAR_H, r.height - SERVICE_TOP_BAR_H, font), anchor: 'start' };
     case 'S':
     case 'SE':
-    case 'SW': return { x: r.x + r.width / 2, y: r.y + 21, anchor: 'middle' };
-    default:   return { x: r.x + r.width / 2, y: r.y + r.height - 9, anchor: 'middle' };
+    case 'SW':
+      return { x: r.x + r.width / 2, y: labelBaseline(r.y + SERVICE_TOP_BAR_H, r.height - SERVICE_TOP_BAR_H - ICON_BAND_H, font), anchor: 'middle' };
+    case 'C': {
+      const top = r.y + SERVICE_TOP_BAR_H + ICON_SIZE + CENTER_ICON_GAP;
+      return { x: r.x + r.width / 2, y: labelBaseline(top, r.y + r.height - SERVICE_PAD - top, font), anchor: 'middle' };
+    }
+    case 'N':
+    case 'NE':
+    case 'NW':
+    default: {
+      const top = r.y + SERVICE_TOP_BAR_H + ICON_BAND_H;
+      return { x: r.x + r.width / 2, y: labelBaseline(top, r.y + r.height - top, font), anchor: 'middle' };
+    }
   }
+}
+
+const GROUP_HEADER_ICON_X = 18;
+const GROUP_HEADER_LABEL_GAP_X = 34;
+const GROUP_HEADER_CENTER_Y = 16;
+
+function isRightGroupIconAlign(align: ArchIconAlign | undefined): boolean {
+  return align === 'E' || align === 'NE' || align === 'SE';
+}
+
+function groupHeaderPlacement(r: Rect, align: ArchIconAlign | undefined, hasIcon: boolean): {
+  icon: Point;
+  label: { x: number; y: number; anchor: TextAnchor };
+} {
+  const y = r.y + GROUP_HEADER_CENTER_Y;
+  if (hasIcon && isRightGroupIconAlign(align)) {
+    return {
+      icon: { x: r.x + r.width - GROUP_HEADER_ICON_X, y },
+      label: { x: r.x + r.width - GROUP_HEADER_LABEL_GAP_X, y, anchor: 'end' },
+    };
+  }
+  return {
+    icon: { x: r.x + GROUP_HEADER_ICON_X, y },
+    label: { x: r.x + (hasIcon ? GROUP_HEADER_LABEL_GAP_X : 12), y, anchor: 'start' },
+  };
 }
 
 // ─── Group sort (parent before child for back-to-front rendering) ─────────────
@@ -135,12 +230,11 @@ export function layoutArchitecture(
   const iconPacks = options?.icons;
 
   // ── Sizes ─────────────────────────────────────────────────────────────────
-  const svcW = 130, svcH = 56;
   const jctW = 16,  jctH = 16; // junctions are small crosshair nodes
 
   // ── Node sizes (services vs junctions) ───────────────────────────────────
   const nodeSizes = new Map<string, { width: number; height: number }>();
-  for (const s of ir.services)  nodeSizes.set(s.id, { width: svcW, height: svcH });
+  for (const s of ir.services)  nodeSizes.set(s.id, serviceSize(s.label, s.iconAlign, font));
   for (const j of ir.junctions) nodeSizes.set(j.id, { width: jctW, height: jctH });
 
   // ── Directional grid placement ────────────────────────────────────────────
@@ -148,11 +242,34 @@ export function layoutArchitecture(
   const gridCells = groupAwareDirectionalGridPlacer(ir);
 
   // Convert grid cells → pixel coords; mutable for align post-processing.
+  const colWidths = new Map<number, number>();
+  const rowHeights = new Map<number, number>();
+  for (const [id, cell] of gridCells) {
+    const sz = nodeSizes.get(id);
+    if (!sz) continue;
+    colWidths.set(cell.col, Math.max(colWidths.get(cell.col) ?? MIN_SERVICE_W, sz.width));
+    rowHeights.set(cell.row, Math.max(rowHeights.get(cell.row) ?? MIN_SERVICE_H, sz.height));
+  }
+  const cells = [...gridCells.values()];
+  const maxCol = Math.max(0, ...cells.map(c => c.col));
+  const maxRow = Math.max(0, ...cells.map(c => c.row));
+  const colX = new Map<number, number>();
+  const rowY = new Map<number, number>();
+  let xCursor = margin;
+  for (let c = 0; c <= maxCol; c++) {
+    colX.set(c, xCursor);
+    xCursor += (colWidths.get(c) ?? MIN_SERVICE_W) + colGap;
+  }
+  let yCursor = margin;
+  for (let r = 0; r <= maxRow; r++) {
+    rowY.set(r, yCursor);
+    yCursor += (rowHeights.get(r) ?? MIN_SERVICE_H) + rowGap;
+  }
   const positions = new Map<string, { x: number; y: number }>();
   for (const [id, cell] of gridCells) {
     positions.set(id, {
-      x: cell.col * (svcW + colGap) + margin,
-      y: cell.row * (svcH + rowGap) + margin,
+      x: colX.get(cell.col) ?? margin,
+      y: rowY.get(cell.row) ?? margin,
     });
   }
 
@@ -210,14 +327,13 @@ export function layoutArchitecture(
       { x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) },
       hue + '14', hue, 1.4, { rx: 10 },
     ));
+    const header = groupHeaderPlacement(r, g.iconAlign, !!g.iconAlign);
     if (g.iconAlign) {
-      const c = iconCenter(r, g.iconAlign);
-      elements.push(...resolveIconElems(p, g.icon, c.x, c.y, hue, palette, iconPacks, warnedIcons));
+      elements.push(...resolveIconElems(p, g.icon, header.icon.x, header.icon.y, hue, palette, iconPacks, warnedIcons));
     }
-    const labelX = g.iconAlign === 'NW' || g.iconAlign === 'W' ? r.x + 42 : r.x + 12;
     elements.push(p.text(
-      g.label, rhu(labelX), rhu(r.y + 16),
-      typography.smallFontSize, hue, { weight: 'bold' },
+      g.label, rhu(header.label.x), rhu(header.label.y),
+      typography.smallFontSize, hue, { weight: 'bold', anchor: header.label.anchor },
     ));
   });
 
@@ -228,33 +344,70 @@ export function layoutArchitecture(
     if (sz) allBoxes.push({ id, x: pos.x, y: pos.y, width: sz.width, height: sz.height });
   }
 
-  for (const e of ir.edges) {
-    // Resolve from-port — use group boundary when fromGroup=true.
-    let fromRect = rectOf(e.from);
-    if (!fromRect) continue;
-    if (e.fromGroup) {
-      const svc = ir.services.find(s => s.id === e.from);
+  const endpointRect = (edge: ArchitectureDocument['edges'][number], isSource: boolean): Rect | undefined => {
+    const id = isSource ? edge.from : edge.to;
+    let r = rectOf(id);
+    if (!r) return undefined;
+    const useGroup = isSource ? edge.fromGroup : edge.toGroup;
+    if (useGroup) {
+      const svc = ir.services.find(s => s.id === id);
       if (svc?.group) {
         const gr = computeGroupRect(svc.group);
-        if (gr) fromRect = gr;
+        if (gr) r = gr;
       }
     }
+    return r;
+  };
+
+  type EndpointSlot = { sourceT?: number; targetT?: number };
+  type EndpointMember = { edgeIndex: number; isSource: boolean; tangentKey: number };
+  const endpointGroups = new Map<string, EndpointMember[]>();
+  const endpointSlots = new Map<number, EndpointSlot>();
+
+  ir.edges.forEach((e, edgeIndex) => {
+    const fromRect = endpointRect(e, true);
+    const toRect = endpointRect(e, false);
+    if (!fromRect || !toRect) return;
+
+    const fromSide = endpointSide(e, true);
+    const toSide = endpointSide(e, false);
+    const fromCenter = rectCenter(fromRect);
+    const toCenter = rectCenter(toRect);
+
+    const sourceKey = `${e.from}:${fromSide.toUpperCase()}`;
+    const targetKey = `${e.to}:${toSide.toUpperCase()}`;
+    if (!endpointGroups.has(sourceKey)) endpointGroups.set(sourceKey, []);
+    if (!endpointGroups.has(targetKey)) endpointGroups.set(targetKey, []);
+    endpointGroups.get(sourceKey)!.push({ edgeIndex, isSource: true, tangentKey: tangentKeyForSide(fromSide, toCenter) });
+    endpointGroups.get(targetKey)!.push({ edgeIndex, isSource: false, tangentKey: tangentKeyForSide(toSide, fromCenter) });
+  });
+
+  for (const members of endpointGroups.values()) {
+    members.sort((a, b) => a.tangentKey - b.tangentKey || a.edgeIndex - b.edgeIndex || Number(a.isSource) - Number(b.isSource));
+    const n = members.length;
+    for (let k = 0; k < n; k++) {
+      const member = members[k]!;
+      const t = (k + 1) / (n + 1);
+      const slot = endpointSlots.get(member.edgeIndex) ?? {};
+      endpointSlots.set(member.edgeIndex, member.isSource ? { ...slot, sourceT: t } : { ...slot, targetT: t });
+    }
+  }
+
+  for (let edgeIndex = 0; edgeIndex < ir.edges.length; edgeIndex++) {
+    const e = ir.edges[edgeIndex]!;
+    // Resolve from-port — use group boundary when fromGroup=true.
+    let fromRect = endpointRect(e, true);
+    if (!fromRect) continue;
 
     // Resolve to-port — use group boundary when toGroup=true.
-    let toRect = rectOf(e.to);
+    let toRect = endpointRect(e, false);
     if (!toRect) continue;
-    if (e.toGroup) {
-      const svc = ir.services.find(s => s.id === e.to);
-      if (svc?.group) {
-        const gr = computeGroupRect(svc.group);
-        if (gr) toRect = gr;
-      }
-    }
 
     const fromDir  = e.exitWall ?? sideToDir(e.fromSide);
     const toDir    = e.entryWall ?? sideToDir(e.toSide);
-    const pa       = port(fromRect, e.exitWall ? dirToSide(e.exitWall) : e.fromSide);
-    const pb       = port(toRect,   e.entryWall ? dirToSide(e.entryWall) : e.toSide);
+    const slots    = endpointSlots.get(edgeIndex);
+    const pa       = port(fromRect, endpointSide(e, true), slots?.sourceT);
+    const pb       = port(toRect, endpointSide(e, false), slots?.targetT);
 
     const obstacles: Rect[] = allBoxes
       .filter(bx => bx.id !== e.from && bx.id !== e.to)
@@ -309,7 +462,7 @@ export function layoutArchitecture(
     const iconElems = resolveIconElems(p, s.icon, iconPos.x, iconPos.y, hue, palette, iconPacks, warnedIcons);
     elements.push(...iconElems);
 
-    const label = serviceLabelPlacement(r, s.iconAlign);
+    const label = serviceLabelPlacement(r, s.iconAlign, font);
     elements.push(p.text(
       s.label, rhuInt(label.x), rhu(label.y),
       font, palette.text, { weight: 'bold', anchor: label.anchor },
@@ -358,10 +511,10 @@ export function layoutArchitecture(
   const vbY = rhuInt(Math.min(0, ...allRects.map(r => r.y)) - margin);
 
   const defs = [
-    `<marker id="${ARROW_END_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">` +
-      `<polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`,
-    `<marker id="${ARROW_START_ID}" markerWidth="10" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse">` +
-      `<polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`,
+    `<marker id="${ARROW_END_ID}" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto">` +
+      `<polygon points="0 0, 16 6.5, 0 13" fill="${palette.primary}" /></marker>`,
+    `<marker id="${ARROW_START_ID}" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse">` +
+      `<polygon points="0 0, 16 6.5, 0 13" fill="${palette.primary}" /></marker>`,
   ];
 
   const scene: Scene = applyOverlays({

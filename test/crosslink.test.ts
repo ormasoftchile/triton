@@ -396,6 +396,42 @@ describe('routeConnectors', () => {
     expect(motionPts[motionPts.length - 1]).toEqual({ x: 80, y: 0 });
   });
 
+  it('uses fixed marker refX for user-space animated motion clearance', () => {
+    const svg = renderSVG({
+      viewBox: { x: 0, y: 0, width: 120, height: 20 },
+      defs: ['<marker id="custom-arrow" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><path d="M0 0 L16 6.5 L0 13 z" /></marker>'],
+      elements: [{
+        type: 'path',
+        d: 'M 0 0 L 100 0',
+        stroke: '#000',
+        strokeWidth: 3.2,
+        fill: 'none',
+        markerEnd: 'custom-arrow',
+        animated: 'particle',
+      }],
+    });
+    const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
+    expect(motionPts[motionPts.length - 1]).toEqual({ x: 81.6, y: 0 });
+  });
+
+  it('trims animated motion clearance across short final path segments', () => {
+    const svg = renderSVG({
+      viewBox: { x: 0, y: 0, width: 120, height: 20 },
+      defs: ['<marker id="custom-arrow" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><path d="M0 0 L16 6.5 L0 13 z" /></marker>'],
+      elements: [{
+        type: 'path',
+        d: 'M 0 0 L 80 0 L 85 0',
+        stroke: '#000',
+        strokeWidth: 1.6,
+        fill: 'none',
+        markerEnd: 'custom-arrow',
+        animated: 'particle',
+      }],
+    });
+    const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
+    expect(motionPts[motionPts.length - 1]).toEqual({ x: 66.6, y: 0 });
+  });
+
   it('clamps short animated motion segments without inverting them', () => {
     const svg = renderSVG({
       viewBox: { x: 0, y: 0, width: 10, height: 10 },

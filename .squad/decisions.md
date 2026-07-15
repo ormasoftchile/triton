@@ -6833,3 +6833,72 @@ Verdict: PASS
 None. No offending path/node pairs found.
 
 OVERALL PASS
+
+---
+
+# Brian decision: per-style connector wall shorthand
+
+Date: 2026-07-14T20:32:44-0400
+Requested by: cristiano (@ormasoftchile)
+
+## Decision
+Generalize wall shorthand annotations from orthogonal-only to every architecture-beta route style:
+
+- `@orthogonal:<walls>` remains backward compatible.
+- New forms `@bezier:<walls>`, `@straight:<walls>`, and `@polyline:<walls>` set `routing` plus `exitWall`/`entryWall` via the existing `WallPair` rule.
+- `@route:<style>` remains style-only and does not set wall hints.
+- `{ route: ... }` remains style-only; walls stay annotation-only. Existing annotation-over-property precedence is preserved because `EdgeTail` still applies the property block first, then overlays annotations.
+
+## Grammar summary
+`Annotation` now delegates the style+walls forms to `WallRouteStyle ":" WallPair`, avoiding one alternative per route style while preserving `WallPair` semantics: two wall letters set exit+entry, one wall letter sets exit only, and only `N/S/E/W` are valid.
+
+## Leftover guard
+The malformed-annotation guard changed from:
+
+```pegjs
+/@(?:anim|route|orthogonal):/
+```
+
+to:
+
+```pegjs
+/@(?:anim|route|orthogonal|bezier|straight|polyline):/
+```
+
+This keeps invalid new annotations such as `@bezier:XY` and `@bezier:` from falling through into `rest`; they throw `Invalid connector annotation` like malformed legacy annotations.
+
+## Tests
+Added grammar/render tests for:
+
+- `@bezier:EW` => `routing='bezier'`, `exitWall='E'`, `entryWall='W'`
+- `@straight:SN` => `routing='straight'`, `exitWall='S'`, `entryWall='N'`
+- `@polyline:E` => `routing='polyline'`, `exitWall='E'`, no entry wall
+- non-orthogonal wall hints drive bezier port selection (`@bezier:SN` attaches bottom-to-top)
+- `@bezier:EW { route: straight }` annotation precedence
+- malformed `@bezier:XY` and `@bezier:` throw
+
+Verification:
+
+- `pnpm build:grammars` passed; 23 grammars compiled.
+- `npm test` passed; 45 files, 945 tests.
+
+## Render proof
+Showcase updated `examples/mermaid/architecture/triton-features.mmd` with:
+
+```mermaid
+warehouse:R -.-> L:dashboard @anim:glow @bezier:EW
+```
+
+Regenerated with:
+
+```sh
+node scripts/preview.mjs examples/mermaid/architecture
+```
+
+The generated SVG path for warehouse → dashboard is:
+
+```svg
+M 1254 412 C 1158 227.49999999999997 228 -132.50000000000003 24 52
+```
+
+Warehouse rect is `x=1124 y=384 width=130 height=56`, so its east wall midpoint is `(1254,412)`. Dashboard rect is `x=24 y=24 width=130 height=56`, so its west wall midpoint is `(24,52)`. The bezier path starts and ends at those EW wall points, confirming wall hints feed port selection for non-orthogonal routing.

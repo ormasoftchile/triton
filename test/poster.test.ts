@@ -511,6 +511,28 @@ ${links}`;
 
 import { wavifyPath } from '../src/crosslink/render.js';
 
+function endpointTangentAngles(d: string): { start: number; end: number } {
+  const start = d.match(/^M\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/);
+  if (!start) throw new Error(`Path missing M command: ${d}`);
+  const cubics = d.split(/\s+C\s+/).slice(1).map(part =>
+    [...part.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0])),
+  );
+  if (cubics.length === 0) throw new Error(`Path missing cubic segments: ${d}`);
+  const first = cubics[0]!;
+  const last = cubics[cubics.length - 1]!;
+  return {
+    start: Math.atan2(first[1]! - Number(start[2]), first[0]! - Number(start[1])) * 180 / Math.PI,
+    end: Math.atan2(last[5]! - last[3]!, last[4]! - last[2]!) * 180 / Math.PI,
+  };
+}
+
+function expectAngleNear(actual: number, expected: number, tolerance = 1): void {
+  let delta = actual - expected;
+  while (delta > 180) delta -= 360;
+  while (delta < -180) delta += 360;
+  expect(Math.abs(delta)).toBeLessThanOrEqual(tolerance);
+}
+
 describe('wavifyPath', () => {
   it('is deterministic: same input produces same output', () => {
     const pts = [{ x: 0, y: 50 }, { x: 200, y: 50 }];
@@ -563,5 +585,22 @@ describe('wavifyPath', () => {
     const d = wavifyPath(pts, 3, 12);
     expect(d.startsWith('M')).toBe(true);
     expect(d).toContain('C');
+  });
+
+  it('keeps both endpoint tangents aligned with the net route direction', () => {
+    const cases = [
+      { points: [{ x: 0, y: 0 }, { x: 200, y: 0 }], expected: 0 },
+      { points: [{ x: 0, y: 0 }, { x: 0, y: 200 }], expected: 90 },
+      { points: [{ x: 0, y: 0 }, { x: 8, y: 0 }], expected: 0 },
+      { points: [{ x: 0, y: 0 }, { x: 150, y: 150 }], expected: 45 },
+    ];
+
+    for (const { points, expected } of cases) {
+      const d = wavifyPath(points, 3, 12);
+      expect(d).not.toMatch(/NaN/);
+      const angles = endpointTangentAngles(d);
+      expectAngleNear(angles.start, expected);
+      expectAngleNear(angles.end, expected);
+    }
   });
 });

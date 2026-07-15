@@ -290,22 +290,67 @@ function trimMotionPathForArrowhead(path: string, clearance: number): string {
   if (pts.length < 2) return path;
 
   const end = pts[pts.length - 1]!;
-  const prev = pts[pts.length - 2]!;
-  const dx = end.x - prev.x;
-  const dy = end.y - prev.y;
-  const segmentLength = Math.hypot(dx, dy);
-  if (segmentLength === 0) return path;
+  for (let i = pts.length - 2; i >= 0; i--) {
+    const a = pts[i]!;
+    const b = pts[i + 1]!;
+    const distA = Math.hypot(end.x - a.x, end.y - a.y);
+    const distB = Math.hypot(end.x - b.x, end.y - b.y);
+    if (distA >= clearance && distB <= clearance) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const fx = a.x - end.x;
+      const fy = a.y - end.y;
+      const qa = dx * dx + dy * dy;
+      const qb = 2 * (fx * dx + fy * dy);
+      const qc = fx * fx + fy * fy - clearance * clearance;
+      const discriminant = qb * qb - 4 * qa * qc;
+      if (qa > 0 && discriminant >= 0) {
+        const roots = [
+          (-qb - Math.sqrt(discriminant)) / (2 * qa),
+          (-qb + Math.sqrt(discriminant)) / (2 * qa),
+        ].filter(t => t >= 0 && t <= 1);
+        const t = roots.sort((left, right) => right - left)[0];
+        if (t != null) {
+          return [...pts.slice(0, i + 1), { x: a.x + dx * t, y: a.y + dy * t }]
+            .map((pt, j) => `${j === 0 ? 'M' : 'L'} ${formatNum(pt.x)} ${formatNum(pt.y)}`)
+            .join(' ');
+        }
+      }
+    }
+  }
 
-  const remainingLength = segmentLength > MIN_MOTION_SEGMENT_LENGTH
-    ? Math.max(MIN_MOTION_SEGMENT_LENGTH, segmentLength - clearance)
-    : segmentLength / 2;
-  const unitX = dx / segmentLength;
-  const unitY = dy / segmentLength;
-  const trimmedEnd = {
-    x: prev.x + unitX * remainingLength,
-    y: prev.y + unitY * remainingLength,
-  };
-  const motionPts = [...pts.slice(0, -1), trimmedEnd];
+  let totalLength = 0;
+  const segmentLengths: number[] = [];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1]!;
+    const b = pts[i]!;
+    const segmentLength = Math.hypot(b.x - a.x, b.y - a.y);
+    segmentLengths.push(segmentLength);
+    totalLength += segmentLength;
+  }
+  if (totalLength === 0) return path;
+
+  const targetLength = totalLength > MIN_MOTION_SEGMENT_LENGTH
+    ? Math.max(MIN_MOTION_SEGMENT_LENGTH, totalLength - clearance)
+    : totalLength / 2;
+  let walked = 0;
+  const motionPts = [pts[0]!];
+  for (let i = 1; i < pts.length; i++) {
+    const segmentLength = segmentLengths[i - 1]!;
+    if (segmentLength === 0) continue;
+    const a = pts[i - 1]!;
+    const b = pts[i]!;
+    if (walked + segmentLength >= targetLength) {
+      const t = (targetLength - walked) / segmentLength;
+      motionPts.push({
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+      });
+      break;
+    }
+    motionPts.push(b);
+    walked += segmentLength;
+  }
   return motionPts
     .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${formatNum(pt.x)} ${formatNum(pt.y)}`)
     .join(' ');
