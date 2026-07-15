@@ -143,3 +143,8 @@ Implemented four additive architecture-beta extensions in path-scoped commits: c
 **Status:** ✅ COMPLETE — engine fix committed as `29f875c`; decision merged by Scribe.
 
 Implemented `groupAwareDirectionalGridPlacer(ir)` with recursive clusters, layout wiring, containment-safe align behavior, invariant helpers, and containment/nested/align/repro tests. Validation reported: 936 tests green, typecheck and build clean; out-of-scope showcase `.mmd` edits were reverted before commit.
+
+## 2026-07-14T20:11:53-0400 — Lockout resolved by Edsger
+
+- Brian remained locked out from revising the rejected grouped architecture routing artifact under reviewer-rejection protocol.
+- Edsger owned the obstacle-aware routing revision; Ken cycle-3 review passed and coordinator committed the fix as d3258bd.

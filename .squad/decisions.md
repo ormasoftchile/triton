@@ -6541,3 +6541,295 @@ Make placement recursive. A group is not a rectangle repair problem; it is an at
 **Validation:** Baseline before changes: `pnpm test` = 928/928 passing. After changes: `pnpm test` = 936/936 passing; `pnpm typecheck` clean. Rendered with `node scripts/preview.mjs examples/mermaid/architecture`.
 
 **Numeric SVG proof:** In regenerated `examples/mermaid/architecture/triton-features.svg`, `platform` / "Core Data Platform" rect is `(x=444, y=90, w=390, h=210)`. `users` / "Branch Users" rect is `(x=24, y=124, w=130, h=56)`. Users is outside because `users.x + users.w = 154 < platform.x = 444`; there is no intersection/containment. The old broken platform width was ~908px on a 908px canvas; the fixed platform width is 390px.
+
+---
+
+### 2026-07-14: Architecture-beta group-aware visual QA
+**By:** Ken
+**What:** Reviewed all rendered SVGs under `examples/mermaid/architecture/*.svg` against their `.mmd` sources after Brian's group-aware grid placer fix (`29f875c`). Rasterized each SVG for visual inspection and audited SVG coordinates/paths numerically.
+**Why:** Verify group containment is fixed without visual regressions: groups must enclose only their own members/nested groups, avoid canvas ballooning, preserve nested containment, and keep edges visually sane.
+
+## Verdicts
+
+| Example | Verdict | Evidence |
+|---|---:|---|
+| `align-grid.svg` | PASS | No groups. Nodes form intended 2x2 grid: A `(24,24,130,56)`, B `(244,24,130,56)`, C `(24,124,130,56)`, D `(244,124,130,56)`. Edges connect expected adjacent ports. |
+| `arrows.svg` | PASS | No groups. Five services laid out in one row; four edge forms render with correct markers/no markers. |
+| `group-edges.svg` | PASS | Group A `(4,-10,390,110)` contains only Service A1 `(24,24,130,56)` and Service A2 `(244,24,130,56)`. Group B `(444,-10,170,110)` contains only Service B1 `(464,24,130,56)`. Group-boundary edge `M 394 45 L 444 45` attaches group-to-group; service edge `M 374 52 L 464 52` remains distinct. |
+| `junctions.svg` | PASS | No groups. Junction dot/crosshair at `(252,132)` with left/right/top/bottom services around it; all four connector paths route to the junction/ports without node overlap. |
+| `triton-features.svg` | FAIL | Group containment is fixed: `platform` / Core Data Platform `(444,90,390,210)` contains Stream Bus `(464,124,130,56)`, Data Lake `(464,224,130,56)`, Warehouse `(684,224,130,56)` only; Branch Users `(24,124,130,56)` is outside. Edge visual regression remains: dotted warehouse-to-dashboard path `M 814 252 C 683.6337 174.4467 193.6337 -25.5533 24 52` samples through non-member Stream Bus `(464,124,130,56)` and also traverses source/target node interiors. Wavy dashboard-to-gateway path `M 24 52 ... 309 121` likewise samples through Ops Dashboard `(24,24,130,56)` and API Gateway `(244,124,130,56)` interiors before/after ports. Backup edge `M 529 280 L 529 344 L 529 344 L 529 324` enters Offline Backup `(464,324,130,56)` from inside rather than stopping cleanly at the top port. |
+| `architecture.svg` | FAIL | Cloud Services containment is fixed: group `(4,-10,390,110)` contains only API Server `(24,24,130,56)` and Database `(244,24,130,56)`; Client `(464,124,130,56)` and Storage `(24,124,130,56)` are outside. Edge visual/geometry defect: client-to-api path `M 594 152 L 89 152 L 89 80` runs through Client `(464,124,130,56)` and Storage `(24,124,130,56)` interiors before reaching API Server bottom port. Because edges are drawn behind nodes, the visible segment misleadingly appears to connect Storage to Client. |
+| `nested-groups.svg` | FAIL | Parent Cloud `(204,-44,430,264)` contains child Backend `(224,-10,390,110)` and Data `(224,90,170,110)`, plus their services. However sibling child groups overlap: Backend spans y `-10..100`; Data spans y `90..200`, so Data occupies Backend's box from y `90..100` for x `224..394`. Data is not `in backend`, so Backend does not tightly contain only its own members. |
+
+## Additional checks
+- No `NaN` or `undefined` coordinates found in any architecture SVG.
+- No group ballooning observed: all group boxes are member-bounded rather than full-canvas.
+- The original repro is fixed for containment: `triton-features.svg` Branch Users is outside Core Data Platform.
+
+---
+
+# Edsger — Group-aware placer regression fix
+
+Date: 2026-07-14T19:34:50-0400
+
+## Defect 1: sibling child-group overlap
+
+Fixed in `src/diagrams/mermaid/architecture/gridPlacer.ts` by treating variable-size clusters as rectangles with an explicit one-grid-cell routing lane gap whenever a group participates in a sibling constraint or disconnected sibling placement. This preserves containment and enforces sibling exclusion for group-vs-group and leaf-vs-group placement.
+
+Numeric proof after re-rendering `examples/mermaid/architecture/nested-groups.svg`:
+
+- Backend rect: `x=444, y=-10, width=390, height=110` => x `[444,834]`, y `[-10,100]`
+- Data rect: `x=444, y=230, width=170, height=110` => x `[444,614]`, y `[230,340]`
+- Intersection: none. Vertical gap = `230 - 100 = 130px`.
+
+Before this fix, Backend was `x=224, y=-10, width=390, height=110` and Data was `x=224, y=90, width=170, height=110`, overlapping on y `[90,100]`.
+
+## Defect 2: edge paths through interiors
+
+Finding: mixed orthogonal routes regressed under the tighter grid because the architecture layout used side annotations as ports but sent mixed H/V wall pairs to the generic orthogonal router's single-bend fallback. That fallback can leave a source through the opposite direction and can cross unrelated node rows. Curved bezier/wavy routes still have a broader pre-existing limitation: they use sampled/control-point avoidance, not a true obstacle-avoiding spline router.
+
+Fixes applied in `src/diagrams/mermaid/architecture/layout.ts`:
+
+- Increased vertical pixel row gap from `44` to `64` to leave visible routing lanes between rows.
+- Explicit `@orthogonal` wall hints now select the corresponding endpoint wall/port, preventing contradictory hints such as `@orthogonal:SS` on a `T:` endpoint from landing inside the target box.
+- Architecture mixed orthogonal H/V routes now use outboard source/target stubs and choose a low-collision bend lane, instead of the generic single-bend route.
+- Duplicate adjacent route points are removed before emitting orthogonal/polyline/wavy paths.
+
+Specific path before/after:
+
+- `architecture.svg` client→api before: `M 594 152 L 89 152 L 89 80`; crossed Client and Storage interiors.
+- `architecture.svg` client→api after: `M 814 292 L 838 292 L 838 198 L 89 198 L 89 104 L 89 80`; exits Client outboard, routes above Storage, then enters API from below.
+- `triton-features.svg` backup edge before: `M 529 280 L 529 344 L 529 344 L 529 324`; duplicate point and target-interior landing.
+- `triton-features.svg` backup edge after: `M 969 440 L 969 700 L 969 680`; no duplicate point, lands on Offline Backup bottom boundary from outside.
+
+Remaining follow-up: replace bezier/wavy sampled avoidance with a true obstacle-aware curved router. The dotted warehouse→dashboard bezier and wavy dashboard→gateway route are now spaced farther apart by placement lanes, but full non-intersection guarantees for arbitrary curved splines are outside this regression fix.
+
+## Tests and render
+
+Added tests in `test/gridPlacer.test.ts`:
+
+- `keeps nested-groups child group rectangles disjoint`
+- `does not emit adjacent duplicate points on triton-features connector paths`
+- `routes the architecture client-to-api edge outside unrelated node interiors`
+
+Validation run:
+
+- `node scripts/preview.mjs examples/mermaid/architecture` regenerated the SVGs.
+- Targeted placement/routing tests passed: `154 passed` across `test/routing.test.ts`, `test/architecture-grammar.test.ts`, `test/gridPlacer.test.ts`.
+- Full `pnpm test`: 45 files passed, 939 tests passed.
+- `pnpm typecheck`: clean.
+
+---
+
+# Ken — group-aware architecture re-review
+
+Date: 2026-07-14T20:06:28-0400
+Reviewer: Ken
+Subject: Re-review of commit 02ad2bc, group-aware placement regression fix
+
+## Verdict
+
+**OVERALL FAIL.** Two of the three prior hard regressions are fixed, and containment remains fixed, but `triton-features.svg` still has a non-deferred orthogonal edge crossing a foreign node interior. I also do **not** accept the dotted warehouse→dashboard Bezier as purely pre-existing: the same edge did not cross a service in pre-group-aware commit `f605f68`, but crosses Stream Bus after the group-aware placement.
+
+## Re-render / visual basis
+
+Ran:
+
+```sh
+node scripts/preview.mjs examples/mermaid/architecture
+rsvg-convert -f png -w 1400 -o examples/mermaid/architecture/<name>-ken.png examples/mermaid/architecture/<name>.svg
+```
+
+Viewed all seven PNGs and audited SVG rects/paths numerically.
+
+## Prior FAIL items
+
+### nested-groups.svg — PASS
+
+Sibling child groups no longer intersect.
+
+- Cloud rect: `x=424 y=-44 w=430 h=404`, extent `[424,854] × [-44,360]`.
+- Backend rect: `x=444 y=-10 w=390 h=110`, extent `[444,834] × [-10,100]`.
+- Data rect: `x=444 y=230 w=170 h=110`, extent `[444,614] × [230,340]`.
+- Backend/Data intersection: none. Vertical gap: `230 - 100 = 130px`.
+- API, Cache, Database are inside their declared child groups; Client `x=24 y=24 w=130 h=56` is outside Cloud.
+
+### architecture.svg — PASS
+
+Client→API no longer crosses Client or Storage interiors.
+
+- Cloud Services group: `x=4 y=-10 w=390 h=110`.
+- API Server: `x=24 y=24 w=130 h=56`.
+- Database: `x=244 y=24 w=130 h=56`.
+- Client: `x=684 y=264 w=130 h=56`.
+- Storage: `x=24 y=264 w=130 h=56`.
+- Client→API path: `M 814 292 L 838 292 L 838 198 L 89 198 L 89 104 L 89 80`.
+  - Starts on Client right boundary at `(814,292)`, exits outward to `x=838`.
+  - Horizontal lane at `y=198` is above Storage (`y=264..320`) and below Cloud (`y=-10..100`).
+  - Final segment stops on API bottom boundary at `(89,80)` after running outside API at `y=104..80`.
+  - No Client or Storage interior crossing.
+
+### triton-features.svg — FAIL
+
+Fixed items:
+
+- Backup path is no longer malformed and has no adjacent duplicate point:
+  - Data Lake: `x=904 y=384 w=130 h=56`, extent `[904,1034] × [384,440]`.
+  - Offline Backup: `x=904 y=624 w=130 h=56`, extent `[904,1034] × [624,680]`.
+  - Backup path: `M 969 440 L 969 700 L 969 680`; starts at Data Lake bottom boundary and ends at Offline Backup bottom boundary from outside.
+- Branch Users→API Gateway orthogonal path is clean:
+  - Branch Users: `x=24 y=264 w=130 h=56`.
+  - API Gateway: `x=464 y=264 w=130 h=56`.
+  - Path: `M 154 292 L 464 292`; endpoints are boundaries, no foreign interior hit.
+
+Still broken:
+
+- Collector↔Stream Bus orthogonal path crosses Data Lake interior.
+  - Event Collector: `x=464 y=384 w=130 h=56`, extent `[464,594] × [384,440]`.
+  - Stream Bus: `x=904 y=264 w=130 h=56`, extent `[904,1034] × [264,320]`.
+  - Data Lake: `x=904 y=384 w=130 h=56`, extent `[904,1034] × [384,440]`.
+  - Path: `M 529 440 L 529 460 L 969 460 L 969 320`.
+  - Segment `x=969, y=460→320` passes through Data Lake interior for `y=384..440`, while Data Lake is not an endpoint of this edge.
+
+Deferred Bezier/wavy judgment:
+
+- Current dotted Warehouse→Ops Dashboard Bezier:
+  - Warehouse: `x=1124 y=384 w=130 h=56`.
+  - Ops Dashboard: `x=24 y=24 w=130 h=56`.
+  - Stream Bus: `x=904 y=264 w=130 h=56`.
+  - Path: `M 1254 412 C 1126.471900261657 335.22100743933834 196.47190026165708 -24.77899256066165 24 52`.
+  - Sampling the cubic shows it crosses Stream Bus interior.
+- Sanity check against pre-group-aware commit `f605f68`:
+  - Same dotted edge path was `M 154 52 C 190 52 208 52 244 52` between Warehouse and Ops Dashboard and sampled with **no** foreign service interior hits.
+  - Therefore I do not accept this specific Bezier-through-Stream-Bus behavior as merely pre-existing; it appears introduced by the group-aware placement geometry and remains a regression.
+- Current wavy Ops Dashboard→API Gateway path sampled with no foreign service interior hit; I am not failing that one.
+
+## Containment regression check
+
+Containment fix remains intact; no group ballooning or foreign node swallowed by a group in the current SVGs.
+
+- `triton-features.svg`:
+  - Edge Landing Zone group `x=444 y=230 w=170 h=230` contains API Gateway and Event Collector only.
+  - Core Data Platform group `x=884 y=230 w=390 h=230` contains Stream Bus, Data Lake, Warehouse only.
+  - Operations Console group `x=4 y=-10 w=170 h=110` contains Ops Dashboard only.
+  - Branch Users `x=24 y=264 w=130 h=56` and Offline Backup `x=904 y=624 w=130 h=56` are outside all unrelated groups.
+- `architecture.svg`: Cloud Services `x=4 y=-10 w=390 h=110` contains API Server and Database only; Client and Storage are outside.
+- `group-edges.svg`: Group A `x=4 y=-10 w=390 h=110`, Group B `x=664 y=-10 w=170 h=110`; groups are tight and disjoint.
+- `nested-groups.svg`: Cloud contains Backend/Data only, and Client is outside.
+
+## Other examples
+
+- `align-grid.svg` — PASS. A `(24,24)`, B `(244,24)`, C `(24,144)`, D `(244,144)`; all service rects `130×56`, no overlaps, paths clean.
+- `arrows.svg` — PASS. Alpha/Beta/Gamma/Delta/Epsilon at x `24/244/464/684/904`, y `24`, all `130×56`; four horizontal paths stay between adjacent boxes.
+- `group-edges.svg` — PASS. Group A `[4,394]×[-10,100]`, Group B `[664,834]×[-10,100]`; group-boundary path `M 394 45 L 664 45` and service path `M 374 52 L 684 52` do not cross service interiors.
+- `junctions.svg` — PASS. Left `(24,144)`, Right `(464,144)`, Top `(244,24)`, Bottom `(244,264)`, all `130×56`; junction fanout paths sampled with no service interior hits.
+
+## Required fix before approval
+
+Edsger should revise `triton-features.svg` routing so:
+
+1. Collector↔Stream Bus path avoids Data Lake interior.
+2. Warehouse→Ops Dashboard dotted Bezier avoids Stream Bus interior, or the router chooses a lane/control points that preserve the group-aware placement without crossing foreign services.
+
+Brian remains locked out from this rejected artifact.
+
+---
+
+# Edsger — obstacle-aware routing revision
+
+Date: 2026-07-14T20:11:53-0400
+Reviser: Edsger
+Requested by: cristiano (@ormasoftchile)
+
+## Root causes
+
+1. `collector -> stream` used the same-wall orthogonal route for `@orthogonal:SS`. The router shifted the shared horizontal channel outboard, but it accepted a landing vertical segment at the target x-coordinate even when that segment crossed a foreign node. In `triton-features`, that target-side vertical segment ran through `lake`.
+2. `warehouse -> dashboard` used a Bezier control-point offset capped at 80px with sparse sampling. In the grouped dense layout, that capped arc still crossed `stream`; there was no final clear-curve check/fallback.
+
+## Changes
+
+- Same-wall orthogonal routes now build and choose an escape detour when it reduces obstacle collisions, and still preserve existing endpoint-interior detours.
+- Mixed-axis architecture orthogonal routing now retries the middle run through the shared orthogonal router if the local bend candidate still collides.
+- Bezier routing now samples more densely, allows larger iterative deflection, and falls back to orthogonal routing if no clear cubic remains.
+- Added an architecture-example invariant test that samples rendered connector paths and asserts every edge avoids every non-endpoint service/junction interior.
+- Updated the same-wall routing test to allow the new multi-point detour shape while preserving the outboard target-landing invariant.
+
+## Path proof
+
+Before:
+
+- `collector -> stream`: `M 529 440 L 529 460 L 969 460 L 969 320`
+- `warehouse -> dashboard`: `M 1254 412 C 1126.471900261657 335.22100743933834 196.47190026165708 -24.77899256066165 24 52`
+
+After parsing regenerated `examples/mermaid/architecture/triton-features.svg`:
+
+- `collector -> stream`: `M 529 440 L 529 460 L 894 460 L 894 340 L 969 340 L 969 320`
+- `warehouse -> dashboard`: `M 1254 412 C 1158 227.49999999999997 228 -132.50000000000003 24 52`
+
+Numerical SVG sweep result: `foreign service crossings: 0` across all 7 architecture examples. Specifically, `collector -> stream` no longer enters the `lake` rect, and `warehouse -> dashboard` no longer enters the `stream` rect.
+
+## Verification
+
+- `pnpm build` passed.
+- `node scripts/preview.mjs examples/mermaid/architecture` regenerated all 7 architecture SVGs.
+- Independent SVG rect/path sampling sweep reported `foreign service crossings: 0`.
+- `npm test -- --reporter=dot` passed: 45 files, 940 tests.
+
+## Residual risk
+
+Bezier clearance remains sampling-based for curved paths, so extremely tiny tangent contacts may depend on sample density. If a future dense example defeats cubic deflection, the router now falls back to orthogonal rather than accepting a colliding Bezier.
+
+---
+
+# Ken — obstacle-aware routing CYCLE-3 review
+
+Date: 2026-07-14T20:11:53-0400
+Reviewer: Ken
+Requested by: cristiano (@ormasoftchile)
+Verdict: PASS
+
+## Verification performed
+
+- Rebuilt dist with `pnpm build`: PASS.
+- Regenerated architecture renders with `node scripts/preview.mjs examples/mermaid/architecture`: PASS, 7 SVGs rendered.
+- Ran dense independent SVG sweep over all architecture examples:
+  - node bodies: `#F8FAFC` rects with height ≈56
+  - edge paths: blue architecture connector paths
+  - lines sampled at ≤1 px spacing; quadratic curves at 300 samples; cubic Beziers at 1000 samples
+  - endpoint node interiors ignored; all other node interiors treated as obstacles
+- Ran group regression sweep:
+  - sibling group rectangles: no same-parent overlaps
+  - containment: no service center inside a group box unless declared in that group/ancestor
+- Confirmed source dodge check: `git diff HEAD -- examples/mermaid/architecture/triton-features.mmd` was empty.
+- Ran `pnpm test -- --reporter=dot`: PASS, 45 files / 940 tests.
+
+## Per-example edge/node crossing results
+
+| Example | Node bodies | Edge paths checked | Non-endpoint node crossings | Sibling group overlap | Containment regression | Verdict |
+|---|---:|---:|---:|---:|---:|---|
+| align-grid.svg | 4 | 4 | 0 | 0 | 0 | PASS |
+| architecture.svg | 4 | 3 | 0 | 0 | 0 | PASS |
+| arrows.svg | 5 | 4 | 0 | 0 | 0 | PASS |
+| group-edges.svg | 3 | 2 | 0 | 0 | 0 | PASS |
+| junctions.svg | 4 | 5 | 0 | 0 | 0 | PASS |
+| nested-groups.svg | 4 | 3 | 0 | 0 | 0 | PASS |
+| triton-features.svg | 8 | 8 | 0 | 0 | 0 | PASS |
+
+## Specific triton-features checks
+
+- `collector→stream` path found exactly as claimed:
+  - `d="M 529 440 L 529 460 L 894 460 L 894 340 L 969 340 L 969 320"`
+  - endpoint bodies: Event Collector `x[464..594] y[384..440]`, Stream Bus `x[904..1034] y[264..320]`
+  - avoided obstacle: Data Lake `x[904..1034] y[384..440]`
+  - dense sweep result: path does not enter Data Lake interior.
+- `warehouse→dashboard` path found exactly as claimed:
+  - `d="M 1254 412 C 1158 227.49999999999997 228 -132.50000000000003 24 52"`
+  - endpoint bodies: Warehouse `x[1124..1254] y[384..440]`, Ops Dashboard `x[24..154] y[24..80]`
+  - avoided obstacle: Stream Bus `x[904..1034] y[264..320]`
+  - 1000-sample cubic sweep result: path does not enter Stream Bus interior.
+
+## Failure details
+
+None. No offending path/node pairs found.
+
+OVERALL PASS

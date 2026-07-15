@@ -270,3 +270,8 @@ Brian added new architecture-beta visual surfaces: connector styles, connector a
 **Status:** IN FLIGHT at Scribe cutoff.
 
 Assigned to review architecture example renders for containment correctness and regressions after Brian's group-aware placement fix. No `ken-group-aware-visual-qa.md` inbox deliverable was present when Scribe merged the local decision inbox.
+
+## 2026-07-14T20:11:53-0400 — Cycle-3 obstacle routing visual QA
+
+- Re-reviewed Edsger's obstacle-aware routing revision after prior grouped-layout failures.
+- PASS: dense SVG sweep found 0 non-endpoint service crossings across all 7 architecture examples; `triton-features.svg` collector→stream and warehouse→dashboard now clear obstacles.

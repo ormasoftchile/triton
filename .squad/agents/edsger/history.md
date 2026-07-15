@@ -71,3 +71,9 @@ Brian's implementation found delta table inversion in T/B rows:
 **Status:** ✅ COMPLETE — decision merged by Scribe.
 
 Specified recursive clustered grid placement for architecture-beta: groups are atomic clusters at their parent level, child groups lay out locally, cross-group/external edges collapse to direct child cluster constraints, and align must never break containment.
+
+## 2026-07-14T20:11:53-0400 — Obstacle-aware architecture routing
+
+- Owned the Brian-lockout revision for grouped architecture routing after Ken's re-review.
+- Added obstacle-aware mixed-axis orthogonal detours and stronger Bezier deflection/fallback for clustered group members.
+- Verified `triton-features.svg` with 0 foreign node crossings and 940 passing tests; coordinator committed as d3258bd.
