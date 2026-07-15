@@ -8,8 +8,8 @@
   <text x="16" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="start" font-weight="bold">Group A</text>
   <rect x="664" y="-10" width="170" height="110" fill="#0EA5A814" stroke="#0EA5A8" stroke-width="1.4" rx="10" />
   <text x="676" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0EA5A8" text-anchor="start" font-weight="bold">Group B</text>
-  <path d="M 394 45 L 529 45 L 529 26.666666666666664 L 664 26.666666666666664" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 374 52 L 529 52 L 529 61.33333333333333 L 684 61.33333333333333" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 394 45 L 664 26.666666666666664" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 374 52 L 684 61.33333333333333" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
   <rect x="24" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
   <rect x="24" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
   <rect x="79" y="35" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />

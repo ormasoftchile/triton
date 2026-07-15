@@ -818,6 +818,51 @@ describe('group-aware directional cluster placement', () => {
     }
   });
 
+  it('places architecture.mmd mixed-side external client compactly beside storage', () => {
+    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/architecture.mmd'), 'utf8'));
+    const cells = groupAwareDirectionalGridPlacer(ir);
+    expect(get(cells, 'api')).toEqual([1, 0]);
+    expect(get(cells, 'db')).toEqual([2, 0]);
+    expect(get(cells, 'storage')).toEqual([1, 2]);
+    expect(get(cells, 'client')).toEqual([0, 2]);
+    expect(cells.get('client')!.row).toBe(cells.get('storage')!.row);
+    expect(Math.abs(cells.get('client')!.col - cells.get('storage')!.col)).toBe(1);
+    expect(cells.get('storage')!.col).toBe(cells.get('api')!.col);
+    expect(cells.get('client')!.col).toBe(cells.get('api')!.col - 1);
+
+    const group = cellBounds(['api', 'db'].map(id => cells.get(id)!));
+    const occupied = new Set<string>();
+    for (const id of ['api', 'db', 'storage', 'client']) {
+      const cell = cells.get(id)!;
+      expect(occupied.has(`${cell.col},${cell.row}`), id).toBe(false);
+      occupied.add(`${cell.col},${cell.row}`);
+    }
+    for (const id of ['storage', 'client']) {
+      expect(cellInsideBounds(cells.get(id)!, group), id).toBe(false);
+    }
+  });
+
+  it('keeps mixed-side L→T external placement compact against a two-wide group', () => {
+    const ir = archDoc({
+      groups: [{ id: 'G', label: 'G', icon: 'cloud' }],
+      services: [
+        { id: 'a', label: 'A', icon: 'server', group: 'G' },
+        { id: 'b', label: 'B', icon: 'server', group: 'G' },
+        { id: 'x', label: 'X', icon: 'server' },
+      ],
+      edges: [
+        archEdge('a', 'R', 'b', 'L'),
+        archEdge('x', 'L', 'a', 'T'),
+      ],
+    });
+    const cells = groupAwareDirectionalGridPlacer(ir);
+    const group = cellBounds(['a', 'b'].map(id => cells.get(id)!));
+    expect(group.maxCol - group.minCol).toBe(1);
+    expect(cells.get('x')!.col).toBe(group.maxCol);
+    expect(cells.get('x')!.row).toBeLessThan(group.minRow);
+    expect(cellInsideBounds(cells.get('x')!, group)).toBe(false);
+  });
+
   it('routes every architecture example edge outside non-endpoint node interiors', () => {
     const dir = join(process.cwd(), 'examples/mermaid/architecture');
     for (const file of ['architecture.mmd', 'arrows.mmd', 'align-grid.mmd', 'group-edges.mmd', 'junctions.mmd', 'nested-groups.mmd', 'triton-features.mmd']) {
