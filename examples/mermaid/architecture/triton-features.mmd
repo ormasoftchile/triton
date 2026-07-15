@@ -17,7 +17,7 @@ service backup(disk)[Offline Backup] @iconalign:NW
 
 %% Connector matrix: Triton dashed directed links model control-plane requests.
 %% Routing control: orthogonal routing plus an EW wall hint keeps ingress horizontal.
-users:R -_-> L:gateway @anim:flow @route:orthogonal @orthogonal:EW
+users:R -_-> L:gateway @anim:flow @route:orthogonal @straight:EW
 
 %% Connector matrix: Triton wavy directed links model streaming telemetry.
 %% Connector animations: @anim uses a named Triton connector animation.
@@ -25,7 +25,7 @@ gateway:B -~-> T:collector @anim:stream @route:bezier
 
 %% Connector matrix: Triton dashed bidirectional links model reliable replay acks.
 %% Connector animations: @anim wins over the conflicting { anim } property block.
-collector:R <-_-> L:stream @anim:march @route:orthogonal @orthogonal:SS { anim: pulse }
+collector:R <-_-> L:stream @anim:march @route:orthogonal @straight:EW 
 
 %% Connector matrix: Triton wavy undirected links model a shared stream-to-lake feed.
 %% Connector animations: property-block animation form is supported too.
@@ -35,10 +35,10 @@ stream:B -~- T:lake @route:polyline { anim: particle }
 lake:R ==> L:warehouse @anim:draw @route:straight
 
 %% Mermaid contrast: dotted connectors remain available for low-volume read APIs.
-warehouse:R -.-> L:dashboard @anim:glow @bezier:EW
+warehouse:R -.-> L:dashboard @anim:glow @bezier:NE
 
 %% Connector matrix: Triton wavy bidirectional links model live operational feedback.
-dashboard:L <-~-> T:gateway @anim:comet @route:orthogonal @orthogonal:EW
+dashboard:L <-~-> T:gateway @anim:comet @polyline:SW
 
 %% Connector matrix: Triton dashed undirected links model an offline backup window.
-lake:B -_- T:backup @anim:pulse @route:orthogonal @orthogonal:SS
+lake:B -_- T:backup @anim:pulse @route:orthogonal @orthogonal:SN

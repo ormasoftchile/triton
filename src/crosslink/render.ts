@@ -1146,8 +1146,9 @@ function separateOverlappingChannels(routes: PendingRoute[], gap: number): void 
  * 2. Re-sample the polyline at uniform intervals of λ/4.
  * 3. At each sample, compute the local tangent and its perpendicular normal.
  * 4. Displace the sample along the normal by A·sin(2π·s/λ) where s is the
- *    cumulative arc-length.  At 90° corners the amplitude ramps linearly from
- *    0 to A over one wavelength so kinks stay clean.
+ *    cumulative arc-length.  The first/last two samples are forced onto the
+ *    route axis, while endpoints and 90° corners ramp amplitude over one
+ *    wavelength so arrowhead tips and kinks stay clean.
  * 5. Fit smooth cubic Béziers through displaced samples (Catmull-Rom-to-Bézier).
  *
  * Returns an SVG path `d` string.  Same input → same output (no randomness).
@@ -1230,6 +1231,13 @@ export function wavifyPath(
     return minDist / wavelength; // ramp 0..1 over one wavelength from corner
   }
 
+  function endpointAmplitudeFactor(s: number): number {
+    const endpointDist = Math.min(s, totalLen - s);
+    // Keep the first/last interior samples flat so Catmull-Rom endpoint handles
+    // align with the route direction used by SVG marker orientation.
+    return Math.max(0, Math.min(1, (endpointDist - sampleInterval) / (wavelength - sampleInterval)));
+  }
+
   for (let k = 0; k < sampleCount; k++) {
     const s = (k / (sampleCount - 1)) * totalLen;
     const { pt, tangentX, tangentY } = polylineAt(s);
@@ -1238,7 +1246,9 @@ export function wavifyPath(
     const ny = tangentX;
     const phase = (2 * Math.PI * s) / wavelength;
     const cornerFactor = cornerAmplitudeFactor(s);
-    const displacement = amplitude * cornerFactor * Math.sin(phase);
+    const factor = Math.min(cornerFactor, endpointAmplitudeFactor(s));
+    const endpointStub = k <= 1 || k >= sampleCount - 2;
+    const displacement = endpointStub ? 0 : amplitude * factor * Math.sin(phase);
     samples.push({ x: pt.x + nx * displacement, y: pt.y + ny * displacement });
     sampleArcLens.push(s);
   }

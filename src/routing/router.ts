@@ -839,6 +839,85 @@ function buildHHRouteWithStubs(
 
 // ─── Bezier ───────────────────────────────────────────────────────────────────
 
+function controlPointForPort(point: Point, dir: PortDirection, pull: number): Point {
+  switch (dir) {
+    case 'N': return { x: point.x, y: point.y - pull };
+    case 'S': return { x: point.x, y: point.y + pull };
+    case 'E': return { x: point.x + pull, y: point.y };
+    case 'W': return { x: point.x - pull, y: point.y };
+  }
+}
+
+function pointDistance(a: Point, b: Point): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function avoidObstaclesWithPortTangents(
+  from: Point,
+  to: Point,
+  cp1: Point,
+  cp2: Point,
+  fromDir: PortDirection | undefined,
+  toDir: PortDirection | undefined,
+  basePull: number,
+  obstacles: ReadonlyArray<Rect>,
+  pad: number,
+): { cp1: Point; cp2: Point } {
+  if (!fromDir && !toDir) return { cp1, cp2 };
+  if (!bezierSegmentsHitObstacles(from, cp1, cp2, to, obstacles, 96)) return { cp1, cp2 };
+
+  const maxPull = Math.max(basePull, Math.min(pointDistance(from, to) * 0.6, 600));
+  const step = Math.max(pad / 2, 6);
+  const fromPulls = fromDir ? portPullCandidates(basePull, maxPull, step) : [basePull];
+  const toPulls = toDir ? portPullCandidates(basePull, maxPull, step) : [basePull];
+  const pairs = fromPulls.flatMap(fromPull =>
+    toPulls.map(toPull => ({
+      fromPull,
+      toPull,
+      cost: (fromDir ? Math.abs(fromPull - basePull) : 0) + (toDir ? Math.abs(toPull - basePull) : 0),
+    })),
+  ).sort((a, b) => a.cost - b.cost);
+
+  for (const { fromPull, toPull } of pairs) {
+    const candidateCp1 = fromDir ? controlPointForPort(from, fromDir, fromPull) : cp1;
+    const candidateCp2 = toDir ? controlPointForPort(to, toDir, toPull) : cp2;
+    if (!bezierSegmentsHitObstacles(from, candidateCp1, candidateCp2, to, obstacles, 96)) {
+      return { cp1: candidateCp1, cp2: candidateCp2 };
+    }
+  }
+
+  return { cp1, cp2 };
+}
+
+function portPullCandidates(basePull: number, maxPull: number, step: number): number[] {
+  const pulls = new Set<number>([basePull]);
+  const minPull = basePull > 0 ? Math.min(step, basePull) : 0;
+  for (let pull = minPull; pull <= maxPull; pull += step) pulls.add(Math.min(pull, maxPull));
+  pulls.add(maxPull);
+  return [...pulls].sort((a, b) => Math.abs(a - basePull) - Math.abs(b - basePull));
+}
+
+function bezierSegmentsHitObstacles(
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  obstacles: ReadonlyArray<Rect>,
+  samples: number,
+): boolean {
+  let prev = p0;
+  for (let i = 1; i <= samples; i++) {
+    const curr = sampleBezier(p0, p1, p2, p3, i / samples);
+    for (const obs of obstacles) {
+      if (segCrossesInterior(prev, curr, obs, 0)) return true;
+    }
+    prev = curr;
+  }
+  return false;
+}
+
 class BezierRouter implements Router {
   route({ from, to, tension, obstacles, padding, fromDir, toDir }: RouteRequest): Route {
     const t  = tension ?? 0.4;
@@ -864,12 +943,21 @@ class BezierRouter implements Router {
       cp2 = { x: to.x   + (dx >= 0 ? -pull : pull), y: to.y };
     }
 
+    const portPull = Math.min(dist * t, MAX_PULL);
+    if (fromDir) cp1 = controlPointForPort(from, fromDir, portPull);
+    if (toDir) cp2 = controlPointForPort(to, toDir, portPull);
+
     // Check for obstacle collisions and adjust control points if needed
     if (obstacles && obstacles.length > 0) {
       const adjusted = avoidObstaclesBezier(from, to, cp1, cp2, obstacles, pad, t);
       cp1 = adjusted.cp1;
       cp2 = adjusted.cp2;
-      if (bezierHitsObstacles(from, cp1, cp2, to, obstacles, 0, 96)) {
+      if (fromDir) cp1 = controlPointForPort(from, fromDir, portPull);
+      if (toDir) cp2 = controlPointForPort(to, toDir, portPull);
+      const portAdjusted = avoidObstaclesWithPortTangents(from, to, cp1, cp2, fromDir, toDir, portPull, obstacles, pad);
+      cp1 = portAdjusted.cp1;
+      cp2 = portAdjusted.cp2;
+      if (bezierSegmentsHitObstacles(from, cp1, cp2, to, obstacles, 96)) {
         const fallbackRequest: RouteRequest = {
           from,
           to,

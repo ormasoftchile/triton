@@ -22,6 +22,7 @@ import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.
 import { defaultTheme } from '../src/theme/preset.js';
 import type { Rect, ScenePath, SceneRect } from '../src/contracts/index.js';
 import { stripComments } from '../src/frontend/preprocess.js';
+import { measureText } from '../src/text/metrics.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -114,11 +115,73 @@ function groupsByDepthForTest(ir: ArchitectureDocument) {
   return result;
 }
 
+
+const MIN_SERVICE_W = 130;
+const MIN_SERVICE_H = 56;
+const SERVICE_PAD = 12;
+const ICON_LANE_W = 34;
+const ICON_SIZE = 24;
+const SERVICE_TOP_BAR_H = 8;
+const CENTER_ICON_GAP = 8;
+
+function serviceSizeForTest(service: ArchitectureDocument['services'][number]): { width: number; height: number } {
+  const align = service.iconAlign ?? 'N';
+  const measured = measureText(service.label, defaultTheme.typography.baseFontSize);
+  const laneW = align === 'E' || align === 'W' ? ICON_LANE_W : 0;
+  return {
+    width: Math.ceil(Math.max(MIN_SERVICE_W, laneW + measured.width + SERVICE_PAD * 2)),
+    height: align === 'C'
+      ? Math.ceil(Math.max(MIN_SERVICE_H, SERVICE_TOP_BAR_H + ICON_SIZE + CENTER_ICON_GAP + measured.height + SERVICE_PAD))
+      : MIN_SERVICE_H,
+  };
+}
+
+function nodeRectsForTest(ir: ArchitectureDocument): Map<string, Rect> {
+  const jctW = 16, jctH = 16, colGap = 90, rowGap = 64;
+  const margin = defaultTheme.spacing.diagramMargin;
+  const titleH = ir.metadata.title ? defaultTheme.typography.titleFontSize + 14 : 0;
+  const cells = groupAwareDirectionalGridPlacer(ir);
+  const sizes = new Map<string, { width: number; height: number }>();
+  for (const service of ir.services) sizes.set(service.id, serviceSizeForTest(service));
+  for (const junction of ir.junctions) sizes.set(junction.id, { width: jctW, height: jctH });
+
+  const colWidths = new Map<number, number>();
+  const rowHeights = new Map<number, number>();
+  for (const [id, cell] of cells) {
+    const size = sizes.get(id);
+    if (!size) continue;
+    colWidths.set(cell.col, Math.max(colWidths.get(cell.col) ?? MIN_SERVICE_W, size.width));
+    rowHeights.set(cell.row, Math.max(rowHeights.get(cell.row) ?? MIN_SERVICE_H, size.height));
+  }
+  const cellList = [...cells.values()];
+  const maxCol = Math.max(0, ...cellList.map(c => c.col));
+  const maxRow = Math.max(0, ...cellList.map(c => c.row));
+  const colX = new Map<number, number>();
+  const rowY = new Map<number, number>();
+  let x = margin;
+  for (let c = 0; c <= maxCol; c++) {
+    colX.set(c, x);
+    x += (colWidths.get(c) ?? MIN_SERVICE_W) + colGap;
+  }
+  let y = margin;
+  for (let r = 0; r <= maxRow; r++) {
+    rowY.set(r, y);
+    y += (rowHeights.get(r) ?? MIN_SERVICE_H) + rowGap;
+  }
+
+  const nodes = new Map<string, Rect>();
+  for (const [id, cell] of cells) {
+    const size = sizes.get(id);
+    if (size) nodes.set(id, { x: colX.get(cell.col) ?? margin, y: (rowY.get(cell.row) ?? margin) + titleH, width: size.width, height: size.height });
+  }
+  return nodes;
+}
+
 function renderedRects(ir: ArchitectureDocument): { services: Map<string, Rect>; groups: Map<string, Rect> } {
   const scene = layoutArchitecture(ir, defaultTheme).scene;
   const rects = scene.elements.filter((el): el is SceneRect => el.type === 'rect');
   const serviceBoxes = rects
-    .filter(r => r.bounds.width === 130 && r.bounds.height === 56 && r.rx === 8)
+    .filter(r => r.rx === 8 && r.strokeWidth === 1.4)
     .map(r => r.bounds);
   const groupBoxes = rects
     .filter(r => r.rx === 10 && r.strokeWidth === 1.4)
@@ -147,19 +210,7 @@ function descendantsOfGroup(ir: ArchitectureDocument, groupId: string): Set<stri
 }
 
 function layoutRectsForInvariant(ir: ArchitectureDocument): { nodes: Map<string, Rect>; groups: Map<string, Rect> } {
-  const svcW = 130, svcH = 56, jctW = 16, jctH = 16, colGap = 90, rowGap = 44;
-  const margin = defaultTheme.spacing.diagramMargin;
-  const titleH = ir.metadata.title ? defaultTheme.typography.titleFontSize + 14 : 0;
-  const cells = groupAwareDirectionalGridPlacer(ir);
-  const nodes = new Map<string, Rect>();
-  for (const s of ir.services) {
-    const c = cells.get(s.id);
-    if (c) nodes.set(s.id, { x: c.col * (svcW + colGap) + margin, y: c.row * (svcH + rowGap) + margin + titleH, width: svcW, height: svcH });
-  }
-  for (const j of ir.junctions) {
-    const c = cells.get(j.id);
-    if (c) nodes.set(j.id, { x: c.col * (svcW + colGap) + margin, y: c.row * (svcH + rowGap) + margin + titleH, width: jctW, height: jctH });
-  }
+  const nodes = nodeRectsForTest(ir);
 
   const groups = new Map<string, Rect>();
   function groupRect(gId: string): Rect | undefined {
@@ -208,6 +259,17 @@ function hasAdjacentDuplicatePathPoint(d: string): boolean {
 function moveLinePoints(d: string): Array<{ x: number; y: number }> {
   return [...d.matchAll(/[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
     .map(m => ({ x: Number(m[1]), y: Number(m[2]) }));
+}
+
+function pathStartPoint(d: string): { x: number; y: number } {
+  const m = d.match(/^M\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/);
+  if (!m) throw new Error(`Path has no start point: ${d}`);
+  return { x: Number(m[1]), y: Number(m[2]) };
+}
+
+function pathEndPoint(d: string): { x: number; y: number } {
+  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0]));
+  return { x: nums[nums.length - 2]!, y: nums[nums.length - 1]! };
 }
 
 function pathIntersectsRectInterior(points: readonly { x: number; y: number }[], rect: Rect): boolean {
@@ -695,6 +757,56 @@ describe('group-aware directional cluster placement', () => {
       if (path.d.includes(' C ')) continue;
       expect(hasAdjacentDuplicatePathPoint(path.d), path.d).toBe(false);
     }
+  });
+
+  it('honors wall hints while fanning real multi-connector triton-features walls', () => {
+    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'), 'utf8'));
+    const { services } = renderedRects(ir);
+    const paths = connectorPaths(ir);
+    const dashboard = services.get('dashboard')!;
+    const gateway = services.get('gateway')!;
+    const stream = services.get('stream')!;
+    const lake = services.get('lake')!;
+    const warehouse = services.get('warehouse')!;
+    const usersToGateway = ir.edges.findIndex(e => e.from === 'users' && e.to === 'gateway');
+    const collectorToStream = ir.edges.findIndex(e => e.from === 'collector' && e.to === 'stream');
+    const streamToLake = ir.edges.findIndex(e => e.from === 'stream' && e.to === 'lake');
+    const lakeToWarehouse = ir.edges.findIndex(e => e.from === 'lake' && e.to === 'warehouse');
+    const warehouseToDashboard = ir.edges.findIndex(e => e.from === 'warehouse' && e.to === 'dashboard');
+    const dashboardToGateway = ir.edges.findIndex(e => e.from === 'dashboard' && e.to === 'gateway');
+
+    const usersGatewayEnd = pathEndPoint(paths[usersToGateway]!.d);
+    const dashboardGatewayStart = pathStartPoint(paths[dashboardToGateway]!.d);
+    const dashboardGatewayEnd = pathEndPoint(paths[dashboardToGateway]!.d);
+    expect(usersGatewayEnd.x).toBeCloseTo(gateway.x, 6);
+    expect(dashboardGatewayEnd.x).toBeCloseTo(gateway.x, 6);
+    expect(Math.abs(usersGatewayEnd.y - dashboardGatewayEnd.y)).toBeGreaterThan(10);
+    expect((dashboardGatewayEnd.y - gateway.y) / gateway.height).toBeGreaterThan(0.30);
+    expect((dashboardGatewayEnd.y - gateway.y) / gateway.height).toBeLessThan(0.40);
+    expect((usersGatewayEnd.y - gateway.y) / gateway.height).toBeGreaterThan(0.60);
+    expect((usersGatewayEnd.y - gateway.y) / gateway.height).toBeLessThan(0.70);
+
+    const collectorStreamEnd = pathEndPoint(paths[collectorToStream]!.d);
+    const streamLakeStart = pathStartPoint(paths[streamToLake]!.d);
+    expect(collectorStreamEnd.x).toBeCloseTo(stream.x, 6);
+    expect(collectorStreamEnd.y).toBeCloseTo(stream.y + stream.height / 2, 6);
+    expect(streamLakeStart.x).toBeCloseTo(stream.x + stream.width / 2, 6);
+    expect(streamLakeStart.y).toBeCloseTo(stream.y + stream.height, 6);
+
+    expect(dashboardGatewayStart.x).toBeCloseTo(dashboard.x + dashboard.width / 2, 6);
+    expect(dashboardGatewayStart.y).toBeCloseTo(dashboard.y + dashboard.height, 6);
+
+    const lakeWarehouseStart = pathStartPoint(paths[lakeToWarehouse]!.d);
+    const lakeWarehouseEnd = pathEndPoint(paths[lakeToWarehouse]!.d);
+    expect(lakeWarehouseStart.x).toBeCloseTo(lake.x + lake.width, 6);
+    expect(lakeWarehouseStart.y).toBeCloseTo(lake.y + lake.height / 2, 6);
+    expect(lakeWarehouseEnd.x).toBeCloseTo(warehouse.x, 6);
+    expect(lakeWarehouseEnd.y).toBeCloseTo(warehouse.y + warehouse.height / 2, 6);
+
+    const warehouseDashboardStart = pathStartPoint(paths[warehouseToDashboard]!.d);
+    const warehouseDashboardEnd = pathEndPoint(paths[warehouseToDashboard]!.d);
+    expect(warehouseDashboardStart.x).toBeCloseTo(warehouse.x + warehouse.width / 2, 6);
+    expect(warehouseDashboardEnd.x).toBeCloseTo(dashboard.x + dashboard.width, 6);
   });
 
   it('routes the architecture client-to-api edge outside unrelated node interiors', () => {

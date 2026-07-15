@@ -166,9 +166,8 @@ describe('connector rendering', () => {
   function serviceRects(tail = '') {
     const scene = layoutFor('-->', tail);
     return scene.elements
-      .filter((el): el is SceneRect => el.type === 'rect')
-      .map(el => el.bounds)
-      .filter(bounds => bounds.width === 130 && bounds.height === 56);
+      .filter((el): el is SceneRect => el.type === 'rect' && el.rx === 8)
+      .map(el => el.bounds);
   }
 
   it('keeps plain Mermaid --> rendering unstyled except for the existing arrow marker', () => {
@@ -177,6 +176,14 @@ describe('connector rendering', () => {
     expect(path.strokeWidth).toBe(1.6);
     expect(path.markerEnd).toBe('arch-arrow-end');
     expect(path.markerStart).toBeUndefined();
+  });
+
+  it('uses fixed-size architecture arrow markers independent of stroke width', () => {
+    const scene = layoutFor('-->');
+    expect(scene.defs).toEqual([
+      '<marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>',
+      '<marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>',
+    ]);
   });
 
   it('renders dotted connectors with a dotted dash pattern', () => {
@@ -426,9 +433,7 @@ describe('icon alignment', () => {
   }
 
   function serviceRect(scene = serviceIconScene()) {
-    return scene.elements.find((el): el is SceneRect =>
-      el.type === 'rect' && el.bounds.width === 130 && el.bounds.height === 56,
-    )!;
+    return scene.elements.find((el): el is SceneRect => el.type === 'rect' && el.rx === 8)!;
   }
 
   function iconRect(scene = serviceIconScene()) {
@@ -438,16 +443,22 @@ describe('icon alignment', () => {
   }
 
   function expectedIconRect(r: SceneRect['bounds'], align: ArchIconAlign) {
+    const iconSize = 24;
+    const laneW = 34;
+    const topBarH = 8;
+    const sideY = r.y + topBarH + (r.height - topBarH) / 2;
+    const topY = r.y + topBarH + iconSize / 2;
+    const bottomY = r.y + r.height - iconSize / 2 - 4;
     const centers: Record<ArchIconAlign, { x: number; y: number }> = {
-      N:  { x: r.x + r.width / 2, y: r.y + 24 },
-      S:  { x: r.x + r.width / 2, y: r.y + r.height - 24 },
-      E:  { x: r.x + r.width - 24, y: r.y + r.height / 2 },
-      W:  { x: r.x + 24, y: r.y + r.height / 2 },
-      NE: { x: r.x + r.width - 24, y: r.y + 24 },
-      NW: { x: r.x + 24, y: r.y + 24 },
-      SE: { x: r.x + r.width - 24, y: r.y + r.height - 24 },
-      SW: { x: r.x + 24, y: r.y + r.height - 24 },
-      C:  { x: r.x + r.width / 2, y: r.y + r.height / 2 },
+      N:  { x: r.x + r.width / 2, y: topY },
+      S:  { x: r.x + r.width / 2, y: bottomY },
+      E:  { x: r.x + r.width - laneW / 2, y: sideY },
+      W:  { x: r.x + laneW / 2, y: sideY },
+      NE: { x: r.x + r.width - laneW / 2, y: topY },
+      NW: { x: r.x + laneW / 2, y: topY },
+      SE: { x: r.x + r.width - laneW / 2, y: bottomY },
+      SW: { x: r.x + laneW / 2, y: bottomY },
+      C:  { x: r.x + r.width / 2, y: topY },
     };
     const c = centers[align];
     return { x: c.x - 9, y: c.y - 9, width: 18, height: 18 };
@@ -468,10 +479,10 @@ describe('icon alignment', () => {
     expect(iconRect(scene).bounds).toEqual(expectedIconRect(serviceRect(scene).bounds, align));
   });
 
-  it('keeps omitted service icon alignment at the old fixed top-center position', () => {
+  it('keeps omitted service icon alignment at the measured top-center position', () => {
     const scene = serviceIconScene();
     const r = serviceRect(scene).bounds;
-    expect(iconRect(scene).bounds).toEqual({ x: r.x + r.width / 2 - 9, y: r.y + 24 - 9, width: 18, height: 18 });
+    expect(iconRect(scene).bounds).toEqual(expectedIconRect(r, 'N'));
   });
 
   it('@iconalign wins over { iconalign: ... } on services and adjusts the label away from side icons', () => {
@@ -479,17 +490,39 @@ describe('icon alignment', () => {
     expect(ir.services[0]!.iconAlign).toBe('E');
     const scene = serviceIconScene('@iconalign:E { iconalign: W }');
     const label = scene.elements.find((el): el is SceneText => el.type === 'text' && el.content === 'A')!;
-    expect(label.anchor).toBe('end');
+    expect(label.anchor).toBe('start');
   });
 
   it('property-block iconalign works on groups and renders the group icon when specified', () => {
     const ir = parse(header('group g(custom)[G] { iconalign: NW }\n  service a(server)[A]'));
     expect(ir.groups[0]!.iconAlign).toBe('NW');
     const scene = layoutArchitecture(ir, defaultTheme).scene;
+    const groupRect = scene.elements.find((el): el is SceneRect =>
+      el.type === 'rect' && el.rx === 10,
+    )!;
     const groupIcon = scene.elements.find((el): el is SceneRect =>
       el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
     );
     expect(groupIcon).toBeDefined();
+    expect(groupIcon!.bounds).toEqual({ x: groupRect.bounds.x + 9, y: groupRect.bounds.y + 7, width: 18, height: 18 });
+    const label = scene.elements.find((el): el is SceneText => el.type === 'text' && el.content === 'G')!;
+    expect(label.position).toEqual({ x: groupRect.bounds.x + 34, y: groupRect.bounds.y + 16 });
+    expect(label.anchor).toBe('start');
+  });
+
+  it('keeps right-aligned group icons and labels in the header strip', () => {
+    const ir = parse(header('group g(custom)[G] @iconalign:E\n  service a(server)[A]'));
+    const scene = layoutArchitecture(ir, defaultTheme).scene;
+    const groupRect = scene.elements.find((el): el is SceneRect =>
+      el.type === 'rect' && el.rx === 10,
+    )!;
+    const groupIcon = scene.elements.find((el): el is SceneRect =>
+      el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
+    )!;
+    expect(groupIcon.bounds).toEqual({ x: groupRect.bounds.x + groupRect.bounds.width - 27, y: groupRect.bounds.y + 7, width: 18, height: 18 });
+    const label = scene.elements.find((el): el is SceneText => el.type === 'text' && el.content === 'G')!;
+    expect(label.position).toEqual({ x: groupRect.bounds.x + groupRect.bounds.width - 34, y: groupRect.bounds.y + 16 });
+    expect(label.anchor).toBe('end');
   });
 
   it('rejects invalid icon alignment', () => {
