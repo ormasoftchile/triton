@@ -66,10 +66,11 @@ describe('orthogonal router', () => {
       from: { x: 300, y: 0 }, to: { x: 50, y: 200 },
       style: 'orthogonal', fromDir: 'W', toDir: 'W', obstacles, padding: 8,
     });
-    // The bend channel must stay outboard (west) of the target's west entry
+    // The target landing must stay outboard (west) of the target's west entry
     // wall so the arrowhead approaches from the left, never crossing the box.
-    expect(r.points[1]!.x).toBeLessThanOrEqual(50);
-    expect(r.points[2]!.x).toBeLessThanOrEqual(50);
+    expect(r.points.at(-2)!.x).toBeLessThanOrEqual(50);
+    expect(r.points.some(p => p.x <= 50)).toBe(true);
+    expect(countRouteCollisions(r.points, obstacles)).toBe(0);
   });
 
   it('same-wall N→N keeps the bend outboard above both ports', () => {

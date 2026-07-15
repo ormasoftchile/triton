@@ -213,15 +213,90 @@ function moveLinePoints(d: string): Array<{ x: number; y: number }> {
 function pathIntersectsRectInterior(points: readonly { x: number; y: number }[], rect: Rect): boolean {
   for (let i = 0; i < points.length - 1; i++) {
     const a = points[i]!, b = points[i + 1]!;
-    if (a.x === b.x) {
-      if (a.x > rect.x && a.x < rect.x + rect.width &&
-          Math.max(a.y, b.y) > rect.y && Math.min(a.y, b.y) < rect.y + rect.height) return true;
-    } else if (a.y === b.y) {
-      if (a.y > rect.y && a.y < rect.y + rect.height &&
-          Math.max(a.x, b.x) > rect.x && Math.min(a.x, b.x) < rect.x + rect.width) return true;
-    }
+    if (segmentIntersectsRectInterior(a, b, rect)) return true;
   }
   return false;
+}
+
+function segmentIntersectsRectInterior(a: { x: number; y: number }, b: { x: number; y: number }, rect: Rect): boolean {
+  const eps = 1e-6;
+  const xmin = rect.x + eps, xmax = rect.x + rect.width - eps;
+  const ymin = rect.y + eps, ymax = rect.y + rect.height - eps;
+  const dx = b.x - a.x, dy = b.y - a.y;
+  let tmin = 0, tmax = 1;
+  for (const { p, q } of [
+    { p: -dx, q: a.x - xmin },
+    { p: dx, q: xmax - a.x },
+    { p: -dy, q: a.y - ymin },
+    { p: dy, q: ymax - a.y },
+  ]) {
+    if (Math.abs(p) < 1e-10) {
+      if (q < 0) return false;
+    } else {
+      const t = q / p;
+      if (p < 0) tmin = Math.max(tmin, t);
+      else tmax = Math.min(tmax, t);
+      if (tmin > tmax) return false;
+    }
+  }
+  return true;
+}
+
+function sampleConnectorPath(d: string): Array<{ x: number; y: number }> {
+  const points: Array<{ x: number; y: number }> = [];
+  let current = { x: 0, y: 0 };
+  const commands = [...d.matchAll(/([MLCQ])([^MLCQ]*)/g)];
+  for (const [, command, rawArgs] of commands) {
+    const nums = [...rawArgs!.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0]));
+    if (command === 'M') {
+      current = { x: nums[0]!, y: nums[1]! };
+      points.push(current);
+    } else if (command === 'L') {
+      current = { x: nums[0]!, y: nums[1]! };
+      points.push(current);
+    } else if (command === 'C') {
+      const p0 = current;
+      const p1 = { x: nums[0]!, y: nums[1]! };
+      const p2 = { x: nums[2]!, y: nums[3]! };
+      const p3 = { x: nums[4]!, y: nums[5]! };
+      for (let i = 1; i <= 64; i++) points.push(sampleCubic(p0, p1, p2, p3, i / 64));
+      current = p3;
+    } else if (command === 'Q') {
+      const p0 = current;
+      const p1 = { x: nums[0]!, y: nums[1]! };
+      const p2 = { x: nums[2]!, y: nums[3]! };
+      for (let i = 1; i <= 32; i++) points.push(sampleQuadratic(p0, p1, p2, i / 32));
+      current = p2;
+    }
+  }
+  return points;
+}
+
+function sampleCubic(
+  p0: { x: number; y: number },
+  p1: { x: number; y: number },
+  p2: { x: number; y: number },
+  p3: { x: number; y: number },
+  t: number,
+): { x: number; y: number } {
+  const u = 1 - t;
+  return {
+    x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
+    y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+  };
+}
+
+function sampleQuadratic(
+  p0: { x: number; y: number },
+  p1: { x: number; y: number },
+  p2: { x: number; y: number },
+  t: number,
+): { x: number; y: number } {
+  const u = 1 - t;
+  return {
+    x: u*u*p0.x + 2*u*t*p1.x + t*t*p2.x,
+    y: u*u*p0.y + 2*u*t*p1.y + t*t*p2.y,
+  };
 }
 
 // ── Canonical 2×2 grid (mermaid.live validation gate) ─────────────────────────
@@ -628,6 +703,27 @@ describe('group-aware directional cluster placement', () => {
     const points = moveLinePoints(connectorPaths(ir)[0]!.d);
     for (const id of ['client', 'storage']) {
       expect(pathIntersectsRectInterior(points, services.get(id)!), id).toBe(false);
+    }
+  });
+
+  it('routes every architecture example edge outside non-endpoint node interiors', () => {
+    const dir = join(process.cwd(), 'examples/mermaid/architecture');
+    for (const file of ['architecture.mmd', 'arrows.mmd', 'align-grid.mmd', 'group-edges.mmd', 'junctions.mmd', 'nested-groups.mmd', 'triton-features.mmd']) {
+      const ir = parseArchitecture(readFileSync(join(dir, file), 'utf8'));
+      const { nodes: invariantNodes } = layoutRectsForInvariant(ir);
+      const { services } = renderedRects(ir);
+      const nodes = new Map<string, Rect>([
+        ...services,
+        ...ir.junctions.map(j => [j.id, invariantNodes.get(j.id)!] as [string, Rect]),
+      ]);
+      const paths = connectorPaths(ir);
+      ir.edges.forEach((edge, i) => {
+        const points = sampleConnectorPath(paths[i]!.d);
+        for (const [id, rect] of nodes) {
+          if (id === edge.from || id === edge.to) continue;
+          expect(pathIntersectsRectInterior(points, rect), `${file} edge ${edge.from}->${edge.to} crosses ${id}: ${paths[i]!.d}`).toBe(false);
+        }
+      });
     }
   });
 

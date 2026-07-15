@@ -410,14 +410,51 @@ function mixedOrthogonalRoutePoints(
       y => [from, stub1, { x: stub1.x, y }, { x: stub2.x, y }, stub2, to],
       obstacles,
     );
-    return [from, stub1, { x: stub1.x, y: bendY }, { x: stub2.x, y: bendY }, stub2, to];
+    return clearMixedRoute(
+      [from, stub1, { x: stub1.x, y: bendY }, { x: stub2.x, y: bendY }, stub2, to],
+      from,
+      to,
+      stub1,
+      stub2,
+      obstacles,
+      pad,
+    );
   }
   const bendX = bestBend(
     [(stub1.x + stub2.x) / 2, ...obstacles.flatMap(o => [o.x - pad, o.x + o.width + pad])],
     x => [from, stub1, { x, y: stub1.y }, { x, y: stub2.y }, stub2, to],
     obstacles,
   );
-  return [from, stub1, { x: bendX, y: stub1.y }, { x: bendX, y: stub2.y }, stub2, to];
+  return clearMixedRoute(
+    [from, stub1, { x: bendX, y: stub1.y }, { x: bendX, y: stub2.y }, stub2, to],
+    from,
+    to,
+    stub1,
+    stub2,
+    obstacles,
+    pad,
+  );
+}
+
+function clearMixedRoute(
+  candidate: Point[],
+  from: Point,
+  to: Point,
+  stub1: Point,
+  stub2: Point,
+  obstacles: readonly Rect[],
+  pad: number,
+): Point[] {
+  if (routeCollisionCount(candidate, obstacles) === 0) return candidate;
+  const middle = createRouter('orthogonal').route({
+    from: stub1,
+    to: stub2,
+    style: 'orthogonal',
+    obstacles,
+    padding: pad,
+  }).points;
+  const detour = [from, ...middle, to];
+  return routeCollisionCount(detour, obstacles) < routeCollisionCount(candidate, obstacles) ? detour : candidate;
 }
 
 function offsetPoint(p: Point, dir: PortDirection, amount: number): Point {

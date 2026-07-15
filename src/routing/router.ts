@@ -134,8 +134,14 @@ class OrthogonalRouter implements Router {
         const v1: Point = { x: bendX, y: from.y };
         const v2: Point = { x: bendX, y: to.y };
         let hhPoints: Point[] = [from, v1, v2, to];
-        if (sameWall && obstacles && routeHitsEndpointObstacle(hhPoints, from, to, obstacles)) {
-          hhPoints = buildSameHorizontalWallRoute(from, to, fromDir, obstacles, pad, STUB);
+        if (sameWall && obstacles) {
+          const originalCollisions = countRouteCollisions(hhPoints, obstacles);
+          if (originalCollisions > 0) {
+            const detour = buildSameHorizontalWallRoute(from, to, fromDir, obstacles, pad, STUB);
+            if (countRouteCollisions(detour, obstacles) < originalCollisions || routeHitsEndpointObstacle(hhPoints, from, to, obstacles)) {
+              hhPoints = detour;
+            }
+          }
         }
 
         // Verify the H+H route is clear; if not, try V+V with direction stubs.
@@ -177,8 +183,14 @@ class OrthogonalRouter implements Router {
         const v1: Point = { x: from.x, y: bendY };
         const v2: Point = { x: to.x,   y: bendY };
         let vvPoints: Point[] = [from, v1, v2, to];
-        if (sameWall && obstacles && routeHitsEndpointObstacle(vvPoints, from, to, obstacles)) {
-          vvPoints = buildSameVerticalWallRoute(from, to, fromDir, obstacles, pad, STUB);
+        if (sameWall && obstacles) {
+          const originalCollisions = countRouteCollisions(vvPoints, obstacles);
+          if (originalCollisions > 0) {
+            const detour = buildSameVerticalWallRoute(from, to, fromDir, obstacles, pad, STUB);
+            if (countRouteCollisions(detour, obstacles) < originalCollisions || routeHitsEndpointObstacle(vvPoints, from, to, obstacles)) {
+              vvPoints = detour;
+            }
+          }
         }
 
         // Verify the V+V route is clear; if not, try H+H with direction stubs.
@@ -828,7 +840,7 @@ function buildHHRouteWithStubs(
 // ─── Bezier ───────────────────────────────────────────────────────────────────
 
 class BezierRouter implements Router {
-  route({ from, to, tension, obstacles, padding }: RouteRequest): Route {
+  route({ from, to, tension, obstacles, padding, fromDir, toDir }: RouteRequest): Route {
     const t  = tension ?? 0.4;
     const dx = to.x - from.x;
     const dy = to.y - from.y;
@@ -857,6 +869,18 @@ class BezierRouter implements Router {
       const adjusted = avoidObstaclesBezier(from, to, cp1, cp2, obstacles, pad, t);
       cp1 = adjusted.cp1;
       cp2 = adjusted.cp2;
+      if (bezierHitsObstacles(from, cp1, cp2, to, obstacles, 0, 96)) {
+        const fallbackRequest: RouteRequest = {
+          from,
+          to,
+          style: 'orthogonal',
+          obstacles,
+          padding: pad,
+        };
+        if (fromDir) (fallbackRequest as { fromDir?: PortDirection }).fromDir = fromDir;
+        if (toDir) (fallbackRequest as { toDir?: PortDirection }).toDir = toDir;
+        return new OrthogonalRouter().route(fallbackRequest);
+      }
     }
 
     return {
@@ -883,7 +907,7 @@ function avoidObstaclesBezier(
   pad: number,
   tension: number,
 ): { cp1: Point; cp2: Point } {
-  const SAMPLES = 16;
+  const SAMPLES = 64;
 
   // Check if default curve hits any obstacle
   if (!bezierHitsObstacles(from, cp1, cp2, to, obstacles, pad, SAMPLES)) {
@@ -902,9 +926,11 @@ function avoidObstaclesBezier(
 
   // Try increasing perpendicular offsets; at each step, try BOTH directions
   // and prefer the one whose curve stays closer to the from→to midpoint (inner arc).
-  // Cap maximum offset to avoid pushing curves far outside the content area.
-  const MAX_OFFSET = Math.min(len * 0.5, 80);
-  for (let offset = len * 0.1; offset <= MAX_OFFSET; offset += len * 0.1) {
+  // Dense grouped layouts sometimes need a large arc to clear a whole service
+  // row. Try increasingly wider offsets before falling back to a polyline.
+  const MAX_OFFSET = len * 0.75;
+  const STEP = Math.max(20, len * 0.05);
+  for (let offset = STEP; offset <= MAX_OFFSET; offset += STEP) {
     const cp1p: Point = { x: cp1.x + perpX * offset, y: cp1.y + perpY * offset };
     const cp2p: Point = { x: cp2.x + perpX * offset, y: cp2.y + perpY * offset };
     const clearP = !bezierHitsObstacles(from, cp1p, cp2p, to, obstacles, pad, SAMPLES);
