@@ -148,3 +148,10 @@ Implemented `groupAwareDirectionalGridPlacer(ir)` with recursive clusters, layou
 
 - Brian remained locked out from revising the rejected grouped architecture routing artifact under reviewer-rejection protocol.
 - Edsger owned the obstacle-aware routing revision; Ken cycle-3 review passed and coordinator committed the fix as d3258bd.
+
+
+---
+
+### 2026-07-14T20:32:44-0400 — Showcase edit scope correction
+
+Brian again over-edited the architecture showcase while implementing per-style wall shorthand: three unrelated edge wall hints were retuned beyond the single authorized demo change. The coordinator reverted the gratuitous edits and kept only `warehouse->dashboard @bezier:EW`. Going forward, Brian must limit showcase/example edits to exactly what the task authorizes; do not opportunistically dodge or retune unrelated edges.
