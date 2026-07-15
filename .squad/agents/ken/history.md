@@ -275,3 +275,9 @@ Assigned to review architecture example renders for containment correctness and 
 
 - Re-reviewed Edsger's obstacle-aware routing revision after prior grouped-layout failures.
 - PASS: dense SVG sweep found 0 non-endpoint service crossings across all 7 architecture examples; `triton-features.svg` collector→stream and warehouse→dashboard now clear obstacles.
+
+## 2026-07-15T00:54:19-04:00 — Nodegraph skip-edge visual QA
+
+- Rejected Brian's first skip-edge routing fix despite node-overlap improvement: shared ports, overlapping arrowheads, label collision, and clipped title remained.
+- Recommended Edsger for the lockout revision under reviewer protocol.
+- Re-reviewed Edsger's revision and approved it: port fan-out, side lanes, label ordering, and title-aware bounds resolved all four prior defects with no new visual issues.

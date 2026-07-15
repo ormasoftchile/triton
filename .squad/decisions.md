@@ -2886,26 +2886,6 @@ Created a full-color 256×256 icon with an unmistakable trident motif:
 - No runtime/code changes — purely visual/packaging
 
 
-### 2026-07-08: Animated connector dots stop at arrowhead bases
-**By:** Brian
-**What:** Particle, comet, and stream connector animations now use a renderer-local motion path trimmed by `refX * strokeWidth + dotRadius` for default `markerUnits="strokeWidth"` markers, or `refX + dotRadius` for `markerUnits="userSpaceOnUse"`. The visible connector path and marker geometry remain unchanged; only each `<animateMotion path>` is shortened, with short final segments clamped to a non-inverted remaining segment.
-**Why:** The marker's actual back edge is controlled by `refX`, not `markerWidth`. Stopping the dot center by the marker back-offset plus the dot radius makes the dot's leading edge kiss the arrowhead base without a visible gap or overlap.
-
-
-### 2026-07-08: Connector animation set and static degradation
-**By:** Brian
-**What:** Connector animation is now a shared typed vocabulary: `march`, `particle`, `draw`, `pulse`, `glow`, `comet`, `stream`, `flow`, `colorcycle`, plus `none` as suppression. The routing engines pass any recognized animation name through to `ScenePath.animated`; unknown values still fall back to the existing dashed/dotted march default or render plainly for solid links. SVG rendering uses SMIL path animations, sibling `animateMotion` particles, and an inline user-space gradient for `flow`.
-**Why:** Cristian needs to review every supported connector motion from one gallery while preserving static-export safety. Every animated connector keeps a visible base path; `draw` starts as a full line and then erases/redraws instead of starting invisible, and particle/comet/stream add motion elements alongside the normal stroke.
-
-
-### 2026-07-08: Shared connector seam and cqueue wrap implementation
-**By:** Brian
-**What:** Added `src/crosslink/connectors.ts` as the diagram-agnostic post-layout connector seam over the existing v3 crosslink router. Poster now lowers normalized links into that seam, preserving its cardinal curve default in the poster adapter. Cqueue now lowers its implicit rear-to-front wrap to one generated orthogonal connector with N→N or W→W wall hints, a 36px outboard route padding derived from the old 44px arc band, `mod N` labeling, and front/rear anchor aliases.
-**Why:** This keeps poster behavior on the existing engine path while making connector routing reusable by local DS diagrams without fabricating poster cell paths. The cqueue wrap is now an axis-aligned shared connector instead of bespoke cubic geometry, so horizontal/vertical and self-loop cases share the same routing/label/viewBox handling.
-
-
-
-
 ---
 
 ---
@@ -6902,3 +6882,19 @@ M 1254 412 C 1158 227.49999999999997 228 -132.50000000000003 24 52
 ```
 
 Warehouse rect is `x=1124 y=384 width=130 height=56`, so its east wall midpoint is `(1254,412)`. Dashboard rect is `x=24 y=24 width=130 height=56`, so its west wall midpoint is `(24,52)`. The bezier path starts and ends at those EW wall points, confirming wall hints feed port selection for non-orthogonal routing.
+
+---
+
+### 2026-07-15: Nodegraph edge ports fan out in graph renderer
+**By:** Edsger
+**What:** Nodegraph now consumes layered skip-edge bends by assigning distinct incident ports per node wall in `src/diagrams/triton/ds/graph/graph.ts`; skip edges are routed onto side lanes outside the spanned node column. The shared `src/graph/layered.ts` kernel remains unchanged.
+**References:** `src/diagrams/triton/ds/graph/graph.ts`, `examples/triton/ds/graph/graph.svg`
+**Why:** Port ownership depends on rendered node/label geometry and title/viewBox extents. Keeping fan-out in the nodegraph renderer fixes overlapping arrowheads and label collisions without changing the shared layered layout contract used by other diagrams.
+
+---
+
+### 2026-07-15: Layered layout edgeBends consumer audit
+**By:** Edsger
+**What:** Audit found nodegraph was the only `layeredLayout` consumer using raw `connectSlots` instead of the kernel route (`routeEdge`/`edgeBends`) for skip-edge rendering. Class consumes `edgeBends` correctly. State, requirement, C4, and ER do not read `edgeBends`, but requirement/C4/ER remain protected by the kernel's obstacle-aware `routeEdge`; state was also source-correct and only showed a stale checked-in SVG artifact.
+**References:** `src/diagrams/triton/ds/graph/graph.ts`, `examples/mermaid/state/state.svg`, commit `20d2fbd`, commit `ef0a043`
+**Why:** This scopes the straight-edge-through-node symptom to stale/generated artifacts or nodegraph's former raw-slot renderer path, not to a broad layered-layout kernel contract bug.

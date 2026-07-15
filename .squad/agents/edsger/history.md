@@ -77,3 +77,15 @@ Specified recursive clustered grid placement for architecture-beta: groups are a
 - Owned the Brian-lockout revision for grouped architecture routing after Ken's re-review.
 - Added obstacle-aware mixed-axis orthogonal detours and stronger Bezier deflection/fallback for clustered group members.
 - Verified `triton-features.svg` with 0 foreign node crossings and 940 passing tests; coordinator committed as d3258bd.
+
+## 2026-07-15T00:54:19-04:00 — Nodegraph port fan-out revision
+
+- Took over after Brian's Visual QA rejection/lockout for `src/diagrams/triton/ds/graph/graph.ts`.
+- Reworked renderer-local routing with per-wall port fan-out, skip-edge side lanes outside spanned node columns, label-over-edge ordering, and title-aware viewBox width.
+- Validation passed: typecheck and 951/951 tests green; `examples/triton/ds/graph/graph.svg` regenerated. Ken approved; coordinator committed `ef0a043`.
+
+## 2026-07-15T01:26:33-04:00 — layeredLayout edgeBends audit and state artifact refresh
+
+- Audited layeredLayout consumers for straight-edge-through-node risk: nodegraph was the only renderer using raw `connectSlots` instead of `routeEdge`/`edgeBends`; class already consumes `edgeBends`.
+- Requirement, C4, and ER ignore `edgeBends` but remain protected by the kernel's obstacle-aware `routeEdge` path.
+- Verified the state diagram symptom as a stale artifact, not a code bug; regenerated `examples/mermaid/state/state.svg` so the transition detours PartialPay. Coordinator committed the artifact refresh as `20d2fbd` after typecheck and 951/951 tests passed.

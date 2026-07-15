@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 163.90159999999997 456" width="163.90159999999997" height="456">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 242.62140000000005 456" width="242.62140000000005" height="456">
   <defs>
     <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#64748B" /></marker>
   </defs>
-  <rect x="0" y="0" width="163.90159999999997" height="456" fill="#FFFFFF" />
+  <rect x="0" y="0" width="242.62140000000005" height="456" fill="#FFFFFF" />
   <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Build dependency graph</text>
   <path d="M 69.95 96 L 69.95 160" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 62.55 200 L 62.55 232 L 69.95 232 L 69.95 264" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 90.55 200 L 90.55 216 L 155.9 216 L 155.9 352 L 85.95 352 L 85.95 368" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 69.95 304 L 69.95 336 L 57.95 336 L 57.95 368" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
   <rect x="58.29699999999998" y="119" width="23.3076" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
   <text x="69.95079999999999" y="131" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">ast</text>
-  <path d="M 69.95 200 L 69.95 264" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-  <rect x="45.750399999999985" y="223" width="48.4008" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
-  <text x="69.95079999999999" y="235" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">symbols</text>
-  <path d="M 69.95 200 L 69.95 368" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-  <path d="M 69.95 304 L 69.95 368" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
-  <rect x="45.43359999999999" y="327" width="49.03439999999999" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
-  <text x="69.95079999999999" y="339" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">checked</text>
+  <rect x="42.050149999999974" y="223" width="48.4008" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="66.25054999999998" y="235" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">symbols</text>
+  <rect x="39.43359999999999" y="327" width="49.03439999999999" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="63.95079999999999" y="339" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">checked</text>
   <rect x="37.95079999999999" y="56" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
   <text x="69.95079999999999" y="80.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">parse</text>
   <rect x="33.351299999999995" y="160" width="73.19899999999998" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
