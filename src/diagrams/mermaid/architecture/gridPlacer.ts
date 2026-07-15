@@ -41,6 +41,8 @@ interface Constraint {
   to: ItemId;
   fromSide: Side;
   toSide: Side;
+  fromInner: MutableCell;
+  toInner: MutableCell;
   edgeOrder: number;
 }
 
@@ -48,6 +50,8 @@ interface AdjConstraint {
   to: ItemId;
   fromSide: Side;
   toSide: Side;
+  currInner: MutableCell;
+  nextInner: MutableCell;
   edgeOrder: number;
 }
 
@@ -337,7 +341,15 @@ export function groupAwareDirectionalGridPlacer(ir: ArchitectureDocument): Map<s
       const from = directChildItem(container, e.from);
       const to = directChildItem(container, e.to);
       if (!from || !to || from === to) return;
-      constraints.push({ from, to, fromSide, toSide, edgeOrder });
+      constraints.push({
+        from,
+        to,
+        fromSide,
+        toSide,
+        fromInner: innerLocalCell(from, e.from),
+        toInner: innerLocalCell(to, e.to),
+        edgeOrder,
+      });
     });
 
     const itemPos = placeItemsAsRectangles(items, constraints);
@@ -368,6 +380,13 @@ export function groupAwareDirectionalGridPlacer(ir: ArchitectureDocument): Map<s
     };
     clusterByContainer.set(container, cluster);
     return cluster;
+  }
+
+  function innerLocalCell(itemId: ItemId, nodeId: string): MutableCell {
+    if (itemId.startsWith('node:')) return { col: 0, row: 0 };
+    const groupId = itemId.slice('group:'.length);
+    const local = clusterByContainer.get(groupId)?.nodePos.get(nodeId);
+    return local ? { col: local.col, row: local.row } : { col: 0, row: 0 };
   }
 
   const root = buildCluster('__root__');
@@ -415,7 +434,7 @@ function placeItemsAsRectangles(items: readonly Item[], constraints: readonly Co
       for (const c of adj.get(curr.id) ?? []) {
         const next = itemById.get(c.to);
         if (!next || pos.has(next.id)) continue;
-        const candidate = candidateFromSidePair(curr, currPos, next, c.fromSide, c.toSide);
+        const candidate = candidateFromSidePair(curr, currPos, next, c.fromSide, c.toSide, c.currInner, c.nextInner);
         const free = firstNonOverlappingCandidate(candidate, curr, next, c, occupied);
         place(next, free);
         queue.push(next);
@@ -434,8 +453,22 @@ function buildAdjacency(items: readonly Item[], constraints: readonly Constraint
 
   for (const c of [...constraints].sort((a, b) => a.edgeOrder - b.edgeOrder)) {
     if (!itemIds.has(c.from) || !itemIds.has(c.to)) continue;
-    addAdj(firstWins, c.from, c.fromSide + c.toSide, { to: c.to, fromSide: c.fromSide, toSide: c.toSide, edgeOrder: c.edgeOrder });
-    addAdj(firstWins, c.to, c.toSide + c.fromSide, { to: c.from, fromSide: c.toSide, toSide: c.fromSide, edgeOrder: c.edgeOrder });
+    addAdj(firstWins, c.from, c.fromSide + c.toSide, {
+      to: c.to,
+      fromSide: c.fromSide,
+      toSide: c.toSide,
+      currInner: c.fromInner,
+      nextInner: c.toInner,
+      edgeOrder: c.edgeOrder,
+    });
+    addAdj(firstWins, c.to, c.toSide + c.fromSide, {
+      to: c.from,
+      fromSide: c.toSide,
+      toSide: c.fromSide,
+      currInner: c.toInner,
+      nextInner: c.fromInner,
+      edgeOrder: c.edgeOrder,
+    });
   }
 
   return new Map([...firstWins].map(([id, byPair]) => [id, [...byPair.values()].sort((a, b) => a.edgeOrder - b.edgeOrder)]));
@@ -451,16 +484,83 @@ function addAdj(adj: Map<ItemId, Map<string, AdjConstraint>>, from: ItemId, pair
   if (!byPair.has(pair)) byPair.set(pair, c);
 }
 
-function candidateFromSidePair(curr: Item, currPos: MutableCell, next: Item, fromSide: Side, toSide: Side): MutableCell {
+function candidateFromSidePair(
+  curr: Item,
+  currPos: MutableCell,
+  next: Item,
+  fromSide: Side,
+  toSide: Side,
+  currInner: MutableCell,
+  nextInner: MutableCell,
+): MutableCell {
   const d = DELTA[fromSide + toSide];
   if (!d) return { col: currPos.col, row: currPos.row };
   const laneGap = curr.kind === 'group' || next.kind === 'group' ? CLUSTER_ROUTING_LANE_GAP : 0;
+  if (isMixedSidePair(fromSide, toSide)) {
+    return mixedSideCandidate(curr, currPos, next, fromSide, toSide, currInner, nextInner, laneGap);
+  }
   let col = currPos.col;
   let row = currPos.row;
   if (d[0] < 0) col = currPos.col - next.width - laneGap;
   else if (d[0] > 0) col = currPos.col + curr.width + laneGap;
   if (d[1] < 0) row = currPos.row - next.height - laneGap;
   else if (d[1] > 0) row = currPos.row + curr.height + laneGap;
+  return { col, row };
+}
+
+function isHorizontalSide(side: Side): boolean {
+  return side === 'L' || side === 'R';
+}
+
+function isMixedSidePair(fromSide: Side, toSide: Side): boolean {
+  return isHorizontalSide(fromSide) !== isHorizontalSide(toSide);
+}
+
+function mixedSideCandidate(
+  curr: Item,
+  currPos: MutableCell,
+  next: Item,
+  fromSide: Side,
+  toSide: Side,
+  currInner: MutableCell,
+  nextInner: MutableCell,
+  laneGap: number,
+): MutableCell {
+  let col = currPos.col;
+  let row = currPos.row;
+  const innerCol = currPos.col + currInner.col;
+  const innerRow = currPos.row + currInner.row;
+
+  switch (fromSide) {
+    case 'R':
+      col = currPos.col + curr.width + laneGap;
+      break;
+    case 'L':
+      col = currPos.col - next.width - laneGap;
+      break;
+    case 'B':
+      row = currPos.row + curr.height + laneGap;
+      break;
+    case 'T':
+      row = currPos.row - next.height - laneGap;
+      break;
+  }
+
+  switch (toSide) {
+    case 'R':
+      col = innerCol - 1 - nextInner.col;
+      break;
+    case 'L':
+      col = innerCol + 1 - nextInner.col;
+      break;
+    case 'B':
+      row = innerRow - 1 - nextInner.row;
+      break;
+    case 'T':
+      row = innerRow + 1 - nextInner.row;
+      break;
+  }
+
   return { col, row };
 }
 
@@ -473,7 +573,7 @@ function firstNonOverlappingCandidate(
 ): MutableCell {
   if (!overlapsAny(candidate, next, occupied)) return candidate;
 
-  const d = DELTA[c.fromSide + c.toSide] ?? [0, 0];
+  const d = placementHalfPlaneDelta(c.fromSide, c.toSide);
   const currRect = occupied.find(r => r.id === curr.id);
   const limit = Math.max(12, occupied.length * 4 + maxRight(occupied) + maxBottom(occupied) + next.width + next.height);
 
@@ -502,6 +602,15 @@ function firstNonOverlappingCandidate(
 
   console.warn(`[gridPlacer] Rectangle collision near (${candidate.col},${candidate.row}), placing "${next.id}" after occupied extent`);
   return firstFreeRect({ col: maxRight(occupied), row: 0 }, next, occupied);
+}
+
+function placementHalfPlaneDelta(fromSide: Side, toSide: Side): readonly [number, number] {
+  if (isMixedSidePair(fromSide, toSide)) {
+    return isHorizontalSide(fromSide)
+      ? [fromSide === 'L' ? -1 : 1, 0]
+      : [0, fromSide === 'T' ? -1 : 1];
+  }
+  return DELTA[fromSide + toSide] ?? [0, 0];
 }
 
 function orderedOffsets(limit: number): number[] {
