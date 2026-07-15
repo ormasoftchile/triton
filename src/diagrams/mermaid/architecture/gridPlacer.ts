@@ -68,6 +68,8 @@ interface Cluster {
   height: number;
 }
 
+const CLUSTER_ROUTING_LANE_GAP = 1;
+
 // ─── Direction-pair delta table ───────────────────────────────────────────────
 //
 // For each direction pair (fromSide + toSide), this gives (Δcol, Δrow) to
@@ -399,7 +401,9 @@ function placeItemsAsRectangles(items: readonly Item[], constraints: readonly Co
 
   for (const seed of seeds) {
     if (!pos.has(seed.id)) {
-      const seedCell = occupied.length === 0 ? { col: 0, row: 0 } : { col: maxRight(occupied), row: 0 };
+      const hasPlacedGroup = occupied.some(r => itemById.get(r.id)?.kind === 'group');
+      const laneGap = seed.kind === 'group' || hasPlacedGroup ? CLUSTER_ROUTING_LANE_GAP : 0;
+      const seedCell = occupied.length === 0 ? { col: 0, row: 0 } : { col: maxRight(occupied) + laneGap, row: 0 };
       place(seed, firstFreeRect(seedCell, seed, occupied),);
     }
 
@@ -450,12 +454,13 @@ function addAdj(adj: Map<ItemId, Map<string, AdjConstraint>>, from: ItemId, pair
 function candidateFromSidePair(curr: Item, currPos: MutableCell, next: Item, fromSide: Side, toSide: Side): MutableCell {
   const d = DELTA[fromSide + toSide];
   if (!d) return { col: currPos.col, row: currPos.row };
+  const laneGap = curr.kind === 'group' || next.kind === 'group' ? CLUSTER_ROUTING_LANE_GAP : 0;
   let col = currPos.col;
   let row = currPos.row;
-  if (d[0] < 0) col = currPos.col - next.width;
-  else if (d[0] > 0) col = currPos.col + curr.width;
-  if (d[1] < 0) row = currPos.row - next.height;
-  else if (d[1] > 0) row = currPos.row + curr.height;
+  if (d[0] < 0) col = currPos.col - next.width - laneGap;
+  else if (d[0] > 0) col = currPos.col + curr.width + laneGap;
+  if (d[1] < 0) row = currPos.row - next.height - laneGap;
+  else if (d[1] > 0) row = currPos.row + curr.height + laneGap;
   return { col, row };
 }
 

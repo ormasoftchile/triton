@@ -20,7 +20,7 @@ import type { ArchitectureDocument, ArchEdge } from '../src/diagrams/mermaid/arc
 import * as parser from '../src/diagrams/mermaid/architecture/parser.js';
 import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
-import type { Rect, SceneRect } from '../src/contracts/index.js';
+import type { Rect, ScenePath, SceneRect } from '../src/contracts/index.js';
 import { stripComments } from '../src/frontend/preprocess.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -191,6 +191,37 @@ function assertNoForeignNodeInsideGroup(ir: ArchitectureDocument): void {
       expect(rectIntersectsInterior(gr, nr), `${id} must not intersect ${g.id}`).toBe(false);
     }
   }
+}
+
+function connectorPaths(ir: ArchitectureDocument): ScenePath[] {
+  return layoutArchitecture(ir, defaultTheme).scene.elements
+    .filter((el): el is ScenePath => el.type === 'path')
+    .slice(0, ir.edges.length);
+}
+
+function hasAdjacentDuplicatePathPoint(d: string): boolean {
+  const points = [...d.matchAll(/[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
+    .map(m => `${m[1]},${m[2]}`);
+  return points.some((p, i) => i > 0 && p === points[i - 1]);
+}
+
+function moveLinePoints(d: string): Array<{ x: number; y: number }> {
+  return [...d.matchAll(/[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
+    .map(m => ({ x: Number(m[1]), y: Number(m[2]) }));
+}
+
+function pathIntersectsRectInterior(points: readonly { x: number; y: number }[], rect: Rect): boolean {
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i]!, b = points[i + 1]!;
+    if (a.x === b.x) {
+      if (a.x > rect.x && a.x < rect.x + rect.width &&
+          Math.max(a.y, b.y) > rect.y && Math.min(a.y, b.y) < rect.y + rect.height) return true;
+    } else if (a.y === b.y) {
+      if (a.y > rect.y && a.y < rect.y + rect.height &&
+          Math.max(a.x, b.x) > rect.x && Math.min(a.x, b.x) < rect.x + rect.width) return true;
+    }
+  }
+  return false;
 }
 
 // ── Canonical 2×2 grid (mermaid.live validation gate) ─────────────────────────
@@ -573,6 +604,31 @@ describe('group-aware directional cluster placement', () => {
     }
     expect(cells.get('stream')!.row).toBeLessThan(cells.get('lake')!.row);
     expect(cells.get('warehouse')!.col).toBeGreaterThan(cells.get('lake')!.col);
+  });
+
+  it('keeps nested-groups child group rectangles disjoint', () => {
+    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/nested-groups.mmd'), 'utf8'));
+    const { groups } = renderedRects(ir);
+    const backend = groups.get('backend')!;
+    const data = groups.get('data')!;
+    expect(rectIntersectsInterior(backend, data)).toBe(false);
+  });
+
+  it('does not emit adjacent duplicate points on triton-features connector paths', () => {
+    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'), 'utf8'));
+    for (const path of connectorPaths(ir)) {
+      if (path.d.includes(' C ')) continue;
+      expect(hasAdjacentDuplicatePathPoint(path.d), path.d).toBe(false);
+    }
+  });
+
+  it('routes the architecture client-to-api edge outside unrelated node interiors', () => {
+    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/architecture.mmd'), 'utf8'));
+    const { services } = renderedRects(ir);
+    const points = moveLinePoints(connectorPaths(ir)[0]!.d);
+    for (const id of ['client', 'storage']) {
+      expect(pathIntersectsRectInterior(points, services.get(id)!), id).toBe(false);
+    }
   });
 
   it('keeps foreign nodes outside every architecture example group', () => {

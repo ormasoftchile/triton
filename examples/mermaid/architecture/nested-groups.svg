@@ -1,34 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -68 708 338" width="708" height="338">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -68 928 478" width="928" height="478">
   <defs>
     <marker id="arch-arrow-end" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
     <marker id="arch-arrow-start" markerWidth="10" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="-24" y="-68" width="708" height="338" fill="#FFFFFF" />
-  <rect x="204" y="-44" width="430" height="264" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
-  <text x="216" y="-28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" font-weight="bold">Cloud</text>
-  <rect x="224" y="-10" width="390" height="110" fill="#0EA5A814" stroke="#0EA5A8" stroke-width="1.4" rx="10" />
-  <text x="236" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0EA5A8" font-weight="bold">Backend</text>
-  <rect x="224" y="90" width="170" height="110" fill="#D9770614" stroke="#D97706" stroke-width="1.4" rx="10" />
-  <text x="236" y="106" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#D97706" font-weight="bold">Data</text>
-  <path d="M 154 52 L 244 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 374 52 L 464 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 309 80 L 309 124" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <rect x="244" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="244" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
-  <rect x="299" y="39" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <rect x="299" y="46" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <rect x="299" y="53" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <text x="309" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API</text>
+  <rect x="-24" y="-68" width="928" height="478" fill="#FFFFFF" />
+  <rect x="424" y="-44" width="430" height="404" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
+  <text x="436" y="-28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" font-weight="bold">Cloud</text>
+  <rect x="444" y="-10" width="390" height="110" fill="#0EA5A814" stroke="#0EA5A8" stroke-width="1.4" rx="10" />
+  <text x="456" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0EA5A8" font-weight="bold">Backend</text>
+  <rect x="444" y="230" width="170" height="110" fill="#D9770614" stroke="#D97706" stroke-width="1.4" rx="10" />
+  <text x="456" y="246" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#D97706" font-weight="bold">Data</text>
+  <path d="M 154 52 L 464 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 594 52 L 684 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 529 80 L 529 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
   <rect x="464" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="464" y="24" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
-  <rect x="520" y="39" width="18" height="18" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="5" />
-  <path d="M 520 45 Q 529 49, 538 45" stroke="#0EA5A8" stroke-width="1.3" fill="none" />
-  <text x="529" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Cache</text>
-  <rect x="244" y="124" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="244" y="124" width="130" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
-  <rect x="300" y="139" width="18" height="18" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="5" />
-  <path d="M 300 145 Q 309 149, 318 145" stroke="#D97706" stroke-width="1.3" fill="none" />
-  <text x="309" y="171" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Database</text>
+  <rect x="464" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <rect x="519" y="39" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="519" y="46" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="519" y="53" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <text x="529" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API</text>
+  <rect x="684" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="684" y="24" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
+  <rect x="740" y="39" width="18" height="18" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="5" />
+  <path d="M 740 45 Q 749 49, 758 45" stroke="#0EA5A8" stroke-width="1.3" fill="none" />
+  <text x="749" y="71" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Cache</text>
+  <rect x="464" y="264" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="464" y="264" width="130" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
+  <rect x="520" y="279" width="18" height="18" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="5" />
+  <path d="M 520 285 Q 529 289, 538 285" stroke="#D97706" stroke-width="1.3" fill="none" />
+  <text x="529" y="311" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Database</text>
   <rect x="24" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
   <rect x="24" y="24" width="130" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
   <circle cx="89" cy="48" r="9" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" />

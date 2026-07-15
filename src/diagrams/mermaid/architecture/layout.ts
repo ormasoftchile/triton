@@ -20,7 +20,7 @@
  */
 
 import type { ArchitectureDocument, ArchGroup, ArchIconAlign } from './ir.js';
-import type { Scene, SceneElement, LayoutResult, Rect, PortDirection, LayoutOptions, RouteStyle, TextAnchor } from '../../../contracts/index.js';
+import type { Scene, SceneElement, LayoutResult, Point, Rect, PortDirection, LayoutOptions, RouteStyle, TextAnchor } from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
@@ -53,6 +53,15 @@ function sideToDir(side: string): PortDirection {
     case 'R': return 'E';
     case 'T': return 'N';
     default:  return 'S';
+  }
+}
+
+function dirToSide(dir: PortDirection): string {
+  switch (dir) {
+    case 'W': return 'L';
+    case 'E': return 'R';
+    case 'N': return 'T';
+    case 'S': return 'B';
   }
 }
 
@@ -135,7 +144,7 @@ export function layoutArchitecture(
   for (const j of ir.junctions) nodeSizes.set(j.id, { width: jctW, height: jctH });
 
   // ── Directional grid placement ────────────────────────────────────────────
-  const colGap = 90, rowGap = 44;
+  const colGap = 90, rowGap = 64;
   const gridCells = groupAwareDirectionalGridPlacer(ir);
 
   // Convert grid cells → pixel coords; mutable for align post-processing.
@@ -242,10 +251,10 @@ export function layoutArchitecture(
       }
     }
 
-    const pa       = port(fromRect, e.fromSide);
-    const pb       = port(toRect,   e.toSide);
     const fromDir  = e.exitWall ?? sideToDir(e.fromSide);
     const toDir    = e.entryWall ?? sideToDir(e.toSide);
+    const pa       = port(fromRect, e.exitWall ? dirToSide(e.exitWall) : e.fromSide);
+    const pb       = port(toRect,   e.entryWall ? dirToSide(e.entryWall) : e.toSide);
 
     const obstacles: Rect[] = allBoxes
       .filter(bx => bx.id !== e.from && bx.id !== e.to)
@@ -257,6 +266,10 @@ export function layoutArchitecture(
       obstacles, padding: 10,
       fromDir, toDir,
     });
+    const routedPoints = routing === 'orthogonal' && isHorizontalDir(fromDir) !== isHorizontalDir(toDir)
+      ? mixedOrthogonalRoutePoints(pa, pb, fromDir, toDir, obstacles, 10)
+      : route.points;
+    const routePoints = cleanRoutePoints(routedPoints);
 
     const style = e.style ?? 'solid';
 
@@ -269,7 +282,11 @@ export function layoutArchitecture(
     if (dash) pathOpts.dash = dash;
     if (e.animation && e.animation !== 'none') pathOpts.animated = e.animation;
 
-    const path = style === 'wavy' ? wavifyPath(route.points, 3, 12) : route.path;
+    const path = style === 'wavy'
+      ? wavifyPath(routePoints, 3, 12)
+      : routing === 'bezier'
+        ? route.path
+        : routePointsToPath(routePoints, route.path);
     elements.push(p.path(path, palette.primary, edgeStrokeWidth(style, 1.6), pathOpts));
   }
 
@@ -355,6 +372,109 @@ export function layoutArchitecture(
   }, ir.overlays, theme);
 
   return { scene, anchors: {} };
+}
+
+function cleanRoutePoints(points: readonly { x: number; y: number }[]): Array<{ x: number; y: number }> {
+  const out: Array<{ x: number; y: number }> = [];
+  for (const p of points) {
+    const prev = out[out.length - 1];
+    if (!prev || prev.x !== p.x || prev.y !== p.y) out.push(p);
+  }
+  return out;
+}
+
+function routePointsToPath(points: readonly { x: number; y: number }[], fallback: string): string {
+  if (points.length === 0) return fallback;
+  if (points.length === 1) return `M ${points[0]!.x} ${points[0]!.y}`;
+  return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+}
+
+function isHorizontalDir(dir: PortDirection): boolean {
+  return dir === 'E' || dir === 'W';
+}
+
+function mixedOrthogonalRoutePoints(
+  from: Point,
+  to: Point,
+  fromDir: PortDirection,
+  toDir: PortDirection,
+  obstacles: readonly Rect[],
+  pad: number,
+): Point[] {
+  const stubLen = Math.max(pad, 24);
+  const stub1 = offsetPoint(from, fromDir, stubLen);
+  const stub2 = offsetPoint(to, toDir, stubLen);
+  if (isHorizontalDir(fromDir)) {
+    const bendY = bestBend(
+      [(stub1.y + stub2.y) / 2, ...obstacles.flatMap(o => [o.y - pad, o.y + o.height + pad])],
+      y => [from, stub1, { x: stub1.x, y }, { x: stub2.x, y }, stub2, to],
+      obstacles,
+    );
+    return [from, stub1, { x: stub1.x, y: bendY }, { x: stub2.x, y: bendY }, stub2, to];
+  }
+  const bendX = bestBend(
+    [(stub1.x + stub2.x) / 2, ...obstacles.flatMap(o => [o.x - pad, o.x + o.width + pad])],
+    x => [from, stub1, { x, y: stub1.y }, { x, y: stub2.y }, stub2, to],
+    obstacles,
+  );
+  return [from, stub1, { x: bendX, y: stub1.y }, { x: bendX, y: stub2.y }, stub2, to];
+}
+
+function offsetPoint(p: Point, dir: PortDirection, amount: number): Point {
+  switch (dir) {
+    case 'W': return { x: p.x - amount, y: p.y };
+    case 'E': return { x: p.x + amount, y: p.y };
+    case 'N': return { x: p.x, y: p.y - amount };
+    case 'S': return { x: p.x, y: p.y + amount };
+  }
+}
+
+function bestBend(candidates: readonly number[], build: (v: number) => Point[], obstacles: readonly Rect[]): number {
+  let best = candidates[0] ?? 0;
+  let bestHits = Infinity;
+  let bestLen = Infinity;
+  for (const c of [...new Set(candidates)]) {
+    const points = build(c);
+    const hits = routeCollisionCount(points, obstacles);
+    const len = routeLength(points);
+    if (hits < bestHits || (hits === bestHits && len < bestLen)) {
+      best = c;
+      bestHits = hits;
+      bestLen = len;
+    }
+  }
+  return best;
+}
+
+function routeCollisionCount(points: readonly Point[], obstacles: readonly Rect[]): number {
+  let count = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    for (const obs of obstacles) {
+      if (segmentCrossesRectInterior(points[i]!, points[i + 1]!, obs)) count++;
+    }
+  }
+  return count;
+}
+
+function routeLength(points: readonly Point[]): number {
+  let len = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    len += Math.abs(points[i + 1]!.x - points[i]!.x) + Math.abs(points[i + 1]!.y - points[i]!.y);
+  }
+  return len;
+}
+
+function segmentCrossesRectInterior(a: Point, b: Point, r: Rect): boolean {
+  const xMin = r.x, xMax = r.x + r.width, yMin = r.y, yMax = r.y + r.height;
+  if (a.x === b.x) {
+    if (a.x <= xMin || a.x >= xMax) return false;
+    return Math.max(a.y, b.y) > yMin && Math.min(a.y, b.y) < yMax;
+  }
+  if (a.y === b.y) {
+    if (a.y <= yMin || a.y >= yMax) return false;
+    return Math.max(a.x, b.x) > xMin && Math.min(a.x, b.x) < xMax;
+  }
+  return false;
 }
 
 // ─── Icon resolution (Feature 6) ──────────────────────────────────────────────
