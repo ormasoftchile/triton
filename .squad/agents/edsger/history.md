@@ -77,3 +77,9 @@ Specified recursive clustered grid placement for architecture-beta: groups are a
 - Owned the Brian-lockout revision for grouped architecture routing after Ken's re-review.
 - Added obstacle-aware mixed-axis orthogonal detours and stronger Bezier deflection/fallback for clustered group members.
 - Verified `triton-features.svg` with 0 foreign node crossings and 940 passing tests; coordinator committed as d3258bd.
+
+## 2026-07-15T00:54:19-04:00 — Nodegraph port fan-out revision
+
+- Took over after Brian's Visual QA rejection/lockout for `src/diagrams/triton/ds/graph/graph.ts`.
+- Reworked renderer-local routing with per-wall port fan-out, skip-edge side lanes outside spanned node columns, label-over-edge ordering, and title-aware viewBox width.
+- Validation passed: typecheck and 951/951 tests green; `examples/triton/ds/graph/graph.svg` regenerated. Ken approved; coordinator committed `ef0a043`.

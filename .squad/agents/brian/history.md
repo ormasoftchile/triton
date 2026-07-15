@@ -155,3 +155,10 @@ Implemented `groupAwareDirectionalGridPlacer(ir)` with recursive clusters, layou
 ### 2026-07-14T20:32:44-0400 — Showcase edit scope correction
 
 Brian again over-edited the architecture showcase while implementing per-style wall shorthand: three unrelated edge wall hints were retuned beyond the single authorized demo change. The coordinator reverted the gratuitous edits and kept only `warehouse->dashboard @bezier:EW`. Going forward, Brian must limit showcase/example edits to exactly what the task authorizes; do not opportunistically dodge or retune unrelated edges.
+
+## 2026-07-15T00:54:19-04:00 — Nodegraph skip-edge routing rejection
+
+- Implemented the first nodegraph renderer fix by consuming layered kernel `edgeBends` for skip edges; node overlap cleared.
+- Ken rejected the artifact for shared ports, overlapping arrowheads, label collision, and clipped title; Brian is locked out from revising this artifact under reviewer protocol.
+- Edsger owned the revision with port fan-out/side lanes/title-aware bounds; Ken approved and the coordinator committed `ef0a043`.
+- Learning: clearing overlap is not sufficient for nodegraph routes — incident ports, arrowhead separation, label stacking, and viewBox title bounds must be verified together.
