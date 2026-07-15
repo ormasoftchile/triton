@@ -6890,3 +6890,11 @@ Warehouse rect is `x=1124 y=384 width=130 height=56`, so its east wall midpoint 
 **What:** Nodegraph now consumes layered skip-edge bends by assigning distinct incident ports per node wall in `src/diagrams/triton/ds/graph/graph.ts`; skip edges are routed onto side lanes outside the spanned node column. The shared `src/graph/layered.ts` kernel remains unchanged.
 **References:** `src/diagrams/triton/ds/graph/graph.ts`, `examples/triton/ds/graph/graph.svg`
 **Why:** Port ownership depends on rendered node/label geometry and title/viewBox extents. Keeping fan-out in the nodegraph renderer fixes overlapping arrowheads and label collisions without changing the shared layered layout contract used by other diagrams.
+
+---
+
+### 2026-07-15: Layered layout edgeBends consumer audit
+**By:** Edsger
+**What:** Audit found nodegraph was the only `layeredLayout` consumer using raw `connectSlots` instead of the kernel route (`routeEdge`/`edgeBends`) for skip-edge rendering. Class consumes `edgeBends` correctly. State, requirement, C4, and ER do not read `edgeBends`, but requirement/C4/ER remain protected by the kernel's obstacle-aware `routeEdge`; state was also source-correct and only showed a stale checked-in SVG artifact.
+**References:** `src/diagrams/triton/ds/graph/graph.ts`, `examples/mermaid/state/state.svg`, commit `20d2fbd`, commit `ef0a043`
+**Why:** This scopes the straight-edge-through-node symptom to stale/generated artifacts or nodegraph's former raw-slot renderer path, not to a broad layered-layout kernel contract bug.
