@@ -30,6 +30,7 @@
   "devDependencies": {
     "@iconify/tools": "^5.0.12",
     "@resvg/resvg-js": "^2.6.2",
+    "@resvg/resvg-wasm": "^2.6.2",
     "@types/d3-path": "^3.1.1",
     "@types/d3-shape": "^3.1.8",
     "@types/node": "^22.0.0",
@@ -40,6 +41,7 @@
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
+    "upng-js": "^2.1.0",
     "vitest": "^3.2.0"
   }
 }
