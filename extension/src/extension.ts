@@ -5,8 +5,9 @@ import type { ThemeInput } from '../../src/contracts/index.js';
 // `main`/`exports`, so `import 'triton'` is impossible). esbuild bundles this
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
-import { compileAndRenderSync } from '../../src/frontend/index.js';
+import { compileAndRenderSync, compileAndRenderWithThemeSync } from '../../src/frontend/index.js';
 import { ExportCancelledError, exportAnimatedPng, exportStaticPng, initExportWasm } from '../../src/export/index.js';
+import { resolveThemeFont, type ResolvedThemeFont } from '../../src/export/fonts.js';
 import { themePresetNames } from '../../src/theme/preset.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
@@ -284,6 +285,7 @@ class PreviewManager {
       const prepared = await this.prepareExport(resource, 'exporting animated PNG');
       if (!prepared) return;
       await this.ensureExportWasm();
+      const fonts = await this.resolveExportFonts(prepared.fontFamily);
       const outputUri = this.animatedExportOutputUri(prepared.doc.uri);
       const options = readConfig().animatedExport;
       const png = await vscode.window.withProgress(
@@ -295,6 +297,7 @@ class PreviewManager {
           try {
             return await exportAnimatedPng(prepared.svg, {
               ...options,
+              fonts,
               signal: controller.signal,
               onProgress: (framesDone, frameTotal) => {
                 const next = frameTotal > 0 ? (framesDone / frameTotal) * 100 : 100;
@@ -340,7 +343,7 @@ class PreviewManager {
         return;
       }
 
-      await this.writeExport(prepared.svg, target, extension === '.png' ? 'png' : 'svg');
+      await this.writeExport(prepared.svg, target, extension === '.png' ? 'png' : 'svg', prepared.fontFamily);
       await this.showExported(target);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -352,14 +355,14 @@ class PreviewManager {
     const prepared = await this.prepareExport(resource, `exporting ${format.toUpperCase()}`);
     if (!prepared) return;
     const { outputUri } = this.exportOutputUri(prepared.doc.uri, format);
-    await this.writeExport(prepared.svg, outputUri, format);
+    await this.writeExport(prepared.svg, outputUri, format, prepared.fontFamily);
     await this.showExported(outputUri);
   }
 
   private async prepareExport(
     resource: vscode.Uri | undefined,
     action: string,
-  ): Promise<{ readonly doc: vscode.TextDocument; readonly svg: string } | undefined> {
+  ): Promise<{ readonly doc: vscode.TextDocument; readonly svg: string; readonly fontFamily: string } | undefined> {
     const doc = await this.exportDocument(resource);
     if (!doc) {
       void vscode.window.showInformationMessage('Triton: open a .triton or .mmd diagram first, then export.');
@@ -370,11 +373,11 @@ class PreviewManager {
       return undefined;
     }
 
-    const svg = this.renderExportSvg(doc);
-    return svg == null ? undefined : { doc, svg };
+    const rendered = this.renderExportSvg(doc);
+    return rendered == null ? undefined : { doc, ...rendered };
   }
 
-  private renderExportSvg(doc: vscode.TextDocument): string | undefined {
+  private renderExportSvg(doc: vscode.TextDocument): { readonly svg: string; readonly fontFamily: string } | undefined {
     const renderable = pickRenderable(doc, readConfig(), 'explicit');
     if (!renderable) {
       void vscode.window.showInformationMessage('Triton: no exportable diagram found in the active document.');
@@ -382,22 +385,31 @@ class PreviewManager {
     }
 
     const { themeInput, forcedThemeName } = this.themeArgs();
-    const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks());
+    const result = compileAndRenderWithThemeSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks());
     if (!result.ok) {
       void vscode.window.showErrorMessage(`Triton: export failed: [${result.error.code}] ${result.error.message}`);
       return undefined;
     }
-    return result.value.svg;
+    return { svg: result.value.svg, fontFamily: result.value.theme.typography.fontFamily };
   }
 
-  private async writeExport(svg: string, outputUri: vscode.Uri, format: 'svg' | 'png'): Promise<void> {
+  private async writeExport(svg: string, outputUri: vscode.Uri, format: 'svg' | 'png', fontFamily: string): Promise<void> {
     if (format === 'svg') {
       await vscode.workspace.fs.writeFile(outputUri, Buffer.from(svg, 'utf8'));
       return;
     }
     await this.ensureExportWasm();
-    const png = await exportStaticPng(svg);
+    const fonts = await this.resolveExportFonts(fontFamily);
+    const png = await exportStaticPng(svg, { fonts });
     await vscode.workspace.fs.writeFile(outputUri, png);
+  }
+
+  private async resolveExportFonts(fontFamily: string): Promise<ResolvedThemeFont | undefined> {
+    const fonts = await resolveThemeFont(fontFamily);
+    if (!fonts) {
+      console.warn(`Triton: could not resolve theme font for PNG export: ${fontFamily}`);
+    }
+    return fonts;
   }
 
   private ensureExportWasm(): Promise<void> {

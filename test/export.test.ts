@@ -6,6 +6,7 @@ import UPNG from 'upng-js';
 import { ANIMATION_PERIOD_SECONDS, marchDashoffsetAt, pointAtPathFraction } from '../src/animation/index.js';
 import { renderSync } from '../src/frontend/index.js';
 import { bakeFrame, encodeApng, ExportCancelledError, exportAnimatedPng, exportStaticPng, initExportWasm, planLoop, renderToPng } from '../src/export/index.js';
+import { resolveThemeFont } from '../src/export/fonts.js';
 
 const require = createRequire(import.meta.url);
 const marchingAntsUrl = new URL('../examples/mermaid/animated/marching-ants.mmd', import.meta.url);
@@ -36,6 +37,16 @@ async function renderMarchingAntsSvg(): Promise<string> {
   const rendered = renderSync(source);
   if (!rendered.ok) throw new Error(`${rendered.error.code}: ${rendered.error.message}`);
   return rendered.value;
+}
+
+function nonTransparentPixels(png: Uint8Array): number {
+  const decoded = UPNG.decode(png.buffer.slice(png.byteOffset, png.byteOffset + png.byteLength));
+  const rgba = new Uint8Array(UPNG.toRGBA8(decoded)[0]!);
+  let count = 0;
+  for (let i = 3; i < rgba.byteLength; i += 4) {
+    if (rgba[i] !== 0) count++;
+  }
+  return count;
 }
 
 describe('animated export core', () => {
@@ -154,5 +165,20 @@ describe('animated export core', () => {
     await initExportWasm(wasmBytes);
     const png = await exportStaticPng(animatedSvg, { width: 12 });
     expect(png.slice(1, 4)).toEqual(new Uint8Array([0x50, 0x4e, 0x47]));
+  });
+
+  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('renders text ink when theme font bytes are injected', async () => {
+    const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+    await initExportWasm(wasmBytes);
+    const fonts = await resolveThemeFont('Inter, system-ui, -apple-system, sans-serif');
+    if (!fonts) return;
+
+    const svg = `<svg viewBox="0 0 240 80" width="240" height="80" xmlns="http://www.w3.org/2000/svg">
+      <text x="16" y="48" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="36" font-weight="700" fill="#000">Label</text>
+    </svg>`;
+    const withoutFonts = await renderToPng(svg, { width: 240 });
+    const withFonts = await renderToPng(svg, { width: 240, fonts });
+
+    expect(nonTransparentPixels(withFonts)).toBeGreaterThan(nonTransparentPixels(withoutFonts));
   });
 });

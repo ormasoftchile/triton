@@ -29,6 +29,12 @@ export interface LoopPlan {
 export interface RenderToPngOptions {
   readonly width?: number;
   readonly scale?: number;
+  readonly fonts?: ExportFonts;
+}
+
+export interface ExportFonts {
+  readonly buffers: Uint8Array[];
+  readonly family: string;
 }
 
 export interface ApngSize {
@@ -217,7 +223,14 @@ function renderOptions(opts: RenderToPngOptions): ResvgRenderOptions {
       : undefined;
   return {
     ...(fitTo != null ? { fitTo } : {}),
-    font: { loadSystemFonts: true },
+    font: opts.fonts != null
+      ? {
+          fontBuffers: opts.fonts.buffers,
+          defaultFontFamily: opts.fonts.family,
+          sansSerifFamily: opts.fonts.family,
+          loadSystemFonts: false,
+        }
+      : { loadSystemFonts: true },
   };
 }
 

@@ -135,6 +135,16 @@ export function compileSync(
   forcedThemeName?: string,
   icons?: IconPackMap,
 ): Result<LayoutResult> {
+  const compiled = compileSyncWithTheme(input, themeInput, forcedThemeName, icons);
+  return compiled.ok ? ok(compiled.value.layout) : compiled;
+}
+
+function compileSyncWithTheme(
+  input: string,
+  themeInput?: ThemeInput,
+  forcedThemeName?: string,
+  icons?: IconPackMap,
+): Result<{ readonly layout: LayoutResult; readonly theme: ReturnType<typeof resolveTheme> }> {
   const cleaned = stripComments(input);
   const { format, diagramType } = detect(cleaned);
 
@@ -160,7 +170,7 @@ export function compileSync(
 
     const layoutOptions: LayoutOptions | undefined = icons !== undefined ? { icons } : undefined;
     const result = module.layout(ir, finalTheme, layoutOptions);
-    return ok(result);
+    return ok({ layout: result, theme: finalTheme });
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
     return err('PARSE_ERROR', message, cause);
@@ -229,6 +239,31 @@ export function compileAndRenderSync(
     const { scene, anchors } = compileResult.value;
     const svg = renderer.render(scene);
     return ok({ svg, anchors });
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    return err('LAYOUT_ERROR', message, cause);
+  }
+}
+
+export function compileAndRenderWithThemeSync(
+  input: string,
+  themeInput?: ThemeInput,
+  rendererName = 'svg',
+  forcedThemeName?: string,
+  icons?: IconPackMap,
+): Result<{ svg: string; anchors: NodeAnchorRegistry; theme: ReturnType<typeof resolveTheme> }> {
+  const compileResult = compileSyncWithTheme(input, themeInput, forcedThemeName, icons);
+  if (!compileResult.ok) return compileResult;
+
+  const renderer = getRenderer<string>(rendererName);
+  if (!renderer) {
+    return err('UNKNOWN_RENDERER', `No renderer registered: ${rendererName}`);
+  }
+
+  try {
+    const { layout, theme } = compileResult.value;
+    const svg = renderer.render(layout.scene);
+    return ok({ svg, anchors: layout.anchors, theme });
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
     return err('LAYOUT_ERROR', message, cause);
