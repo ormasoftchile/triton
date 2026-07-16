@@ -24,7 +24,7 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
 
   const cols   = Math.max(1, ir.columns);
   const cellW  = 150;
-  const gap    = 16;
+  const gap    = 24;
   const rowH   = 56;
   const titleH = ir.metadata.title ? typography.titleFontSize + 14 : 0;
   const top    = margin + titleH;
@@ -67,7 +67,7 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
 
   const maxRight  = Math.max(margin, ...[...rects.values()].map(r => r.x + r.width));
   const maxBottom = Math.max(top, ...[...rects.values()].map(r => r.y + r.height));
-  const defs = [`<marker id="${ARROW_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`];
+  const defs = [`<marker id="${ARROW_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`];
 
   const scene: Scene = applyOverlays({
     viewBox: { x: 0, y: 0, width: rhuInt(maxRight + margin), height: rhuInt(maxBottom + margin) },
