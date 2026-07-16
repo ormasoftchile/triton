@@ -26,7 +26,8 @@
   "activationEvents": [
     "onStartupFinished",
     "onCommand:triton.openPreview",
-    "onCommand:triton.openPreviewToSide"
+    "onCommand:triton.openPreviewToSide",
+    "onCommand:triton.exportSvg"
   ],
   "contributes": {
     "markdown.markdownItPlugins": true,
@@ -57,6 +58,12 @@
           "light": "./resources/preview-side-light.svg",
           "dark": "./resources/preview-side-dark.svg"
         }
+      },
+      {
+        "command": "triton.exportSvg",
+        "title": "Export as SVG",
+        "category": "Triton",
+        "icon": "$(export)"
       }
     ],
     "menus": {
@@ -68,9 +75,18 @@
         {
           "command": "triton.openPreviewToSide",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
+        },
+        {
+          "command": "triton.exportSvg",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
         }
       ],
       "editor/title": [
+        {
+          "command": "triton.exportSvg",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "navigation"
+        },
         {
           "command": "triton.openPreviewToSide",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
