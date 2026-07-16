@@ -162,3 +162,10 @@ Brian again over-edited the architecture showcase while implementing per-style w
 - Ken rejected the artifact for shared ports, overlapping arrowheads, label collision, and clipped title; Brian is locked out from revising this artifact under reviewer protocol.
 - Edsger owned the revision with port fan-out/side lanes/title-aware bounds; Ken approved and the coordinator committed `ef0a043`.
 - Learning: clearing overlap is not sufficient for nodegraph routes — incident ports, arrowhead separation, label stacking, and viewBox title bounds must be verified together.
+
+## 2026-07-15T22:50:01-04:00 — Poster Mermaid detection fix
+
+- Poster cells now delegate embedded Mermaid detection to canonical `matchMermaid()` instead of a drifted local keyword list.
+- Regression coverage added in `test/poster-mermaid-detect.test.ts` for keywords such as `graph`, `block-beta`, `C4Context`, and `packet-beta`.
+- Validation reported: `pnpm test` passed (46 files / 957 tests) and `pnpm typecheck` passed; coordinator committed `0ecb2d2`.
+- Scope guard: the unrelated user/showcase edit in `examples/mermaid/architecture/triton-features.mmd` was intentionally left untouched.

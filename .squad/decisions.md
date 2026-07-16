@@ -6898,3 +6898,10 @@ Warehouse rect is `x=1124 y=384 width=130 height=56`, so its east wall midpoint 
 **What:** Audit found nodegraph was the only `layeredLayout` consumer using raw `connectSlots` instead of the kernel route (`routeEdge`/`edgeBends`) for skip-edge rendering. Class consumes `edgeBends` correctly. State, requirement, C4, and ER do not read `edgeBends`, but requirement/C4/ER remain protected by the kernel's obstacle-aware `routeEdge`; state was also source-correct and only showed a stale checked-in SVG artifact.
 **References:** `src/diagrams/triton/ds/graph/graph.ts`, `examples/mermaid/state/state.svg`, commit `20d2fbd`, commit `ef0a043`
 **Why:** This scopes the straight-edge-through-node symptom to stale/generated artifacts or nodegraph's former raw-slot renderer path, not to a broad layered-layout kernel contract bug.
+
+---
+
+### 2026-07-15: Poster cells use canonical Mermaid detection
+**By:** Brian
+**What:** Exported `matchMermaid()` and changed poster `inferCellKind()` to delegate to it before poster `stat`/`text` fallback.
+**Why:** Poster cells had a drifted hand-written keyword list, so canonical Mermaid keywords like `graph`, `block-beta`, `C4Context`, and `packet-beta` degraded to text instead of rendering child diagrams.
