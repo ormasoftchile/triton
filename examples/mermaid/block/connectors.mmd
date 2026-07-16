@@ -1,0 +1,10 @@
+block-beta
+columns 3
+  A["Frontend"] B["API Layer"]:2
+  C["Auth"] D["Database"]:2
+  E["Cache"] F["Queue"] G["Worker"]
+  A --> B
+  C -.-> D
+  E -_-> F
+  F ==> G
+  B -~-> D @anim:flow
