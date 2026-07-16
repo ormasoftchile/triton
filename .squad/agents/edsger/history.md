@@ -89,3 +89,10 @@ Specified recursive clustered grid placement for architecture-beta: groups are a
 - Audited layeredLayout consumers for straight-edge-through-node risk: nodegraph was the only renderer using raw `connectSlots` instead of `routeEdge`/`edgeBends`; class already consumes `edgeBends`.
 - Requirement, C4, and ER ignore `edgeBends` but remain protected by the kernel's obstacle-aware `routeEdge` path.
 - Verified the state diagram symptom as a stale artifact, not a code bug; regenerated `examples/mermaid/state/state.svg` so the transition detours PartialPay. Coordinator committed the artifact refresh as `20d2fbd` after typecheck and 951/951 tests passed.
+
+## 2026-07-16T16:25:15.615-04:00 — Animated export POC and block-beta spacing
+
+- Built animated-export POC on branch `ormasoftchile/animated-export-poc` (commit `affbb2c`): SMIL bake-per-frame, inline `animateMotion` comet sampling, export-side speed, temporal-supersampling motion blur, shutter control, and canonical comet variant c.
+- Dropped GIF as unsuitable; APNG is the animated diagram export target.
+- Added block-beta `space` / `space:N` support via `SpaceDef` / `isSpace`, advancing layout without rendering filler blocks while preserving hue indexing.
+- Coordinator verified rendered frames, path-scoped commit hygiene, and 989 passing tests.

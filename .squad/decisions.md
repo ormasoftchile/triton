@@ -2826,70 +2826,6 @@ The `intervals` and `hashring` implementations that were initially under QA revi
 
 ---
 
-# Decision: VS Code Extension Marketplace Icon
-
-**Date:** 2026-07-09  
-**Author:** Barbara (Semantics & Rendering)  
-**Status:** Decided  
-
-## Context
-
-The Triton VS Code extension (`focus-space.triton-vscode`) needed a Marketplace icon. Prior to this, only `preview.svg` existed — a 16×16 monochrome glyph for toolbar buttons.
-
-## Decision
-
-Created a full-color 256×256 icon with an unmistakable trident motif:
-
-1. **Trident body:** Dominant vertical shaft, horizontal crossbar, three upward-pointing prongs (center tallest)
-2. **Graph-node fusion:** Small glowing circles at prong tips connected by curved purple edges — the "diagram" layer
-3. **High contrast:** Bright cyan→teal gradient (#67E8F9 → #14B8A6) against dark navy/purple background
-
-### Design details
-
-- **Background:** Navy→dark-purple diagonal gradient (#0D1B2A → #1a1040), rounded-square (rx=48)
-- **Trident:** Filled rectangles with rounded corners (not strokes) — enables gradient rendering in rsvg-convert
-- **Nodes:** Purple center (#7C3AED) + blue sides (#4A90D9), white cores (#F8FAFC), subtle glow filter
-- **Bottom flourish:** Small wave curve at shaft base (blue #4A90D9)
-
-### Files
-
-- `extension/resources/icon.svg` — source vector (viewBox 0 0 256 256)
-- `extension/resources/icon.png` — rasterized 256×256 PNG for Marketplace
-
-### Wiring
-
-`extension/package.json` has `"icon": "resources/icon.png"` between `categories` and `galleryBanner`.
-
-## Rationale
-
-- **Trident-first:** The trident shape is unmistakable at any size — reads as Poseidon's weapon, not a face
-- **High contrast:** Bright cyan/teal against dark background ensures visibility at all sizes
-- **Filled shapes:** Gradients on SVG strokes don't render in rsvg-convert; filled rects with rx work
-- **Vertical composition:** Trident fills y=24 to y=222 — no large empty void
-- **Straight crossbar:** Eliminates "frown" gestalt that caused sad-face misreading
-
-## Technical learnings
-
-- **rsvg-convert quirk:** `stroke="url(#grad)"` on `<line>` elements renders invisibly. Use `fill="url(#grad)"` on `<rect>` or `<path>` instead.
-- **Gestalt awareness:** Two symmetric circles + downward arc = face. Break symmetry or use dominant visual elements to override.
-
-## Alternatives considered
-
-1. **Stroked lines with gradient** — failed due to rsvg-convert rendering bug
-2. **Downward-curving crossbar** — created unintended "frown" face gestalt
-3. **Dark trident colors** — invisible against dark background
-
-## Impact
-
-- Marketplace listing displays distinctive branded trident icon
-- Extension sidebar shows recognizable icon at various sizes (128px, 32px)
-- No runtime/code changes — purely visual/packaging
-
-
----
-
----
-
 # Decision: Preview Icon Fixes — Dark Mode & Distinct Glyph (2026-07-12)
 
 ## Summary
@@ -6905,3 +6841,151 @@ Warehouse rect is `x=1124 y=384 width=130 height=56`, so its east wall midpoint 
 **By:** Brian
 **What:** Exported `matchMermaid()` and changed poster `inferCellKind()` to delegate to it before poster `stat`/`text` fallback.
 **Why:** Poster cells had a drifted hand-written keyword list, so canonical Mermaid keywords like `graph`, `block-beta`, `C4Context`, and `packet-beta` degraded to text instead of rendering child diagrams.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-anim-export-exact-timing.md -->
+
+### 2026-07-16: Animated export prefers seamless exact loop timing
+**By:** Edsger
+**What:** The APNG POC now picks the nearest integer frame count when requested speed and target fps do not divide the effective loop exactly, then derives the frame delay from L'/N so the loop remains seamless.
+**Why:** `speed=0.35` with the 1.8s comet loop produces L'=36/7s, which cannot be exactly represented as an integer frame count at exactly 60fps. Preserving a seamless APNG loop is more important than forcing a fractional frame count, so comet-c renders 309 frames at ~60.083fps equivalent timing.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-animated-export-motion-blur.md -->
+
+### 2026-07-16: Animated export temporal supersampling
+**By:** Edsger
+**What:** `scripts/anim-export-poc.mjs` now supports `motionBlurSamples` for export-side temporal supersampling; the comet demo defaults to K=6, while K=1 keeps the old single-sample bake.
+**Why:** Midpoint-sampled sub-frames averaged with premultiplied-alpha RGBA produce a smooth comet streak without changing renderer code or softening static geometry.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-animated-export-motion.md -->
+
+### 2026-07-16: Animated export POC bakes inline animateMotion
+**By:** Edsger
+**What:** Extended the pure-Node animated export POC to bake SMIL `<animateMotion>` circles by sampling their inline `path` at the frame time and replacing them with static `cx`/`cy` circles.
+**Why:** Triton's comet animation is motion-path based, not an attribute ramp; proving this path keeps animated APNG/GIF export viable without browser automation or heavy DOM/canvas dependencies.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-arch-mixedside-group-placement.md -->
+
+# Architecture mixed-side group placement
+
+Date: 2026-07-15
+Owner: Edsger
+
+## Problem
+
+At root cluster level, `architecture.mmd` places `group:cloud_grp` as a 2×1 rectangle, then maps cross-boundary edges to that group. The reverse mixed-side constraint for `client:R --> B:api` is `group:cloud_grp B -> R client`. The old diagonal candidate applied the group extent in both axes, placing `client` at `(3,2)`.
+
+## Before cell map
+
+- `api`: `(0,0)`
+- `db`: `(1,0)`
+- `storage`: `(0,2)`
+- `client`: `(3,2)`
+
+## Changed placement rule
+
+For group-aware rectangle placement only, mixed-side pairs (`L/R` paired with `T/B`) now use the current side as the dominant axis. The next item is placed outside the current rectangle only on that dominant axis; on the secondary axis it is aligned to the requested side within the current rectangle instead of being pushed beyond the full current extent. Collision search for mixed pairs preserves only that dominant half-plane.
+
+Pure orthogonal pairs (`LR`, `RL`, `TB`, `BT`) keep the previous extent-plus-lane behavior.
+
+## After cell map
+
+- `api`: `(0,0)`
+- `db`: `(1,0)`
+- `storage`: `(0,2)`
+- `client`: `(1,2)`
+
+`client` now shares `storage`'s row and sits under `db`, matching the compact 2×2 Mermaid intent. The occupied service cells are unique, and the external `client`/`storage` cells are outside the `cloud_grp` member bounds (`api`/`db`).
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-arch-node-measure-fit.md -->
+
+### 2026-07-14: Architecture service boxes now measure labels and reserve icon lanes
+**By:** Edsger
+**What:** Architecture-beta service node sizes are derived from `measureText(label, baseFontSize)` with a 130×56 minimum. Side icon aligns reserve a 34px horizontal lane; top/bottom/corner aligns reserve a vertical icon band; center icons use a taller box with the label below. Grid pixel placement now uses max measured width per column and max measured height per row, so routing obstacles and group bounds consume real per-node dimensions.
+**Why:** Fixed 130×56 service boxes let long labels spill and allowed independently positioned icons to collide with labels. Measuring first and using disjoint icon/label regions fixes text spill, icon overlap, and widened-node collisions in the architecture showcase.
+
+| service | label | align | measuredTextWidth | finalBoxWidth | availableLabelWidth |
+|---|---|---:|---:|---:|---:|
+| dashboard | Ops Dashboard | C | 98.26 | 130 | 106.00 |
+| collector | Event Collector | S | 96.67 | 130 | 106.00 |
+| backup | Offline Backup | NW | 91.26 | 130 | 106.00 |
+| users | Branch Users | E | 84.98 | 143 | 85.00 |
+| gateway | API Gateway | W | 81.89 | 140 | 82.00 |
+| stream | Stream Bus | N | 73.35 | 130 | 106.00 |
+| warehouse | Warehouse | SE | 71.75 | 130 | 106.00 |
+| lake | Data Lake | SW | 64.74 | 130 | 106.00 |
+
+Verification probe covered all aligns present in `triton-features.mmd` (C, E, N, NW, S, SE, SW, W), asserted label width fits available interior, asserted label/icon regions are disjoint, and asserted no service-service rect intersections.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-arrowhead-size-anim-overlap.md -->
+
+# Edsger: fixed architecture arrowhead sizing and motion clearance
+
+- Switched architecture arrow markers to `markerUnits="userSpaceOnUse"` with fixed `16x13` geometry (`refX=14.4`, `refY=6.5`; start `refX=1.6`) so arrowheads no longer scale with connector stroke width or pulse animation.
+- Measured showcase edge sizes after render: normal `users:R -_-> L:gateway` uses `arch-arrow-end`, stroke `1.6`, effective arrow `16x13`; thick `lake:R ==> L:warehouse` uses the same marker, stroke `3.2`, effective arrow `16x13`.
+- Marker-only change exposed a remaining measured overlap on wavy motion paths because trimming only the final numeric segment left `gateway:B -~-> T:collector` with a `0.24px` endpoint gap. Updated SVG motion trimming to stop at the requested Euclidean clearance, while preserving the short-path clamp.
+- Measured animated-arrow motion gaps after the SVG trim fix: `gateway:B -~-> T:collector @anim:stream` = `17.6px`; `dashboard:L <-~-> T:gateway @anim:comet` = `18.6px`.
+- `pulse`/`glow` cannot resize arrowheads now because marker dimensions are in user space rather than stroke-width units.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-bezier-wall-tangents.md -->
+
+### 2026-07-14: Bezier wall hints preserve endpoint tangents
+**By:** Edsger
+**What:** `BezierRouter` now turns `fromDir`/`toDir` wall hints into outward wall-normal control-point stubs before routing, and preserves those tangents through obstacle adjustment. For `warehouse:R -.-> L:dashboard @bezier:EW`, the measured path changed from `M 1254 412 C 1158 227.49999999999997 228 -132.50000000000003 24 52` to `M 1254 412 C 1260 412 -156 52 24 52`; cp1 is east of `(1254,412)` and cp2 is west of `(24,52)`.
+**Why:** Architecture-beta wall hints are a routing contract, not just endpoint selection. Control-point tangents must leave/enter the requested walls; hint-less beziers retain the existing dx/dy heuristic, verified by the unchanged gateway→collector route hash `ac6bd8995ec63de13f39e1c5f8eb4876a4bfd2b050b056ed8953b5e0d71cee99`.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-group-icon-header.md -->
+
+# Edsger: group icon header placement
+
+- Date: 2026-07-14T22:30:10-04:00
+- Decision: Group icons with `@iconalign` render in the group header strip, not via service `iconCenter` against the full container rect.
+- Layout: west-ish/default aligns use header-left icon at `r.x + 18` and label at `r.x + 34` (`start`); east-ish aligns use header-right icon at `r.x + r.width - 18` and label at `r.x + r.width - 34` (`end`). Both use `r.y + 16`.
+- Verification: temporary vitest probe on `examples/mermaid/architecture/triton-features.mmd` confirmed edge/platform/ops group icon regions do not intersect members and labels stay disjoint in the header. `pnpm preview examples/mermaid/architecture` preserved the `.mmd` hash `160b1bb97dfacc8233e1489da751f8b709b8487c`; `pnpm test -- --reporter=dot` passed 951 tests.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-wall-connector-distribution.md -->
+
+### 2026-07-14: Architecture wall connectors distribute by resolved wall hint
+**By:** Edsger
+**What:** Architecture layout now assigns each endpoint on a shared resolved node wall a deterministic wall parameter `t = (k+1)/(n+1)`, sorted by the other endpoint's center along the wall tangent axis. `endpointSide()` must honor `exitWall`/`entryWall` for every routing style, including orthogonal: `@orthogonal:EW` is itself an orthogonal wall hint and must not be discarded in favor of the declared `:L`/`:T` sides. Corrected probe measurements in `triton-features.mmd`: gateway west has `users -> gateway` at `(464,301.3333333333333)` (`t=0.6667`) and `dashboard -> gateway` at `(464,283.69)` (`t≈0.3516`, arrowhead-adjusted near one third); stream south has `collector -> stream` at `(947.3333333333334,320)` (`t=0.3333`) and `stream -> lake` at `(990.67,320)` (`t≈0.6667`).
+**Why:** Multiple connectors on the same resolved architecture wall should not converge at the midpoint, while single-connector walls must remain centered. The regression came from special-casing orthogonal edges, which moved `dashboard -> gateway` from its hinted dashboard east wall `(154,52)` back to declared west and created a phantom dashboard west fan. The fixed resolution restores dashboard east `(154,52)`, keeps `lake -> warehouse` single walls centered at `(1034,412)` and `(1124,412)`, and preserves the `@bezier:EW` `warehouse -> dashboard` anchors `(1254,412)` to `(24,52)`.
+
+---
+
+<!-- merged from .squad/decisions/inbox/edsger-wavy-arrowhead-straighten.md -->
+
+### 2026-07-14: Guarantee straight wavy connector arrowhead tangents
+**By:** Edsger
+**What:** `wavifyPath` now keeps the endpoint amplitude ramp, and additionally forces perpendicular displacement to exactly zero for samples `k = 0, 1, sampleCount - 2, sampleCount - 1`. This makes the first and last Catmull-Rom segments colinear with the underlying route, so both start and end arrowhead tangents are phase-independent. The regression now checks horizontal, vertical, short, and diagonal routes with ≤1° tolerance and rejects NaN output.
+**Why:** Damping by distance alone still lets the first/last interior sample inherit sine-phase displacement, so one arrowhead can remain tilted on some route lengths. The hard two-sample straight stub guarantees marker orientation while preserving interior waves, corner damping, and smooth endpoint ramping. Probe measurements: horizontal 200 START 0.00° END 0.00°; vertical 200 START 90.00° END 90.00°; short horizontal 8 START 0.00° END 0.00°; diagonal 150 START 45.00° END 45.00°. In `triton-features.mmd` layout, `gateway:B -~-> T:collector` measured START 90.00° END 90.00°, and `dashboard:L <-~-> T:gateway` measured START 0.00° END 0.00°.
+
+---
+
+### 2026-07-16: Animated diagram export targets APNG, not GIF
+**By:** Edsger / Coordinator
+**What:** The animated-export POC establishes APNG as the canonical animated diagram export target and drops GIF output. GIF's 256-color palette, 1-bit alpha, and practical low frame-rate behavior are unfit for Triton's antialiased connector animations.
+**Why:** APNG preserves RGBA frames, high frame rates, and smooth temporal-supersampled motion blur, matching the canonical comet export without the visible degradation seen in GIF.
+
+---
+
+### 2026-07-16: block-beta supports `space` and `space:N`
+**By:** Edsger
+**What:** block-beta now accepts `space` / `space:N` entries via `SpaceDef`; the IR marks them as `isSpace`, layout advances columns without rendering a rectangle, and hue indexing remains stable.
+**Why:** Explicit empty cells let authors tune block-beta composition without adding filler blocks or disturbing visible block color sequencing.
