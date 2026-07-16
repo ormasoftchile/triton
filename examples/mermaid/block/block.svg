@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 546 264" width="546" height="264">
+  <defs>
+    <marker id="block-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="546" height="264" fill="#FFFFFF" />
+  <path d="M 174 52 L 198 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 360 80 L 360 104" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 174 132 L 198 132" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 174 212 L 198 212" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <rect x="24" y="24" width="150" height="56" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.6" rx="8" />
+  <text x="99" y="57" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Frontend</text>
+  <rect x="198" y="24" width="324" height="56" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.6" rx="8" />
+  <text x="360" y="57" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API Layer</text>
+  <rect x="24" y="104" width="150" height="56" fill="#F8FAFC" stroke="#D97706" stroke-width="1.6" rx="8" />
+  <text x="99" y="137" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Auth</text>
+  <rect x="198" y="104" width="324" height="56" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.6" rx="8" />
+  <text x="360" y="137" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Database</text>
+  <rect x="24" y="184" width="150" height="56" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.6" rx="8" />
+  <text x="99" y="217" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Cache</text>
+  <rect x="198" y="184" width="150" height="56" fill="#F8FAFC" stroke="#2563EB" stroke-width="1.6" rx="8" />
+  <text x="273" y="217" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Queue</text>
+  <rect x="372" y="184" width="150" height="56" fill="#F8FAFC" stroke="#16A34A" stroke-width="1.6" rx="8" />
+  <text x="447" y="217" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Worker</text>
+</svg>
