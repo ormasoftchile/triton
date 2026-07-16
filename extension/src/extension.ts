@@ -6,6 +6,7 @@ import type { ThemeInput } from '../../src/contracts/index.js';
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { compileAndRenderSync } from '../../src/frontend/index.js';
+import { exportStaticPng, initExportWasm } from '../../src/export/index.js';
 import { themePresetNames } from '../../src/theme/preset.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
@@ -178,6 +179,7 @@ class PreviewManager {
   // to a non-diagram file leaves the last diagram untouched.
   private preview: Preview | undefined;
   private debounce: ReturnType<typeof setTimeout> | undefined;
+  private exportWasmPromise: Promise<void> | undefined;
   private readonly disposables: vscode.Disposable[] = [];
   private readonly registry: ThemeRegistry;
   private readonly iconRegistry: IconRegistry;
@@ -241,44 +243,119 @@ class PreviewManager {
 
   async exportSvg(resource?: vscode.Uri): Promise<void> {
     try {
-      const doc = await this.exportDocument(resource);
-      if (!doc) {
-        void vscode.window.showInformationMessage('Triton: open a .triton or .mmd diagram first, then export.');
-        return;
-      }
-      if (doc.uri.scheme === 'untitled') {
-        void vscode.window.showInformationMessage('Triton: save the diagram file before exporting SVG.');
-        return;
-      }
-
-      const renderable = pickRenderable(doc, readConfig(), 'explicit');
-      if (!renderable) {
-        void vscode.window.showInformationMessage('Triton: no exportable diagram found in the active document.');
-        return;
-      }
-
-      const { themeInput, forcedThemeName } = this.themeArgs();
-      const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks());
-      if (!result.ok) {
-        void vscode.window.showErrorMessage(`Triton: export failed: [${result.error.code}] ${result.error.message}`);
-        return;
-      }
-
-      const { outputName, outputUri } = this.svgOutputUri(doc.uri);
-      await vscode.workspace.fs.writeFile(outputUri, Buffer.from(result.value.svg, 'utf8'));
-
-      const reveal =
-        process.platform === 'darwin' ? 'Reveal in Finder' : process.platform === 'win32' ? 'Reveal in Explorer' : 'Reveal in File Manager';
-      const action = await vscode.window.showInformationMessage(`Exported ${outputName}`, 'Open', reveal);
-      if (action === 'Open') {
-        const exported = await vscode.workspace.openTextDocument(outputUri);
-        await vscode.window.showTextDocument(exported, { preview: false });
-      } else if (action === reveal) {
-        await vscode.commands.executeCommand('revealFileInOS', outputUri);
-      }
+      await this.exportToSibling(resource, 'svg');
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       void vscode.window.showErrorMessage(`Triton: export failed: ${message}`);
+    }
+  }
+
+  async exportPng(resource?: vscode.Uri): Promise<void> {
+    try {
+      await this.exportToSibling(resource, 'png');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      void vscode.window.showErrorMessage(`Triton: export failed: ${message}`);
+    }
+  }
+
+  async exportAs(resource?: vscode.Uri): Promise<void> {
+    try {
+      const prepared = await this.prepareExport(resource, 'using Export As');
+      if (!prepared) return;
+
+      const { outputUri: defaultUri } = this.exportOutputUri(prepared.doc.uri, 'svg');
+      const target = await vscode.window.showSaveDialog({
+        defaultUri,
+        filters: {
+          'SVG image': ['svg'],
+          'PNG image': ['png'],
+        },
+      });
+      if (!target) return;
+
+      const extension = extname(target);
+      if (extension !== '.svg' && extension !== '.png') {
+        void vscode.window.showErrorMessage('Triton: choose a .svg or .png file name.');
+        return;
+      }
+
+      await this.writeExport(prepared.svg, target, extension === '.png' ? 'png' : 'svg');
+      await this.showExported(target);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      void vscode.window.showErrorMessage(`Triton: export failed: ${message}`);
+    }
+  }
+
+  private async exportToSibling(resource: vscode.Uri | undefined, format: 'svg' | 'png'): Promise<void> {
+    const prepared = await this.prepareExport(resource, `exporting ${format.toUpperCase()}`);
+    if (!prepared) return;
+    const { outputUri } = this.exportOutputUri(prepared.doc.uri, format);
+    await this.writeExport(prepared.svg, outputUri, format);
+    await this.showExported(outputUri);
+  }
+
+  private async prepareExport(
+    resource: vscode.Uri | undefined,
+    action: string,
+  ): Promise<{ readonly doc: vscode.TextDocument; readonly svg: string } | undefined> {
+    const doc = await this.exportDocument(resource);
+    if (!doc) {
+      void vscode.window.showInformationMessage('Triton: open a .triton or .mmd diagram first, then export.');
+      return undefined;
+    }
+    if (doc.uri.scheme === 'untitled') {
+      void vscode.window.showInformationMessage(`Triton: save the diagram file before ${action}.`);
+      return undefined;
+    }
+
+    const svg = this.renderExportSvg(doc);
+    return svg == null ? undefined : { doc, svg };
+  }
+
+  private renderExportSvg(doc: vscode.TextDocument): string | undefined {
+    const renderable = pickRenderable(doc, readConfig(), 'explicit');
+    if (!renderable) {
+      void vscode.window.showInformationMessage('Triton: no exportable diagram found in the active document.');
+      return undefined;
+    }
+
+    const { themeInput, forcedThemeName } = this.themeArgs();
+    const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks());
+    if (!result.ok) {
+      void vscode.window.showErrorMessage(`Triton: export failed: [${result.error.code}] ${result.error.message}`);
+      return undefined;
+    }
+    return result.value.svg;
+  }
+
+  private async writeExport(svg: string, outputUri: vscode.Uri, format: 'svg' | 'png'): Promise<void> {
+    if (format === 'svg') {
+      await vscode.workspace.fs.writeFile(outputUri, Buffer.from(svg, 'utf8'));
+      return;
+    }
+    await this.ensureExportWasm();
+    const png = await exportStaticPng(svg);
+    await vscode.workspace.fs.writeFile(outputUri, png);
+  }
+
+  private ensureExportWasm(): Promise<void> {
+    this.exportWasmPromise ??= vscode.workspace.fs
+      .readFile(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'index_bg.wasm'))
+      .then(bytes => initExportWasm(bytes));
+    return this.exportWasmPromise;
+  }
+
+  private async showExported(outputUri: vscode.Uri): Promise<void> {
+    const outputName = basename(outputUri.scheme === 'file' ? outputUri.fsPath : outputUri.path);
+    const reveal =
+      process.platform === 'darwin' ? 'Reveal in Finder' : process.platform === 'win32' ? 'Reveal in Explorer' : 'Reveal in File Manager';
+    const action = await vscode.window.showInformationMessage(`Exported ${outputName}`, 'Open', reveal);
+    if (action === 'Open') {
+      await vscode.commands.executeCommand('vscode.open', outputUri);
+    } else if (action === reveal) {
+      await vscode.commands.executeCommand('revealFileInOS', outputUri);
     }
   }
 
@@ -299,12 +376,12 @@ class PreviewManager {
     return isDiagramDoc(doc, config) ? doc : undefined;
   }
 
-  private svgOutputUri(source: vscode.Uri): { readonly outputName: string; readonly outputUri: vscode.Uri } {
+  private exportOutputUri(source: vscode.Uri, format: 'svg' | 'png'): { readonly outputName: string; readonly outputUri: vscode.Uri } {
     const sourcePath = source.scheme === 'file' ? source.fsPath : source.path;
     const sourceName = basename(sourcePath);
     const sourceExt = extname(source);
     const outputBase = sourceExt && sourceName.toLowerCase().endsWith(sourceExt) ? sourceName.slice(0, -sourceExt.length) : sourceName;
-    const outputName = `${outputBase}.svg`;
+    const outputName = `${outputBase}.${format}`;
     if (source.scheme === 'file') {
       return { outputName, outputUri: vscode.Uri.joinPath(vscode.Uri.file(dirname(source.fsPath)), outputName) };
     }
@@ -622,6 +699,12 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(m
     }),
     vscode.commands.registerCommand('triton.exportSvg', (resource?: vscode.Uri) => {
       void manager.exportSvg(resource);
+    }),
+    vscode.commands.registerCommand('triton.exportPng', (resource?: vscode.Uri) => {
+      void manager.exportPng(resource);
+    }),
+    vscode.commands.registerCommand('triton.exportAs', (resource?: vscode.Uri) => {
+      void manager.exportAs(resource);
     }),
     // Reclaim and re-render the preview panel after a window reload, so the
     // diagram redraws from the live document (Mermaid included) instead of

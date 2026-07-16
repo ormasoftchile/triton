@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import UPNG from 'upng-js';
 import { ANIMATION_PERIOD_SECONDS, marchDashoffsetAt, pointAtPathFraction } from '../src/animation/index.js';
-import { bakeFrame, encodeApng, planLoop, renderToPng } from '../src/export/index.js';
+import { bakeFrame, encodeApng, initExportWasm, planLoop, renderToPng } from '../src/export/index.js';
+
+const require = createRequire(import.meta.url);
 
 const animatedSvg = `<svg viewBox="0 0 120 40" width="120" height="40" xmlns="http://www.w3.org/2000/svg">
   <path d="M 0 10 L 100 10" stroke="#000" stroke-width="2" fill="none" stroke-dasharray="4 2">
@@ -63,6 +67,8 @@ describe('animated export core', () => {
   });
 
   it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('rasters a tiny SVG through resvg-wasm', async () => {
+    const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+    await initExportWasm(wasmBytes);
     const png = await renderToPng('<svg viewBox="0 0 1 1" width="1" height="1" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" fill="#fff"/></svg>');
     expect(png.slice(1, 4)).toEqual(new Uint8Array([0x50, 0x4e, 0x47]));
   });

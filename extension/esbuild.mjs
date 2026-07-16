@@ -28,12 +28,14 @@
 
 import { build, context } from 'esbuild';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync, watch as fsWatch } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, watch as fsWatch } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url)); // extension/
 const repoRoot = resolve(here, '..'); // repo root
+const require = createRequire(import.meta.url);
 const watch = process.argv.includes('--watch');
 
 // ── Precondition: generate the Peggy parsers (incrementally) ────────────────────
@@ -57,6 +59,7 @@ function ensureGrammars() {
       if (existsSync(join(sub, 'grammar.peggy'))) out.push(sub);
       out.push(...findGrammarDirs(sub));
     }
+
     return out;
   }
 
@@ -96,6 +99,14 @@ function ensureGrammars() {
     );
     process.exit(1);
   }
+}
+
+function copyResvgWasm() {
+  const source = require.resolve('@resvg/resvg-wasm/index_bg.wasm');
+  const target = join(here, 'dist', 'index_bg.wasm');
+  mkdirSync(dirname(target), { recursive: true });
+  copyFileSync(source, target);
+  console.log('✓ copied extension/dist/index_bg.wasm');
 }
 
 // ── Plugin: rewrite NodeNext `*.js` specifiers to the real `*.ts` source ────────
@@ -144,6 +155,7 @@ if (watch) {
   // Guarantee a fresh bundle BEFORE entering watch mode, so the extension host
   // never loads a stale dist/extension.cjs (e.g. after pulling new diagram kinds).
   await ctx.rebuild();
+  copyResvgWasm();
   console.log('✓ bundled extension/dist/extension.cjs');
   await ctx.watch();
 
@@ -162,6 +174,7 @@ if (watch) {
       console.log(`› grammar changed (${filename}) — regenerating parsers…`);
       ensureGrammars();          // rewrites the stale parser.js
       await ctx.rebuild();       // re-inline the fresh parser into the bundle
+      copyResvgWasm();
       console.log('✓ re-bundled extension/dist/extension.cjs (grammar update) — reload the debug window');
     }, 150);
   });
@@ -169,5 +182,6 @@ if (watch) {
   console.log('› watching for changes (incl. grammar.peggy)…');
 } else {
   await build(options);
+  copyResvgWasm();
   console.log('✓ bundled extension/dist/extension.cjs');
 }

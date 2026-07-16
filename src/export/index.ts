@@ -53,8 +53,9 @@ const DEFAULT_MOTION_BLUR_SAMPLES = 1;
 const DEFAULT_SHUTTER = 1;
 const DEFAULT_LOOP_SECONDS = 1;
 const MS_PER_SECOND = 1000;
-const require = createRequire(import.meta.url);
+const require = createRequire(`${process.cwd()}/package.json`);
 let wasmInitPromise: Promise<void> | undefined;
+let injectedWasmBytes: Uint8Array | ArrayBuffer | undefined;
 
 export function bakeFrame(svg: string, timeSeconds: number): string {
   let baked = bakeAnimatedPaths(svg, timeSeconds);
@@ -67,6 +68,12 @@ export function bakeFrame(svg: string, timeSeconds: number): string {
 export async function renderToPng(svg: string, opts: RenderToPngOptions = {}): Promise<Uint8Array> {
   const rendered = await renderToRgba(svg, opts);
   return rendered.png;
+}
+
+export function initExportWasm(wasmBytes: Uint8Array | ArrayBuffer): Promise<void> {
+  injectedWasmBytes = wasmBytes;
+  wasmInitPromise ??= initWasm(wasmBytes);
+  return wasmInitPromise;
 }
 
 export function encodeApng(frames: readonly Uint8Array[], delaysMs: readonly number[], size: ApngSize): Uint8Array {
@@ -202,7 +209,9 @@ function renderOptions(opts: RenderToPngOptions): ResvgRenderOptions {
 }
 
 function ensureWasm(): Promise<void> {
-  wasmInitPromise ??= readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm')).then(bytes => initWasm(bytes));
+  wasmInitPromise ??= injectedWasmBytes != null
+    ? initWasm(injectedWasmBytes)
+    : readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm')).then(bytes => initWasm(bytes));
   return wasmInitPromise;
 }
 

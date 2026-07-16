@@ -27,7 +27,9 @@
     "onStartupFinished",
     "onCommand:triton.openPreview",
     "onCommand:triton.openPreviewToSide",
-    "onCommand:triton.exportSvg"
+    "onCommand:triton.exportSvg",
+    "onCommand:triton.exportPng",
+    "onCommand:triton.exportAs"
   ],
   "contributes": {
     "markdown.markdownItPlugins": true,
@@ -64,6 +66,25 @@
         "title": "Export as SVG",
         "category": "Triton",
         "icon": "$(export)"
+      },
+      {
+        "command": "triton.exportPng",
+        "title": "Export as PNG",
+        "category": "Triton",
+        "icon": "$(file-media)"
+      },
+      {
+        "command": "triton.exportAs",
+        "title": "Export As…",
+        "category": "Triton",
+        "icon": "$(save-as)"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "triton.exportMenu",
+        "label": "Triton Export",
+        "icon": "$(chevron-down)"
       }
     ],
     "menus": {
@@ -79,23 +100,53 @@
         {
           "command": "triton.exportSvg",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
+        },
+        {
+          "command": "triton.exportPng",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
+        },
+        {
+          "command": "triton.exportAs",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
         }
       ],
       "editor/title": [
         {
           "command": "triton.exportSvg",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "submenu": "triton.exportMenu",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "navigation@2"
         },
         {
           "command": "triton.openPreviewToSide",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
-          "group": "navigation"
+          "group": "navigation@3"
         },
         {
           "command": "triton.openPreview",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
-          "group": "navigation"
+          "group": "navigation@4"
+        }
+      ],
+      "triton.exportMenu": [
+        {
+          "command": "triton.exportSvg",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "1_export@1"
+        },
+        {
+          "command": "triton.exportPng",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "1_export@2"
+        },
+        {
+          "command": "triton.exportAs",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "1_export@3"
         }
       ],
       "editor/context": [
