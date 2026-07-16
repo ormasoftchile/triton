@@ -40,7 +40,7 @@ type RenderMode = 'explicit' | 'passive';
 const PREVIEW_THEME_KEY = 'triton.previewTheme';
 const DEFAULT_ANIMATED_EXPORT: AnimatedExportConfig = {
   fps: 60,
-  speed: 0.35,
+  speed: 1,
   motionBlurSamples: 8,
   shutter: 0.75,
 };

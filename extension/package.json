@@ -201,10 +201,10 @@
         },
         "triton.export.animated.speed": {
           "type": "number",
-          "default": 0.35,
+          "default": 1,
           "minimum": 0.01,
           "maximum": 10,
-          "description": "Playback speed multiplier for animated PNG exports; lower values slow the animation."
+          "description": "Playback speed multiplier for animated PNG exports; default plays at real time to match the live preview. Lower values produce slow motion for fast or long motion animations."
         },
         "triton.export.animated.motionBlurSamples": {
           "type": "integer",
