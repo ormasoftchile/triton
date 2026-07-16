@@ -53,7 +53,7 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
     const x = margin + col * (cellW + gap);
     const w = span * cellW + (span - 1) * gap;
     const y = top + row * (rowH + gap);
-    rects.set(b.id, { x, y, width: w, height: rowH });
+    if (!b.isSpace) rects.set(b.id, { x, y, width: w, height: rowH });
     col += span;
   }
 
@@ -87,12 +87,14 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
   }
 
   // ── Blocks ─────────────────────────────────────────────────────────────────
-  ir.blocks.forEach((b, i) => {
+  let blockIndex = 0;
+  for (const b of ir.blocks) {
+    if (b.isSpace) continue;
     const r = rects.get(b.id)!;
-    const hue = categoricalHue(i);
+    const hue = categoricalHue(blockIndex++);
     elements.push(p.rect({ x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) }, palette.surface, hue, 1.6, { rx: 8 }));
     elements.push(p.text(b.label, rhuInt(r.x + r.width / 2), rhuInt(r.y + r.height / 2 + typography.baseFontSize * 0.35), typography.baseFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
-  });
+  }
 
   const maxRight  = Math.max(margin, ...[...rects.values()].map(r => r.x + r.width));
   const maxBottom = Math.max(top, ...[...rects.values()].map(r => r.y + r.height));

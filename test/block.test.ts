@@ -85,6 +85,17 @@ describe('block connector grammar', () => {
 });
 
 describe('block connector layout', () => {
+  it('uses space fillers for empty block-beta cells without rendering filler blocks', () => {
+    const scene = layoutBlock(parse('block-beta\ncolumns 4\n  A["A"] space:2 B["B"]\n  A --> B\n'), defaultTheme).scene;
+    const rects = scene.elements.filter(el => el.type === 'rect');
+    const texts = scene.elements.filter(el => el.type === 'text');
+    const paths = scene.elements.filter(el => el.type === 'path');
+
+    expect(rects).toHaveLength(2);
+    expect(texts).toHaveLength(2);
+    expect(paths).toHaveLength(1);
+  });
+
   it('renders wavy connectors with curved geometry', () => {
     const solid = edgePath('-->');
     const wavy = edgePath('-~->');

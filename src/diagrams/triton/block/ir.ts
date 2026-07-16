@@ -6,6 +6,7 @@ export interface BlockNode {
   readonly id: string;
   readonly label: string;
   readonly span: number;
+  readonly isSpace?: boolean;
 }
 
 export interface BlockEdge {

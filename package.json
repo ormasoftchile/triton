@@ -40,6 +40,7 @@
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
+    "upng-js": "^2.1.0",
     "vitest": "^3.2.0"
   }
 }

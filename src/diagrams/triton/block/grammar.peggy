@@ -1,7 +1,7 @@
 // Block Grammar — Peggy PEG
 //
 // Mermaid-compatible block-beta subset: a column count, block definitions
-// (Id["Label"] with optional :span, several per line), and connector edges.
+// (Id["Label"] with optional :span, `space` fillers, several per line), and connector edges.
 
 {{
   import { CONNECTOR_ANIMATIONS } from '../../../contracts/animations.js';
@@ -105,8 +105,15 @@ PropValue
   = value:Ident { return value; }
 
 BlockLine
-  = _ first:BlockDef rest:(__ b:BlockDef { return b; })* _ LineEnd {
+  = _ first:BlockItem rest:(__ b:BlockItem { return b; })* _ LineEnd {
       return { t: 'blocks', items: [first, ...rest] };
+    }
+
+BlockItem = SpaceDef / BlockDef
+
+SpaceDef
+  = "space"i span:(":" n:Integer { return n; })? {
+      return { id: `__space_${location().start.offset}`, label: '', span: span || 1, isSpace: true };
     }
 
 BlockDef
