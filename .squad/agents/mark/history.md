@@ -114,3 +114,10 @@ Universal %% comment support feature complete. All 45 diagram families now accep
 **Test results:** 65/65 passed. `pnpm typecheck` clean.
 
 **Decision filed:** `.squad/decisions/inbox/mark-icon-p0-ir.md`
+
+## 2026-07-16T16:41:03.368-04:00 — Export feature: lockout bake-fix revision
+
+- Took revision ownership after Ken failed export QA and locked out Edsger/Brian from fixing their rejected artifacts.
+- Changed static PNG export to bake frame t=0 before rasterization, eliminating orphan motion particles at the origin.
+- Fixed animated path baking by excluding self-closing `<path/>` tags from explicit path block matching.
+- Commit b398a1e; 1006 tests green; Ken re-review passed as ship-ready.

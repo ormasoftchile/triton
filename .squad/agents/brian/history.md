@@ -169,3 +169,10 @@ Brian again over-edited the architecture showcase while implementing per-style w
 - Regression coverage added in `test/poster-mermaid-detect.test.ts` for keywords such as `graph`, `block-beta`, `C4Context`, and `packet-beta`.
 - Validation reported: `pnpm test` passed (46 files / 957 tests) and `pnpm typecheck` passed; coordinator committed `0ecb2d2`.
 - Scope guard: the unrelated user/showcase edit in `examples/mermaid/architecture/triton-features.mmd` was intentionally left untouched.
+
+## 2026-07-16T16:41:03.368-04:00 — Export feature: VS Code commands and UX
+
+- Added `triton.exportSvg` and editor-title button (commit ee04658).
+- Added static PNG export, Export As save dialog, export submenu, bundled `resvg-wasm` into the VSIX, and host WASM injection with Node fallback (commit 6137d62).
+- Added animated APNG export with progress/cancellation and `triton.export.animated.*` settings (commit 1726448).
+- Lockout note: Ken's initial export QA failed two bake defects, so Mark—not Brian/Edsger—performed the revision; Ken's re-review passed.
