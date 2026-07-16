@@ -140,7 +140,7 @@ export async function exportAnimatedPng(renderedSvg: string, opts: AnimatedPngOp
 }
 
 export async function exportStaticPng(renderedSvg: string, opts: RenderToPngOptions = {}): Promise<Uint8Array> {
-  return renderToPng(renderedSvg, opts);
+  return renderToPng(bakeFrame(renderedSvg, 0), opts);
 }
 
 export function detectAnimationPeriods(svg: string): RenderedConnectorAnimation[] {
@@ -228,7 +228,7 @@ function ensureWasm(): Promise<void> {
 }
 
 function bakeAnimatedPaths(svg: string, timeSeconds: number): string {
-  return svg.replace(/<path\b([^>]*)>([\s\S]*?)<\/path>/g, (match, rawAttrs: string, inner: string) => {
+  return svg.replace(/<path\b([^>]*?)(?<!\/)>([\s\S]*?)<\/path>/g, (match, rawAttrs: string, inner: string) => {
     if (!/<animate\b/.test(inner)) return match;
     const attrs = parseAttrs(rawAttrs);
     let nextAttrs = rawAttrs;
