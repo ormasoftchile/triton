@@ -330,12 +330,12 @@ describe('routeConnectors', () => {
   it('threads every connector animation value to scene paths and SVG SMIL', () => {
     const cases = [
       { anim: 'march', style: 'dashed', expect: 'attributeName="stroke-dashoffset"' },
-      { anim: 'particle', expect: '<animateMotion dur="1.5s"' },
+      { anim: 'particle', expect: '<animateMotion dur="1.6s"' },
       { anim: 'draw', expect: 'values="0;' },
       { anim: 'pulse', expect: 'attributeName="stroke-width"' },
       { anim: 'glow', expect: 'attributeName="stroke-opacity"' },
-      { anim: 'comet', expect: 'begin="-0.36s"' },
-      { anim: 'stream', expect: 'begin="-1.5s"' },
+      { anim: 'comet', expect: 'begin="-0.32s"' },
+      { anim: 'stream', expect: 'begin="-1.8s"' },
       { anim: 'flow', expect: '<linearGradient id="triton-flow-' },
       { anim: 'colorcycle', expect: 'attributeName="stroke" values="#4A90D9;#9b51e0;#e54444;#2ecc71;#4A90D9"' },
     ] as const;
