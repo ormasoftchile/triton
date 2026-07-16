@@ -66,7 +66,7 @@ const MERMAID_PATTERNS: [RegExp, DiagramKind][] = [
   [/^topology\b/i,                                     'topology'],
 ];
 
-function matchMermaid(text: string): DiagramKind | undefined {
+export function matchMermaid(text: string): DiagramKind | undefined {
   for (const [pattern, type] of MERMAID_PATTERNS) {
     if (pattern.test(text)) return type;
   }
