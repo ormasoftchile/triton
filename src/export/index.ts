@@ -41,6 +41,15 @@ export interface AnimatedPngOptions extends RenderToPngOptions {
   readonly speed?: number;
   readonly motionBlurSamples?: number;
   readonly shutter?: number;
+  readonly onProgress?: (framesDone: number, frameTotal: number) => void;
+  readonly signal?: AbortSignal;
+}
+
+export class ExportCancelledError extends Error {
+  constructor() {
+    super('Animated export cancelled');
+    this.name = 'ExportCancelledError';
+  }
 }
 
 interface RgbaFrame extends ApngSize {
@@ -102,6 +111,7 @@ export function planLoop(periodsPresent: Iterable<ExportAnimationPeriod>, fps: n
 }
 
 export async function exportAnimatedPng(renderedSvg: string, opts: AnimatedPngOptions = {}): Promise<Uint8Array> {
+  throwIfCancelled(opts.signal);
   const fps = positiveNumber(opts.fps ?? DEFAULT_FPS, 'fps');
   const speed = positiveNumber(opts.speed ?? DEFAULT_SPEED, 'speed');
   const motionBlurSamples = positiveInteger(opts.motionBlurSamples ?? DEFAULT_MOTION_BLUR_SAMPLES, 'motionBlurSamples');
@@ -122,6 +132,8 @@ export async function exportAnimatedPng(renderedSvg: string, opts: AnimatedPngOp
       throw new Error('Rendered frame dimensions changed during APNG export');
     }
     frames.push(frame.rgba);
+    opts.onProgress?.(i + 1, frameCount);
+    throwIfCancelled(opts.signal);
   }
 
   return encodeApng(frames, Array(frameCount).fill(delayMs), size ?? { width: 0, height: 0 });
@@ -370,6 +382,10 @@ function gcd(a: number, b: number): number {
 
 function lcm(a: number, b: number): number {
   return Math.abs(a * b) / gcd(a, b);
+}
+
+function throwIfCancelled(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) throw new ExportCancelledError();
 }
 
 function positiveNumber(value: number, name: string): number {

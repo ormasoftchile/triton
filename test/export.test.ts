@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import UPNG from 'upng-js';
 import { ANIMATION_PERIOD_SECONDS, marchDashoffsetAt, pointAtPathFraction } from '../src/animation/index.js';
-import { bakeFrame, encodeApng, initExportWasm, planLoop, renderToPng } from '../src/export/index.js';
+import { bakeFrame, encodeApng, ExportCancelledError, exportAnimatedPng, initExportWasm, planLoop, renderToPng } from '../src/export/index.js';
 
 const require = createRequire(import.meta.url);
 
@@ -56,6 +56,12 @@ describe('animated export core', () => {
     expect(pointAtPathFraction(path, 1)).toEqual({ x: 10, y: 10 });
   });
 
+  it('rejects with ExportCancelledError when already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    await expect(exportAnimatedPng(animatedSvg, { signal: controller.signal })).rejects.toBeInstanceOf(ExportCancelledError);
+  });
+
   it('encodes APNG frames that decode with the same frame count', () => {
     const red = new Uint8Array([255, 0, 0, 255]);
     const blue = new Uint8Array([0, 0, 255, 255]);
@@ -64,6 +70,23 @@ describe('animated export core', () => {
     expect(decoded.width).toBe(1);
     expect(decoded.height).toBe(1);
     expect(decoded.tabs?.acTL?.num_frames).toBe(2);
+  });
+
+  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('reports progress once per rendered APNG frame', async () => {
+    const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+    await initExportWasm(wasmBytes);
+    const calls: Array<readonly [number, number]> = [];
+    await exportAnimatedPng(animatedSvg, {
+      fps: 5,
+      speed: 10,
+      width: 12,
+      onProgress: (done, total) => calls.push([done, total]),
+    });
+    const total = calls[0]?.[1] ?? 0;
+    expect(total).toBeGreaterThan(0);
+    expect(calls).toHaveLength(total);
+    expect(calls.map(([done]) => done)).toEqual(Array.from({ length: total }, (_, i) => i + 1));
+    expect(calls.every(([, frameTotal]) => frameTotal === total)).toBe(true);
   });
 
   it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('rasters a tiny SVG through resvg-wasm', async () => {

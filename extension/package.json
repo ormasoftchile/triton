@@ -29,6 +29,7 @@
     "onCommand:triton.openPreviewToSide",
     "onCommand:triton.exportSvg",
     "onCommand:triton.exportPng",
+    "onCommand:triton.exportAnimated",
     "onCommand:triton.exportAs"
   ],
   "contributes": {
@@ -74,6 +75,12 @@
         "icon": "$(file-media)"
       },
       {
+        "command": "triton.exportAnimated",
+        "title": "Export Animated PNG",
+        "category": "Triton",
+        "icon": "$(play)"
+      },
+      {
         "command": "triton.exportAs",
         "title": "Export As…",
         "category": "Triton",
@@ -103,6 +110,10 @@
         },
         {
           "command": "triton.exportPng",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
+        },
+        {
+          "command": "triton.exportAnimated",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd"
         },
         {
@@ -147,6 +158,11 @@
           "command": "triton.exportAs",
           "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
           "group": "1_export@3"
+        },
+        {
+          "command": "triton.exportAnimated",
+          "when": "resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd",
+          "group": "2_animated@1"
         }
       ],
       "editor/context": [
@@ -175,6 +191,34 @@
           "default": 150,
           "minimum": 0,
           "description": "Delay (in milliseconds) after the last edit before the live preview re-renders."
+        },
+        "triton.export.animated.fps": {
+          "type": "number",
+          "default": 60,
+          "minimum": 1,
+          "maximum": 240,
+          "description": "Frames per second for animated PNG exports."
+        },
+        "triton.export.animated.speed": {
+          "type": "number",
+          "default": 0.35,
+          "minimum": 0.01,
+          "maximum": 10,
+          "description": "Playback speed multiplier for animated PNG exports; lower values slow the animation."
+        },
+        "triton.export.animated.motionBlurSamples": {
+          "type": "integer",
+          "default": 8,
+          "minimum": 1,
+          "maximum": 64,
+          "description": "Temporal samples per frame for animated PNG motion blur."
+        },
+        "triton.export.animated.shutter": {
+          "type": "number",
+          "default": 0.75,
+          "minimum": 0.01,
+          "maximum": 1,
+          "description": "Fraction of each frame interval exposed for motion blur, from 0.01 to 1."
         }
       }
     }

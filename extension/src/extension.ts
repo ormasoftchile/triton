@@ -6,7 +6,7 @@ import type { ThemeInput } from '../../src/contracts/index.js';
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { compileAndRenderSync } from '../../src/frontend/index.js';
-import { exportStaticPng, initExportWasm } from '../../src/export/index.js';
+import { ExportCancelledError, exportAnimatedPng, exportStaticPng, initExportWasm } from '../../src/export/index.js';
 import { themePresetNames } from '../../src/theme/preset.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
@@ -38,6 +38,12 @@ import { IconRegistry } from './icon-registry.js';
 type RenderMode = 'explicit' | 'passive';
 
 const PREVIEW_THEME_KEY = 'triton.previewTheme';
+const DEFAULT_ANIMATED_EXPORT: AnimatedExportConfig = {
+  fps: 60,
+  speed: 0.35,
+  motionBlurSamples: 8,
+  shutter: 0.75,
+};
 
 interface Renderable {
   /** The diagram source text to feed to `render()`. */
@@ -47,6 +53,14 @@ interface Renderable {
 interface PreviewConfig {
   readonly enableMermaid: boolean;
   readonly debounceMs: number;
+  readonly animatedExport: AnimatedExportConfig;
+}
+
+interface AnimatedExportConfig {
+  readonly fps: number;
+  readonly speed: number;
+  readonly motionBlurSamples: number;
+  readonly shutter: number;
 }
 
 function readConfig(): PreviewConfig {
@@ -54,6 +68,12 @@ function readConfig(): PreviewConfig {
   return {
     enableMermaid: cfg.get<boolean>('enableMermaid', false),
     debounceMs: cfg.get<number>('preview.debounceMs', 150),
+    animatedExport: {
+      fps: cfg.get<number>('export.animated.fps', DEFAULT_ANIMATED_EXPORT.fps),
+      speed: cfg.get<number>('export.animated.speed', DEFAULT_ANIMATED_EXPORT.speed),
+      motionBlurSamples: cfg.get<number>('export.animated.motionBlurSamples', DEFAULT_ANIMATED_EXPORT.motionBlurSamples),
+      shutter: cfg.get<number>('export.animated.shutter', DEFAULT_ANIMATED_EXPORT.shutter),
+    },
   };
 }
 
@@ -259,6 +279,46 @@ class PreviewManager {
     }
   }
 
+  async exportAnimated(resource?: vscode.Uri): Promise<void> {
+    try {
+      const prepared = await this.prepareExport(resource, 'exporting animated PNG');
+      if (!prepared) return;
+      await this.ensureExportWasm();
+      const outputUri = this.animatedExportOutputUri(prepared.doc.uri);
+      const options = readConfig().animatedExport;
+      const png = await vscode.window.withProgress(
+        { location: vscode.ProgressLocation.Notification, cancellable: true, title: 'Exporting animated PNG…' },
+        async (progress, token) => {
+          const controller = new AbortController();
+          const disposable = token.onCancellationRequested(() => controller.abort());
+          let reported = 0;
+          try {
+            return await exportAnimatedPng(prepared.svg, {
+              ...options,
+              signal: controller.signal,
+              onProgress: (framesDone, frameTotal) => {
+                const next = frameTotal > 0 ? (framesDone / frameTotal) * 100 : 100;
+                progress.report({ increment: Math.max(0, next - reported), message: `frame ${framesDone}/${frameTotal}` });
+                reported = next;
+              },
+            });
+          } finally {
+            disposable.dispose();
+          }
+        },
+      );
+      await vscode.workspace.fs.writeFile(outputUri, png);
+      await this.showExported(outputUri);
+    } catch (err) {
+      if (err instanceof ExportCancelledError) {
+        void vscode.window.showInformationMessage('Animated export cancelled');
+        return;
+      }
+      const message = err instanceof Error ? err.message : String(err);
+      void vscode.window.showErrorMessage(`Triton: export failed: ${message}`);
+    }
+  }
+
   async exportAs(resource?: vscode.Uri): Promise<void> {
     try {
       const prepared = await this.prepareExport(resource, 'using Export As');
@@ -374,6 +434,20 @@ class PreviewManager {
     const existing = vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
     const doc = existing ?? (await vscode.workspace.openTextDocument(preview.docUri));
     return isDiagramDoc(doc, config) ? doc : undefined;
+  }
+
+  private animatedExportOutputUri(source: vscode.Uri): vscode.Uri {
+    const sourcePath = source.scheme === 'file' ? source.fsPath : source.path;
+    const sourceName = basename(sourcePath);
+    const sourceExt = extname(source);
+    const outputBase = sourceExt && sourceName.toLowerCase().endsWith(sourceExt) ? sourceName.slice(0, -sourceExt.length) : sourceName;
+    const outputName = `${outputBase}.animated.png`;
+    if (source.scheme === 'file') {
+      return vscode.Uri.joinPath(vscode.Uri.file(dirname(source.fsPath)), outputName);
+    }
+    const slash = source.path.lastIndexOf('/');
+    const dir = source.with({ path: slash >= 0 ? source.path.slice(0, slash) || '/' : '/', query: '', fragment: '' });
+    return vscode.Uri.joinPath(dir, outputName);
   }
 
   private exportOutputUri(source: vscode.Uri, format: 'svg' | 'png'): { readonly outputName: string; readonly outputUri: vscode.Uri } {
@@ -702,6 +776,9 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(m
     }),
     vscode.commands.registerCommand('triton.exportPng', (resource?: vscode.Uri) => {
       void manager.exportPng(resource);
+    }),
+    vscode.commands.registerCommand('triton.exportAnimated', (resource?: vscode.Uri) => {
+      void manager.exportAnimated(resource);
     }),
     vscode.commands.registerCommand('triton.exportAs', (resource?: vscode.Uri) => {
       void manager.exportAs(resource);
