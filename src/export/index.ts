@@ -134,6 +134,7 @@ export async function exportAnimatedPng(renderedSvg: string, opts: AnimatedPngOp
     frames.push(frame.rgba);
     opts.onProgress?.(i + 1, frameCount);
     throwIfCancelled(opts.signal);
+    await yieldToEventLoop();
   }
 
   return encodeApng(frames, Array(frameCount).fill(delayMs), size ?? { width: 0, height: 0 });
@@ -225,6 +226,10 @@ function ensureWasm(): Promise<void> {
     ? initWasm(injectedWasmBytes)
     : readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm')).then(bytes => initWasm(bytes));
   return wasmInitPromise;
+}
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise(resolve => (typeof setImmediate === 'function' ? setImmediate(resolve) : setTimeout(resolve, 0)));
 }
 
 function bakeAnimatedPaths(svg: string, timeSeconds: number): string {
