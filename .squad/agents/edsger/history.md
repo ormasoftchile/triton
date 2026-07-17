@@ -95,3 +95,9 @@ Specified recursive clustered grid placement for architecture-beta: groups are a
 - Extracted animation math into `src/animation/index.ts` and harmonized periods to the base 0.8s family (max LCM 2.4s) in commit f493eaf; 993 tests green.
 - Added core export module `src/export/index.ts` with SVG frame baking, resvg PNG rasterization, APNG encoding, loop planning, and animated/static PNG export in commit 6fa6250.
 - Follow-up QA found bake bugs fixed by Mark under reviewer lockout; final Ken re-review passed.
+
+
+## 2026-07-16T21:12:28-04:00 — Crosslink arrowhead export polish
+
+- Fixed exported crosslink arrowheads rendering black by emitting per-color baked SVG markers for each marker kind/color.
+- Updated crosslink/poster coverage; coordinator verified typecheck/tests green and merged PR #81.

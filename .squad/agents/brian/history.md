@@ -183,3 +183,10 @@ Brian again over-edited the architecture showcase while implementing per-style w
 - Animated PNG export now defaults `triton.export.animated.speed` to `1.0`, matching live preview timing unless users explicitly choose slow motion.
 - `exportAnimatedPng` yields to the event loop after each frame so VS Code progress UI updates and cancellation can interrupt long renders.
 - Raster text export must resolve the active theme's `typography.fontFamily` to installed font bytes via `fontkit` and pass those buffers into `resvg-wasm`; hardcoded export fonts are rejected because they break theme fidelity.
+
+
+## 2026-07-16T21:12:28-04:00 — Export fonts and README preview polish
+
+- Bundled Inter Regular/Bold for deterministic default-theme raster text, registered the fonts for PNG/APNG export, and shipped them in the VSIX.
+- Re-exported the README APNG with an opaque #0F172A background from spanning.mmd and added a repeatable export script.
+- Coordinator verified crisp bold text, colored arrows, opaque preview rendering, and green checks before PR #81 merged.

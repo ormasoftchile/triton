@@ -7193,3 +7193,25 @@ Viewed/generated:
 **By:** Squad (Coordinator), on directive from @ormasoftchile
 **What:** The font used to rasterize `<text>` in SVG/PNG/APNG export must be the ACTIVE THEME's `typography.fontFamily` (already emitted into every `<text>` by src/render/svg.ts:74) — NOT a hardcoded bundled font (e.g. Inter). resvg-wasm renders no text because it has no font bytes for the theme's family; the fix must supply resvg the bytes for the THEME font, resolved from where that font actually lives on the exporting machine (matching what the preview shows).
 **Why:** User: "the font HAS to be that of the theme." Hardcoding one font would break theme fidelity and diverge export from preview.
+
+
+---
+
+### 2026-07-16T20:40:46-04:00: Bundle Inter Regular and Bold for default raster exports
+**By:** Brian
+**What:** PNG/APNG export now registers the default theme's primary `Inter` family from bundled Inter v4.1 Regular and Bold font files, with bundled faces taking precedence over system fonts only for that explicit family.
+**Why:** The default stack names Inter first, but falling through to macOS `system-ui` supplies no discrete bold face and causes resvg faux-bold. Bundling Inter under its SIL OFL 1.1 license keeps exports deterministic while preserving system resolution for custom theme families.
+
+---
+
+### 2026-07-16T21:08:00-04:00: README APNG uses opaque dark export theme
+**By:** Brian
+**What:** Regenerated `extension/resources/spanning.animated.png` from `examples/triton/poster/spanning.mmd` with the extension dark auto palette plus opaque `#0F172A` background, and added `scripts/export-readme-anim.mjs` as the repeatable regeneration tool.
+**Why:** Marketplace and GitHub README images do not reliably adapt to page theme, so the extension preview image must carry its own opaque dark background while still using bundled Inter fonts and colored crosslink arrow markers.
+
+---
+
+### 2026-07-16T20:40:46-04:00: Cross-link arrow markers are color-baked
+**By:** Edsger
+**What:** Cross-link renderers now emit one arrow marker per distinct edge color and marker kind, with the polygon fill baked to that edge color and paths referencing the color-specific marker id.
+**Why:** resvg does not resolve currentColor inside SVG markers, so shared currentColor arrowheads exported as black instead of matching cross-link strokes.
