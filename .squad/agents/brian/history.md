@@ -195,3 +195,8 @@ Brian again over-edited the architecture showcase while implementing per-style w
 - brian-10 exported the README preview as an opaque #0F172A animated PNG and embedded it via `extension/resources/spanning.animated.png`; released in v0.1.27.
 - brian-11 reduced VSIX size by keeping esbuild sourcemaps to watch/dev builds and minifying production bundles; released in v0.1.28.
 
+
+## 2026-07-16T21:35:29-04:00 — README preview image URL gotcha
+
+- `vsce package` rewrites relative image paths in `extension/README.md` from the repository root, not the `extension/` package directory; paths like `resources/spanning.animated.png` can become broken `/raw/HEAD/resources/...` URLs.
+- Use an absolute GitHub raw URL that includes the `extension/` prefix for marketplace README preview assets; Brian applied this for `extension/resources/spanning.animated.png` in PR #83 / v0.1.29.

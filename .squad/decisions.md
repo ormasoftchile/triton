@@ -7220,3 +7220,8 @@ Viewed/generated:
 **By:** Brian
 **What:** Extension production builds now disable source map emission and enable minification, while watch builds retain source maps and readable output. The VSIX ignore list no longer re-includes dist/extension.cjs.map.
 **Why:** The published extension was shipping a large source map and an unminified bundle, increasing VSIX size without user benefit. Keeping maps only in watch mode preserves debug workflow while reducing release artifact size.
+
+### 2026-07-16T21:30:52-04:00: Use absolute README preview URL for extension packages
+**By:** Brian
+**What:** The extension README preview image now uses an absolute GitHub raw URL pinned to `main` with the `extension/` path included.
+**Why:** `vsce package` rewrites relative README image paths using the repository root rather than the `extension/` package folder, producing a broken `/raw/HEAD/resources/...` URL. An absolute HTTPS URL is preserved by `vsce` and avoids the subdirectory rewrite gotcha.
