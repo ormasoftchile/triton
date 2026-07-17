@@ -17,6 +17,19 @@ export interface IndexedFontFace {
   readonly subfamily: string;
   readonly fullName: string;
   readonly path: string;
+  readonly bytes?: Uint8Array;
+}
+
+export interface BundledFontRegistration {
+  readonly family: string;
+  readonly faces: readonly BundledFontFaceRegistration[];
+}
+
+export interface BundledFontFaceRegistration {
+  readonly subfamily: string;
+  readonly fullName?: string;
+  readonly bytes?: Uint8Array;
+  readonly path?: string;
 }
 
 interface FontkitFont {
@@ -36,7 +49,8 @@ interface Fontkit {
 
 const FONT_EXT_RE = /\.(?:ttf|otf|ttc|otc)$/i;
 const GENERIC_FAMILIES = new Set(['serif', 'sans-serif', 'monospace', 'system-ui', '-apple-system', 'blinkmacsystemfont']);
-let fontIndexPromise: Promise<readonly IndexedFontFace[]> | undefined;
+let systemFontIndexPromise: Promise<readonly IndexedFontFace[]> | undefined;
+let bundledFontFaces: readonly IndexedFontFace[] = defaultBundledFontFaces();
 
 export async function resolveThemeFont(fontFamily: string): Promise<ResolvedThemeFont | undefined> {
   const index = await getFontIndex();
@@ -48,7 +62,8 @@ export async function resolveThemeFontFromIndex(
   index: readonly IndexedFontFace[],
   loadFile: (path: string) => Promise<Uint8Array> = async (path) => new Uint8Array(await readFile(path)),
 ): Promise<ResolvedThemeFont | undefined> {
-  const byFamily = buildFamilyMap(index);
+  const mergedIndex = [...bundledFontFaces, ...index];
+  const byFamily = buildFamilyMap(mergedIndex);
   for (const requested of parseFontFamilyStack(fontFamily)) {
     const faceFamily = resolveFamilyName(requested, byFamily, index);
     if (faceFamily == null) continue;
@@ -62,7 +77,7 @@ export async function resolveThemeFontFromIndex(
       if (seen.has(face.path)) continue;
       seen.add(face.path);
       try {
-        buffers.push(await loadFile(face.path));
+        buffers.push(face.bytes ?? await loadFile(face.path));
       } catch {
         // Font disappeared or is unreadable. Try the next face/file.
       }
@@ -70,6 +85,22 @@ export async function resolveThemeFontFromIndex(
     if (buffers.length > 0) return { buffers, family: selected[0]?.family ?? faceFamily };
   }
   return undefined;
+}
+
+export function registerBundledFont(registration: BundledFontRegistration): void {
+  const family = cleanName(registration.family);
+  if (!family || registration.faces.length === 0) return;
+  const key = normalizeFamily(family);
+  const faces = registration.faces.flatMap((face, index): IndexedFontFace[] => {
+    const subfamily = cleanName(face.subfamily) ?? '';
+    const fullName = cleanName(face.fullName) ?? `${family} ${subfamily}`.trim();
+    const path = face.path ?? `bundled:${key}:${index}:${normalizeFamily(subfamily || fullName)}`;
+    if (face.bytes == null && face.path == null) return [];
+    return [{ family, subfamily, fullName, path, ...(face.bytes != null ? { bytes: new Uint8Array(face.bytes) } : {}) }];
+  });
+  if (faces.length === 0) return;
+  const next = bundledFontFaces.filter(face => normalizeFamily(face.family) !== key);
+  bundledFontFaces = [...faces, ...next];
 }
 
 export function parseFontFamilyStack(fontFamily: string): string[] {
@@ -124,8 +155,19 @@ export async function enumerateInstalledFonts(): Promise<IndexedFontFace[]> {
 }
 
 function getFontIndex(): Promise<readonly IndexedFontFace[]> {
-  fontIndexPromise ??= enumerateInstalledFonts();
-  return fontIndexPromise;
+  systemFontIndexPromise ??= enumerateInstalledFonts();
+  return systemFontIndexPromise;
+}
+
+function defaultBundledFontFaces(): IndexedFontFace[] {
+  const dir = join(process.cwd(), 'assets', 'fonts', 'inter');
+  const regular = join(dir, 'Inter-Regular.ttf');
+  const bold = join(dir, 'Inter-Bold.ttf');
+  if (!existsSync(regular) || !existsSync(bold)) return [];
+  return [
+    { family: 'Inter', subfamily: 'Regular', fullName: 'Inter Regular', path: regular },
+    { family: 'Inter', subfamily: 'Bold', fullName: 'Inter Bold', path: bold },
+  ];
 }
 
 function fontDirectories(): string[] {
