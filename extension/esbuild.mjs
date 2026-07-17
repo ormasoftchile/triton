@@ -153,7 +153,8 @@ const options = {
   platform: 'node',
   target: 'node20',
   external: ['vscode'],
-  sourcemap: true,
+  sourcemap: watch,
+  minify: !watch,
   logLevel: 'info',
   plugins: [resolveTsJsPlugin],
 };
