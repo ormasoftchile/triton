@@ -1737,6 +1737,7 @@ All 15 touched `.mmd` files use the 13-char label-pad convention (`label: + spac
 ## Test result
 
 `pnpm build` ✓ · `pnpm test` ✓ — **541/541 tests passed**
+
 # Design Analysis: Connector Syntax — Strict Mermaid Superset (REVISED)
 
 **Author:** Leslie (Lead / Spec Architect)
@@ -2246,6 +2247,7 @@ Corner handling: At 90° bends (orthogonal routing), reset the sine phase to 0 a
   migrate to `-_-> @anim:march` to preserve visual+motion intent; `<..>` → `<-.->`.
 
 STATUS: APPROVED → implementation.
+
 # Connector Syntax Redesign — Implementation Notes
 
 **Author:** Brian (Layout Implementation Engineer)
@@ -2411,6 +2413,7 @@ New files:
   examples/triton/cross-link/style-matrix.svg
   src/contracts/connector-tokens.ts
 ```
+
 # Ken's Visual QA Verdict: Connector Style Matrix
 
 **Date:** 2026-07-12T10:05:00-04:00  
@@ -2820,70 +2823,6 @@ The `intervals` and `hashring` implementations that were initially under QA revi
 
 **Signed:** Ken, Visual QA Reviewer  
 **Timestamp:** 2026-07-10T19:17:43-04:00
-
-
----
-
----
-
-# Decision: VS Code Extension Marketplace Icon
-
-**Date:** 2026-07-09  
-**Author:** Barbara (Semantics & Rendering)  
-**Status:** Decided  
-
-## Context
-
-The Triton VS Code extension (`focus-space.triton-vscode`) needed a Marketplace icon. Prior to this, only `preview.svg` existed — a 16×16 monochrome glyph for toolbar buttons.
-
-## Decision
-
-Created a full-color 256×256 icon with an unmistakable trident motif:
-
-1. **Trident body:** Dominant vertical shaft, horizontal crossbar, three upward-pointing prongs (center tallest)
-2. **Graph-node fusion:** Small glowing circles at prong tips connected by curved purple edges — the "diagram" layer
-3. **High contrast:** Bright cyan→teal gradient (#67E8F9 → #14B8A6) against dark navy/purple background
-
-### Design details
-
-- **Background:** Navy→dark-purple diagonal gradient (#0D1B2A → #1a1040), rounded-square (rx=48)
-- **Trident:** Filled rectangles with rounded corners (not strokes) — enables gradient rendering in rsvg-convert
-- **Nodes:** Purple center (#7C3AED) + blue sides (#4A90D9), white cores (#F8FAFC), subtle glow filter
-- **Bottom flourish:** Small wave curve at shaft base (blue #4A90D9)
-
-### Files
-
-- `extension/resources/icon.svg` — source vector (viewBox 0 0 256 256)
-- `extension/resources/icon.png` — rasterized 256×256 PNG for Marketplace
-
-### Wiring
-
-`extension/package.json` has `"icon": "resources/icon.png"` between `categories` and `galleryBanner`.
-
-## Rationale
-
-- **Trident-first:** The trident shape is unmistakable at any size — reads as Poseidon's weapon, not a face
-- **High contrast:** Bright cyan/teal against dark background ensures visibility at all sizes
-- **Filled shapes:** Gradients on SVG strokes don't render in rsvg-convert; filled rects with rx work
-- **Vertical composition:** Trident fills y=24 to y=222 — no large empty void
-- **Straight crossbar:** Eliminates "frown" gestalt that caused sad-face misreading
-
-## Technical learnings
-
-- **rsvg-convert quirk:** `stroke="url(#grad)"` on `<line>` elements renders invisibly. Use `fill="url(#grad)"` on `<rect>` or `<path>` instead.
-- **Gestalt awareness:** Two symmetric circles + downward arc = face. Break symmetry or use dominant visual elements to override.
-
-## Alternatives considered
-
-1. **Stroked lines with gradient** — failed due to rsvg-convert rendering bug
-2. **Downward-curving crossbar** — created unintended "frown" face gestalt
-3. **Dark trident colors** — invisible against dark background
-
-## Impact
-
-- Marketplace listing displays distinctive branded trident icon
-- Extension sidebar shows recognizable icon at various sizes (128px, 32px)
-- No runtime/code changes — purely visual/packaging
 
 
 ---
@@ -4250,6 +4189,7 @@ rsvg-convert does not render `<foreignObject>` HTML content. Notes would be blan
 ---
 
 *Analysis complete. No implementation in this deliverable.*
+
 # Design — Card Node (Icon-Left / Text-Right Two-Region Layout)
 
 **Author:** Leslie (Spec Architect)  
@@ -4753,6 +4693,7 @@ Note: edge annotations (`@orthogonal:EW`) and node annotations (`@shape:card`) u
 | Grep-ability | ✓ `grep @icon:` | ✗ varies by formatting | `@key:value` |
 
 **Final call:** `@key:value` is the Triton-native form. `@{...}` is a supported parse-time alias for Mermaid compatibility. Both lower to the same IR.
+
 # Design Decision — Icon IR Contract (P0)
 
 **Author:** Mark (IR & Data Modeling)
@@ -4958,6 +4899,7 @@ All functions in `src/icons/validate.ts` and `src/icons/resolver.ts` are **pure*
 - Output: `Result<T>` — never throws.
 
 This matches the theme purity model: host discovers and loads packs (P1), core only resolves what it's given.
+
 # Decision: Icon Pack Discovery API (P1)
 
 **Author:** Bjarne (Ingestion Design)  
@@ -5044,6 +4986,7 @@ Duplicate icon pack prefix "azure": "azure-v2.triton-icons.json" overrides an ea
 Both hosts should call `loadIconPacks(projectRoot)` at startup (or on workspace change) and pass the resulting `map` into core's render pipeline as `IconPackMap`. The `warnings` array should be surfaced in output (CLI: stderr; extension: Problems panel or output channel).
 
 The duplicate-prefix warning is the signal for a user who accidentally ships two packs with the same prefix. No action needed unless they want deterministic ordering — renaming the file to control sort order is sufficient.
+
 # Decision: P2 Icon Emit — SceneIcon Contract
 
 **Date:** 2026-07-12
@@ -5180,6 +5123,7 @@ passed verbatim. No `<foreignObject>` or `<image>` is ever generated.
 - For inline-label icons (`:prefix:name:` token in text), P6a will need a different
   approach — see the inline-icon spec in `.squad/decisions.md`. `SceneIcon` covers
   node-shape icons only.
+
 # Decision — Flowchart Node Annotation Grammar + `renderSync` `icons` Param (P6)
 
 **Date:** 2026-07-12  
@@ -5374,6 +5318,7 @@ const result = renderSync(diagramText, themeInput, 'svg', undefined, packs);
 
 The map is built by the CLI/extension host (file I/O is the host's job); core
 stays pure. This mirrors how `ThemeInput` is passed in.
+
 # Card Node Geometry — As-Built (P7)
 
 **Author:** Brian (Layout Implementation Engineer)
@@ -5926,6 +5871,7 @@ this.iconRegistry.onDidChange(() => this.onIconRegistryChange());
 - `extension/src/extension.ts` — import IconRegistry; add `iconRegistry` field + watcher lifecycle; `onIconRegistryChange` handler; pass `iconRegistry.iconPacks()` into both render calls
 - `extension/src/markdown.ts` — add `icons?: IconPackMap` to `renderFencedBlock`, thread into `renderSync`
 - `src/frontend/index.ts` — add `icons?: IconPackMap` to `compileAndRenderSync`, forward to `compileSync`
+
 # Decision: Icon Pack Converter (P5a)
 
 **Date:** 2026-07-12T21:11:40-04:00  
@@ -5975,6 +5921,7 @@ Build `scripts/convert-icons.mjs` — a standalone CLI converter using `@iconify
 - 796 total tests (was 787). All green.
 - `pnpm typecheck` 0 errors. `pnpm build` clean.
 - Mark (docs) can reference the script in authoring documentation without waiting for any further changes.
+
 # Decision: Icon & Card Node User-Facing Documentation (P5b)
 
 **Author:** Mark (IR & Data Modeling)
@@ -6066,6 +6013,7 @@ Verified against source:
 - **`@iconify/tools`** is a `devDependency`; normal `pnpm install` covers it.
 - TODO marker removed from `docs/icons-and-card-nodes.md` §6; table row above is now resolved.
 | Add `docs/icons-and-card-nodes.md` to README or a docs index if one is created | Anyone | No |
+
 # Decision: Reclassify architecture as Mermaid family
 
 **Author:** Brian (Layout Implementation Engineer)  
@@ -6905,3 +6853,343 @@ Warehouse rect is `x=1124 y=384 width=130 height=56`, so its east wall midpoint 
 **By:** Brian
 **What:** Exported `matchMermaid()` and changed poster `inferCellKind()` to delegate to it before poster `stat`/`text` fallback.
 **Why:** Poster cells had a drifted hand-written keyword list, so canonical Mermaid keywords like `graph`, `block-beta`, `C4Context`, and `packet-beta` degraded to text instead of rendering child diagrams.
+
+
+---
+
+<!-- Scribe merge 2026-07-16T16:41:03.368-04:00: export feature decision inbox -->
+
+### 2026-07-16: Animation period harmonization
+
+**By:** Edsger
+
+**What**
+
+Harmonized Triton's connector animation periods onto the base `B = 0.8s` family `{0.8s, 1.6s, 2.4s}`:
+
+| Animation | Before | After |
+| --- | ---: | ---: |
+| march | 0.8s | 0.8s |
+| pulse | 1.4s | 1.6s |
+| particle | 1.5s | 1.6s |
+| glow | 1.6s | 1.6s |
+| flow | 1.6s | 1.6s |
+| comet | 1.8s | 1.6s |
+| draw | 2.0s | 2.4s |
+| stream | 2.0s | 2.4s |
+| colorcycle | 3.0s | 2.4s |
+
+All periods are integer multiples of `0.8s` with multipliers `{1, 2, 3}`, so any combination loops in `LCM(0.8, 1.6, 2.4) = 2.4s`.
+
+**Why**
+
+Animated export needs a short deterministic loop window. The prior period set had pairwise mismatches that made worst-case combinations loop over hundreds of seconds. This snap keeps visual character close to the original speeds, preserves each animation's keyframe shape/phase semantics, and gives the SVG renderer plus future frame-baker one shared source of timing truth.
+
+
+---
+
+# Edsger — Core animated export module
+
+## Decision
+
+Added a typed `src/export/index.ts` module for Phase 0b animated PNG export without CLI or VS Code wiring.
+
+## Details
+
+- `bakeFrame(svg, timeSeconds)` freezes Triton-rendered SMIL connector animations into static attributes and strips `<animate>`, `<animateMotion>`, and `<animateTransform>` tags.
+- The baker delegates animation values to `src/animation/index.ts`: dash march/draw, pulse width, glow opacity, color cycling, flow gradient offsets, motion fractions, motion path points, path length approximation, and harmonized periods.
+- `renderToPng(svg, opts)` uses `@resvg/resvg-wasm` with idempotent one-time `initWasm` and optional width/scale fitting.
+- `encodeApng(frames, delaysMs, size)` uses `upng-js` with full RGBA frames and per-frame millisecond delays.
+- `planLoop(periodsPresent, fps)` computes an integer frame count over the LCM of present harmonized animation periods.
+- `exportAnimatedPng(renderedSvg, opts)` plans the source loop, stretches playback by `speed`, samples `[0,L')`, applies temporal supersampling motion blur with premultiplied-alpha averaging, rasterizes, and encodes APNG.
+- `exportStaticPng(renderedSvg, opts)` directly rasterizes a static SVG for Phase 2 reuse.
+
+## Verification
+
+- Added `test/export.test.ts` for bake stripping/static values, march shared math, loop LCM planning, path endpoints, APNG frame metadata, and a gated resvg-wasm raster smoke test.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 49 files, 999 passed, 1 skipped.
+- Generated `examples/exports/verify-comet.png` from the POC comet demo using speed `0.35`, fps `60`, `motionBlurSamples=8`, `shutter=0.75`; source loop `1.6s`, effective loop `4.571428571428572s`, size `83443` bytes.
+
+
+---
+
+# Brian — VS Code static SVG export (Phase 1)
+
+Date: 2026-07-16T16:49:45-04:00
+Requested by: @ormasoftchile
+
+## Decision
+
+Add a Phase 1-only VS Code command, `triton.exportSvg`, that exports the active/target Triton diagram to a sibling SVG file with the same basename and `.svg` extension. The command overwrites the target SVG without prompting, uses `vscode.workspace.fs.writeFile`, and offers `Open` plus platform reveal actions after success.
+
+## Scope kept
+
+- Static SVG only.
+- No PNG, APNG, Save-As dialog, browser, dependency, or curated `.mmd` changes.
+- Extension-only implementation, except for this decision note.
+
+## Render parity
+
+The export path reuses the same render inputs as preview: `pickRenderable(..., 'explicit')`, `this.themeArgs()`, `compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks())`. This mirrors preview's SVG render call so exported output matches the current preview theme/icon-pack path.
+
+## Contribution wiring
+
+`triton.exportSvg` is contributed with title `Export as SVG`, category `Triton`, icon `$(export)`, command-palette visibility, and editor-title group `navigation` under the existing Triton resource gate:
+
+```json
+resourceLangId == triton || resourceExtname == .triton || resourceExtname == .mmd
+```
+
+## Verification
+
+- `cd extension && pnpm --config.verify-deps-before-run=false run build` passed; bundled `extension/dist/extension.cjs`.
+- `pnpm --config.verify-deps-before-run=false vitest run test/extension-preview-html.test.ts` passed (2 tests).
+- `cd extension && pnpm --config.verify-deps-before-run=false run typecheck` is blocked by an existing core error outside this phase/scope: `../src/icons/resolver.ts(289,11): TS7022 parentAlias implicitly has type any`.
+
+
+---
+
+# Brian — Phase 2 PNG export, Export As, and resvg-wasm bundling
+
+Date: 2026-07-16T16:41:03.368-04:00
+Requested by: ormasoftchile
+Branch: ormasoftchile/export-feature
+
+## Decision
+Implemented Phase 2 as static export only: `triton.exportSvg` remains the default editor-title action, while `triton.exportPng` and `triton.exportAs` add static PNG and Save As flows. Animated/APNG export remains intentionally out of scope for Phase 3.
+
+## Commands and UX
+- `triton.exportPng` renders the active exportable diagram to SVG with the existing `compileAndRenderSync(..., 'svg', ...)` path, rasterizes via `exportStaticPng`, and writes `<name>.png` beside the source.
+- `triton.exportAs` opens `showSaveDialog` with SVG/PNG filters, defaults to `<name>.svg`, and writes SVG or PNG based on the chosen extension.
+- Export success reuses the Open / Reveal action pattern for all formats.
+
+## Menu wiring
+- Primary editor-title navigation button remains `triton.exportSvg`.
+- Added submenu id `triton.exportMenu` labeled `Triton Export` immediately after the primary button.
+- Submenu items: Export as SVG, Export as PNG, Export As… .
+- All three export commands are contributed to the command palette.
+
+## WASM loading
+Core export now exposes:
+
+```ts
+export function initExportWasm(wasmBytes: Uint8Array | ArrayBuffer): Promise<void>
+```
+
+`ensureWasm()` is idempotent and prefers host-injected bytes; the existing Node fallback still resolves and reads `@resvg/resvg-wasm/index_bg.wasm` for CLI/tests when no host has injected bytes.
+
+The extension build copies `@resvg/resvg-wasm/index_bg.wasm` into `extension/dist/index_bg.wasm`. The extension lazily reads it from `context.extensionUri/dist/index_bg.wasm` and calls `initExportWasm(bytes)` once before the first PNG export.
+
+## Verification
+- `pnpm build:extension` passed; `extension/dist/` contains `extension.cjs`, `extension.cjs.map`, and `index_bg.wasm`.
+- `TRITON_TEST_RESVG_WASM=1 pnpm vitest run test/export.test.ts` passed; injected-WASM raster path covered.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 49 files, 999 passed, 1 skipped (1000 total).
+- Sanity PNG generated at `examples/exports/verify-static.png` from `examples/mermaid/flowchart/flowchart.mmd` using the core static PNG export path; output size 4,673 bytes.
+- `extension/dist/index_bg.wasm` size: 2,478,606 bytes (~2.36 MiB), which is the expected VSIX size increase from bundling resvg-wasm.
+
+## Packaging note
+`cd extension && pnpm package` failed during pnpm's dependency status check with `ERR_PNPM_IGNORED_BUILDS` for `esbuild@0.24.2`. Direct `vsce package --no-dependencies` also failed with an entrypoint check looking for `extension/dist/extension.cjs.js`, while the extension manifest points at existing `./dist/extension.cjs`. No packaging workaround was applied in this Phase 2 change.
+
+
+---
+
+# Brian — Animated APNG export command
+
+Date: 2026-07-16T17:03:26-04:00
+Requested by: ormasoftchile
+Branch: ormasoftchile/export-feature
+
+## Decision
+Added Phase 3 animated APNG export without changing static SVG/PNG/Export-As behavior.
+
+## Core
+`exportAnimatedPng()` now accepts `onProgress?: (framesDone, frameTotal) => void` and `signal?: AbortSignal`. It throws exported `ExportCancelledError` before rendering if already aborted and between frames after reporting progress.
+
+## Extension
+Added command `triton.exportAnimated` / `Triton: Export Animated PNG` with `$(play)` icon. The command renders the active diagram to SVG, initializes export WASM, runs APNG export under VS Code notification progress, maps `CancellationToken` to an `AbortController`, writes `<name>.animated.png`, and shows a subtle cancellation info message without writing on cancel.
+
+## Settings
+Contributed `triton.export.animated.fps=60`, `speed=0.35`, `motionBlurSamples=8`, and `shutter=0.75`, read through the existing config path and passed to core export.
+
+## Verification
+- `pnpm typecheck` passed.
+- `pnpm build:extension` passed and produced `extension/dist/extension.cjs` plus `extension/dist/index_bg.wasm`.
+- `pnpm test` passed: 49 files, 1000 passed, 2 skipped.
+- End-to-end node verification wrote `examples/exports/verify-animated.png`: 48,952 bytes, 274 frames, loopSeconds 4.571428571428572.
+
+
+---
+
+# Ken export QA verdict — 2026-07-16
+
+**Verdict: 🔴 FAIL (must fix before ship)**
+
+## What I reviewed
+
+Committed artifacts viewed:
+- `examples/exports/verify-static.png` — clean static flowchart export; no clipping/cropping/banding.
+- `examples/exports/verify-comet.png` — clean comet frame; particles positioned on connector, background correct.
+- `examples/exports/verify-animated.png` — clean smaller comet frame; particles on connector, no clipping.
+
+Generated and viewed evidence artifacts:
+- `examples/exports/qa-flowchart-shapes.png` + `.svg` — flowchart with rect/diamond/rounded/stadium shapes. PASS visually.
+- `examples/exports/qa-architecture-beta.png` + `.svg` — architecture-beta feature diagram. FAIL: stray blue particle at upper-left background.
+- `examples/exports/qa-march-static-mid.png` + `.svg` — poster/cross-link marching connector static PNG. Static rendered, but animated APNG export fails.
+- `examples/exports/qa-no-animation-loop.animated.png` + `.svg` — no-animation block diagram exported as APNG. PASS: valid 900×461 APNG, 6 frames.
+
+Validation run:
+- `pnpm typecheck` ✅
+
+## Blocking defects
+
+### 1. Static PNG export of motion-particle diagrams renders orphan particles at the SVG origin
+
+**What is wrong:** `examples/exports/qa-architecture-beta.png` has a stray blue dot at the far upper-left of the canvas, away from any connector. This comes from motion particles (`<circle><animateMotion ... /></circle>`) being sent directly through `exportStaticPng()`/resvg. Because the circle has no baked `cx/cy`, resvg renders it at the origin instead of along the connector.
+
+**Why it matters:** Static PNG export is not reliable for diagrams with particle/comet/stream animations. Users will get visible garbage artifacts on otherwise valid diagrams.
+
+**Fix owner:** Not Brian and not Edsger (original authors are locked out for this rejected export/animation artifact). Reassign to a different implementation agent, or spawn a new export/animation specialist.
+
+### 2. Animated APNG export fails on diagrams mixing self-closing paths before animated paths
+
+**What is wrong:** `exportAnimatedPng()` failed for `examples/mermaid/animated/marching-ants.mmd` with resvg parse error:
+
+```text
+SVG data parsing failed cause invalid attribute at 12:180 cause expected '>' not ' ' at 12:182
+```
+
+The baked SVG became malformed:
+
+```svg
+<path ... marker-end="url(#triton-crosslink-arrow)" / stroke-dashoffset="0"><path ...>
+```
+
+`bakeAnimatedPaths()` matches a self-closing `<path ... />` plus the next `</path>` as one path block, then appends `stroke-dashoffset` after the self-closing slash.
+
+**Why it matters:** APNG export is not production-ready for common diagrams containing normal self-closing paths before animated connector paths. This is a hard correctness failure, not a visual nit.
+
+**Fix owner:** Not Brian and not Edsger. Reassign to a different implementation agent or a newly spawned export/animation specialist.
+
+## Harmonization sanity
+
+The new 0.8s march period rendered clean dashed connector states in the static raster (`qa-march-static-mid.png`), with no obvious jank in the sampled visual. However, APNG generation for that real animated example fails before a loop can be inspected, so harmonization cannot be fully approved.
+
+## Code spot-check notes
+
+- `extension/src/extension.ts`: export command naming and UX look reasonable (`.png`, `.svg`, `.animated.png`; cancel reports information, not error; wasm lazy-loads through `ensureExportWasm`).
+- `src/export/index.ts`: seamless frame sampling intends to exclude `t=L`, and no-animation APNG path works, but baking logic has the two blockers above.
+
+## Cleanup
+
+Deleted scratch scripts under `.qa-scratch/`. Left generated evidence files in `examples/exports/qa-*` for inspection.
+
+
+---
+
+# Mark — export bake fixes
+
+Date: 2026-07-16
+Agent: Mark (IR & Data Modeling)
+
+## Decision
+
+Static PNG export must rasterize a baked SVG frame, not raw SMIL-bearing SVG. `exportStaticPng()` now calls `bakeFrame(renderedSvg, 0)` before `renderToPng()` so motion particles are converted into explicit `cx`/`cy` positions and animation tags are stripped before resvg sees the SVG.
+
+Animated path baking must only match explicit `<path ...>...</path>` blocks. `bakeAnimatedPaths()` now uses `/<path\b([^>]*?)(?<!\/)>([\s\S]*?)<\/path>/g`, so self-closing `<path .../>` elements are not treated as block openers and cannot swallow a following animated path.
+
+## Verification
+
+- Added export tests for self-closing path + animated path adjacency, motion-circle baking, rendered `examples/mermaid/animated/marching-ants.mmd` baked-frame parsing, and gated static PNG rasterization.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 49 files, 1003 passed, 3 skipped.
+- End-to-end artifacts:
+  - `examples/exports/fix-static.png` — 41013 bytes; source had 8 `<animateMotion>` tags, baked frame has 0 and no motion circles missing position attributes.
+  - `examples/exports/fix-marching.png` — 13838 bytes; APNG export succeeds with 8 frames at 10 fps over a 0.8s loop.
+
+
+---
+
+# Ken export QA re-review — 2026-07-16
+
+**Verdict: 🟢 PASS (ship-ready)**
+
+## Scope
+
+Re-reviewed Mark's export bake revision for the two prior blockers and ran the requested regression sweep. Edsger, Brian, and Mark lockout status noted; no reassignment needed because this review passes.
+
+## Blocker verification
+
+### 1. Orphan motion particle in static PNG
+
+**PASS.** Viewed:
+- `examples/exports/fix-static.png`
+- `examples/exports/reverify-architecture.png`
+
+The architecture-beta export has no stray blue dot at the upper-left origin. Motion particles are positioned on their connectors/comet paths. Baked SVG audit of `examples/exports/reverify-architecture-baked.svg` found:
+- `animateMotion` tags: 0
+- motion circles missing `cx`/`cy`: 0
+- sample baked particles at connector coordinates, e.g. `cx="547" cy="333"`, `cx="992" cy="333"`, `cx="772" cy="93"`.
+
+### 2. Marching-ants APNG malformed SVG / export failure
+
+**PASS.** Viewed:
+- `examples/exports/fix-marching.png`
+- `examples/exports/reverify-marching.png`
+- `examples/exports/reverify-marching-baked.svg`
+
+`exportAnimatedPng()` succeeds for `examples/mermaid/animated/marching-ants.mmd`. APNG metadata:
+- `examples/exports/fix-marching.png`: 900×966, 8 frames, infinite loop (`num_plays=0`)
+- `examples/exports/reverify-marching.png`: 760×815, 8 frames, infinite loop (`num_plays=0`)
+
+Baked SVG is well-formed: `Resvg` parses both t=0 and t=0.4 frames. No malformed `/ stroke-dashoffset=` attribute remains. Audited `d=` paths in `reverify-marching-baked.svg`; the two animated marching paths now remain separate explicit paths with valid `stroke-dashoffset="0"` attributes, and the self-closing paths are preserved separately.
+
+## Regression sweep
+
+Viewed/generated:
+- `examples/exports/reverify-flowchart.png` — plain flowchart static PNG remains clean.
+- `examples/exports/reverify-connectors-static.png` — flow/march animated connector diagram static export remains clean.
+- `examples/exports/reverify-connectors-animated.png` — animated connector APNG succeeds; 900×461, 13 frames, infinite loop.
+- `examples/exports/reverify-no-animation.animated.png` — no-animation flowchart exported as APNG succeeds; 900×187, 6 frames, infinite loop.
+- `examples/exports/verify-comet.png` and `examples/exports/reverify-comet.png` — comet demo still looks good; particles sit on the connector, no origin orphan, no clipping.
+- Existing earlier artifacts viewed: `qa-flowchart-shapes.png`, `qa-march-static-mid.png`, `qa-no-animation-loop.animated.png`.
+
+## Commands
+
+- `pnpm typecheck` ✅
+- `pnpm test` ✅ — 49 files passed, 1003 tests passed, 3 skipped
+- `pnpm build` ✅ — run to refresh `packages/core/dist` before end-to-end export re-verification
+
+## Cleanup / constraints
+
+- Did not edit any `.mmd`.
+- Did not run git checkout/reset/restore/clean.
+- Did not touch `.vscode/settings.json`.
+- Did not use a headless browser or `/tmp`.
+- Removed the temporary `.qa-scratch/reverify-export.mjs` script and scratch directory.
+- Left generated `examples/exports/reverify-*` artifacts as QA evidence.
+
+## Final verdict
+
+🟢 PASS (ship-ready). Mark's revision removes both prior blockers, and the requested static/animated/no-animation/comet regression cases pass visually and structurally.
+
+### 2026-07-16: Animated PNG export defaults to real-time playback
+**By:** Brian
+**What:** VS Code animated PNG export now defaults to speed 1.0; slow motion remains available by setting a lower multiplier.
+**Why:** The 0.35 global default made dashoffset-march and most animations play slower than the live preview.
+
+### 2026-07-16: Yield APNG export frames to extension host event loop
+**By:** Brian
+**What:** Added a macrotask yield after each animated PNG frame progress/cancellation check in `exportAnimatedPng`.
+**Why:** Lets VS Code repaint progress notifications and deliver cancellation between synchronous resvg frame renders.
+
+### 2026-07-16T00:00:00Z: Export rasterization resolves active theme fonts with fontkit
+**By:** Brian
+**What:** PNG/APNG export now scans installed OS fonts, resolves the active theme's `typography.fontFamily`, and injects the matched regular/bold font bytes into resvg-wasm. The resolver uses `fontkit` so .ttf/.otf and .ttc/.otc collections can be indexed without native addons.
+**Why:** resvg-wasm cannot load system fonts from inside the wasm sandbox, and the user requires raster exports to use the theme font rather than a hardcoded bundled font.
+
+### 2026-07-16: Exported raster text MUST use the active theme's font
+**By:** Squad (Coordinator), on directive from @ormasoftchile
+**What:** The font used to rasterize `<text>` in SVG/PNG/APNG export must be the ACTIVE THEME's `typography.fontFamily` (already emitted into every `<text>` by src/render/svg.ts:74) — NOT a hardcoded bundled font (e.g. Inter). resvg-wasm renders no text because it has no font bytes for the theme's family; the fix must supply resvg the bytes for the THEME font, resolved from where that font actually lives on the exporting machine (matching what the preview shows).
+**Why:** User: "the font HAS to be that of the theme." Hardcoding one font would break theme fidelity and diverge export from preview.

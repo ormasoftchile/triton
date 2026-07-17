@@ -89,3 +89,9 @@ Specified recursive clustered grid placement for architecture-beta: groups are a
 - Audited layeredLayout consumers for straight-edge-through-node risk: nodegraph was the only renderer using raw `connectSlots` instead of `routeEdge`/`edgeBends`; class already consumes `edgeBends`.
 - Requirement, C4, and ER ignore `edgeBends` but remain protected by the kernel's obstacle-aware `routeEdge` path.
 - Verified the state diagram symptom as a stale artifact, not a code bug; regenerated `examples/mermaid/state/state.svg` so the transition detours PartialPay. Coordinator committed the artifact refresh as `20d2fbd` after typecheck and 951/951 tests passed.
+
+## 2026-07-16T16:41:03.368-04:00 — Export feature: animation/export core
+
+- Extracted animation math into `src/animation/index.ts` and harmonized periods to the base 0.8s family (max LCM 2.4s) in commit f493eaf; 993 tests green.
+- Added core export module `src/export/index.ts` with SVG frame baking, resvg PNG rasterization, APNG encoding, loop planning, and animated/static PNG export in commit 6fa6250.
+- Follow-up QA found bake bugs fixed by Mark under reviewer lockout; final Ken re-review passed.

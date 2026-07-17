@@ -1,5 +1,19 @@
 import type { Scene, SceneElement, SceneIcon, Renderer, NodeAnchorRegistry } from '../contracts/index.js';
 import type { IconTransforms } from '../contracts/icons.js';
+import {
+  animationDuration,
+  colorCycleStrokeValues,
+  drawDashoffsetValues,
+  flowStopOffsetValues,
+  formatNum,
+  glowStrokeOpacityValues,
+  marchDashoffsetValues,
+  motionBeginSeconds,
+  motionParticleSpecs,
+  pathLengthApprox,
+  pathPoints,
+  pulseStrokeWidthValues,
+} from '../animation/index.js';
 
 /**
  * Render a fully-resolved Scene to an SVG string.
@@ -71,25 +85,26 @@ function renderElement(el: SceneElement, depth: number, markerMetrics: Map<strin
       const stroke     = el.animated === 'flow' ? `url(#${flowGradientId(el.d, el.stroke)})` : el.stroke;
       const attrs      = `${pad}<path d="${escapeAttr(el.d)}" stroke="${escapeAttr(stroke)}" stroke-width="${el.strokeWidth}"${fill}${dash}${mEnd}${mStart}${opacity}`;
       if (el.animated === 'march' && el.strokeDasharray) {
-        const period  = parseDasharrayPeriod(el.strokeDasharray);
-        const animate = `<animate attributeName="stroke-dashoffset" from="0" to="-${period}" dur="0.8s" repeatCount="indefinite"/>`;
+        const values  = marchDashoffsetValues(el.strokeDasharray);
+        const animate = `<animate attributeName="stroke-dashoffset" from="${values.from}" to="${values.to}" dur="${animationDuration('march')}" repeatCount="indefinite"/>`;
         return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
       }
       if (el.animated === 'draw') {
-        const animate = `<animate attributeName="stroke-dashoffset" values="0;${drawLength};0" dur="2s" repeatCount="indefinite"/>`;
+        const values = drawDashoffsetValues(drawLength ?? pathLengthApprox(el.d));
+        const animate = `<animate attributeName="stroke-dashoffset" values="${values.join(';')}" dur="${animationDuration('draw')}" repeatCount="indefinite"/>`;
         return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
       }
       if (el.animated === 'pulse') {
-        const wide = formatNum(el.strokeWidth * 2);
-        const animate = `<animate attributeName="stroke-width" values="${el.strokeWidth};${wide};${el.strokeWidth}" dur="1.4s" repeatCount="indefinite"/>`;
+        const values = pulseStrokeWidthValues(el.strokeWidth).map(formatNum);
+        const animate = `<animate attributeName="stroke-width" values="${values.join(';')}" dur="${animationDuration('pulse')}" repeatCount="indefinite"/>`;
         return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
       }
       if (el.animated === 'glow') {
-        const animate = '<animate attributeName="stroke-opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite"/>';
+        const animate = `<animate attributeName="stroke-opacity" values="${glowStrokeOpacityValues().join(';')}" dur="${animationDuration('glow')}" repeatCount="indefinite"/>`;
         return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
       }
       if (el.animated === 'colorcycle') {
-        const animate = '<animate attributeName="stroke" values="#4A90D9;#9b51e0;#e54444;#2ecc71;#4A90D9" dur="3s" repeatCount="indefinite"/>';
+        const animate = `<animate attributeName="stroke" values="${colorCycleStrokeValues().join(';')}" dur="${animationDuration('colorcycle')}" repeatCount="indefinite"/>`;
         return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
       }
       if (el.animated === 'flow') {
@@ -97,24 +112,21 @@ function renderElement(el: SceneElement, depth: number, markerMetrics: Map<strin
         return `${gradient}\n${attrs} />`;
       }
       if (el.animated === 'particle') {
-        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, 4, markerMetrics));
-        const circle = renderMotionCircle(motionPath, el.stroke, 4, undefined, '1.5s', '0s', pad);
+        const spec = motionParticleSpecs('particle')[0]!;
+        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, spec.radius, markerMetrics));
+        const circle = renderMotionCircle(motionPath, el.stroke, spec, 'particle', pad);
         return `${attrs} />\n${circle}`;
       }
       if (el.animated === 'comet') {
-        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, 4.2, markerMetrics));
-        const circles = [
-          renderMotionCircle(motionPath, el.stroke, 4.2, 0.95, '1.8s', '0s', pad),
-          renderMotionCircle(motionPath, el.stroke, 3.1, 0.45, '1.8s', '-0.18s', pad),
-          renderMotionCircle(motionPath, el.stroke, 2.2, 0.22, '1.8s', '-0.36s', pad),
-        ].join('\n');
+        const specs = motionParticleSpecs('comet');
+        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, specs[0]!.radius, markerMetrics));
+        const circles = specs.map(spec => renderMotionCircle(motionPath, el.stroke, spec, 'comet', pad)).join('\n');
         return `${attrs} />\n${circles}`;
       }
       if (el.animated === 'stream') {
-        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, 3.2, markerMetrics));
-        const circles = [0, 1, 2, 3]
-          .map(i => renderMotionCircle(motionPath, el.stroke, 3.2, 0.9, '2s', i === 0 ? '0s' : `-${formatNum(i * 0.5)}s`, pad))
-          .join('\n');
+        const specs = motionParticleSpecs('stream');
+        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, specs[0]!.radius, markerMetrics));
+        const circles = specs.map(spec => renderMotionCircle(motionPath, el.stroke, spec, 'stream', pad)).join('\n');
         return `${attrs} />\n${circles}`;
       }
       return `${attrs} />`;
@@ -253,27 +265,17 @@ function namespaceIconIds(body: string, prefix: string): string {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Sum all values in a stroke-dasharray string — one full animation period. */
-function parseDasharrayPeriod(dasharray: string): number {
-  return dasharray
-    .trim()
-    .split(/[\s,]+/)
-    .map(Number)
-    .filter(n => !isNaN(n) && n > 0)
-    .reduce((sum, n) => sum + n, 0);
-}
-
 function renderMotionCircle(
   path: string,
   fill: string,
-  radius: number,
-  opacity: number | undefined,
-  dur: string,
-  begin: string,
+  spec: { readonly radius: number; readonly opacity?: number; readonly phase: number },
+  animation: 'particle' | 'comet' | 'stream',
   pad: string,
 ): string {
-  const opacityAttr = opacity != null ? ` opacity="${opacity}"` : '';
-  return `${pad}<circle r="${radius}" fill="${escapeAttr(fill)}"${opacityAttr}>\n${pad}  <animateMotion dur="${dur}" begin="${begin}" repeatCount="indefinite" rotate="auto" path="${escapeAttr(path)}"/>\n${pad}</circle>`;
+  const opacityAttr = spec.opacity != null ? ` opacity="${spec.opacity}"` : '';
+  const beginSeconds = motionBeginSeconds(animation, spec.phase);
+  const begin = beginSeconds === 0 ? '0s' : `${formatNum(beginSeconds)}s`;
+  return `${pad}<circle r="${spec.radius}" fill="${escapeAttr(fill)}"${opacityAttr}>\n${pad}  <animateMotion dur="${animationDuration(animation)}" begin="${begin}" repeatCount="indefinite" rotate="auto" path="${escapeAttr(path)}"/>\n${pad}</circle>`;
 }
 
 interface MarkerMetrics {
@@ -405,13 +407,13 @@ function renderFlowGradient(el: Extract<SceneElement, { type: 'path' }>, pad: st
     `${pad}  <linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}">`,
     `${pad}    <stop offset="0%" stop-color="${base}" stop-opacity="0.75"/>`,
     `${pad}    <stop offset="20%" stop-color="${base}" stop-opacity="0.85">`,
-    `${pad}      <animate attributeName="offset" values="0%;60%;100%" dur="1.6s" repeatCount="indefinite"/>`,
+    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(0).map(v => `${v}%`).join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
     `${pad}    </stop>`,
     `${pad}    <stop offset="35%" stop-color="#FFFFFF" stop-opacity="1">`,
-    `${pad}      <animate attributeName="offset" values="10%;70%;100%" dur="1.6s" repeatCount="indefinite"/>`,
+    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(1).map(v => `${v}%`).join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
     `${pad}    </stop>`,
     `${pad}    <stop offset="50%" stop-color="${base}" stop-opacity="0.85">`,
-    `${pad}      <animate attributeName="offset" values="20%;80%;100%" dur="1.6s" repeatCount="indefinite"/>`,
+    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(2).map(v => `${v}%`).join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
     `${pad}    </stop>`,
     `${pad}    <stop offset="100%" stop-color="${base}" stop-opacity="0.75"/>`,
     `${pad}  </linearGradient>`,
@@ -423,16 +425,6 @@ function flowGradientId(path: string, stroke: string): string {
   return `triton-flow-${hashString(`${path}|${stroke}`)}`;
 }
 
-function pathLengthApprox(path: string): number {
-  const pts = pathPoints(path);
-  if (pts.length < 2) return 1000;
-  let length = 0;
-  for (let i = 1; i < pts.length; i++) {
-    length += Math.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y);
-  }
-  return Math.max(1, Number(formatNum(length)));
-}
-
 function pathEndpoints(path: string): { start: { x: number; y: number }; end: { x: number; y: number } } {
   const pts = pathPoints(path);
   const start = pts[0] ?? { x: 0, y: 0 };
@@ -441,21 +433,6 @@ function pathEndpoints(path: string): { start: { x: number; y: number }; end: { 
     return { start, end: { x: end.x + 1, y: end.y } };
   }
   return { start, end };
-}
-
-function pathPoints(path: string): Array<{ x: number; y: number }> {
-  const nums = [...path.matchAll(/-?\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi)].map(m => Number(m[0]));
-  const pts: Array<{ x: number; y: number }> = [];
-  for (let i = 0; i + 1 < nums.length; i += 2) {
-    const x = nums[i]!;
-    const y = nums[i + 1]!;
-    if (Number.isFinite(x) && Number.isFinite(y)) pts.push({ x, y });
-  }
-  return pts;
-}
-
-function formatNum(value: number): string {
-  return Number.isFinite(value) ? String(Math.round(value * 1000) / 1000) : '0';
 }
 
 function hashString(value: string): string {

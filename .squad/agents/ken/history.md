@@ -281,3 +281,9 @@ Assigned to review architecture example renders for containment correctness and 
 - Rejected Brian's first skip-edge routing fix despite node-overlap improvement: shared ports, overlapping arrowheads, label collision, and clipped title remained.
 - Recommended Edsger for the lockout revision under reviewer protocol.
 - Re-reviewed Edsger's revision and approved it: port fan-out, side lanes, label ordering, and title-aware bounds resolved all four prior defects with no new visual issues.
+
+## 2026-07-16T16:41:03.368-04:00 — Export feature visual QA gate
+
+- Initial QA verdict: 🔴 FAIL due to static PNG orphan motion particles at origin and corrupted animated bake when self-closing `<path/>` preceded animated paths.
+- Enforced reviewer lockout: Edsger and Brian could not fix the rejected export artifacts; Mark performed the revision.
+- Re-review verdict after Mark commit b398a1e: 🟢 PASS, ship-ready.
