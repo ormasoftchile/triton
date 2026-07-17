@@ -176,3 +176,10 @@ Brian again over-edited the architecture showcase while implementing per-style w
 - Added static PNG export, Export As save dialog, export submenu, bundled `resvg-wasm` into the VSIX, and host WASM injection with Node fallback (commit 6137d62).
 - Added animated APNG export with progress/cancellation and `triton.export.animated.*` settings (commit 1726448).
 - Lockout note: Ken's initial export QA failed two bake defects, so Mark—not Brian/Edsger—performed the revision; Ken's re-review passed.
+
+
+## 2026-07-16T20:30:06-04:00 — Export polish: real-time APNG, progress yield, active theme fonts
+
+- Animated PNG export now defaults `triton.export.animated.speed` to `1.0`, matching live preview timing unless users explicitly choose slow motion.
+- `exportAnimatedPng` yields to the event loop after each frame so VS Code progress UI updates and cancellation can interrupt long renders.
+- Raster text export must resolve the active theme's `typography.fontFamily` to installed font bytes via `fontkit` and pass those buffers into `resvg-wasm`; hardcoded export fonts are rejected because they break theme fidelity.

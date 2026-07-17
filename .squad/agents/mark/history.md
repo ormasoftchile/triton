@@ -121,3 +121,9 @@ Universal %% comment support feature complete. All 45 diagram families now accep
 - Changed static PNG export to bake frame t=0 before rasterization, eliminating orphan motion particles at the origin.
 - Fixed animated path baking by excluding self-closing `<path/>` tags from explicit path block matching.
 - Commit b398a1e; 1006 tests green; Ken re-review passed as ship-ready.
+
+
+## 2026-07-16T20:30:06-04:00 — Export polish handoff note
+
+- Follow-on export fixes after Mark's bake revision: APNG defaults now run at real-time speed, frame rendering yields for progress/cancellation, and PNG/APNG text rendering supplies `resvg-wasm` with the active theme font bytes instead of a hardcoded font.
+- QA/revision takeaway: export fidelity includes timing, cancellation responsiveness, baked animation state, and theme typography parity.

@@ -7173,3 +7173,23 @@ Viewed/generated:
 ## Final verdict
 
 🟢 PASS (ship-ready). Mark's revision removes both prior blockers, and the requested static/animated/no-animation/comet regression cases pass visually and structurally.
+
+### 2026-07-16: Animated PNG export defaults to real-time playback
+**By:** Brian
+**What:** VS Code animated PNG export now defaults to speed 1.0; slow motion remains available by setting a lower multiplier.
+**Why:** The 0.35 global default made dashoffset-march and most animations play slower than the live preview.
+
+### 2026-07-16: Yield APNG export frames to extension host event loop
+**By:** Brian
+**What:** Added a macrotask yield after each animated PNG frame progress/cancellation check in `exportAnimatedPng`.
+**Why:** Lets VS Code repaint progress notifications and deliver cancellation between synchronous resvg frame renders.
+
+### 2026-07-16T00:00:00Z: Export rasterization resolves active theme fonts with fontkit
+**By:** Brian
+**What:** PNG/APNG export now scans installed OS fonts, resolves the active theme's `typography.fontFamily`, and injects the matched regular/bold font bytes into resvg-wasm. The resolver uses `fontkit` so .ttf/.otf and .ttc/.otc collections can be indexed without native addons.
+**Why:** resvg-wasm cannot load system fonts from inside the wasm sandbox, and the user requires raster exports to use the theme font rather than a hardcoded bundled font.
+
+### 2026-07-16: Exported raster text MUST use the active theme's font
+**By:** Squad (Coordinator), on directive from @ormasoftchile
+**What:** The font used to rasterize `<text>` in SVG/PNG/APNG export must be the ACTIVE THEME's `typography.fontFamily` (already emitted into every `<text>` by src/render/svg.ts:74) — NOT a hardcoded bundled font (e.g. Inter). resvg-wasm renders no text because it has no font bytes for the theme's family; the fix must supply resvg the bytes for the THEME font, resolved from where that font actually lives on the exporting machine (matching what the preview shows).
+**Why:** User: "the font HAS to be that of the theme." Hardcoding one font would break theme fidelity and diverge export from preview.
