@@ -30,6 +30,7 @@ import type { Point, Rect } from '../contracts/primitives.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
 import { createRouter } from '../routing/router.js';
 import { wavifyPath } from './render.js';
+import { crossLinkMarkerId } from './markers.js';
 
 export interface CrossLinkRenderResult {
   readonly defs: string[];
@@ -270,7 +271,10 @@ export function routeAndRenderCrossLinks2(
 
     // Colour
     let color: string;
-    {
+    const explicitColor = typeof link.props?.color === 'string' ? link.props.color : undefined;
+    if (explicitColor) {
+      color = explicitColor;
+    } else {
       color = PALETTE[explicitColorIdx % PALETTE.length]!;
       explicitColorIdx++;
     }
@@ -285,10 +289,10 @@ export function routeAndRenderCrossLinks2(
     let markerEnd:   string | undefined;
     let markerStart: string | undefined;
     if (link.direction === 'directed') {
-      markerEnd = ARROW_ID;
+      markerEnd = crossLinkMarkerId(ARROW_ID, color);
     } else if (link.direction === 'bidirectional') {
-      markerEnd   = ARROW_ID;
-      markerStart = BI_ARROW_ID;
+      markerEnd   = crossLinkMarkerId(ARROW_ID, color);
+      markerStart = crossLinkMarkerId(BI_ARROW_ID, color);
     }
 
     const strokeWidth = link.style === 'thick'
@@ -362,8 +366,8 @@ export function routeAndRenderCrossLinks2(
   }
 
   // ── Phase 5: Emit path elements ───────────────────────────────────────────
-  let needsArrow   = false;
-  let needsBiArrow = false;
+  const arrowMarkerColors = new Map<string, string>();
+  const biArrowMarkerColors = new Map<string, string>();
 
   const pendingLabels: Array<{
     content:    string;
@@ -384,8 +388,8 @@ export function routeAndRenderCrossLinks2(
       path = wavifyPath([...wr.points], wr.wavyAmplitude ?? 3, wr.wavyWavelength ?? 12);
     }
 
-    if (wr.markerEnd   === ARROW_ID)    needsArrow   = true;
-    if (wr.markerStart === BI_ARROW_ID) needsBiArrow = true;
+    if (wr.markerEnd) arrowMarkerColors.set(wr.markerEnd, wr.color);
+    if (wr.markerStart) biArrowMarkerColors.set(wr.markerStart, wr.color);
 
     elements.push({
       type:        'path',
@@ -444,18 +448,17 @@ export function routeAndRenderCrossLinks2(
   }
 
   // ── Defs ──────────────────────────────────────────────────────────────────
-  if (needsArrow) {
-    const s = edgeTheme.arrowSize;
+  const s = edgeTheme.arrowSize;
+  for (const [id, color] of arrowMarkerColors) {
     defs.push(
-      `<marker id="${ARROW_ID}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="${s - 1}" refY="${s * 0.35}" orient="auto">` +
-      `<polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="currentColor" /></marker>`,
+      `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="${s - 1}" refY="${s * 0.35}" orient="auto">` +
+      `<polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="${color}" /></marker>`,
     );
   }
-  if (needsBiArrow) {
-    const s = edgeTheme.arrowSize;
+  for (const [id, color] of biArrowMarkerColors) {
     defs.push(
-      `<marker id="${BI_ARROW_ID}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="1" refY="${s * 0.35}" orient="auto">` +
-      `<polygon points="${s} 0, 0 ${s * 0.35}, ${s} ${s * 0.7}" fill="currentColor" /></marker>`,
+      `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="1" refY="${s * 0.35}" orient="auto">` +
+      `<polygon points="${s} 0, 0 ${s * 0.35}, ${s} ${s * 0.7}" fill="${color}" /></marker>`,
     );
   }
 

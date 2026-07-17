@@ -241,9 +241,56 @@ describe('renderCrossLinks', () => {
     const result = renderCrossLinks(resolved, theme);
 
     const pathEl = result.elements.find(e => e.type === 'path') as any;
-    expect(pathEl.markerEnd).toBe('triton-crosslink-arrow');
-    expect(pathEl.markerStart).toBe('triton-crosslink-arrow-both');
+    expect(pathEl.markerEnd).toBe('triton-crosslink-arrow-e11d48');
+    expect(pathEl.markerStart).toBe('triton-crosslink-arrow-both-e11d48');
     expect(result.defs).toHaveLength(2);
+    expect(result.defs[0]).toContain('fill="#E11D48"');
+    expect(result.defs[1]).toContain('fill="#E11D48"');
+    expect(result.defs.join('\n')).not.toContain('fill="currentColor"');
+  });
+
+  it('emits deduplicated color-specific markers for differently colored links', () => {
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to:   { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'directed',
+        style: 'solid',
+        props: { color: '#E11D48' },
+      },
+      {
+        from: { cellPath: ['A'], nodeId: 'node2' },
+        to:   { cellPath: ['B'], nodeId: 'node2' },
+        direction: 'bidirectional',
+        style: 'dashed',
+        props: { color: '#16A34A' },
+      },
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to:   { cellPath: ['B'], nodeId: 'node2' },
+        direction: 'directed',
+        style: 'solid',
+        props: { color: '#E11D48' },
+      },
+    ];
+
+    const result = routeAndRenderCrossLinks3(links, theme, anchors);
+    const paths = result.elements.filter((e): e is any => e.type === 'path');
+    const defs = result.defs.join('\n');
+
+    expect(defs).not.toContain('fill="currentColor"');
+    expect(result.defs.filter(d => d.includes('id="triton-crosslink-arrow-e11d48"'))).toHaveLength(1);
+    expect(result.defs.filter(d => d.includes('id="triton-crosslink-arrow-16a34a"'))).toHaveLength(1);
+    expect(result.defs.filter(d => d.includes('id="triton-crosslink-arrow-both-16a34a"'))).toHaveLength(1);
+    expect(defs).toContain('id="triton-crosslink-arrow-e11d48"');
+    expect(defs).toContain('fill="#E11D48"');
+    expect(defs).toContain('id="triton-crosslink-arrow-16a34a"');
+    expect(defs).toContain('id="triton-crosslink-arrow-both-16a34a"');
+    expect(defs).toContain('fill="#16A34A"');
+    expect(paths[0]!.markerEnd).toBe('triton-crosslink-arrow-e11d48');
+    expect(paths[1]!.markerEnd).toBe('triton-crosslink-arrow-16a34a');
+    expect(paths[1]!.markerStart).toBe('triton-crosslink-arrow-both-16a34a');
+    expect(paths[2]!.markerEnd).toBe('triton-crosslink-arrow-e11d48');
   });
 
   it('no markers for undirected links', () => {

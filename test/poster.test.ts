@@ -300,7 +300,7 @@ describe('poster grammar — cross-links', () => {
 
     // Should have cross-link path elements (stroke-width thicker than internal edges)
     const paths = scene.elements.filter(e => e.type === 'path') as any[];
-    const crossPaths = paths.filter((p: any) => p.markerEnd === 'triton-crosslink-arrow');
+    const crossPaths = paths.filter((p: any) => p.markerEnd?.startsWith('triton-crosslink-arrow-'));
     expect(crossPaths).toHaveLength(1);
 
     // Should have label
