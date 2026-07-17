@@ -1,6 +1,5 @@
 **
 !dist/extension.cjs
-!dist/extension.cjs.map
 !dist/*.wasm
 !dist/fonts/**
 !resources/**
