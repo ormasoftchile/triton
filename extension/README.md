@@ -6,7 +6,7 @@ that `pnpm figures` would produce.
 
 ## Preview
 
-![Triton live preview — spanning.mmd rendered with crosslinks and animated marching-ants](resources/spanning.animated.png)
+![Triton live preview — spanning.mmd rendered with crosslinks and animated marching-ants](https://github.com/ormasoftchile/triton/raw/main/extension/resources/spanning.animated.png)
 
 Animated poster preview with crosslinks, colored arrowheads, and a dark opaque
 background suitable for Marketplace and GitHub.
