@@ -16,6 +16,7 @@ import type { Point, Rect } from '../contracts/primitives.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
 import { getRouter } from '../routing/registry.js';
 import { defaultRouter, createRouter } from '../routing/router.js';
+import { crossLinkMarkerId } from './markers.js';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -56,8 +57,8 @@ export function renderCrossLinks(
   const { palette, typography, edges: edgeTheme } = theme;
   const elements: SceneElement[] = [];
   const defs: string[] = [];
-  let needsArrow = false;
-  let needsBiArrow = false;
+  const arrowMarkerColors = new Map<string, string>();
+  const biArrowMarkerColors = new Map<string, string>();
 
   // Extract obstacles from the anchor registry (all node bounds)
   // Note: cell borders are handled separately in post-route nudging, not as generic obstacles
@@ -89,7 +90,10 @@ export function renderCrossLinks(
     const { link, fromPort, toPort, fromSide, toSide } = rLink;
 
     let color: string;
-    {
+    const explicitColor = typeof link.props?.color === 'string' ? link.props.color : undefined;
+    if (explicitColor) {
+      color = explicitColor;
+    } else {
       color = categoricalPalette[explicitColorIdx % categoricalPalette.length]!;
       explicitColorIdx++;
     }
@@ -142,13 +146,13 @@ export function renderCrossLinks(
     let markerEnd: string | undefined;
     let markerStart: string | undefined;
     if (link.direction === 'directed') {
-      markerEnd = CROSSLINK_ARROW_ID;
-      needsArrow = true;
+      markerEnd = crossLinkMarkerId(CROSSLINK_ARROW_ID, color);
+      arrowMarkerColors.set(markerEnd, color);
     } else if (link.direction === 'bidirectional') {
-      markerEnd = CROSSLINK_ARROW_ID;
-      markerStart = CROSSLINK_ARROW_BOTH_ID;
-      needsArrow = true;
-      needsBiArrow = true;
+      markerEnd = crossLinkMarkerId(CROSSLINK_ARROW_ID, color);
+      markerStart = crossLinkMarkerId(CROSSLINK_ARROW_BOTH_ID, color);
+      arrowMarkerColors.set(markerEnd, color);
+      biArrowMarkerColors.set(markerStart, color);
     }
 
     const strokeWidth = link.style === 'thick'
@@ -298,16 +302,15 @@ export function renderCrossLinks(
   }
 
   // Build defs
-  if (needsArrow) {
-    const s = edgeTheme.arrowSize;
+  const s = edgeTheme.arrowSize;
+  for (const [id, color] of arrowMarkerColors) {
     defs.push(
-      `<marker id="${CROSSLINK_ARROW_ID}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="${s - 1}" refY="${s * 0.35}" orient="auto"><polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="currentColor" /></marker>`,
+      `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="${s - 1}" refY="${s * 0.35}" orient="auto"><polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="${color}" /></marker>`,
     );
   }
-  if (needsBiArrow) {
-    const s = edgeTheme.arrowSize;
+  for (const [id, color] of biArrowMarkerColors) {
     defs.push(
-      `<marker id="${CROSSLINK_ARROW_BOTH_ID}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="1" refY="${s * 0.35}" orient="auto"><polygon points="${s} 0, 0 ${s * 0.35}, ${s} ${s * 0.7}" fill="currentColor" /></marker>`,
+      `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="1" refY="${s * 0.35}" orient="auto"><polygon points="${s} 0, 0 ${s * 0.35}, ${s} ${s * 0.7}" fill="${color}" /></marker>`,
     );
   }
 

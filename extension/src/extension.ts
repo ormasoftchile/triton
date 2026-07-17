@@ -7,7 +7,7 @@ import type { ThemeInput } from '../../src/contracts/index.js';
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { compileAndRenderSync, compileAndRenderWithThemeSync } from '../../src/frontend/index.js';
 import { ExportCancelledError, exportAnimatedPng, exportStaticPng, initExportWasm } from '../../src/export/index.js';
-import { resolveThemeFont, type ResolvedThemeFont } from '../../src/export/fonts.js';
+import { registerBundledFont, resolveThemeFont, type ResolvedThemeFont } from '../../src/export/fonts.js';
 import { themePresetNames } from '../../src/theme/preset.js';
 import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
@@ -752,7 +752,8 @@ class PreviewManager {
 
 // ─── Activation ────────────────────────────────────────────────────────────────
 
-export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(md: unknown): unknown } {
+export async function activate(context: vscode.ExtensionContext): Promise<{ extendMarkdownIt(md: unknown): unknown }> {
+  await registerBundledInter(context.extensionUri);
   const manager = new PreviewManager(context);
 
   context.subscriptions.push(manager);
@@ -813,6 +814,21 @@ export function activate(context: vscode.ExtensionContext): { extendMarkdownIt(m
       return extendMarkdownIt(md as Parameters<typeof extendMarkdownIt>[0]);
     },
   };
+}
+
+async function registerBundledInter(extensionUri: vscode.Uri): Promise<void> {
+  const fontDir = vscode.Uri.joinPath(extensionUri, 'dist', 'fonts', 'inter');
+  const [regular, bold] = await Promise.all([
+    vscode.workspace.fs.readFile(vscode.Uri.joinPath(fontDir, 'Inter-Regular.ttf')),
+    vscode.workspace.fs.readFile(vscode.Uri.joinPath(fontDir, 'Inter-Bold.ttf')),
+  ]);
+  registerBundledFont({
+    family: 'Inter',
+    faces: [
+      { subfamily: 'Regular', fullName: 'Inter Regular', bytes: regular },
+      { subfamily: 'Bold', fullName: 'Inter Bold', bytes: bold },
+    ],
+  });
 }
 
 export function deactivate(): void {

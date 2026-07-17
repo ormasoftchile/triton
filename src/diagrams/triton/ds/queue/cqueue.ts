@@ -154,7 +154,7 @@ export function layoutCQueue(doc: CQueueDoc, theme: ResolvedTheme): LayoutResult
       theme,
     });
     const connectorElements = connectorResult.elements.map(element =>
-      element.type === 'path' && element.markerEnd === 'triton-crosslink-arrow'
+      element.type === 'path' && element.markerEnd?.startsWith('triton-crosslink-arrow-')
         ? { ...element, markerEnd: ARROW_FWD, strokeWidth: 1.5 }
         : element,
     );

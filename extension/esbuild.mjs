@@ -109,6 +109,16 @@ function copyResvgWasm() {
   console.log('✓ copied extension/dist/index_bg.wasm');
 }
 
+function copyBundledFonts() {
+  const sourceDir = join(repoRoot, 'assets', 'fonts', 'inter');
+  const targetDir = join(here, 'dist', 'fonts', 'inter');
+  mkdirSync(targetDir, { recursive: true });
+  for (const name of ['Inter-Regular.ttf', 'Inter-Bold.ttf', 'OFL.txt', 'NOTICE']) {
+    copyFileSync(join(sourceDir, name), join(targetDir, name));
+  }
+  console.log('✓ copied extension/dist/fonts/inter');
+}
+
 // ── Plugin: rewrite NodeNext `*.js` specifiers to the real `*.ts` source ────────
 const resolveTsJsPlugin = {
   name: 'resolve-ts-from-js',
@@ -156,6 +166,7 @@ if (watch) {
   // never loads a stale dist/extension.cjs (e.g. after pulling new diagram kinds).
   await ctx.rebuild();
   copyResvgWasm();
+  copyBundledFonts();
   console.log('✓ bundled extension/dist/extension.cjs');
   await ctx.watch();
 
@@ -175,6 +186,7 @@ if (watch) {
       ensureGrammars();          // rewrites the stale parser.js
       await ctx.rebuild();       // re-inline the fresh parser into the bundle
       copyResvgWasm();
+      copyBundledFonts();
       console.log('✓ re-bundled extension/dist/extension.cjs (grammar update) — reload the debug window');
     }, 150);
   });
@@ -183,5 +195,6 @@ if (watch) {
 } else {
   await build(options);
   copyResvgWasm();
+  copyBundledFonts();
   console.log('✓ bundled extension/dist/extension.cjs');
 }
