@@ -4,6 +4,13 @@ Live, deterministic preview for **Triton** diagrams, rendered by the Triton
 compiler itself. As you type, the diagram updates in a side panel — the same SVG
 that `pnpm figures` would produce.
 
+## Preview
+
+![Triton live preview — spanning.mmd rendered with crosslinks and animated marching-ants](resources/spanning.animated.png)
+
+Animated poster preview with crosslinks, colored arrowheads, and a dark opaque
+background suitable for Marketplace and GitHub.
+
 ## What it does
 
 - Adds the `triton` language for `.triton` files.
