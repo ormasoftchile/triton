@@ -7215,3 +7215,8 @@ Viewed/generated:
 **By:** Edsger
 **What:** Cross-link renderers now emit one arrow marker per distinct edge color and marker kind, with the polygon fill baked to that edge color and paths referencing the color-specific marker id.
 **Why:** resvg does not resolve currentColor inside SVG markers, so shared currentColor arrowheads exported as black instead of matching cross-link strokes.
+
+### 2026-07-16T21:22:27-04:00: VSIX source maps are dev-only and production extension bundles are minified
+**By:** Brian
+**What:** Extension production builds now disable source map emission and enable minification, while watch builds retain source maps and readable output. The VSIX ignore list no longer re-includes dist/extension.cjs.map.
+**Why:** The published extension was shipping a large source map and an unminified bundle, increasing VSIX size without user benefit. Keeping maps only in watch mode preserves debug workflow while reducing release artifact size.

@@ -190,3 +190,8 @@ Brian again over-edited the architecture showcase while implementing per-style w
 - Bundled Inter Regular/Bold for deterministic default-theme raster text, registered the fonts for PNG/APNG export, and shipped them in the VSIX.
 - Re-exported the README APNG with an opaque #0F172A background from spanning.mmd and added a repeatable export script.
 - Coordinator verified crisp bold text, colored arrows, opaque preview rendering, and green checks before PR #81 merged.
+## 2026-07-16T21:26:44-04:00 — README preview and VSIX size reduction
+
+- brian-10 exported the README preview as an opaque #0F172A animated PNG and embedded it via `extension/resources/spanning.animated.png`; released in v0.1.27.
+- brian-11 reduced VSIX size by keeping esbuild sourcemaps to watch/dev builds and minifying production bundles; released in v0.1.28.
+
