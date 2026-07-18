@@ -6,7 +6,11 @@
  */
 
 // ─── Public API ────────────────────────────────────────────────────────────────
-export { compileSync, renderSync, compile, render } from './frontend/index.js';
+export { compileSync, renderSync, compile, render, compileAndRenderSync } from './frontend/index.js';
+
+// Reveal / anchor manifest embedding — used by presentation hosts (e.g. Deckpilot)
+// on the interactive path. Plain renderSync output stays manifest-free.
+export { embedAnchorManifest, embedRevealManifest } from './render/svg.js';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type {
@@ -25,4 +29,6 @@ export type {
   DiagramError, DiagramErrorCode, Result,
   // Routing
   RouteStyle, Route, Router,
+  // Reveal
+  RevealEffect, RevealStep, RevealTrack,
 } from './contracts/index.js';

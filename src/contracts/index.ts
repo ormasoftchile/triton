@@ -121,6 +121,12 @@ export type {
 } from './anchors.js';
 
 export type {
+  RevealEffect,
+  RevealStep,
+  RevealTrack,
+} from './reveal.js';
+
+export type {
   NodeAddress,
   CrossLinkEdgeStyle,
   CrossLinkDirection,

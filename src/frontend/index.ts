@@ -1,4 +1,4 @@
-import type { Scene, ThemeInput, Result, BaseIR, LayoutResult, NodeAnchorRegistry, LayoutOptions } from '../contracts/index.js';
+import type { Scene, ThemeInput, Result, BaseIR, LayoutResult, NodeAnchorRegistry, LayoutOptions, RevealTrack } from '../contracts/index.js';
 import type { IconPackMap } from '../contracts/icons.js';
 import { ok, err } from '../contracts/index.js';
 import { detect } from './detect.js';
@@ -53,6 +53,7 @@ import { trie } from '../diagrams/triton/ds/trie/trie.js';
 import { graph } from '../diagrams/triton/ds/graph/graph.js';
 import { unionfind } from '../diagrams/triton/ds/unionfind/unionfind.js';
 import { topology } from '../diagrams/triton/topology/topology.js';
+import { list } from '../diagrams/triton/deck/list/list.js';
 import { svgRenderer, embedAnchorManifest } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
@@ -109,6 +110,7 @@ registerDiagram('trie', trie);
 registerDiagram('nodegraph', graph);
 registerDiagram('unionfind', unionfind);
 registerDiagram('topology', topology);
+registerDiagram('list', list);
 registerRenderer(svgRenderer);
 registerRouter('straight', straightRouter);
 registerRouter('orthogonal', orthogonalRouter);
@@ -226,7 +228,7 @@ export function compileAndRenderSync(
   rendererName = 'svg',
   forcedThemeName?: string,
   icons?: IconPackMap,
-): Result<{ svg: string; anchors: NodeAnchorRegistry }> {
+): Result<{ svg: string; anchors: NodeAnchorRegistry; reveal?: RevealTrack }> {
   const compileResult = compileSync(input, themeInput, forcedThemeName, icons);
   if (!compileResult.ok) return compileResult;
 
@@ -236,9 +238,11 @@ export function compileAndRenderSync(
   }
 
   try {
-    const { scene, anchors } = compileResult.value;
+    const { scene, anchors, reveal } = compileResult.value;
     const svg = renderer.render(scene);
-    return ok({ svg, anchors });
+    // `reveal` is returned as DATA (svg stays manifest-free, mirroring anchors).
+    // Hosts that opt into progressive reveal embed it via embedRevealManifest.
+    return ok(reveal ? { svg, anchors, reveal } : { svg, anchors });
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
     return err('LAYOUT_ERROR', message, cause);
