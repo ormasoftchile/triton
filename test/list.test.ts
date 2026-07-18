@@ -156,11 +156,16 @@ describe('layoutList', () => {
   });
 
   it('renders each style without error and keeps per-item groups', () => {
-    for (const style of ['bullets', 'numbered', 'block', 'box', 'tree'] as const) {
+    for (const style of [
+      'bullets', 'numbered', 'block', 'box', 'tree',
+      'chevron', 'process', 'timeline', 'pyramid', 'columns',
+    ] as const) {
       const doc = parseList(`list\n  style ${style}\n  One\n  Two\n`);
       const result = layoutList(doc, theme);
       expect(Object.keys(result.anchors).sort()).toEqual(['item-0', 'item-1']);
       expect(result.scene.elements.length).toBeGreaterThan(0);
+      // No degenerate geometry leaks into any style's SVG.
+      expect(JSON.stringify(result.scene)).not.toMatch(/NaN|undefined/);
     }
   });
 
@@ -172,6 +177,79 @@ describe('layoutList', () => {
     // A path (connector) exists for every non-root node (5 of the 8).
     const paths = JSON.stringify(result.scene.elements).match(/"type":"path"/g) ?? [];
     expect(paths).toHaveLength(5);
+  });
+});
+
+// ─── Phase C styles (chevron / process / timeline / pyramid / columns) ──────────
+
+describe('list Phase C styles', () => {
+  const theme = resolveTheme({}, defaultTheme);
+  const FLAT = 'list\n  Alpha\n  Beta\n  Gamma\n';
+
+  const countPaths = (r: ReturnType<typeof layoutList>): number =>
+    (JSON.stringify(r.scene.elements).match(/"type":"path"/g) ?? []).length;
+
+  it('chevron lays out items in a single horizontal row of filled arrows', () => {
+    const r = layoutList(parseList('list\n  style chevron\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    expect(Object.keys(r.anchors).sort()).toEqual(['item-0', 'item-1', 'item-2']);
+    // One filled arrow path per item; all share the same top (single row).
+    expect(countPaths(r)).toBe(3);
+    const ys = Object.values(r.anchors).map(a => a.bounds.y);
+    expect(new Set(ys).size).toBe(1);
+    // Blocks advance left→right.
+    const xs = ['item-0', 'item-1', 'item-2'].map(id => r.anchors[id]!.bounds.x);
+    expect(xs[1]!).toBeGreaterThan(xs[0]!);
+    expect(xs[2]!).toBeGreaterThan(xs[1]!);
+  });
+
+  it('process joins boxes with arrow connectors (one incoming arrow per non-first box)', () => {
+    const r = layoutList(parseList('list\n  style process\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    // Each non-first box carries a line + arrowhead = 2 paths × 2 boxes = 4.
+    expect(countPaths(r)).toBe(4);
+    // Boxes are rects, one per item.
+    const rects = (JSON.stringify(r.scene.elements).match(/"type":"rect"/g) ?? []).length;
+    expect(rects).toBe(3);
+  });
+
+  it('timeline places dots on a shared horizontal axis with connecting segments', () => {
+    const r = layoutList(parseList('list\n  style timeline\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    const circles = (JSON.stringify(r.scene.elements).match(/"type":"circle"/g) ?? []).length;
+    expect(circles).toBe(3);
+    // One axis segment between each pair of dots (2 for 3 items).
+    expect(countPaths(r)).toBe(2);
+  });
+
+  it('pyramid stacks trapezoids that widen toward the base', () => {
+    const r = layoutList(parseList('list\n  style pyramid\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    expect(countPaths(r)).toBe(3);
+    const widths = ['item-0', 'item-1', 'item-2'].map(id => r.anchors[id]!.bounds.width);
+    expect(widths[1]!).toBeGreaterThan(widths[0]!);
+    expect(widths[2]!).toBeGreaterThan(widths[1]!);
+  });
+
+  it('columns groups depth-0 headers with their nested cells side by side', () => {
+    const src = `list
+  style columns
+  Pros
+    Fast
+    Cheap
+  Cons
+    Risky
+`;
+    const r = layoutList(parseList(src), theme);
+    // Two column headers at the same y; their cells sit below.
+    const pros = r.anchors['item-0']!;
+    const cons = r.anchors['item-1']!;
+    expect(pros.bounds.y).toBe(cons.bounds.y);
+    expect(cons.bounds.x).toBeGreaterThan(pros.bounds.x);
+    // Cells are below their header.
+    expect(r.anchors['item-0-0']!.bounds.y).toBeGreaterThan(pros.bounds.y);
+    // subtree reveal groups a whole column (header + its cells) per step.
+    const sub = layoutList(parseList(src.replace('style columns', 'style columns\n  reveal subtree')), theme);
+    expect(sub.reveal!.steps.map(s => s.enter)).toEqual([
+      ['item-0', 'item-0-0', 'item-0-1'],
+      ['item-1', 'item-1-0'],
+    ]);
   });
 });
 
