@@ -163,7 +163,7 @@ export type DiagramKind =
   | 'nodegraph'
   | 'unionfind'
   | 'topology'
-  | 'bullets';
+  | 'list';
 
 /** The two input formats Triton accepts. */
 export type InputFormat = 'mermaid' | 'yaml';

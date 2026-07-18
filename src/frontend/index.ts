@@ -53,7 +53,7 @@ import { trie } from '../diagrams/triton/ds/trie/trie.js';
 import { graph } from '../diagrams/triton/ds/graph/graph.js';
 import { unionfind } from '../diagrams/triton/ds/unionfind/unionfind.js';
 import { topology } from '../diagrams/triton/topology/topology.js';
-import { bullets } from '../diagrams/triton/deck/bullets/bullets.js';
+import { list } from '../diagrams/triton/deck/list/list.js';
 import { svgRenderer, embedAnchorManifest } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
@@ -110,7 +110,7 @@ registerDiagram('trie', trie);
 registerDiagram('nodegraph', graph);
 registerDiagram('unionfind', unionfind);
 registerDiagram('topology', topology);
-registerDiagram('bullets', bullets);
+registerDiagram('list', list);
 registerRenderer(svgRenderer);
 registerRouter('straight', straightRouter);
 registerRouter('orthogonal', orthogonalRouter);
