@@ -159,6 +159,7 @@ describe('layoutList', () => {
     for (const style of [
       'bullets', 'numbered', 'block', 'box', 'tree',
       'chevron', 'process', 'timeline', 'pyramid', 'columns',
+      'cycle', 'matrix', 'funnel', 'stepup', 'venn',
     ] as const) {
       const doc = parseList(`list\n  style ${style}\n  One\n  Two\n`);
       const result = layoutList(doc, theme);
@@ -253,6 +254,79 @@ describe('list Phase C styles', () => {
   });
 });
 
+// ─── Phase D styles (cycle / matrix / funnel / stepup / venn) ───────────────────
+
+describe('list Phase D styles', () => {
+  const theme = resolveTheme({}, defaultTheme);
+  const FLAT = 'list\n  Alpha\n  Beta\n  Gamma\n  Delta\n';
+  const withStyle = (s: string) => 'list\n  style ' + s + '\n' + FLAT.split('\n').slice(1).join('\n');
+
+  const countType = (r: ReturnType<typeof layoutList>, t: string): number =>
+    (JSON.stringify(r.scene.elements).match(new RegExp(`"type":"${t}"`, 'g')) ?? []).length;
+
+  it('cycle places every item on a ring with connecting arcs', () => {
+    const r = layoutList(parseList(withStyle('cycle')), theme);
+    expect(Object.keys(r.anchors)).toHaveLength(4);
+    // A node rect per item + one arc + one arrowhead per item (closed loop).
+    expect(countType(r, 'rect')).toBe(4);
+    expect(countType(r, 'path')).toBe(8);
+    // Ring: nodes are not colinear (distinct x AND y spread).
+    const xs = Object.values(r.anchors).map(a => a.bounds.x);
+    const ys = Object.values(r.anchors).map(a => a.bounds.y);
+    expect(new Set(xs).size).toBeGreaterThan(1);
+    expect(new Set(ys).size).toBeGreaterThan(1);
+  });
+
+  it('matrix lays four items into a 2×2 grid of tiles', () => {
+    const r = layoutList(parseList(withStyle('matrix')), theme);
+    expect(countType(r, 'rect')).toBe(4);
+    const b = (id: string) => r.anchors[id]!.bounds;
+    // Row 0: items 0,1 share a y; item 1 is right of item 0.
+    expect(b('item-0').y).toBe(b('item-1').y);
+    expect(b('item-1').x).toBeGreaterThan(b('item-0').x);
+    // Row 1: items 2,3 sit below row 0, aligned in the same columns.
+    expect(b('item-2').y).toBeGreaterThan(b('item-0').y);
+    expect(b('item-2').x).toBe(b('item-0').x);
+    expect(b('item-3').x).toBe(b('item-1').x);
+  });
+
+  it('funnel narrows from a wide top to a narrow base', () => {
+    const r = layoutList(parseList(withStyle('funnel')), theme);
+    expect(countType(r, 'path')).toBe(4);
+    const widths = ['item-0', 'item-1', 'item-2', 'item-3'].map(id => r.anchors[id]!.bounds.width);
+    expect(widths[0]!).toBeGreaterThan(widths[3]!);
+    expect(widths[1]!).toBeGreaterThan(widths[2]!);
+  });
+
+  it('stepup arranges blocks as an ascending staircase (later = higher)', () => {
+    const r = layoutList(parseList(withStyle('stepup')), theme);
+    const b = (id: string) => r.anchors[id]!.bounds;
+    // x increases, y decreases (higher on screen) with each step.
+    expect(b('item-1').x).toBeGreaterThan(b('item-0').x);
+    expect(b('item-3').y).toBeLessThan(b('item-0').y);
+    // Elbow connectors: one per non-first block.
+    expect(countType(r, 'path')).toBe(3);
+  });
+
+  it('venn clusters translucent circles radially (not colinear for 3+)', () => {
+    const r = layoutList(parseList(withStyle('venn')), theme);
+    expect(countType(r, 'circle')).toBe(4);
+    const svg = JSON.stringify(r.scene.elements);
+    expect(svg).toMatch(/"opacity":0\.5/);
+    // Circles form a cluster, not a single row.
+    const ys = ['item-0', 'item-1', 'item-2', 'item-3'].map(id => r.anchors[id]!.bounds.y);
+    expect(new Set(ys).size).toBeGreaterThan(1);
+  });
+
+  it('venn places two items side by side (same row)', () => {
+    const r = layoutList(parseList('list\n  style venn\n  Left\n  Right\n'), theme);
+    const a = r.anchors['item-0']!.bounds;
+    const b = r.anchors['item-1']!.bounds;
+    expect(a.y).toBe(b.y);
+    expect(b.x).toBeGreaterThan(a.x);
+  });
+});
+
 // ─── Reveal modes ─────────────────────────────────────────────────────────────
 
 describe('list reveal modes', () => {
@@ -279,6 +353,21 @@ describe('list reveal modes', () => {
 
   it('layer mode is not the default (sequence is)', () => {
     expect(parseList(NESTED).reveal).toBe('sequence');
+  });
+
+  it('`reveal none` parses and emits NO reveal track (show-all-at-once)', () => {
+    const doc = parseList(`list\n  reveal none\n  One\n  Two\n`);
+    expect(doc.reveal).toBe('none');
+    const result = layoutList(doc, theme);
+    expect(result.reveal).toBeUndefined();
+  });
+
+  it('accepts `all`/`off`/`static` as aliases for `none`', () => {
+    for (const alias of ['all', 'off', 'static']) {
+      const doc = parseList(`list\n  reveal ${alias}\n  One\n`);
+      expect(doc.reveal).toBe('none');
+      expect(layoutList(doc, theme).reveal).toBeUndefined();
+    }
   });
 
   it('sequence mode chunks items N-per-step with `group N`', () => {
