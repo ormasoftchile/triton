@@ -1,4 +1,4 @@
-import type { Scene, SceneElement, SceneIcon, Renderer, NodeAnchorRegistry } from '../contracts/index.js';
+import type { Scene, SceneElement, SceneIcon, Renderer, NodeAnchorRegistry, RevealTrack } from '../contracts/index.js';
 import type { IconTransforms } from '../contracts/icons.js';
 import {
   animationDuration,
@@ -480,6 +480,23 @@ export function embedAnchorManifest(svg: string, anchors: NodeAnchorRegistry): s
   }
   const json = JSON.stringify(sorted).replace(/<\//g, '<\\/');
   const block = `<script type="application/json" id="triton-anchors">${json}</script>`;
+  return svg.replace('</svg>', `${block}\n</svg>`);
+}
+
+// ─── Reveal manifest embed ────────────────────────────────────────────────────
+
+/**
+ * Embed a progressive-reveal choreography into an SVG string as an inert data
+ * script tag, immediately before the closing `</svg>`.
+ *
+ * This is reveal-specific output and is emitted ONLY by hosts that opt into
+ * progressive reveal (e.g. Deckpilot) — never by the plain `renderSync` path.
+ * Any `</` sequences inside the JSON are escaped as `<\/` so they cannot
+ * accidentally terminate the script element. The output is deterministic.
+ */
+export function embedRevealManifest(svg: string, reveal: RevealTrack): string {
+  const json = JSON.stringify(reveal).replace(/<\//g, '<\\/');
+  const block = `<script type="application/json" id="triton-reveal">${json}</script>`;
   return svg.replace('</svg>', `${block}\n</svg>`);
 }
 

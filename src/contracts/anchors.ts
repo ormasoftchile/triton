@@ -19,6 +19,7 @@
 
 import type { Point, Rect } from './primitives.js';
 import type { Scene } from './scene.js';
+import type { RevealTrack } from './reveal.js';
 
 // ─── Cardinal Ports ───────────────────────────────────────────────────────────
 
@@ -138,6 +139,15 @@ export interface LayoutResult {
    * omit this field.
    */
   readonly chromeRects?: readonly Rect[];
+  /**
+   * Optional progressive-reveal choreography for presentation hosts.
+   *
+   * Pure data — its presence never changes how the Scene renders. Serialized
+   * into SVG output ONLY on the interactive render path (compileAndRenderSync),
+   * mirroring the anchor manifest; plain renderSync output stays reveal-free.
+   * Absent for diagrams that do not opt into progressive reveal.
+   */
+  readonly reveal?: RevealTrack;
 }
 
 /**
