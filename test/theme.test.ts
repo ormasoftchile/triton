@@ -18,6 +18,7 @@ describe('resolveTheme', () => {
         'default',
         'executive',
         'minimal',
+        'minimal-dark',
         'consulting',
         'product',
         'release',
