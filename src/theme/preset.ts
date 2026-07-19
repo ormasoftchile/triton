@@ -102,6 +102,27 @@ export const minimalTheme: ResolvedTheme = {
   panel:      basePanel,
 } as const;
 
+/** Greyscale, ink-on-paper minimalism — dark canvas variant of `minimal`. */
+export const minimalDarkTheme: ResolvedTheme = {
+  name: 'minimal-dark',
+  palette: {
+    primary:    '#D4D4D4',
+    secondary:  '#8B8B8B',
+    background: '#171717',
+    surface:    '#262626',
+    border:     '#3F3F3F',
+    text:       '#FAFAFA',
+    textMuted:  '#A3A3A3',
+    success:    '#A3A3A3',
+    warning:    '#8B8B8B',
+    error:      '#E5E5E5',
+  },
+  typography: baseTypography,
+  spacing:    baseSpacing,
+  edges:      baseEdges,
+  panel:      basePanel,
+} as const;
+
 /** Navy + amber on white — classic consulting deck. */
 export const consultingTheme: ResolvedTheme = {
   name: 'consulting',
@@ -298,6 +319,7 @@ export const THEMES: Readonly<Record<string, ResolvedTheme>> = {
   default:           defaultTheme,
   executive:         executiveTheme,
   minimal:           minimalTheme,
+  'minimal-dark':    minimalDarkTheme,
   consulting:        consultingTheme,
   product:           productTheme,
   release:           releaseTheme,
