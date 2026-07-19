@@ -16,6 +16,7 @@ import { pen } from '../../../../scene/build.js';
 import { treeLayout, type TreeNodeInput } from '../../../../graph/tree.js';
 import { connectSlots } from '../../../../graph/connect.js';
 import { measureText } from '../../../../text/metrics.js';
+import { bestContrast, contrastRatio, relativeLuminance } from '../../../../theme/contrast.js';
 import { applyOverlays } from '../../../../overlay/apply.js';
 import { rhu } from '../../../../util/round.js';
 
@@ -57,23 +58,6 @@ function mixHex(a: Color, b: Color, t: number): Color {
   return `#${toHex(r)}${toHex(g)}${toHex(bl)}`;
 }
 
-function relativeLuminance(c: Color): number | undefined {
-  const rgb = parseHex(c);
-  if (!rgb) return undefined;
-  const linear = (v: number): number => {
-    const s = v / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * linear(rgb[0]) + 0.7152 * linear(rgb[1]) + 0.0722 * linear(rgb[2]);
-}
-
-function contrastRatio(a: Color, b: Color): number {
-  const la = relativeLuminance(a), lb = relativeLuminance(b);
-  if (la === undefined || lb === undefined) return 1;
-  const hi = Math.max(la, lb), lo = Math.min(la, lb);
-  return (hi + 0.05) / (lo + 0.05);
-}
-
 function canvasColor(theme: ResolvedTheme): Color {
   return parseHex(theme.palette.background) ? theme.palette.background : theme.palette.surface;
 }
@@ -81,16 +65,6 @@ function canvasColor(theme: ResolvedTheme): Color {
 function isDarkTheme(theme: ResolvedTheme): boolean {
   const lum = relativeLuminance(theme.palette.background) ?? relativeLuminance(theme.palette.surface);
   return lum !== undefined ? lum < 0.5 : false;
-}
-
-function bestContrast(fill: Color, candidates: readonly Color[], fallback: Color): Color {
-  let best = fallback, score = contrastRatio(fallback, fill);
-  for (const c of candidates) {
-    if (!parseHex(c)) continue;
-    const next = contrastRatio(c, fill);
-    if (next > score) { best = c; score = next; }
-  }
-  return best;
 }
 
 function readableText(fill: Color, theme: ResolvedTheme): Color {

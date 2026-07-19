@@ -31,3 +31,6 @@ coverage/
 # codetopo index (auto-generated)
 .codetopo/
 .squad/.cache/
+.vscode-dev-extensions/
+.dh/
+.dhe/
