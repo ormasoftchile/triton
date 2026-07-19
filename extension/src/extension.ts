@@ -518,12 +518,20 @@ class PreviewManager {
   /** Restore a preview panel after a window reload (WebviewPanelSerializer). */
   async restore(panel: vscode.WebviewPanel, state: unknown): Promise<void> {
     panel.webview.html = shellHtml(panel.webview, 'Triton', this.selectedTheme(), this.registry.customNames());
-    const docUri =
+    const stateDocUri =
       state && typeof state === 'object' && typeof (state as { docUri?: unknown }).docUri === 'string'
         ? (state as { docUri: string }).docUri
         : undefined;
-    if (!docUri) return; // webview repaints its last SVG from getState()
-    const uri = vscode.Uri.parse(docUri);
+
+    // Resolve the document to re-render. Prefer the serialized docUri; fall
+    // back to the active diagram editor. The webview paints its last (stale)
+    // SVG from getState() on load, so we MUST re-render from the live document
+    // here — otherwise a window reload leaves pre-edit output on screen even
+    // after the extension code that produced it has changed.
+    const config = readConfig();
+    const uri = stateDocUri ? vscode.Uri.parse(stateDocUri) : this.activeDiagramUri(config);
+    if (!uri) return; // no diagram to bind; webview keeps its restored SVG
+
     this.bindPanel(panel, uri);
     try {
       const doc = await vscode.workspace.openTextDocument(uri);
@@ -531,6 +539,14 @@ class PreviewManager {
     } catch {
       // Document no longer available; the webview keeps its restored SVG.
     }
+  }
+
+  /** The active editor's document URI if it is a diagram document, else undefined. */
+  private activeDiagramUri(config: ReturnType<typeof readConfig>): vscode.Uri | undefined {
+    const active = vscode.window.activeTextEditor?.document;
+    if (active && isDiagramDoc(active, config)) return active.uri;
+    const diagram = vscode.workspace.textDocuments.find((d) => isDiagramDoc(d, config));
+    return diagram?.uri;
   }
 
   /**

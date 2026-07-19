@@ -50,6 +50,7 @@ import type {
 } from '../../../../contracts/index.js';
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
+import { readableText } from '../../../../theme/contrast.js';
 import { rhu } from '../../../../util/round.js';
 
 const REVEAL_EFFECTS: readonly RevealEffect[] = ['fade', 'slide', 'grow', 'draw'];
@@ -435,7 +436,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
           ? `M ${x} ${y} L ${innerR} ${y} L ${tipR} ${cy} L ${innerR} ${yb} L ${x} ${yb} Z`
           : `M ${x} ${y} L ${innerR} ${y} L ${tipR} ${cy} L ${innerR} ${yb} L ${x} ${yb} L ${rhu(x + k)} ${cy} Z`;
         children.push(p.path(d, fill, 0, { fill }));
-        children.push(p.text(it.text, rhu(cx + k / 2), textY, font, palette.background, { anchor: 'middle' }));
+        children.push(p.text(it.text, rhu(cx + k / 2), textY, font, readableText(fill, theme), { anchor: 'middle' }));
       } else {
         // Incoming arrow lives in THIS group so it reveals with its target box.
         if (i > 0) {
@@ -508,7 +509,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       const d = `M ${tl} ${yTop} L ${tr} ${yTop} L ${br} ${yBot} L ${bl} ${yBot} Z`;
       const children: SceneElement[] = [
         p.path(d, fill, 0, { fill }),
-        p.text(it.text, cxCenter, rhu(y + bandH / 2 + font * 0.34), font, palette.background, { anchor: 'middle' }),
+        p.text(it.text, cxCenter, rhu(y + bandH / 2 + font * 0.34), font, readableText(fill, theme), { anchor: 'middle' }),
       ];
       elements.push(p.group(children, { id: it.id }));
       anchors[it.id] = { bounds: { x: bl, y: yTop, width: rhu(br - bl), height: bandH } };
@@ -552,7 +553,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       const cxc = rhu(cx0 + cw / 2);
       const hchildren: SceneElement[] = [
         p.rect({ x: cx0, y: top, width: cw, height: headerH }, palette.primary, palette.primary, 0, { rx: 6 }),
-        p.text(c.header.text, cxc, rhu(top + headerH / 2 + font * 0.34), font, palette.background, { weight: 'bold', anchor: 'middle' }),
+        p.text(c.header.text, cxc, rhu(top + headerH / 2 + font * 0.34), font, readableText(palette.primary, theme), { weight: 'bold', anchor: 'middle' }),
       ];
       elements.push(p.group(hchildren, { id: c.header.id }));
       anchors[c.header.id] = { bounds: { x: cx0, y: top, width: cw, height: headerH } };
@@ -645,7 +646,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       const fill = quad[i % quad.length]!;
       const children: SceneElement[] = [
         p.rect({ x, y, width: tileW, height: tileH }, fill, fill, 0, { rx: 6 }),
-        p.text(it.text, rhu(x + tileW / 2), rhu(y + tileH / 2 + font * 0.34), font, palette.background, { weight: 'bold', anchor: 'middle' }),
+        p.text(it.text, rhu(x + tileW / 2), rhu(y + tileH / 2 + font * 0.34), font, readableText(fill, theme), { weight: 'bold', anchor: 'middle' }),
       ];
       elements.push(p.group(children, { id: it.id }));
       anchors[it.id] = { bounds: { x, y, width: tileW, height: tileH } };
@@ -679,7 +680,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       const d = `M ${tl} ${yTop} L ${tr} ${yTop} L ${br} ${yBot} L ${bl} ${yBot} Z`;
       const children: SceneElement[] = [
         p.path(d, fill, 0, { fill }),
-        p.text(it.text, cxCenter, rhu(y + bandH / 2 + font * 0.34), font, palette.background, { anchor: 'middle' }),
+        p.text(it.text, cxCenter, rhu(y + bandH / 2 + font * 0.34), font, readableText(fill, theme), { anchor: 'middle' }),
       ];
       elements.push(p.group(children, { id: it.id }));
       anchors[it.id] = { bounds: { x: tl, y: yTop, width: rhu(tr - tl), height: bandH } };
