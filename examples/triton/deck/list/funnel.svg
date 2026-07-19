@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 349.8 300.4" width="349.8" height="300.4">
+  <rect x="0" y="0" width="349.8" height="300.4" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Enterprise Conversion Funnel</text>
+  <g id="item-0">
+    <path d="M 24 58 L 325.8 58 L 304.07 97.2 L 45.73 97.2 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="174.9" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Target accounts identified</text>
+  </g>
+  <g id="item-1">
+    <path d="M 45.73 102.8 L 304.07 102.8 L 282.34 142 L 67.46 142 Z" stroke="#7C3AED" stroke-width="0" fill="#7C3AED" />
+    <text x="174.9" y="127.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle">Discovery meetings booked</text>
+  </g>
+  <g id="item-2">
+    <path d="M 67.46 147.6 L 282.34 147.6 L 260.61 186.8 L 89.19 186.8 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="174.9" y="171.96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Business cases confirmed</text>
+  </g>
+  <g id="item-3">
+    <path d="M 89.19 192.4 L 260.61 192.4 L 238.88 231.6 L 110.92 231.6 Z" stroke="#7C3AED" stroke-width="0" fill="#7C3AED" />
+    <text x="174.9" y="216.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle">Procurement reviews completed</text>
+  </g>
+  <g id="item-4">
+    <path d="M 110.92 237.2 L 238.88 237.2 L 217.15 276.4 L 132.65 276.4 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="174.9" y="261.56" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Signed expansion agreements</text>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1389.78 121.2" width="1389.78" height="121.2">
+  <rect x="0" y="0" width="1389.78" height="121.2" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Release Management Process</text>
+  <g id="item-0">
+    <rect x="24" y="58" width="202.63" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="125.32" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Intake change request</text>
+  </g>
+  <g id="item-1">
+    <path d="M 226.63 77.6 L 245.95 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 245.95 71.72 L 251.83 77.6 L 245.95 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="251.83" y="58" width="202.63" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="353.15" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Assess risk and scope</text>
+  </g>
+  <g id="item-2">
+    <path d="M 454.46 77.6 L 473.78 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 473.78 71.72 L 479.66 77.6 L 473.78 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="479.66" y="58" width="202.63" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="580.98" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Prepare release candidate</text>
+  </g>
+  <g id="item-3">
+    <path d="M 682.29 77.6 L 701.61 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 701.61 71.72 L 707.49 77.6 L 701.61 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="707.49" y="58" width="202.63" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="808.81" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">complete regression checks</text>
+  </g>
+  <g id="item-4">
+    <path d="M 910.12 77.6 L 929.44 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 929.44 71.72 L 935.32 77.6 L 929.44 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="935.32" y="58" width="202.63" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="1036.64" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Approve deployment</text>
+  </g>
+  <g id="item-5">
+    <path d="M 1137.95 77.6 L 1157.27 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 1157.27 71.72 L 1163.15 77.6 L 1157.27 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="1163.15" y="58" width="202.63" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="1264.47" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Monitor production</text>
+  </g>
+</svg>

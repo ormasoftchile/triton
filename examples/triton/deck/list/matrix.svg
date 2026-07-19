@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 443.88 178.6" width="443.88" height="178.6">
+  <rect x="0" y="0" width="443.88" height="178.6" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Risk Response Matrix</text>
+  <g id="item-0">
+    <rect x="24" y="58" width="194.44" height="44.8" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="6" />
+    <text x="121.22" y="85.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Avoid high-impact threats</text>
+  </g>
+  <g id="item-1">
+    <rect x="225.44" y="58" width="194.44" height="44.8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="6" />
+    <text x="322.66" y="85.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Mitigate likely issues</text>
+  </g>
+  <g id="item-2">
+    <rect x="24" y="109.8" width="194.44" height="44.8" fill="#22C55E" stroke="#22C55E" stroke-width="0" rx="6" />
+    <text x="121.22" y="136.96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Transfer financial exposure</text>
+  </g>
+  <g id="item-3">
+    <rect x="225.44" y="109.8" width="194.44" height="44.8" fill="#F59E0B" stroke="#F59E0B" stroke-width="0" rx="6" />
+    <text x="322.66" y="136.96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Accept low-priority risks</text>
+  </g>
+</svg>

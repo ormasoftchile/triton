@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1154.4 121.2" width="1154.4" height="121.2">
+  <rect x="0" y="0" width="1154.4" height="121.2" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Sales Enablement Flow</text>
+  <g id="item-0">
+    <path d="M 24 58 L 206.44 58 L 218.2 77.6 L 206.44 97.2 L 24 97.2 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="126.98" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Segment accounts</text>
+  </g>
+  <g id="item-1">
+    <path d="M 206.44 58 L 388.88 58 L 400.64 77.6 L 388.88 97.2 L 206.44 97.2 L 218.2 77.6 Z" stroke="#7C3AED" stroke-width="0" fill="#7C3AED" />
+    <text x="309.42" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle">Qualify opportunity</text>
+  </g>
+  <g id="item-2">
+    <path d="M 388.88 58 L 571.32 58 L 583.08 77.6 L 571.32 97.2 L 388.88 97.2 L 400.64 77.6 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="491.86" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">confirm business value</text>
+  </g>
+  <g id="item-3">
+    <path d="M 571.32 58 L 753.76 58 L 765.52 77.6 L 753.76 97.2 L 571.32 97.2 L 583.08 77.6 Z" stroke="#7C3AED" stroke-width="0" fill="#7C3AED" />
+    <text x="674.3" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle">Build proposal</text>
+  </g>
+  <g id="item-4">
+    <path d="M 753.76 58 L 936.2 58 L 947.96 77.6 L 936.2 97.2 L 753.76 97.2 L 765.52 77.6 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="856.74" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Secure approval</text>
+  </g>
+  <g id="item-5">
+    <path d="M 936.2 58 L 1118.64 58 L 1130.4 77.6 L 1118.64 97.2 L 936.2 97.2 L 947.96 77.6 Z" stroke="#7C3AED" stroke-width="0" fill="#7C3AED" />
+    <text x="1039.18" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle">Handoff to delivery</text>
+  </g>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256.03 308.8" width="256.03" height="308.8">
+  <rect x="0" y="0" width="256.03" height="308.8" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Quarterly Operating Priorities</text>
+  <g id="item-0">
+    <rect x="24" y="58" width="208.03" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+    <text x="35.2" y="78.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Improve reliability</text>
+  </g>
+  <g id="item-0-0">
+    <rect x="46.4" y="97.2" width="185.63" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+    <text x="57.599999999999994" y="117.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Reduce incident MTTR</text>
+  </g>
+  <g id="item-1">
+    <rect x="24" y="136.4" width="208.03" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+    <text x="35.2" y="156.56" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Expand self-service</text>
+  </g>
+  <g id="item-1-0">
+    <rect x="46.4" y="175.60000000000002" width="185.63" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+    <text x="57.599999999999994" y="195.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Automate approvals</text>
+  </g>
+  <g id="item-2">
+    <rect x="24" y="214.8" width="208.03" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+    <text x="35.2" y="234.96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Strengthen governance</text>
+  </g>
+  <g id="item-3">
+    <rect x="24" y="254" width="208.03" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="6" />
+    <text x="35.2" y="274.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Report measurable outcomes</text>
+  </g>
+</svg>

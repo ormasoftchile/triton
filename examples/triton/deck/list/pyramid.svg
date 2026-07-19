@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 293.8 255.6" width="293.8" height="255.6">
+  <rect x="0" y="0" width="293.8" height="255.6" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Analytics Maturity Model</text>
+  <g id="item-0">
+    <path d="M 112.49 58 L 181.31 58 L 203.43 97.2 L 90.37 97.2 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="146.9" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Predictive optimization</text>
+  </g>
+  <g id="item-1">
+    <path d="M 90.37 102.8 L 203.43 102.8 L 225.56 142 L 68.25 142 Z" stroke="#7C3AED" stroke-width="0" fill="#7C3AED" />
+    <text x="146.9" y="127.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle">Trusted self-service</text>
+  </g>
+  <g id="item-2">
+    <path d="M 68.25 147.6 L 225.56 147.6 L 247.68 186.8 L 46.12 186.8 Z" stroke="#4A90D9" stroke-width="0" fill="#4A90D9" />
+    <text x="146.9" y="171.96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Standardized reporting</text>
+  </g>
+  <g id="item-3">
+    <path d="M 46.12 192.4 L 247.68 192.4 L 269.8 231.6 L 24 231.6 Z" stroke="#7C3AED" stroke-width="0" fill="#7C3AED" />
+    <text x="146.9" y="216.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle">Governed data foundation</text>
+  </g>
+</svg>
