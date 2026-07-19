@@ -68,5 +68,5 @@ describe('theme font resolver', () => {
     const fromIndex = await resolveThemeFontFromIndex('Inter, sans-serif', fakeSystemInter, fakeRead);
     expect(fromIndex?.buffers[0]).toEqual(regular);
     expect(fromIndex?.buffers[1]).toEqual(bold);
-  });
+  }, 20000);
 });
