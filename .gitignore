@@ -34,3 +34,7 @@ coverage/
 .vscode-dev-extensions/
 .dh/
 .dhe/
+
+# Local dev workspace / tooling (machine-specific)
+.vscode/focus-space.json
+*.code-workspace

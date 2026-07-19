@@ -102,9 +102,35 @@ export const minimalTheme: ResolvedTheme = {
   panel:      basePanel,
 } as const;
 
+/**
+ * Framed light variant of `minimal`. Identical greyscale palette, but intended
+ * to always paint its white background — the VS Code extension exempts this
+ * preset from the transparent-canvas blanking it applies to other built-ins,
+ * so a diagram stays readable on a white card regardless of the editor theme.
+ */
+export const bwLightTheme: ResolvedTheme = {
+  name: 'bw-light',
+  palette: {
+    primary:    '#525252',
+    secondary:  '#A3A3A3',
+    background: '#FFFFFF',
+    surface:    '#F5F5F5',
+    border:     '#E5E5E5',
+    text:       '#171717',
+    textMuted:  '#737373',
+    success:    '#737373',
+    warning:    '#A3A3A3',
+    error:      '#404040',
+  },
+  typography: baseTypography,
+  spacing:    baseSpacing,
+  edges:      baseEdges,
+  panel:      basePanel,
+} as const;
+
 /** Greyscale, ink-on-paper minimalism — dark canvas variant of `minimal`. */
-export const minimalDarkTheme: ResolvedTheme = {
-  name: 'minimal-dark',
+export const bwDarkTheme: ResolvedTheme = {
+  name: 'bw-dark',
   palette: {
     primary:    '#D4D4D4',
     secondary:  '#8B8B8B',
@@ -319,7 +345,8 @@ export const THEMES: Readonly<Record<string, ResolvedTheme>> = {
   default:           defaultTheme,
   executive:         executiveTheme,
   minimal:           minimalTheme,
-  'minimal-dark':    minimalDarkTheme,
+  'bw-light':        bwLightTheme,
+  'bw-dark':         bwDarkTheme,
   consulting:        consultingTheme,
   product:           productTheme,
   release:           releaseTheme,

@@ -38,6 +38,12 @@ import { IconRegistry } from './icon-registry.js';
 
 type RenderMode = 'explicit' | 'passive';
 
+// Built-in presets that keep their OWN background in the preview instead of the
+// default frameless (transparent) rendering applied to every other preset. A
+// framed preset paints its palette.background so the diagram stays readable on
+// its intended canvas regardless of the editor theme.
+const FRAMED_PRESETS: ReadonlySet<string> = new Set(['bw-light']);
+
 const PREVIEW_THEME_KEY = 'triton.previewTheme';
 const DEFAULT_ANIMATED_EXPORT: AnimatedExportConfig = {
   fps: 60,
@@ -661,7 +667,14 @@ class PreviewManager {
       return { themeInput: editorThemeInput(), forcedThemeName: undefined };
     }
     if (themePresetNames.includes(selected)) {
-      // Built-in preset: pass a transparent background and let core force the preset
+      // Built-in preset. Most presets render frameless in the preview: we blank
+      // the background to '' so the diagram adapts to the editor/slide canvas.
+      // FRAMED_PRESETS are the exception — they keep their own background (e.g.
+      // `bw-light` always paints white), so we force the preset WITHOUT
+      // overriding the background.
+      if (FRAMED_PRESETS.has(selected)) {
+        return { themeInput: {}, forcedThemeName: selected };
+      }
       return { themeInput: { palette: { background: '' } }, forcedThemeName: selected };
     }
     const custom = this.registry.resolve(selected);

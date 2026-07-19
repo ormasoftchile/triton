@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 203.2 241.6" width="203.2" height="241.6">
+  <rect x="0" y="0" width="203.2" height="241.6" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Product Review Agenda</text>
+  <g id="item-0">
+    <circle cx="27" cy="71.3" r="3" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" />
+    <text x="42" y="76.06" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Market context</text>
+  </g>
+  <g id="item-1">
+    <circle cx="27" cy="97.9" r="3" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" />
+    <text x="42" y="102.66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Customer evidence</text>
+  </g>
+  <g id="item-2">
+    <circle cx="27" cy="124.5" r="3" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" />
+    <text x="42" y="129.26" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Roadmap updates</text>
+  </g>
+  <g id="item-3">
+    <circle cx="27" cy="151.1" r="3" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" />
+    <text x="42" y="155.86" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">dependency risks</text>
+  </g>
+  <g id="item-4">
+    <circle cx="27" cy="177.7" r="3" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" />
+    <text x="42" y="182.46" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Launch readiness</text>
+  </g>
+  <g id="item-5">
+    <circle cx="27" cy="204.3" r="3" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" />
+    <text x="42" y="209.06" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Decisions and owners</text>
+  </g>
+</svg>

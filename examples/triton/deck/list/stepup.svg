@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1083.95 209.68" width="1083.95" height="209.68">
+  <rect x="0" y="0" width="1083.95" height="209.68" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Cloud Readiness Staircase</text>
+  <g id="item-0">
+    <rect x="24" y="152.08" width="198.23" height="33.6" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="123.12" y="173.64" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Standardize environments</text>
+  </g>
+  <g id="item-1">
+    <path d="M 222.23 168.88 L 227.83 168.88 L 227.83 145.36 L 233.43 145.36" stroke="#CBD5E1" stroke-width="1.5" fill="none" />
+    <rect x="233.43" y="128.56" width="198.23" height="33.6" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="332.55" y="150.12" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Automate provisioning</text>
+  </g>
+  <g id="item-2">
+    <path d="M 431.66 145.36 L 437.26 145.36 L 437.26 121.84 L 442.86 121.84" stroke="#CBD5E1" stroke-width="1.5" fill="none" />
+    <rect x="442.86" y="105.04" width="198.23" height="33.6" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="541.98" y="126.6" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">codify guardrails</text>
+  </g>
+  <g id="item-3">
+    <path d="M 641.09 121.84 L 646.69 121.84 L 646.69 98.32 L 652.29 98.32" stroke="#CBD5E1" stroke-width="1.5" fill="none" />
+    <rect x="652.29" y="81.52" width="198.23" height="33.6" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="751.41" y="103.08" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Shift workloads in waves</text>
+  </g>
+  <g id="item-4">
+    <path d="M 850.52 98.32 L 856.12 98.32 L 856.12 74.8 L 861.72 74.8" stroke="#CBD5E1" stroke-width="1.5" fill="none" />
+    <rect x="861.72" y="58" width="198.23" height="33.6" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="960.84" y="79.56" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Optimize cost and reliability</text>
+  </g>
+</svg>

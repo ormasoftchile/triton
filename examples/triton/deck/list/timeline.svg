@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1159.45 153.4" width="1159.45" height="153.4">
+  <rect x="0" y="0" width="1159.45" height="153.4" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">H2 Product Roadmap</text>
+  <g id="item-0">
+    <circle cx="135.14" cy="83.2" r="7" fill="#4A90D9" stroke="#FFFFFF" stroke-width="2" />
+    <text x="135.14" y="68.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">July: design partner feedback</text>
+  </g>
+  <g id="item-1">
+    <path d="M 135.14 83.2 L 357.43 83.2" stroke="#CBD5E1" stroke-width="2" fill="none" />
+    <circle cx="357.43" cy="83.2" r="7" fill="#4A90D9" stroke="#FFFFFF" stroke-width="2" />
+    <text x="357.43" y="108.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">August: private beta</text>
+  </g>
+  <g id="item-2">
+    <path d="M 357.43 83.2 L 579.72 83.2" stroke="#CBD5E1" stroke-width="2" fill="none" />
+    <circle cx="579.72" cy="83.2" r="7" fill="#4A90D9" stroke="#FFFFFF" stroke-width="2" />
+    <text x="579.72" y="68.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">September: security review</text>
+  </g>
+  <g id="item-3">
+    <path d="M 579.72 83.2 L 802.02 83.2" stroke="#CBD5E1" stroke-width="2" fill="none" />
+    <circle cx="802.02" cy="83.2" r="7" fill="#4A90D9" stroke="#FFFFFF" stroke-width="2" />
+    <text x="802.02" y="108.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">October: public preview</text>
+  </g>
+  <g id="item-4">
+    <path d="M 802.02 83.2 L 1024.3 83.2" stroke="#CBD5E1" stroke-width="2" fill="none" />
+    <circle cx="1024.3" cy="83.2" r="7" fill="#4A90D9" stroke="#FFFFFF" stroke-width="2" />
+    <text x="1024.3" y="68.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">November: general availability</text>
+  </g>
+</svg>

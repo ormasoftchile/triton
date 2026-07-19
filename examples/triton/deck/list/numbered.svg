@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 261.99 241.6" width="261.99" height="241.6">
+  <rect x="0" y="0" width="261.99" height="241.6" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Platform Migration Plan</text>
+  <g id="item-0">
+    <text x="24" y="76.06" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="start" font-weight="bold">1.</text>
+    <text x="45.7166" y="76.06" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Discovery</text>
+  </g>
+  <g id="item-0-0">
+    <text x="46.4" y="102.66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="start" font-weight="bold">1.1.</text>
+    <text x="79.8332" y="102.66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Inventory critical services</text>
+  </g>
+  <g id="item-1">
+    <text x="24" y="129.26" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="start" font-weight="bold">2.</text>
+    <text x="45.7166" y="129.26" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Build foundation</text>
+  </g>
+  <g id="item-1-0">
+    <text x="46.4" y="155.86" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="start" font-weight="bold">2.1.</text>
+    <text x="79.8332" y="155.86" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Identity and networking</text>
+  </g>
+  <g id="item-2">
+    <text x="24" y="182.46" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="start" font-weight="bold">3.</text>
+    <text x="45.7166" y="182.46" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Migrate workloads</text>
+  </g>
+  <g id="item-3">
+    <text x="24" y="209.06" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="start" font-weight="bold">4.</text>
+    <text x="45.7166" y="209.06" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Validate operations</text>
+  </g>
+</svg>
