@@ -27,6 +27,50 @@
           "endsPattern": "watching for changes|\\[watch\\] build finished"
         }
       }
+    },
+    {
+      "label": "dp: build local triton core",
+      "detail": "Build this Triton checkout's core ESM so deckpilot can vendor it.",
+      "type": "shell",
+      "command": "node esbuild-core.mjs",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "dp: vendor local triton",
+      "detail": "Vendor the LOCAL Triton checkout into deckpilot-triton (TRITON_LOCAL=1).",
+      "type": "shell",
+      "command": "npm --prefix apps/deckpilot-triton run vendor-triton",
+      "options": {
+        "cwd": "${workspaceFolder}/../deckpilot",
+        "env": { "TRITON_LOCAL": "1" }
+      },
+      "dependsOn": ["dp: build local triton core"],
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "dp: build deckpilot (local triton)",
+      "detail": "Bundle the deckpilot host and deckpilot-triton companion against the LOCAL Triton checkout.",
+      "type": "shell",
+      "command": "npm run bundle && npm --prefix apps/deckpilot-triton run bundle",
+      "options": {
+        "cwd": "${workspaceFolder}/../deckpilot",
+        "env": { "TRITON_LOCAL": "1" }
+      },
+      "dependsOn": ["dp: vendor local triton"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "build triton + deckpilot",
+      "detail": "Build the Triton extension and the deckpilot host + companion (local Triton) for the combined debug host.",
+      "dependsOn": ["build-extension", "dp: build deckpilot (local triton)"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
     }
   ]
 }
