@@ -13,6 +13,24 @@
       "outFiles": ["${workspaceFolder}/extension/dist/**/*.cjs"],
       "sourceMaps": true,
       "preLaunchTask": "watch-extension"
+    },
+    {
+      "name": "Run Triton + Deckpilot Extensions (local Triton)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/extension",
+        "--extensionDevelopmentPath=${workspaceFolder}/../deckpilot",
+        "--extensionDevelopmentPath=${workspaceFolder}/../deckpilot/apps/deckpilot-triton",
+        "--extensions-dir=${workspaceFolder}/.vscode-dev-extensions"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/extension/dist/**/*.cjs",
+        "${workspaceFolder}/../deckpilot/dist/**/*.js",
+        "${workspaceFolder}/../deckpilot/apps/deckpilot-triton/dist/**/*.js"
+      ],
+      "sourceMaps": true,
+      "preLaunchTask": "build triton + deckpilot"
     }
   ]
 }
