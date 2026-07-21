@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520.02 250" width="520.02" height="250">
+  <rect x="0" y="0" width="520.02" height="250" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Onboarding Journey</text>
+  <g id="item-0">
+    <rect x="24" y="58" width="137.18" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="92.59" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Sign up</text>
+  </g>
+  <g id="item-1">
+    <path d="M 161.18 77.6 L 180.5 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 180.5 71.72 L 186.38 77.6 L 180.5 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="186.38" y="58" width="137.18" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="254.97" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Verify email</text>
+  </g>
+  <g id="item-2">
+    <path d="M 323.56 77.6 L 342.88 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 342.88 71.72 L 348.76 77.6 L 342.88 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="348.76" y="58" width="137.18" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="417.35" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Complete profile</text>
+  </g>
+  <g id="item-3">
+    <path d="M 485.94 77.6 L 496.02 77.6 L 496.02 142 L 491.82 142" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 491.82 136.12 L 485.94 142 L 491.82 147.88 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="348.76" y="122.4" width="137.18" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="417.35" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Explore features</text>
+  </g>
+  <g id="item-4">
+    <path d="M 348.76 142 L 329.44 142" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 329.44 136.12 L 323.56 142 L 329.44 147.88 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="186.38" y="122.4" width="137.18" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="254.97" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Invite teammates</text>
+  </g>
+  <g id="item-5">
+    <path d="M 186.38 142 L 167.06 142" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 167.06 136.12 L 161.18 142 L 167.06 147.88 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="24" y="122.4" width="137.18" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="92.59" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Set preferences</text>
+  </g>
+  <g id="item-6">
+    <path d="M 24 142 L 13.92 142 L 13.92 206.4 L 18.12 206.4" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 18.12 200.52 L 24 206.4 L 18.12 212.28 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="24" y="186.8" width="137.18" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="92.59" y="211.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Start first project</text>
+  </g>
+</svg>
