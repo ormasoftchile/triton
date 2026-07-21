@@ -287,3 +287,12 @@ Assigned to review architecture example renders for containment correctness and 
 - Initial QA verdict: 🔴 FAIL due to static PNG orphan motion particles at origin and corrupted animated bake when self-closing `<path/>` preceded animated paths.
 - Enforced reviewer lockout: Edsger and Brian could not fix the rejected export artifacts; Mark performed the revision.
 - Re-review verdict after Mark commit b398a1e: 🟢 PASS, ship-ready.
+
+
+## Scribe update — 2026-07-20T19:37:03.045-04:00
+
+Process list style visual QA recorded: Ken approved `ltr`, `ttb`, `snake`, and `snake-v` renders with no blocking defects; one cosmetic note remains for uneven trailing rows/columns. Verdict merged into `.squad/decisions.md`; orchestration log: `.squad/orchestration-log/2026-07-20T19-37-03.045-04-00-ken.md`.
+
+## Scribe update — 2026-07-20T20:03:51.662-04:00
+Process `turn direct` QA recorded: Ken approved direct vertical turns and corridor regression. Verdict merged; orchestration log `2026-07-20T20-03-51.662-04-00-ken-turn.md`.
+

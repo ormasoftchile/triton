@@ -200,3 +200,12 @@ Brian again over-edited the architecture showcase while implementing per-style w
 
 - `vsce package` rewrites relative image paths in `extension/README.md` from the repository root, not the `extension/` package directory; paths like `resources/spanning.animated.png` can become broken `/raw/HEAD/resources/...` URLs.
 - Use an absolute GitHub raw URL that includes the `extension/` prefix for marketplace README preview assets; Brian applied this for `extension/resources/spanning.animated.png` in PR #83 / v0.1.29.
+
+
+## Scribe update — 2026-07-20T19:37:03.045-04:00
+
+Process list style flow work recorded: Brian implemented `flow` (`ltr`/`ttb`/`snake`/`snake-v`) and `wrap N`, added examples/tests, and reported 1095 passed / 4 skipped. Decisions merged into `.squad/decisions.md`; orchestration log: `.squad/orchestration-log/2026-07-20T19-37-03.045-04-00-brian.md`.
+
+## Scribe update — 2026-07-20T20:03:51.662-04:00
+Process `turn direct` work recorded: Brian added the directive/example/tests; validation 1108 passed / 4 skipped. Decisions merged; orchestration log `2026-07-20T20-03-51.662-04-00-brian-turn.md`.
+

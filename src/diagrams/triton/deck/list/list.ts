@@ -23,6 +23,9 @@
  *     title Agenda
  *     effect slide            # global default reveal effect (fade|slide|grow|draw)
  *     group 2                 # reveal items in chunks of N per step (sequence mode)
+ *     flow snake              # ltr (default) | ttb | snake | snake-v  (process style only)
+ *     wrap 3                  # cells per row/col before turning (snake/snake-v; default: ceil(√n))
+ *     turn direct             # corridor (default) | direct  (snake/snake-v turn style)
  *     Introduction
  *     The problem
  *       and a sub-point       # 2-space indent → child of the previous item
@@ -70,6 +73,48 @@ const LIST_STYLES: readonly ListStyle[] = [
 export type RevealMode = 'sequence' | 'subtree' | 'layer' | 'none';
 const REVEAL_MODES: readonly RevealMode[] = ['sequence', 'subtree', 'layer', 'none'];
 
+/** Flow direction for the `process` style. `ltr` is the default and preserves legacy behavior. */
+export type ProcessFlow = 'ltr' | 'ttb' | 'snake' | 'snake-v';
+export const PROCESS_FLOWS: readonly ProcessFlow[] = ['ltr', 'ttb', 'snake', 'snake-v'];
+
+export function asFlow(token: string): ProcessFlow | undefined {
+  const t = token.toLowerCase() as ProcessFlow;
+  return PROCESS_FLOWS.includes(t) ? t : undefined;
+}
+
+/** Turn-connector style for snake/snake-v flows. `corridor` is the default. */
+export type TurnStyle = 'corridor' | 'direct';
+export const TURN_STYLES: readonly TurnStyle[] = ['corridor', 'direct'];
+
+export function asTurn(token: string): TurnStyle | undefined {
+  const t = token.toLowerCase() as TurnStyle;
+  return TURN_STYLES.includes(t) ? t : undefined;
+}
+
+/**
+ * Returns the grid (row, col) coordinates for item index `i` under the given
+ * flow pattern. Pure and unit-testable — all pattern math lives here.
+ * Extend this function alone to add new patterns (diagonal, spiral, U-turn…).
+ */
+export function cellForIndex(i: number, flow: ProcessFlow, wrap: number): { row: number; col: number } {
+  switch (flow) {
+    case 'ltr': return { row: 0, col: i };
+    case 'ttb': return { row: i, col: 0 };
+    case 'snake': {
+      const row = Math.floor(i / wrap);
+      const pos = i % wrap;
+      const col = row % 2 === 0 ? pos : wrap - 1 - pos;
+      return { row, col };
+    }
+    case 'snake-v': {
+      const col = Math.floor(i / wrap);
+      const pos = i % wrap;
+      const row = col % 2 === 0 ? pos : wrap - 1 - pos;
+      return { row, col };
+    }
+  }
+}
+
 function asEffect(token: string): RevealEffect | undefined {
   const t = token.toLowerCase() as RevealEffect;
   return REVEAL_EFFECTS.includes(t) ? t : undefined;
@@ -112,6 +157,12 @@ export interface ListDoc {
   effect?: RevealEffect;
   /** Reveal items in chunks of this many per step (>= 1, sequence mode). */
   group?: number;
+  /** Flow direction for `process` style (default: `ltr`). Ignored for other styles. */
+  flow?: ProcessFlow;
+  /** Cells per row (snake) / per column (snake-v) before turning. Defaults to ceil(√n). */
+  wrap?: number;
+  /** Turn-connector style for snake/snake-v flows (default: `corridor`). */
+  turn?: TurnStyle;
   items: ListItem[];
   version: string;
   metadata: Record<string, unknown>;
@@ -154,6 +205,9 @@ export function parseList(input: string): ListDoc {
   let reveal: RevealMode = 'sequence';
   let effect: RevealEffect | undefined;
   let group: number | undefined;
+  let flow: ProcessFlow = 'ltr';
+  let wrap: number | undefined;
+  let turn: TurnStyle = 'corridor';
 
   // Collect raw items with their indentation before resolving depth.
   const raw: { indent: number; text: string; join: boolean; effect?: RevealEffect }[] = [];
@@ -171,6 +225,13 @@ export function parseList(input: string): ListDoc {
       if (Number.isFinite(num) && num >= 1) group = num;
       continue;
     }
+    if (lower.startsWith('flow ')) { flow = asFlow(trimmed.slice(5).trim()) ?? flow; continue; }
+    if (lower.startsWith('wrap ')) {
+      const num = parseInt(trimmed.slice(5).trim(), 10);
+      if (Number.isFinite(num) && num >= 1) wrap = num;
+      continue;
+    }
+    if (lower.startsWith('turn ')) { turn = asTurn(trimmed.slice(5).trim()) ?? turn; continue; }
 
     // Item line. Depth comes from the RAW indentation.
     const indent = indentWidth(line);
@@ -195,6 +256,9 @@ export function parseList(input: string): ListDoc {
     reveal,
     ...(effect !== undefined ? { effect } : {}),
     ...(group !== undefined ? { group } : {}),
+    ...(flow !== 'ltr' ? { flow } : {}),
+    ...(wrap !== undefined ? { wrap } : {}),
+    ...(turn !== 'corridor' ? { turn } : {}),
     items, version: '1.0', metadata: frontmatterMeta(input),
   };
 }
@@ -288,6 +352,19 @@ function markerColor(depth: number, palette: ThemePalette): string {
 }
 function markerRadius(depth: number, font: number): number {
   return depth === 0 ? Math.max(3, rhu(font / 6)) : depth === 1 ? Math.max(2.5, rhu(font / 7)) : Math.max(2, rhu(font / 8));
+}
+
+/**
+ * Build a filled arrowhead triangle path string pointing in `dir`.
+ * `tx`/`ty` is the TIP (sharpest point); `ah` is already-rounded half-size.
+ */
+function arrowTriangle(tx: number, ty: number, dir: 'right' | 'left' | 'down' | 'up', ah: number): string {
+  switch (dir) {
+    case 'right': return `M ${rhu(tx - ah)} ${rhu(ty - ah)} L ${tx} ${ty} L ${rhu(tx - ah)} ${rhu(ty + ah)} Z`;
+    case 'left':  return `M ${rhu(tx + ah)} ${rhu(ty - ah)} L ${tx} ${ty} L ${rhu(tx + ah)} ${rhu(ty + ah)} Z`;
+    case 'down':  return `M ${rhu(tx - ah)} ${rhu(ty - ah)} L ${tx} ${ty} L ${rhu(tx + ah)} ${rhu(ty - ah)} Z`;
+    case 'up':    return `M ${rhu(tx - ah)} ${rhu(ty + ah)} L ${tx} ${ty} L ${rhu(tx + ah)} ${rhu(ty + ah)} Z`;
+  }
 }
 
 export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
@@ -403,19 +480,16 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
     });
 
     height = rhu(top + maxDepth * (nodeH + vGap) + nodeH + margin);
-  } else if (doc.style === 'chevron' || doc.style === 'process') {
-    // Horizontal left→right flow. `chevron` = interlocking arrow blocks;
-    // `process` = rounded boxes joined by arrow connectors. Depth is ignored
-    // for placement (the flow is inherently flat); nesting still yields ids.
-    const isChevron = doc.style === 'chevron';
+  } else if (doc.style === 'chevron') {
+    // Horizontal left→right interlocking arrow blocks. Depth is ignored for
+    // placement (inherently flat); nesting still yields stable ids.
     const boxH = rhu(font * 2.8);
     const padX = rhu(font * 1.0);
-    const notch = isChevron ? rhu(boxH * 0.3) : 0;
-    const arrowGap = isChevron ? 0 : rhu(font * 1.8);
+    const notch = rhu(boxH * 0.3);
     let maxTextW = 0;
     doc.items.forEach(it => { maxTextW = Math.max(maxTextW, measureText(it.text, font).width); });
-    const boxW = rhu(maxTextW + 2 * padX + (isChevron ? 2 * notch : 0));
-    const stepX = isChevron ? rhu(boxW - notch) : rhu(boxW + arrowGap);
+    const boxW = rhu(maxTextW + 2 * padX + 2 * notch);
+    const stepX = rhu(boxW - notch);
     const y = top;
     const cy = rhu(y + boxH / 2);
     const yb = rhu(y + boxH);
@@ -424,39 +498,189 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       const x = rhu(margin + i * stepX);
       const cx = rhu(x + boxW / 2);
       const textY = rhu(cy + font * 0.34);
-      const children: SceneElement[] = [];
-
-      if (isChevron) {
-        const fill = i % 2 === 0 ? palette.primary : palette.secondary;
-        const k = notch;
-        const tipR = rhu(x + boxW);
-        const innerR = rhu(x + boxW - k);
-        // First block has a flat left edge; the rest notch inward to interlock.
-        const d = i === 0
-          ? `M ${x} ${y} L ${innerR} ${y} L ${tipR} ${cy} L ${innerR} ${yb} L ${x} ${yb} Z`
-          : `M ${x} ${y} L ${innerR} ${y} L ${tipR} ${cy} L ${innerR} ${yb} L ${x} ${yb} L ${rhu(x + k)} ${cy} Z`;
-        children.push(p.path(d, fill, 0, { fill }));
-        children.push(p.text(it.text, rhu(cx + k / 2), textY, font, readableText(fill, theme), { anchor: 'middle' }));
-      } else {
-        // Incoming arrow lives in THIS group so it reveals with its target box.
-        if (i > 0) {
-          const ax1 = rhu(x);
-          const ax0 = rhu(x - arrowGap);
-          const ah = Math.max(4, rhu(font * 0.42));
-          children.push(p.path(`M ${ax0} ${cy} L ${rhu(ax1 - ah)} ${cy}`, palette.textMuted, 2));
-          const tri = `M ${rhu(ax1 - ah)} ${rhu(cy - ah)} L ${ax1} ${cy} L ${rhu(ax1 - ah)} ${rhu(cy + ah)} Z`;
-          children.push(p.path(tri, palette.textMuted, 0, { fill: palette.textMuted }));
-        }
-        children.push(p.rect({ x, y, width: boxW, height: boxH }, palette.surface, palette.primary, 1.5, { rx: 6 }));
-        children.push(p.text(it.text, cx, textY, font, palette.text, { anchor: 'middle' }));
-      }
-
+      const fill = i % 2 === 0 ? palette.primary : palette.secondary;
+      const k = notch;
+      const tipR = rhu(x + boxW);
+      const innerR = rhu(x + boxW - k);
+      const d = i === 0
+        ? `M ${x} ${y} L ${innerR} ${y} L ${tipR} ${cy} L ${innerR} ${yb} L ${x} ${yb} Z`
+        : `M ${x} ${y} L ${innerR} ${y} L ${tipR} ${cy} L ${innerR} ${yb} L ${x} ${yb} L ${rhu(x + k)} ${cy} Z`;
+      const children: SceneElement[] = [
+        p.path(d, fill, 0, { fill }),
+        p.text(it.text, rhu(cx + k / 2), textY, font, readableText(fill, theme), { anchor: 'middle' }),
+      ];
       elements.push(p.group(children, { id: it.id }));
       anchors[it.id] = { bounds: { x, y, width: boxW, height: boxH } };
       contentRight = Math.max(contentRight, x + boxW);
     });
 
     height = rhu(top + boxH + margin);
+  } else if (doc.style === 'process') {
+    // Rounded boxes joined by arrow connectors. The `flow` directive controls
+    // the geometric path: ltr (default, single row), ttb (single column),
+    // snake (row-major boustrophedon), snake-v (column-major boustrophedon).
+    // `ltr` is byte-identical to the original layout. Other flows use a uniform
+    // grid engine. Depth is ignored for placement; nesting still yields ids.
+    const flow = doc.flow ?? 'ltr';
+    const boxH = rhu(font * 2.8);
+    const padX = rhu(font * 1.0);
+    const arrowGap = rhu(font * 1.8);
+    const ah = Math.max(4, rhu(font * 0.42));
+    let maxTextW = 0;
+    doc.items.forEach(it => { maxTextW = Math.max(maxTextW, measureText(it.text, font).width); });
+    const boxW = rhu(maxTextW + 2 * padX);
+
+    if (flow === 'ltr') {
+      // Original ltr layout — preserved byte-identically.
+      const stepX = rhu(boxW + arrowGap);
+      const y = top;
+      const cy = rhu(y + boxH / 2);
+
+      doc.items.forEach((it, i) => {
+        const x = rhu(margin + i * stepX);
+        const cx = rhu(x + boxW / 2);
+        const textY = rhu(cy + font * 0.34);
+        const children: SceneElement[] = [];
+        // Incoming arrow lives in THIS group so it reveals with its target box.
+        if (i > 0) {
+          const ax1 = rhu(x);
+          const ax0 = rhu(x - arrowGap);
+          children.push(p.path(`M ${ax0} ${cy} L ${rhu(ax1 - ah)} ${cy}`, palette.textMuted, 2));
+          const tri = `M ${rhu(ax1 - ah)} ${rhu(cy - ah)} L ${ax1} ${cy} L ${rhu(ax1 - ah)} ${rhu(cy + ah)} Z`;
+          children.push(p.path(tri, palette.textMuted, 0, { fill: palette.textMuted }));
+        }
+        children.push(p.rect({ x, y, width: boxW, height: boxH }, palette.surface, palette.primary, 1.5, { rx: 6 }));
+        children.push(p.text(it.text, cx, textY, font, palette.text, { anchor: 'middle' }));
+        elements.push(p.group(children, { id: it.id }));
+        anchors[it.id] = { bounds: { x, y, width: boxW, height: boxH } };
+        contentRight = Math.max(contentRight, x + boxW);
+      });
+
+      height = rhu(top + boxH + margin);
+    } else {
+      // Grid engine: ttb / snake / snake-v.
+      const wrap = doc.wrap ?? Math.ceil(Math.sqrt(n));
+      const turn = doc.turn ?? 'corridor';
+      const elbow = rhu(arrowGap * 0.4);
+
+      // Pixel top-left of cell at (row, col).
+      const cellX = (col: number) => rhu(margin + col * (boxW + arrowGap));
+      const cellY = (row: number) => rhu(top + row * (boxH + arrowGap));
+
+      let maxRow = 0;
+
+      doc.items.forEach((it, i) => {
+        const { row, col } = cellForIndex(i, flow, wrap);
+        maxRow = Math.max(maxRow, row);
+        const x = cellX(col);
+        const y = cellY(row);
+        const cx = rhu(x + boxW / 2);
+        const cy = rhu(y + boxH / 2);
+        const textY = rhu(cy + font * 0.34);
+        const children: SceneElement[] = [];
+
+        // Incoming connector — lives in THIS group so it animates with its box.
+        if (i > 0) {
+          const prev = cellForIndex(i - 1, flow, wrap);
+          const prevX = cellX(prev.col);
+          const prevY = cellY(prev.row);
+          const prevCX = rhu(prevX + boxW / 2);
+          const prevCY = rhu(prevY + boxH / 2);
+
+          // Is this connector a straight segment or a snake turn?
+          const isTurn = flow === 'snake' ? prev.row !== row : prev.col !== col;
+
+          if (!isTurn) {
+            // Straight connector — direction depends on flow and position.
+            if (flow === 'ttb') {
+              // Vertical downward arrow.
+              const ty = y;
+              children.push(p.path(`M ${cx} ${rhu(prevY + boxH)} L ${cx} ${rhu(ty - ah)}`, palette.textMuted, 2));
+              children.push(p.path(arrowTriangle(cx, ty, 'down', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+            } else if (flow === 'snake') {
+              if (row % 2 === 0) {
+                // Even row: L→R arrow entering from the left.
+                children.push(p.path(`M ${rhu(prevX + boxW)} ${cy} L ${rhu(x - ah)} ${cy}`, palette.textMuted, 2));
+                children.push(p.path(arrowTriangle(x, cy, 'right', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+              } else {
+                // Odd row: R→L arrow entering from the right.
+                const tipX = rhu(x + boxW);
+                children.push(p.path(`M ${prevX} ${cy} L ${rhu(tipX + ah)} ${cy}`, palette.textMuted, 2));
+                children.push(p.path(arrowTriangle(tipX, cy, 'left', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+              }
+            } else {
+              // snake-v straight segment within a column.
+              if (col % 2 === 0) {
+                // Even col: top→bottom arrow.
+                const ty = y;
+                children.push(p.path(`M ${cx} ${rhu(prevY + boxH)} L ${cx} ${rhu(ty - ah)}`, palette.textMuted, 2));
+                children.push(p.path(arrowTriangle(cx, ty, 'down', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+              } else {
+                // Odd col: bottom→top arrow.
+                const tipY = rhu(y + boxH);
+                children.push(p.path(`M ${cx} ${prevY} L ${cx} ${rhu(tipY + ah)}`, palette.textMuted, 2));
+                children.push(p.path(arrowTriangle(cx, tipY, 'up', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+              }
+            }
+          } else if (flow === 'snake') {
+            // Snake turn: connector between rows (both cells share same column).
+            if (turn === 'direct') {
+              // Direct: straight down from bottom of prevCell to top of curCell.
+              children.push(p.path(`M ${prevCX} ${rhu(prevY + boxH)} L ${prevCX} ${rhu(y - ah)}`, palette.textMuted, 2));
+              children.push(p.path(arrowTriangle(prevCX, y, 'down', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+            } else if (prev.row % 2 === 0) {
+              // Corridor even → odd row: elbow on the RIGHT side (both cells at col wrap-1).
+              const rx = rhu(prevX + boxW);
+              children.push(p.path(
+                `M ${rx} ${prevCY} L ${rhu(rx + elbow)} ${prevCY} L ${rhu(rx + elbow)} ${cy} L ${rhu(rx + ah)} ${cy}`,
+                palette.textMuted, 2,
+              ));
+              children.push(p.path(arrowTriangle(rx, cy, 'left', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+              contentRight = Math.max(contentRight, rhu(rx + elbow));
+            } else {
+              // Corridor odd → even row: elbow on the LEFT side (both cells at col 0).
+              const lx = prevX;
+              children.push(p.path(
+                `M ${lx} ${prevCY} L ${rhu(lx - elbow)} ${prevCY} L ${rhu(lx - elbow)} ${cy} L ${rhu(lx - ah)} ${cy}`,
+                palette.textMuted, 2,
+              ));
+              children.push(p.path(arrowTriangle(lx, cy, 'right', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+            }
+          } else {
+            // snake-v turn: connector between columns (both cells share same row).
+            if (turn === 'direct') {
+              // Direct: straight across from right of prevCell to left of curCell.
+              children.push(p.path(`M ${rhu(prevX + boxW)} ${cy} L ${rhu(x - ah)} ${cy}`, palette.textMuted, 2));
+              children.push(p.path(arrowTriangle(x, cy, 'right', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+            } else if (prev.col % 2 === 0) {
+              // Corridor even → odd col: elbow at the BOTTOM (both cells at row wrap-1).
+              const by = rhu(prevY + boxH);
+              children.push(p.path(
+                `M ${prevCX} ${by} L ${prevCX} ${rhu(by + elbow)} L ${cx} ${rhu(by + elbow)} L ${cx} ${rhu(by + ah)}`,
+                palette.textMuted, 2,
+              ));
+              children.push(p.path(arrowTriangle(cx, by, 'up', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+            } else {
+              // Corridor odd → even col: elbow at the TOP (both cells at row 0).
+              const ty = prevY;
+              children.push(p.path(
+                `M ${prevCX} ${ty} L ${prevCX} ${rhu(ty - elbow)} L ${cx} ${rhu(ty - elbow)} L ${cx} ${rhu(ty - ah)}`,
+                palette.textMuted, 2,
+              ));
+              children.push(p.path(arrowTriangle(cx, ty, 'down', ah), palette.textMuted, 0, { fill: palette.textMuted }));
+            }
+          }
+        }
+
+        children.push(p.rect({ x, y, width: boxW, height: boxH }, palette.surface, palette.primary, 1.5, { rx: 6 }));
+        children.push(p.text(it.text, cx, textY, font, palette.text, { anchor: 'middle' }));
+        elements.push(p.group(children, { id: it.id }));
+        anchors[it.id] = { bounds: { x, y, width: boxW, height: boxH } };
+        contentRight = Math.max(contentRight, x + boxW);
+      });
+
+      height = rhu(top + (maxRow + 1) * (boxH + arrowGap) - arrowGap + margin);
+    }
   } else if (doc.style === 'timeline') {
     // Horizontal axis with a milestone dot per item; labels alternate
     // above/below the axis to avoid crowding.

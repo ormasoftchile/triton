@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 491.4 250" width="491.4" height="250">
+  <rect x="0" y="0" width="491.4" height="250" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Release Checklist</text>
+  <g id="item-0">
+    <rect x="24" y="58" width="131" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="89.5" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Code freeze</text>
+  </g>
+  <g id="item-1">
+    <path d="M 89.5 97.2 L 89.5 116.52" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 83.62 116.52 L 89.5 122.4 L 95.38 116.52 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="24" y="122.4" width="131" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="89.5" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QA sign-off</text>
+  </g>
+  <g id="item-2">
+    <path d="M 89.5 161.6 L 89.5 180.92" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 83.62 180.92 L 89.5 186.8 L 95.38 180.92 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="24" y="186.8" width="131" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="89.5" y="211.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Security review</text>
+  </g>
+  <g id="item-3">
+    <path d="M 89.5 226 L 89.5 236.08 L 245.7 236.08 L 245.7 231.88" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 239.82 231.88 L 245.7 226 L 251.58 231.88 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="180.2" y="186.8" width="131" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="245.7" y="211.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Docs updated</text>
+  </g>
+  <g id="item-4">
+    <path d="M 245.7 186.8 L 245.7 167.48" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 239.82 167.48 L 245.7 161.6 L 251.58 167.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="180.2" y="122.4" width="131" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="245.7" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Changelog done</text>
+  </g>
+  <g id="item-5">
+    <path d="M 245.7 122.4 L 245.7 103.08" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 239.82 103.08 L 245.7 97.2 L 251.58 103.08 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="180.2" y="58" width="131" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="245.7" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Tag release</text>
+  </g>
+  <g id="item-6">
+    <path d="M 245.7 58 L 245.7 47.92 L 401.9 47.92 L 401.9 52.12" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 396.02 52.12 L 401.9 58 L 407.78 52.12 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <rect x="336.4" y="58" width="131" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
+    <text x="401.9" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Monitor metrics</text>
+  </g>
+</svg>
