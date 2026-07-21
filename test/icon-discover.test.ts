@@ -82,8 +82,17 @@ describe('discoverIconPacks', () => {
     expect(() => discoverIconPacks(FIXTURES)).not.toThrow();
   });
 
-  it('returns empty map + warning for a missing directory', () => {
+  it('returns empty map and NO warning for a missing directory', () => {
     const r = discoverIconPacks(join(FIXTURES, 'does-not-exist-dir'));
+    expect(r.map.size).toBe(0);
+    expect(r.warnings).toHaveLength(0);
+  });
+
+  it('returns empty map + warning when path exists but is not a directory (ENOTDIR)', () => {
+    // Point readdirSync at an existing FILE — causes ENOTDIR on all platforms
+    const fileNotDir = join(TMP_ROOT, 'not-a-dir.triton-icons.json');
+    writeFileSync(fileNotDir, '{}');
+    const r = discoverIconPacks(fileNotDir);
     expect(r.map.size).toBe(0);
     expect(r.warnings.length).toBeGreaterThan(0);
     expect(r.warnings[0]).toMatch(/Cannot read/);
