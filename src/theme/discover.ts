@@ -104,7 +104,12 @@ export function discoverThemes(dir: string): ThemeDiscoveryResult {
   try {
     entries = readdirSync(dir);
   } catch (cause) {
-    warnings.push(`Cannot read themes directory "${dir}": ${String(cause)}`);
+    // A missing directory is the normal case (project has no custom themes) —
+    // not a warning. Only surface genuinely unreadable/invalid paths (EACCES, ENOTDIR, …).
+    const code = (cause as NodeJS.ErrnoException)?.code;
+    if (code !== 'ENOENT') {
+      warnings.push(`Cannot read themes directory "${dir}": ${String(cause)}`);
+    }
     return { themes, warnings };
   }
 

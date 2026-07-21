@@ -165,8 +165,17 @@ describe('discoverThemes', () => {
     expect(() => discoverThemes(FIXTURES)).not.toThrow();
   });
 
-  it('returns empty themes + warning for missing directory', () => {
+  it('returns empty themes and NO warning for missing directory', () => {
     const r = discoverThemes(join(FIXTURES, 'does-not-exist-dir'));
+    expect(r.themes.size).toBe(0);
+    expect(r.warnings).toHaveLength(0);
+  });
+
+  it('returns empty themes + warning when path exists but is not a directory (ENOTDIR)', () => {
+    // Point readdirSync at an existing FILE — causes ENOTDIR on all platforms
+    const fileNotDir = join(TMP_ROOT, 'not-a-dir.triton-theme.json');
+    writeFileSync(fileNotDir, '{}');
+    const r = discoverThemes(fileNotDir);
     expect(r.themes.size).toBe(0);
     expect(r.warnings.length).toBeGreaterThan(0);
     expect(r.warnings[0]).toMatch(/Cannot read/);

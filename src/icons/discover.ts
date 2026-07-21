@@ -54,7 +54,12 @@ export function discoverIconPacks(dir: string): IconDiscoveryResult {
   try {
     entries = readdirSync(dir);
   } catch (cause) {
-    warnings.push(`Cannot read icons directory "${dir}": ${String(cause)}`);
+    // A missing directory is the normal case (project has no custom icon packs) —
+    // not a warning. Only surface genuinely unreadable/invalid paths (EACCES, ENOTDIR, …).
+    const code = (cause as NodeJS.ErrnoException)?.code;
+    if (code !== 'ENOENT') {
+      warnings.push(`Cannot read icons directory "${dir}": ${String(cause)}`);
+    }
     return { map, warnings };
   }
 
