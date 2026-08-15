@@ -1,5 +1,15 @@
 import type { FlowDocument, FlowNode, FlowEdge, FlowDirection } from './ir.js';
-import type { Scene, SceneElement, Rect, Point, LayoutResult, NodeAnchorRegistry, NodeAnchor, OccupiedPort, LayoutOptions } from '../../../contracts/index.js';
+import type {
+  Scene,
+  SceneElement,
+  Rect,
+  Point,
+  LayoutResult,
+  NodeAnchorRegistry,
+  NodeAnchor,
+  OccupiedPort,
+  LayoutOptions,
+} from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import type { CardinalSide, RouteStyle } from '../../../contracts/index.js';
 import { getRouter } from '../../../routing/registry.js';
@@ -17,12 +27,40 @@ const NODE_H = 40;
 const ARROW_MARKER_ID = 'triton-arrow';
 
 // Card node geometry (Leslie's contract: unit=8px baseline)
-const CARD_PAD          = 8;   // outer padding on all sides
-const CARD_ICON_BOX     = 40;  // icon region square side (unit*5)
-const CARD_ICON_GAP     = 12;  // horizontal gap between icon and text (unit*1.5)
-const CARD_MIN_W        = 192; // minimum card width (unit*24)
-const CARD_MAX_W        = 400; // maximum card width (unit*50)
+const CARD_PAD = 8; // outer padding on all sides
+const CARD_ICON_BOX = 40; // icon region square side (unit*5)
+const CARD_ICON_GAP = 12; // horizontal gap between icon and text (unit*1.5)
+const CARD_MIN_W = 192; // minimum card width (unit*24)
+const CARD_MAX_W = 400; // maximum card width (unit*50)
 const CARD_MAX_BODY_LINES = 3;
+
+const MAX_AUTO_WRAP_WIDTH = 260; // px threshold for auto-wrapping long un-broken text
+
+// ─── Label Helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Split a flowchart node label on explicit newlines (<br>, <br/>, \n)
+ * and wrap any lines exceeding MAX_AUTO_WRAP_WIDTH to prevent horizontal overflow.
+ */
+export function splitAndWrapLabel(label: string, fontSize: number): string[] {
+  if (!label) return [''];
+  const normalized = label.replace(/<br\s*\/?>/gi, '\n').replace(/\\n/g, '\n');
+  const rawLines = normalized.split(/\r?\n/).map((l) => l.trim());
+
+  const finalLines: string[] = [];
+  for (const rawLine of rawLines) {
+    if (!rawLine) continue;
+    const measured = measureText(rawLine, fontSize).width;
+    if (measured > MAX_AUTO_WRAP_WIDTH) {
+      const wrapped = wrapText(rawLine, fontSize, MAX_AUTO_WRAP_WIDTH, 10);
+      finalLines.push(...wrapped.lines);
+    } else {
+      finalLines.push(rawLine);
+    }
+  }
+
+  return finalLines.length > 0 ? finalLines : [''];
+}
 
 // ─── Card Node Helpers ────────────────────────────────────────────────────────
 
@@ -49,7 +87,7 @@ function measureCardNode(
   const { title, body } = splitCardLabel(node.label);
 
   // Title width: bold renders ~10% wider than regular
-  const titleW  = measureText(title, typography.baseFontSize).width * 1.1;
+  const titleW = measureText(title, typography.baseFontSize).width * 1.1;
   const titleLH = typography.baseFontSize * 1.2;
 
   // Right-region max width at CARD_MAX_W (used to measure body at maximum possible size)
@@ -66,18 +104,96 @@ function measureCardNode(
     );
   }
 
-  const textW  = Math.max(titleW, bodyW);
-  const width  = Math.min(CARD_MAX_W, Math.max(CARD_MIN_W,
-    CARD_ICON_BOX + CARD_ICON_GAP + textW + 2 * CARD_PAD));
-  const textH  = body ? titleLH + bodyH : titleLH;
+  const textW = Math.max(titleW, bodyW);
+  const width = Math.min(
+    CARD_MAX_W,
+    Math.max(CARD_MIN_W, CARD_ICON_BOX + CARD_ICON_GAP + textW + 2 * CARD_PAD),
+  );
+  const textH = body ? titleLH + bodyH : titleLH;
   const height = Math.max(CARD_ICON_BOX, textH) + 2 * CARD_PAD;
 
   return { width, height };
 }
 
+/**
+ * Measure the bounding box a node requires based on its shape and label content.
+ * Content-driven for all shapes; ensures text fits without overflow.
+ */
+export function measureNode(
+  node: FlowNode,
+  typography: ResolvedTheme['typography'],
+): { width: number; height: number } {
+  if (node.shape === 'card') {
+    return measureCardNode(node, typography);
+  }
+
+  const fontSize = typography.baseFontSize;
+  const lines = splitAndWrapLabel(node.label, fontSize);
+  const lineH = fontSize * 1.2;
+  const totalTextHeight = lines.length * lineH;
+  const maxLineWidth = lines.reduce((max, l) => Math.max(max, measureText(l, fontSize).width), 0);
+  const iconPad = node.icon ? 36 : 0;
+
+  const padX = 24;
+  const padY = 16;
+
+  switch (node.shape) {
+    case 'diamond': {
+      const textW = Math.max(80, maxLineWidth + padX + iconPad);
+      const textH = Math.max(24, totalTextHeight + padY);
+      const width = Math.max(NODE_W, Math.ceil((textW + textH) * 1.05 + 16));
+      const height = Math.max(NODE_H, Math.ceil((textW + textH) * 0.7 + 10));
+      return { width, height };
+    }
+    case 'circle': {
+      const diag = Math.sqrt(Math.pow(maxLineWidth + iconPad, 2) + Math.pow(totalTextHeight, 2));
+      const diam = Math.max(NODE_H, Math.ceil(diag + 24));
+      return { width: diam, height: diam };
+    }
+    case 'stadium': {
+      const height = Math.max(NODE_H, Math.ceil(totalTextHeight + padY));
+      const width = Math.max(NODE_W, Math.ceil(maxLineWidth + height * 0.8 + 16 + iconPad));
+      return { width, height };
+    }
+    case 'subroutine': {
+      const height = Math.max(NODE_H, Math.ceil(totalTextHeight + padY));
+      const width = Math.max(NODE_W, Math.ceil(maxLineWidth + 36 + iconPad));
+      return { width, height };
+    }
+    case 'cylinder': {
+      const height = Math.max(48, Math.ceil(totalTextHeight + 24));
+      const width = Math.max(NODE_W, Math.ceil(maxLineWidth + padX + iconPad));
+      return { width, height };
+    }
+    case 'hexagon': {
+      const height = Math.max(NODE_H, Math.ceil(totalTextHeight + padY));
+      const width = Math.max(NODE_W, Math.ceil(maxLineWidth + height * 0.6 + 16 + iconPad));
+      return { width, height };
+    }
+    case 'parallelogram':
+    case 'parallelogram-alt':
+    case 'asymmetric': {
+      const height = Math.max(NODE_H, Math.ceil(totalTextHeight + padY));
+      const width = Math.max(NODE_W, Math.ceil(maxLineWidth + 32 + iconPad));
+      return { width, height };
+    }
+    case 'rect':
+    case 'rounded-rect':
+    default: {
+      const height = Math.max(NODE_H, Math.ceil(totalTextHeight + padY));
+      const width = Math.max(NODE_W, Math.ceil(maxLineWidth + padX + iconPad));
+      return { width, height };
+    }
+  }
+}
+
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
-export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult {
+export function layoutFlowchart(
+  ir: FlowDocument,
+  theme: ResolvedTheme,
+  options?: LayoutOptions,
+): LayoutResult {
   const { spacing, palette, typography, edges: edgeTheme } = theme;
   const p = pen(theme);
   const margin = spacing.diagramMargin;
@@ -101,21 +217,24 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   let maxNodesInLayer = 0;
   for (const [, nodes] of orderedByLayer) maxNodesInLayer = Math.max(maxNodesInLayer, nodes.length);
 
-  // Per-node sizes: card nodes are content-driven; all others use NODE_W×NODE_H.
+  // Per-node sizes: content-driven for all node shapes.
   const nodeSizeMap = new Map<string, { width: number; height: number }>();
   for (const node of ir.nodes) {
-    nodeSizeMap.set(
-      node.id,
-      node.shape === 'card'
-        ? measureCardNode(node, typography)
-        : { width: NODE_W, height: NODE_H },
-    );
+    nodeSizeMap.set(node.id, measureNode(node, typography));
   }
 
   const nodePos = assignCoordinatesBK(
-    orderedByLayer, ir.edges, backEdges,
-    isLR, isReverse, maxNodesInLayer,
-    NODE_W, NODE_H, colGap, rowGap, margin,
+    orderedByLayer,
+    ir.edges,
+    backEdges,
+    isLR,
+    isReverse,
+    maxNodesInLayer,
+    NODE_W,
+    NODE_H,
+    colGap,
+    rowGap,
+    margin,
     nodeSizeMap,
   );
 
@@ -124,22 +243,36 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
   // Title
   if (ir.metadata.title) {
-    elements.push(p.text(ir.metadata.title, margin, margin - 8, typography.titleFontSize, palette.text, { weight: 'bold' }));
+    elements.push(
+      p.text(ir.metadata.title, margin, margin - 8, typography.titleFontSize, palette.text, {
+        weight: 'bold',
+      }),
+    );
   }
 
   // Subgraph backgrounds (drawn first — behind nodes)
   for (const sg of ir.subgraphs) {
     const sgRects = sg.nodeIds
-      .map(id => nodePos.get(id))
+      .map((id) => nodePos.get(id))
       .filter((r): r is Rect => r !== undefined);
     if (sgRects.length === 0) continue;
     const pad = 12;
-    const minX = Math.min(...sgRects.map(r => r.x)) - pad;
-    const minY = Math.min(...sgRects.map(r => r.y)) - pad - 20;
-    const maxX = Math.max(...sgRects.map(r => r.x + r.width))  + pad;
-    const maxY = Math.max(...sgRects.map(r => r.y + r.height)) + pad;
-    elements.push(p.rect({ x: minX, y: minY, width: maxX - minX, height: maxY - minY }, palette.surface, palette.border, 1, { rx: 6, opacity: 0.6 }));
-    elements.push(p.text(sg.label, minX + 8, minY + 14, typography.smallFontSize, palette.textMuted));
+    const minX = Math.min(...sgRects.map((r) => r.x)) - pad;
+    const minY = Math.min(...sgRects.map((r) => r.y)) - pad - 20;
+    const maxX = Math.max(...sgRects.map((r) => r.x + r.width)) + pad;
+    const maxY = Math.max(...sgRects.map((r) => r.y + r.height)) + pad;
+    elements.push(
+      p.rect(
+        { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+        palette.surface,
+        palette.border,
+        1,
+        { rx: 6, opacity: 0.6 },
+      ),
+    );
+    elements.push(
+      p.text(sg.label, minX + 8, minY + 14, typography.smallFontSize, palette.textMuted),
+    );
   }
 
   // Edges (drawn before nodes so nodes appear on top).
@@ -156,24 +289,35 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   for (let ei = 0; ei < ir.edges.length; ei++) {
     const edge = ir.edges[ei]!;
     const fromRect = nodePos.get(edge.from);
-    const toRect   = nodePos.get(edge.to);
+    const toRect = nodePos.get(edge.to);
     if (!fromRect || !toRect) continue;
 
     const dash = edge.style === 'dotted' ? '6 3' : edge.style === 'dashed' ? '8 4' : undefined;
-    const sw   = edge.style === 'thick'  ? edgeTheme.strokeWidth * 2 : edgeTheme.strokeWidth;
+    const sw = edge.style === 'thick' ? edgeTheme.strokeWidth * 2 : edgeTheme.strokeWidth;
     const color = edge.style === 'dotted' ? palette.textMuted : palette.primary;
 
     // Self-loop (A → A): a small loop off one side, never a zero-length line.
     if (edge.from === edge.to) {
       const loop = selfLoopRoute(fromRect, isLR);
-      elements.push(p.path(loop.path, color, sw, {
-        ...(dash !== undefined ? { dash } : {}),
-        markerEnd: ARROW_MARKER_ID,
-      }));
+      elements.push(
+        p.path(loop.path, color, sw, {
+          ...(dash !== undefined ? { dash } : {}),
+          markerEnd: ARROW_MARKER_ID,
+        }),
+      );
       bowMaxX = Math.max(bowMaxX, loop.maxX);
       bowMaxY = Math.max(bowMaxY, loop.maxY);
       if (edge.label) {
-        elements.push(p.text(edge.label, loop.labelPos.x, loop.labelPos.y - 4, edgeTheme.labelFontSize, palette.textMuted, { anchor: 'middle' }));
+        elements.push(
+          p.text(
+            edge.label,
+            loop.labelPos.x,
+            loop.labelPos.y - 4,
+            edgeTheme.labelFontSize,
+            palette.textMuted,
+            { anchor: 'middle' },
+          ),
+        );
       }
       continue;
     }
@@ -181,14 +325,25 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     // Back-edge (feedback): bow out to one side around the intervening nodes.
     if (backEdges.has(ei)) {
       const bow = backEdgeRoute(fromRect, toRect, isLR);
-      elements.push(p.path(bow.path, color, sw, {
-        ...(dash !== undefined ? { dash } : {}),
-        markerEnd: ARROW_MARKER_ID,
-      }));
+      elements.push(
+        p.path(bow.path, color, sw, {
+          ...(dash !== undefined ? { dash } : {}),
+          markerEnd: ARROW_MARKER_ID,
+        }),
+      );
       bowMaxX = Math.max(bowMaxX, bow.maxX);
       bowMaxY = Math.max(bowMaxY, bow.maxY);
       if (edge.label) {
-        elements.push(p.text(edge.label, bow.labelPos.x, bow.labelPos.y - 4, edgeTheme.labelFontSize, palette.textMuted, { anchor: 'middle' }));
+        elements.push(
+          p.text(
+            edge.label,
+            bow.labelPos.x,
+            bow.labelPos.y - 4,
+            edgeTheme.labelFontSize,
+            palette.textMuted,
+            { anchor: 'middle' },
+          ),
+        );
       }
       continue;
     }
@@ -197,10 +352,10 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     // routing style (straight | bezier | polyline) and/or the exit/entry walls.
     const fromAnchor = edge.exitWall
       ? wallAnchor(fromRect, edge.exitWall)
-      : edgeAnchor(fromRect, ir.direction, 'exit',  toRect);
-    const toAnchor   = edge.entryWall
+      : edgeAnchor(fromRect, ir.direction, 'exit', toRect);
+    const toAnchor = edge.entryWall
       ? wallAnchor(toRect, edge.entryWall)
-      : edgeAnchor(toRect,   ir.direction, 'enter', fromRect);
+      : edgeAnchor(toRect, ir.direction, 'enter', fromRect);
 
     const style: RouteStyle = edge.routing ?? 'orthogonal';
     const router = getRouter(style) ?? defaultRouter;
@@ -215,14 +370,20 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
       toDir: toAnchor.portDir,
     });
 
-    elements.push(p.path(route.path, color, sw, {
-      ...(dash !== undefined ? { dash } : {}),
-      markerEnd: ARROW_MARKER_ID,
-    }));
+    elements.push(
+      p.path(route.path, color, sw, {
+        ...(dash !== undefined ? { dash } : {}),
+        markerEnd: ARROW_MARKER_ID,
+      }),
+    );
 
     if (edge.label) {
       const lp = route.labelPosition;
-      elements.push(p.text(edge.label, lp.x, lp.y - 4, edgeTheme.labelFontSize, palette.textMuted, { anchor: 'middle' }));
+      elements.push(
+        p.text(edge.label, lp.x, lp.y - 4, edgeTheme.labelFontSize, palette.textMuted, {
+          anchor: 'middle',
+        }),
+      );
     }
   }
 
@@ -233,9 +394,9 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
     if (!r) continue;
 
     const nodeElements: SceneElement[] = [];
-    const fill   = nodeStatusFill(node, palette);
+    const fill = nodeStatusFill(node, palette);
     const stroke = palette.border;
-    const sw     = edgeTheme.strokeWidth;
+    const sw = edgeTheme.strokeWidth;
 
     if (node.shape === 'card') {
       // ── Card two-region composition ──────────────────────────────────────
@@ -243,9 +404,9 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
       nodeElements.push(p.rect(r, fill, stroke, sw, { rx: 6, fillOpacity: 0.85 }));
 
       const { title, body } = splitCardLabel(node.label);
-      const iconX  = r.x + CARD_PAD;
-      const iconY  = r.y + (r.height - CARD_ICON_BOX) / 2;
-      const textX  = r.x + CARD_PAD + CARD_ICON_BOX + CARD_ICON_GAP;
+      const iconX = r.x + CARD_PAD;
+      const iconY = r.y + (r.height - CARD_ICON_BOX) / 2;
+      const textX = r.x + CARD_PAD + CARD_ICON_BOX + CARD_ICON_GAP;
       const rightW = r.width - 2 * CARD_PAD - CARD_ICON_BOX - CARD_ICON_GAP;
 
       // LEFT: icon region — vertically centered, 32px glyph within 40px box
@@ -261,10 +422,10 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
       // RIGHT: title + optional body
       const bodyText = body ? body.replace(/\\n|\n/g, ' ').trim() : '';
-      const wrapped  = bodyText
+      const wrapped = bodyText
         ? wrapText(bodyText, typography.smallFontSize, rightW, CARD_MAX_BODY_LINES)
         : { lines: [] };
-      const hasBody  = wrapped.lines.length > 0;
+      const hasBody = wrapped.lines.length > 0;
 
       // Title baseline: top-aligned when body present, vertically centered otherwise
       const titleBaseY = hasBody
@@ -285,28 +446,41 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
           bodyY += typography.smallFontSize * 1.2;
         }
       }
-
     } else {
       // ── Default single-region composition (all non-card shapes) ──────────
       nodeElements.push(...renderNodeShape(node, r, fill, stroke, sw));
-      nodeElements.push(p.text(
-        node.label,
-        r.x + r.width / 2,
-        r.y + r.height / 2 + typography.baseFontSize * 0.35,
-        typography.baseFontSize,
-        palette.text,
-        { anchor: 'middle' },
-      ));
+
+      const lines = splitAndWrapLabel(node.label, typography.baseFontSize);
+      const totalLines = lines.length;
+      const lineH = typography.baseFontSize * 1.2;
+
+      let textCenterX = r.x + r.width / 2;
 
       // Generic icon placement (P6 behaviour for non-card nodes with @icon)
       if (node.icon !== undefined && icons !== undefined) {
         const resolved = resolveIcon(node.icon, icons);
         if (resolved.ok) {
-          const iconSize = NODE_H - 8;
-          const ix = r.x + 4;
-          const iy = r.y + (NODE_H - iconSize) / 2;
+          const iconSize = Math.min(28, r.height - 8);
+          const ix = r.x + 8;
+          const iy = r.y + (r.height - iconSize) / 2;
           nodeElements.push(p.icon(resolved.value, ix, iy, iconSize, { color: palette.text }));
+          textCenterX = ix + iconSize + (r.x + r.width - (ix + iconSize)) / 2;
         }
+      }
+
+      for (let i = 0; i < totalLines; i++) {
+        const lineY =
+          r.y +
+          r.height / 2 -
+          ((totalLines - 1) * lineH) / 2 +
+          i * lineH +
+          typography.baseFontSize * 0.35;
+
+        nodeElements.push(
+          p.text(lines[i]!, textCenterX, lineY, typography.baseFontSize, palette.text, {
+            anchor: 'middle',
+          }),
+        );
       }
     }
 
@@ -315,10 +489,10 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 
   // ── Compute viewBox ────────────────────────────────────────────────────────
   const allRects = [...nodePos.values()];
-  const nodeRight  = Math.max(...allRects.map(r => r.x + r.width));
-  const nodeBottom = Math.max(...allRects.map(r => r.y + r.height));
+  const nodeRight = Math.max(...allRects.map((r) => r.x + r.width));
+  const nodeBottom = Math.max(...allRects.map((r) => r.y + r.height));
   // Grow only for back-edge / self-loop bows; with none, this is byte-identical.
-  const right  = (Number.isFinite(bowMaxX) ? Math.max(nodeRight,  bowMaxX) : nodeRight)  + margin;
+  const right = (Number.isFinite(bowMaxX) ? Math.max(nodeRight, bowMaxX) : nodeRight) + margin;
   const bottom = (Number.isFinite(bowMaxY) ? Math.max(nodeBottom, bowMaxY) : nodeBottom) + margin;
   const titleOffset = ir.metadata.title ? typography.titleFontSize + 12 : 0;
 
@@ -350,21 +524,21 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
   const occupiedPorts: OccupiedPort[] = [];
   for (const edge of ir.edges) {
     const fromRect = nodePos.get(edge.from);
-    const toRect   = nodePos.get(edge.to);
+    const toRect = nodePos.get(edge.to);
     if (!fromRect || !toRect) continue;
-    const fromAnch = edgeAnchor(fromRect, ir.direction, 'exit',  toRect);
-    const toAnch   = edgeAnchor(toRect,   ir.direction, 'enter', fromRect);
+    const fromAnch = edgeAnchor(fromRect, ir.direction, 'exit', toRect);
+    const toAnch = edgeAnchor(toRect, ir.direction, 'enter', fromRect);
     occupiedPorts.push({
       nodeKey: edge.from,
-      wall:    fromAnch.portDir as CardinalSide,
-      t:       wallT(fromRect, fromAnch.portDir as CardinalSide, fromAnch.point),
-      source:  'intra',
+      wall: fromAnch.portDir as CardinalSide,
+      t: wallT(fromRect, fromAnch.portDir as CardinalSide, fromAnch.point),
+      source: 'intra',
     });
     occupiedPorts.push({
       nodeKey: edge.to,
-      wall:    toAnch.portDir as CardinalSide,
-      t:       wallT(toRect, toAnch.portDir as CardinalSide, toAnch.point),
-      source:  'intra',
+      wall: toAnch.portDir as CardinalSide,
+      t: wallT(toRect, toAnch.portDir as CardinalSide, toAnch.point),
+      source: 'intra',
     });
   }
 
@@ -388,9 +562,13 @@ export function layoutFlowchart(ir: FlowDocument, theme: ResolvedTheme, options?
 function findBackEdges(nodes: readonly FlowNode[], edges: readonly FlowEdge[]): Set<number> {
   const adj = new Map<string, Array<{ to: string; idx: number }>>();
   for (const n of nodes) adj.set(n.id, []);
-  edges.forEach((e, idx) => { adj.get(e.from)?.push({ to: e.to, idx }); });
+  edges.forEach((e, idx) => {
+    adj.get(e.from)?.push({ to: e.to, idx });
+  });
 
-  const WHITE = 0, GRAY = 1, BLACK = 2;
+  const WHITE = 0,
+    GRAY = 1,
+    BLACK = 2;
   const color = new Map<string, number>();
   for (const n of nodes) color.set(n.id, WHITE);
 
@@ -464,7 +642,10 @@ function assignLayers(nodes: readonly FlowNode[], edges: readonly FlowEdge[]): M
   return layers;
 }
 
-function groupByLayer(nodes: readonly FlowNode[], layers: Map<string, number>): Map<number, FlowNode[]> {
+function groupByLayer(
+  nodes: readonly FlowNode[],
+  layers: Map<string, number>,
+): Map<number, FlowNode[]> {
   const groups = new Map<number, FlowNode[]>();
   for (const node of nodes) {
     const l = layers.get(node.id) ?? 0;
@@ -495,7 +676,10 @@ function minimizeCrossings(
   const pred = new Map<string, string[]>();
   const succ = new Map<string, string[]>();
   for (const [, nodes] of byLayer) {
-    for (const n of nodes) { pred.set(n.id, []); succ.set(n.id, []); }
+    for (const n of nodes) {
+      pred.set(n.id, []);
+      succ.set(n.id, []);
+    }
   }
   edges.forEach((e, i) => {
     if (backEdgeSet.has(i) || e.from === e.to) return;
@@ -533,7 +717,10 @@ function minimizeCrossings(
     });
     // Stable sort: primary = barycenter, secondary = original insertion order.
     bary.sort((a, b) => (a.b !== b.b ? a.b - b.b : a.orig - b.orig));
-    order.set(layerIdx, bary.map(e => e.node));
+    order.set(
+      layerIdx,
+      bary.map((e) => e.node),
+    );
     rebuildPos();
   }
 
@@ -591,14 +778,17 @@ function assignCoordinatesBK(
   nodeSizes?: Map<string, { width: number; height: number }>,
 ): Map<string, Rect> {
   // Per-node dimension helpers with fallback to uniform defaults.
-  const getW = (id: string) => nodeSizes?.get(id)?.width  ?? nodeW;
+  const getW = (id: string) => nodeSizes?.get(id)?.width ?? nodeW;
   const getH = (id: string) => nodeSizes?.get(id)?.height ?? nodeH;
 
   // Forward-edge predecessor and successor maps.
   const predMap = new Map<string, string[]>();
   const succMap = new Map<string, string[]>();
   for (const [, nodes] of byLayer) {
-    for (const n of nodes) { predMap.set(n.id, []); succMap.set(n.id, []); }
+    for (const n of nodes) {
+      predMap.set(n.id, []);
+      succMap.set(n.id, []);
+    }
   }
   edges.forEach((e, i) => {
     if (backEdgeSet.has(i) || e.from === e.to) return;
@@ -617,7 +807,7 @@ function assignCoordinatesBK(
   // nodes receive extra cross-axis spacing equal to the slot overshoot. This is
   // visually acceptable and guarantees no overlaps without restructuring BK.
   const crossGap = isLR ? rowGap : colGap;
-  const mainGap  = isLR ? colGap : rowGap;
+  const mainGap = isLR ? colGap : rowGap;
 
   let globalCrossSize = isLR ? nodeH : nodeW;
   for (const [, nodes] of byLayer) {
@@ -629,7 +819,7 @@ function assignCoordinatesBK(
   const crossStep = globalCrossSize + crossGap;
 
   // Per-layer max main size — used for cumulative layer positions.
-  const layerMainSizes: number[] = layerKeys.map(lk => {
+  const layerMainSizes: number[] = layerKeys.map((lk) => {
     const nodes = byLayer.get(lk)!;
     let mx = isLR ? nodeW : nodeH;
     for (const n of nodes) {
@@ -662,8 +852,8 @@ function assignCoordinatesBK(
 
     for (const li of indices) {
       const layerIdx = layerKeys[li]!;
-      const nodes    = byLayer.get(layerIdx)!;
-      const count    = nodes.length;
+      const nodes = byLayer.get(layerIdx)!;
+      const count = nodes.length;
       if (count === 0) continue;
 
       // Default (centering) start — same formula as the old algorithm so that
@@ -674,7 +864,7 @@ function assignCoordinatesBK(
       const pref: number[] = nodes.map((node, i) => {
         const nbrs = neighborMap.get(node.id) ?? [];
         const nbrPos = nbrs
-          .map(nid => crossPos.get(nid))
+          .map((nid) => crossPos.get(nid))
           .filter((p): p is number => p !== undefined);
         if (nbrPos.length === 0) return centeredStart + i * crossStep;
         return nbrPos.reduce((s, p) => s + p, 0) / nbrPos.length;
@@ -682,7 +872,7 @@ function assignCoordinatesBK(
 
       // Block centre = median of individual preferences.
       const sortedPrefs = [...pref].sort((a, b) => a - b);
-      const medianPref  = sortedPrefs[Math.floor((sortedPrefs.length - 1) / 2)]!;
+      const medianPref = sortedPrefs[Math.floor((sortedPrefs.length - 1) / 2)]!;
 
       // Centre block on medianPref; clamp so nothing goes left/above margin.
       const blockStart = Math.max(margin, medianPref - ((count - 1) * crossStep) / 2);
@@ -693,15 +883,15 @@ function assignCoordinatesBK(
     return crossPos;
   }
 
-  const pass1 = onePass(true);   // predecessor-aligned (top-down)
-  const pass2 = onePass(false);  // successor-aligned   (bottom-up)
+  const pass1 = onePass(true); // predecessor-aligned (top-down)
+  const pass2 = onePass(false); // successor-aligned   (bottom-up)
 
   // Average the two passes and emit Rect entries.
   // Each node is centred within its cross-axis slot and within its layer band.
   const nodePos = new Map<string, Rect>();
   for (let li = 0; li < numLayers; li++) {
-    const layerIdx    = layerKeys[li]!;
-    const nodes       = byLayer.get(layerIdx)!;
+    const layerIdx = layerKeys[li]!;
+    const nodes = byLayer.get(layerIdx)!;
     const layerMainSz = layerMainSizes[li]!;
 
     // Main-axis position: for isReverse, the layer drawn "first" (index 0)
@@ -709,8 +899,8 @@ function assignCoordinatesBK(
     const mainPos = isReverse ? fwdMainPos[numLayers - 1 - li]! : fwdMainPos[li]!;
 
     for (const node of nodes) {
-      const c1     = pass1.get(node.id) ?? margin;
-      const c2     = pass2.get(node.id) ?? margin;
+      const c1 = pass1.get(node.id) ?? margin;
+      const c2 = pass2.get(node.id) ?? margin;
       const slotLeft = (c1 + c2) / 2;
 
       const nw = getW(node.id);
@@ -718,12 +908,12 @@ function assignCoordinatesBK(
 
       // Centre the node within its cross slot and within the layer's main band.
       const crossOffset = (globalCrossSize - (isLR ? nh : nw)) / 2;
-      const mainOffset  = (layerMainSz     - (isLR ? nw : nh)) / 2;
+      const mainOffset = (layerMainSz - (isLR ? nw : nh)) / 2;
 
       nodePos.set(node.id, {
-        x:      isLR ? mainPos + mainOffset : slotLeft + crossOffset,
-        y:      isLR ? slotLeft + crossOffset : mainPos + mainOffset,
-        width:  nw,
+        x: isLR ? mainPos + mainOffset : slotLeft + crossOffset,
+        y: isLR ? slotLeft + crossOffset : mainPos + mainOffset,
+        width: nw,
         height: nh,
       });
     }
@@ -734,24 +924,84 @@ function assignCoordinatesBK(
 
 // ─── Node Shape Rendering ─────────────────────────────────────────────────────
 
-function renderNodeShape(node: FlowNode, r: Rect, fill: string, stroke: string, sw: number): SceneElement[] {
+function renderNodeShape(
+  node: FlowNode,
+  r: Rect,
+  fill: string,
+  stroke: string,
+  sw: number,
+): SceneElement[] {
   const { x, y, width: w, height: h } = r;
 
   switch (node.shape) {
     case 'diamond': {
-      const cx = x + w / 2, cy = y + h / 2;
-      return [{ type: 'path', d: `M ${cx} ${y} L ${x + w} ${cy} L ${cx} ${y + h} L ${x} ${cy} Z`, fill, stroke, strokeWidth: sw }];
+      const cx = x + w / 2,
+        cy = y + h / 2;
+      return [
+        {
+          type: 'path',
+          d: `M ${cx} ${y} L ${x + w} ${cy} L ${cx} ${y + h} L ${x} ${cy} Z`,
+          fill,
+          stroke,
+          strokeWidth: sw,
+        },
+      ];
     }
     case 'circle':
-      return [{ type: 'circle', center: { x: x + w / 2, y: y + h / 2 }, radius: Math.min(w, h) / 2, fill, stroke, strokeWidth: sw }];
+      return [
+        {
+          type: 'circle',
+          center: { x: x + w / 2, y: y + h / 2 },
+          radius: Math.min(w, h) / 2,
+          fill,
+          stroke,
+          strokeWidth: sw,
+        },
+      ];
     case 'rounded-rect':
+      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 6 }];
     case 'stadium':
       return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: h / 2 }];
     case 'subroutine':
       return [
-        { type: 'rect', bounds: r, fill, stroke, strokeWidth: sw },
-        { type: 'rect', bounds: { x: x + 6, y, width: w - 12, height: h }, fill: 'none', stroke, strokeWidth: sw * 0.5 },
+        { type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 2 },
+        {
+          type: 'path',
+          d: `M ${x + 8} ${y} L ${x + 8} ${y + h} M ${x + w - 8} ${y} L ${x + w - 8} ${y + h}`,
+          fill: 'none',
+          stroke,
+          strokeWidth: sw * 0.7,
+        },
       ];
+    case 'cylinder': {
+      const ry = Math.min(10, Math.max(4, h * 0.15));
+      const dBody = `M ${x} ${y + ry} A ${w / 2} ${ry} 0 0 1 ${x + w} ${y + ry} L ${x + w} ${y + h - ry} A ${w / 2} ${ry} 0 0 1 ${x} ${y + h - ry} Z`;
+      const dRim = `M ${x} ${y + ry} A ${w / 2} ${ry} 0 0 0 ${x + w} ${y + ry}`;
+      return [
+        { type: 'path', d: dBody, fill, stroke, strokeWidth: sw },
+        { type: 'path', d: dRim, fill: 'none', stroke, strokeWidth: sw },
+      ];
+    }
+    case 'hexagon': {
+      const chamfer = Math.min(w * 0.15, h * 0.4);
+      const d = `M ${x + chamfer} ${y} L ${x + w - chamfer} ${y} L ${x + w} ${y + h / 2} L ${x + w - chamfer} ${y + h} L ${x + chamfer} ${y + h} L ${x} ${y + h / 2} Z`;
+      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+    }
+    case 'parallelogram': {
+      const slant = Math.min(w * 0.2, 16);
+      const d = `M ${x + slant} ${y} L ${x + w} ${y} L ${x + w - slant} ${y + h} L ${x} ${y + h} Z`;
+      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+    }
+    case 'parallelogram-alt': {
+      const slant = Math.min(w * 0.2, 16);
+      const d = `M ${x} ${y} L ${x + w - slant} ${y} L ${x + w} ${y + h} L ${x + slant} ${y + h} Z`;
+      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+    }
+    case 'asymmetric': {
+      const point = Math.min(w * 0.15, 14);
+      const d = `M ${x} ${y} L ${x + w - point} ${y} L ${x + w} ${y + h / 2} L ${x + w - point} ${y + h} L ${x} ${y + h} Z`;
+      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+    }
     case 'card':
       return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 6 }];
     default:
@@ -776,21 +1026,28 @@ type AnchorResult = { point: Point; portDir: import('../../../contracts/index.js
  * auto-derivation in `edgeAnchor` — the port sits at the midpoint of the named
  * side with the matching port direction.
  */
-function wallAnchor(r: Rect, wall: import('../../../contracts/index.js').CardinalSide): AnchorResult {
-  const cx = r.x + r.width  / 2;
+function wallAnchor(
+  r: Rect,
+  wall: import('../../../contracts/index.js').CardinalSide,
+): AnchorResult {
+  const cx = r.x + r.width / 2;
   const cy = r.y + r.height / 2;
   switch (wall) {
-    case 'N': return { point: { x: cx,             y: r.y             }, portDir: 'N' };
-    case 'S': return { point: { x: cx,             y: r.y + r.height  }, portDir: 'S' };
-    case 'E': return { point: { x: r.x + r.width,  y: cy              }, portDir: 'E' };
-    case 'W': return { point: { x: r.x,            y: cy              }, portDir: 'W' };
+    case 'N':
+      return { point: { x: cx, y: r.y }, portDir: 'N' };
+    case 'S':
+      return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+    case 'E':
+      return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+    case 'W':
+      return { point: { x: r.x, y: cy }, portDir: 'W' };
   }
 }
 
 function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: Rect): AnchorResult {
-  const cx = r.x + r.width  / 2;
+  const cx = r.x + r.width / 2;
   const cy = r.y + r.height / 2;
-  const pcx = peer.x + peer.width  / 2;
+  const pcx = peer.x + peer.width / 2;
   const pcy = peer.y + peer.height / 2;
 
   const dx = pcx - cx;
@@ -801,7 +1058,7 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
   if (isLR) {
     // Primary axis is horizontal
     const offAxis = Math.abs(dy);
-    const onAxis  = Math.abs(dx);
+    const onAxis = Math.abs(dx);
 
     // If the peer is more off-axis than on-axis AND the nodes are close on
     // the main axis (same or overlapping layer), use top/bottom port.
@@ -810,17 +1067,17 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
     if (offAxis > onAxis && offAxis > r.height / 2 && onAxis < r.width) {
       return dy > 0
         ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
-        : { point: { x: cx, y: r.y },             portDir: 'N' };
+        : { point: { x: cx, y: r.y }, portDir: 'N' };
     }
 
     // Otherwise use the flow-direction side
     return role === 'exit'
       ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
-      : { point: { x: r.x,           y: cy }, portDir: 'W' };
+      : { point: { x: r.x, y: cy }, portDir: 'W' };
   } else {
     // Primary axis is vertical
     const offAxis = Math.abs(dx);
-    const onAxis  = Math.abs(dy);
+    const onAxis = Math.abs(dy);
 
     // Only flip to E/W port when the peer is close on the main axis (within
     // one node-height vertically), indicating same-layer or overlapping nodes.
@@ -828,12 +1085,12 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
     if (offAxis > onAxis && offAxis > r.width / 2 && onAxis < r.height) {
       return dx > 0
         ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
-        : { point: { x: r.x,           y: cy }, portDir: 'W' };
+        : { point: { x: r.x, y: cy }, portDir: 'W' };
     }
 
     return role === 'exit'
       ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
-      : { point: { x: cx, y: r.y },             portDir: 'N' };
+      : { point: { x: cx, y: r.y }, portDir: 'N' };
   }
 }
 
@@ -861,11 +1118,11 @@ function backEdgeRoute(from: Rect, to: Rect, isLR: boolean): EdgeRoute {
   if (isLR) {
     // Horizontal flow → bow downward, off the South walls.
     const start: Point = { x: from.x + from.width / 2, y: from.y + from.height };
-    const end:   Point = { x: to.x   + to.width   / 2, y: to.y   + to.height };
+    const end: Point = { x: to.x + to.width / 2, y: to.y + to.height };
     const span = Math.abs(end.x - start.x);
     const bow = Math.max(NODE_H * 0.9, span * 0.35);
     const c1: Point = { x: start.x, y: start.y + bow };
-    const c2: Point = { x: end.x,   y: end.y   + bow };
+    const c2: Point = { x: end.x, y: end.y + bow };
     return {
       path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`,
       labelPos: { x: (start.x + end.x) / 2, y: Math.max(start.y, end.y) + bow * 0.75 },
@@ -875,11 +1132,11 @@ function backEdgeRoute(from: Rect, to: Rect, isLR: boolean): EdgeRoute {
   }
   // Vertical flow → bow to the right, off the East walls.
   const start: Point = { x: from.x + from.width, y: from.y + from.height / 2 };
-  const end:   Point = { x: to.x   + to.width,   y: to.y   + to.height   / 2 };
+  const end: Point = { x: to.x + to.width, y: to.y + to.height / 2 };
   const span = Math.abs(end.y - start.y);
   const bow = Math.max(NODE_W * 0.75, span * 0.35);
   const c1: Point = { x: start.x + bow, y: start.y };
-  const c2: Point = { x: end.x   + bow, y: end.y };
+  const c2: Point = { x: end.x + bow, y: end.y };
   return {
     path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`,
     labelPos: { x: Math.max(start.x, end.x) + bow * 0.75, y: (start.y + end.y) / 2 },
@@ -922,12 +1179,18 @@ function selfLoopRoute(r: Rect, isLR: boolean): EdgeRoute {
 
 function nodeStatusFill(node: FlowNode, palette: ResolvedTheme['palette']): string {
   switch (node.status) {
-    case 'active':  return palette.primary + '22';
-    case 'success': return palette.success + '22';
-    case 'warning': return palette.warning + '22';
-    case 'error':   return palette.error   + '22';
-    case 'muted':   return palette.surface;
-    default:        return palette.surface;
+    case 'active':
+      return palette.primary + '22';
+    case 'success':
+      return palette.success + '22';
+    case 'warning':
+      return palette.warning + '22';
+    case 'error':
+      return palette.error + '22';
+    case 'muted':
+      return palette.surface;
+    default:
+      return palette.surface;
   }
 }
 
@@ -943,9 +1206,11 @@ function arrowMarkerDef(color: string, size: number): string {
  */
 function wallT(bounds: Rect, wall: CardinalSide, pt: Point): number {
   switch (wall) {
-    case 'N': case 'S':
-      return bounds.width  > 0 ? Math.max(0, Math.min(1, (pt.x - bounds.x) / bounds.width))  : 0.5;
-    case 'E': case 'W':
+    case 'N':
+    case 'S':
+      return bounds.width > 0 ? Math.max(0, Math.min(1, (pt.x - bounds.x) / bounds.width)) : 0.5;
+    case 'E':
+    case 'W':
       return bounds.height > 0 ? Math.max(0, Math.min(1, (pt.y - bounds.y) / bounds.height)) : 0.5;
   }
 }
