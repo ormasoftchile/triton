@@ -37,7 +37,7 @@
 }}
 
 Document
-  = _ "block-beta"i LineEnd stmts:Statement* _ {
+  = fm:Frontmatter? _ "block-beta"i LineEnd stmts:Statement* _ {
       let columns = 1;
       const blocks = [];
       const edges = [];
@@ -46,7 +46,12 @@ Document
         else if (s.t === 'blocks')  for (const b of s.items) blocks.push(b);
         else if (s.t === 'edge')    edges.push({ from: s.from, to: s.to, ...(s.label ? { label: s.label } : {}), style: s.style, startMarker: s.startMarker, endMarker: s.endMarker, ...(s.animation !== undefined ? { animation: s.animation } : {}) });
       }
-      return { version: '1.0', metadata: {}, columns, blocks, edges };
+      return { version: '1.0', metadata: { ...(fm || {}) }, columns, blocks, edges };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Statement = ColumnsLine / EdgeLine / BlockLine / BlankLine
@@ -116,7 +121,9 @@ BlockDef
 
 Ident = $[A-Za-z0-9_]+
 Integer = n:$[0-9]+ { return parseInt(n, 10); }
+NL = "\r"? "\n"
 BlankLine = _ "\r"? "\n" { return null; }
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
 __ = [ \t]+
+

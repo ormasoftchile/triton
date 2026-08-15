@@ -1,4 +1,13 @@
-import type { Scene, ThemeInput, Result, BaseIR, LayoutResult, NodeAnchorRegistry, LayoutOptions, RevealTrack } from '../contracts/index.js';
+import type {
+  Scene,
+  ThemeInput,
+  Result,
+  BaseIR,
+  LayoutResult,
+  NodeAnchorRegistry,
+  LayoutOptions,
+  RevealTrack,
+} from '../contracts/index.js';
 import type { IconPackMap } from '../contracts/icons.js';
 import { ok, err } from '../contracts/index.js';
 import { detect } from './detect.js';
@@ -8,6 +17,7 @@ import { registerRenderer, getRenderer } from '../render/registry.js';
 import { defaultTheme, getThemePreset } from '../theme/preset.js';
 import { resolveTheme } from '../theme/resolver.js';
 import { validateThemeInput, isBuiltinThemeName } from '../theme/validate.js';
+import { extractFrontmatter } from './frontmatter.js';
 import { flowchart } from '../diagrams/mermaid/flowchart/index.js';
 import { timeline } from '../diagrams/mermaid/timeline/index.js';
 import { poster } from '../diagrams/triton/poster/index.js';
@@ -148,6 +158,7 @@ function compileSyncWithTheme(
   icons?: IconPackMap,
 ): Result<{ readonly layout: LayoutResult; readonly theme: ReturnType<typeof resolveTheme> }> {
   const cleaned = stripComments(input);
+  const { metadata: fmMeta, body: fmBody } = extractFrontmatter(cleaned);
   const { format, diagramType } = detect(cleaned);
 
   const module = getModule(diagramType);
@@ -156,12 +167,28 @@ function compileSyncWithTheme(
   }
 
   try {
-    const ir: BaseIR = format === 'yaml'
-      ? module.parseYaml(cleaned)
-      : module.parseMermaid(cleaned);
+    let ir: BaseIR;
+    if (format === 'yaml') {
+      ir = module.parseYaml(cleaned);
+    } else {
+      try {
+        ir = module.parseMermaid(cleaned);
+      } catch (firstErr) {
+        // If parsing with full frontmatter failed, try parsing the body without frontmatter (for custom DSLs)
+        if (Object.keys(fmMeta).length > 0) {
+          ir = module.parseMermaid(fmBody);
+        } else {
+          throw firstErr;
+        }
+      }
+    }
+
+    // Merge extracted frontmatter metadata with any metadata parsed by the module
+    const mergedMetadata = { ...fmMeta, ...(ir.metadata ?? {}) };
+    ir = { ...ir, metadata: mergedMetadata };
 
     // Build theme: forced preset → metadata preset → global input → module defaults → per-IR override
-    const themeName = typeof ir.metadata?.theme === 'string' ? ir.metadata.theme : undefined;
+    const themeName = typeof mergedMetadata.theme === 'string' ? mergedMetadata.theme : undefined;
     const base = resolveTheme(themeInput ?? {}, getThemePreset(forcedThemeName ?? themeName));
     const withModuleDefaults = module.defaultThemeOverride
       ? resolveTheme(module.defaultThemeOverride, base)

@@ -13,7 +13,7 @@
 }}
 
 Document
-  = _ "xychart-beta"i (_ ("horizontal"i / "vertical"i))? LineEnd stmts:Statement* _ {
+  = fm:Frontmatter? _ "xychart-beta"i (_ ("horizontal"i / "vertical"i))? LineEnd stmts:Statement* _ {
       let title;
       let categories = [];
       let yLabel, yMin, yMax;
@@ -26,13 +26,18 @@ Document
       }
       return {
         version: '1.0',
-        metadata: { ...(title ? { title } : {}) },
+        metadata: { ...(fm || {}), ...(title ? { title } : {}) },
         categories,
         ...(yLabel !== undefined ? { yLabel } : {}),
         ...(yMin !== undefined ? { yMin } : {}),
         ...(yMax !== undefined ? { yMax } : {}),
         series,
       };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Statement
@@ -63,6 +68,9 @@ AxisItem
 Quoted = '"' s:$[^"]* '"' { return s.trim(); }
 Num = n:$("-"? [0-9]+ ("." [0-9]+)?) { return parseFloat(n); }
 RestOfLine = $[^\n]+
+NL = "\r"? "\n"
 BlankLine = _ "\r"? "\n" { return null; }
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
+
+

@@ -133,12 +133,12 @@ Header
 Directive = ExtDirective / MermaidDirective
 
 MermaidDirective
-  = _ "title" __ value:$[^\n]+ _ NL { return { key: 'title', value: value.trim() }; }
-  / _ "subtitle" __ value:$[^\n]+ _ NL { return { key: 'subtitle', value: value.trim() }; }
-  / _ "theme" __ value:$[^\n]+ _ NL { return { key: 'theme', value: value.trim() }; }
+  = _ "title" __ value:$[^\n]+ _ LineEnd { return { key: 'title', value: value.trim() }; }
+  / _ "subtitle" __ value:$[^\n]+ _ LineEnd { return { key: 'subtitle', value: value.trim() }; }
+  / _ "theme" __ value:$[^\n]+ _ LineEnd { return { key: 'theme', value: value.trim() }; }
 
 ExtDirective
-  = &{ return ext; } _ key:("layout" / "axisUnit") __ value:$[^\n]+ _ NL { return { key, value: value.trim() }; }
+  = &{ return ext; } _ key:("layout" / "axisUnit") __ value:$[^\n]+ _ LineEnd { return { key, value: value.trim() }; }
 
 ExtFrontmatter
   = &{ return ext; } "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
@@ -157,14 +157,14 @@ Body
     { return items.filter(Boolean); }
 
 SectionHeader
-  = _ "section" __ label:$[^\n]+ NL {
+  = _ "section" __ label:$[^\n]+ LineEnd {
       closeSection();
       openSection(label.trim());
       return null;
     }
 
 Entry
-  = _ entry:(ExtEntry / MermaidEntry) _ Comment? NL { return entry; }
+  = _ entry:(ExtEntry / MermaidEntry) _ Comment? LineEnd { return entry; }
 
 // ─── Layer 1: Mermaid-compatible entry ────────────────────────────────────────
 
@@ -217,7 +217,7 @@ Identifier = $([a-zA-Z_][a-zA-Z0-9_\-]*)
 
 NoteDirective
   = _ "note" __ "\"" text:$[^"]* "\"" __ "at" __ target:$([a-zA-Z0-9_\-/.]+)
-    offset:NoteOffset? _ Comment? NL {
+    offset:NoteOffset? _ Comment? LineEnd {
       const note = { type: 'note', text, target, offset: offset || undefined };
       overlays.push(note);
       return note;
@@ -230,21 +230,23 @@ SignedInt
   = sign:"-"? digits:$[0-9]+ { return parseInt((sign || '') + digits, 10); }
 
 LegendBlock
-  = _ "legend" __ corner:LegendCornerToken title:(_ "\"" t:$[^"]* "\"" { return t; })? _ NL
+  = _ "legend" __ corner:LegendCornerToken title:(_ "\"" t:$[^"]* "\"" { return t; })? _ LineEnd
     entries:LegendEntryLine*
-    _ "end" _ NL? {
+    _ "end" _ LineEnd? {
       const legend = { type: 'legend', corner, title: title || undefined, entries };
       overlays.push(legend);
       return legend;
     }
 
 LegendCornerToken = "bottom-right" / "bottom-left" / "top-right" / "top-left"
-LegendEntryLine   = _ !("end" ![a-zA-Z0-9_]) key:$[^:\n]+ ":" value:$[^\n]+ NL { return { key: key.trim(), value: value.trim() }; }
+LegendEntryLine   = _ !("end" ![a-zA-Z0-9_]) key:$[^:\n]+ ":" value:$[^\n]+ LineEnd { return { key: key.trim(), value: value.trim() }; }
 
 // ─── Whitespace ───────────────────────────────────────────────────────────────
 
 BlankLine = _ Comment? NL { return null; }
 Comment   = "%%" [^\n]*
+LineEnd   = NL / !.
 _  = [ \t]*
 __ = [ \t]+
 NL = "\r\n" / "\n" / "\r"
+

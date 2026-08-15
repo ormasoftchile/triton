@@ -12,14 +12,19 @@
 }}
 
 Document
-  = _ head:Header rows:Row* _ {
+  = fm:Frontmatter? _ head:Header rows:Row* _ {
       const slices = rows.filter(Boolean);
       return {
         version: '1.0',
-        metadata: { ...(head.title ? { title: head.title } : {}) },
+        metadata: { ...(fm || {}), ...(head.title ? { title: head.title } : {}) },
         slices,
         ...(head.showData ? { showData: true } : {}),
       };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Header
@@ -34,5 +39,6 @@ Row
 Quoted = '"' s:$[^"]* '"' { return s; }
 Num = n:$("-"? [0-9]+ ("." [0-9]+)?) { return parseFloat(n); }
 RestOfLine = $[^\n]+
+NL = "\r"? "\n"
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*

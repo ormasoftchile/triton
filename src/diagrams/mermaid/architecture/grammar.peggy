@@ -72,7 +72,7 @@
 }}
 
 Document
-  = _ "architecture-beta"i LineEnd lines:Line* _ {
+  = fm:Frontmatter? _ "architecture-beta"i LineEnd lines:Line* _ {
       const groups = [];
       const services = [];
       const junctions = [];
@@ -95,7 +95,12 @@ Document
           aligns.push({ axis: l.axis, members: l.members });
         }
       }
-      return { version: '1.0', metadata: {}, groups, services, junctions, edges, aligns };
+      return { version: '1.0', metadata: { ...(fm || {}) }, groups, services, junctions, edges, aligns };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Line = GroupLine / ServiceLine / JunctionLine / AlignLine / EdgeLine / BlankLine
@@ -237,7 +242,9 @@ AlignLine
 Side = $[LRTBlrtb]
 RestIgnore = $[^\n]*
 Ident = $[A-Za-z0-9_]+
+NL = "\r"? "\n"
 BlankLine = _ "\r"? "\n" { return null; }
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
 __ = [ \t]+
+

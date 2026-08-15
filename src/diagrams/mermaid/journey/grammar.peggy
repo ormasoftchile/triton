@@ -12,7 +12,7 @@
 }}
 
 Document
-  = _ "journey"i LineEnd stmts:Statement* _ {
+  = fm:Frontmatter? _ "journey"i LineEnd stmts:Statement* _ {
       let title;
       const sections = [];
       for (const s of stmts.filter(Boolean)) {
@@ -23,7 +23,12 @@ Document
           sections[sections.length - 1].tasks.push({ label: s.label, score: s.score, actors: s.actors });
         }
       }
-      return { version: '1.0', metadata: { ...(title ? { title } : {}) }, sections };
+      return { version: '1.0', metadata: { ...(fm || {}), ...(title ? { title } : {}) }, sections };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Statement
@@ -46,6 +51,8 @@ Actors
 Actor = a:$[^,\n]+ { return a.trim(); }
 Num = n:$("-"? [0-9]+ ("." [0-9]+)?) { return parseFloat(n); }
 RestOfLine = $[^\n]+
+NL = "\r"? "\n"
 BlankLine = _ "\r"? "\n" { return null; }
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
+

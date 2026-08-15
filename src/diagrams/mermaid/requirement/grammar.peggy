@@ -7,14 +7,19 @@
 }}
 
 Document
-  = _ "requirementDiagram"i LineEnd stmts:Statement* _ {
+  = fm:Frontmatter? _ "requirementDiagram"i LineEnd stmts:Statement* _ {
       const nodes = [];
       const relations = [];
       for (const s of stmts.filter(Boolean)) {
         if      (s.t === 'node') nodes.push({ id: s.name, kind: s.kind, fields: s.fields });
         else if (s.t === 'rel')  relations.push({ from: s.from, to: s.to, type: s.type });
       }
-      return { version: '1.0', metadata: {}, nodes, relations };
+      return { version: '1.0', metadata: { ...(fm || {}) }, nodes, relations };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Statement = Block / Relation / BlankLine
@@ -36,7 +41,9 @@ ReqKind
   / "physicalRequirement"i / "designConstraint"i / "requirement"i / "element"i
 
 Ident = $[A-Za-z0-9_]+
+NL = "\r"? "\n"
 BlankLine = _ "\r"? "\n" { return null; }
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
 __ = [ \t]+
+

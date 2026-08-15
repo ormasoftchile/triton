@@ -12,14 +12,19 @@
 }}
 
 Document
-  = _ "packet-beta"i LineEnd stmts:Statement* _ {
+  = fm:Frontmatter? _ "packet-beta"i LineEnd stmts:Statement* _ {
       let title;
       const fields = [];
       for (const s of stmts.filter(Boolean)) {
         if (s.t === 'title') title = s.v;
         else if (s.t === 'field') fields.push({ start: s.start, end: s.end, label: s.label });
       }
-      return { version: '1.0', metadata: { ...(title ? { title } : {}) }, fields };
+      return { version: '1.0', metadata: { ...(fm || {}), ...(title ? { title } : {}) }, fields };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Statement = TitleLine / FieldLine / BlankLine
@@ -35,7 +40,9 @@ FieldLine
 Quoted = '"' s:$[^"]* '"' { return s.trim(); } / s:$[^\n]+ { return s.trim(); }
 Int = n:$[0-9]+ { return parseInt(n, 10); }
 RestOfLine = $[^\n]+
+NL = "\r"? "\n"
 BlankLine = _ "\r"? "\n" { return null; }
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
 __ = [ \t]+
+

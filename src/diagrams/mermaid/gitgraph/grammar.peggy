@@ -12,8 +12,13 @@
 }}
 
 Document
-  = _ "gitGraph"i (_ ":"? _ $[^\n]*)? LineEnd stmts:Statement* _ {
-      return { version: '1.0', metadata: {}, statements: stmts.filter(Boolean) };
+  = fm:Frontmatter? _ "gitGraph"i (_ ":"? _ $[^\n]*)? LineEnd stmts:Statement* _ {
+      return { version: '1.0', metadata: { ...(fm || {}) }, statements: stmts.filter(Boolean) };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Statement = Commit / Branch / Checkout / Merge / BlankLine
@@ -35,7 +40,9 @@ Opt
 
 OptVal = '"' s:$[^"]* '"' { return s; } / $[A-Za-z0-9_]+
 BranchName = $[A-Za-z0-9_/.-]+
+NL = "\r"? "\n"
 BlankLine = _ "\r"? "\n" { return null; }
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
 __ = [ \t]+
+

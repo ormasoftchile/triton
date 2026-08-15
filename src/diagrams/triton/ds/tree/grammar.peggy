@@ -7,17 +7,24 @@
 }}
 
 Start
-  = _ ("tree" / "plan") dir:(__ d:Direction { return d; })? LineEnd
+  = fm:Frontmatter? _ ("tree" / "plan") dir:(__ d:Direction { return d; })? LineEnd
     title:TitleLine?
     lines:(NodeLine / BlankLine)*
     {
       return {
         version: "1.0",
-        metadata: title ? { title } : {},
+        metadata: { ...(fm || {}), ...(title ? { title } : {}) },
         direction: dir || "TB",
         lines: lines.filter(l => l !== null),
       };
     }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
+    }
+
+NL = "\r"? "\n"
 
 Direction
   = "TD" { return "TB"; }

@@ -7,9 +7,14 @@
 }}
 
 Document
-  = _ "sankey-beta"i LineEnd rows:Row* _ {
+  = fm:Frontmatter? _ "sankey-beta"i LineEnd rows:Row* _ {
       const links = rows.filter(Boolean);
-      return { version: '1.0', metadata: {}, links };
+      return { version: '1.0', metadata: { ...(fm || {}) }, links };
+    }
+
+Frontmatter
+  = "---" NL lines:(!("---" NL) line:$[^\n]* NL { return line; })* "---" NL {
+      const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
 Row
@@ -20,5 +25,7 @@ Row
 Comment = _ "%%" $[^\n]* ("\r"? "\n" / !.) { return null; }
 Field = $[^,\n]+
 Num = n:$("-"? [0-9]+ ("." [0-9]+)?) { return parseFloat(n); }
+NL = "\r"? "\n"
 LineEnd = "\r"? "\n" / !.
 _ = [ \t]*
+
