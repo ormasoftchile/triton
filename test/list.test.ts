@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { parseList, layoutList, asFlow, cellForIndex, asTurn } from '../src/diagrams/triton/deck/list/list.js';
+import {
+  parseList,
+  layoutList,
+  asFlow,
+  cellForIndex,
+  asTurn,
+} from '../src/diagrams/triton/deck/list/list.js';
 import { detect } from '../src/frontend/detect.js';
 import { renderSync, compileAndRenderSync } from '../src/frontend/index.js';
 import { embedRevealManifest } from '../src/render/svg.js';
@@ -40,7 +46,12 @@ describe('parseList', () => {
   it('extracts the title and item list, stripping list markers', () => {
     const doc = parseList(SOURCE);
     expect(doc.title).toBe('Agenda');
-    expect(doc.items.map(i => i.text)).toEqual(['Introduction', 'The problem', 'Our approach', 'Results']);
+    expect(doc.items.map((i) => i.text)).toEqual([
+      'Introduction',
+      'The problem',
+      'Our approach',
+      'Results',
+    ]);
   });
 
   it('defaults to the `bullets` style and `sequence` reveal', () => {
@@ -67,12 +78,12 @@ describe('parseList', () => {
   it('works with no title', () => {
     const doc = parseList('list\n  One\n  Two\n');
     expect(doc.title).toBeUndefined();
-    expect(doc.items.map(i => i.text)).toEqual(['One', 'Two']);
+    expect(doc.items.map((i) => i.text)).toEqual(['One', 'Two']);
   });
 
   it('ignores an injected `---…---` theme frontmatter block', () => {
     const doc = parseList('---\ntheme: midnight\n---\nlist\n  One\n  Two\n  Three\n');
-    expect(doc.items.map(i => i.text)).toEqual(['One', 'Two', 'Three']);
+    expect(doc.items.map((i) => i.text)).toEqual(['One', 'Two', 'Three']);
   });
 
   it('lifts the frontmatter `theme` into metadata so the theme resolver sees it', () => {
@@ -90,7 +101,7 @@ describe('parseList', () => {
 describe('parseList nesting', () => {
   it('assigns depth from indentation', () => {
     const doc = parseList(NESTED);
-    expect(doc.items.map(i => [i.text, i.depth])).toEqual([
+    expect(doc.items.map((i) => [i.text, i.depth])).toEqual([
       ['Frontend', 0],
       ['React app', 1],
       ['CDN', 1],
@@ -104,7 +115,7 @@ describe('parseList nesting', () => {
 
   it('assigns stable hierarchical ids', () => {
     const doc = parseList(NESTED);
-    expect(doc.items.map(i => i.id)).toEqual([
+    expect(doc.items.map((i) => i.id)).toEqual([
       'item-0',
       'item-0-0',
       'item-0-1',
@@ -118,16 +129,23 @@ describe('parseList nesting', () => {
 
   it('assigns 1-based dotted ordinals for numbered style', () => {
     const doc = parseList(NESTED);
-    expect(doc.items.map(i => i.numberLabel)).toEqual([
-      '1', '1.1', '1.2', '2', '2.1', '2.1.1', '2.2', '3',
+    expect(doc.items.map((i) => i.numberLabel)).toEqual([
+      '1',
+      '1.1',
+      '1.2',
+      '2',
+      '2.1',
+      '2.1.1',
+      '2.2',
+      '3',
     ]);
   });
 
   it('handles 4-space and tab indentation the same way', () => {
     const fourSpace = parseList('list\nRoot\n    Child\n        Grandchild\n');
-    expect(fourSpace.items.map(i => i.depth)).toEqual([0, 1, 2]);
+    expect(fourSpace.items.map((i) => i.depth)).toEqual([0, 1, 2]);
     const tabbed = parseList('list\nRoot\n\tChild\n\t\tGrandchild\n');
-    expect(tabbed.items.map(i => i.depth)).toEqual([0, 1, 2]);
+    expect(tabbed.items.map((i) => i.depth)).toEqual([0, 1, 2]);
   });
 });
 
@@ -138,11 +156,18 @@ describe('layoutList', () => {
 
   it('emits one anchor group per item, including nested items', () => {
     const result = layoutList(parseList(NESTED), theme);
-    expect(Object.keys(result.anchors).sort()).toEqual([
-      'item-0', 'item-0-0', 'item-0-1',
-      'item-1', 'item-1-0', 'item-1-0-0', 'item-1-1',
-      'item-2',
-    ].sort());
+    expect(Object.keys(result.anchors).sort()).toEqual(
+      [
+        'item-0',
+        'item-0-0',
+        'item-0-1',
+        'item-1',
+        'item-1-0',
+        'item-1-0-0',
+        'item-1-1',
+        'item-2',
+      ].sort(),
+    );
   });
 
   it('emits a reveal track with one step per item in sequence mode', () => {
@@ -150,16 +175,26 @@ describe('layoutList', () => {
     expect(result.reveal).toBeDefined();
     const steps = result.reveal!.steps;
     expect(steps).toHaveLength(4);
-    expect(steps.map(s => s.enter)).toEqual([
-      ['item-0'], ['item-1'], ['item-2'], ['item-3'],
-    ]);
+    expect(steps.map((s) => s.enter)).toEqual([['item-0'], ['item-1'], ['item-2'], ['item-3']]);
   });
 
   it('renders each style without error and keeps per-item groups', () => {
     for (const style of [
-      'bullets', 'numbered', 'block', 'box', 'tree',
-      'chevron', 'process', 'timeline', 'pyramid', 'columns',
-      'cycle', 'matrix', 'funnel', 'stepup', 'venn',
+      'bullets',
+      'numbered',
+      'block',
+      'box',
+      'tree',
+      'chevron',
+      'process',
+      'timeline',
+      'pyramid',
+      'columns',
+      'cycle',
+      'matrix',
+      'funnel',
+      'stepup',
+      'venn',
     ] as const) {
       const doc = parseList(`list\n  style ${style}\n  One\n  Two\n`);
       const result = layoutList(doc, theme);
@@ -191,20 +226,26 @@ describe('list Phase C styles', () => {
     (JSON.stringify(r.scene.elements).match(/"type":"path"/g) ?? []).length;
 
   it('chevron lays out items in a single horizontal row of filled arrows', () => {
-    const r = layoutList(parseList('list\n  style chevron\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    const r = layoutList(
+      parseList('list\n  style chevron\n' + FLAT.split('\n').slice(1).join('\n')),
+      theme,
+    );
     expect(Object.keys(r.anchors).sort()).toEqual(['item-0', 'item-1', 'item-2']);
     // One filled arrow path per item; all share the same top (single row).
     expect(countPaths(r)).toBe(3);
-    const ys = Object.values(r.anchors).map(a => a.bounds.y);
+    const ys = Object.values(r.anchors).map((a) => a.bounds.y);
     expect(new Set(ys).size).toBe(1);
     // Blocks advance left→right.
-    const xs = ['item-0', 'item-1', 'item-2'].map(id => r.anchors[id]!.bounds.x);
+    const xs = ['item-0', 'item-1', 'item-2'].map((id) => r.anchors[id]!.bounds.x);
     expect(xs[1]!).toBeGreaterThan(xs[0]!);
     expect(xs[2]!).toBeGreaterThan(xs[1]!);
   });
 
   it('process joins boxes with arrow connectors (one incoming arrow per non-first box)', () => {
-    const r = layoutList(parseList('list\n  style process\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    const r = layoutList(
+      parseList('list\n  style process\n' + FLAT.split('\n').slice(1).join('\n')),
+      theme,
+    );
     // Each non-first box carries a line + arrowhead = 2 paths × 2 boxes = 4.
     expect(countPaths(r)).toBe(4);
     // Boxes are rects, one per item.
@@ -213,7 +254,10 @@ describe('list Phase C styles', () => {
   });
 
   it('timeline places dots on a shared horizontal axis with connecting segments', () => {
-    const r = layoutList(parseList('list\n  style timeline\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    const r = layoutList(
+      parseList('list\n  style timeline\n' + FLAT.split('\n').slice(1).join('\n')),
+      theme,
+    );
     const circles = (JSON.stringify(r.scene.elements).match(/"type":"circle"/g) ?? []).length;
     expect(circles).toBe(3);
     // One axis segment between each pair of dots (2 for 3 items).
@@ -221,9 +265,12 @@ describe('list Phase C styles', () => {
   });
 
   it('pyramid stacks trapezoids that widen toward the base', () => {
-    const r = layoutList(parseList('list\n  style pyramid\n' + FLAT.split('\n').slice(1).join('\n')), theme);
+    const r = layoutList(
+      parseList('list\n  style pyramid\n' + FLAT.split('\n').slice(1).join('\n')),
+      theme,
+    );
     expect(countPaths(r)).toBe(3);
-    const widths = ['item-0', 'item-1', 'item-2'].map(id => r.anchors[id]!.bounds.width);
+    const widths = ['item-0', 'item-1', 'item-2'].map((id) => r.anchors[id]!.bounds.width);
     expect(widths[1]!).toBeGreaterThan(widths[0]!);
     expect(widths[2]!).toBeGreaterThan(widths[1]!);
   });
@@ -246,8 +293,11 @@ describe('list Phase C styles', () => {
     // Cells are below their header.
     expect(r.anchors['item-0-0']!.bounds.y).toBeGreaterThan(pros.bounds.y);
     // subtree reveal groups a whole column (header + its cells) per step.
-    const sub = layoutList(parseList(src.replace('style columns', 'style columns\n  reveal subtree')), theme);
-    expect(sub.reveal!.steps.map(s => s.enter)).toEqual([
+    const sub = layoutList(
+      parseList(src.replace('style columns', 'style columns\n  reveal subtree')),
+      theme,
+    );
+    expect(sub.reveal!.steps.map((s) => s.enter)).toEqual([
       ['item-0', 'item-0-0', 'item-0-1'],
       ['item-1', 'item-1-0'],
     ]);
@@ -259,7 +309,8 @@ describe('list Phase C styles', () => {
 describe('list Phase D styles', () => {
   const theme = resolveTheme({}, defaultTheme);
   const FLAT = 'list\n  Alpha\n  Beta\n  Gamma\n  Delta\n';
-  const withStyle = (s: string) => 'list\n  style ' + s + '\n' + FLAT.split('\n').slice(1).join('\n');
+  const withStyle = (s: string) =>
+    'list\n  style ' + s + '\n' + FLAT.split('\n').slice(1).join('\n');
 
   const countType = (r: ReturnType<typeof layoutList>, t: string): number =>
     (JSON.stringify(r.scene.elements).match(new RegExp(`"type":"${t}"`, 'g')) ?? []).length;
@@ -271,8 +322,8 @@ describe('list Phase D styles', () => {
     expect(countType(r, 'rect')).toBe(4);
     expect(countType(r, 'path')).toBe(8);
     // Ring: nodes are not colinear (distinct x AND y spread).
-    const xs = Object.values(r.anchors).map(a => a.bounds.x);
-    const ys = Object.values(r.anchors).map(a => a.bounds.y);
+    const xs = Object.values(r.anchors).map((a) => a.bounds.x);
+    const ys = Object.values(r.anchors).map((a) => a.bounds.y);
     expect(new Set(xs).size).toBeGreaterThan(1);
     expect(new Set(ys).size).toBeGreaterThan(1);
   });
@@ -293,7 +344,9 @@ describe('list Phase D styles', () => {
   it('funnel narrows from a wide top to a narrow base', () => {
     const r = layoutList(parseList(withStyle('funnel')), theme);
     expect(countType(r, 'path')).toBe(4);
-    const widths = ['item-0', 'item-1', 'item-2', 'item-3'].map(id => r.anchors[id]!.bounds.width);
+    const widths = ['item-0', 'item-1', 'item-2', 'item-3'].map(
+      (id) => r.anchors[id]!.bounds.width,
+    );
     expect(widths[0]!).toBeGreaterThan(widths[3]!);
     expect(widths[1]!).toBeGreaterThan(widths[2]!);
   });
@@ -314,7 +367,7 @@ describe('list Phase D styles', () => {
     const svg = JSON.stringify(r.scene.elements);
     expect(svg).toMatch(/"opacity":0\.5/);
     // Circles form a cluster, not a single row.
-    const ys = ['item-0', 'item-1', 'item-2', 'item-3'].map(id => r.anchors[id]!.bounds.y);
+    const ys = ['item-0', 'item-1', 'item-2', 'item-3'].map((id) => r.anchors[id]!.bounds.y);
     expect(new Set(ys).size).toBeGreaterThan(1);
   });
 
@@ -334,8 +387,10 @@ describe('list reveal modes', () => {
   const stepsOf = (src: string) => layoutList(parseList(src), theme).reveal!.steps;
 
   it('subtree mode reveals each top-level item with all its descendants', () => {
-    const steps = stepsOf(`list\n  reveal subtree\n${'Frontend\n  React\n  CDN\nBackend\n  API\n'}`);
-    expect(steps.map(s => s.enter)).toEqual([
+    const steps = stepsOf(
+      `list\n  reveal subtree\n${'Frontend\n  React\n  CDN\nBackend\n  API\n'}`,
+    );
+    expect(steps.map((s) => s.enter)).toEqual([
       ['item-0', 'item-0-0', 'item-0-1'],
       ['item-1', 'item-1-0'],
     ]);
@@ -344,10 +399,10 @@ describe('list reveal modes', () => {
   it('layer mode reveals one step per depth level (BFS)', () => {
     const layered = 'list\n  reveal layer\n' + NESTED.split('\n').slice(1).join('\n');
     const steps = layoutList(parseList(layered), theme).reveal!.steps;
-    expect(steps.map(s => s.enter)).toEqual([
-      ['item-0', 'item-1', 'item-2'],                   // depth 0: Frontend, Backend, Data
+    expect(steps.map((s) => s.enter)).toEqual([
+      ['item-0', 'item-1', 'item-2'], // depth 0: Frontend, Backend, Data
       ['item-0-0', 'item-0-1', 'item-1-0', 'item-1-1'], // depth 1
-      ['item-1-0-0'],                                   // depth 2: Auth
+      ['item-1-0-0'], // depth 2: Auth
     ]);
   });
 
@@ -372,7 +427,7 @@ describe('list reveal modes', () => {
 
   it('sequence mode chunks items N-per-step with `group N`', () => {
     const steps = stepsOf('list\n  group 2\n  A\n  B\n  C\n  D\n  E\n');
-    expect(steps.map(s => s.enter)).toEqual([
+    expect(steps.map((s) => s.enter)).toEqual([
       ['item-0', 'item-1'],
       ['item-2', 'item-3'],
       ['item-4'],
@@ -381,33 +436,30 @@ describe('list reveal modes', () => {
 
   it('merges a `+`-prefixed item into the previous step', () => {
     const doc = parseList('list\n  Problem\n  + and its cost\n  Approach\n');
-    expect(doc.items.map(i => i.text)).toEqual(['Problem', 'and its cost', 'Approach']);
-    expect(doc.items.map(i => i.join)).toEqual([false, true, false]);
+    expect(doc.items.map((i) => i.text)).toEqual(['Problem', 'and its cost', 'Approach']);
+    expect(doc.items.map((i) => i.join)).toEqual([false, true, false]);
     const steps = layoutList(doc, theme).reveal!.steps;
-    expect(steps.map(s => s.enter)).toEqual([
-      ['item-0', 'item-1'],
-      ['item-2'],
-    ]);
+    expect(steps.map((s) => s.enter)).toEqual([['item-0', 'item-1'], ['item-2']]);
   });
 
   it('defaults every step to the fade effect', () => {
-    stepsOf(SOURCE).forEach(s => expect(s.effect).toBe('fade'));
+    stepsOf(SOURCE).forEach((s) => expect(s.effect).toBe('fade'));
   });
 
   it('applies a global `effect` directive to all steps', () => {
     const steps = stepsOf('list\n  effect slide\n  One\n  Two\n');
-    expect(steps.map(s => s.effect)).toEqual(['slide', 'slide']);
+    expect(steps.map((s) => s.effect)).toEqual(['slide', 'slide']);
   });
 
   it('honors a per-item `@effect` override on the step it starts', () => {
     const steps = stepsOf('list\n  effect fade\n  One\n  Two @grow\n');
-    expect(steps.map(s => s.effect)).toEqual(['fade', 'grow']);
+    expect(steps.map((s) => s.effect)).toEqual(['fade', 'grow']);
   });
 
   it('ignores unknown effect tokens (kept as literal text)', () => {
     const doc = parseList('list\n  One @bogus\n');
-    expect(doc.items.map(i => i.text)).toEqual(['One @bogus']);
-    expect(doc.items.map(i => i.effect)).toEqual([undefined]);
+    expect(doc.items.map((i) => i.text)).toEqual(['One @bogus']);
+    expect(doc.items.map((i) => i.effect)).toEqual([undefined]);
   });
 });
 
@@ -438,7 +490,9 @@ describe('list render paths', () => {
     if (!result.ok || !result.value.reveal) return;
     const withManifest = embedRevealManifest(result.value.svg, result.value.reveal);
     expect(withManifest).toContain('<script type="application/json" id="triton-reveal">');
-    const match = withManifest.match(/<script type="application\/json" id="triton-reveal">([\s\S]*?)<\/script>/);
+    const match = withManifest.match(
+      /<script type="application\/json" id="triton-reveal">([\s\S]*?)<\/script>/,
+    );
     expect(match).not.toBeNull();
     const parsed = JSON.parse(match![1]);
     expect(parsed.steps).toHaveLength(4);
@@ -573,34 +627,46 @@ describe('list process flow layout', () => {
     expect(countType(r, 'path')).toBe(4);
     expect(Object.keys(r.anchors).sort()).toEqual(['item-0', 'item-1', 'item-2']);
     // Single row: all same y.
-    const ys = Object.values(r.anchors).map(a => a.bounds.y);
+    const ys = Object.values(r.anchors).map((a) => a.bounds.y);
     expect(new Set(ys).size).toBe(1);
     // L→R order.
-    const xs = ['item-0', 'item-1', 'item-2'].map(id => r.anchors[id]!.bounds.x);
+    const xs = ['item-0', 'item-1', 'item-2'].map((id) => r.anchors[id]!.bounds.x);
     expect(xs[1]!).toBeGreaterThan(xs[0]!);
     expect(xs[2]!).toBeGreaterThan(xs[1]!);
   });
 
   it('ttb stacks boxes in a single column with downward arrows', () => {
-    const r = layoutList(parseList('list\n  style process\n  flow ttb\n  One\n  Two\n  Three\n'), theme);
+    const r = layoutList(
+      parseList('list\n  style process\n  flow ttb\n  One\n  Two\n  Three\n'),
+      theme,
+    );
     expect(countType(r, 'rect')).toBe(3);
     // 2 connectors (line + arrowhead each) = 4 paths.
     expect(countType(r, 'path')).toBe(4);
     // All same x (single column).
-    const xs = Object.values(r.anchors).map(a => a.bounds.x);
+    const xs = Object.values(r.anchors).map((a) => a.bounds.x);
     expect(new Set(xs).size).toBe(1);
     // Items advance downward.
-    const ys = ['item-0', 'item-1', 'item-2'].map(id => r.anchors[id]!.bounds.y);
+    const ys = ['item-0', 'item-1', 'item-2'].map((id) => r.anchors[id]!.bounds.y);
     expect(ys[1]!).toBeGreaterThan(ys[0]!);
     expect(ys[2]!).toBeGreaterThan(ys[1]!);
     // Uniform width: all boxes same width and height.
-    const widths = Object.values(r.anchors).map(a => a.bounds.width);
+    const widths = Object.values(r.anchors).map((a) => a.bounds.width);
     expect(new Set(widths).size).toBe(1);
   });
 
   it('snake with wrap=3 places items in a boustrophedon grid', () => {
-    const r = layoutList(parseList('list\n  style process\n  flow snake\n  wrap 3\n  A\n  B\n  C\n  D\n  E\n'), theme);
-    expect(Object.keys(r.anchors).sort()).toEqual(['item-0', 'item-1', 'item-2', 'item-3', 'item-4']);
+    const r = layoutList(
+      parseList('list\n  style process\n  flow snake\n  wrap 3\n  A\n  B\n  C\n  D\n  E\n'),
+      theme,
+    );
+    expect(Object.keys(r.anchors).sort()).toEqual([
+      'item-0',
+      'item-1',
+      'item-2',
+      'item-3',
+      'item-4',
+    ]);
     // Row 0 (L→R): items 0,1,2 share same y; x increases.
     const b = (id: string) => r.anchors[id]!.bounds;
     expect(b('item-0').y).toBe(b('item-1').y);
@@ -614,14 +680,17 @@ describe('list process flow layout', () => {
     // item-2 and item-3 are in the same column (rightmost, col 2).
     expect(b('item-2').x).toBe(b('item-3').x);
     // All boxes same width (uniform grid).
-    const widths = Object.values(r.anchors).map(a => a.bounds.width);
+    const widths = Object.values(r.anchors).map((a) => a.bounds.width);
     expect(new Set(widths).size).toBe(1);
     // No NaN in output.
     expect(JSON.stringify(r.scene)).not.toMatch(/NaN/);
   });
 
   it('snake-v with wrap=3 places items in column-major boustrophedon', () => {
-    const r = layoutList(parseList('list\n  style process\n  flow snake-v\n  wrap 3\n  A\n  B\n  C\n  D\n  E\n'), theme);
+    const r = layoutList(
+      parseList('list\n  style process\n  flow snake-v\n  wrap 3\n  A\n  B\n  C\n  D\n  E\n'),
+      theme,
+    );
     const b = (id: string) => r.anchors[id]!.bounds;
     // Col 0 (T→B): items 0,1,2 share same x; y increases.
     expect(b('item-0').x).toBe(b('item-1').x);
@@ -639,7 +708,10 @@ describe('list process flow layout', () => {
 
   it('snake uses ceil(sqrt(n)) as default wrap when not specified', () => {
     // 5 items → wrap = ceil(sqrt(5)) = 3
-    const r = layoutList(parseList('list\n  style process\n  flow snake\n  A\n  B\n  C\n  D\n  E\n'), theme);
+    const r = layoutList(
+      parseList('list\n  style process\n  flow snake\n  A\n  B\n  C\n  D\n  E\n'),
+      theme,
+    );
     const b = (id: string) => r.anchors[id]!.bounds;
     // With wrap=3: items 0,1,2 on row 0; items 3,4 on row 1 (reversed).
     expect(b('item-0').y).toBe(b('item-1').y);
@@ -722,7 +794,9 @@ describe('list process turn=direct layout', () => {
   it('snake turn=direct: turn connector is a straight vertical (constant x)', () => {
     // 4 items, wrap=2 → two rows; item-1 (row 0, col 1) turns to item-2 (row 1, col 1).
     const r = layoutList(
-      parseList('list\n  style process\n  flow snake\n  wrap 2\n  turn direct\n  A\n  B\n  C\n  D\n'),
+      parseList(
+        'list\n  style process\n  flow snake\n  wrap 2\n  turn direct\n  A\n  B\n  C\n  D\n',
+      ),
       theme,
     );
     // Get all path ds from item-2's group (the turn target).
@@ -731,7 +805,7 @@ describe('list process turn=direct layout', () => {
     ) as Record<string, unknown> | undefined;
     expect(item2Group).toBeDefined();
     const children = item2Group!['children'] as Array<Record<string, unknown>>;
-    const connectorPaths = children.filter(c => c['type'] === 'path').slice(0, 2); // line + arrowhead
+    const connectorPaths = children.filter((c) => c['type'] === 'path').slice(0, 2); // line + arrowhead
     // Both should be defined.
     expect(connectorPaths).toHaveLength(2);
     // The line path (first path) should have a constant x — i.e., it is vertical.
@@ -746,25 +820,28 @@ describe('list process turn=direct layout', () => {
 
   it('snake turn=direct: arrowhead points down (y tip is lowest point)', () => {
     const r = layoutList(
-      parseList('list\n  style process\n  flow snake\n  wrap 2\n  turn direct\n  A\n  B\n  C\n  D\n'),
+      parseList(
+        'list\n  style process\n  flow snake\n  wrap 2\n  turn direct\n  A\n  B\n  C\n  D\n',
+      ),
       theme,
     );
     const item2Group = r.scene.elements.find(
       (el) => (el as Record<string, unknown>)['id'] === 'item-2',
     ) as Record<string, unknown> | undefined;
     const children = item2Group!['children'] as Array<Record<string, unknown>>;
-    const arrowPath = children.filter(c => c['type'] === 'path')[1]!['d'] as string;
+    const arrowPath = children.filter((c) => c['type'] === 'path')[1]!['d'] as string;
     // A downward arrowhead: M (tx-ah) (ty-ah) L tx ty L (tx+ah) (ty-ah) Z
     // The middle point (tip) should have the largest y value.
-    const coords = [...arrowPath.matchAll(/([0-9.]+)\s+([0-9.]+)/g)].map(m => ({
-      x: parseFloat(m[1]!), y: parseFloat(m[2]!),
+    const coords = [...arrowPath.matchAll(/([0-9.]+)\s+([0-9.]+)/g)].map((m) => ({
+      x: parseFloat(m[1]!),
+      y: parseFloat(m[2]!),
     }));
-    const maxY = Math.max(...coords.map(c => c.y));
+    const maxY = Math.max(...coords.map((c) => c.y));
     // The tip is the point with max y (lowest on screen).
-    const tipPoint = coords.find(c => c.y === maxY)!;
+    const tipPoint = coords.find((c) => c.y === maxY)!;
     // The other two base points should have smaller y.
-    const others = coords.filter(c => c !== tipPoint);
-    expect(others.every(o => o.y < maxY)).toBe(true);
+    const others = coords.filter((c) => c !== tipPoint);
+    expect(others.every((o) => o.y < maxY)).toBe(true);
   });
 
   it('snake turn=corridor: turn connector has varying x (jogs sideways)', () => {
@@ -777,7 +854,7 @@ describe('list process turn=direct layout', () => {
       (el) => (el as Record<string, unknown>)['id'] === 'item-2',
     ) as Record<string, unknown> | undefined;
     const children = item2Group!['children'] as Array<Record<string, unknown>>;
-    const linePath = children.filter(c => c['type'] === 'path')[0]!['d'] as string;
+    const linePath = children.filter((c) => c['type'] === 'path')[0]!['d'] as string;
     // The corridor path is "M x0 y0 L x1 y0 L x1 y1 L x2 y1" — x values differ.
     const nums = linePath.match(/[\d.]+/g)?.map(Number) ?? [];
     // More than 4 numbers = multi-segment path (corridor).
@@ -789,7 +866,9 @@ describe('list process turn=direct layout', () => {
     // col 0 (T→B): items 0,1; col 1 (B→T): items 2,3 (item-2 at row 1, item-3 at row 0)
     // The turn is from item-1 (row 1, col 0) to item-2 (row 1, col 1).
     const r = layoutList(
-      parseList('list\n  style process\n  flow snake-v\n  wrap 2\n  turn direct\n  A\n  B\n  C\n  D\n'),
+      parseList(
+        'list\n  style process\n  flow snake-v\n  wrap 2\n  turn direct\n  A\n  B\n  C\n  D\n',
+      ),
       theme,
     );
     const item2Group = r.scene.elements.find(
@@ -797,7 +876,7 @@ describe('list process turn=direct layout', () => {
     ) as Record<string, unknown> | undefined;
     expect(item2Group).toBeDefined();
     const children = item2Group!['children'] as Array<Record<string, unknown>>;
-    const linePath = children.filter(c => c['type'] === 'path')[0]!['d'] as string;
+    const linePath = children.filter((c) => c['type'] === 'path')[0]!['d'] as string;
     const nums = linePath.match(/[\d.]+/g)?.map(Number) ?? [];
     // M x0 y0 L x1 y1 → y0 === y1 for horizontal.
     expect(nums).toHaveLength(4);
@@ -811,5 +890,166 @@ describe('list process turn=direct layout', () => {
       const r = layoutList(parseList(src), theme);
       expect(JSON.stringify(r.scene)).not.toMatch(/NaN/);
     }
+  });
+});
+
+// ─── Multi-line and Two-Tier Items (Title :: Subtitle, <br>, \n, wrap) ──────
+
+describe('list multi-line items and title::subtitle support', () => {
+  const theme = resolveTheme({}, defaultTheme);
+
+  it('renders Title :: Subtitle with bold title and muted subtitle across styles', () => {
+    const src = `list
+  style box
+  Auth Service :: OAuth2 and OIDC Provider
+  Ingestion :: High throughput Kafka streams
+`;
+    const doc = parseList(src);
+    const r = layoutList(doc, theme);
+    const group0 = r.scene.elements.find((e) => (e as any).id === 'item-0') as any;
+    expect(group0).toBeDefined();
+    const texts = group0.children.filter((c: any) => c.type === 'text');
+    expect(texts).toHaveLength(2);
+    expect(texts[0].content).toBe('Auth Service');
+    expect(texts[0].fontWeight).toBe('bold');
+    expect(texts[1].content).toBe('OAuth2 and OIDC Provider');
+    expect(texts[1].fontSize).toBeLessThan(texts[0].fontSize);
+
+    // Box height expands to fit title + subtitle
+    expect(r.anchors['item-0']!.bounds.height).toBeGreaterThan(40);
+  });
+
+  it('handles explicit <br/> and \\n line breaks within items', () => {
+    const src = `list
+  style block
+  Line One<br/>Line Two<br />Line Three
+  Step 1\\nStep 2
+`;
+    const doc = parseList(src);
+    const r = layoutList(doc, theme);
+    const group0 = r.scene.elements.find((e) => (e as any).id === 'item-0') as any;
+    const texts0 = group0.children.filter((c: any) => c.type === 'text');
+    expect(texts0).toHaveLength(3);
+    expect(texts0.map((t: any) => t.content)).toEqual(['Line One', 'Line Two', 'Line Three']);
+
+    const group1 = r.scene.elements.find((e) => (e as any).id === 'item-1') as any;
+    const texts1 = group1.children.filter((c: any) => c.type === 'text');
+    expect(texts1).toHaveLength(2);
+    expect(texts1.map((t: any) => t.content)).toEqual(['Step 1', 'Step 2']);
+  });
+
+  it('offsets subsequent items vertically without overlap in bullets and block styles', () => {
+    const src = `list
+  style bullets
+  Short Item
+  Multi-line Item<br/>With a second line<br/>And a third line
+  Follow-up Item
+`;
+    const doc = parseList(src);
+    const r = layoutList(doc, theme);
+    const b0 = r.anchors['item-0']!.bounds;
+    const b1 = r.anchors['item-1']!.bounds;
+    const b2 = r.anchors['item-2']!.bounds;
+
+    expect(b1.height).toBeGreaterThan(b0.height);
+    // b1 must sit below b0
+    expect(b1.y).toBeGreaterThanOrEqual(b0.y + b0.height);
+    // b2 must sit cleanly below b1 (no collision)
+    expect(b2.y).toBeGreaterThanOrEqual(b1.y + b1.height);
+  });
+
+  it('auto-wraps excessively long text lines exceeding max width threshold', () => {
+    const src = `list
+  style process
+  Short
+  This is an exceptionally long process description that spans multiple clauses and should automatically wrap onto multiple lines
+`;
+    const doc = parseList(src);
+    const r = layoutList(doc, theme);
+    const group1 = r.scene.elements.find((e) => (e as any).id === 'item-1') as any;
+    const texts1 = group1.children.filter((c: any) => c.type === 'text');
+    expect(texts1.length).toBeGreaterThan(1);
+    expect(r.anchors['item-1']!.bounds.height).toBeGreaterThan(45);
+  });
+
+  it('supports trailing backslash for multi-line item continuation across lines', () => {
+    const src = `list
+  style bullets
+  First part of item \\
+  second part of item
+  Next item
+`;
+    const doc = parseList(src);
+    expect(doc.items).toHaveLength(2);
+    expect(doc.items[0]!.text).toBe('First part of item\nsecond part of item');
+
+    const r = layoutList(doc, theme);
+    const g0 = r.scene.elements.find((e) => (e as any).id === 'item-0') as any;
+    const texts = g0.children.filter((c: any) => c.type === 'text');
+    expect(texts).toHaveLength(2);
+    expect(texts[0].content).toBe('First part of item');
+    expect(texts[1].content).toBe('second part of item');
+  });
+
+  it('supports indented pipe (|) continuation lines', () => {
+    const src = `list
+  style block
+  Primary heading
+    | secondary explanation
+    | additional third line
+  Second block
+`;
+    const doc = parseList(src);
+    expect(doc.items).toHaveLength(2);
+    const r = layoutList(doc, theme);
+    const g0 = r.scene.elements.find((e) => (e as any).id === 'item-0') as any;
+    const texts = g0.children.filter((c: any) => c.type === 'text');
+    expect(texts).toHaveLength(3);
+    expect(texts[0].content).toBe('Primary heading');
+    expect(texts[1].content).toBe('secondary explanation');
+    expect(texts[2].content).toBe('additional third line');
+  });
+
+  it('supports combining <br> and \\n in the same item and across physical lines', () => {
+    const src = `list
+  style bullets
+  Line 1<br>Line 2\\nLine 3
+  Line 4<br>
+  Line 5
+`;
+    const doc = parseList(src);
+    expect(doc.items).toHaveLength(2);
+    const r = layoutList(doc, theme);
+
+    const g0 = r.scene.elements.find((e) => (e as any).id === 'item-0') as any;
+    const texts0 = g0.children.filter((c: any) => c.type === 'text');
+    expect(texts0).toHaveLength(3);
+    expect(texts0.map((t: any) => t.content)).toEqual(['Line 1', 'Line 2', 'Line 3']);
+
+    const g1 = r.scene.elements.find((e) => (e as any).id === 'item-1') as any;
+    const texts1 = g1.children.filter((c: any) => c.type === 'text');
+    expect(texts1).toHaveLength(2);
+    expect(texts1.map((t: any) => t.content)).toEqual(['Line 4', 'Line 5']);
+  });
+
+  it('supports <br> and \\n within Title :: Subtitle items', () => {
+    const src = `list
+  style box
+  Title 1<br>Title 2 :: Subtitle 1<br>Subtitle 2\\nSubtitle 3
+`;
+    const doc = parseList(src);
+    expect(doc.items).toHaveLength(1);
+    const r = layoutList(doc, theme);
+
+    const g0 = r.scene.elements.find((e) => (e as any).id === 'item-0') as any;
+    const texts = g0.children.filter((c: any) => c.type === 'text');
+    expect(texts).toHaveLength(5);
+    expect(texts[0].content).toBe('Title 1');
+    expect(texts[0].fontWeight).toBe('bold');
+    expect(texts[1].content).toBe('Title 2');
+    expect(texts[1].fontWeight).toBe('bold');
+    expect(texts[2].content).toBe('Subtitle 1');
+    expect(texts[3].content).toBe('Subtitle 2');
+    expect(texts[4].content).toBe('Subtitle 3');
   });
 });

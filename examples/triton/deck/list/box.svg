@@ -4,26 +4,26 @@
   <g id="item-0">
     <rect x="24" y="58" width="200.32" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
     <rect x="24" y="58" width="4.9" height="30.8" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="2" />
-    <text x="40.099999999999994" y="78.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Onboard the account team</text>
+    <text x="40.1" y="78.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Onboard the account team</text>
   </g>
   <g id="item-1">
     <rect x="24" y="97.2" width="200.32" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
     <rect x="24" y="97.2" width="4.9" height="30.8" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="2" />
-    <text x="40.099999999999994" y="117.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Map stakeholder goals</text>
+    <text x="40.1" y="117.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Map stakeholder goals</text>
   </g>
   <g id="item-2">
     <rect x="24" y="136.4" width="200.32" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
     <rect x="24" y="136.4" width="4.9" height="30.8" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="2" />
-    <text x="40.099999999999994" y="156.56" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Deliver first-value workshop</text>
+    <text x="40.1" y="156.56" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Deliver first-value workshop</text>
   </g>
   <g id="item-3">
     <rect x="24" y="175.60000000000002" width="200.32" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
     <rect x="24" y="175.60000000000002" width="4.9" height="30.8" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="2" />
-    <text x="40.099999999999994" y="195.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Review adoption metrics</text>
+    <text x="40.1" y="195.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Review adoption metrics</text>
   </g>
   <g id="item-4">
     <rect x="24" y="214.8" width="200.32" height="30.8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1" rx="4" />
     <rect x="24" y="214.8" width="4.9" height="30.8" fill="#4A90D9" stroke="#4A90D9" stroke-width="0" rx="2" />
-    <text x="40.099999999999994" y="234.96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Plan executive check-in</text>
+    <text x="40.1" y="234.96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start">Plan executive check-in</text>
   </g>
 </svg>
