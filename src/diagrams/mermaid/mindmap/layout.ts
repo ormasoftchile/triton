@@ -12,10 +12,25 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { categoricalHue } from '../../../palette/categorical.js';
-import { measureText } from '../../../text/metrics.js';
+import {
+  measureFormattedText,
+  renderFormattedText,
+  type FormattedTextLines,
+} from '../../../text/formatted.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 
-interface Placed { label: string; depth: number; x: number; y: number; w: number; hue: string; icon?: string; children: Placed[]; }
+interface Placed {
+  label: string;
+  depth: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  hue: string;
+  icon?: string;
+  info: FormattedTextLines;
+  children: Placed[];
+}
 
 export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
@@ -23,26 +38,58 @@ export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): Layout
   const margin = spacing.diagramMargin;
 
   if (!ir.root) {
-    return { scene: { viewBox: { x: 0, y: 0, width: 100, height: 60 }, background: palette.background, elements: [] }, anchors: {} };
+    return {
+      scene: {
+        viewBox: { x: 0, y: 0, width: 100, height: 60 },
+        background: palette.background,
+        elements: [],
+      },
+      anchors: {},
+    };
   }
 
   const font = typography.baseFontSize;
   const smallFont = typography.smallFontSize;
-  const rowGap   = 30;
   const levelGap = 70;
-  const titleH   = ir.metadata.title ? typography.titleFontSize + 14 : 0;
+  const titleH = ir.metadata.title ? typography.titleFontSize + 14 : 0;
 
-  const fontFor = (d: number): number => (d === 0 ? typography.titleFontSize : d === 1 ? font : smallFont);
-  const widthFor = (label: string, d: number): number => measureText(label, fontFor(d)) .width + (d === 0 ? 40 : 28);
+  const fontFor = (d: number): number =>
+    d === 0 ? typography.titleFontSize : d === 1 ? font : smallFont;
+  const smallFontFor = (d: number): number => (d === 0 ? font : smallFont);
 
   // Assign x by depth, y by post-order leaf sweep.
   let leafCursor = margin + titleH + 20;
   const place = (node: MindNode, depth: number, hue: string): Placed => {
-    const kids = node.children.map((c, i) => place(c, depth + 1, depth === 0 ? categoricalHue(i) : hue));
+    const f = fontFor(depth);
+    const sf = smallFontFor(depth);
+    const info = measureFormattedText(node.label, f, sf);
+    const padX = depth === 0 ? 40 : 28;
+    const w = Math.max(rhu(info.maxLineWidth + padX), depth === 0 ? 60 : 40);
+    const baseH = depth === 0 ? 44 : depth === 1 ? 34 : 26;
+    const h = info.lineCount > 1 ? rhu(info.lineCount * (f * 1.25) + 14) : baseH;
+
+    const kids = node.children.map((c, i) =>
+      place(c, depth + 1, depth === 0 ? categoricalHue(i) : hue),
+    );
     let y: number;
-    if (kids.length === 0) { y = leafCursor; leafCursor += rowGap; }
-    else { y = (kids[0]!.y + kids[kids.length - 1]!.y) / 2; }
-    return { label: node.label, depth, x: 0, y, w: widthFor(node.label, depth), hue, ...(node.icon ? { icon: node.icon } : {}), children: kids };
+    if (kids.length === 0) {
+      y = leafCursor + h / 2;
+      leafCursor += Math.max(30, h + 10);
+    } else {
+      y = (kids[0]!.y + kids[kids.length - 1]!.y) / 2;
+    }
+    return {
+      label: node.label,
+      depth,
+      x: 0,
+      y,
+      w,
+      h,
+      hue,
+      info,
+      ...(node.icon ? { icon: node.icon } : {}),
+      children: kids,
+    };
   };
   const root = place(ir.root, 0, palette.primary);
 
@@ -52,18 +99,41 @@ export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): Layout
   const maxW: number[] = [];
   for (const n of all) maxW[n.depth] = Math.max(maxW[n.depth] ?? 0, n.w);
   const colStart: number[] = [margin];
-  for (let d = 1; d <= depthMax; d++) colStart[d] = colStart[d - 1]! + (maxW[d - 1] ?? 0) + levelGap;
+  for (let d = 1; d <= depthMax; d++)
+    colStart[d] = colStart[d - 1]! + (maxW[d - 1] ?? 0) + levelGap;
   for (const n of all) n.x = colStart[n.depth]!;
 
   const elements: SceneElement[] = [];
-  if (ir.metadata.title) elements.push(p.text(ir.metadata.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
+  if (ir.metadata.title) {
+    elements.push(
+      p.text(
+        ir.metadata.title,
+        margin,
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        {
+          weight: 'bold',
+        },
+      ),
+    );
+  }
 
   // ── Connectors (under nodes) ───────────────────────────────────────────────
   const drawEdges = (n: Placed): void => {
     for (const c of n.children) {
-      const x1 = n.x + n.w, y1 = n.y, x2 = c.x, y2 = c.y;
+      const x1 = n.x + n.w,
+        y1 = n.y,
+        x2 = c.x,
+        y2 = c.y;
       const mx = (x1 + x2) / 2;
-      elements.push(p.path(`M ${rhu(x1)} ${rhu(y1)} C ${rhu(mx)} ${rhu(y1)}, ${rhu(mx)} ${rhu(y2)}, ${rhu(x2)} ${rhu(y2)}`, c.hue, 2));
+      elements.push(
+        p.path(
+          `M ${rhu(x1)} ${rhu(y1)} C ${rhu(mx)} ${rhu(y1)}, ${rhu(mx)} ${rhu(y2)}, ${rhu(x2)} ${rhu(y2)}`,
+          c.hue,
+          2,
+        ),
+      );
       drawEdges(c);
     }
   };
@@ -71,34 +141,94 @@ export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): Layout
 
   // ── Nodes ──────────────────────────────────────────────────────────────────
   const drawNode = (n: Placed): void => {
-    const h = (n.depth === 0 ? 44 : n.depth === 1 ? 34 : 26);
+    const h = n.h;
     const cy = n.y;
+    const f = fontFor(n.depth);
+    const sf = smallFontFor(n.depth);
+    const x = rhu(n.x);
+    const y = rhu(cy - h / 2);
+
     if (n.depth === 0) {
-      elements.push(p.rect({ x: rhu(n.x), y: rhu(cy - h / 2), width: rhu(n.w), height: h }, palette.primary, palette.primary, 0, { rx: h / 2 }));
-      elements.push(p.text(n.label, rhuInt(n.x + n.w / 2), rhu(cy + fontFor(0) * 0.35), fontFor(0), '#FFFFFF', { weight: 'bold', anchor: 'middle' }));
+      elements.push(
+        p.rect({ x, y, width: rhu(n.w), height: h }, palette.primary, palette.primary, 0, {
+          rx: Math.min(h / 2, 22),
+        }),
+      );
+      elements.push(
+        ...renderFormattedText(
+          p,
+          n.info,
+          x,
+          y,
+          n.w,
+          h,
+          f,
+          sf,
+          '#FFFFFF',
+          'rgba(255, 255, 255, 0.8)',
+          {
+            align: 'middle',
+            defaultBold: true,
+          },
+        ),
+      );
     } else if (n.depth === 1) {
-      elements.push(p.rect({ x: rhu(n.x), y: rhu(cy - h / 2), width: rhu(n.w), height: h }, n.hue, n.hue, 0, { rx: 8 }));
-      elements.push(p.text(n.label, rhuInt(n.x + n.w / 2), rhu(cy + font * 0.35), font, '#FFFFFF', { weight: 'bold', anchor: 'middle' }));
+      elements.push(p.rect({ x, y, width: rhu(n.w), height: h }, n.hue, n.hue, 0, { rx: 8 }));
+      elements.push(
+        ...renderFormattedText(
+          p,
+          n.info,
+          x,
+          y,
+          n.w,
+          h,
+          f,
+          sf,
+          '#FFFFFF',
+          'rgba(255, 255, 255, 0.8)',
+          {
+            align: 'middle',
+            defaultBold: true,
+          },
+        ),
+      );
     } else {
-      elements.push(p.rect({ x: rhu(n.x), y: rhu(cy - h / 2), width: rhu(n.w), height: h }, palette.surface, n.hue, 1.4, { rx: 6 }));
-      elements.push(p.text(n.label, rhuInt(n.x + n.w / 2), rhu(cy + smallFont * 0.35), smallFont, palette.text, { anchor: 'middle' }));
+      elements.push(
+        p.rect({ x, y, width: rhu(n.w), height: h }, palette.surface, n.hue, 1.4, { rx: 6 }),
+      );
+      elements.push(
+        ...renderFormattedText(p, n.info, x, y, n.w, h, f, sf, palette.text, palette.textMuted, {
+          align: 'middle',
+        }),
+      );
     }
-    if (n.icon) elements.push(p.circle({ x: rhu(n.x - 7), y: rhu(cy) }, 4, n.hue, palette.background, 1.5));
+    if (n.icon)
+      elements.push(p.circle({ x: rhu(n.x - 7), y: rhu(cy) }, 4, n.hue, palette.background, 1.5));
     for (const c of n.children) drawNode(c);
   };
   drawNode(root);
 
-  const totalW = rhuInt(Math.max(...all.map(n => n.x + n.w)) + margin);
+  const totalW = rhuInt(Math.max(...all.map((n) => n.x + n.w)) + margin);
   const totalH = rhuInt(leafCursor + margin);
 
-  const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: totalW, height: totalH },
-    background: palette.background,
-    elements,
-  }, ir.overlays, theme);
+  const scene: Scene = applyOverlays(
+    {
+      viewBox: { x: 0, y: 0, width: totalW, height: totalH },
+      background: palette.background,
+      elements,
+    },
+    ir.overlays,
+    theme,
+  );
 
   return { scene, anchors: {} };
 }
 
-function flat(n: Placed, acc: Placed[] = []): Placed[] { acc.push(n); for (const c of n.children) flat(c, acc); return acc; }
-function maxDepth(n: Placed): number { return n.children.length ? Math.max(...n.children.map(maxDepth)) : n.depth; }
+function flat(n: Placed, acc: Placed[] = []): Placed[] {
+  acc.push(n);
+  for (const c of n.children) flat(c, acc);
+  return acc;
+}
+function maxDepth(n: Placed): number {
+  return n.children.length ? Math.max(...n.children.map(maxDepth)) : n.depth;
+}

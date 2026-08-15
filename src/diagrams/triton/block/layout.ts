@@ -11,6 +11,11 @@ import type { Scene, SceneElement, LayoutResult, Rect } from '../../../contracts
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
+import {
+  measureFormattedText,
+  renderFormattedText,
+  type FormattedTextLines,
+} from '../../../text/formatted.js';
 import { categoricalHue } from '../../../palette/categorical.js';
 import { borderPoint } from '../../../graph/connect.js';
 import { rhu, rhuInt } from '../../../util/round.js';
@@ -22,9 +27,12 @@ const ARROW_START_ID = 'block-arrow-start';
 
 function edgeDash(style: string | undefined): string | undefined {
   switch (style) {
-    case 'dotted': return '6 3';
-    case 'dashed': return '8 4';
-    default: return undefined;
+    case 'dotted':
+      return '6 3';
+    case 'dashed':
+      return '8 4';
+    default:
+      return undefined;
   }
 }
 
@@ -36,33 +44,81 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
   const { palette, typography, spacing } = theme;
   const p = pen(theme);
   const margin = spacing.diagramMargin;
+  const font = typography.baseFontSize;
+  const smallFont = typography.smallFontSize;
 
-  const cols   = Math.max(1, ir.columns);
-  const cellW  = 150;
-  const gap    = 40;
-  const rowH   = 56;
+  const cols = Math.max(1, ir.columns);
+  const cellW = 150;
+  const gap = 40;
+  const defaultRowH = 56;
   const titleH = ir.metadata.title ? typography.titleFontSize + 14 : 0;
-  const top    = margin + titleH;
+  const top = margin + titleH;
 
-  // ── Pack into the grid ─────────────────────────────────────────────────────
-  const rects = new Map<string, Rect>();
-  let col = 0, row = 0;
+  // ── Measure blocks ────────────────────────────────────────────────────────
+  const blockInfos = new Map<string, FormattedTextLines>();
   for (const b of ir.blocks) {
     const span = Math.min(b.span, cols);
-    if (col + span > cols) { col = 0; row += 1; }
-    const x = margin + col * (cellW + gap);
     const w = span * cellW + (span - 1) * gap;
-    const y = top + row * (rowH + gap);
-    rects.set(b.id, { x, y, width: w, height: rowH });
+    const info = measureFormattedText(b.label, font, smallFont, w - 24, 4);
+    blockInfos.set(b.id, info);
+  }
+
+  // ── Pack into the grid with dynamic row heights ───────────────────────────
+  const rects = new Map<string, Rect>();
+  let col = 0,
+    row = 0;
+  const rowItems: { b: (typeof ir.blocks)[number]; span: number; col: number; row: number }[] = [];
+  const rowMaxLines = new Map<number, number>();
+
+  for (const b of ir.blocks) {
+    const span = Math.min(b.span, cols);
+    if (col + span > cols) {
+      col = 0;
+      row += 1;
+    }
+    const info = blockInfos.get(b.id)!;
+    rowMaxLines.set(row, Math.max(rowMaxLines.get(row) ?? 1, info.lineCount));
+    rowItems.push({ b, span, col, row });
     col += span;
   }
 
+  // Calculate top y for each row
+  const rowY = new Map<number, number>();
+  const rowHeightMap = new Map<number, number>();
+  let curY = top;
+  for (let r = 0; r <= row; r++) {
+    const maxL = rowMaxLines.get(r) ?? 1;
+    const h = maxL > 1 ? rhu(maxL * (font * 1.25) + 20) : defaultRowH;
+    rowY.set(r, curY);
+    rowHeightMap.set(r, h);
+    curY += h + gap;
+  }
+
+  for (const item of rowItems) {
+    const x = margin + item.col * (cellW + gap);
+    const w = item.span * cellW + (item.span - 1) * gap;
+    const y = rowY.get(item.row)!;
+    const h = rowHeightMap.get(item.row)!;
+    rects.set(item.b.id, { x, y, width: w, height: h });
+  }
+
   const elements: SceneElement[] = [];
-  if (ir.metadata.title) elements.push(p.text(ir.metadata.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
+  if (ir.metadata.title)
+    elements.push(
+      p.text(
+        ir.metadata.title,
+        margin,
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold' },
+      ),
+    );
 
   // ── Edges (under blocks) ───────────────────────────────────────────────────
   for (const e of ir.edges) {
-    const a = rects.get(e.from), b = rects.get(e.to);
+    const a = rects.get(e.from),
+      b = rects.get(e.to);
     if (!a || !b) continue;
     const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 };
     const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
@@ -79,34 +135,74 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
     else if (e.animation) anim = e.animation;
     else if (style === 'dotted' || style === 'dashed') anim = 'march';
     if (anim) pathOpts.animated = anim;
-    const path = style === 'wavy'
-      ? wavifyPath([pa, pb], 3, 12)
-      : `M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`;
+    const path =
+      style === 'wavy'
+        ? wavifyPath([pa, pb], 3, 12)
+        : `M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`;
     elements.push(p.path(path, palette.primary, edgeStrokeWidth(style, 1.6), pathOpts));
-    if (e.label) elements.push(p.text(e.label, rhuInt((pa.x + pb.x) / 2), rhuInt((pa.y + pb.y) / 2 - 4), typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));
+    if (e.label)
+      elements.push(
+        p.text(
+          e.label,
+          rhuInt((pa.x + pb.x) / 2),
+          rhuInt((pa.y + pb.y) / 2 - 4),
+          typography.smallFontSize,
+          palette.textMuted,
+          { anchor: 'middle' },
+        ),
+      );
   }
 
   // ── Blocks ─────────────────────────────────────────────────────────────────
   ir.blocks.forEach((b, i) => {
     const r = rects.get(b.id)!;
     const hue = categoricalHue(i);
-    elements.push(p.rect({ x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) }, palette.surface, hue, 1.6, { rx: 8 }));
-    elements.push(p.text(b.label, rhuInt(r.x + r.width / 2), rhuInt(r.y + r.height / 2 + typography.baseFontSize * 0.35), typography.baseFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
+    const info = blockInfos.get(b.id);
+    elements.push(
+      p.rect(
+        { x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) },
+        palette.surface,
+        hue,
+        1.6,
+        { rx: 8 },
+      ),
+    );
+    if (info) {
+      elements.push(
+        ...renderFormattedText(
+          p,
+          info,
+          r.x,
+          r.y,
+          r.width,
+          r.height,
+          font,
+          smallFont,
+          palette.text,
+          palette.textMuted,
+          { align: 'middle', defaultBold: true },
+        ),
+      );
+    }
   });
 
-  const maxRight  = Math.max(margin, ...[...rects.values()].map(r => r.x + r.width));
-  const maxBottom = Math.max(top, ...[...rects.values()].map(r => r.y + r.height));
+  const maxRight = Math.max(margin, ...[...rects.values()].map((r) => r.x + r.width));
+  const maxBottom = Math.max(top, ...[...rects.values()].map((r) => r.y + r.height));
   const defs = [
     `<marker id="${ARROW_END_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`,
     `<marker id="${ARROW_START_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`,
   ];
 
-  const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: rhuInt(maxRight + margin), height: rhuInt(maxBottom + margin) },
-    background: palette.background,
-    elements,
-    defs,
-  }, ir.overlays, theme);
+  const scene: Scene = applyOverlays(
+    {
+      viewBox: { x: 0, y: 0, width: rhuInt(maxRight + margin), height: rhuInt(maxBottom + margin) },
+      background: palette.background,
+      elements,
+      defs,
+    },
+    ir.overlays,
+    theme,
+  );
 
   return { scene, anchors: {} };
 }

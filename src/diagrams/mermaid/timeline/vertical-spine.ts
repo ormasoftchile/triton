@@ -21,8 +21,11 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { rhuInt } from '../../../util/round.js';
 import { pen } from '../../../scene/build.js';
-import { measureText } from '../../../text/metrics.js';
-import { wrapText } from '../../../text/wrap.js';
+import {
+  measureFormattedText,
+  renderFormattedText,
+  type FormattedTextLines,
+} from '../../../text/formatted.js';
 import { formatDate } from '../../../time/dates.js';
 import { categoricalHue } from '../../../palette/categorical.js';
 import { collectEntries } from './shared.js';
@@ -46,8 +49,11 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
   const margin = spacing.diagramMargin;
 
   // ── Build unified entry list (sorted by ordinal, id) ──────────────────────
-  const entries: SpineEntry[] = collectEntries(ir).map(e => ({
-    id: e.id, label: e.label, dateStr: formatEntryDate(e.date), ord: e.ord,
+  const entries: SpineEntry[] = collectEntries(ir).map((e) => ({
+    id: e.id,
+    label: e.label,
+    dateStr: formatEntryDate(e.date),
+    ord: e.ord,
     ...(e.description ? { description: e.description } : {}),
     type: e.kind,
     ...(e.status ? { statusHint: e.status } : {}),
@@ -57,49 +63,53 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
   // Assign colours after ordering: active/blocked keep semantic colour,
   // everything else cycles a categorical palette so each entry is distinct.
   entries.forEach((e, i) => {
-    e.dotColor = e.statusHint === 'active'  ? palette.primary
-               : e.statusHint === 'blocked' ? palette.error
-               : categoricalHue(i);
+    e.dotColor =
+      e.statusHint === 'active'
+        ? palette.primary
+        : e.statusHint === 'blocked'
+          ? palette.error
+          : categoricalHue(i);
   });
 
   // ── Geometry constants ────────────────────────────────────────────────────
-  const cardW       = 260;
-  const cardPad     = 12;
-  const spineGap    = 48;             // gap between spine and nearest card edge
-  const rowGap      = 22;
-  const dotR        = 7;
-  const innerW      = cardW - 2 * cardPad;
-  const titleSize   = typography.baseFontSize;
-  const dateSize    = typography.smallFontSize;
-  const descSize    = typography.smallFontSize;
-  const titleLH     = rhuInt(titleSize * 1.3);
-  const lineLH      = rhuInt(descSize * 1.35);
+  const cardW = 260;
+  const cardPad = 12;
+  const spineGap = 48; // gap between spine and nearest card edge
+  const rowGap = 22;
+  const dotR = 7;
+  const innerW = cardW - 2 * cardPad;
+  const titleSize = typography.baseFontSize;
+  const dateSize = typography.smallFontSize;
+  const descSize = typography.smallFontSize;
+  const titleLH = rhuInt(titleSize * 1.3);
+  const lineLH = rhuInt(descSize * 1.35);
 
-  const spineX      = rhuInt(margin + cardW + spineGap);
-  const leftCardR   = spineX - spineGap;            // right edge of left-column cards
-  const rightCardL  = spineX + spineGap;            // left edge of right-column cards
-  const totalW      = rhuInt(rightCardL + cardW + margin);
+  const spineX = rhuInt(margin + cardW + spineGap);
+  const leftCardR = spineX - spineGap; // right edge of left-column cards
+  const rightCardL = spineX + spineGap; // left edge of right-column cards
+  const totalW = rhuInt(rightCardL + cardW + margin);
 
-  const subtitle    = typeof ir.metadata.subtitle === 'string' ? ir.metadata.subtitle : undefined;
-  const headerH     = ir.metadata.title
+  const subtitle = typeof ir.metadata.subtitle === 'string' ? ir.metadata.subtitle : undefined;
+  const headerH = ir.metadata.title
     ? typography.titleFontSize + (subtitle ? typography.baseFontSize + 10 : 0) + 24
     : 0;
-  let y             = margin + headerH + 8;
-  const startY      = y;
+  let y = margin + headerH + 8;
+  const startY = y;
   // Pre-compute each entry's wrapped text + card height
   interface Placed extends SpineEntry {
-    titleLines: string[]; descLines: string[]; cardH: number;
+    labelInfo: FormattedTextLines;
+    descInfo?: FormattedTextLines | undefined;
+    cardH: number;
   }
-  const placed: Placed[] = entries.map(e => {
-    const titleLines = wrapText(e.label, titleSize, innerW, 3).lines;
-    const descLines  = e.description ? wrapText(e.description, descSize, innerW, 3).lines : [];
-    const cardH = rhuInt(
-      cardPad + (dateSize * 1.3) + 4
-      + titleLines.length * titleLH
-      + (descLines.length ? 4 + descLines.length * lineLH : 0)
-      + cardPad,
-    );
-    return { ...e, titleLines, descLines, cardH };
+  const placed: Placed[] = entries.map((e) => {
+    const labelInfo = measureFormattedText(e.label, titleSize, dateSize, innerW, 4);
+    const descInfo = e.description
+      ? measureFormattedText(e.description, descSize, descSize, innerW, 4)
+      : undefined;
+    const labelH = labelInfo.lineCount * titleLH;
+    const descH = descInfo ? 4 + descInfo.lineCount * lineLH : 0;
+    const cardH = rhuInt(cardPad + dateSize * 1.3 + 4 + labelH + descH + cardPad);
+    return { ...e, labelInfo, descInfo, cardH };
   });
 
   const elements: SceneElement[] = [];
@@ -107,9 +117,27 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
 
   // ── Title ─────────────────────────────────────────────────────────────────
   if (ir.metadata.title) {
-    elements.push(p.text(ir.metadata.title, rhuInt(totalW / 2), margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
+    elements.push(
+      p.text(
+        ir.metadata.title,
+        rhuInt(totalW / 2),
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold', anchor: 'middle' },
+      ),
+    );
     if (subtitle) {
-      elements.push(p.text(subtitle, rhuInt(totalW / 2), margin + typography.titleFontSize + typography.baseFontSize + 8, typography.baseFontSize, palette.textMuted, { anchor: 'middle' }));
+      elements.push(
+        p.text(
+          subtitle,
+          rhuInt(totalW / 2),
+          margin + typography.titleFontSize + typography.baseFontSize + 8,
+          typography.baseFontSize,
+          palette.textMuted,
+          { anchor: 'middle' },
+        ),
+      );
     }
   }
 
@@ -117,41 +145,85 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
   let lastNodeY = startY;
   placed.forEach((e, i) => {
     const onRight = i % 2 === 0;
-    const nodeY   = rhuInt(y + e.cardH / 2);
-    const cardX   = onRight ? rightCardL : leftCardR - cardW;
-    const cardY   = rhuInt(y);
+    const nodeY = rhuInt(y + e.cardH / 2);
+    const cardX = onRight ? rightCardL : leftCardR - cardW;
+    const cardY = rhuInt(y);
 
     // Connector (spine → card)
     const connX2 = onRight ? rightCardL : leftCardR;
     elements.push(p.path(`M ${spineX} ${nodeY} L ${connX2} ${nodeY}`, palette.border, 1.5));
 
     // Card background
-    elements.push(p.rect({ x: cardX, y: cardY, width: cardW, height: e.cardH }, palette.surface, palette.border, 1, { rx: 8 }));
+    elements.push(
+      p.rect(
+        { x: cardX, y: cardY, width: cardW, height: e.cardH },
+        palette.surface,
+        palette.border,
+        1,
+        { rx: 8 },
+      ),
+    );
     // Status accent stripe on the spine-facing edge
     const stripeX = onRight ? cardX : cardX + cardW - 3;
-    elements.push(p.rect({ x: stripeX, y: cardY, width: 3, height: e.cardH }, e.dotColor, e.dotColor, 0));
+    elements.push(
+      p.rect({ x: stripeX, y: cardY, width: 3, height: e.cardH }, e.dotColor, e.dotColor, 0),
+    );
 
     // Card text
     const textX = cardX + cardPad;
     let ty = cardY + cardPad + dateSize;
-    elements.push(p.text(e.dateStr, textX, ty, dateSize, e.dotColor, { weight: 'bold', anchor: 'start' }));
-    ty += 4 + titleLH - (titleLH - titleSize);
-    for (const line of e.titleLines) {
-      elements.push(p.text(line, textX, ty, titleSize, palette.text, { weight: 'bold', anchor: 'start' }));
-      ty += titleLH;
-    }
-    if (e.descLines.length) {
+    elements.push(
+      p.text(e.dateStr, textX, ty, dateSize, e.dotColor, { weight: 'bold', anchor: 'start' }),
+    );
+    ty += 4;
+    const labelH = e.labelInfo.lineCount * titleLH;
+    elements.push(
+      ...renderFormattedText(
+        p,
+        e.labelInfo,
+        textX,
+        ty - 4,
+        innerW,
+        labelH + 4,
+        titleSize,
+        dateSize,
+        palette.text,
+        palette.textMuted,
+        { align: 'start', defaultBold: true },
+      ),
+    );
+    ty += labelH;
+    if (e.descInfo) {
       ty += 2;
-      for (const line of e.descLines) {
-        elements.push(p.text(line, textX, ty, descSize, palette.textMuted, { anchor: 'start' }));
-        ty += lineLH;
-      }
+      const descH = e.descInfo.lineCount * lineLH;
+      elements.push(
+        ...renderFormattedText(
+          p,
+          e.descInfo,
+          textX,
+          ty - 4,
+          innerW,
+          descH + 4,
+          descSize,
+          descSize,
+          palette.textMuted,
+          palette.textMuted,
+          { align: 'start' },
+        ),
+      );
     }
 
     // Node marker on spine (diamond for milestone, circle for activity)
     if (e.type === 'milestone') {
       const r = dotR + 1;
-      elements.push(p.path(`M ${spineX} ${nodeY - r} L ${spineX + r} ${nodeY} L ${spineX} ${nodeY + r} L ${spineX - r} ${nodeY} Z`, palette.background, 2, { fill: e.dotColor }));
+      elements.push(
+        p.path(
+          `M ${spineX} ${nodeY - r} L ${spineX + r} ${nodeY} L ${spineX} ${nodeY + r} L ${spineX - r} ${nodeY} Z`,
+          palette.background,
+          2,
+          { fill: e.dotColor },
+        ),
+      );
     } else {
       elements.push(p.circle({ x: spineX, y: nodeY }, dotR, e.dotColor, palette.background, 2));
     }
@@ -165,11 +237,15 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
 
   const totalH = rhuInt(y - rowGap + margin);
 
-  const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: totalW, height: totalH },
-    background: palette.background,
-    elements,
-  }, ir.overlays, theme);
+  const scene: Scene = applyOverlays(
+    {
+      viewBox: { x: 0, y: 0, width: totalW, height: totalH },
+      background: palette.background,
+      elements,
+    },
+    ir.overlays,
+    theme,
+  );
 
   return { scene, anchors: {} };
 }

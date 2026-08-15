@@ -9,7 +9,10 @@
     const ensure = (id, label, kind) => {
       let s = states.find(x => x.id === id);
       if (!s) { s = { id, label: label || id, kind: kind || 'normal' }; states.push(s); }
-      else if (kind && s.kind === 'normal') s.kind = kind;
+      else {
+        if (label) s.label = label;
+        if (kind && s.kind === 'normal') s.kind = kind;
+      }
       return s;
     };
     const ref = (r, side) => {
@@ -52,7 +55,7 @@ Frontmatter
       const meta = {}; for (const line of lines) { const m = line.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/); if (m) meta[m[1]] = m[2]; } return meta;
     }
 
-Statement = StateBlock / ChoiceDecl / Transition / StateDecl / DirectiveLine / BlankLine
+Statement = StateBlock / ChoiceDecl / Transition / StateDecl / StateDescDecl / DirectiveLine / BlankLine
 
 StateBlock
   = _ "state"i __ name:Ident _ "{" _ "\r"? "\n" inner:Statement* _ "}" LineEnd { return { t: 'block', name, inner }; }
@@ -68,6 +71,9 @@ Transition
 StateDecl
   = _ "state"i __ label:QuotedOrId __ "as"i __ id:Ident LineEnd { return { t: 'state', id, label }; }
   / _ "state"i __ id:Ident LineEnd { return { t: 'state', id, label: id }; }
+
+StateDescDecl
+  = _ id:Ident _ ":" _ label:RestOfLine LineEnd { return { t: 'state', id, label: label.trim() }; }
 
 DirectiveLine
   = _ ("direction"i / "note"i) __ $[^\n]+ LineEnd { return null; }
