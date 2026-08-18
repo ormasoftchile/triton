@@ -286,10 +286,28 @@ async function main(): Promise<number> {
   return 1;
 }
 
-// Guard: run main() only when this file is the CLI entry point, not when imported
-// as a module for testing. Works in both vitest (ESM source) and the esbuild CJS
-// bundle (esbuild transforms import.meta.url → pathToFileURL(__filename).href).
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+function isDirectExecution(): boolean {
+  if (typeof require !== 'undefined' && typeof module !== 'undefined' && require.main === module) {
+    return true;
+  }
+  if (typeof __filename !== 'undefined' && process.argv[1]) {
+    try {
+      return resolve(process.argv[1]) === resolve(__filename);
+    } catch {
+      return false;
+    }
+  }
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.url && process.argv[1]) {
+      return resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url));
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+if (isDirectExecution()) {
   main()
     .then((code) => process.exit(code))
     .catch((cause) => {
@@ -298,3 +316,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       process.exit(1);
     });
 }
+

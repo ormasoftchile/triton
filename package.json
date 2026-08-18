@@ -10,7 +10,7 @@
   "packageManager": "pnpm@11.5.3",
   "scripts": {
     "build:grammars": "node scripts/build-grammars.mjs",
-    "build": "pnpm build:grammars && tsc --project tsconfig.json && pnpm build:core && pnpm build:extension",
+    "build": "pnpm build:grammars && tsc --project tsconfig.json && pnpm build:core && pnpm build:extension && pnpm build:latex",
     "build:core": "node esbuild-core.mjs",
     "build:extension": "node extension/esbuild.mjs",
     "build:latex": "cd latex && node esbuild.mjs",
