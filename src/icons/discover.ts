@@ -49,7 +49,12 @@ export function discoverIconPacks(dir: string): IconDiscoveryResult {
   const map: Map<string, IconifyJSON> = new Map();
   const warnings: string[] = [];
 
-  // Gracefully handle missing / unreadable directory
+  // Gracefully handle missing directory
+  if (!existsSync(dir)) {
+    return { map, warnings };
+  }
+
+  // Gracefully handle unreadable directory
   let entries: string[];
   try {
     entries = readdirSync(dir);
@@ -63,7 +68,7 @@ export function discoverIconPacks(dir: string): IconDiscoveryResult {
     return { map, warnings };
   }
 
-  const iconFiles = entries.filter(e => e.endsWith(ICON_SUFFIX));
+  const iconFiles = entries.filter((e) => e.endsWith(ICON_SUFFIX));
 
   for (const filename of iconFiles) {
     const filePath = join(dir, filename);

@@ -52,7 +52,11 @@ export function loadThemeFile(filePath: string): Result<ResolvedTheme> {
   try {
     raw = readFileSync(filePath, 'utf8');
   } catch (cause) {
-    return err('THEME_VALIDATION_ERROR', `Cannot read theme file "${filePath}": ${String(cause)}`, cause);
+    return err(
+      'THEME_VALIDATION_ERROR',
+      `Cannot read theme file "${filePath}": ${String(cause)}`,
+      cause,
+    );
   }
 
   // 2. Parse JSON
@@ -60,7 +64,11 @@ export function loadThemeFile(filePath: string): Result<ResolvedTheme> {
   try {
     parsed = JSON.parse(raw);
   } catch (cause) {
-    return err('THEME_VALIDATION_ERROR', `Invalid JSON in theme file "${filePath}": ${String(cause)}`, cause);
+    return err(
+      'THEME_VALIDATION_ERROR',
+      `Invalid JSON in theme file "${filePath}": ${String(cause)}`,
+      cause,
+    );
   }
 
   // 3. Validate against ThemeInput schema (strict — unknown keys are errors)
@@ -75,7 +83,7 @@ export function loadThemeFile(filePath: string): Result<ResolvedTheme> {
 
   // 4. Resolve over declared base (or 'default' if absent)
   const input = validated.value;
-  const baseName = (parsed as Record<string, unknown>)['base'] as string | undefined ?? 'default';
+  const baseName = ((parsed as Record<string, unknown>)['base'] as string | undefined) ?? 'default';
   const base = getThemePreset(baseName);
   const resolved = resolveTheme(input, base);
 
@@ -99,7 +107,12 @@ export function discoverThemes(dir: string): ThemeDiscoveryResult {
   const themes = new Map<string, ResolvedTheme>();
   const warnings: string[] = [];
 
-  // Gracefully handle missing / unreadable directory
+  // Gracefully handle missing directory
+  if (!existsSync(dir)) {
+    return { themes, warnings };
+  }
+
+  // Gracefully handle unreadable directory
   let entries: string[];
   try {
     entries = readdirSync(dir);
@@ -113,7 +126,7 @@ export function discoverThemes(dir: string): ThemeDiscoveryResult {
     return { themes, warnings };
   }
 
-  const themeFiles = entries.filter(e => e.endsWith(THEME_SUFFIX));
+  const themeFiles = entries.filter((e) => e.endsWith(THEME_SUFFIX));
 
   for (const filename of themeFiles) {
     const filePath = join(dir, filename);
@@ -136,7 +149,9 @@ export function discoverThemes(dir: string): ThemeDiscoveryResult {
 
     // Validate slug rule on derived name
     if (!SLUG.test(name)) {
-      warnings.push(`Theme file "${filename}": derived name "${name}" is not a valid slug (^[a-z0-9-]+$); skipped`);
+      warnings.push(
+        `Theme file "${filename}": derived name "${name}" is not a valid slug (^[a-z0-9-]+$); skipped`,
+      );
       continue;
     }
 
@@ -148,7 +163,9 @@ export function discoverThemes(dir: string): ThemeDiscoveryResult {
 
     // Duplicate within same dir → last wins + warning
     if (themes.has(name)) {
-      warnings.push(`Duplicate theme name "${name}": "${filename}" overrides an earlier definition`);
+      warnings.push(
+        `Duplicate theme name "${name}": "${filename}" overrides an earlier definition`,
+      );
     }
 
     themes.set(name, resolved);
@@ -164,7 +181,7 @@ function extractNameFromFile(filePath: string): string | null {
   try {
     const raw = readFileSync(filePath, 'utf8');
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    return typeof parsed['name'] === 'string' ? parsed['name'] as string : null;
+    return typeof parsed['name'] === 'string' ? (parsed['name'] as string) : null;
   } catch {
     return null;
   }

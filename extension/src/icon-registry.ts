@@ -16,13 +16,15 @@
 
 import * as vscode from 'vscode';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import type { IconPackMap } from '../../src/contracts/icons.js';
 import { discoverIconPacks } from '../../src/icons/discover.js';
 
 export class IconRegistry implements vscode.Disposable {
   // ─── State ────────────────────────────────────────────────────────────────
 
-  private readonly mergedPacks: Map<string, import('../../src/contracts/icons.js').IconifyJSON> = new Map();
+  private readonly mergedPacks: Map<string, import('../../src/contracts/icons.js').IconifyJSON> =
+    new Map();
   private readonly watchers: vscode.Disposable[] = [];
   private readonly disposables: vscode.Disposable[] = [];
 
@@ -72,6 +74,7 @@ export class IconRegistry implements vscode.Disposable {
 
     for (const folder of folders) {
       const dir = join(folder.uri.fsPath, '.triton', 'icons');
+      if (!existsSync(dir)) continue;
       const { map, warnings } = discoverIconPacks(dir);
 
       // Union across folders; duplicate prefix → last wins + warning
@@ -101,7 +104,7 @@ export class IconRegistry implements vscode.Disposable {
       }
 
       // Show VS Code warning message once per unique warning, dedupe across refreshes
-      const newWarnings = allWarnings.filter(w => !this.lastWarnSet.has(w));
+      const newWarnings = allWarnings.filter((w) => !this.lastWarnSet.has(w));
       if (newWarnings.length > 0) {
         const summary =
           newWarnings.length === 1

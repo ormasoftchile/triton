@@ -14,6 +14,7 @@
 
 import * as vscode from 'vscode';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import type { ResolvedTheme } from '../../src/contracts/index.js';
 import { themePresetNames } from '../../src/theme/preset.js';
 import { discoverThemes } from '../../src/theme/discover.js';
@@ -89,6 +90,7 @@ export class ThemeRegistry implements vscode.Disposable {
 
     for (const folder of folders) {
       const dir = join(folder.uri.fsPath, '.triton', 'themes');
+      if (!existsSync(dir)) continue;
       const { themes, warnings } = discoverThemes(dir);
 
       // Union across folders; duplicate custom name → last wins + warning
@@ -118,7 +120,7 @@ export class ThemeRegistry implements vscode.Disposable {
       }
 
       // Show VS Code warning message once per unique warning, dedupe across refreshes
-      const newWarnings = allWarnings.filter(w => !this.lastWarnSet.has(w));
+      const newWarnings = allWarnings.filter((w) => !this.lastWarnSet.has(w));
       if (newWarnings.length > 0) {
         const summary =
           newWarnings.length === 1
