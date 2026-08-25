@@ -9,7 +9,12 @@
  */
 
 import type { SceneElement } from '../contracts/scene.js';
-import { isRenderedConnectorAnimation, type ResolvedCrossLink, type CrossLinkEdgeStyle, type RenderedConnectorAnimation } from '../contracts/crosslink.js';
+import {
+  isRenderedConnectorAnimation,
+  type ResolvedCrossLink,
+  type CrossLinkEdgeStyle,
+  type RenderedConnectorAnimation,
+} from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry } from '../contracts/anchors.js';
 import type { PortDirection, RouteStyle } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
@@ -71,16 +76,27 @@ export function renderCrossLinks(
 
   // Assign distinct colours to explicit links
   const categoricalPalette = [
-    '#E11D48', '#16A34A', '#9333EA', '#0891B2',
-    '#CA8A04', '#DC2626', '#2563EB', '#7C3AED',
+    '#E11D48',
+    '#16A34A',
+    '#9333EA',
+    '#0891B2',
+    '#CA8A04',
+    '#DC2626',
+    '#2563EB',
+    '#7C3AED',
   ];
   let explicitColorIdx = 0;
 
   // Collect labels for de-collision pass after all routes are computed
   const pendingLabels: Array<{
-    content: string; x: number; y: number;
-    fontSize: number; fontFamily: string; fill: string;
-    anchor: 'middle'; fontWeight: 'bold';
+    content: string;
+    x: number;
+    y: number;
+    fontSize: number;
+    fontFamily: string;
+    fill: string;
+    anchor: 'middle';
+    fontWeight: 'bold';
   }> = [];
 
   // Phase 1: Compute all routes
@@ -99,9 +115,9 @@ export function renderCrossLinks(
     }
 
     const fromDir = sideToPortDir(fromSide);
-    const toDir   = sideToPortDir(toSide);
+    const toDir = sideToPortDir(toSide);
     const routeStyle: RouteStyle = link.routing ?? 'orthogonal';
-    const router  = getRouter(routeStyle) ?? createRouter(routeStyle);
+    const router = getRouter(routeStyle) ?? createRouter(routeStyle);
     const tension = link.props?.tension as number | undefined;
 
     // Build per-link obstacles: all node bounds + shrunken intermediate-cell
@@ -116,7 +132,7 @@ export function renderCrossLinks(
       const extra: Rect[] = [];
       for (const [cellId, r] of cellRects) {
         if (cellId === srcId || cellId === dstId) continue;
-        const sw = r.width  - 2 * CELL_SHRINK;
+        const sw = r.width - 2 * CELL_SHRINK;
         const sh = r.height - 2 * CELL_SHRINK;
         if (sw > 0 && sh > 0) {
           extra.push({ x: r.x + CELL_SHRINK, y: r.y + CELL_SHRINK, width: sw, height: sh });
@@ -125,7 +141,7 @@ export function renderCrossLinks(
       if (extra.length > 0) linkObstacles = [...obstacles, ...extra];
     }
 
-    const route   = router.route({
+    const route = router.route({
       from: fromPort,
       to: toPort,
       style: routeStyle,
@@ -140,9 +156,11 @@ export function renderCrossLinks(
     // Animation: explicit DSL value only. All styles are STATIC by default.
     // Motion requires explicit @anim:<name> or { anim: <name> }.
     const animation: RenderedConnectorAnimation | undefined =
-      link.animation === 'none'     ? undefined :
-      isRenderedConnectorAnimation(link.animation) ? link.animation :
-      undefined;
+      link.animation === 'none'
+        ? undefined
+        : isRenderedConnectorAnimation(link.animation)
+          ? link.animation
+          : undefined;
     let markerEnd: string | undefined;
     let markerStart: string | undefined;
     if (link.direction === 'directed') {
@@ -155,11 +173,10 @@ export function renderCrossLinks(
       biArrowMarkerColors.set(markerStart, color);
     }
 
-    const strokeWidth = link.style === 'thick'
-      ? (edgeTheme.strokeWidth + 0.5) * 2
-      : (edgeTheme.strokeWidth + 0.5);
+    const strokeWidth =
+      link.style === 'thick' ? (edgeTheme.strokeWidth + 0.5) * 2 : edgeTheme.strokeWidth + 0.5;
     const isWavy = link.style === 'wavy';
-    const wavyAmplitude  = (link.props?.amplitude  as number | undefined) ?? 3;
+    const wavyAmplitude = (link.props?.amplitude as number | undefined) ?? 3;
     const wavyWavelength = (link.props?.wavelength as number | undefined) ?? 12;
 
     pendingRoutes.push({
@@ -186,17 +203,25 @@ export function renderCrossLinks(
 
   // Phase 3: Nudge segments away from cell borders (orthogonal routes only)
   if (routingObstacles && routingObstacles.length > 0) {
-    const orthoRoutes = pendingRoutes.filter(r => r.routing === 'orthogonal');
+    const orthoRoutes = pendingRoutes.filter((r) => r.routing === 'orthogonal');
     nudgeOffBorders(orthoRoutes, routingObstacles);
   }
 
   // Phase 4a: Bezier separation — fan apart or fall back crossing beziers to orthogonal
   // Runs BEFORE channel separation so any new orthogonal routes get included.
   const CHANNEL_GAP = 12;
-  separateBezierCurves(pendingRoutes.filter(r => r.routing === 'bezier'), CHANNEL_GAP, obstacles, pendingRoutes);
+  separateBezierCurves(
+    pendingRoutes.filter((r) => r.routing === 'bezier'),
+    CHANNEL_GAP,
+    obstacles,
+    pendingRoutes,
+  );
 
   // Phase 4b: Channel separation — offset overlapping parallel segments (all orthogonal, including fallbacks)
-  separateOverlappingChannels(pendingRoutes.filter(r => r.routing === 'orthogonal'), CHANNEL_GAP);
+  separateOverlappingChannels(
+    pendingRoutes.filter((r) => r.routing === 'orthogonal'),
+    CHANNEL_GAP,
+  );
 
   // ─── Label position staggering ───────────────────────────────────────────
   // Routes sharing the same corridor (same dominant-segment axis + close coord)
@@ -204,7 +229,7 @@ export function renderCrossLinks(
   // evenly along the route: 1/(n+1), 2/(n+1), …, n/(n+1).
   const CORRIDOR_TOL = 20; // px — routes within this band share a corridor
   const labelFractions = new Array<number>(pendingRoutes.length).fill(0.5);
-  const labeledIndices = pendingRoutes.map((pr, i) => pr.label ? i : -1).filter(i => i >= 0);
+  const labeledIndices = pendingRoutes.map((pr, i) => (pr.label ? i : -1)).filter((i) => i >= 0);
   const staggerAssigned = new Set<number>();
 
   for (const i of labeledIndices) {
@@ -221,8 +246,10 @@ export function renderCrossLinks(
     if (group.length > 1) {
       group.sort((a, b) => a - b); // consistent ordering by route index
       const n = group.length;
-      group.forEach((idx, k) => { labelFractions[idx] = (k + 1) / (n + 1); });
-      group.forEach(idx => staggerAssigned.add(idx));
+      group.forEach((idx, k) => {
+        labelFractions[idx] = (k + 1) / (n + 1);
+      });
+      group.forEach((idx) => staggerAssigned.add(idx));
     }
   }
 
@@ -230,7 +257,8 @@ export function renderCrossLinks(
   for (let prIdx = 0; prIdx < pendingRoutes.length; prIdx++) {
     const pr = pendingRoutes[prIdx]!;
     // Bezier/straight routes use the router's SVG path; orthogonal rebuilds from points
-    let path = pr.routePath ?? pr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    let path =
+      pr.routePath ?? pr.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 
     // Wavy style: displace path geometry with a sine wave
     if (pr.isWavy) {
@@ -242,9 +270,9 @@ export function renderCrossLinks(
       d: path,
       stroke: pr.color,
       strokeWidth: pr.strokeWidth,
-      ...(pr.dash      ? { strokeDasharray: pr.dash }     : {}),
-      ...(pr.animation ? { animated: pr.animation }       : {}),
-      ...(pr.markerEnd   ? { markerEnd: pr.markerEnd }   : {}),
+      ...(pr.dash ? { strokeDasharray: pr.dash } : {}),
+      ...(pr.animation ? { animated: pr.animation } : {}),
+      ...(pr.markerEnd ? { markerEnd: pr.markerEnd } : {}),
       ...(pr.markerStart ? { markerStart: pr.markerStart } : {}),
     };
     elements.push(pathEl);
@@ -273,7 +301,7 @@ export function renderCrossLinks(
   const fixedRects: Rect[] = [...obstacles, ...(occupiedRects ?? [])];
 
   // Estimate bounding rect for each label (centered at anchor='middle')
-  const labelRects: Rect[] = pendingLabels.map(l => {
+  const labelRects: Rect[] = pendingLabels.map((l) => {
     const w = l.content.length * l.fontSize * CHAR_WIDTH_FACTOR + LABEL_PAD * 2;
     const h = l.fontSize + LABEL_PAD * 2;
     return { x: l.x - w / 2, y: l.y - h + LABEL_PAD, width: w, height: h };
@@ -325,11 +353,16 @@ function sideToPortDir(side: CardinalSide): PortDirection {
 
 function edgeStyleToDash(style: CrossLinkEdgeStyle): string | undefined {
   switch (style) {
-    case 'dotted': return '4 3';
-    case 'dashed': return '8 4';
-    case 'solid':  return undefined;
-    case 'thick':  return undefined;  // thick uses stroke-width bump, not dasharray
-    case 'wavy':   return undefined;  // wavy uses path displacement, not dasharray
+    case 'dotted':
+      return '4 3';
+    case 'dashed':
+      return '8 4';
+    case 'solid':
+      return undefined;
+    case 'thick':
+      return undefined; // thick uses stroke-width bump, not dasharray
+    case 'wavy':
+      return undefined; // wavy uses path displacement, not dasharray
   }
 }
 
@@ -338,7 +371,8 @@ function longestSegmentMidpoint(points: readonly Point[]): Point {
   let bestLen = 0;
   let bestMid: Point = points[0]!;
   for (let i = 0; i < points.length - 1; i++) {
-    const a = points[i]!, b = points[i + 1]!;
+    const a = points[i]!,
+      b = points[i + 1]!;
     const len = Math.abs(b.x - a.x) + Math.abs(b.y - a.y); // Manhattan length for ortho
     if (len > bestLen) {
       bestLen = len;
@@ -353,15 +387,24 @@ function longestSegmentMidpoint(points: readonly Point[]): Point {
  * in a polyline — used to group routes sharing the same corridor.
  */
 function dominantSegmentInfo(points: readonly Point[]): { axis: 'h' | 'v'; coord: number } {
-  let bestLen = 0, axis: 'h' | 'v' = 'h', coord = 0;
+  let bestLen = 0,
+    axis: 'h' | 'v' = 'h',
+    coord = 0;
   for (let i = 0; i < points.length - 1; i++) {
-    const a = points[i]!, b = points[i + 1]!;
-    const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+    const a = points[i]!,
+      b = points[i + 1]!;
+    const dx = Math.abs(b.x - a.x),
+      dy = Math.abs(b.y - a.y);
     const len = dx + dy;
     if (len > bestLen) {
       bestLen = len;
-      if (dy > dx) { axis = 'v'; coord = (a.x + b.x) / 2; }
-      else          { axis = 'h'; coord = (a.y + b.y) / 2; }
+      if (dy > dx) {
+        axis = 'v';
+        coord = (a.x + b.x) / 2;
+      } else {
+        axis = 'h';
+        coord = (a.y + b.y) / 2;
+      }
     }
   }
   return { axis, coord };
@@ -376,7 +419,8 @@ function pointAtFraction(points: readonly Point[], t: number): Point {
   const lengths: number[] = [];
   let total = 0;
   for (let i = 0; i < points.length - 1; i++) {
-    const a = points[i]!, b = points[i + 1]!;
+    const a = points[i]!,
+      b = points[i + 1]!;
     const len = Math.hypot(b.x - a.x, b.y - a.y);
     lengths.push(len);
     total += len;
@@ -388,7 +432,8 @@ function pointAtFraction(points: readonly Point[], t: number): Point {
     const l = lengths[i]!;
     if (acc + l >= target) {
       const frac = l > 0 ? (target - acc) / l : 0;
-      const a = points[i]!, b = points[i + 1]!;
+      const a = points[i]!,
+        b = points[i + 1]!;
       return { x: a.x + (b.x - a.x) * frac, y: a.y + (b.y - a.y) * frac };
     }
     acc += l;
@@ -403,7 +448,10 @@ function pointAtFraction(points: readonly Point[], t: number): Point {
  * this avoids vertical stacking when labels share the same route corridor.
  * Mutates labelRects in place.
  */
-function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number; height: number }>, fixedRects: readonly Rect[]): void {
+function deCollideLabels(
+  labelRects: Array<{ x: number; y: number; width: number; height: number }>,
+  fixedRects: readonly Rect[],
+): void {
   const MAX_PASSES = 20;
   const NUDGE = 2;
 
@@ -434,7 +482,8 @@ function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number
     // Push labels away from each other
     for (let i = 0; i < labelRects.length; i++) {
       for (let j = i + 1; j < labelRects.length; j++) {
-        const a = labelRects[i]!, b = labelRects[j]!;
+        const a = labelRects[i]!,
+          b = labelRects[j]!;
         if (!rectsOverlap(a, b)) continue;
         const ox = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
         const oy = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
@@ -442,18 +491,23 @@ function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number
           // Push horizontally — shared-corridor case
           const aCX = a.x + a.width / 2;
           const bCX = b.x + b.width / 2;
-          if (aCX <= bCX) { a.x -= ox / 2; b.x += ox / 2; }
-          else             { a.x += ox / 2; b.x -= ox / 2; }
+          if (aCX <= bCX) {
+            a.x -= ox / 2;
+            b.x += ox / 2;
+          } else {
+            a.x += ox / 2;
+            b.x -= ox / 2;
+          }
         } else {
           // Push vertically
           const aCY = a.y + a.height / 2;
           const bCY = b.y + b.height / 2;
           if (aCY <= bCY) {
-            const overlap = (a.y + a.height) - b.y;
+            const overlap = a.y + a.height - b.y;
             a.y -= (overlap + NUDGE) / 2;
             b.y += (overlap + NUDGE) / 2;
           } else {
-            const overlap = (b.y + b.height) - a.y;
+            const overlap = b.y + b.height - a.y;
             b.y -= (overlap + NUDGE) / 2;
             a.y += (overlap + NUDGE) / 2;
           }
@@ -467,8 +521,7 @@ function deCollideLabels(labelRects: Array<{ x: number; y: number; width: number
 }
 
 function rectsOverlap(a: Rect, b: Rect): boolean {
-  return a.x < b.x + b.width && a.x + a.width > b.x &&
-         a.y < b.y + b.height && a.y + a.height > b.y;
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
 // ─── Straight Route Crossing Deflection ──────────────────────────────────────
@@ -481,7 +534,7 @@ function rectsOverlap(a: Rect, b: Rect): boolean {
  * but still visually crosses other connector paths.
  */
 function deflectCrossingStraightRoutes(routes: PendingRoute[], obstacles: readonly Rect[]): void {
-  const straightRoutes = routes.filter(r => r.routing === 'straight');
+  const straightRoutes = routes.filter((r) => r.routing === 'straight');
   if (straightRoutes.length === 0) return;
 
   // Collect all segments from OTHER routes for crossing checks.
@@ -509,22 +562,23 @@ function deflectCrossingStraightRoutes(routes: PendingRoute[], obstacles: readon
     const pts = sr.points as Point[];
     if (pts.length !== 2) continue;
 
-    const from = pts[0]!, to = pts[1]!;
-    const dx = to.x - from.x, dy = to.y - from.y;
+    const from = pts[0]!,
+      to = pts[1]!;
+    const dx = to.x - from.x,
+      dy = to.y - from.y;
     const len = Math.sqrt(dx * dx + dy * dy);
     if (len < 30) continue;
 
     // Check if this straight line crosses any other route segment
-    const segsExcludingSelf = otherSegments.filter(
-      ([a, b]) => !(a === from && b === to),
-    );
-    const originalCrossings = segsExcludingSelf.filter(
-      ([a, b]) => straightSegmentsIntersect(from, to, a, b),
+    const segsExcludingSelf = otherSegments.filter(([a, b]) => !(a === from && b === to));
+    const originalCrossings = segsExcludingSelf.filter(([a, b]) =>
+      straightSegmentsIntersect(from, to, a, b),
     ).length;
     if (originalCrossings === 0) continue;
 
     // Try perpendicular waypoints at increasing offsets
-    const perpX = -dy / len, perpY = dx / len;
+    const perpX = -dy / len,
+      perpY = dx / len;
     const mid: Point = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
 
     let bestWp: Point | null = null;
@@ -565,7 +619,8 @@ function deflectCrossingStraightRoutes(routes: PendingRoute[], obstacles: readon
       // This prevents ugly diagonal lines that cross everything.
       const orthoRouter = createRouter('orthogonal');
       const route = orthoRouter.route({
-        from, to,
+        from,
+        to,
         style: 'orthogonal',
         obstacles,
         padding: 12,
@@ -586,8 +641,8 @@ function sampleBezierToPolyline(p0: Point, p1: Point, p2: Point, p3: Point, n: n
     const t = i / n;
     const u = 1 - t;
     pts.push({
-      x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
-      y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+      x: u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x,
+      y: u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y,
     });
   }
   return pts;
@@ -599,8 +654,7 @@ function straightSegmentsIntersect(p1: Point, p2: Point, p3: Point, p4: Point): 
   const d2 = crossProduct(p3, p4, p2);
   const d3 = crossProduct(p1, p2, p3);
   const d4 = crossProduct(p1, p2, p4);
-  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
-         ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
 }
 
 function crossProduct(a: Point, b: Point, c: Point): number {
@@ -609,8 +663,10 @@ function crossProduct(a: Point, b: Point, c: Point): number {
 
 /** Check if a line segment crosses the interior of a rectangle (Liang-Barsky). */
 function segIntersectsRectInterior(p1: Point, p2: Point, r: Rect): boolean {
-  const dx = p2.x - p1.x, dy = p2.y - p1.y;
-  let tmin = 0, tmax = 1;
+  const dx = p2.x - p1.x,
+    dy = p2.y - p1.y;
+  let tmin = 0,
+    tmax = 1;
   const edges = [
     { p: -dx, q: p1.x - r.x },
     { p: dx, q: r.x + r.width - p1.x },
@@ -618,8 +674,9 @@ function segIntersectsRectInterior(p1: Point, p2: Point, r: Rect): boolean {
     { p: dy, q: r.y + r.height - p1.y },
   ];
   for (const { p, q } of edges) {
-    if (Math.abs(p) < 1e-10) { if (q <= 0) return false; }
-    else {
+    if (Math.abs(p) < 1e-10) {
+      if (q <= 0) return false;
+    } else {
       const t = q / p;
       if (p < 0) tmin = Math.max(tmin, t);
       else tmax = Math.min(tmax, t);
@@ -644,7 +701,12 @@ function segIntersectsRectInterior(p1: Point, p2: Point, r: Rect): boolean {
  *   and detect segment crossings. If they cross, offset both curves' control
  *   points to opposite sides of their respective from→to axes.
  */
-function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: readonly Rect[], allRoutes: PendingRoute[]): void {
+function separateBezierCurves(
+  routes: PendingRoute[],
+  gap: number,
+  obstacles: readonly Rect[],
+  allRoutes: PendingRoute[],
+): void {
   if (routes.length < 2) return;
 
   const PROXIMITY = 20;
@@ -671,12 +733,15 @@ function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: re
       const pts = pr.points as Point[];
       if (pts.length < 4) continue;
 
-      const from = pts[0]!, to = pts[pts.length - 1]!;
-      const dx = to.x - from.x, dy = to.y - from.y;
+      const from = pts[0]!,
+        to = pts[pts.length - 1]!;
+      const dx = to.x - from.x,
+        dy = to.y - from.y;
       const len = Math.sqrt(dx * dx + dy * dy);
       if (len < 1) continue;
 
-      const perpX = -dy / len, perpY = dx / len;
+      const perpX = -dy / len,
+        perpY = dx / len;
       const offset = (i - (n - 1) / 2) * gap;
 
       if (group.end === 'from') {
@@ -701,7 +766,8 @@ function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: re
 
   for (let i = 0; i < routes.length; i++) {
     for (let j = i + 1; j < routes.length; j++) {
-      const ri = routes[i]!, rj = routes[j]!;
+      const ri = routes[i]!,
+        rj = routes[j]!;
       const ptsI = ri.points as Point[];
       const ptsJ = rj.points as Point[];
       if (ptsI.length < 4 || ptsJ.length < 4) continue;
@@ -712,15 +778,19 @@ function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: re
 
       // Compute perpendicular for each curve
       const perpOf = (pts: Point[]) => {
-        const dx = pts[3]!.x - pts[0]!.x, dy = pts[3]!.y - pts[0]!.y;
+        const dx = pts[3]!.x - pts[0]!.x,
+          dy = pts[3]!.y - pts[0]!.y;
         const len = Math.sqrt(dx * dx + dy * dy);
         return len < 1 ? null : { px: -dy / len, py: dx / len, len };
       };
-      const pI = perpOf(ptsI), pJ = perpOf(ptsJ);
+      const pI = perpOf(ptsI),
+        pJ = perpOf(ptsJ);
       if (!pI || !pJ) continue;
 
-      const origI1 = { ...ptsI[1]! }, origI2 = { ...ptsI[2]! };
-      const origJ1 = { ...ptsJ[1]! }, origJ2 = { ...ptsJ[2]! };
+      const origI1 = { ...ptsI[1]! },
+        origI2 = { ...ptsI[2]! };
+      const origJ1 = { ...ptsJ[1]! },
+        origJ2 = { ...ptsJ[2]! };
 
       // Try offsetting one curve at a time, in both directions
       type Solution = { moveRoute: 'I' | 'J'; off: number; px: number; py: number };
@@ -741,7 +811,13 @@ function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: re
             pts[2] = { x: orig2.x + p.px * off, y: orig2.y + p.py * off };
 
             const sA = sampleBezierCurve(pts[0]!, pts[1]!, pts[2]!, pts[3]!, SAMPLES);
-            const sB = sampleBezierCurve(otherPts[0]!, otherPts[1]!, otherPts[2]!, otherPts[3]!, SAMPLES);
+            const sB = sampleBezierCurve(
+              otherPts[0]!,
+              otherPts[1]!,
+              otherPts[2]!,
+              otherPts[3]!,
+              SAMPLES,
+            );
 
             if (!polylinesIntersect(sA, sB)) {
               if (!best || Math.abs(off) < Math.abs(best.off)) {
@@ -751,7 +827,8 @@ function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: re
             }
           }
           // Reset
-          pts[1] = { ...orig1 }; pts[2] = { ...orig2 };
+          pts[1] = { ...orig1 };
+          pts[2] = { ...orig2 };
         }
       }
 
@@ -784,27 +861,37 @@ function separateBezierCurves(routes: PendingRoute[], gap: number, obstacles: re
  *   y=388: B=399(left) A=439(right)  y=597: B=367(left) A=471(right) → consistent
  */
 function swapInterleavedPortsAndReroute(
-  ri: PendingRoute, rj: PendingRoute, obstacles: readonly Rect[],
+  ri: PendingRoute,
+  rj: PendingRoute,
+  obstacles: readonly Rect[],
 ): void {
-  const fromI = ri.points[0]!, toI = ri.points[ri.points.length - 1]!;
-  const fromJ = rj.points[0]!, toJ = rj.points[rj.points.length - 1]!;
+  const fromI = ri.points[0]!,
+    toI = ri.points[ri.points.length - 1]!;
+  const fromJ = rj.points[0]!,
+    toJ = rj.points[rj.points.length - 1]!;
 
   const TOLERANCE = 15;
 
   // Check all pairings of endpoints that share a horizontal or vertical line
   // and swap to un-interleave.
   const pairs: Array<{
-    endI: 'from' | 'to'; ptI: Point;
-    endJ: 'from' | 'to'; ptJ: Point;
+    endI: 'from' | 'to';
+    ptI: Point;
+    endJ: 'from' | 'to';
+    ptJ: Point;
     axis: 'x' | 'y';
   }> = [];
 
   // fromI near toJ? (same horizontal/vertical line)
-  if (Math.abs(fromI.y - toJ.y) < TOLERANCE) pairs.push({ endI: 'from', ptI: fromI, endJ: 'to', ptJ: toJ, axis: 'x' });
-  if (Math.abs(fromI.x - toJ.x) < TOLERANCE) pairs.push({ endI: 'from', ptI: fromI, endJ: 'to', ptJ: toJ, axis: 'y' });
+  if (Math.abs(fromI.y - toJ.y) < TOLERANCE)
+    pairs.push({ endI: 'from', ptI: fromI, endJ: 'to', ptJ: toJ, axis: 'x' });
+  if (Math.abs(fromI.x - toJ.x) < TOLERANCE)
+    pairs.push({ endI: 'from', ptI: fromI, endJ: 'to', ptJ: toJ, axis: 'y' });
   // toI near fromJ?
-  if (Math.abs(toI.y - fromJ.y) < TOLERANCE) pairs.push({ endI: 'to', ptI: toI, endJ: 'from', ptJ: fromJ, axis: 'x' });
-  if (Math.abs(toI.x - fromJ.x) < TOLERANCE) pairs.push({ endI: 'to', ptI: toI, endJ: 'from', ptJ: fromJ, axis: 'y' });
+  if (Math.abs(toI.y - fromJ.y) < TOLERANCE)
+    pairs.push({ endI: 'to', ptI: toI, endJ: 'from', ptJ: fromJ, axis: 'x' });
+  if (Math.abs(toI.x - fromJ.x) < TOLERANCE)
+    pairs.push({ endI: 'to', ptI: toI, endJ: 'from', ptJ: fromJ, axis: 'y' });
 
   // For each pair on a shared line, check if swapping un-interleaves
   for (const pair of pairs) {
@@ -846,8 +933,20 @@ function swapInterleavedPortsAndReroute(
 
     // Re-route both as orthogonal and check crossing
     const orthoRouter = createRouter('orthogonal');
-    const routeI = orthoRouter.route({ from: newFromI, to: newToI, style: 'orthogonal', obstacles, padding: 12 });
-    const routeJ = orthoRouter.route({ from: newFromJ, to: newToJ, style: 'orthogonal', obstacles, padding: 12 });
+    const routeI = orthoRouter.route({
+      from: newFromI,
+      to: newToI,
+      style: 'orthogonal',
+      obstacles,
+      padding: 12,
+    });
+    const routeJ = orthoRouter.route({
+      from: newFromJ,
+      to: newToJ,
+      style: 'orthogonal',
+      obstacles,
+      padding: 12,
+    });
 
     const polyI = routeI.points as Point[];
     const polyJ = routeJ.points as Point[];
@@ -877,10 +976,12 @@ function swapInterleavedPortsAndReroute(
 
 /** Convert a PendingRoute to orthogonal routing. */
 function convertToOrthogonal(target: PendingRoute, obstacles: readonly Rect[]): void {
-  const from = target.points[0]!, to = target.points[target.points.length - 1]!;
+  const from = target.points[0]!,
+    to = target.points[target.points.length - 1]!;
   const orthoRouter = createRouter('orthogonal');
   const route = orthoRouter.route({
-    from, to,
+    from,
+    to,
     style: 'orthogonal',
     obstacles,
     padding: 12,
@@ -898,12 +999,15 @@ function rebuildBezierPath(pr: PendingRoute): void {
 
 /** Offset both control points of a bezier curve perpendicular to its from→to axis. */
 function offsetBezierPerp(pts: Point[], offset: number): void {
-  const from = pts[0]!, to = pts[3]!;
-  const dx = to.x - from.x, dy = to.y - from.y;
+  const from = pts[0]!,
+    to = pts[3]!;
+  const dx = to.x - from.x,
+    dy = to.y - from.y;
   const len = Math.sqrt(dx * dx + dy * dy);
   if (len < 1) return;
 
-  const perpX = -dy / len, perpY = dx / len;
+  const perpX = -dy / len,
+    perpY = dx / len;
   pts[1] = { x: pts[1]!.x + perpX * offset, y: pts[1]!.y + perpY * offset };
   pts[2] = { x: pts[2]!.x + perpX * offset, y: pts[2]!.y + perpY * offset };
 }
@@ -915,8 +1019,8 @@ function sampleBezierCurve(p0: Point, p1: Point, p2: Point, p3: Point, n: number
     const t = i / n;
     const u = 1 - t;
     pts.push({
-      x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
-      y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+      x: u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x,
+      y: u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y,
     });
   }
   return pts;
@@ -926,7 +1030,7 @@ function sampleBezierCurve(p0: Point, p1: Point, p2: Point, p3: Point, n: number
 function polylinesIntersect(a: Point[], b: Point[]): boolean {
   for (let i = 0; i < a.length - 1; i++) {
     for (let j = 0; j < b.length - 1; j++) {
-      if (segmentsIntersect(a[i]!, a[i+1]!, b[j]!, b[j+1]!)) return true;
+      if (segmentsIntersect(a[i]!, a[i + 1]!, b[j]!, b[j + 1]!)) return true;
     }
   }
   return false;
@@ -938,8 +1042,7 @@ function segmentsIntersect(p1: Point, p2: Point, p3: Point, p4: Point): boolean 
   const d2 = cross(p3, p4, p2);
   const d3 = cross(p1, p2, p3);
   const d4 = cross(p1, p2, p4);
-  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
-      ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
+  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) {
     return true;
   }
   return false;
@@ -971,7 +1074,8 @@ function clusterByEndpoint(
       if (assigned.has(rj)) continue;
 
       const pj = end === 'from' ? rj.points[0]! : rj.points[rj.points.length - 1]!;
-      const dx = pi.x - pj.x, dy = pi.y - pj.y;
+      const dx = pi.x - pj.x,
+        dy = pi.y - pj.y;
       if (Math.sqrt(dx * dx + dy * dy) < proximity) {
         cluster.push(rj);
         assigned.add(rj);
@@ -994,7 +1098,7 @@ function clusterByEndpoint(
  */
 function nudgeOffBorders(routes: PendingRoute[], borders: readonly Rect[]): void {
   const TOLERANCE = 3; // within 3px of a border edge
-  const NUDGE = 8;     // push 8px away
+  const NUDGE = 8; // push 8px away
 
   // Extract unique horizontal border Y values and vertical border X values
   const hBorderYs: number[] = []; // horizontal borders (wide, thin height)
@@ -1013,16 +1117,18 @@ function nudgeOffBorders(routes: PendingRoute[], borders: readonly Rect[]): void
   for (const route of routes) {
     const pts = route.points as Point[];
     for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i]!, b = pts[i + 1]!;
-      const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+      const a = pts[i]!,
+        b = pts[i + 1]!;
+      const dx = Math.abs(b.x - a.x),
+        dy = Math.abs(b.y - a.y);
 
       if (dy < 1 && dx > 1) {
         // Horizontal segment — check against horizontal borders
         for (const borderY of hBorderYs) {
           if (Math.abs(a.y - borderY) < TOLERANCE) {
             // Nudge toward the midpoint between from/to Y of the full route
-            const routeMinY = Math.min(...pts.map(p => p.y));
-            const routeMaxY = Math.max(...pts.map(p => p.y));
+            const routeMinY = Math.min(...pts.map((p) => p.y));
+            const routeMaxY = Math.max(...pts.map((p) => p.y));
             const routeMidY = (routeMinY + routeMaxY) / 2;
             const nudgeDir = a.y < routeMidY ? -NUDGE : NUDGE;
             pts[i] = { x: a.x, y: a.y + nudgeDir };
@@ -1038,8 +1144,8 @@ function nudgeOffBorders(routes: PendingRoute[], borders: readonly Rect[]): void
         // Vertical segment — check against vertical borders
         for (const borderX of vBorderXs) {
           if (Math.abs(a.x - borderX) < TOLERANCE) {
-            const routeMinX = Math.min(...pts.map(p => p.x));
-            const routeMaxX = Math.max(...pts.map(p => p.x));
+            const routeMinX = Math.min(...pts.map((p) => p.x));
+            const routeMaxX = Math.max(...pts.map((p) => p.x));
             const routeMidX = (routeMinX + routeMaxX) / 2;
             const nudgeDir = a.x < routeMidX ? -NUDGE : NUDGE;
             pts[i] = { x: a.x + nudgeDir, y: a.y };
@@ -1078,20 +1184,43 @@ interface PendingRoute {
  */
 function separateOverlappingChannels(routes: PendingRoute[], gap: number): void {
   // Collect all segments tagged by route index and segment index
-  interface Segment { routeIdx: number; segIdx: number; isVertical: boolean; coord: number; min: number; max: number; }
+  interface Segment {
+    routeIdx: number;
+    segIdx: number;
+    isVertical: boolean;
+    coord: number;
+    min: number;
+    max: number;
+  }
   const segments: Segment[] = [];
 
   for (let r = 0; r < routes.length; r++) {
     const pts = routes[r]!.points;
     for (let s = 0; s < pts.length - 1; s++) {
-      const a = pts[s]!, b = pts[s + 1]!;
-      const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+      const a = pts[s]!,
+        b = pts[s + 1]!;
+      const dx = Math.abs(b.x - a.x),
+        dy = Math.abs(b.y - a.y);
       if (dx < 1 && dy > 1) {
         // Vertical segment
-        segments.push({ routeIdx: r, segIdx: s, isVertical: true, coord: a.x, min: Math.min(a.y, b.y), max: Math.max(a.y, b.y) });
+        segments.push({
+          routeIdx: r,
+          segIdx: s,
+          isVertical: true,
+          coord: a.x,
+          min: Math.min(a.y, b.y),
+          max: Math.max(a.y, b.y),
+        });
       } else if (dy < 1 && dx > 1) {
         // Horizontal segment
-        segments.push({ routeIdx: r, segIdx: s, isVertical: false, coord: a.y, min: Math.min(a.x, b.x), max: Math.max(a.x, b.x) });
+        segments.push({
+          routeIdx: r,
+          segIdx: s,
+          isVertical: false,
+          coord: a.y,
+          min: Math.min(a.x, b.x),
+          max: Math.max(a.x, b.x),
+        });
       }
     }
   }
@@ -1170,8 +1299,10 @@ export function wavifyPath(
   // ── Step 1: cumulative arc-lengths at original vertices ───────────────────
   const arcLen: number[] = [0];
   for (let i = 1; i < points.length; i++) {
-    const a = points[i - 1]!, b = points[i]!;
-    const dx = b.x - a.x, dy = b.y - a.y;
+    const a = points[i - 1]!,
+      b = points[i]!;
+    const dx = b.x - a.x,
+      dy = b.y - a.y;
     arcLen.push(arcLen[i - 1]! + Math.sqrt(dx * dx + dy * dy));
   }
   const totalLen = arcLen[arcLen.length - 1]!;
@@ -1191,20 +1322,24 @@ export function wavifyPath(
     for (let i = 1; i < points.length; i++) {
       if (arcLen[i]! >= s - 1e-9) {
         const segStart = arcLen[i - 1]!;
-        const segEnd   = arcLen[i]!;
-        const segLen   = segEnd - segStart;
+        const segEnd = arcLen[i]!;
+        const segLen = segEnd - segStart;
         const t = segLen < 1e-9 ? 0 : (s - segStart) / segLen;
-        const a = points[i - 1]!, b = points[i]!;
+        const a = points[i - 1]!,
+          b = points[i]!;
         const pt = { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
-        const dx = b.x - a.x, dy = b.y - a.y;
+        const dx = b.x - a.x,
+          dy = b.y - a.y;
         const len = Math.sqrt(dx * dx + dy * dy);
         const tx = len > 1e-9 ? dx / len : 1;
         const ty = len > 1e-9 ? dy / len : 0;
         return { pt, tangentX: tx, tangentY: ty };
       }
     }
-    const last = points[points.length - 1]!, prev = points[points.length - 2]!;
-    const dx = last.x - prev.x, dy = last.y - prev.y;
+    const last = points[points.length - 1]!,
+      prev = points[points.length - 2]!;
+    const dx = last.x - prev.x,
+      dy = last.y - prev.y;
     const len = Math.sqrt(dx * dx + dy * dy);
     return { pt: last, tangentX: len > 1e-9 ? dx / len : 1, tangentY: len > 1e-9 ? dy / len : 0 };
   }
@@ -1213,14 +1348,19 @@ export function wavifyPath(
   // A "corner" is any vertex where the turning angle > 45°.
   const cornerArcLens: number[] = [];
   for (let i = 1; i < points.length - 1; i++) {
-    const a = points[i - 1]!, b = points[i]!, c = points[i + 1]!;
-    const d1x = b.x - a.x, d1y = b.y - a.y;
-    const d2x = c.x - b.x, d2y = c.y - b.y;
+    const a = points[i - 1]!,
+      b = points[i]!,
+      c = points[i + 1]!;
+    const d1x = b.x - a.x,
+      d1y = b.y - a.y;
+    const d2x = c.x - b.x,
+      d2y = c.y - b.y;
     const len1 = Math.sqrt(d1x * d1x + d1y * d1y);
     const len2 = Math.sqrt(d2x * d2x + d2y * d2y);
     if (len1 < 1e-9 || len2 < 1e-9) continue;
     const dot = (d1x / len1) * (d2x / len2) + (d1y / len1) * (d2y / len2);
-    if (dot < 0.7) { // angle > ~45°
+    if (dot < 0.7) {
+      // angle > ~45°
       cornerArcLens.push(arcLen[i]!);
     }
   }
@@ -1238,7 +1378,10 @@ export function wavifyPath(
     const endpointDist = Math.min(s, totalLen - s);
     // Keep the first/last interior samples flat so Catmull-Rom endpoint handles
     // align with the route direction used by SVG marker orientation.
-    return Math.max(0, Math.min(1, (endpointDist - sampleInterval) / (wavelength - sampleInterval)));
+    return Math.max(
+      0,
+      Math.min(1, (endpointDist - sampleInterval) / (wavelength - sampleInterval)),
+    );
   }
 
   for (let k = 0; k < sampleCount; k++) {
@@ -1268,10 +1411,10 @@ export function wavifyPath(
     const p2 = samples[i]!;
     const p3 = samples[Math.min(samples.length - 1, i + 1)]!;
 
-    const cp1x = p1.x + (p2.x - p0.x) * tension / 3;
-    const cp1y = p1.y + (p2.y - p0.y) * tension / 3;
-    const cp2x = p2.x - (p3.x - p1.x) * tension / 3;
-    const cp2y = p2.y - (p3.y - p1.y) * tension / 3;
+    const cp1x = p1.x + ((p2.x - p0.x) * tension) / 3;
+    const cp1y = p1.y + ((p2.y - p0.y) * tension) / 3;
+    const cp2x = p2.x - ((p3.x - p1.x) * tension) / 3;
+    const cp2y = p2.y - ((p3.y - p1.y) * tension) / 3;
 
     d += ` C ${f(cp1x)} ${f(cp1y)} ${f(cp2x)} ${f(cp2y)} ${f(p2.x)} ${f(p2.y)}`;
   }

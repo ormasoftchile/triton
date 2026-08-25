@@ -208,8 +208,17 @@ Wall
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 
 NodeRef
-  = id:NodeId _ shape:Shape? {
-      return { id: registerNode(id, shape ? shape.label : null, shape ? shape.shape : null) };
+  = id:NodeId _ shape:Shape? cls:(":::" c:$([a-zA-Z0-9_-]+) { return c; })? {
+      const registeredId = registerNode(id, shape ? shape.label : null, shape ? shape.shape : null);
+      if (cls) {
+        const node = nodeMap.get(registeredId);
+        if (node) {
+          node.classes = node.classes || [];
+          node.classes.push(cls);
+          if (cls === 'focal') node.status = 'active';
+        }
+      }
+      return { id: registeredId };
     }
 
 NodeDecl
@@ -255,9 +264,9 @@ ClickDirective = "click"    __ content:$[^\n;]+ { return { type: 'click',    raw
 // ─── Overlays ─────────────────────────────────────────────────────────────────
 
 NoteDirective
-  = "note" __ "\"" text:$[^"]* "\"" __ "at" __ target:$([a-zA-Z_][a-zA-Z0-9_]*)
+  = kind:("note" / "callout") __ "\"" text:$[^"]* "\"" __ "at" __ target:$([a-zA-Z_][a-zA-Z0-9_]*)
     offset:NoteOffset? {
-      const note = { type: 'note', text, target, offset: offset || undefined };
+      const note = { type: kind, text, target, offset: offset || undefined };
       overlays.push(note);
       return note;
     }

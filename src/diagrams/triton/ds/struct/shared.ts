@@ -18,7 +18,10 @@ export function arrowDef(color: string): string {
 
 /** Tokens on the keyword line and directive lines, trimmed and split. */
 export function lines(input: string): string[] {
-  return input.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  return input
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 }
 
 /**

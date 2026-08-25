@@ -15,7 +15,10 @@ import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../../con
 import type { TreeDocument, TreeNode } from '../tree/ir.js';
 import { layoutTree } from '../tree/layout.js';
 
-interface TNode { edges: Map<string, TNode>; end: boolean; }
+interface TNode {
+  edges: Map<string, TNode>;
+  end: boolean;
+}
 
 const newNode = (): TNode => ({ edges: new Map(), end: false });
 
@@ -23,7 +26,10 @@ function insert(root: TNode, word: string): void {
   let node = root;
   for (const ch of word) {
     let child = node.edges.get(ch);
-    if (child === undefined) { child = newNode(); node.edges.set(ch, child); }
+    if (child === undefined) {
+      child = newNode();
+      node.edges.set(ch, child);
+    }
     node = child;
   }
   node.end = true;
@@ -32,7 +38,7 @@ function insert(root: TNode, word: string): void {
 export function buildTrie(input: string): TreeDocument {
   // words = non-keyword alphanumeric tokens after `trie`/`insert`
   const tokens = input.split(/\s+/).filter(Boolean);
-  const words = tokens.filter(t => t !== 'trie' && t !== 'insert' && /^[A-Za-z0-9]+$/.test(t));
+  const words = tokens.filter((t) => t !== 'trie' && t !== 'insert' && /^[A-Za-z0-9]+$/.test(t));
   const root = newNode();
   for (const w of words) insert(root, w);
 
@@ -44,8 +50,20 @@ export function buildTrie(input: string): TreeDocument {
     // Terminal nodes (end of a word) → filled pill labelled with the full word.
     // Intermediate/branch nodes → small dot; the character lives on the edge.
     const node: TreeNode = n.end
-      ? { id, label: prefix, kinds: ['leaf', 'active'], children, ...(edgeLabel !== undefined ? { edgeLabel } : {}) }
-      : { id, label: '', kinds: ['dot'], children, ...(edgeLabel !== undefined ? { edgeLabel } : {}) };
+      ? {
+          id,
+          label: prefix,
+          kinds: ['leaf', 'active'],
+          children,
+          ...(edgeLabel !== undefined ? { edgeLabel } : {}),
+        }
+      : {
+          id,
+          label: '',
+          kinds: ['dot'],
+          children,
+          ...(edgeLabel !== undefined ? { edgeLabel } : {}),
+        };
     nodes.push(node);
     // Stable child order: insertion order of the Map (first-seen character).
     for (const [ch, child] of n.edges) children.push(emit(child, prefix + ch, ch));

@@ -91,11 +91,16 @@ export function initExportWasm(wasmBytes: Uint8Array | ArrayBuffer): Promise<voi
   return wasmInitPromise;
 }
 
-export function encodeApng(frames: readonly Uint8Array[], delaysMs: readonly number[], size: ApngSize): Uint8Array {
+export function encodeApng(
+  frames: readonly Uint8Array[],
+  delaysMs: readonly number[],
+  size: ApngSize,
+): Uint8Array {
   if (frames.length === 0) throw new Error('encodeApng requires at least one frame');
-  if (frames.length !== delaysMs.length) throw new Error('encodeApng frame and delay counts must match');
+  if (frames.length !== delaysMs.length)
+    throw new Error('encodeApng frame and delay counts must match');
   const expectedLength = size.width * size.height * 4;
-  const buffers = frames.map(frame => {
+  const buffers = frames.map((frame) => {
     if (frame.byteLength !== expectedLength) {
       throw new Error(`RGBA frame has ${frame.byteLength} bytes; expected ${expectedLength}`);
     }
@@ -105,8 +110,9 @@ export function encodeApng(frames: readonly Uint8Array[], delaysMs: readonly num
 }
 
 export function planLoop(periodsPresent: Iterable<ExportAnimationPeriod>, fps: number): LoopPlan {
-  const periodsMs = [...periodsPresent].map(periodToMs).filter(ms => ms > 0);
-  const loopMs = periodsMs.length === 0 ? DEFAULT_LOOP_SECONDS * MS_PER_SECOND : periodsMs.reduce(lcm);
+  const periodsMs = [...periodsPresent].map(periodToMs).filter((ms) => ms > 0);
+  const loopMs =
+    periodsMs.length === 0 ? DEFAULT_LOOP_SECONDS * MS_PER_SECOND : periodsMs.reduce(lcm);
   const safeFps = positiveNumber(fps, 'fps');
   const frameCount = Math.max(1, Math.round((loopMs / MS_PER_SECOND) * safeFps));
   return {
@@ -116,23 +122,37 @@ export function planLoop(periodsPresent: Iterable<ExportAnimationPeriod>, fps: n
   };
 }
 
-export async function exportAnimatedPng(renderedSvg: string, opts: AnimatedPngOptions = {}): Promise<Uint8Array> {
+export async function exportAnimatedPng(
+  renderedSvg: string,
+  opts: AnimatedPngOptions = {},
+): Promise<Uint8Array> {
   throwIfCancelled(opts.signal);
   const fps = positiveNumber(opts.fps ?? DEFAULT_FPS, 'fps');
   const speed = positiveNumber(opts.speed ?? DEFAULT_SPEED, 'speed');
-  const motionBlurSamples = positiveInteger(opts.motionBlurSamples ?? DEFAULT_MOTION_BLUR_SAMPLES, 'motionBlurSamples');
+  const motionBlurSamples = positiveInteger(
+    opts.motionBlurSamples ?? DEFAULT_MOTION_BLUR_SAMPLES,
+    'motionBlurSamples',
+  );
   const shutter = shutterValue(opts.shutter ?? DEFAULT_SHUTTER);
   const periods = detectAnimationPeriods(renderedSvg);
   const sourcePlan = planLoop(periods, fps);
   const effectiveLoopSeconds = sourcePlan.loopSeconds / speed;
   const frameCount = Math.max(1, Math.round(effectiveLoopSeconds * fps));
   const frameSeconds = effectiveLoopSeconds / frameCount;
-  const delayMs = (frameSeconds * MS_PER_SECOND);
+  const delayMs = frameSeconds * MS_PER_SECOND;
   const frames: Uint8Array[] = [];
   let size: ApngSize | undefined;
 
   for (let i = 0; i < frameCount; i++) {
-    const frame = await renderBlurredFrame(renderedSvg, i, frameSeconds, speed, motionBlurSamples, shutter, opts);
+    const frame = await renderBlurredFrame(
+      renderedSvg,
+      i,
+      frameSeconds,
+      speed,
+      motionBlurSamples,
+      shutter,
+      opts,
+    );
     if (size == null) size = { width: frame.width, height: frame.height };
     if (frame.width !== size.width || frame.height !== size.height) {
       throw new Error('Rendered frame dimensions changed during APNG export');
@@ -146,7 +166,10 @@ export async function exportAnimatedPng(renderedSvg: string, opts: AnimatedPngOp
   return encodeApng(frames, Array(frameCount).fill(delayMs), size ?? { width: 0, height: 0 });
 }
 
-export async function exportStaticPng(renderedSvg: string, opts: RenderToPngOptions = {}): Promise<Uint8Array> {
+export async function exportStaticPng(
+  renderedSvg: string,
+  opts: RenderToPngOptions = {},
+): Promise<Uint8Array> {
   return renderToPng(bakeFrame(renderedSvg, 0), opts);
 }
 
@@ -163,7 +186,9 @@ export function detectAnimationPeriods(svg: string): RenderedConnectorAnimation[
     else if (attribute === 'stroke') present.add('colorcycle');
     else if (attribute === 'offset') present.add('flow');
   }
-  for (const match of svg.matchAll(/<circle\b([^>]*)>\s*<animateMotion\b([^>]*)\/>\s*<\/circle>/g)) {
+  for (const match of svg.matchAll(
+    /<circle\b([^>]*)>\s*<animateMotion\b([^>]*)\/>\s*<\/circle>/g,
+  )) {
     const circleAttrs = parseAttrs(match[1] ?? '');
     const motionAttrs = parseAttrs(match[2] ?? '');
     present.add(inferMotionAnimation(circleAttrs, motionAttrs));
@@ -200,13 +225,21 @@ async function renderToRgbaFrame(svg: string, opts: RenderToPngOptions): Promise
   return { rgba: rendered.rgba, width: rendered.width, height: rendered.height };
 }
 
-async function renderToRgba(svg: string, opts: RenderToPngOptions): Promise<RgbaFrame & { readonly png: Uint8Array }> {
+async function renderToRgba(
+  svg: string,
+  opts: RenderToPngOptions,
+): Promise<RgbaFrame & { readonly png: Uint8Array }> {
   await ensureWasm();
   const resvg = new Resvg(svg, renderOptions(opts));
   try {
     const image = resvg.render();
     try {
-      return { rgba: new Uint8Array(image.pixels), png: image.asPng(), width: image.width, height: image.height };
+      return {
+        rgba: new Uint8Array(image.pixels),
+        png: image.asPng(),
+        width: image.width,
+        height: image.height,
+      };
     } finally {
       image.free();
     }
@@ -216,86 +249,120 @@ async function renderToRgba(svg: string, opts: RenderToPngOptions): Promise<Rgba
 }
 
 function renderOptions(opts: RenderToPngOptions): ResvgRenderOptions {
-  const fitTo = opts.width != null
-    ? { mode: 'width' as const, value: positiveNumber(opts.width, 'width') }
-    : opts.scale != null
-      ? { mode: 'zoom' as const, value: positiveNumber(opts.scale, 'scale') }
-      : undefined;
+  const fitTo =
+    opts.width != null
+      ? { mode: 'width' as const, value: positiveNumber(opts.width, 'width') }
+      : opts.scale != null
+        ? { mode: 'zoom' as const, value: positiveNumber(opts.scale, 'scale') }
+        : undefined;
   return {
     ...(fitTo != null ? { fitTo } : {}),
-    font: opts.fonts != null
-      ? {
-          fontBuffers: opts.fonts.buffers,
-          defaultFontFamily: opts.fonts.family,
-          sansSerifFamily: opts.fonts.family,
-          loadSystemFonts: false,
-        }
-      : { loadSystemFonts: true },
+    font:
+      opts.fonts != null
+        ? {
+            fontBuffers: opts.fonts.buffers,
+            defaultFontFamily: opts.fonts.family,
+            sansSerifFamily: opts.fonts.family,
+            loadSystemFonts: false,
+          }
+        : { loadSystemFonts: true },
   };
 }
 
 function ensureWasm(): Promise<void> {
-  wasmInitPromise ??= injectedWasmBytes != null
-    ? initWasm(injectedWasmBytes)
-    : readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm')).then(bytes => initWasm(bytes));
+  wasmInitPromise ??=
+    injectedWasmBytes != null
+      ? initWasm(injectedWasmBytes)
+      : readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm')).then((bytes) =>
+          initWasm(bytes),
+        );
   return wasmInitPromise;
 }
 
 function yieldToEventLoop(): Promise<void> {
-  return new Promise(resolve => (typeof setImmediate === 'function' ? setImmediate(resolve) : setTimeout(resolve, 0)));
+  return new Promise((resolve) =>
+    typeof setImmediate === 'function' ? setImmediate(resolve) : setTimeout(resolve, 0),
+  );
 }
 
 function bakeAnimatedPaths(svg: string, timeSeconds: number): string {
-  return svg.replace(/<path\b([^>]*?)(?<!\/)>([\s\S]*?)<\/path>/g, (match, rawAttrs: string, inner: string) => {
-    if (!/<animate\b/.test(inner)) return match;
-    const attrs = parseAttrs(rawAttrs);
-    let nextAttrs = rawAttrs;
-    for (const animate of inner.matchAll(/<animate\b([^>]*)\/?>/g)) {
-      const animateAttrs = parseAttrs(animate[1] ?? '');
-      const attribute = animateAttrs.get('attributeName');
-      if (attribute === 'stroke-dashoffset') {
-        if (animateAttrs.has('from') && animateAttrs.has('to')) {
-          nextAttrs = replaceAttr(nextAttrs, 'stroke-dashoffset', formatNum(marchDashoffsetAt(timeSeconds, attrs.get('stroke-dasharray') ?? '')));
-        } else {
-          const length = pathLengthApprox(attrs.get('d') ?? '');
-          nextAttrs = replaceAttr(nextAttrs, 'stroke-dashoffset', formatNum(drawDashoffsetAt(timeSeconds, length)));
+  return svg.replace(
+    /<path\b([^>]*?)(?<!\/)>([\s\S]*?)<\/path>/g,
+    (match, rawAttrs: string, inner: string) => {
+      if (!/<animate\b/.test(inner)) return match;
+      const attrs = parseAttrs(rawAttrs);
+      let nextAttrs = rawAttrs;
+      for (const animate of inner.matchAll(/<animate\b([^>]*)\/?>/g)) {
+        const animateAttrs = parseAttrs(animate[1] ?? '');
+        const attribute = animateAttrs.get('attributeName');
+        if (attribute === 'stroke-dashoffset') {
+          if (animateAttrs.has('from') && animateAttrs.has('to')) {
+            nextAttrs = replaceAttr(
+              nextAttrs,
+              'stroke-dashoffset',
+              formatNum(marchDashoffsetAt(timeSeconds, attrs.get('stroke-dasharray') ?? '')),
+            );
+          } else {
+            const length = pathLengthApprox(attrs.get('d') ?? '');
+            nextAttrs = replaceAttr(
+              nextAttrs,
+              'stroke-dashoffset',
+              formatNum(drawDashoffsetAt(timeSeconds, length)),
+            );
+          }
+        } else if (attribute === 'stroke-width') {
+          nextAttrs = replaceAttr(
+            nextAttrs,
+            'stroke-width',
+            formatNum(pulseStrokeWidthAt(timeSeconds, numberAttr(attrs, 'stroke-width', 1))),
+          );
+        } else if (attribute === 'stroke-opacity') {
+          nextAttrs = replaceAttr(
+            nextAttrs,
+            'stroke-opacity',
+            formatNum(glowStrokeOpacityAt(timeSeconds)),
+          );
+        } else if (attribute === 'stroke') {
+          nextAttrs = replaceAttr(nextAttrs, 'stroke', colorCycleStrokeAt(timeSeconds));
         }
-      } else if (attribute === 'stroke-width') {
-        nextAttrs = replaceAttr(nextAttrs, 'stroke-width', formatNum(pulseStrokeWidthAt(timeSeconds, numberAttr(attrs, 'stroke-width', 1))));
-      } else if (attribute === 'stroke-opacity') {
-        nextAttrs = replaceAttr(nextAttrs, 'stroke-opacity', formatNum(glowStrokeOpacityAt(timeSeconds)));
-      } else if (attribute === 'stroke') {
-        nextAttrs = replaceAttr(nextAttrs, 'stroke', colorCycleStrokeAt(timeSeconds));
       }
-    }
-    const remaining = stripAnimationTags(inner).trim();
-    return remaining.length === 0 ? `<path${nextAttrs} />` : `<path${nextAttrs}>${remaining}</path>`;
-  });
+      const remaining = stripAnimationTags(inner).trim();
+      return remaining.length === 0
+        ? `<path${nextAttrs} />`
+        : `<path${nextAttrs}>${remaining}</path>`;
+    },
+  );
 }
 
 function bakeFlowStops(svg: string, timeSeconds: number): string {
-  return svg.replace(/<stop\b([^>]*)>\s*<animate\b([^>]*)\/>\s*<\/stop>/g, (match, rawAttrs: string, rawAnimateAttrs: string) => {
-    const animateAttrs = parseAttrs(rawAnimateAttrs);
-    if (animateAttrs.get('attributeName') !== 'offset') return match;
-    const stopIndex = flowStopIndex(animateAttrs.get('values') ?? '');
-    return `<stop${replaceAttr(rawAttrs, 'offset', `${formatNum(flowStopOffsetAt(timeSeconds, stopIndex))}%`)}/>`;
-  });
+  return svg.replace(
+    /<stop\b([^>]*)>\s*<animate\b([^>]*)\/>\s*<\/stop>/g,
+    (match, rawAttrs: string, rawAnimateAttrs: string) => {
+      const animateAttrs = parseAttrs(rawAnimateAttrs);
+      if (animateAttrs.get('attributeName') !== 'offset') return match;
+      const stopIndex = flowStopIndex(animateAttrs.get('values') ?? '');
+      return `<stop${replaceAttr(rawAttrs, 'offset', `${formatNum(flowStopOffsetAt(timeSeconds, stopIndex))}%`)}/>`;
+    },
+  );
 }
 
 function bakeMotionCircles(svg: string, timeSeconds: number): string {
-  return svg.replace(/<circle\b([^>]*)>\s*<animateMotion\b([^>]*)\/>\s*<\/circle>/g, (_match, rawCircleAttrs: string, rawMotionAttrs: string) => {
-    const circleAttrs = parseAttrs(rawCircleAttrs);
-    const motionAttrs = parseAttrs(rawMotionAttrs);
-    const path = motionAttrs.get('path');
-    if (!path) throw new Error('animateMotion without inline path is not supported');
-    const animation = inferMotionAnimation(circleAttrs, motionAttrs);
-    const period = ANIMATION_PERIOD_SECONDS[animation];
-    const begin = parseSeconds(motionAttrs.get('begin'), 0);
-    const phase = -begin / period;
-    const point = pointAtPathFraction(path, motionFractionAt(timeSeconds, animation, phase));
-    const withCx = replaceAttr(rawCircleAttrs, 'cx', formatNum(point.x));
-    return `<circle${replaceAttr(withCx, 'cy', formatNum(point.y))}/>`;
-  });
+  return svg.replace(
+    /<circle\b([^>]*)>\s*<animateMotion\b([^>]*)\/>\s*<\/circle>/g,
+    (_match, rawCircleAttrs: string, rawMotionAttrs: string) => {
+      const circleAttrs = parseAttrs(rawCircleAttrs);
+      const motionAttrs = parseAttrs(rawMotionAttrs);
+      const path = motionAttrs.get('path');
+      if (!path) throw new Error('animateMotion without inline path is not supported');
+      const animation = inferMotionAnimation(circleAttrs, motionAttrs);
+      const period = ANIMATION_PERIOD_SECONDS[animation];
+      const begin = parseSeconds(motionAttrs.get('begin'), 0);
+      const phase = -begin / period;
+      const point = pointAtPathFraction(path, motionFractionAt(timeSeconds, animation, phase));
+      const withCx = replaceAttr(rawCircleAttrs, 'cx', formatNum(point.x));
+      return `<circle${replaceAttr(withCx, 'cy', formatNum(point.y))}/>`;
+    },
+  );
 }
 
 function stripAnimationTags(svg: string): string {
@@ -340,14 +407,23 @@ function averageRgbaFrames(frames: readonly RgbaFrame[]): RgbaFrame {
   return { rgba: out, width, height };
 }
 
-function inferMotionAnimation(attrs: ReadonlyMap<string, string>, motionAttrs: ReadonlyMap<string, string>): 'particle' | 'comet' | 'stream' {
+function inferMotionAnimation(
+  attrs: ReadonlyMap<string, string>,
+  motionAttrs: ReadonlyMap<string, string>,
+): 'particle' | 'comet' | 'stream' {
   const dur = parseSeconds(motionAttrs.get('dur'), ANIMATION_PERIOD_SECONDS.particle);
   if (Math.abs(dur - ANIMATION_PERIOD_SECONDS.stream) < 1e-6) return 'stream';
 
   const r = Number(attrs.get('r'));
   const opacity = attrs.has('opacity') ? Number(attrs.get('opacity')) : undefined;
   const comet = motionParticleSpecs('comet');
-  if (comet.some(spec => Math.abs(spec.radius - r) < 1e-6 && (spec.opacity == null || Math.abs(spec.opacity - (opacity ?? 1)) < 1e-6))) {
+  if (
+    comet.some(
+      (spec) =>
+        Math.abs(spec.radius - r) < 1e-6 &&
+        (spec.opacity == null || Math.abs(spec.opacity - (opacity ?? 1)) < 1e-6),
+    )
+  ) {
     return 'comet';
   }
   return 'particle';
@@ -417,7 +493,8 @@ function positiveInteger(value: number, name: string): number {
 }
 
 function shutterValue(value: number): number {
-  if (!Number.isFinite(value) || value <= 0 || value > 1) throw new Error('shutter must be in (0,1]');
+  if (!Number.isFinite(value) || value <= 0 || value > 1)
+    throw new Error('shutter must be in (0,1]');
   return value;
 }
 

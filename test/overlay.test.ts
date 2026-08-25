@@ -8,7 +8,19 @@ const baseScene: Scene = {
   viewBox: { x: 0, y: 0, width: 400, height: 300 },
   background: '#fff',
   elements: [
-    { type: 'group', id: 'node-a', children: [{ type: 'rect', bounds: { x: 50, y: 100, width: 120, height: 40 }, fill: '#eee', stroke: '#999', strokeWidth: 1 }] },
+    {
+      type: 'group',
+      id: 'node-a',
+      children: [
+        {
+          type: 'rect',
+          bounds: { x: 50, y: 100, width: 120, height: 40 },
+          fill: '#eee',
+          stroke: '#999',
+          strokeWidth: 1,
+        },
+      ],
+    },
   ],
 };
 
@@ -29,7 +41,9 @@ describe('compileOverlays', () => {
   });
 
   it('note with offset applies offset as position', () => {
-    const result = compileOverlays([{ type: 'note', text: 'Hi', target: 'x', offset: { dx: 20, dy: -30 } }]);
+    const result = compileOverlays([
+      { type: 'note', text: 'Hi', target: 'x', offset: { dx: 20, dy: -30 } },
+    ]);
     expect(result.annotations[0]!.position).toEqual({ x: 20, y: -30 });
   });
 
@@ -39,7 +53,14 @@ describe('compileOverlays', () => {
   });
 
   it('legend produces a legend with parsed corner', () => {
-    const result = compileOverlays([{ type: 'legend', corner: 'top-left', title: 'My Legend', entries: [{ key: 'v', value: '1.0' }] }]);
+    const result = compileOverlays([
+      {
+        type: 'legend',
+        corner: 'top-left',
+        title: 'My Legend',
+        entries: [{ key: 'v', value: '1.0' }],
+      },
+    ]);
     expect(result.legend).toBeDefined();
     expect(result.legend!.corner).toBe('top-left');
     expect(result.legend!.title).toBe('My Legend');
@@ -82,13 +103,17 @@ describe('layoutOverlays', () => {
   });
 
   it('legend produces a group element', () => {
-    const compiled = compileOverlays([{ type: 'legend', corner: 'bottom-right', entries: [{ key: 'Author', value: 'Team' }] }]);
+    const compiled = compileOverlays([
+      { type: 'legend', corner: 'bottom-right', entries: [{ key: 'Author', value: 'Team' }] },
+    ]);
     const { elements } = layoutOverlays(compiled, baseScene, defaultTheme);
     expect(elements.length).toBeGreaterThan(0);
   });
 
   it('bottom-right legend is positioned within the viewBox', () => {
-    const compiled = compileOverlays([{ type: 'legend', corner: 'bottom-right', entries: [{ key: 'k', value: 'v' }] }]);
+    const compiled = compileOverlays([
+      { type: 'legend', corner: 'bottom-right', entries: [{ key: 'k', value: 'v' }] },
+    ]);
     const { viewBox } = layoutOverlays(compiled, baseScene, defaultTheme);
     // viewBox should not shrink
     expect(viewBox.width).toBeGreaterThanOrEqual(baseScene.viewBox.width);
@@ -97,10 +122,27 @@ describe('layoutOverlays', () => {
 
   it('annotation outside scene bounds expands the viewBox', () => {
     // Place annotation way above the scene
-    const scene: Scene = { ...baseScene, elements: [
-      { type: 'group', id: 'far', children: [{ type: 'rect', bounds: { x: 10, y: 10, width: 60, height: 30 }, fill: '#eee', stroke: '#999', strokeWidth: 1 }] },
-    ]};
-    const compiled = compileOverlays([{ type: 'note', text: 'Way above', target: 'far', offset: { dx: 0, dy: -200 } }]);
+    const scene: Scene = {
+      ...baseScene,
+      elements: [
+        {
+          type: 'group',
+          id: 'far',
+          children: [
+            {
+              type: 'rect',
+              bounds: { x: 10, y: 10, width: 60, height: 30 },
+              fill: '#eee',
+              stroke: '#999',
+              strokeWidth: 1,
+            },
+          ],
+        },
+      ],
+    };
+    const compiled = compileOverlays([
+      { type: 'note', text: 'Way above', target: 'far', offset: { dx: 0, dy: -200 } },
+    ]);
     const { viewBox } = layoutOverlays(compiled, scene, defaultTheme);
     expect(viewBox.y).toBeLessThan(0);
   });

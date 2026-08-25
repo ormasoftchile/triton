@@ -37,11 +37,15 @@ export function animationDuration(animation: RenderedConnectorAnimation): string
 }
 
 export function marchDashoffsetAt(timeSeconds: number, dasharray: string): number {
-  const offset = -parseDasharrayPeriod(dasharray) * normalizedTime(timeSeconds, ANIMATION_PERIOD_SECONDS.march);
+  const offset =
+    -parseDasharrayPeriod(dasharray) * normalizedTime(timeSeconds, ANIMATION_PERIOD_SECONDS.march);
   return Object.is(offset, -0) ? 0 : offset;
 }
 
-export function marchDashoffsetValues(dasharray: string): { readonly from: number; readonly to: number } {
+export function marchDashoffsetValues(dasharray: string): {
+  readonly from: number;
+  readonly to: number;
+} {
   return { from: 0, to: -parseDasharrayPeriod(dasharray) };
 }
 
@@ -70,7 +74,10 @@ export function glowStrokeOpacityValues(): readonly [number, number, number] {
 }
 
 export function colorCycleStrokeAt(timeSeconds: number): string {
-  return interpolatedHex(COLOR_CYCLE_STROKES, normalizedTime(timeSeconds, ANIMATION_PERIOD_SECONDS.colorcycle));
+  return interpolatedHex(
+    COLOR_CYCLE_STROKES,
+    normalizedTime(timeSeconds, ANIMATION_PERIOD_SECONDS.colorcycle),
+  );
 }
 
 export function colorCycleStrokeValues(): typeof COLOR_CYCLE_STROKES {
@@ -78,18 +85,27 @@ export function colorCycleStrokeValues(): typeof COLOR_CYCLE_STROKES {
 }
 
 export function flowStopOffsetAt(timeSeconds: number, stopIndex: 0 | 1 | 2): number {
-  return keyframedNumber(FLOW_STOP_OFFSETS[stopIndex], normalizedTime(timeSeconds, ANIMATION_PERIOD_SECONDS.flow));
+  return keyframedNumber(
+    FLOW_STOP_OFFSETS[stopIndex],
+    normalizedTime(timeSeconds, ANIMATION_PERIOD_SECONDS.flow),
+  );
 }
 
 export function flowStopOffsetValues(stopIndex: 0 | 1 | 2): readonly [number, number, number] {
   return FLOW_STOP_OFFSETS[stopIndex];
 }
 
-export function motionFractionAt(timeSeconds: number, animation: 'particle' | 'comet' | 'stream', phase = 0): number {
+export function motionFractionAt(
+  timeSeconds: number,
+  animation: 'particle' | 'comet' | 'stream',
+  phase = 0,
+): number {
   return wrap01(normalizedTime(timeSeconds, ANIMATION_PERIOD_SECONDS[animation]) + phase);
 }
 
-export function motionParticleSpecs(animation: 'particle' | 'comet' | 'stream'): readonly MotionParticleSpec[] {
+export function motionParticleSpecs(
+  animation: 'particle' | 'comet' | 'stream',
+): readonly MotionParticleSpec[] {
   if (animation === 'particle') return [{ radius: 4, phase: 0 }];
   if (animation === 'comet') {
     return [
@@ -106,7 +122,10 @@ export function motionParticleSpecs(animation: 'particle' | 'comet' | 'stream'):
   ];
 }
 
-export function motionBeginSeconds(animation: 'particle' | 'comet' | 'stream', phase: number): number {
+export function motionBeginSeconds(
+  animation: 'particle' | 'comet' | 'stream',
+  phase: number,
+): number {
   return -phase * ANIMATION_PERIOD_SECONDS[animation];
 }
 
@@ -143,7 +162,7 @@ export function pathLengthApprox(path: string): number {
 }
 
 export function pathPoints(path: string): Point[] {
-  const nums = [...path.matchAll(/-?\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi)].map(m => Number(m[0]));
+  const nums = [...path.matchAll(/-?\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi)].map((m) => Number(m[0]));
   const pts: Point[] = [];
   for (let i = 0; i + 1 < nums.length; i += 2) {
     const x = nums[i]!;
@@ -158,7 +177,7 @@ export function parseDasharrayPeriod(dasharray: string): number {
     .trim()
     .split(/[\s,]+/)
     .map(Number)
-    .filter(n => !isNaN(n) && n > 0)
+    .filter((n) => !isNaN(n) && n > 0)
     .reduce((sum, n) => sum + n, 0);
 }
 
@@ -170,7 +189,12 @@ function normalizedTime(timeSeconds: number, periodSeconds: number): number {
   return wrap01(timeSeconds / periodSeconds);
 }
 
-function triangularValue(timeSeconds: number, periodSeconds: number, start: number, mid: number): number {
+function triangularValue(
+  timeSeconds: number,
+  periodSeconds: number,
+  start: number,
+  mid: number,
+): number {
   const p = normalizedTime(timeSeconds, periodSeconds);
   const local = p <= 0.5 ? p * 2 : (1 - p) * 2;
   return start + (mid - start) * local;
@@ -198,7 +222,7 @@ function interpolatedHex(values: readonly string[], progress: number): string {
 function mixHex(a: string, b: string, t: number): string {
   const left = parseHex(a);
   const right = parseHex(b);
-  return `#${[0, 1, 2].map(i => formatHex(left[i]! + (right[i]! - left[i]!) * t)).join('')}`;
+  return `#${[0, 1, 2].map((i) => formatHex(left[i]! + (right[i]! - left[i]!) * t)).join('')}`;
 }
 
 function parseHex(value: string): readonly [number, number, number] {

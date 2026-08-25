@@ -23,34 +23,47 @@ export function isBuiltinThemeName(name: string): boolean {
 // ─── Known key sets ───────────────────────────────────────────────────────────
 
 const TOP_LEVEL_KEYS = new Set([
-  'name', 'base', 'palette', 'typography', 'spacing', 'edges', 'panel',
+  'name',
+  'base',
+  'palette',
+  'typography',
+  'spacing',
+  'edges',
+  'panel',
 ]);
 
 const PALETTE_KEYS = new Set([
-  'primary', 'secondary', 'background', 'surface', 'border',
-  'text', 'textMuted', 'success', 'warning', 'error',
+  'primary',
+  'secondary',
+  'background',
+  'surface',
+  'border',
+  'text',
+  'textMuted',
+  'success',
+  'warning',
+  'error',
 ]);
 
 const TYPOGRAPHY_KEYS = new Set([
-  'fontFamily', 'monoFamily', 'baseFontSize', 'titleFontSize', 'smallFontSize', 'lineHeight',
+  'fontFamily',
+  'monoFamily',
+  'baseFontSize',
+  'titleFontSize',
+  'smallFontSize',
+  'lineHeight',
 ]);
 
-const SPACING_KEYS = new Set([
-  'unit', 'nodePadding', 'nodeGap', 'diagramMargin',
-]);
+const SPACING_KEYS = new Set(['unit', 'nodePadding', 'nodeGap', 'diagramMargin']);
 
-const EDGES_KEYS = new Set([
-  'strokeWidth', 'arrowSize', 'labelFontSize', 'curveTension',
-]);
+const EDGES_KEYS = new Set(['strokeWidth', 'arrowSize', 'labelFontSize', 'curveTension']);
 
-const PANEL_KEYS = new Set([
-  'titleAlign', 'titlePosition', 'titleChrome',
-]);
+const PANEL_KEYS = new Set(['titleAlign', 'titlePosition', 'titleChrome']);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const HEX_COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
-const SLUG      = /^[a-z0-9-]+$/;
+const SLUG = /^[a-z0-9-]+$/;
 const CSS_INJECTION = /url\s*\(|expression\s*\(/i;
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
@@ -63,7 +76,9 @@ function fail(message: string): Result<never> {
 
 // ─── Group validators ─────────────────────────────────────────────────────────
 
-function validatePalette(obj: unknown): Result<Partial<import('../contracts/theme.js').ThemePalette>> {
+function validatePalette(
+  obj: unknown,
+): Result<Partial<import('../contracts/theme.js').ThemePalette>> {
   if (!isPlainObject(obj)) return fail('"palette" must be a plain object');
 
   for (const key of Object.keys(obj)) {
@@ -73,14 +88,18 @@ function validatePalette(obj: unknown): Result<Partial<import('../contracts/them
   for (const key of Object.keys(obj)) {
     const val = obj[key];
     if (typeof val !== 'string' || !HEX_COLOR.test(val)) {
-      return fail(`palette.${key} must be a CSS hex color (e.g. "#RGB" or "#RRGGBB"), got ${JSON.stringify(val)}`);
+      return fail(
+        `palette.${key} must be a CSS hex color (e.g. "#RGB" or "#RRGGBB"), got ${JSON.stringify(val)}`,
+      );
     }
   }
 
   return ok(obj as Partial<import('../contracts/theme.js').ThemePalette>);
 }
 
-function validateTypography(obj: unknown): Result<Partial<import('../contracts/theme.js').ThemeTypography>> {
+function validateTypography(
+  obj: unknown,
+): Result<Partial<import('../contracts/theme.js').ThemeTypography>> {
   if (!isPlainObject(obj)) return fail('"typography" must be a plain object');
 
   for (const key of Object.keys(obj)) {
@@ -92,7 +111,8 @@ function validateTypography(obj: unknown): Result<Partial<import('../contracts/t
     if (key in obj) {
       const val = obj[key];
       if (typeof val !== 'string') return fail(`typography.${key} must be a string`);
-      if (CSS_INJECTION.test(val)) return fail(`typography.${key} contains disallowed CSS expression`);
+      if (CSS_INJECTION.test(val))
+        return fail(`typography.${key} contains disallowed CSS expression`);
     }
   }
 
@@ -109,7 +129,9 @@ function validateTypography(obj: unknown): Result<Partial<import('../contracts/t
   return ok(obj as Partial<import('../contracts/theme.js').ThemeTypography>);
 }
 
-function validateSpacing(obj: unknown): Result<Partial<import('../contracts/theme.js').ThemeSpacing>> {
+function validateSpacing(
+  obj: unknown,
+): Result<Partial<import('../contracts/theme.js').ThemeSpacing>> {
   if (!isPlainObject(obj)) return fail('"spacing" must be a plain object');
 
   for (const key of Object.keys(obj)) {
@@ -146,7 +168,9 @@ function validateEdges(obj: unknown): Result<Partial<import('../contracts/theme.
   if ('curveTension' in obj) {
     const val = obj['curveTension'];
     if (typeof val !== 'number' || val < 0 || val > 1) {
-      return fail(`edges.curveTension must be a number between 0 and 1, got ${JSON.stringify(val)}`);
+      return fail(
+        `edges.curveTension must be a number between 0 and 1, got ${JSON.stringify(val)}`,
+      );
     }
   }
 
@@ -163,14 +187,18 @@ function validatePanel(obj: unknown): Result<Partial<import('../contracts/theme.
   if ('titleAlign' in obj) {
     const val = obj['titleAlign'];
     if (val !== 'left' && val !== 'center' && val !== 'right') {
-      return fail(`panel.titleAlign must be "left", "center", or "right", got ${JSON.stringify(val)}`);
+      return fail(
+        `panel.titleAlign must be "left", "center", or "right", got ${JSON.stringify(val)}`,
+      );
     }
   }
 
   if ('titlePosition' in obj) {
     const val = obj['titlePosition'];
     if (val !== 'inside' && val !== 'on-border' && val !== 'above') {
-      return fail(`panel.titlePosition must be "inside", "on-border", or "above", got ${JSON.stringify(val)}`);
+      return fail(
+        `panel.titlePosition must be "inside", "on-border", or "above", got ${JSON.stringify(val)}`,
+      );
     }
   }
 
@@ -194,7 +222,9 @@ function validatePanel(obj: unknown): Result<Partial<import('../contracts/theme.
  */
 export function validateThemeInput(json: unknown): Result<ThemeInput> {
   if (!isPlainObject(json)) {
-    return fail(`ThemeInput must be a non-null plain object, got ${json === null ? 'null' : Array.isArray(json) ? 'array' : typeof json}`);
+    return fail(
+      `ThemeInput must be a non-null plain object, got ${json === null ? 'null' : Array.isArray(json) ? 'array' : typeof json}`,
+    );
   }
 
   // Strict unknown-key check at top level
@@ -208,7 +238,8 @@ export function validateThemeInput(json: unknown): Result<ThemeInput> {
   if ('name' in json) {
     const v = json['name'];
     if (typeof v !== 'string') return fail(`"name" must be a string, got ${JSON.stringify(v)}`);
-    if (v.length < 1 || v.length > 64) return fail(`"name" must be 1–64 characters, got length ${v.length}`);
+    if (v.length < 1 || v.length > 64)
+      return fail(`"name" must be 1–64 characters, got length ${v.length}`);
     if (!SLUG.test(v)) return fail(`"name" must match ^[a-z0-9-]+$, got ${JSON.stringify(v)}`);
     result['name'] = v;
   }
@@ -217,7 +248,8 @@ export function validateThemeInput(json: unknown): Result<ThemeInput> {
   if ('base' in json) {
     const v = json['base'];
     if (typeof v !== 'string') return fail(`"base" must be a string, got ${JSON.stringify(v)}`);
-    if (!isBuiltinThemeName(v)) return fail(`"base" must be a built-in preset name; "${v}" is not recognised`);
+    if (!isBuiltinThemeName(v))
+      return fail(`"base" must be a built-in preset name; "${v}" is not recognised`);
     result['base'] = v;
   }
 

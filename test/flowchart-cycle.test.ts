@@ -53,7 +53,7 @@ describe('flowchart cycles terminate and render', () => {
       subgraphs: [],
     };
     const { scene } = layoutFlowchart(doc, defaultTheme);
-    const paths = scene.elements.filter(e => e.type === 'path');
+    const paths = scene.elements.filter((e) => e.type === 'path');
     expect(paths.length).toBeGreaterThanOrEqual(3);
   });
 
@@ -74,9 +74,11 @@ describe('flowchart cycles terminate and render', () => {
       subgraphs: [],
     };
     const { scene } = layoutFlowchart(doc, defaultTheme);
-    const groups = scene.elements.filter(e => e.type === 'group' && (e as { id?: string }).id) as Array<{ id: string; children: Array<{ type: string; bounds?: { y: number } }> }>;
+    const groups = scene.elements.filter(
+      (e) => e.type === 'group' && (e as { id?: string }).id,
+    ) as Array<{ id: string; children: Array<{ type: string; bounds?: { y: number } }> }>;
     const ys = groups
-      .map(g => g.children.find(c => c.type === 'rect')?.bounds?.y)
+      .map((g) => g.children.find((c) => c.type === 'rect')?.bounds?.y)
       .filter((y): y is number => y !== undefined);
     // A, B, C on three distinct rows
     expect(new Set(ys).size).toBe(3);
@@ -101,11 +103,11 @@ describe('flowchart cycles terminate and render', () => {
       subgraphs: [],
     };
     const { scene } = layoutFlowchart(doc, defaultTheme);
-    const paths = scene.elements.filter(e => e.type === 'path') as Array<{ d: string }>;
+    const paths = scene.elements.filter((e) => e.type === 'path') as Array<{ d: string }>;
     expect(paths.length).toBe(2);
     const [forward, back] = paths;
     expect(forward!.d).not.toContain('C'); // straight orthogonal route
-    expect(back!.d).toContain('C');        // bowed cubic Bézier (feedback route)
+    expect(back!.d).toContain('C'); // bowed cubic Bézier (feedback route)
   });
 
   it('self-loop produces a non-degenerate looped path (not a zero-length line)', () => {
@@ -118,7 +120,7 @@ describe('flowchart cycles terminate and render', () => {
       subgraphs: [],
     };
     const { scene } = layoutFlowchart(doc, defaultTheme);
-    const paths = scene.elements.filter(e => e.type === 'path') as Array<{ d: string }>;
+    const paths = scene.elements.filter((e) => e.type === 'path') as Array<{ d: string }>;
     expect(paths.length).toBe(1);
     const d = paths[0]!.d;
     expect(d).toContain('C'); // a small loop, not a straight degenerate segment

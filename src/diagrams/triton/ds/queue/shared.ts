@@ -9,7 +9,13 @@
  * helper. Pure + deterministic — geometry is a function of inputs only.
  */
 
-import type { Scene, SceneElement, ResolvedTheme, Rect, TextAnchor } from '../../../../contracts/index.js';
+import type {
+  Scene,
+  SceneElement,
+  ResolvedTheme,
+  Rect,
+  TextAnchor,
+} from '../../../../contracts/index.js';
 import type { Pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { rhu } from '../../../../util/round.js';
@@ -24,7 +30,10 @@ export const ARROW_FWD = 'queue-arrow-fwd';
 /** Reverse arrowhead (apex against travel direction) — use as `markerStart`. */
 export const ARROW_REV = 'queue-arrow-rev';
 
-export function parseAxisToken(token: string | undefined, fallback: StripOrientation): StripOrientation {
+export function parseAxisToken(
+  token: string | undefined,
+  fallback: StripOrientation,
+): StripOrientation {
   return token === 'horizontal' || token === 'vertical' ? token : fallback;
 }
 
@@ -85,7 +94,9 @@ export function pointerToSlot(
     const labelY = tailY + s * (labelGap + (s > 0 ? font : 0));
     return {
       elements: [
-        p.path(`M ${rhu(laneX)} ${rhu(tailY)} L ${rhu(laneX)} ${rhu(edgeY)}`, color, 1.5, { markerEnd: ARROW_FWD }),
+        p.path(`M ${rhu(laneX)} ${rhu(tailY)} L ${rhu(laneX)} ${rhu(edgeY)}`, color, 1.5, {
+          markerEnd: ARROW_FWD,
+        }),
         p.text(name, laneX, labelY, font, color, { anchor: 'middle', weight: 'bold' }),
       ],
       outerEdge: s > 0 ? labelY + 4 : labelY - font - 4,
@@ -100,7 +111,9 @@ export function pointerToSlot(
   const anchor: TextAnchor = s > 0 ? 'start' : 'end';
   return {
     elements: [
-      p.path(`M ${rhu(tailX)} ${rhu(laneY)} L ${rhu(edgeX)} ${rhu(laneY)}`, color, 1.5, { markerEnd: ARROW_FWD }),
+      p.path(`M ${rhu(tailX)} ${rhu(laneY)} L ${rhu(edgeX)} ${rhu(laneY)}`, color, 1.5, {
+        markerEnd: ARROW_FWD,
+      }),
       p.text(name, labelX, laneY + 4, font, color, { anchor, weight: 'bold' }),
     ],
     outerEdge: labelX,
@@ -138,10 +151,10 @@ export function finalizeStripScene(
 export function boundsForElements(elements: readonly SceneElement[]): Rect {
   const bounds = elements.map(boundsForElement).filter((b): b is Rect => b !== undefined);
   if (bounds.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
-  const minX = Math.min(...bounds.map(b => b.x));
-  const minY = Math.min(...bounds.map(b => b.y));
-  const maxX = Math.max(...bounds.map(b => b.x + b.width));
-  const maxY = Math.max(...bounds.map(b => b.y + b.height));
+  const minX = Math.min(...bounds.map((b) => b.x));
+  const minY = Math.min(...bounds.map((b) => b.y));
+  const maxX = Math.max(...bounds.map((b) => b.x + b.width));
+  const maxY = Math.max(...bounds.map((b) => b.y + b.height));
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
@@ -167,11 +180,12 @@ function boundsForElement(element: SceneElement): Rect | undefined {
 
 function boundsForText(text: Extract<SceneElement, { type: 'text' }>): Rect {
   const measured = measureText(text.content, text.fontSize);
-  const x = text.anchor === 'middle'
-    ? text.position.x - measured.width / 2
-    : text.anchor === 'end'
-      ? text.position.x - measured.width
-      : text.position.x;
+  const x =
+    text.anchor === 'middle'
+      ? text.position.x - measured.width / 2
+      : text.anchor === 'end'
+        ? text.position.x - measured.width
+        : text.position.x;
   return {
     x,
     y: text.position.y - text.fontSize,
@@ -181,7 +195,7 @@ function boundsForText(text: Extract<SceneElement, { type: 'text' }>): Rect {
 }
 
 function boundsForPath(d: string, strokeWidth: number): Rect {
-  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(match => Number(match[0]));
+  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) => Number(match[0]));
   if (nums.length < 2) return { x: 0, y: 0, width: 0, height: 0 };
   const xs = nums.filter((_, i) => i % 2 === 0);
   const ys = nums.filter((_, i) => i % 2 === 1);
@@ -193,8 +207,12 @@ function boundsForPath(d: string, strokeWidth: number): Rect {
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
-function translateElements(elements: readonly SceneElement[], dx: number, dy: number): SceneElement[] {
-  return elements.map(element => translateElement(element, dx, dy));
+function translateElements(
+  elements: readonly SceneElement[],
+  dx: number,
+  dy: number,
+): SceneElement[] {
+  return elements.map((element) => translateElement(element, dx, dy));
 }
 
 function translateElement(element: SceneElement, dx: number, dy: number): SceneElement {
@@ -202,11 +220,17 @@ function translateElement(element: SceneElement, dx: number, dy: number): SceneE
     case 'rect':
       return { ...element, bounds: translateRect(element.bounds, dx, dy) };
     case 'circle':
-      return { ...element, center: { x: rhu(element.center.x + dx), y: rhu(element.center.y + dy) } };
+      return {
+        ...element,
+        center: { x: rhu(element.center.x + dx), y: rhu(element.center.y + dy) },
+      };
     case 'path':
       return { ...element, d: translatePathD(element.d, dx, dy) };
     case 'text':
-      return { ...element, position: { x: rhu(element.position.x + dx), y: rhu(element.position.y + dy) } };
+      return {
+        ...element,
+        position: { x: rhu(element.position.x + dx), y: rhu(element.position.y + dy) },
+      };
     case 'group':
       return { ...element, children: translateElements(element.children, dx, dy) };
     case 'icon':
@@ -214,9 +238,16 @@ function translateElement(element: SceneElement, dx: number, dy: number): SceneE
   }
 }
 
-function translateAnchors(anchors: Record<string, { bounds: Rect }>, dx: number, dy: number): Record<string, { bounds: Rect }> {
+function translateAnchors(
+  anchors: Record<string, { bounds: Rect }>,
+  dx: number,
+  dy: number,
+): Record<string, { bounds: Rect }> {
   return Object.fromEntries(
-    Object.entries(anchors).map(([key, anchor]) => [key, { bounds: translateRect(anchor.bounds, dx, dy) }]),
+    Object.entries(anchors).map(([key, anchor]) => [
+      key,
+      { bounds: translateRect(anchor.bounds, dx, dy) },
+    ]),
   );
 }
 
@@ -226,7 +257,7 @@ function translateRect(rect: Rect, dx: number, dy: number): Rect {
 
 function translatePathD(d: string, dx: number, dy: number): string {
   let i = 0;
-  return d.replace(/-?\d+(?:\.\d+)?/g, value => {
+  return d.replace(/-?\d+(?:\.\d+)?/g, (value) => {
     const delta = i++ % 2 === 0 ? dx : dy;
     return String(rhu(Number(value) + delta));
   });

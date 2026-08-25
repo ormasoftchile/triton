@@ -29,7 +29,12 @@ describe('topology', () => {
   it('parses tiers, nodes and weighted edges', () => {
     expect(ir.scale.unit).toBe('ns');
     expect(ir.scale.tiers).toHaveLength(3);
-    expect(ir.scale.tiers[2]).toMatchObject({ name: 'hop2', maxWeight: 200, color: '#e2574c', dash: '5 4' });
+    expect(ir.scale.tiers[2]).toMatchObject({
+      name: 'hop2',
+      maxWeight: 200,
+      color: '#e2574c',
+      dash: '5 4',
+    });
     expect(ir.nodes).toHaveLength(4);
     expect(ir.nodes[0]).toEqual({ id: 'N0', label: 'Node 0', sub: 'CPU+RAM' });
     expect(ir.edges).toHaveLength(6);
@@ -45,10 +50,10 @@ describe('topology', () => {
   it('renders an anchor per node, an edge path per link, and a legend', () => {
     const { scene, anchors } = layoutTopology(ir, defaultTheme);
     expect(Object.keys(anchors).sort()).toEqual(['N0', 'N1', 'N2', 'N3']);
-    const paths = scene.elements.filter(e => e.type === 'path');
+    const paths = scene.elements.filter((e) => e.type === 'path');
     expect(paths).toHaveLength(6); // one per edge
     // legend frame + 3 swatches = 4 rects beyond the node boxes
-    const rects = scene.elements.filter(e => e.type === 'rect');
+    const rects = scene.elements.filter((e) => e.type === 'rect');
     expect(rects.length).toBeGreaterThanOrEqual(4 + 4);
   });
 
@@ -78,20 +83,21 @@ describe('topology with nested groups', () => {
 
   it('parses groups and assigns node membership', () => {
     const ir = topology.parseMermaid(SRC);
-    expect(ir.groups.map(g => g.id)).toEqual(['N0', 'N1']);
-    expect(ir.nodes.find(n => n.id === 'C0')!.group).toBe('N0');
-    expect(ir.nodes.find(n => n.id === 'C1')!.group).toBe('N1');
+    expect(ir.groups.map((g) => g.id)).toEqual(['N0', 'N1']);
+    expect(ir.nodes.find((n) => n.id === 'C0')!.group).toBe('N0');
+    expect(ir.nodes.find((n) => n.id === 'C1')!.group).toBe('N1');
   });
 
   it('nests child boxes inside their group and resolves group-level edges', () => {
     const ir = topology.parseMermaid(SRC);
     const { scene, anchors } = layoutTopology(ir, defaultTheme);
-    expect(anchors['N0']).toBeDefined();   // group is anchorable
+    expect(anchors['N0']).toBeDefined(); // group is anchorable
     expect(anchors['C0']).toBeDefined();
-    const g = anchors['N0']!.bounds, c = anchors['C0']!.bounds;
+    const g = anchors['N0']!.bounds,
+      c = anchors['C0']!.bounds;
     expect(c.x).toBeGreaterThanOrEqual(g.x);
     expect(c.x + c.width).toBeLessThanOrEqual(g.x + g.width);
     // 2 edges drawn (one intra-group, one group-to-group)
-    expect(scene.elements.filter(e => e.type === 'path')).toHaveLength(2);
+    expect(scene.elements.filter((e) => e.type === 'path')).toHaveLength(2);
   });
 });

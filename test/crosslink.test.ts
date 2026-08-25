@@ -29,15 +29,30 @@ const anchors: NodeAnchorRegistry = {
   },
   'A.node2': {
     bounds: { x: 10, y: 80, width: 100, height: 40 },
-    ports: { N: { x: 60, y: 80 }, S: { x: 60, y: 120 }, E: { x: 110, y: 100 }, W: { x: 10, y: 100 } },
+    ports: {
+      N: { x: 60, y: 80 },
+      S: { x: 60, y: 120 },
+      E: { x: 110, y: 100 },
+      W: { x: 10, y: 100 },
+    },
   },
   'B.node1': {
     bounds: { x: 300, y: 10, width: 100, height: 40 },
-    ports: { N: { x: 350, y: 10 }, S: { x: 350, y: 50 }, E: { x: 400, y: 30 }, W: { x: 300, y: 30 } },
+    ports: {
+      N: { x: 350, y: 10 },
+      S: { x: 350, y: 50 },
+      E: { x: 400, y: 30 },
+      W: { x: 300, y: 30 },
+    },
   },
   'B.node2': {
     bounds: { x: 300, y: 80, width: 100, height: 40 },
-    ports: { N: { x: 350, y: 80 }, S: { x: 350, y: 120 }, E: { x: 400, y: 100 }, W: { x: 300, y: 100 } },
+    ports: {
+      N: { x: 350, y: 80 },
+      S: { x: 350, y: 120 },
+      E: { x: 400, y: 100 },
+      W: { x: 300, y: 100 },
+    },
   },
 };
 
@@ -45,12 +60,14 @@ const anchors: NodeAnchorRegistry = {
 
 describe('resolveCrossLinks', () => {
   it('resolves a valid link between two cells', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'directed',
-      style: 'solid',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'directed',
+        style: 'solid',
+      },
+    ];
 
     const result = resolveCrossLinks(links, anchors);
 
@@ -58,7 +75,7 @@ describe('resolveCrossLinks', () => {
     expect(result.diagnostics).toHaveLength(0);
 
     const r = result.resolved[0]!;
-    expect(r.fromSide).toBe('E');  // Closest ports: A.node1.E → B.node1.W
+    expect(r.fromSide).toBe('E'); // Closest ports: A.node1.E → B.node1.W
     expect(r.toSide).toBe('W');
     expect(r.fromPort).toEqual({ x: 110, y: 30 });
     expect(r.toPort).toEqual({ x: 300, y: 30 });
@@ -68,13 +85,13 @@ describe('resolveCrossLinks', () => {
     const links: CrossLink[] = [
       {
         from: { cellPath: ['A'], nodeId: 'node1' },
-        to:   { cellPath: ['B'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
         direction: 'directed',
         style: 'solid',
       },
       {
         from: { cellPath: ['A'], nodeId: 'node2' },
-        to:   { cellPath: ['B'], nodeId: 'node2' },
+        to: { cellPath: ['B'], nodeId: 'node2' },
         direction: 'bidirectional',
         style: 'dashed',
       },
@@ -86,12 +103,14 @@ describe('resolveCrossLinks', () => {
   });
 
   it('reports diagnostic for missing source node', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['C'], nodeId: 'missing' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'directed',
-      style: 'solid',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['C'], nodeId: 'missing' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'directed',
+        style: 'solid',
+      },
+    ];
 
     const result = resolveCrossLinks(links, anchors);
     expect(result.resolved).toHaveLength(0);
@@ -101,12 +120,14 @@ describe('resolveCrossLinks', () => {
   });
 
   it('reports diagnostic for missing target node', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'nonexistent' },
-      direction: 'directed',
-      style: 'solid',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'nonexistent' },
+        direction: 'directed',
+        style: 'solid',
+      },
+    ];
 
     const result = resolveCrossLinks(links, anchors);
     expect(result.resolved).toHaveLength(0);
@@ -119,20 +140,32 @@ describe('resolveCrossLinks', () => {
     const vertAnchors: NodeAnchorRegistry = {
       'A.top': {
         bounds: { x: 100, y: 10, width: 80, height: 40 },
-        ports: { N: { x: 140, y: 10 }, S: { x: 140, y: 50 }, E: { x: 180, y: 30 }, W: { x: 100, y: 30 } },
+        ports: {
+          N: { x: 140, y: 10 },
+          S: { x: 140, y: 50 },
+          E: { x: 180, y: 30 },
+          W: { x: 100, y: 30 },
+        },
       },
       'B.bottom': {
         bounds: { x: 100, y: 200, width: 80, height: 40 },
-        ports: { N: { x: 140, y: 200 }, S: { x: 140, y: 240 }, E: { x: 180, y: 220 }, W: { x: 100, y: 220 } },
+        ports: {
+          N: { x: 140, y: 200 },
+          S: { x: 140, y: 240 },
+          E: { x: 180, y: 220 },
+          W: { x: 100, y: 220 },
+        },
       },
     };
 
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'top' },
-      to:   { cellPath: ['B'], nodeId: 'bottom' },
-      direction: 'directed',
-      style: 'solid',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'top' },
+        to: { cellPath: ['B'], nodeId: 'bottom' },
+        direction: 'directed',
+        style: 'solid',
+      },
+    ];
 
     const result = resolveCrossLinks(links, vertAnchors);
     expect(result.resolved[0]!.fromSide).toBe('S');
@@ -149,12 +182,14 @@ describe('resolveCrossLinks', () => {
       },
     };
 
-    const links: CrossLink[] = [{
-      from: { cellPath: ['poster1', 'A'], nodeId: 'node1' },
-      to:   { cellPath: ['poster1', 'B'], nodeId: 'node1' },
-      direction: 'undirected',
-      style: 'dotted',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['poster1', 'A'], nodeId: 'node1' },
+        to: { cellPath: ['poster1', 'B'], nodeId: 'node1' },
+        direction: 'undirected',
+        style: 'dotted',
+      },
+    ];
 
     const result = resolveCrossLinks(links, nestedAnchors);
     expect(result.resolved).toHaveLength(1);
@@ -165,12 +200,14 @@ describe('resolveCrossLinks', () => {
 
 describe('renderCrossLinks', () => {
   it('produces path elements for resolved links', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'directed',
-      style: 'solid',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'directed',
+        style: 'solid',
+      },
+    ];
 
     const { resolved } = resolveCrossLinks(links, anchors);
     const result = renderCrossLinks(resolved, theme);
@@ -183,64 +220,72 @@ describe('renderCrossLinks', () => {
   });
 
   it('renders labels when present', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'directed',
-      style: 'solid',
-      label: 'calls',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'directed',
+        style: 'solid',
+        label: 'calls',
+      },
+    ];
 
     const { resolved } = resolveCrossLinks(links, anchors);
     const result = renderCrossLinks(resolved, theme);
 
-    const textEls = result.elements.filter(e => e.type === 'text');
+    const textEls = result.elements.filter((e) => e.type === 'text');
     expect(textEls).toHaveLength(1);
     expect((textEls[0] as any).content).toBe('calls');
   });
 
   it('applies dashed stroke for dashed style', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'directed',
-      style: 'dashed',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'directed',
+        style: 'dashed',
+      },
+    ];
 
     const { resolved } = resolveCrossLinks(links, anchors);
     const result = renderCrossLinks(resolved, theme);
 
-    const pathEl = result.elements.find(e => e.type === 'path') as any;
+    const pathEl = result.elements.find((e) => e.type === 'path') as any;
     expect(pathEl.strokeDasharray).toBe('8 4');
   });
 
   it('applies dotted stroke for dotted style', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node2' },
-      to:   { cellPath: ['B'], nodeId: 'node2' },
-      direction: 'undirected',
-      style: 'dotted',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node2' },
+        to: { cellPath: ['B'], nodeId: 'node2' },
+        direction: 'undirected',
+        style: 'dotted',
+      },
+    ];
 
     const { resolved } = resolveCrossLinks(links, anchors);
     const result = renderCrossLinks(resolved, theme);
 
-    const pathEl = result.elements.find(e => e.type === 'path') as any;
+    const pathEl = result.elements.find((e) => e.type === 'path') as any;
     expect(pathEl.strokeDasharray).toBe('4 3');
   });
 
   it('renders bidirectional markers', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'bidirectional',
-      style: 'solid',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'bidirectional',
+        style: 'solid',
+      },
+    ];
 
     const { resolved } = resolveCrossLinks(links, anchors);
     const result = renderCrossLinks(resolved, theme);
 
-    const pathEl = result.elements.find(e => e.type === 'path') as any;
+    const pathEl = result.elements.find((e) => e.type === 'path') as any;
     expect(pathEl.markerEnd).toBe('triton-crosslink-arrow-e11d48');
     expect(pathEl.markerStart).toBe('triton-crosslink-arrow-both-e11d48');
     expect(result.defs).toHaveLength(2);
@@ -253,21 +298,21 @@ describe('renderCrossLinks', () => {
     const links: CrossLink[] = [
       {
         from: { cellPath: ['A'], nodeId: 'node1' },
-        to:   { cellPath: ['B'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
         direction: 'directed',
         style: 'solid',
         props: { color: '#E11D48' },
       },
       {
         from: { cellPath: ['A'], nodeId: 'node2' },
-        to:   { cellPath: ['B'], nodeId: 'node2' },
+        to: { cellPath: ['B'], nodeId: 'node2' },
         direction: 'bidirectional',
         style: 'dashed',
         props: { color: '#16A34A' },
       },
       {
         from: { cellPath: ['A'], nodeId: 'node1' },
-        to:   { cellPath: ['B'], nodeId: 'node2' },
+        to: { cellPath: ['B'], nodeId: 'node2' },
         direction: 'directed',
         style: 'solid',
         props: { color: '#E11D48' },
@@ -279,9 +324,15 @@ describe('renderCrossLinks', () => {
     const defs = result.defs.join('\n');
 
     expect(defs).not.toContain('fill="currentColor"');
-    expect(result.defs.filter(d => d.includes('id="triton-crosslink-arrow-e11d48"'))).toHaveLength(1);
-    expect(result.defs.filter(d => d.includes('id="triton-crosslink-arrow-16a34a"'))).toHaveLength(1);
-    expect(result.defs.filter(d => d.includes('id="triton-crosslink-arrow-both-16a34a"'))).toHaveLength(1);
+    expect(
+      result.defs.filter((d) => d.includes('id="triton-crosslink-arrow-e11d48"')),
+    ).toHaveLength(1);
+    expect(
+      result.defs.filter((d) => d.includes('id="triton-crosslink-arrow-16a34a"')),
+    ).toHaveLength(1);
+    expect(
+      result.defs.filter((d) => d.includes('id="triton-crosslink-arrow-both-16a34a"')),
+    ).toHaveLength(1);
     expect(defs).toContain('id="triton-crosslink-arrow-e11d48"');
     expect(defs).toContain('fill="#E11D48"');
     expect(defs).toContain('id="triton-crosslink-arrow-16a34a"');
@@ -294,17 +345,19 @@ describe('renderCrossLinks', () => {
   });
 
   it('no markers for undirected links', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'undirected',
-      style: 'solid',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'undirected',
+        style: 'solid',
+      },
+    ];
 
     const { resolved } = resolveCrossLinks(links, anchors);
     const result = renderCrossLinks(resolved, theme);
 
-    const pathEl = result.elements.find(e => e.type === 'path') as any;
+    const pathEl = result.elements.find((e) => e.type === 'path') as any;
     expect(pathEl.markerEnd).toBeUndefined();
     expect(pathEl.markerStart).toBeUndefined();
     expect(result.defs).toHaveLength(0);
@@ -313,14 +366,16 @@ describe('renderCrossLinks', () => {
 
 describe('routeConnectors', () => {
   it('adapts poster cross-links to the shared connector seam without changing engine3 output', () => {
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'node1' },
-      to:   { cellPath: ['B'], nodeId: 'node1' },
-      direction: 'directed',
-      style: 'solid',
-      label: 'same',
-      routing: 'orthogonal',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'node1' },
+        to: { cellPath: ['B'], nodeId: 'node1' },
+        direction: 'directed',
+        style: 'solid',
+        label: 'same',
+        routing: 'orthogonal',
+      },
+    ];
 
     const direct = routeAndRenderCrossLinks3(links, theme, anchors);
     const shared = routeConnectors({
@@ -332,8 +387,8 @@ describe('routeConnectors', () => {
     expect(shared.diagnostics).toHaveLength(0);
     expect(shared.defs).toEqual(direct.defs);
     expect(shared.elements).toEqual(direct.elements);
-    expect(shared.pathElements).toEqual(direct.elements.filter(e => e.type !== 'text'));
-    expect(shared.labelElements).toEqual(direct.elements.filter(e => e.type === 'text'));
+    expect(shared.pathElements).toEqual(direct.elements.filter((e) => e.type !== 'text'));
+    expect(shared.labelElements).toEqual(direct.elements.filter((e) => e.type === 'text'));
   });
 
   it('forced N→N link between vertically stacked boxes routes around endpoint boxes', () => {
@@ -355,23 +410,35 @@ describe('routeConnectors', () => {
       ['A', { x: -20, y: -40, width: 180, height: 180 }],
       ['B', { x: -20, y: 160, width: 180, height: 180 }],
     ]);
-    const links: CrossLink[] = [{
-      from: { cellPath: ['A'], nodeId: 'top' },
-      to:   { cellPath: ['B'], nodeId: 'bottom' },
-      direction: 'directed',
-      style: 'solid',
-      routing: 'orthogonal',
-      exitWall: 'N',
-      entryWall: 'N',
-    }];
+    const links: CrossLink[] = [
+      {
+        from: { cellPath: ['A'], nodeId: 'top' },
+        to: { cellPath: ['B'], nodeId: 'bottom' },
+        direction: 'directed',
+        style: 'solid',
+        routing: 'orthogonal',
+        exitWall: 'N',
+        entryWall: 'N',
+      },
+    ];
 
-    const result = routeAndRenderCrossLinks3(links, theme, wallAnchors, undefined, undefined, undefined, cellRects);
-    const path = result.elements.find(e => e.type === 'path') as { d: string } | undefined;
+    const result = routeAndRenderCrossLinks3(
+      links,
+      theme,
+      wallAnchors,
+      undefined,
+      undefined,
+      undefined,
+      cellRects,
+    );
+    const path = result.elements.find((e) => e.type === 'path') as { d: string } | undefined;
     expect(path?.d).toBeDefined();
     const pts = pathPoints(path!.d);
-    expect(pts.some(p => p.y < 0)).toBe(true);
-    expect(pts.some(p => p.x < -20 || p.x > 160)).toBe(true);
-    expect(countRouteCollisions(pts, [wallAnchors['A.tuple']!.bounds, wallAnchors['B.tuple']!.bounds])).toBe(0);
+    expect(pts.some((p) => p.y < 0)).toBe(true);
+    expect(pts.some((p) => p.x < -20 || p.x > 160)).toBe(true);
+    expect(
+      countRouteCollisions(pts, [wallAnchors['A.tuple']!.bounds, wallAnchors['B.tuple']!.bounds]),
+    ).toBe(0);
   });
 
   it('threads every connector animation value to scene paths and SVG SMIL', () => {
@@ -384,7 +451,10 @@ describe('routeConnectors', () => {
       { anim: 'comet', expect: 'begin="-0.32s"' },
       { anim: 'stream', expect: 'begin="-1.8s"' },
       { anim: 'flow', expect: '<linearGradient id="triton-flow-' },
-      { anim: 'colorcycle', expect: 'attributeName="stroke" values="#4A90D9;#9b51e0;#e54444;#2ecc71;#4A90D9"' },
+      {
+        anim: 'colorcycle',
+        expect: 'attributeName="stroke" values="#4A90D9;#9b51e0;#e54444;#2ecc71;#4A90D9"',
+      },
     ] as const;
 
     for (const c of cases) {
@@ -409,7 +479,10 @@ describe('routeConnectors', () => {
       const visiblePts = pathPoints(path.d);
       const visibleEnd = visiblePts[visiblePts.length - 1]!;
       const visiblePrev = visiblePts[visiblePts.length - 2]!;
-      const visibleLastSegment = Math.hypot(visibleEnd.x - visiblePrev.x, visibleEnd.y - visiblePrev.y);
+      const visibleLastSegment = Math.hypot(
+        visibleEnd.x - visiblePrev.x,
+        visibleEnd.y - visiblePrev.y,
+      );
       const motionPaths = animateMotionPaths(svg);
       const expectedClearance = 7 * path.strokeWidth + dotRadii[anim];
       expect(motionPaths.length).toBeGreaterThan(0);
@@ -418,8 +491,14 @@ describe('routeConnectors', () => {
         expect(motionPath).not.toBe(path.d);
         const motionPts = pathPoints(motionPath);
         const motionEnd = motionPts[motionPts.length - 1]!;
-        expect(Math.hypot(visibleEnd.x - motionEnd.x, visibleEnd.y - motionEnd.y)).toBeCloseTo(expectedClearance, 5);
-        expect(Math.hypot(motionEnd.x - visiblePrev.x, motionEnd.y - visiblePrev.y)).toBeCloseTo(visibleLastSegment - expectedClearance, 5);
+        expect(Math.hypot(visibleEnd.x - motionEnd.x, visibleEnd.y - motionEnd.y)).toBeCloseTo(
+          expectedClearance,
+          5,
+        );
+        expect(Math.hypot(motionEnd.x - visiblePrev.x, motionEnd.y - visiblePrev.y)).toBeCloseTo(
+          visibleLastSegment - expectedClearance,
+          5,
+        );
       }
     }
   });
@@ -427,16 +506,20 @@ describe('routeConnectors', () => {
   it('derives animated motion clearance from marker refX, stroke width, and dot radius', () => {
     const svg = renderSVG({
       viewBox: { x: 0, y: 0, width: 120, height: 20 },
-      defs: ['<marker id="custom-arrow" markerWidth="40" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" /></marker>'],
-      elements: [{
-        type: 'path',
-        d: 'M 0 0 L 100 0',
-        stroke: '#000',
-        strokeWidth: 2,
-        fill: 'none',
-        markerEnd: 'custom-arrow',
-        animated: 'particle',
-      }],
+      defs: [
+        '<marker id="custom-arrow" markerWidth="40" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" /></marker>',
+      ],
+      elements: [
+        {
+          type: 'path',
+          d: 'M 0 0 L 100 0',
+          stroke: '#000',
+          strokeWidth: 2,
+          fill: 'none',
+          markerEnd: 'custom-arrow',
+          animated: 'particle',
+        },
+      ],
     });
     const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
     expect(svg).toContain('<path d="M 0 0 L 100 0"');
@@ -446,16 +529,20 @@ describe('routeConnectors', () => {
   it('uses fixed marker refX for user-space animated motion clearance', () => {
     const svg = renderSVG({
       viewBox: { x: 0, y: 0, width: 120, height: 20 },
-      defs: ['<marker id="custom-arrow" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><path d="M0 0 L16 6.5 L0 13 z" /></marker>'],
-      elements: [{
-        type: 'path',
-        d: 'M 0 0 L 100 0',
-        stroke: '#000',
-        strokeWidth: 3.2,
-        fill: 'none',
-        markerEnd: 'custom-arrow',
-        animated: 'particle',
-      }],
+      defs: [
+        '<marker id="custom-arrow" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><path d="M0 0 L16 6.5 L0 13 z" /></marker>',
+      ],
+      elements: [
+        {
+          type: 'path',
+          d: 'M 0 0 L 100 0',
+          stroke: '#000',
+          strokeWidth: 3.2,
+          fill: 'none',
+          markerEnd: 'custom-arrow',
+          animated: 'particle',
+        },
+      ],
     });
     const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
     expect(motionPts[motionPts.length - 1]).toEqual({ x: 81.6, y: 0 });
@@ -464,16 +551,20 @@ describe('routeConnectors', () => {
   it('trims animated motion clearance across short final path segments', () => {
     const svg = renderSVG({
       viewBox: { x: 0, y: 0, width: 120, height: 20 },
-      defs: ['<marker id="custom-arrow" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><path d="M0 0 L16 6.5 L0 13 z" /></marker>'],
-      elements: [{
-        type: 'path',
-        d: 'M 0 0 L 80 0 L 85 0',
-        stroke: '#000',
-        strokeWidth: 1.6,
-        fill: 'none',
-        markerEnd: 'custom-arrow',
-        animated: 'particle',
-      }],
+      defs: [
+        '<marker id="custom-arrow" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><path d="M0 0 L16 6.5 L0 13 z" /></marker>',
+      ],
+      elements: [
+        {
+          type: 'path',
+          d: 'M 0 0 L 80 0 L 85 0',
+          stroke: '#000',
+          strokeWidth: 1.6,
+          fill: 'none',
+          markerEnd: 'custom-arrow',
+          animated: 'particle',
+        },
+      ],
     });
     const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
     expect(motionPts[motionPts.length - 1]).toEqual({ x: 66.6, y: 0 });
@@ -482,15 +573,17 @@ describe('routeConnectors', () => {
   it('clamps short animated motion segments without inverting them', () => {
     const svg = renderSVG({
       viewBox: { x: 0, y: 0, width: 10, height: 10 },
-      elements: [{
-        type: 'path',
-        d: 'M 0 0 L 5 0',
-        stroke: '#000',
-        strokeWidth: 1,
-        fill: 'none',
-        markerEnd: 'arrow',
-        animated: 'particle',
-      }],
+      elements: [
+        {
+          type: 'path',
+          d: 'M 0 0 L 5 0',
+          stroke: '#000',
+          strokeWidth: 1,
+          fill: 'none',
+          markerEnd: 'arrow',
+          animated: 'particle',
+        },
+      ],
     });
     const motionPts = pathPoints(animateMotionPaths(svg)[0]!);
     expect(svg).toContain('<path d="M 0 0 L 5 0"');
@@ -520,7 +613,7 @@ describe('routeConnectors', () => {
 });
 
 function pathPoints(d: string): Array<{ x: number; y: number }> {
-  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0]));
+  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map((m) => Number(m[0]));
   const pts: Array<{ x: number; y: number }> = [];
   for (let i = 0; i + 1 < nums.length; i += 2) {
     pts.push({ x: nums[i]!, y: nums[i + 1]! });
@@ -531,16 +624,18 @@ function pathPoints(d: string): Array<{ x: number; y: number }> {
 function renderAnimatedConnector(anim: string, style: 'solid' | 'dashed' | 'dotted' = 'solid') {
   const result = routeConnectors({
     anchors,
-    connectors: [{
-      fromKey: 'A.node1',
-      toKey: 'B.node1',
-      direction: 'directed',
-      style,
-      animation: anim as any,
-    }],
+    connectors: [
+      {
+        fromKey: 'A.node1',
+        toKey: 'B.node1',
+        direction: 'directed',
+        style,
+        animation: anim as any,
+      },
+    ],
     theme,
   });
-  const path = result.pathElements.find(e => e.type === 'path');
+  const path = result.pathElements.find((e) => e.type === 'path');
   if (!path || path.type !== 'path') throw new Error(`No path for ${anim}`);
   const svg = renderSVG({
     viewBox: { x: 0, y: 0, width: 420, height: 140 },
@@ -555,5 +650,5 @@ function countOccurrences(text: string, needle: string): number {
 }
 
 function animateMotionPaths(svg: string): string[] {
-  return [...svg.matchAll(/<animateMotion\b[^>]*\bpath="([^"]+)"/g)].map(m => m[1]!);
+  return [...svg.matchAll(/<animateMotion\b[^>]*\bpath="([^"]+)"/g)].map((m) => m[1]!);
 }

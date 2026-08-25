@@ -14,7 +14,7 @@ const flowDoc: FlowDocument = {
   direction: 'LR',
   nodes: [
     { id: 'A', label: 'Start', shape: 'rect' },
-    { id: 'B', label: 'End',   shape: 'rect' },
+    { id: 'B', label: 'End', shape: 'rect' },
   ],
   edges: [{ from: 'A', to: 'B', kind: 'sync', style: 'solid' }],
   subgraphs: [],
@@ -103,7 +103,7 @@ describe('anchor registry', () => {
 
     it('non-linkable cells contribute no anchors', async () => {
       const { anchors } = await layoutPoster(posterDoc, defaultTheme);
-      const rightKeys = Object.keys(anchors).filter(k => k.startsWith('right.'));
+      const rightKeys = Object.keys(anchors).filter((k) => k.startsWith('right.'));
       expect(rightKeys).toHaveLength(0);
     });
 

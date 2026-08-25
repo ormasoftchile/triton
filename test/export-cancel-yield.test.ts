@@ -34,14 +34,16 @@ describe('animated export event-loop yielding', () => {
     const controller = new AbortController();
     const progress: Array<readonly [number, number]> = [];
 
-    await expect(exportAnimatedPng(animatedSvg, {
-      fps: 5,
-      signal: controller.signal,
-      onProgress: (done, total) => {
-        progress.push([done, total]);
-        if (done === 1) setImmediate(() => controller.abort());
-      },
-    })).rejects.toBeInstanceOf(ExportCancelledError);
+    await expect(
+      exportAnimatedPng(animatedSvg, {
+        fps: 5,
+        signal: controller.signal,
+        onProgress: (done, total) => {
+          progress.push([done, total]);
+          if (done === 1) setImmediate(() => controller.abort());
+        },
+      }),
+    ).rejects.toBeInstanceOf(ExportCancelledError);
 
     const total = progress[0]?.[1] ?? 0;
     expect(total).toBeGreaterThan(1);

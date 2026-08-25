@@ -21,23 +21,23 @@ export function layoutRadar(ir: RadarDocument, theme: ResolvedTheme): LayoutResu
   const margin = spacing.diagramMargin;
 
   const axes = ir.axes;
-  const n    = Math.max(axes.length, 1);
-  const allVals = ir.curves.flatMap(c => c.values as number[]);
-  const min  = ir.min ?? 0;
-  const max  = ir.max ?? (allVals.length ? Math.max(...allVals) : 1);
-  const span = (max - min) || 1;
+  const n = Math.max(axes.length, 1);
+  const allVals = ir.curves.flatMap((c) => c.values as number[]);
+  const min = ir.min ?? 0;
+  const max = ir.max ?? (allVals.length ? Math.max(...allVals) : 1);
+  const span = max - min || 1;
 
-  const title  = ir.metadata.title;
+  const title = ir.metadata.title;
   const titleH = title ? typography.titleFontSize + 18 : 0;
 
-  const R    = 180;
-  const labelPad = 90;                         // room for axis labels around the ring
-  const cx   = margin + labelPad + R;
-  const cy   = margin + titleH + labelPad + R;
+  const R = 180;
+  const labelPad = 90; // room for axis labels around the ring
+  const cx = margin + labelPad + R;
+  const cy = margin + titleH + labelPad + R;
 
   // Angle for axis i: start at top (-90°), clockwise.
   const angle = (i: number): number => -Math.PI / 2 + (i / n) * Math.PI * 2;
-  const ptAt  = (i: number, frac: number): { x: number; y: number } => ({
+  const ptAt = (i: number, frac: number): { x: number; y: number } => ({
     x: cx + Math.cos(angle(i)) * R * frac,
     y: cy + Math.sin(angle(i)) * R * frac,
   });
@@ -45,25 +45,52 @@ export function layoutRadar(ir: RadarDocument, theme: ResolvedTheme): LayoutResu
   const elements: SceneElement[] = [];
 
   if (title) {
-    elements.push(p.text(title, rhuInt(cx), margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
+    elements.push(
+      p.text(
+        title,
+        rhuInt(cx),
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold', anchor: 'middle' },
+      ),
+    );
   }
 
   // ── Grid rings ─────────────────────────────────────────────────────────────
   const rings = 4;
   for (let r = 1; r <= rings; r++) {
     const frac = r / rings;
-    const d = axes.map((_, i) => { const pt = ptAt(i, frac); return `${rhu(pt.x)} ${rhu(pt.y)}`; }).join(' L ');
+    const d = axes
+      .map((_, i) => {
+        const pt = ptAt(i, frac);
+        return `${rhu(pt.x)} ${rhu(pt.y)}`;
+      })
+      .join(' L ');
     elements.push(p.path(`M ${d} Z`, palette.border, 1, { opacity: 0.5 }));
   }
 
   // ── Spokes + axis labels ───────────────────────────────────────────────────
   axes.forEach((ax, i) => {
     const outer = ptAt(i, 1);
-    elements.push(p.path(`M ${rhu(cx)} ${rhu(cy)} L ${rhu(outer.x)} ${rhu(outer.y)}`, palette.border, 1, { opacity: 0.6 }));
+    elements.push(
+      p.path(`M ${rhu(cx)} ${rhu(cy)} L ${rhu(outer.x)} ${rhu(outer.y)}`, palette.border, 1, {
+        opacity: 0.6,
+      }),
+    );
     const lp = ptAt(i, 1.12);
-    const a  = angle(i);
-    const anchor = Math.abs(Math.cos(a)) < 0.3 ? 'middle' : (Math.cos(a) > 0 ? 'start' : 'end');
-    elements.push(p.text(ax.label, rhu(lp.x), rhu(lp.y + typography.smallFontSize * 0.35), typography.smallFontSize, palette.text, { anchor }));
+    const a = angle(i);
+    const anchor = Math.abs(Math.cos(a)) < 0.3 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end';
+    elements.push(
+      p.text(
+        ax.label,
+        rhu(lp.x),
+        rhu(lp.y + typography.smallFontSize * 0.35),
+        typography.smallFontSize,
+        palette.text,
+        { anchor },
+      ),
+    );
   });
 
   // ── Curves ─────────────────────────────────────────────────────────────────
@@ -89,8 +116,18 @@ export function layoutRadar(ir: RadarDocument, theme: ResolvedTheme): LayoutResu
   let legendW = 0;
   ir.curves.forEach((curve, ci) => {
     const ly = legendTop + ci * (legendFont + 10);
-    elements.push(p.rect({ x: legendX, y: ly, width: swatch, height: swatch }, categoricalHue(ci), categoricalHue(ci), 0, { rx: 2 }));
-    elements.push(p.text(curve.label, legendX + swatch + 8, ly + swatch - 2, legendFont, palette.text));
+    elements.push(
+      p.rect(
+        { x: legendX, y: ly, width: swatch, height: swatch },
+        categoricalHue(ci),
+        categoricalHue(ci),
+        0,
+        { rx: 2 },
+      ),
+    );
+    elements.push(
+      p.text(curve.label, legendX + swatch + 8, ly + swatch - 2, legendFont, palette.text),
+    );
     legendW = Math.max(legendW, swatch + 8 + measureText(curve.label, legendFont).width);
   });
 
@@ -98,11 +135,15 @@ export function layoutRadar(ir: RadarDocument, theme: ResolvedTheme): LayoutResu
   const totalW = rhuInt(Math.max(ringRight, legendX + legendW) + margin);
   const totalH = rhuInt(cy + R + labelPad + margin);
 
-  const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: totalW, height: totalH },
-    background: palette.background,
-    elements,
-  }, ir.overlays, theme);
+  const scene: Scene = applyOverlays(
+    {
+      viewBox: { x: 0, y: 0, width: totalW, height: totalH },
+      background: palette.background,
+      elements,
+    },
+    ir.overlays,
+    theme,
+  );
 
   return { scene, anchors: {} };
 }

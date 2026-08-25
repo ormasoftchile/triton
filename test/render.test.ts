@@ -41,7 +41,15 @@ describe('renderSVG', () => {
   it('renders rect element', () => {
     const svg = renderSVG({
       ...emptyScene,
-      elements: [{ type: 'rect', bounds: { x: 10, y: 20, width: 80, height: 40 }, fill: '#eee', stroke: '#999', strokeWidth: 1 }],
+      elements: [
+        {
+          type: 'rect',
+          bounds: { x: 10, y: 20, width: 80, height: 40 },
+          fill: '#eee',
+          stroke: '#999',
+          strokeWidth: 1,
+        },
+      ],
     });
     expect(svg).toContain('<rect');
     expect(svg).toContain('x="10"');
@@ -51,7 +59,16 @@ describe('renderSVG', () => {
   it('renders circle element', () => {
     const svg = renderSVG({
       ...emptyScene,
-      elements: [{ type: 'circle', center: { x: 50, y: 50 }, radius: 20, fill: '#abc', stroke: '#def', strokeWidth: 2 }],
+      elements: [
+        {
+          type: 'circle',
+          center: { x: 50, y: 50 },
+          radius: 20,
+          fill: '#abc',
+          stroke: '#def',
+          strokeWidth: 2,
+        },
+      ],
     });
     expect(svg).toContain('<circle');
     expect(svg).toContain('cx="50"');
@@ -61,7 +78,16 @@ describe('renderSVG', () => {
   it('renders text element and escapes XML entities', () => {
     const svg = renderSVG({
       ...emptyScene,
-      elements: [{ type: 'text', content: 'A & <B>', position: { x: 10, y: 30 }, fontSize: 14, fontFamily: 'sans-serif', fill: '#000' }],
+      elements: [
+        {
+          type: 'text',
+          content: 'A & <B>',
+          position: { x: 10, y: 30 },
+          fontSize: 14,
+          fontFamily: 'sans-serif',
+          fill: '#000',
+        },
+      ],
     });
     expect(svg).toContain('<text');
     expect(svg).toContain('A &amp; &lt;B&gt;');
@@ -89,11 +115,37 @@ describe('renderSVG', () => {
     const svg = renderSVG({
       ...emptyScene,
       elements: [
-        { type: 'rect', bounds: { x: 0, y: 0, width: 10, height: 10 }, fill: '', stroke: '#111', strokeWidth: 1 },
-        { type: 'circle', center: { x: 20, y: 20 }, radius: 5, fill: '   ', stroke: '#222', strokeWidth: 1 },
-        { type: 'text', content: 'T', position: { x: 0, y: 20 }, fontSize: 12, fontFamily: 'sans-serif', fill: '' },
+        {
+          type: 'rect',
+          bounds: { x: 0, y: 0, width: 10, height: 10 },
+          fill: '',
+          stroke: '#111',
+          strokeWidth: 1,
+        },
+        {
+          type: 'circle',
+          center: { x: 20, y: 20 },
+          radius: 5,
+          fill: '   ',
+          stroke: '#222',
+          strokeWidth: 1,
+        },
+        {
+          type: 'text',
+          content: 'T',
+          position: { x: 0, y: 20 },
+          fontSize: 12,
+          fontFamily: 'sans-serif',
+          fill: '',
+        },
         { type: 'path', d: 'M 0 0 L 1 1', stroke: '#333', strokeWidth: 1, fill: '' },
-        { type: 'rect', bounds: { x: 30, y: 0, width: 10, height: 10 }, fill: '#123456', stroke: '#444', strokeWidth: 1 },
+        {
+          type: 'rect',
+          bounds: { x: 30, y: 0, width: 10, height: 10 },
+          fill: '#123456',
+          stroke: '#444',
+          strokeWidth: 1,
+        },
       ],
     });
     expect(svg).not.toContain('fill=""');
@@ -104,11 +156,22 @@ describe('renderSVG', () => {
   it('renders group element with children', () => {
     const svg = renderSVG({
       ...emptyScene,
-      elements: [{
-        type: 'group',
-        id: 'my-group',
-        children: [{ type: 'circle', center: { x: 5, y: 5 }, radius: 5, fill: '#f00', stroke: '#000', strokeWidth: 1 }],
-      }],
+      elements: [
+        {
+          type: 'group',
+          id: 'my-group',
+          children: [
+            {
+              type: 'circle',
+              center: { x: 5, y: 5 },
+              radius: 5,
+              fill: '#f00',
+              stroke: '#000',
+              strokeWidth: 1,
+            },
+          ],
+        },
+      ],
     });
     expect(svg).toContain('<g id="my-group">');
     expect(svg).toContain('<circle');
@@ -134,7 +197,9 @@ describe('renderSVG', () => {
   it('renders markerEnd on path', () => {
     const svg = renderSVG({
       ...emptyScene,
-      elements: [{ type: 'path', d: 'M 0 0 L 10 10', stroke: '#000', strokeWidth: 1, markerEnd: 'arrow' }],
+      elements: [
+        { type: 'path', d: 'M 0 0 L 10 10', stroke: '#000', strokeWidth: 1, markerEnd: 'arrow' },
+      ],
     });
     expect(svg).toContain('marker-end="url(#arrow)"');
   });
@@ -142,7 +207,9 @@ describe('renderSVG', () => {
   it('renders strokeDasharray on path', () => {
     const svg = renderSVG({
       ...emptyScene,
-      elements: [{ type: 'path', d: 'M 0 0', stroke: '#000', strokeWidth: 1, strokeDasharray: '4 2' }],
+      elements: [
+        { type: 'path', d: 'M 0 0', stroke: '#000', strokeWidth: 1, strokeDasharray: '4 2' },
+      ],
     });
     expect(svg).toContain('stroke-dasharray="4 2"');
   });

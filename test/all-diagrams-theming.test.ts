@@ -39,6 +39,10 @@ const SAMPLES: Record<string, string> = {
   matrix: 'matrix\n  [[1, 2], [3, 4]]',
   avl: 'avl\n  insert 10\n  insert 20',
   rbtree: 'rbtree\n  insert 10\n  insert 20',
+  fishbone:
+    'fishbone\n  title "Defect Analysis"\n  effect "Defect"\n  category Machine\n    "Motor stall"',
+  pyramid: 'pyramid\n  title "Hierarchy"\n  "Top Tier"\n  "Base Tier"',
+  loop: 'loop\n  title "Flywheel"\n  hub "Central DB"\n  step "Ingest"\n  step "Process"',
 };
 
 describe('Universal Theme & Frontmatter Support across ALL Diagram Types', () => {

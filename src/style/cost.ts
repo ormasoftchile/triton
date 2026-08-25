@@ -34,7 +34,7 @@ export function classifyCost(scale: CostScale, weight: number): CostTier {
 
 /** Look up a tier by name (for explicit `-- tier -->` edges). */
 export function tierByName(scale: CostScale, name: string): CostTier | undefined {
-  return scale.tiers.find(t => t.name === name);
+  return scale.tiers.find((t) => t.name === name);
 }
 
 export interface LegendResult {
@@ -43,23 +43,68 @@ export interface LegendResult {
 }
 
 /** A small legend: one swatch + tier name + threshold per tier. */
-export function buildLegend(pen: Pen, theme: ResolvedTheme, scale: CostScale, origin: Point): LegendResult {
+export function buildLegend(
+  pen: Pen,
+  theme: ResolvedTheme,
+  scale: CostScale,
+  origin: Point,
+): LegendResult {
   const palette = theme.palette;
-  const pad = 14, rowH = 22, swatch = 16;
+  const pad = 14,
+    rowH = 22,
+    swatch = 16;
   const rows = scale.tiers.length + 1;
   const width = 220;
   const height = pad + rows * rowH;
   const elements: SceneElement[] = [];
 
-  elements.push(pen.rect({ x: origin.x, y: origin.y, width, height }, palette.background, palette.border, 1.5, { rx: 8 }));
+  elements.push(
+    pen.rect({ x: origin.x, y: origin.y, width, height }, palette.background, palette.border, 1.5, {
+      rx: 8,
+    }),
+  );
   const title = scale.unit ? `Cost (${scale.unit})` : 'Cost';
-  elements.push(pen.text(title, origin.x + pad, origin.y + pad + 8, theme.typography.baseFontSize, palette.text, { weight: 'bold' }));
+  elements.push(
+    pen.text(
+      title,
+      origin.x + pad,
+      origin.y + pad + 8,
+      theme.typography.baseFontSize,
+      palette.text,
+      { weight: 'bold' },
+    ),
+  );
 
   scale.tiers.forEach((t, i) => {
     const y = origin.y + pad + (i + 1) * rowH;
-    elements.push(pen.rect({ x: origin.x + pad, y: y - swatch + 4, width: swatch, height: swatch - 4 }, t.color, t.color, 1, { rx: 2 }));
-    elements.push(pen.text(t.name, origin.x + pad + swatch + 8, y, theme.typography.smallFontSize, palette.text));
-    elements.push(pen.text(`≤ ${t.maxWeight}`, origin.x + width - pad, y, theme.typography.smallFontSize, palette.textMuted, { anchor: 'end', weight: 'bold' }));
+    elements.push(
+      pen.rect(
+        { x: origin.x + pad, y: y - swatch + 4, width: swatch, height: swatch - 4 },
+        t.color,
+        t.color,
+        1,
+        { rx: 2 },
+      ),
+    );
+    elements.push(
+      pen.text(
+        t.name,
+        origin.x + pad + swatch + 8,
+        y,
+        theme.typography.smallFontSize,
+        palette.text,
+      ),
+    );
+    elements.push(
+      pen.text(
+        `≤ ${t.maxWeight}`,
+        origin.x + width - pad,
+        y,
+        theme.typography.smallFontSize,
+        palette.textMuted,
+        { anchor: 'end', weight: 'bold' },
+      ),
+    );
   });
 
   return { elements, bounds: { x: origin.x, y: origin.y, width, height } };

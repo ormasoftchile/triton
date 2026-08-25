@@ -14,7 +14,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { directionalGridPlacer, groupAwareDirectionalGridPlacer } from '../src/diagrams/mermaid/architecture/gridPlacer.js';
+import {
+  directionalGridPlacer,
+  groupAwareDirectionalGridPlacer,
+} from '../src/diagrams/mermaid/architecture/gridPlacer.js';
 import type { GridPlacerResult } from '../src/diagrams/mermaid/architecture/gridPlacer.js';
 import type { ArchitectureDocument, ArchEdge } from '../src/diagrams/mermaid/architecture/ir.js';
 import * as parser from '../src/diagrams/mermaid/architecture/parser.js';
@@ -26,7 +29,9 @@ import { measureText } from '../src/text/metrics.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function node(id: string) { return { id }; }
+function node(id: string) {
+  return { id };
+}
 
 function edge(from: string, fromSide: string, to: string, toSide: string) {
   return { from, fromSide, to, toSide };
@@ -44,9 +49,14 @@ function parseArchitecture(src: string): ArchitectureDocument {
 
 function archEdge(from: string, fromSide: string, to: string, toSide: string): ArchEdge {
   return {
-    from, fromSide, fromGroup: false,
-    to, toSide, toGroup: false,
-    arrowLeft: false, arrowRight: false,
+    from,
+    fromSide,
+    fromGroup: false,
+    to,
+    toSide,
+    toGroup: false,
+    arrowLeft: false,
+    arrowRight: false,
     style: 'solid',
     startMarker: 'none',
     endMarker: 'none',
@@ -66,36 +76,54 @@ function archDoc(partial: Partial<ArchitectureDocument>): ArchitectureDocument {
   } as ArchitectureDocument;
 }
 
-function cellBounds(cells: GridPlacerResult[]): { minCol: number; maxCol: number; minRow: number; maxRow: number } {
+function cellBounds(cells: GridPlacerResult[]): {
+  minCol: number;
+  maxCol: number;
+  minRow: number;
+  maxRow: number;
+} {
   return {
-    minCol: Math.min(...cells.map(c => c.col)),
-    maxCol: Math.max(...cells.map(c => c.col)),
-    minRow: Math.min(...cells.map(c => c.row)),
-    maxRow: Math.max(...cells.map(c => c.row)),
+    minCol: Math.min(...cells.map((c) => c.col)),
+    maxCol: Math.max(...cells.map((c) => c.col)),
+    minRow: Math.min(...cells.map((c) => c.row)),
+    maxRow: Math.max(...cells.map((c) => c.row)),
   };
 }
 
 function cellInsideBounds(cell: GridPlacerResult, b: ReturnType<typeof cellBounds>): boolean {
-  return cell.col >= b.minCol && cell.col <= b.maxCol && cell.row >= b.minRow && cell.row <= b.maxRow;
+  return (
+    cell.col >= b.minCol && cell.col <= b.maxCol && cell.row >= b.minRow && cell.row <= b.maxRow
+  );
 }
 
 function rectContainsRect(a: Rect, b: Rect): boolean {
-  return b.x >= a.x && b.y >= a.y && b.x + b.width <= a.x + a.width && b.y + b.height <= a.y + a.height;
+  return (
+    b.x >= a.x && b.y >= a.y && b.x + b.width <= a.x + a.width && b.y + b.height <= a.y + a.height
+  );
 }
 
 function rectIntersectsInterior(a: Rect, b: Rect): boolean {
   return b.x < a.x + a.width && b.x + b.width > a.x && b.y < a.y + a.height && b.y + b.height > a.y;
 }
 
-function cellRectsOverlap(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean {
+function cellRectsOverlap(
+  ax: number,
+  ay: number,
+  aw: number,
+  ah: number,
+  bx: number,
+  by: number,
+  bw: number,
+  bh: number,
+): boolean {
   return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 }
 
 function unionBounds(rects: readonly Rect[]): Rect {
-  const minX = Math.min(...rects.map(r => r.x));
-  const minY = Math.min(...rects.map(r => r.y));
-  const maxX = Math.max(...rects.map(r => r.x + r.width));
-  const maxY = Math.max(...rects.map(r => r.y + r.height));
+  const minX = Math.min(...rects.map((r) => r.x));
+  const minY = Math.min(...rects.map((r) => r.y));
+  const maxX = Math.max(...rects.map((r) => r.x + r.width));
+  const maxY = Math.max(...rects.map((r) => r.y + r.height));
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
@@ -105,7 +133,7 @@ function groupsByDepthForTest(ir: ArchitectureDocument) {
   function add(g: ArchitectureDocument['groups'][number]) {
     if (added.has(g.id)) return;
     if (g.parent) {
-      const parent = ir.groups.find(pg => pg.id === g.parent);
+      const parent = ir.groups.find((pg) => pg.id === g.parent);
       if (parent) add(parent);
     }
     result.push(g);
@@ -115,7 +143,6 @@ function groupsByDepthForTest(ir: ArchitectureDocument) {
   return result;
 }
 
-
 const MIN_SERVICE_W = 130;
 const MIN_SERVICE_H = 56;
 const SERVICE_PAD = 12;
@@ -124,20 +151,32 @@ const ICON_SIZE = 24;
 const SERVICE_TOP_BAR_H = 8;
 const CENTER_ICON_GAP = 8;
 
-function serviceSizeForTest(service: ArchitectureDocument['services'][number]): { width: number; height: number } {
+function serviceSizeForTest(service: ArchitectureDocument['services'][number]): {
+  width: number;
+  height: number;
+} {
   const align = service.iconAlign ?? 'N';
   const measured = measureText(service.label, defaultTheme.typography.baseFontSize);
   const laneW = align === 'E' || align === 'W' ? ICON_LANE_W : 0;
   return {
     width: Math.ceil(Math.max(MIN_SERVICE_W, laneW + measured.width + SERVICE_PAD * 2)),
-    height: align === 'C'
-      ? Math.ceil(Math.max(MIN_SERVICE_H, SERVICE_TOP_BAR_H + ICON_SIZE + CENTER_ICON_GAP + measured.height + SERVICE_PAD))
-      : MIN_SERVICE_H,
+    height:
+      align === 'C'
+        ? Math.ceil(
+            Math.max(
+              MIN_SERVICE_H,
+              SERVICE_TOP_BAR_H + ICON_SIZE + CENTER_ICON_GAP + measured.height + SERVICE_PAD,
+            ),
+          )
+        : MIN_SERVICE_H,
   };
 }
 
 function nodeRectsForTest(ir: ArchitectureDocument): Map<string, Rect> {
-  const jctW = 16, jctH = 16, colGap = 90, rowGap = 64;
+  const jctW = 16,
+    jctH = 16,
+    colGap = 90,
+    rowGap = 64;
   const margin = defaultTheme.spacing.diagramMargin;
   const titleH = ir.metadata.title ? defaultTheme.typography.titleFontSize + 14 : 0;
   const cells = groupAwareDirectionalGridPlacer(ir);
@@ -154,8 +193,8 @@ function nodeRectsForTest(ir: ArchitectureDocument): Map<string, Rect> {
     rowHeights.set(cell.row, Math.max(rowHeights.get(cell.row) ?? MIN_SERVICE_H, size.height));
   }
   const cellList = [...cells.values()];
-  const maxCol = Math.max(0, ...cellList.map(c => c.col));
-  const maxRow = Math.max(0, ...cellList.map(c => c.row));
+  const maxCol = Math.max(0, ...cellList.map((c) => c.col));
+  const maxRow = Math.max(0, ...cellList.map((c) => c.row));
   const colX = new Map<number, number>();
   const rowY = new Map<number, number>();
   let x = margin;
@@ -172,20 +211,27 @@ function nodeRectsForTest(ir: ArchitectureDocument): Map<string, Rect> {
   const nodes = new Map<string, Rect>();
   for (const [id, cell] of cells) {
     const size = sizes.get(id);
-    if (size) nodes.set(id, { x: colX.get(cell.col) ?? margin, y: (rowY.get(cell.row) ?? margin) + titleH, width: size.width, height: size.height });
+    if (size)
+      nodes.set(id, {
+        x: colX.get(cell.col) ?? margin,
+        y: (rowY.get(cell.row) ?? margin) + titleH,
+        width: size.width,
+        height: size.height,
+      });
   }
   return nodes;
 }
 
-function renderedRects(ir: ArchitectureDocument): { services: Map<string, Rect>; groups: Map<string, Rect> } {
+function renderedRects(ir: ArchitectureDocument): {
+  services: Map<string, Rect>;
+  groups: Map<string, Rect>;
+} {
   const scene = layoutArchitecture(ir, defaultTheme).scene;
   const rects = scene.elements.filter((el): el is SceneRect => el.type === 'rect');
   const serviceBoxes = rects
-    .filter(r => r.rx === 8 && r.strokeWidth === 1.4)
-    .map(r => r.bounds);
-  const groupBoxes = rects
-    .filter(r => r.rx === 10 && r.strokeWidth === 1.4)
-    .map(r => r.bounds);
+    .filter((r) => r.rx === 8 && r.strokeWidth === 1.4)
+    .map((r) => r.bounds);
+  const groupBoxes = rects.filter((r) => r.rx === 10 && r.strokeWidth === 1.4).map((r) => r.bounds);
 
   const services = new Map<string, Rect>();
   ir.services.forEach((s, i) => services.set(s.id, serviceBoxes[i]!));
@@ -195,7 +241,7 @@ function renderedRects(ir: ArchitectureDocument): { services: Map<string, Rect>;
 }
 
 function descendantsOfGroup(ir: ArchitectureDocument, groupId: string): Set<string> {
-  const groupById = new Map(ir.groups.map(g => [g.id, g]));
+  const groupById = new Map(ir.groups.map((g) => [g.id, g]));
   function ownsGroup(id: string | undefined): boolean {
     while (id) {
       if (id === groupId) return true;
@@ -204,21 +250,33 @@ function descendantsOfGroup(ir: ArchitectureDocument, groupId: string): Set<stri
     return false;
   }
   return new Set([
-    ...ir.services.filter(s => ownsGroup(s.group)).map(s => s.id),
-    ...ir.junctions.filter(j => ownsGroup(j.group)).map(j => j.id),
+    ...ir.services.filter((s) => ownsGroup(s.group)).map((s) => s.id),
+    ...ir.junctions.filter((j) => ownsGroup(j.group)).map((j) => j.id),
   ]);
 }
 
-function layoutRectsForInvariant(ir: ArchitectureDocument): { nodes: Map<string, Rect>; groups: Map<string, Rect> } {
+function layoutRectsForInvariant(ir: ArchitectureDocument): {
+  nodes: Map<string, Rect>;
+  groups: Map<string, Rect>;
+} {
   const nodes = nodeRectsForTest(ir);
 
   const groups = new Map<string, Rect>();
   function groupRect(gId: string): Rect | undefined {
     if (groups.has(gId)) return groups.get(gId)!;
     const members = [
-      ...ir.services.filter(s => s.group === gId).map(s => nodes.get(s.id)).filter((r): r is Rect => !!r),
-      ...ir.junctions.filter(j => j.group === gId).map(j => nodes.get(j.id)).filter((r): r is Rect => !!r),
-      ...ir.groups.filter(g => g.parent === gId).map(g => groupRect(g.id)).filter((r): r is Rect => !!r),
+      ...ir.services
+        .filter((s) => s.group === gId)
+        .map((s) => nodes.get(s.id))
+        .filter((r): r is Rect => !!r),
+      ...ir.junctions
+        .filter((j) => j.group === gId)
+        .map((j) => nodes.get(j.id))
+        .filter((r): r is Rect => !!r),
+      ...ir.groups
+        .filter((g) => g.parent === gId)
+        .map((g) => groupRect(g.id))
+        .filter((r): r is Rect => !!r),
     ];
     if (members.length === 0) return undefined;
     const u = unionBounds(members);
@@ -245,20 +303,23 @@ function assertNoForeignNodeInsideGroup(ir: ArchitectureDocument): void {
 }
 
 function connectorPaths(ir: ArchitectureDocument): ScenePath[] {
-  return layoutArchitecture(ir, defaultTheme).scene.elements
-    .filter((el): el is ScenePath => el.type === 'path')
+  return layoutArchitecture(ir, defaultTheme)
+    .scene.elements.filter((el): el is ScenePath => el.type === 'path')
     .slice(0, ir.edges.length);
 }
 
 function hasAdjacentDuplicatePathPoint(d: string): boolean {
-  const points = [...d.matchAll(/[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
-    .map(m => `${m[1]},${m[2]}`);
+  const points = [...d.matchAll(/[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)].map(
+    (m) => `${m[1]},${m[2]}`,
+  );
   return points.some((p, i) => i > 0 && p === points[i - 1]);
 }
 
 function moveLinePoints(d: string): Array<{ x: number; y: number }> {
-  return [...d.matchAll(/[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
-    .map(m => ({ x: Number(m[1]), y: Number(m[2]) }));
+  return [...d.matchAll(/[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)].map((m) => ({
+    x: Number(m[1]),
+    y: Number(m[2]),
+  }));
 }
 
 function pathStartPoint(d: string): { x: number; y: number } {
@@ -268,24 +329,36 @@ function pathStartPoint(d: string): { x: number; y: number } {
 }
 
 function pathEndPoint(d: string): { x: number; y: number } {
-  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0]));
+  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map((m) => Number(m[0]));
   return { x: nums[nums.length - 2]!, y: nums[nums.length - 1]! };
 }
 
-function pathIntersectsRectInterior(points: readonly { x: number; y: number }[], rect: Rect): boolean {
+function pathIntersectsRectInterior(
+  points: readonly { x: number; y: number }[],
+  rect: Rect,
+): boolean {
   for (let i = 0; i < points.length - 1; i++) {
-    const a = points[i]!, b = points[i + 1]!;
+    const a = points[i]!,
+      b = points[i + 1]!;
     if (segmentIntersectsRectInterior(a, b, rect)) return true;
   }
   return false;
 }
 
-function segmentIntersectsRectInterior(a: { x: number; y: number }, b: { x: number; y: number }, rect: Rect): boolean {
+function segmentIntersectsRectInterior(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  rect: Rect,
+): boolean {
   const eps = 1e-6;
-  const xmin = rect.x + eps, xmax = rect.x + rect.width - eps;
-  const ymin = rect.y + eps, ymax = rect.y + rect.height - eps;
-  const dx = b.x - a.x, dy = b.y - a.y;
-  let tmin = 0, tmax = 1;
+  const xmin = rect.x + eps,
+    xmax = rect.x + rect.width - eps;
+  const ymin = rect.y + eps,
+    ymax = rect.y + rect.height - eps;
+  const dx = b.x - a.x,
+    dy = b.y - a.y;
+  let tmin = 0,
+    tmax = 1;
   for (const { p, q } of [
     { p: -dx, q: a.x - xmin },
     { p: dx, q: xmax - a.x },
@@ -309,7 +382,7 @@ function sampleConnectorPath(d: string): Array<{ x: number; y: number }> {
   let current = { x: 0, y: 0 };
   const commands = [...d.matchAll(/([MLCQ])([^MLCQ]*)/g)];
   for (const [, command, rawArgs] of commands) {
-    const nums = [...rawArgs!.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0]));
+    const nums = [...rawArgs!.matchAll(/-?\d+(?:\.\d+)?/g)].map((m) => Number(m[0]));
     if (command === 'M') {
       current = { x: nums[0]!, y: nums[1]! };
       points.push(current);
@@ -343,8 +416,8 @@ function sampleCubic(
 ): { x: number; y: number } {
   const u = 1 - t;
   return {
-    x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
-    y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+    x: u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x,
+    y: u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y,
   };
 }
 
@@ -356,8 +429,8 @@ function sampleQuadratic(
 ): { x: number; y: number } {
   const u = 1 - t;
   return {
-    x: u*u*p0.x + 2*u*t*p1.x + t*t*p2.x,
-    y: u*u*p0.y + 2*u*t*p1.y + t*t*p2.y,
+    x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
+    y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
   };
 }
 
@@ -377,9 +450,9 @@ function sampleQuadratic(
 describe('canonical 2×2 grid — mermaid.live match', () => {
   const nodes = [node('server'), node('db'), node('disk1'), node('disk2')];
   const edges = [
-    edge('db',    'L', 'server', 'R'),
+    edge('db', 'L', 'server', 'R'),
     edge('disk1', 'T', 'server', 'B'),
-    edge('disk2', 'T', 'db',    'B'),
+    edge('disk2', 'T', 'db', 'B'),
   ];
 
   it('places server at (0,0) — top-left', () => {
@@ -481,11 +554,7 @@ describe('cycle handling (3-node cycle)', () => {
   // A:R--L:B, B:R--L:C, C:R--L:A
   const m = directionalGridPlacer(
     [node('a'), node('b'), node('c')],
-    [
-      edge('a', 'R', 'b', 'L'),
-      edge('b', 'R', 'c', 'L'),
-      edge('c', 'R', 'a', 'L'),
-    ],
+    [edge('a', 'R', 'b', 'L'), edge('b', 'R', 'c', 'L'), edge('c', 'R', 'a', 'L')],
   );
 
   it('all three nodes are placed', () => {
@@ -500,7 +569,7 @@ describe('cycle handling (3-node cycle)', () => {
   });
 
   it('no two nodes share the same cell', () => {
-    const cells = [...m.values()].map(c => `${c.col},${c.row}`);
+    const cells = [...m.values()].map((c) => `${c.col},${c.row}`);
     expect(new Set(cells).size).toBe(3);
   });
 });
@@ -509,10 +578,7 @@ describe('cycle handling (3-node cycle)', () => {
 
 describe('disconnected components', () => {
   // A:R--L:B (component 1) and C (isolated)
-  const m = directionalGridPlacer(
-    [node('a'), node('b'), node('c')],
-    [edge('a', 'R', 'b', 'L')],
-  );
+  const m = directionalGridPlacer([node('a'), node('b'), node('c')], [edge('a', 'R', 'b', 'L')]);
 
   it('all three nodes are placed', () => {
     expect(m.size).toBe(3);
@@ -544,7 +610,7 @@ describe('no edges — single row fallback', () => {
 
   it('places nodes in distinct columns', () => {
     const m = directionalGridPlacer([node('x'), node('y'), node('z')], []);
-    const cols = [...m.values()].map(c => c.col);
+    const cols = [...m.values()].map((c) => c.col);
     expect(new Set(cols).size).toBe(3);
   });
 });
@@ -587,10 +653,7 @@ describe('empty input', () => {
 
 describe('case-insensitive side letters', () => {
   it('accepts lowercase sides (r, l, t, b)', () => {
-    const m = directionalGridPlacer(
-      [node('a'), node('b')],
-      [edge('a', 'r', 'b', 'l')],
-    );
+    const m = directionalGridPlacer([node('a'), node('b')], [edge('a', 'r', 'b', 'l')]);
     const [ac] = get(m, 'a');
     const [bc] = get(m, 'b');
     expect(bc).toBe(ac + 1); // b is east of a
@@ -611,7 +674,7 @@ describe('group-aware directional cluster placement', () => {
       ],
     });
     const cells = groupAwareDirectionalGridPlacer(ir);
-    const group = cellBounds(['a', 'b', 'c'].map(id => cells.get(id)!));
+    const group = cellBounds(['a', 'b', 'c'].map((id) => cells.get(id)!));
     expect(group.maxRow - group.minRow).toBe(0);
     expect(group.maxCol - group.minCol).toBe(2);
     expect(cellInsideBounds(cells.get('x')!, group)).toBe(false);
@@ -632,8 +695,8 @@ describe('group-aware directional cluster placement', () => {
       edges: [archEdge('a1', 'R', 'b1', 'L')],
     });
     const cells = groupAwareDirectionalGridPlacer(ir);
-    const aBounds = cellBounds(['a1', 'a2'].map(id => cells.get(id)!));
-    const bBounds = cellBounds(['b1', 'b2'].map(id => cells.get(id)!));
+    const aBounds = cellBounds(['a1', 'a2'].map((id) => cells.get(id)!));
+    const bBounds = cellBounds(['b1', 'b2'].map((id) => cells.get(id)!));
     expect(bBounds.minCol).toBeGreaterThan(aBounds.maxCol);
     expect(aBounds.maxRow - aBounds.minRow).toBe(0);
     expect(bBounds.maxRow - bBounds.minRow).toBe(0);
@@ -651,7 +714,7 @@ describe('group-aware directional cluster placement', () => {
       edges: [archEdge('a1', 'R', 'x', 'L'), archEdge('a2', 'L', 'y', 'R')],
     });
     const cells = groupAwareDirectionalGridPlacer(ir);
-    const aBounds = cellBounds(['a1', 'a2'].map(id => cells.get(id)!));
+    const aBounds = cellBounds(['a1', 'a2'].map((id) => cells.get(id)!));
     expect(aBounds.maxCol - aBounds.minCol).toBeLessThanOrEqual(1);
     expect(aBounds.maxRow - aBounds.minRow).toBe(0);
     expect(cellInsideBounds(cells.get('x')!, aBounds)).toBe(false);
@@ -689,10 +752,21 @@ describe('group-aware directional cluster placement', () => {
       ],
     });
     const cells = groupAwareDirectionalGridPlacer(ir);
-    const aBounds = cellBounds(['a1', 'a2'].map(id => cells.get(id)!));
-    const bBounds = cellBounds(['b1'].map(id => cells.get(id)!));
+    const aBounds = cellBounds(['a1', 'a2'].map((id) => cells.get(id)!));
+    const bBounds = cellBounds(['b1'].map((id) => cells.get(id)!));
     expect(cellInsideBounds(cells.get('root')!, aBounds)).toBe(false);
-    expect(cellRectsOverlap(aBounds.minCol, aBounds.minRow, aBounds.maxCol - aBounds.minCol + 1, aBounds.maxRow - aBounds.minRow + 1, bBounds.minCol, bBounds.minRow, 1, 1)).toBe(false);
+    expect(
+      cellRectsOverlap(
+        aBounds.minCol,
+        aBounds.minRow,
+        aBounds.maxCol - aBounds.minCol + 1,
+        aBounds.maxRow - aBounds.minRow + 1,
+        bBounds.minCol,
+        bBounds.minRow,
+        1,
+        1,
+      ),
+    ).toBe(false);
   });
 
   it('keeps cross-boundary align containment-safe', () => {
@@ -714,11 +788,16 @@ describe('group-aware directional cluster placement', () => {
   });
 
   it('fixes the triton-features platform ballooning repro', () => {
-    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'), 'utf8'));
+    const ir = parseArchitecture(
+      readFileSync(
+        join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'),
+        'utf8',
+      ),
+    );
     const { services, groups } = renderedRects(ir);
     const platform = groups.get('platform')!;
     const users = services.get('users')!;
-    const members = ['stream', 'lake', 'warehouse'].map(id => services.get(id)!);
+    const members = ['stream', 'lake', 'warehouse'].map((id) => services.get(id)!);
     const platformMembers = unionBounds(members);
 
     expect(rectContainsRect(platform, users)).toBe(false);
@@ -730,7 +809,7 @@ describe('group-aware directional cluster placement', () => {
     }
 
     const cells = groupAwareDirectionalGridPlacer(ir);
-    const platformCells = ['stream', 'lake', 'warehouse'].map(id => cells.get(id)!);
+    const platformCells = ['stream', 'lake', 'warehouse'].map((id) => cells.get(id)!);
     const bounds = cellBounds(platformCells);
     expect(bounds.maxCol - bounds.minCol).toBeLessThanOrEqual(1);
     expect(bounds.maxRow - bounds.minRow).toBeLessThanOrEqual(1);
@@ -744,7 +823,9 @@ describe('group-aware directional cluster placement', () => {
   });
 
   it('keeps nested-groups child group rectangles disjoint', () => {
-    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/nested-groups.mmd'), 'utf8'));
+    const ir = parseArchitecture(
+      readFileSync(join(process.cwd(), 'examples/mermaid/architecture/nested-groups.mmd'), 'utf8'),
+    );
     const { groups } = renderedRects(ir);
     const backend = groups.get('backend')!;
     const data = groups.get('data')!;
@@ -752,7 +833,12 @@ describe('group-aware directional cluster placement', () => {
   });
 
   it('does not emit adjacent duplicate points on triton-features connector paths', () => {
-    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'), 'utf8'));
+    const ir = parseArchitecture(
+      readFileSync(
+        join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'),
+        'utf8',
+      ),
+    );
     for (const path of connectorPaths(ir)) {
       if (path.d.includes(' C ')) continue;
       expect(hasAdjacentDuplicatePathPoint(path.d), path.d).toBe(false);
@@ -760,7 +846,12 @@ describe('group-aware directional cluster placement', () => {
   });
 
   it('honors wall hints while fanning real multi-connector triton-features walls', () => {
-    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'), 'utf8'));
+    const ir = parseArchitecture(
+      readFileSync(
+        join(process.cwd(), 'examples/mermaid/architecture/triton-features.mmd'),
+        'utf8',
+      ),
+    );
     const { services } = renderedRects(ir);
     const paths = connectorPaths(ir);
     const dashboard = services.get('dashboard')!;
@@ -768,12 +859,18 @@ describe('group-aware directional cluster placement', () => {
     const stream = services.get('stream')!;
     const lake = services.get('lake')!;
     const warehouse = services.get('warehouse')!;
-    const usersToGateway = ir.edges.findIndex(e => e.from === 'users' && e.to === 'gateway');
-    const collectorToStream = ir.edges.findIndex(e => e.from === 'collector' && e.to === 'stream');
-    const streamToLake = ir.edges.findIndex(e => e.from === 'stream' && e.to === 'lake');
-    const lakeToWarehouse = ir.edges.findIndex(e => e.from === 'lake' && e.to === 'warehouse');
-    const warehouseToDashboard = ir.edges.findIndex(e => e.from === 'warehouse' && e.to === 'dashboard');
-    const dashboardToGateway = ir.edges.findIndex(e => e.from === 'dashboard' && e.to === 'gateway');
+    const usersToGateway = ir.edges.findIndex((e) => e.from === 'users' && e.to === 'gateway');
+    const collectorToStream = ir.edges.findIndex(
+      (e) => e.from === 'collector' && e.to === 'stream',
+    );
+    const streamToLake = ir.edges.findIndex((e) => e.from === 'stream' && e.to === 'lake');
+    const lakeToWarehouse = ir.edges.findIndex((e) => e.from === 'lake' && e.to === 'warehouse');
+    const warehouseToDashboard = ir.edges.findIndex(
+      (e) => e.from === 'warehouse' && e.to === 'dashboard',
+    );
+    const dashboardToGateway = ir.edges.findIndex(
+      (e) => e.from === 'dashboard' && e.to === 'gateway',
+    );
 
     const usersGatewayEnd = pathEndPoint(paths[usersToGateway]!.d);
     const dashboardGatewayStart = pathStartPoint(paths[dashboardToGateway]!.d);
@@ -781,10 +878,10 @@ describe('group-aware directional cluster placement', () => {
     expect(usersGatewayEnd.x).toBeCloseTo(gateway.x, 6);
     expect(dashboardGatewayEnd.x).toBeCloseTo(gateway.x, 6);
     expect(Math.abs(usersGatewayEnd.y - dashboardGatewayEnd.y)).toBeGreaterThan(10);
-    expect((dashboardGatewayEnd.y - gateway.y) / gateway.height).toBeGreaterThan(0.30);
-    expect((dashboardGatewayEnd.y - gateway.y) / gateway.height).toBeLessThan(0.40);
-    expect((usersGatewayEnd.y - gateway.y) / gateway.height).toBeGreaterThan(0.60);
-    expect((usersGatewayEnd.y - gateway.y) / gateway.height).toBeLessThan(0.70);
+    expect((dashboardGatewayEnd.y - gateway.y) / gateway.height).toBeGreaterThan(0.3);
+    expect((dashboardGatewayEnd.y - gateway.y) / gateway.height).toBeLessThan(0.4);
+    expect((usersGatewayEnd.y - gateway.y) / gateway.height).toBeGreaterThan(0.6);
+    expect((usersGatewayEnd.y - gateway.y) / gateway.height).toBeLessThan(0.7);
 
     const collectorStreamEnd = pathEndPoint(paths[collectorToStream]!.d);
     const streamLakeStart = pathStartPoint(paths[streamToLake]!.d);
@@ -810,7 +907,9 @@ describe('group-aware directional cluster placement', () => {
   });
 
   it('routes the architecture client-to-api edge outside unrelated node interiors', () => {
-    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/architecture.mmd'), 'utf8'));
+    const ir = parseArchitecture(
+      readFileSync(join(process.cwd(), 'examples/mermaid/architecture/architecture.mmd'), 'utf8'),
+    );
     const { services } = renderedRects(ir);
     const points = moveLinePoints(connectorPaths(ir)[0]!.d);
     for (const id of ['client', 'storage']) {
@@ -819,7 +918,9 @@ describe('group-aware directional cluster placement', () => {
   });
 
   it('places architecture.mmd mixed-side external client compactly beside storage', () => {
-    const ir = parseArchitecture(readFileSync(join(process.cwd(), 'examples/mermaid/architecture/architecture.mmd'), 'utf8'));
+    const ir = parseArchitecture(
+      readFileSync(join(process.cwd(), 'examples/mermaid/architecture/architecture.mmd'), 'utf8'),
+    );
     const cells = groupAwareDirectionalGridPlacer(ir);
     expect(get(cells, 'api')).toEqual([1, 0]);
     expect(get(cells, 'db')).toEqual([2, 0]);
@@ -830,7 +931,7 @@ describe('group-aware directional cluster placement', () => {
     expect(cells.get('storage')!.col).toBe(cells.get('api')!.col);
     expect(cells.get('client')!.col).toBe(cells.get('api')!.col - 1);
 
-    const group = cellBounds(['api', 'db'].map(id => cells.get(id)!));
+    const group = cellBounds(['api', 'db'].map((id) => cells.get(id)!));
     const occupied = new Set<string>();
     for (const id of ['api', 'db', 'storage', 'client']) {
       const cell = cells.get(id)!;
@@ -850,13 +951,10 @@ describe('group-aware directional cluster placement', () => {
         { id: 'b', label: 'B', icon: 'server', group: 'G' },
         { id: 'x', label: 'X', icon: 'server' },
       ],
-      edges: [
-        archEdge('a', 'R', 'b', 'L'),
-        archEdge('x', 'L', 'a', 'T'),
-      ],
+      edges: [archEdge('a', 'R', 'b', 'L'), archEdge('x', 'L', 'a', 'T')],
     });
     const cells = groupAwareDirectionalGridPlacer(ir);
-    const group = cellBounds(['a', 'b'].map(id => cells.get(id)!));
+    const group = cellBounds(['a', 'b'].map((id) => cells.get(id)!));
     expect(group.maxCol - group.minCol).toBe(1);
     expect(cells.get('x')!.col).toBe(group.maxCol);
     expect(cells.get('x')!.row).toBeLessThan(group.minRow);
@@ -865,20 +963,31 @@ describe('group-aware directional cluster placement', () => {
 
   it('routes every architecture example edge outside non-endpoint node interiors', () => {
     const dir = join(process.cwd(), 'examples/mermaid/architecture');
-    for (const file of ['architecture.mmd', 'arrows.mmd', 'align-grid.mmd', 'group-edges.mmd', 'junctions.mmd', 'nested-groups.mmd', 'triton-features.mmd']) {
+    for (const file of [
+      'architecture.mmd',
+      'arrows.mmd',
+      'align-grid.mmd',
+      'group-edges.mmd',
+      'junctions.mmd',
+      'nested-groups.mmd',
+      'triton-features.mmd',
+    ]) {
       const ir = parseArchitecture(readFileSync(join(dir, file), 'utf8'));
       const { nodes: invariantNodes } = layoutRectsForInvariant(ir);
       const { services } = renderedRects(ir);
       const nodes = new Map<string, Rect>([
         ...services,
-        ...ir.junctions.map(j => [j.id, invariantNodes.get(j.id)!] as [string, Rect]),
+        ...ir.junctions.map((j) => [j.id, invariantNodes.get(j.id)!] as [string, Rect]),
       ]);
       const paths = connectorPaths(ir);
       ir.edges.forEach((edge, i) => {
         const points = sampleConnectorPath(paths[i]!.d);
         for (const [id, rect] of nodes) {
           if (id === edge.from || id === edge.to) continue;
-          expect(pathIntersectsRectInterior(points, rect), `${file} edge ${edge.from}->${edge.to} crosses ${id}: ${paths[i]!.d}`).toBe(false);
+          expect(
+            pathIntersectsRectInterior(points, rect),
+            `${file} edge ${edge.from}->${edge.to} crosses ${id}: ${paths[i]!.d}`,
+          ).toBe(false);
         }
       });
     }
@@ -886,7 +995,15 @@ describe('group-aware directional cluster placement', () => {
 
   it('keeps foreign nodes outside every architecture example group', () => {
     const dir = join(process.cwd(), 'examples/mermaid/architecture');
-    for (const file of ['architecture.mmd', 'arrows.mmd', 'align-grid.mmd', 'group-edges.mmd', 'junctions.mmd', 'nested-groups.mmd', 'triton-features.mmd']) {
+    for (const file of [
+      'architecture.mmd',
+      'arrows.mmd',
+      'align-grid.mmd',
+      'group-edges.mmd',
+      'junctions.mmd',
+      'nested-groups.mmd',
+      'triton-features.mmd',
+    ]) {
       const ir = parseArchitecture(readFileSync(join(dir, file), 'utf8'));
       assertNoForeignNodeInsideGroup(ir);
     }

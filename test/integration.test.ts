@@ -132,10 +132,9 @@ describe('theme propagation end-to-end', () => {
   it('same input with different themes produces different SVG', async () => {
     const input = 'flowchart TD\nA --> B\n';
     const light = await render(input);
-    const dark  = await render(input, { palette: { background: '#111', primary: '#f00' } });
+    const dark = await render(input, { palette: { background: '#111', primary: '#f00' } });
     expect(light.ok && dark.ok).toBe(true);
     if (!light.ok || !dark.ok) return;
     expect(light.value).not.toBe(dark.value);
   });
 });
-

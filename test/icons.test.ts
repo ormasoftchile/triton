@@ -28,12 +28,12 @@ const FULL_PACK = {
   },
   aliases: {
     'app-svc': { parent: 'app-service' },
-    'vnet':    { parent: 'virtual-network', hFlip: true },
+    vnet: { parent: 'virtual-network', hFlip: true },
   },
-  width:  24,
+  width: 24,
   height: 24,
-  left:   0,
-  top:    0,
+  left: 0,
+  top: 0,
 };
 
 // ─── validateIconPack — basic shape ──────────────────────────────────────────
@@ -442,8 +442,8 @@ describe('resolveIcon — alias following', () => {
       prefix: 'test',
       icons: { base: { body: '<path fill="currentColor"/>' } },
       aliases: {
-        mid:  { parent: 'base', rotate: 1 },
-        top:  { parent: 'mid',  hFlip: true },
+        mid: { parent: 'base', rotate: 1 },
+        top: { parent: 'mid', hFlip: true },
       },
     };
     const packs: IconPackMap = new Map([['test', pack]]);
@@ -478,7 +478,9 @@ describe('detectColorMode — monochrome', () => {
   });
 
   it('classifies fill=none as monochrome', () => {
-    expect(detectColorMode('<circle fill="none" stroke="currentColor" cx="12" cy="12" r="10"/>')).toBe('monochrome');
+    expect(
+      detectColorMode('<circle fill="none" stroke="currentColor" cx="12" cy="12" r="10"/>'),
+    ).toBe('monochrome');
   });
 
   it('classifies fill=inherit as monochrome', () => {
@@ -496,7 +498,9 @@ describe('detectColorMode — monochrome', () => {
 
 describe('detectColorMode — brand', () => {
   it('classifies hardcoded hex fill as brand', () => {
-    expect(detectColorMode('<rect fill="#0078D4" x="0" y="0" width="18" height="18"/>')).toBe('brand');
+    expect(detectColorMode('<rect fill="#0078D4" x="0" y="0" width="18" height="18"/>')).toBe(
+      'brand',
+    );
   });
 
   it('classifies rgb() fill as brand', () => {
@@ -508,7 +512,8 @@ describe('detectColorMode — brand', () => {
   });
 
   it('classifies linearGradient body as brand (regardless of fill values)', () => {
-    const body = '<defs><linearGradient id="a"><stop offset="0%" stop-color="#0078D4"/></linearGradient></defs><rect fill="url(#a)"/>';
+    const body =
+      '<defs><linearGradient id="a"><stop offset="0%" stop-color="#0078D4"/></linearGradient></defs><rect fill="url(#a)"/>';
     expect(detectColorMode(body)).toBe('brand');
   });
 

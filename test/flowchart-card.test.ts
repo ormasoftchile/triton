@@ -32,18 +32,26 @@ import type { IconPackMap, IconifyJSON } from '../src/contracts/icons.js';
 const MONO_PACK: IconifyJSON = {
   prefix: 'mdi',
   icons: {
-    server:   { body: '<path fill="currentColor" d="M4 1h16v14H4z"/>' },
+    server: { body: '<path fill="currentColor" d="M4 1h16v14H4z"/>' },
     database: { body: '<circle fill="currentColor" cx="12" cy="12" r="8"/>' },
-    cloud:    { body: '<path fill="currentColor" d="M12 2a7 7 0 017 7c0 4-3 7-7 7s-7-3-7-7a7 7 0 017-7z"/>' },
+    cloud: {
+      body: '<path fill="currentColor" d="M12 2a7 7 0 017 7c0 4-3 7-7 7s-7-3-7-7a7 7 0 017-7z"/>',
+    },
   },
-  width: 24, height: 24, left: 0, top: 0,
+  width: 24,
+  height: 24,
+  left: 0,
+  top: 0,
 };
 
 const PACK_MAP: IconPackMap = new Map([['mdi', MONO_PACK]]);
 
 // ─── Layout-level helpers ─────────────────────────────────────────────────────
 
-function makeCardDoc(nodes: FlowDocument['nodes'], edges: FlowDocument['edges'] = []): FlowDocument {
+function makeCardDoc(
+  nodes: FlowDocument['nodes'],
+  edges: FlowDocument['edges'] = [],
+): FlowDocument {
   return {
     version: '1.0',
     metadata: {},
@@ -69,11 +77,17 @@ function getGroupChildren(svg: string, id: string): string {
 
 describe('card node — title/body split', () => {
   it('label with actual newline: first line = title, rest = body', () => {
-    const doc = makeCardDoc([{
-      id: 'a', shape: 'card', label: 'App Service\nHTTP routing and load balancing',
-    }]);
+    const doc = makeCardDoc([
+      {
+        id: 'a',
+        shape: 'card',
+        label: 'App Service\nHTTP routing and load balancing',
+      },
+    ]);
     const result = layoutFlowchart(doc, defaultTheme, { icons: PACK_MAP });
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const texts = group.children.filter((c: any) => c.type === 'text');
     const title = texts[0];
     expect(title?.content).toBe('App Service');
@@ -83,7 +97,9 @@ describe('card node — title/body split', () => {
   it('label without newline: entire label is title, no body', () => {
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: 'Just a title' }]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const texts = group.children.filter((c: any) => c.type === 'text');
     expect(texts.length).toBe(1);
     expect(texts[0]?.content).toBe('Just a title');
@@ -93,19 +109,26 @@ describe('card node — title/body split', () => {
     // Simulate \n as two-char escape (as written in .mmd files)
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: 'Title\\nBody text here' }]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const texts = group.children.filter((c: any) => c.type === 'text');
     expect(texts[0]?.content).toBe('Title');
     expect(texts[0]?.fontWeight).toBe('bold');
   });
 
   it('body text appears as separate text elements below title', () => {
-    const doc = makeCardDoc([{
-      id: 'a', shape: 'card',
-      label: 'App Service\nHandles HTTP requests and routes to backend services',
-    }]);
+    const doc = makeCardDoc([
+      {
+        id: 'a',
+        shape: 'card',
+        label: 'App Service\nHandles HTTP requests and routes to backend services',
+      },
+    ]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const texts = group.children.filter((c: any) => c.type === 'text');
     expect(texts.length).toBeGreaterThan(1); // title + at least one body line
     // Body text should be below title (higher y value)
@@ -131,19 +154,22 @@ describe('card node — content-driven sizing', () => {
 
   it('longer title produces wider card than shorter title', () => {
     const short = makeCardDoc([{ id: 'a', shape: 'card', label: 'Hi' }]);
-    const long  = makeCardDoc([{ id: 'a', shape: 'card', label: 'A very long title that is much wider than Hi' }]);
+    const long = makeCardDoc([
+      { id: 'a', shape: 'card', label: 'A very long title that is much wider than Hi' },
+    ]);
     const shortRect = getNodeRect(short, 'a');
-    const longRect  = getNodeRect(long,  'a');
+    const longRect = getNodeRect(long, 'a');
     expect(longRect!.width).toBeGreaterThan(shortRect!.width);
   });
 
   it('card with multi-line body is taller than card without body', () => {
     // Body that definitely wraps to 2+ lines: forces textH > CARD_ICON_BOX (40px)
-    const longBody = 'Handles HTTP request routing load balancing and traffic shaping in the DMZ zone';
+    const longBody =
+      'Handles HTTP request routing load balancing and traffic shaping in the DMZ zone';
     const noBody = makeCardDoc([{ id: 'a', shape: 'card', label: 'Title' }]);
     const withBody = makeCardDoc([{ id: 'a', shape: 'card', label: `Title\n${longBody}` }]);
     const noBodyRect = getNodeRect(noBody, 'a');
-    const bodyRect   = getNodeRect(withBody, 'a');
+    const bodyRect = getNodeRect(withBody, 'a');
     expect(bodyRect!.height).toBeGreaterThan(noBodyRect!.height);
   });
 
@@ -160,7 +186,9 @@ describe('card node — layout structure', () => {
   it('card node group contains a background rect', () => {
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: 'Service\nDoes stuff' }]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const rect = group.children.find((c: any) => c.type === 'rect');
     expect(rect).toBeDefined();
     expect(rect?.rx).toBe(6); // rounded corners
@@ -169,29 +197,43 @@ describe('card node — layout structure', () => {
   it('card background rect has fillOpacity 0.85', () => {
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: 'Service' }]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const rect = group.children.find((c: any) => c.type === 'rect');
     expect(rect?.fillOpacity).toBe(0.85);
   });
 
   it('card group with icon contains an icon element', () => {
-    const doc = makeCardDoc([{
-      id: 'a', shape: 'card', label: 'Server',
-      icon: { prefix: 'mdi', name: 'server' },
-    }]);
+    const doc = makeCardDoc([
+      {
+        id: 'a',
+        shape: 'card',
+        label: 'Server',
+        icon: { prefix: 'mdi', name: 'server' },
+      },
+    ]);
     const result = layoutFlowchart(doc, defaultTheme, { icons: PACK_MAP });
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const icon = group.children.find((c: any) => c.type === 'icon');
     expect(icon).toBeDefined();
   });
 
   it('icon is positioned left of text (icon x < text x)', () => {
-    const doc = makeCardDoc([{
-      id: 'a', shape: 'card', label: 'Server',
-      icon: { prefix: 'mdi', name: 'server' },
-    }]);
+    const doc = makeCardDoc([
+      {
+        id: 'a',
+        shape: 'card',
+        label: 'Server',
+        icon: { prefix: 'mdi', name: 'server' },
+      },
+    ]);
     const result = layoutFlowchart(doc, defaultTheme, { icons: PACK_MAP });
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const icon = group.children.find((c: any) => c.type === 'icon');
     const text = group.children.find((c: any) => c.type === 'text');
     expect(icon?.x).toBeLessThan(text?.position.x);
@@ -200,7 +242,9 @@ describe('card node — layout structure', () => {
   it('card without icon still renders title (no crash)', () => {
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: 'Title\nBody' }]);
     const result = layoutFlowchart(doc, defaultTheme); // no icons
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const texts = group.children.filter((c: any) => c.type === 'text');
     expect(texts.length).toBeGreaterThan(0);
     const iconEl = group.children.find((c: any) => c.type === 'icon');
@@ -210,7 +254,9 @@ describe('card node — layout structure', () => {
   it('title has bold font weight', () => {
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: 'Bold Title' }]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
     const title = group.children.find((c: any) => c.type === 'text');
     expect(title?.fontWeight).toBe('bold');
   });
@@ -220,12 +266,15 @@ describe('card node — layout structure', () => {
 
 describe('card node — body wrapping', () => {
   it('body with many words wraps to ≤3 lines', () => {
-    const longBody = 'This is a very long body text that should wrap across multiple lines because it exceeds the available width of the card region completely';
+    const longBody =
+      'This is a very long body text that should wrap across multiple lines because it exceeds the available width of the card region completely';
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: `Title\n${longBody}` }]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
-    const bodyTexts = group.children.filter((c: any) =>
-      c.type === 'text' && c.fontWeight !== 'bold',
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
+    const bodyTexts = group.children.filter(
+      (c: any) => c.type === 'text' && c.fontWeight !== 'bold',
     );
     expect(bodyTexts.length).toBeLessThanOrEqual(3);
     expect(bodyTexts.length).toBeGreaterThan(0);
@@ -234,9 +283,11 @@ describe('card node — body wrapping', () => {
   it('short body renders as a single text element', () => {
     const doc = makeCardDoc([{ id: 'a', shape: 'card', label: 'Title\nShort body' }]);
     const result = layoutFlowchart(doc, defaultTheme);
-    const group = result.scene.elements.find(e => e.type === 'group' && (e as any).id === 'a') as any;
-    const bodyTexts = group.children.filter((c: any) =>
-      c.type === 'text' && c.fontWeight !== 'bold',
+    const group = result.scene.elements.find(
+      (e) => e.type === 'group' && (e as any).id === 'a',
+    ) as any;
+    const bodyTexts = group.children.filter(
+      (c: any) => c.type === 'text' && c.fontWeight !== 'bold',
     );
     expect(bodyTexts.length).toBe(1);
   });
@@ -322,22 +373,21 @@ describe('card node — grammar integration', () => {
   it('parses @shape:card and @icon together via renderSync', () => {
     const result = renderSync(
       'flowchart TD\nA ["Service\\nDoes things"] @shape:card @icon:mdi:server\n',
-      undefined, 'svg', undefined, PACK_MAP,
+      undefined,
+      'svg',
+      undefined,
+      PACK_MAP,
     );
     expect(result.ok).toBe(true);
   });
 
   it('@shape:card without @icon renders title-only card', () => {
-    const result = renderSync(
-      'flowchart TD\nA ["Plain Card"] @shape:card\n',
-    );
+    const result = renderSync('flowchart TD\nA ["Plain Card"] @shape:card\n');
     expect(result.ok).toBe(true);
   });
 
   it('existing non-card diagram is unaffected', () => {
-    const result = renderSync(
-      'flowchart LR\nA[Build] --> B[Test] --> C[Deploy]\n',
-    );
+    const result = renderSync('flowchart LR\nA[Build] --> B[Test] --> C[Deploy]\n');
     expect(result.ok).toBe(true);
     const svg = result.ok ? result.value : '';
     // Should not have rx=6 (card-style corners)

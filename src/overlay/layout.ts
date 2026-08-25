@@ -12,13 +12,13 @@ import type {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const ANNO_MIN_W   = 100;
-const ANNO_MAX_W   = 200;
-const ANNO_PAD     = 10;
-const ANNO_FOLD    = 10;
+const ANNO_MIN_W = 100;
+const ANNO_MAX_W = 200;
+const ANNO_PAD = 10;
+const ANNO_FOLD = 10;
 const LEGEND_MIN_W = 140;
 const LEGEND_ROW_H = 20;
-const LEGEND_PAD   = 10;
+const LEGEND_PAD = 10;
 const LEGEND_MARGIN = 12;
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -82,7 +82,9 @@ function layoutAnnotation(
   let boxOrigin: Point;
 
   if ('elementId' in anno.anchor) {
-    const elBounds = boundsMap.get(anno.anchor.elementId);
+    const rawId = anno.anchor.elementId;
+    const elBounds =
+      boundsMap.get(rawId) ?? boundsMap.get(slugify(rawId)) ?? boundsMap.get(rawId.toLowerCase());
     if (!elBounds) return null;
     anchorPt = { x: elBounds.x + elBounds.width / 2, y: elBounds.y };
     boxOrigin = { x: anchorPt.x + anno.position.x, y: anchorPt.y + anno.position.y };
@@ -92,44 +94,76 @@ function layoutAnnotation(
   }
 
   // Measure text
-  const charW  = typography.baseFontSize * 0.52;
-  const maxW   = anno.width ?? ANNO_MAX_W;
-  const lines  = wrapText(anno.text, maxW, charW);
-  const textW  = Math.max(ANNO_MIN_W, Math.min(maxW, Math.max(...lines.map(l => l.length * charW)) + ANNO_PAD * 2));
-  const lineH  = typography.baseFontSize * typography.lineHeight;
-  const boxW   = textW;
-  const boxH   = lines.length * lineH + ANNO_PAD * 2;
+  const charW = typography.baseFontSize * 0.52;
+  const maxW = anno.width ?? ANNO_MAX_W;
+  const lines = wrapText(anno.text, maxW, charW);
+  const textW = Math.max(
+    ANNO_MIN_W,
+    Math.min(maxW, Math.max(...lines.map((l) => l.length * charW)) + ANNO_PAD * 2),
+  );
+  const lineH = typography.baseFontSize * typography.lineHeight;
+  const boxW = textW;
+  const boxH = lines.length * lineH + ANNO_PAD * 2;
   const { x, y } = boxOrigin;
 
   // Connector: dashed line from closest box-edge point to anchor
   const connStart = closestEdgePoint({ x, y, width: boxW, height: boxH }, anchorPt);
 
-  const children: SceneElement[] = [
-    // Connector
-    {
+  const isCallout = anno.type === 'callout';
+  const children: SceneElement[] = [];
+
+  if (isCallout) {
+    // Callout connector line
+    children.push({
+      type: 'path',
+      d: `M ${connStart.x} ${connStart.y} L ${anchorPt.x} ${anchorPt.y}`,
+      stroke: palette.primary,
+      strokeWidth: 1,
+    });
+    // Anchor dot
+    children.push({
+      type: 'circle',
+      center: anchorPt,
+      radius: 2.5,
+      fill: palette.primary,
+      stroke: palette.primary,
+      strokeWidth: 1,
+    });
+    // Rounded pill/card box
+    children.push({
+      type: 'rect',
+      bounds: { x, y, width: boxW, height: boxH },
+      rx: 4,
+      fill: palette.background,
+      stroke: palette.primary,
+      strokeWidth: 1,
+    });
+  } else {
+    // Note connector
+    children.push({
       type: 'path',
       d: `M ${connStart.x} ${connStart.y} L ${anchorPt.x} ${anchorPt.y}`,
       stroke: palette.border,
       strokeWidth: 1,
       strokeDasharray: '4 3',
-    },
+    });
     // Box body with folded corner
-    {
+    children.push({
       type: 'path',
       d: `M ${x} ${y} L ${x + boxW - ANNO_FOLD} ${y} L ${x + boxW} ${y + ANNO_FOLD} L ${x + boxW} ${y + boxH} L ${x} ${y + boxH} Z`,
       fill: palette.surface,
       stroke: palette.border,
       strokeWidth: 1,
-    },
+    });
     // Fold triangle
-    {
+    children.push({
       type: 'path',
       d: `M ${x + boxW - ANNO_FOLD} ${y} L ${x + boxW - ANNO_FOLD} ${y + ANNO_FOLD} L ${x + boxW} ${y + ANNO_FOLD} Z`,
       fill: palette.border,
       stroke: palette.border,
       strokeWidth: 1,
-    },
-  ];
+    });
+  }
 
   // Text lines
   for (let i = 0; i < lines.length; i++) {
@@ -138,7 +172,9 @@ function layoutAnnotation(
       content: lines[i] ?? '',
       position: { x: x + ANNO_PAD, y: y + ANNO_PAD + typography.baseFontSize + i * lineH },
       fontSize: typography.baseFontSize,
-      fontFamily: typography.fontFamily,
+      fontFamily: isCallout
+        ? 'Instrument Serif, Georgia, "Times New Roman", serif'
+        : typography.fontFamily,
       fill: palette.text,
     });
   }
@@ -148,7 +184,7 @@ function layoutAnnotation(
   const bounds: Rect = {
     x: bx,
     y: by,
-    width:  Math.max(boxW, Math.abs(anchorPt.x - x)) + Math.max(0, x - bx),
+    width: Math.max(boxW, Math.abs(anchorPt.x - x)) + Math.max(0, x - bx),
     height: Math.max(boxH, Math.abs(anchorPt.y - y)) + Math.max(0, y - by),
   };
 
@@ -164,38 +200,77 @@ function layoutLegend(
 ): { group: SceneGroup; bounds: Rect } {
   const { palette, typography } = theme;
   const titleH = legend.title ? LEGEND_ROW_H + 4 : 0;
-  const boxH   = LEGEND_PAD * 2 + titleH + legend.entries.length * LEGEND_ROW_H;
-  const boxW   = Math.max(
+  const boxH = LEGEND_PAD * 2 + titleH + legend.entries.length * LEGEND_ROW_H;
+  const boxW = Math.max(
     legend.width ?? LEGEND_MIN_W,
-    ...(legend.title ? [legend.title.length * typography.baseFontSize * 0.55 + LEGEND_PAD * 2] : []),
-    ...legend.entries.map(e =>
-      (e.key.length + e.value.length + 3) * typography.smallFontSize * 0.52 + LEGEND_PAD * 2,
+    ...(legend.title
+      ? [legend.title.length * typography.baseFontSize * 0.55 + LEGEND_PAD * 2]
+      : []),
+    ...legend.entries.map(
+      (e) => (e.key.length + e.value.length + 3) * typography.smallFontSize * 0.52 + LEGEND_PAD * 2,
     ),
   );
 
   const c = legend.corner;
-  const x = (c === 'top-left'  || c === 'bottom-left')
-    ? viewBox.x + LEGEND_MARGIN
-    : viewBox.x + viewBox.width - boxW - LEGEND_MARGIN;
-  const y = (c === 'top-left'  || c === 'top-right')
-    ? viewBox.y + LEGEND_MARGIN
-    : viewBox.y + viewBox.height - boxH - LEGEND_MARGIN;
+  const x =
+    c === 'top-left' || c === 'bottom-left'
+      ? viewBox.x + LEGEND_MARGIN
+      : viewBox.x + viewBox.width - boxW - LEGEND_MARGIN;
+  const y =
+    c === 'top-left' || c === 'top-right'
+      ? viewBox.y + LEGEND_MARGIN
+      : viewBox.y + viewBox.height - boxH - LEGEND_MARGIN;
 
   const children: SceneElement[] = [
-    { type: 'rect', bounds: { x, y, width: boxW, height: boxH }, fill: palette.background, stroke: palette.border, strokeWidth: 1, rx: 4 },
+    {
+      type: 'rect',
+      bounds: { x, y, width: boxW, height: boxH },
+      fill: palette.background,
+      stroke: palette.border,
+      strokeWidth: 1,
+      rx: 4,
+    },
   ];
 
   let rowY = y + LEGEND_PAD;
 
   if (legend.title) {
-    children.push({ type: 'text', content: legend.title, position: { x: x + LEGEND_PAD, y: rowY + typography.baseFontSize }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+    children.push({
+      type: 'text',
+      content: legend.title,
+      position: { x: x + LEGEND_PAD, y: rowY + typography.baseFontSize },
+      fontSize: typography.baseFontSize,
+      fontFamily: typography.fontFamily,
+      fontWeight: 'bold',
+      fill: palette.text,
+    });
     rowY += LEGEND_ROW_H + 4;
-    children.push({ type: 'path', d: `M ${x + 4} ${rowY - 2} L ${x + boxW - 4} ${rowY - 2}`, stroke: palette.border, strokeWidth: 1 });
+    children.push({
+      type: 'path',
+      d: `M ${x + 4} ${rowY - 2} L ${x + boxW - 4} ${rowY - 2}`,
+      stroke: palette.border,
+      strokeWidth: 1,
+    });
   }
 
   for (const entry of legend.entries) {
-    children.push({ type: 'text', content: entry.key, position: { x: x + LEGEND_PAD, y: rowY + typography.smallFontSize }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
-    children.push({ type: 'text', content: entry.value, position: { x: x + boxW / 2 + 4, y: rowY + typography.smallFontSize }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted });
+    children.push({
+      type: 'text',
+      content: entry.key,
+      position: { x: x + LEGEND_PAD, y: rowY + typography.smallFontSize },
+      fontSize: typography.smallFontSize,
+      fontFamily: typography.fontFamily,
+      fontWeight: 'bold',
+      fill: palette.text,
+    });
+    children.push({
+      type: 'text',
+      content: entry.value,
+      position: { x: x + boxW / 2 + 4, y: rowY + typography.smallFontSize },
+      fontSize: typography.smallFontSize,
+      fontFamily: typography.fontFamily,
+      fill: palette.textMuted,
+    });
     rowY += LEGEND_ROW_H;
   }
 
@@ -208,12 +283,30 @@ function layoutLegend(
 // ─── Scene Tree Walking ───────────────────────────────────────────────────────
 
 /** Walk the element tree collecting id → bounding box for every named group. */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function collectGroupBounds(
   el: SceneElement,
   ox: number,
   oy: number,
   map: Map<string, Rect>,
 ): void {
+  if (el.type === 'text') {
+    const b = elementBoundsAt(el, ox, oy);
+    if (b) {
+      const trimmed = el.content.trim();
+      if (!map.has(trimmed)) map.set(trimmed, b);
+      const slug = slugify(trimmed);
+      if (slug && !map.has(slug)) map.set(slug, b);
+    }
+    return;
+  }
+
   if (el.type !== 'group') return;
 
   const [tx, ty] = parseTranslate(el.transform);
@@ -222,7 +315,7 @@ function collectGroupBounds(
 
   if (el.id) {
     const childBounds = el.children
-      .map(c => elementBoundsAt(c, nx, ny))
+      .map((c) => elementBoundsAt(c, nx, ny))
       .filter((b): b is Rect => b !== null);
     if (childBounds.length > 0) map.set(el.id, unionRects(childBounds));
   }
@@ -235,14 +328,31 @@ function collectGroupBounds(
 function elementBoundsAt(el: SceneElement, ox: number, oy: number): Rect | null {
   switch (el.type) {
     case 'rect':
-      return { x: el.bounds.x + ox, y: el.bounds.y + oy, width: el.bounds.width, height: el.bounds.height };
+      return {
+        x: el.bounds.x + ox,
+        y: el.bounds.y + oy,
+        width: el.bounds.width,
+        height: el.bounds.height,
+      };
     case 'circle':
-      return { x: el.center.x - el.radius + ox, y: el.center.y - el.radius + oy, width: el.radius * 2, height: el.radius * 2 };
+      return {
+        x: el.center.x - el.radius + ox,
+        y: el.center.y - el.radius + oy,
+        width: el.radius * 2,
+        height: el.radius * 2,
+      };
     case 'text':
-      return { x: el.position.x + ox, y: el.position.y - el.fontSize + oy, width: el.content.length * el.fontSize * 0.5, height: el.fontSize * 1.4 };
+      return {
+        x: el.position.x + ox,
+        y: el.position.y - el.fontSize + oy,
+        width: el.content.length * el.fontSize * 0.5,
+        height: el.fontSize * 1.4,
+      };
     case 'group': {
       const [tx, ty] = parseTranslate(el.transform);
-      const kids = el.children.map(c => elementBoundsAt(c, ox + tx, oy + ty)).filter((b): b is Rect => b !== null);
+      const kids = el.children
+        .map((c) => elementBoundsAt(c, ox + tx, oy + ty))
+        .filter((b): b is Rect => b !== null);
       return kids.length > 0 ? unionRects(kids) : null;
     }
     case 'path':
@@ -268,12 +378,12 @@ function closestEdgePoint(box: Rect, target: Point): Point {
 
   if (Math.abs(dx) * box.height > Math.abs(dy) * box.width) {
     const sx = dx > 0 ? 1 : -1;
-    const ex = cx + sx * box.width / 2;
+    const ex = cx + (sx * box.width) / 2;
     const ey = cy + (Math.abs(dx) > 0 ? (dy / Math.abs(dx)) * (box.width / 2) : 0);
     return { x: ex, y: clamp(ey, box.y, box.y + box.height) };
   } else {
     const sy = dy > 0 ? 1 : -1;
-    const ey = cy + sy * box.height / 2;
+    const ey = cy + (sy * box.height) / 2;
     const ex = cx + (Math.abs(dy) > 0 ? (dx / Math.abs(dy)) * (box.height / 2) : 0);
     return { x: clamp(ex, box.x, box.x + box.width), y: ey };
   }
@@ -297,18 +407,18 @@ function wrapText(text: string, maxWidth: number, charWidth: number): string[] {
 }
 
 function expandViewBox(vb: Rect, bounds: Rect): Rect {
-  const x      = Math.min(vb.x, bounds.x);
-  const y      = Math.min(vb.y, bounds.y);
-  const right  = Math.max(vb.x + vb.width,  bounds.x + bounds.width);
+  const x = Math.min(vb.x, bounds.x);
+  const y = Math.min(vb.y, bounds.y);
+  const right = Math.max(vb.x + vb.width, bounds.x + bounds.width);
   const bottom = Math.max(vb.y + vb.height, bounds.y + bounds.height);
   return { x, y, width: right - x, height: bottom - y };
 }
 
 function unionRects(rects: Rect[]): Rect {
-  const x      = Math.min(...rects.map(r => r.x));
-  const y      = Math.min(...rects.map(r => r.y));
-  const right  = Math.max(...rects.map(r => r.x + r.width));
-  const bottom = Math.max(...rects.map(r => r.y + r.height));
+  const x = Math.min(...rects.map((r) => r.x));
+  const y = Math.min(...rects.map((r) => r.y));
+  const right = Math.max(...rects.map((r) => r.x + r.width));
+  const bottom = Math.max(...rects.map((r) => r.y + r.height));
   return { x, y, width: right - x, height: bottom - y };
 }
 

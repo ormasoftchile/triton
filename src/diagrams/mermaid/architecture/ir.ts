@@ -1,4 +1,9 @@
-import type { BaseIR, CrossLinkAnimation, CrossLinkEdgeStyle, CrossLinkEndpointMarker } from '../../../contracts/index.js';
+import type {
+  BaseIR,
+  CrossLinkAnimation,
+  CrossLinkEdgeStyle,
+  CrossLinkEndpointMarker,
+} from '../../../contracts/index.js';
 import type { PortDirection, RouteStyle } from '../../../contracts/index.js';
 
 export type ArchIconAlign = 'N' | 'S' | 'E' | 'W' | 'NE' | 'NW' | 'SE' | 'SW' | 'C';
@@ -29,7 +34,7 @@ export interface ArchJunction {
 
 export interface ArchEdge {
   readonly from: string;
-  readonly fromSide: string;   // L R T B
+  readonly fromSide: string; // L R T B
   /** True when the `{group}` modifier is present on the from endpoint. */
   readonly fromGroup: boolean;
   readonly to: string;
@@ -62,7 +67,11 @@ export interface ArchAlign {
 }
 
 export interface ArchitectureDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly groups: readonly ArchGroup[];
   readonly services: readonly ArchService[];
   readonly junctions: readonly ArchJunction[];

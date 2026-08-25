@@ -64,9 +64,9 @@ describe('resolveCliIcons: --icon-pack flag', () => {
   });
 
   it('throws with a clear message for a malformed JSON --icon-pack', () => {
-    expect(() =>
-      resolveCliIcons({ iconPack: BAD_JSON_PACK }, ROOT),
-    ).toThrow(/--icon-pack|invalid JSON|JSON/i);
+    expect(() => resolveCliIcons({ iconPack: BAD_JSON_PACK }, ROOT)).toThrow(
+      /--icon-pack|invalid JSON|JSON/i,
+    );
   });
 });
 
@@ -125,18 +125,15 @@ describe('resolveCliIcons: precedence and merge order', () => {
     // --icons-dir from ICONS_DIR yields mdi/lucide/heroicons (no azure)
     // net result: all four prefixes present
     const map = resolveCliIcons({ iconsDir: ICONS_DIR }, DISCOVERY_ROOT);
-    expect(map.has('azure')).toBe(true);   // from auto-discovery
-    expect(map.has('mdi')).toBe(true);     // from --icons-dir
-    expect(map.has('lucide')).toBe(true);  // from --icons-dir
+    expect(map.has('azure')).toBe(true); // from auto-discovery
+    expect(map.has('mdi')).toBe(true); // from --icons-dir
+    expect(map.has('lucide')).toBe(true); // from --icons-dir
   });
 
   it('combines all three sources with correct precedence', () => {
     // auto-discovery: azure; --icons-dir: mdi+lucide+heroicons; --icon-pack: lucide
     // Expected: azure (auto), mdi (dir), lucide (both dir + pack → pack wins), heroicons (dir)
-    const map = resolveCliIcons(
-      { iconsDir: ICONS_DIR, iconPack: LUCIDE_PACK },
-      DISCOVERY_ROOT,
-    );
+    const map = resolveCliIcons({ iconsDir: ICONS_DIR, iconPack: LUCIDE_PACK }, DISCOVERY_ROOT);
     expect(map.has('azure')).toBe(true);
     expect(map.has('mdi')).toBe(true);
     expect(map.has('lucide')).toBe(true);

@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { validateThemeInput, isBuiltinThemeName } from '../src/theme/validate.js';
-import { validateThemeInput as validateThemeInputFromFrontend, isBuiltinThemeName as isBuiltinThemeNameFromFrontend } from '../src/frontend/index.js';
+import {
+  validateThemeInput as validateThemeInputFromFrontend,
+  isBuiltinThemeName as isBuiltinThemeNameFromFrontend,
+} from '../src/frontend/index.js';
 import { themePresetNames } from '../src/theme/preset.js';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -384,7 +387,10 @@ describe('src/theme/schema.json', () => {
   it('declares additionalProperties: false on all group objects', () => {
     const schema = JSON.parse(readFileSync(resolve('src/theme/schema.json'), 'utf8'));
     for (const group of ['palette', 'typography', 'spacing', 'edges', 'panel']) {
-      expect(schema.properties[group].additionalProperties, `${group} should have additionalProperties: false`).toBe(false);
+      expect(
+        schema.properties[group].additionalProperties,
+        `${group} should have additionalProperties: false`,
+      ).toBe(false);
     }
   });
 

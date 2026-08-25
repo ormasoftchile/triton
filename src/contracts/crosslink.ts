@@ -19,14 +19,8 @@ import type { CardinalSide, NodeAnchor } from './anchors.js';
 import type { CurveStyle, RouteStyle } from './routing.js';
 import type { CrossLinkAnimation } from './animations.js';
 
-export {
-  CONNECTOR_ANIMATIONS,
-  isRenderedConnectorAnimation,
-} from './animations.js';
-export type {
-  CrossLinkAnimation,
-  RenderedConnectorAnimation,
-} from './animations.js';
+export { CONNECTOR_ANIMATIONS, isRenderedConnectorAnimation } from './animations.js';
+export type { CrossLinkAnimation, RenderedConnectorAnimation } from './animations.js';
 
 // ─── Cell Address ─────────────────────────────────────────────────────────────
 
@@ -56,16 +50,16 @@ export interface NodeAddress {
 
 /** Visual style of a cross-diagram edge. Styles are mutually exclusive. */
 export type CrossLinkEdgeStyle =
-  | 'solid'      // ──────
-  | 'dotted'     // · · · ·
-  | 'dashed'     // - - - -
-  | 'thick'      // ━━━━━━
-  | 'wavy';      // ∿∿∿∿∿∿
+  | 'solid' // ──────
+  | 'dotted' // · · · ·
+  | 'dashed' // - - - -
+  | 'thick' // ━━━━━━
+  | 'wavy'; // ∿∿∿∿∿∿
 
 /** Direction of a cross-diagram edge. */
 export type CrossLinkDirection =
-  | 'directed'       // -->
-  | 'undirected'     // ---
+  | 'directed' // -->
+  | 'undirected' // ---
   | 'bidirectional'; // <-->
 
 /**
@@ -75,11 +69,7 @@ export type CrossLinkDirection =
  * 'cross'  — cross mark (Mermaid --x)
  * 'none'   — no marker (default for undirected)
  */
-export type CrossLinkEndpointMarker =
-  | 'arrow'
-  | 'circle'
-  | 'cross'
-  | 'none';
+export type CrossLinkEndpointMarker = 'arrow' | 'circle' | 'cross' | 'none';
 
 // ─── Cross-Link (Atomic) ─────────────────────────────────────────────────────
 
@@ -198,10 +188,10 @@ export interface RouteQuality {
  * The composition engine evaluates proposals and applies the best ones.
  */
 export type PerturbationKind =
-  | 'expand-gutter'      // widen the gap between two specific cells
-  | 'swap-cells'         // swap positions of two cells in the grid
-  | 'add-routing-bus'    // reserve a horizontal/vertical routing channel
-  | 'port-hint';         // inject PortHint into a child layout re-run
+  | 'expand-gutter' // widen the gap between two specific cells
+  | 'swap-cells' // swap positions of two cells in the grid
+  | 'add-routing-bus' // reserve a horizontal/vertical routing channel
+  | 'port-hint'; // inject PortHint into a child layout re-run
 
 export interface Perturbation {
   readonly kind: PerturbationKind;

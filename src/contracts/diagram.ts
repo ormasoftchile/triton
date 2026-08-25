@@ -96,7 +96,8 @@ export interface DiagramLayoutEngine<IR extends BaseIR> {
  * The complete diagram module interface — parsing and layout together.
  * Every src/diagrams/<type>/index.ts exports a value satisfying this.
  */
-export interface DiagramModule<IR extends BaseIR> extends DiagramParser<IR>, DiagramLayoutEngine<IR> {
+export interface DiagramModule<IR extends BaseIR>
+  extends DiagramParser<IR>, DiagramLayoutEngine<IR> {
   /**
    * Optional per-diagram theme defaults.
    * Applied on top of the global theme but below ir.themeOverride:
@@ -163,7 +164,10 @@ export type DiagramKind =
   | 'nodegraph'
   | 'unionfind'
   | 'topology'
-  | 'list';
+  | 'list'
+  | 'fishbone'
+  | 'pyramid'
+  | 'loop';
 
 /** The two input formats Triton accepts. */
 export type InputFormat = 'mermaid' | 'yaml';

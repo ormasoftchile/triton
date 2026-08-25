@@ -43,31 +43,37 @@ export interface TreeResult {
 }
 
 export function treeLayout(nodes: readonly TreeNodeInput[], options: TreeOptions = {}): TreeResult {
-  const direction  = options.direction ?? 'TB';
-  const levelGap   = options.levelGap ?? 56;
+  const direction = options.direction ?? 'TB';
+  const levelGap = options.levelGap ?? 56;
   const siblingGap = options.siblingGap ?? 28;
-  const margin     = options.margin ?? 32;
+  const margin = options.margin ?? 32;
   const horizontal = direction === 'LR';
 
   if (nodes.length === 0) return { boxes: new Map(), width: margin * 2, height: margin * 2 };
 
-  const byId = new Map<string, TreeNodeInput>(nodes.map(n => [n.id, n]));
+  const byId = new Map<string, TreeNodeInput>(nodes.map((n) => [n.id, n]));
   const crossOf = (n: TreeNodeInput): number => (horizontal ? n.height : n.width);
   const alongOf = (n: TreeNodeInput): number => (horizontal ? n.width : n.height);
 
   // Roots = nodes never referenced as a child.
   const childIds = new Set<string>();
   for (const n of nodes) for (const c of n.children) childIds.add(c);
-  const roots = nodes.filter(n => !childIds.has(n.id));
+  const roots = nodes.filter((n) => !childIds.has(n.id));
 
   // Depth of every node (BFS from roots; stable).
   const depth = new Map<string, number>();
-  const queue: string[] = roots.map(r => { depth.set(r.id, 0); return r.id; });
+  const queue: string[] = roots.map((r) => {
+    depth.set(r.id, 0);
+    return r.id;
+  });
   for (let i = 0; i < queue.length; i++) {
     const id = queue[i]!;
     const d = depth.get(id)!;
     for (const c of byId.get(id)!.children) {
-      if (!depth.has(c)) { depth.set(c, d + 1); queue.push(c); }
+      if (!depth.has(c)) {
+        depth.set(c, d + 1);
+        queue.push(c);
+      }
     }
   }
   const maxDepth = Math.max(...depth.values());
@@ -80,7 +86,10 @@ export function treeLayout(nodes: readonly TreeNodeInput[], options: TreeOptions
   }
   const levelStart: number[] = [];
   let acc = margin;
-  for (let d = 0; d <= maxDepth; d++) { levelStart[d] = acc; acc += levelAlong[d]! + levelGap; }
+  for (let d = 0; d <= maxDepth; d++) {
+    levelStart[d] = acc;
+    acc += levelAlong[d]! + levelGap;
+  }
   const alongTotal = acc - levelGap + margin;
 
   // Subtree cross-extent (memoized).
@@ -91,7 +100,10 @@ export function treeLayout(nodes: readonly TreeNodeInput[], options: TreeOptions
     const node = byId.get(id)!;
     let own = crossOf(node);
     if (node.children.length > 0) {
-      const childrenCross = node.children.reduce((s, c, i) => s + computeCross(c) + (i > 0 ? siblingGap : 0), 0);
+      const childrenCross = node.children.reduce(
+        (s, c, i) => s + computeCross(c) + (i > 0 ? siblingGap : 0),
+        0,
+      );
       own = Math.max(own, childrenCross);
     }
     subCross.set(id, own);
@@ -105,7 +117,10 @@ export function treeLayout(nodes: readonly TreeNodeInput[], options: TreeOptions
     const center = u0 + sc / 2;
     crossPos.set(id, center - crossOf(node) / 2);
     if (node.children.length === 0) return;
-    const childrenCross = node.children.reduce((s, c, i) => s + computeCross(c) + (i > 0 ? siblingGap : 0), 0);
+    const childrenCross = node.children.reduce(
+      (s, c, i) => s + computeCross(c) + (i > 0 ? siblingGap : 0),
+      0,
+    );
     let cursor = u0 + (sc - childrenCross) / 2;
     for (const c of node.children) {
       assign(c, cursor);
@@ -133,7 +148,7 @@ export function treeLayout(nodes: readonly TreeNodeInput[], options: TreeOptions
 
   return {
     boxes,
-    width:  horizontal ? alongTotal : crossTotal,
+    width: horizontal ? alongTotal : crossTotal,
     height: horizontal ? crossTotal : alongTotal,
   };
 }

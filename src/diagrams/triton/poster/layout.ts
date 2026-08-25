@@ -1,5 +1,13 @@
 import type { PosterDocument, PosterCell, CellContent, PosterNote, NotePosition } from './ir.js';
-import type { Scene, SceneElement, Rect, LayoutResult, NodeAnchor, NodeAnchorRegistry, OccupiedPort } from '../../../contracts/index.js';
+import type {
+  Scene,
+  SceneElement,
+  Rect,
+  LayoutResult,
+  NodeAnchor,
+  NodeAnchorRegistry,
+  OccupiedPort,
+} from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { getModule } from '../../../frontend/registry.js';
 import { getThemePreset } from '../../../theme/preset.js';
@@ -14,14 +22,14 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   const { spacing, palette, typography } = theme;
   const { grid, cells } = ir;
 
-  const unit       = spacing.unit;
-  const gap        = spacing.nodeGap / 2;
-  const padding    = spacing.diagramMargin;
-  const headerH    = ir.metadata.title ? typography.titleFontSize + unit * 2 : 0;
+  const unit = spacing.unit;
+  const gap = spacing.nodeGap / 2;
+  const padding = spacing.diagramMargin;
+  const headerH = ir.metadata.title ? typography.titleFontSize + unit * 2 : 0;
   const MIN_CELL_W = unit * 20;
   const MIN_CELL_H = unit * 15;
   const MAX_CELL_W = unit * 42;
-  const MIN_EMBED_SCALE = 0.65;   // minimum scale — cells expand to ensure readability
+  const MIN_EMBED_SCALE = 0.65; // minimum scale — cells expand to ensure readability
 
   // ── Assign row/col to cells that don't specify them ───────────────────────
   const positioned = assignPositions(cells, grid.columns);
@@ -29,14 +37,15 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   // ── Layout each child into a LayoutResult (per-cell theme) ─────────────────
   // Child layouts are synchronous (every Triton layout engine is), so a plain
   // map suffices — no Promise.all needed.
-  const cellResults = positioned.map(cell => {
+  const cellResults = positioned.map((cell) => {
     const cellTheme = cell.theme ? getThemePreset(cell.theme) : theme;
     return { cell, cellTheme, result: layoutCellContent(cell.content, cellTheme) };
   });
-  const cellResultById = new Map(cellResults.map(({ cell, result }) => [cell.id ?? '', { cell, result }]));
+  const cellResultById = new Map(
+    cellResults.map(({ cell, result }) => [cell.id ?? '', { cell, result }]),
+  );
 
-  const numRows = grid.rows ??
-    Math.max(...positioned.map(c => (c.row ?? 0) + (c.rowSpan ?? 1)));
+  const numRows = grid.rows ?? Math.max(...positioned.map((c) => (c.row ?? 0) + (c.rowSpan ?? 1)));
 
   // Column widths: ensure child content is readable at MIN_EMBED_SCALE
   // Readability takes priority over MAX_CELL_W
@@ -65,7 +74,8 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       // If scale < MIN_EMBED_SCALE, the column already expanded; recompute
       const effectiveScale = Math.max(scale, MIN_EMBED_SCALE);
       const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
-      const neededH = result.scene.viewBox.height * effectiveScale + cellTitleH + captionH + inset * 2;
+      const neededH =
+        result.scene.viewBox.height * effectiveScale + cellTitleH + captionH + inset * 2;
       rowHeights[row] = Math.max(rowHeights[row]!, neededH);
     }
   }
@@ -92,7 +102,15 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   const allOccupiedPorts: OccupiedPort[] = [];
 
   if (ir.metadata.title) {
-    headerElements.push({ type: 'text', content: ir.metadata.title, position: { x: padding, y: padding + typography.titleFontSize }, fontSize: typography.titleFontSize + 2, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text });
+    headerElements.push({
+      type: 'text',
+      content: ir.metadata.title,
+      position: { x: padding, y: padding + typography.titleFontSize },
+      fontSize: typography.titleFontSize + 2,
+      fontFamily: typography.fontFamily,
+      fontWeight: 'bold',
+      fill: palette.text,
+    });
     // Estimate title bounding rect
     const titleW = ir.metadata.title.length * (typography.titleFontSize + 2) * 0.6;
     const titleH = typography.titleFontSize + 2;
@@ -104,28 +122,35 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
 
   for (const { cell, cellTheme, result } of cellResults) {
     const cellPalette = cellTheme.palette;
-    const col     = cell.col ?? 0;
-    const row     = cell.row ?? 0;
+    const col = cell.col ?? 0;
+    const row = cell.row ?? 0;
     const colSpan = cell.colSpan ?? 1;
     const rowSpan = cell.rowSpan ?? 1;
-    const cellId  = cell.id ?? cellAddressFromPosition(row, col);
+    const cellId = cell.id ?? cellAddressFromPosition(row, col);
 
     const cellX = padding + sumWithGaps(colWidths, 0, col, gap);
     const cellY = padding + headerH + sumWithGaps(rowHeights, 0, row, gap);
-    const cellW = sumWithGaps(colWidths,  col, col + colSpan, gap) - gap;
+    const cellW = sumWithGaps(colWidths, col, col + colSpan, gap) - gap;
     const cellH = sumWithGaps(rowHeights, row, row + rowSpan, gap) - gap;
 
     // Cell chrome — background layer (connectors route behind this).
     // Uses the CELL's theme so a dark-themed cell shows a dark panel.
-    cellBg.push({ type: 'rect', bounds: { x: cellX, y: cellY, width: cellW, height: cellH }, fill: cellPalette.background, stroke: cellPalette.border, strokeWidth: 1, rx: 6 });
+    cellBg.push({
+      type: 'rect',
+      bounds: { x: cellX, y: cellY, width: cellW, height: cellH },
+      fill: cellPalette.background,
+      stroke: cellPalette.border,
+      strokeWidth: 1,
+      rx: 6,
+    });
 
     // Record cell edges as thin obstacles (4px) so connectors avoid running along borders
     const borderThick = 4;
     cellBorders.push(
-      { x: cellX, y: cellY - borderThick / 2, width: cellW, height: borderThick },              // top edge
-      { x: cellX, y: cellY + cellH - borderThick / 2, width: cellW, height: borderThick },      // bottom edge
-      { x: cellX - borderThick / 2, y: cellY, width: borderThick, height: cellH },              // left edge
-      { x: cellX + cellW - borderThick / 2, y: cellY, width: borderThick, height: cellH },      // right edge
+      { x: cellX, y: cellY - borderThick / 2, width: cellW, height: borderThick }, // top edge
+      { x: cellX, y: cellY + cellH - borderThick / 2, width: cellW, height: borderThick }, // bottom edge
+      { x: cellX - borderThick / 2, y: cellY, width: borderThick, height: cellH }, // left edge
+      { x: cellX + cellW - borderThick / 2, y: cellY, width: borderThick, height: cellH }, // right edge
     );
     // Record the full cell bounding box for corridor-based cross-link routing.
     cellRects.set(cellId, { x: cellX, y: cellY, width: cellW, height: cellH });
@@ -151,7 +176,15 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     // Caption — muted text below the sub-diagram
     if (cell.caption) {
       const captionY = cellY + cellH - inset / 2;
-      cellContent.push({ type: 'text', content: cell.caption, position: { x: cellX + cellW / 2, y: captionY }, fontSize: cellTheme.typography.smallFontSize, fontFamily: cellTheme.typography.fontFamily, fill: cellTheme.palette.textMuted, anchor: 'middle' });
+      cellContent.push({
+        type: 'text',
+        content: cell.caption,
+        position: { x: cellX + cellW / 2, y: captionY },
+        fontSize: cellTheme.typography.smallFontSize,
+        fontFamily: cellTheme.typography.fontFamily,
+        fill: cellTheme.palette.textMuted,
+        anchor: 'middle',
+      });
     }
 
     // Notes — freeform annotation overlays on top of the sub-diagram
@@ -162,51 +195,53 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     }
 
     // Transform child anchors to poster coordinates and merge
-    const scaleX = contentRect.width  / Math.max(result.scene.viewBox.width,  1);
+    const scaleX = contentRect.width / Math.max(result.scene.viewBox.width, 1);
     const scaleY = contentRect.height / Math.max(result.scene.viewBox.height, 1);
-    const scale  = Math.min(scaleX, scaleY, 1);
-    const offsetX = contentRect.x + (contentRect.width  - result.scene.viewBox.width  * scale) / 2;
+    const scale = Math.min(scaleX, scaleY, 1);
+    const offsetX = contentRect.x + (contentRect.width - result.scene.viewBox.width * scale) / 2;
     const offsetY = contentRect.y + (contentRect.height - result.scene.viewBox.height * scale) / 2;
 
     for (const [nodeId, anchor] of Object.entries(result.anchors)) {
       const prefixedId = `${cellId}.${nodeId}`;
       const transformed: NodeAnchor = {
         bounds: {
-          x:      anchor.bounds.x * scale + offsetX,
-          y:      anchor.bounds.y * scale + offsetY,
-          width:  anchor.bounds.width * scale,
+          x: anchor.bounds.x * scale + offsetX,
+          y: anchor.bounds.y * scale + offsetY,
+          width: anchor.bounds.width * scale,
           height: anchor.bounds.height * scale,
         },
-        ...(anchor.ports ? {
-          ports: Object.fromEntries(
-            Object.entries(anchor.ports).map(([side, pt]) => [
-              side,
-              { x: pt!.x * scale + offsetX, y: pt!.y * scale + offsetY },
-            ]),
-          ),
-        } : {}),
+        ...(anchor.ports
+          ? {
+              ports: Object.fromEntries(
+                Object.entries(anchor.ports).map(([side, pt]) => [
+                  side,
+                  { x: pt!.x * scale + offsetX, y: pt!.y * scale + offsetY },
+                ]),
+              ),
+            }
+          : {}),
       };
       mergedAnchors[prefixedId] = transformed;
     }
 
     // Collect occupied ports from child layout (t values are coordinate-invariant).
-    for (const op of (result.occupiedPorts ?? [])) {
+    for (const op of result.occupiedPorts ?? []) {
       allOccupiedPorts.push({ ...op, nodeKey: `${cellId}.${op.nodeKey}` });
     }
 
     // Collect chrome rects (e.g. internal header bars) and transform them to
     // poster coordinates so the cross-link label de-collision pass can avoid them.
-    for (const cr of (result.chromeRects ?? [])) {
+    for (const cr of result.chromeRects ?? []) {
       textOccupied.push({
-        x:      cr.x * scale + offsetX,
-        y:      cr.y * scale + offsetY,
-        width:  cr.width  * scale,
+        x: cr.x * scale + offsetX,
+        y: cr.y * scale + offsetY,
+        width: cr.width * scale,
         height: cr.height * scale,
       });
     }
   }
 
-  const totalW = padding * 2 + sumWithGaps(colWidths,  0, grid.columns, gap) - gap;
+  const totalW = padding * 2 + sumWithGaps(colWidths, 0, grid.columns, gap) - gap;
   const totalH = padding * 2 + headerH + sumWithGaps(rowHeights, 0, numRows, gap) - gap;
 
   // Collect defs from all child scenes (e.g. arrow markers)
@@ -224,17 +259,23 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   }
 
   // ─── Cross-Link Resolution & Rendering ──────────────────────────────────
-  const links  = normalizeElementIndexLinks(ir.links ?? [], cellResultById);
+  const links = normalizeElementIndexLinks(ir.links ?? [], cellResultById);
 
   // Start with the grid dimensions; cross-link rendering may expand these.
   let finalW = totalW;
   let finalH = totalH;
 
   if (links.length > 0) {
-    const connectorSpecs = crossLinksToConnectorSpecs(links.map(link => {
-      const explicitCurve = link.curveStyle ?? (typeof link.props?.curveStyle === 'string' ? link.props.curveStyle as import('../../../contracts/routing.js').CurveStyle : undefined);
-      return explicitCurve ? link : { ...link, curveStyle: 'cardinal' as const };
-    }));
+    const connectorSpecs = crossLinksToConnectorSpecs(
+      links.map((link) => {
+        const explicitCurve =
+          link.curveStyle ??
+          (typeof link.props?.curveStyle === 'string'
+            ? (link.props.curveStyle as import('../../../contracts/routing.js').CurveStyle)
+            : undefined);
+        return explicitCurve ? link : { ...link, curveStyle: 'cardinal' as const };
+      }),
+    );
     const connectorResult = routeConnectors({
       anchors: mergedAnchors,
       connectors: connectorSpecs,
@@ -247,42 +288,42 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     const linkDefs = connectorResult.defs;
     const linkElements = connectorResult.elements;
 
-      // Add link defs
-      for (const def of linkDefs) {
-        if (!seenDefs.has(def)) {
-          seenDefs.add(def);
-          allDefs.push(def);
-        }
+    // Add link defs
+    for (const def of linkDefs) {
+      if (!seenDefs.has(def)) {
+        seenDefs.add(def);
+        allDefs.push(def);
       }
+    }
 
-      // Split link elements: paths go behind cell content, labels go on top.
-      const linkPaths  = linkElements.filter(e => e.type !== 'text');
-      const linkLabels = linkElements.filter(e => e.type === 'text');
+    // Split link elements: paths go behind cell content, labels go on top.
+    const linkPaths = linkElements.filter((e) => e.type !== 'text');
+    const linkLabels = linkElements.filter((e) => e.type === 'text');
 
-      // Expand the viewBox to include all cross-link route and label extents.
-      const ext = connectorResult.extents;
-      if (ext.maxX > finalW) finalW = ext.maxX + padding;
-      if (ext.maxY > finalH) finalH = ext.maxY + padding;
+    // Expand the viewBox to include all cross-link route and label extents.
+    const ext = connectorResult.extents;
+    if (ext.maxX > finalW) finalW = ext.maxX + padding;
+    if (ext.maxY > finalH) finalH = ext.maxY + padding;
 
-      // Assemble in painter's order (back → front):
-      //   header → cell backgrounds → link routes → cell content → link labels
-      const elements: SceneElement[] = [
-        ...headerElements,
-        ...cellBg,
-        ...linkPaths,
-        ...cellContent,
-        ...linkLabels,
-      ];
+    // Assemble in painter's order (back → front):
+    //   header → cell backgrounds → link routes → cell content → link labels
+    const elements: SceneElement[] = [
+      ...headerElements,
+      ...cellBg,
+      ...linkPaths,
+      ...cellContent,
+      ...linkLabels,
+    ];
 
-      return {
-        scene: {
-          viewBox: { x: 0, y: 0, width: finalW, height: finalH },
-          background: palette.background,
-          elements,
-          ...(allDefs.length > 0 ? { defs: allDefs } : {}),
-        },
-        anchors: mergedAnchors,
-      };
+    return {
+      scene: {
+        viewBox: { x: 0, y: 0, width: finalW, height: finalH },
+        background: palette.background,
+        elements,
+        ...(allDefs.length > 0 ? { defs: allDefs } : {}),
+      },
+      anchors: mergedAnchors,
+    };
   }
 
   // No cross-links (or none resolved): flat assembly without link layers.
@@ -303,7 +344,7 @@ function normalizeElementIndexLinks(
   links: readonly CrossLink[],
   cellResultById: ReadonlyMap<string, { cell: PosterCell; result: LayoutResult }>,
 ): CrossLink[] {
-  return links.map(link => ({
+  return links.map((link) => ({
     ...link,
     from: normalizeElementIndexAddress(link.from, cellResultById),
     to: normalizeElementIndexAddress(link.to, cellResultById),
@@ -319,9 +360,10 @@ function normalizeElementIndexAddress(
   const cellId = address.cellPath.join('.');
   const cellResult = cellResultById.get(cellId);
   const content = cellResult?.cell.content;
-  const arrayNodeId = content?.kind === 'diagram' && content.diagramKind === 'array'
-    ? resolveArrayElementAnchorId(content.doc as any, address.elementIndex)
-    : fallbackElementAnchorId(cellResult?.result.anchors ?? {}, address.elementIndex);
+  const arrayNodeId =
+    content?.kind === 'diagram' && content.diagramKind === 'array'
+      ? resolveArrayElementAnchorId(content.doc as any, address.elementIndex)
+      : fallbackElementAnchorId(cellResult?.result.anchors ?? {}, address.elementIndex);
 
   return {
     ...address,
@@ -329,7 +371,10 @@ function normalizeElementIndexAddress(
   };
 }
 
-function fallbackElementAnchorId(anchors: NodeAnchorRegistry, elementIndex: number): string | undefined {
+function fallbackElementAnchorId(
+  anchors: NodeAnchorRegistry,
+  elementIndex: number,
+): string | undefined {
   if (elementIndex < 0) {
     if (elementIndex === -1 && anchors.clast) return 'clast';
     return undefined;
@@ -367,9 +412,7 @@ function crossLinkExtents(elements: readonly SceneElement[]): { maxX: number; ma
       }
     } else if (el.type === 'text') {
       const approxW = el.content.length * (el.fontSize ?? 12) * 0.65;
-      const right = el.anchor === 'middle'
-        ? el.position.x + approxW / 2
-        : el.position.x + approxW;
+      const right = el.anchor === 'middle' ? el.position.x + approxW / 2 : el.position.x + approxW;
       maxX = Math.max(maxX, right);
       maxY = Math.max(maxY, el.position.y + (el.fontSize ?? 12));
     }
@@ -380,11 +423,10 @@ function crossLinkExtents(elements: readonly SceneElement[]): { maxX: number; ma
 
 // ─── Cell Content Dispatch ────────────────────────────────────────────────────
 
-
 function layoutCellContent(content: CellContent, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
   const unit = spacing.unit;
-  const pad  = spacing.nodePadding;
+  const pad = spacing.nodePadding;
 
   switch (content.kind) {
     case 'diagram': {
@@ -395,7 +437,16 @@ function layoutCellContent(content: CellContent, theme: ResolvedTheme): LayoutRe
         return {
           scene: {
             viewBox: { x: 0, y: 0, width: w, height: h },
-            elements: [{ type: 'text', content: `[${content.diagramKind}]`, position: { x: pad, y: pad + typography.baseFontSize * 0.8 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted }],
+            elements: [
+              {
+                type: 'text',
+                content: `[${content.diagramKind}]`,
+                position: { x: pad, y: pad + typography.baseFontSize * 0.8 },
+                fontSize: typography.baseFontSize,
+                fontFamily: typography.fontFamily,
+                fill: palette.textMuted,
+              },
+            ],
           },
           anchors: {},
         };
@@ -405,12 +456,24 @@ function layoutCellContent(content: CellContent, theme: ResolvedTheme): LayoutRe
     case 'text': {
       // Approximate width: ~8px per character at baseFontSize, with min/max
       const estCharW = typography.baseFontSize * 0.6;
-      const textW    = Math.max(unit * 10, Math.min(unit * 30, content.text.length * estCharW + pad * 2));
-      const textH    = typography.baseFontSize * typography.lineHeight + pad * 2;
+      const textW = Math.max(
+        unit * 10,
+        Math.min(unit * 30, content.text.length * estCharW + pad * 2),
+      );
+      const textH = typography.baseFontSize * typography.lineHeight + pad * 2;
       return {
         scene: {
           viewBox: { x: 0, y: 0, width: textW, height: textH },
-          elements: [{ type: 'text', content: content.text, position: { x: pad, y: pad + typography.baseFontSize * 0.8 }, fontSize: typography.baseFontSize, fontFamily: typography.fontFamily, fill: palette.text }],
+          elements: [
+            {
+              type: 'text',
+              content: content.text,
+              position: { x: pad, y: pad + typography.baseFontSize * 0.8 },
+              fontSize: typography.baseFontSize,
+              fontFamily: typography.fontFamily,
+              fill: palette.text,
+            },
+          ],
         },
         anchors: {},
       };
@@ -423,15 +486,32 @@ function layoutCellContent(content: CellContent, theme: ResolvedTheme): LayoutRe
       const valueY = pad + valueFontSize * 0.8;
       const labelGap = unit;
       const labelY = valueY + labelGap + typography.smallFontSize * 0.8;
-      const cellH  = content.label
+      const cellH = content.label
         ? valueY + labelGap + typography.smallFontSize + pad
         : valueY + pad;
 
       const els: SceneElement[] = [
-        { type: 'text', content: content.value, position: { x: centerX, y: valueY }, fontSize: valueFontSize, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.primary, anchor: 'middle' },
+        {
+          type: 'text',
+          content: content.value,
+          position: { x: centerX, y: valueY },
+          fontSize: valueFontSize,
+          fontFamily: typography.fontFamily,
+          fontWeight: 'bold',
+          fill: palette.primary,
+          anchor: 'middle',
+        },
       ];
       if (content.label) {
-        els.push({ type: 'text', content: content.label, position: { x: centerX, y: labelY }, fontSize: typography.smallFontSize, fontFamily: typography.fontFamily, fill: palette.textMuted, anchor: 'middle' });
+        els.push({
+          type: 'text',
+          content: content.label,
+          position: { x: centerX, y: labelY },
+          fontSize: typography.smallFontSize,
+          fontFamily: typography.fontFamily,
+          fill: palette.textMuted,
+          anchor: 'middle',
+        });
       }
       return {
         scene: { viewBox: { x: 0, y: 0, width: cellW, height: cellH }, elements: els },
@@ -444,18 +524,18 @@ function layoutCellContent(content: CellContent, theme: ResolvedTheme): LayoutRe
 // ─── Scene Embedding ─────────────────────────────────────────────────────────
 
 function embedScene(scene: Scene, into: Rect): SceneElement {
-  const scaleX = into.width  / Math.max(scene.viewBox.width,  1);
+  const scaleX = into.width / Math.max(scene.viewBox.width, 1);
   const scaleY = into.height / Math.max(scene.viewBox.height, 1);
-  const scale  = Math.min(scaleX, scaleY, 1);
+  const scale = Math.min(scaleX, scaleY, 1);
 
   // Centre within the cell
-  const offsetX = into.x + (into.width  - scene.viewBox.width  * scale) / 2;
+  const offsetX = into.x + (into.width - scene.viewBox.width * scale) / 2;
   const offsetY = into.y + (into.height - scene.viewBox.height * scale) / 2;
 
   return {
-    type:      'group',
+    type: 'group',
     transform: `translate(${offsetX}, ${offsetY}) scale(${scale})`,
-    children:  scene.elements as SceneElement[],
+    children: scene.elements as SceneElement[],
   };
 }
 
@@ -472,10 +552,13 @@ function reservedTitleHeight(theme: ResolvedTheme): number {
   const fs = typography.baseFontSize;
   const boxH = titleBoxHeight(theme);
   switch (panel.titlePosition) {
-    case 'above':     return 0;
-    case 'on-border': return boxH / 2 + spacing.unit * 0.5;
+    case 'above':
+      return 0;
+    case 'on-border':
+      return boxH / 2 + spacing.unit * 0.5;
     case 'inside':
-    default:          return fs + spacing.unit;
+    default:
+      return fs + spacing.unit;
   }
 }
 
@@ -505,17 +588,51 @@ function buildNoteOverlay(note: PosterNote, rect: Rect, theme: ResolvedTheme): S
 
   let bx: number, by: number;
   switch (pos) {
-    case 'top-left':     bx = rect.x + spacing.unit * 0.5; by = rect.y + spacing.unit * 0.5; break;
-    case 'top-right':    bx = rect.x + rect.width - textW - spacing.unit * 0.5; by = rect.y + spacing.unit * 0.5; break;
-    case 'bottom-left':  bx = rect.x + spacing.unit * 0.5; by = rect.y + rect.height - boxH - spacing.unit * 0.5; break;
-    case 'bottom-right': bx = rect.x + rect.width - textW - spacing.unit * 0.5; by = rect.y + rect.height - boxH - spacing.unit * 0.5; break;
-    case 'center':       bx = rect.x + (rect.width - textW) / 2; by = rect.y + (rect.height - boxH) / 2; break;
-    default:             bx = rect.x + rect.width - textW - spacing.unit * 0.5; by = rect.y + spacing.unit * 0.5;
+    case 'top-left':
+      bx = rect.x + spacing.unit * 0.5;
+      by = rect.y + spacing.unit * 0.5;
+      break;
+    case 'top-right':
+      bx = rect.x + rect.width - textW - spacing.unit * 0.5;
+      by = rect.y + spacing.unit * 0.5;
+      break;
+    case 'bottom-left':
+      bx = rect.x + spacing.unit * 0.5;
+      by = rect.y + rect.height - boxH - spacing.unit * 0.5;
+      break;
+    case 'bottom-right':
+      bx = rect.x + rect.width - textW - spacing.unit * 0.5;
+      by = rect.y + rect.height - boxH - spacing.unit * 0.5;
+      break;
+    case 'center':
+      bx = rect.x + (rect.width - textW) / 2;
+      by = rect.y + (rect.height - boxH) / 2;
+      break;
+    default:
+      bx = rect.x + rect.width - textW - spacing.unit * 0.5;
+      by = rect.y + spacing.unit * 0.5;
   }
 
   return [
-    { type: 'rect', bounds: { x: bx, y: by, width: textW, height: boxH }, fill: palette.surface, stroke: palette.primary, strokeWidth: 1, rx: boxH / 2, fillOpacity: 0.88 },
-    { type: 'text', content: note.text, position: { x: bx + textW / 2, y: by + pad + fs * 0.8 }, fontSize: fs, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.primary, anchor: 'middle' },
+    {
+      type: 'rect',
+      bounds: { x: bx, y: by, width: textW, height: boxH },
+      fill: palette.surface,
+      stroke: palette.primary,
+      strokeWidth: 1,
+      rx: boxH / 2,
+      fillOpacity: 0.88,
+    },
+    {
+      type: 'text',
+      content: note.text,
+      position: { x: bx + textW / 2, y: by + pad + fs * 0.8 },
+      fontSize: fs,
+      fontFamily: typography.fontFamily,
+      fontWeight: 'bold',
+      fill: palette.primary,
+      anchor: 'middle',
+    },
   ];
 }
 
@@ -533,31 +650,31 @@ function buildCellTitle(
 ): { elements: SceneElement[]; occupied: Rect } {
   const { palette, typography, panel, spacing } = theme;
   const unit = spacing.unit;
-  const fs   = typography.baseFontSize;
+  const fs = typography.baseFontSize;
 
-  const padX  = panel.titleChrome === 'none' ? 0 : unit * 0.75;
-  const padY  = panel.titleChrome === 'none' ? 0 : unit * 0.4;
-  const tw    = measureText(title, fs).width;
-  const boxW  = tw + padX * 2;
-  const boxH  = fs + padY * 2;
-  const wall  = unit; // inset of the title from the left/right wall
+  const padX = panel.titleChrome === 'none' ? 0 : unit * 0.75;
+  const padY = panel.titleChrome === 'none' ? 0 : unit * 0.4;
+  const tw = measureText(title, fs).width;
+  const boxW = tw + padX * 2;
+  const boxH = fs + padY * 2;
+  const wall = unit; // inset of the title from the left/right wall
 
   // Horizontal: box origin + text anchor point.
   let boxX: number;
   let anchorX: number;
   let anchor: 'start' | 'middle' | 'end';
   if (panel.titleAlign === 'center') {
-    boxX    = cellX + cellW / 2 - boxW / 2;
+    boxX = cellX + cellW / 2 - boxW / 2;
     anchorX = cellX + cellW / 2;
-    anchor  = 'middle';
+    anchor = 'middle';
   } else if (panel.titleAlign === 'right') {
-    boxX    = cellX + cellW - wall - boxW;
+    boxX = cellX + cellW - wall - boxW;
     anchorX = boxX + boxW - padX;
-    anchor  = 'end';
+    anchor = 'end';
   } else {
-    boxX    = cellX + wall;
+    boxX = cellX + wall;
     anchorX = boxX + padX;
-    anchor  = 'start';
+    anchor = 'start';
   }
 
   // Vertical: top of the chrome box relative to the cell's top edge.
@@ -574,9 +691,25 @@ function buildCellTitle(
   const elements: SceneElement[] = [];
   if (panel.titleChrome !== 'none') {
     const rx = panel.titleChrome === 'pill' ? boxH / 2 : Math.min(6, boxH / 3);
-    elements.push({ type: 'rect', bounds: { x: boxX, y: boxTop, width: boxW, height: boxH }, fill: palette.surface, stroke: palette.border, strokeWidth: 1, rx });
+    elements.push({
+      type: 'rect',
+      bounds: { x: boxX, y: boxTop, width: boxW, height: boxH },
+      fill: palette.surface,
+      stroke: palette.border,
+      strokeWidth: 1,
+      rx,
+    });
   }
-  elements.push({ type: 'text', content: title, position: { x: anchorX, y: baselineY }, fontSize: fs, fontFamily: typography.fontFamily, fontWeight: 'bold', fill: palette.text, anchor });
+  elements.push({
+    type: 'text',
+    content: title,
+    position: { x: anchorX, y: baselineY },
+    fontSize: fs,
+    fontFamily: typography.fontFamily,
+    fontWeight: 'bold',
+    fill: palette.text,
+    anchor,
+  });
 
   return { elements, occupied: { x: boxX, y: boxTop, width: boxW, height: boxH } };
 }
@@ -589,16 +722,19 @@ export function assignPositions(cells: readonly PosterCell[], columns: number): 
   const occupied = new Set<string>();
   const key = (r: number, c: number): string => `${r},${c}`;
   const mark = (r: number, c: number, rs: number, cs: number): void => {
-    for (let rr = r; rr < r + rs; rr++) for (let cc = c; cc < c + cs; cc++) occupied.add(key(rr, cc));
+    for (let rr = r; rr < r + rs; rr++)
+      for (let cc = c; cc < c + cs; cc++) occupied.add(key(rr, cc));
   };
   const fits = (r: number, c: number, rs: number, cs: number): boolean => {
     if (c + cs > columns) return false;
-    for (let rr = r; rr < r + rs; rr++) for (let cc = c; cc < c + cs; cc++) if (occupied.has(key(rr, cc))) return false;
+    for (let rr = r; rr < r + rs; rr++)
+      for (let cc = c; cc < c + cs; cc++) if (occupied.has(key(rr, cc))) return false;
     return true;
   };
 
-  let row = 0, col = 0;
-  return cells.map(cell => {
+  let row = 0,
+    col = 0;
+  return cells.map((cell) => {
     const cs = Math.min(cell.colSpan ?? 1, columns);
     const rs = cell.rowSpan ?? 1;
     // Explicitly placed cells are honoured as-is, but still reserve their footprint.
@@ -609,12 +745,18 @@ export function assignPositions(cells: readonly PosterCell[], columns: number): 
     // Scan row-major for the first free slot whose full span fits.
     while (!fits(row, col, rs, cs)) {
       col++;
-      if (col >= columns) { col = 0; row++; }
+      if (col >= columns) {
+        col = 0;
+        row++;
+      }
     }
     const assigned = { ...cell, row, col };
     mark(row, col, rs, cs);
     col += cs;
-    if (col >= columns) { col = 0; row++; }
+    if (col >= columns) {
+      col = 0;
+      row++;
+    }
     return assigned;
   });
 }

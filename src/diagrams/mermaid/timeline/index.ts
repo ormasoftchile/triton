@@ -4,7 +4,15 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { layoutTimeline } from './layout.js';
 import * as parser from './parser.js';
 
-export type { TimelineDocument, Track, Activity, Milestone, Section, TimelineLayout, ActivityStatus } from './ir.js';
+export type {
+  TimelineDocument,
+  Track,
+  Activity,
+  Milestone,
+  Section,
+  TimelineLayout,
+  ActivityStatus,
+} from './ir.js';
 
 /** Parse in strict Mermaid-compatible mode — extension syntax throws. */
 export function parseMermaidStrict(input: string): TimelineDocument {

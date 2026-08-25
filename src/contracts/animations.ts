@@ -10,7 +10,7 @@ export const CONNECTOR_ANIMATIONS = [
   'colorcycle',
 ] as const;
 
-export type RenderedConnectorAnimation = typeof CONNECTOR_ANIMATIONS[number];
+export type RenderedConnectorAnimation = (typeof CONNECTOR_ANIMATIONS)[number];
 export type CrossLinkAnimation = RenderedConnectorAnimation | 'none';
 
 export function isRenderedConnectorAnimation(value: unknown): value is RenderedConnectorAnimation {

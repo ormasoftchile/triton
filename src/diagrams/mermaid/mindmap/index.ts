@@ -6,10 +6,21 @@ import * as parser from './parser.js';
 
 export type { MindmapDocument, MindNode } from './ir.js';
 
-interface RawLine { indent: number; raw: string }
-interface RawDoc { version: string; metadata: MindmapDocument['metadata']; lines: RawLine[] }
+interface RawLine {
+  indent: number;
+  raw: string;
+}
+interface RawDoc {
+  version: string;
+  metadata: MindmapDocument['metadata'];
+  lines: RawLine[];
+}
 
-interface MutNode { label: string; icon?: string; children: MutNode[] }
+interface MutNode {
+  label: string;
+  icon?: string;
+  children: MutNode[];
+}
 
 function cleanLabel(raw: string): string {
   // Strip a node-shape wrapper, ignoring any leading id: id((label)) → label.
@@ -19,17 +30,23 @@ function cleanLabel(raw: string): string {
 
 function buildTree(lines: RawLine[]): MindNode | undefined {
   if (lines.length === 0) return undefined;
-  const first = lines.find(l => !l.raw.startsWith('::'));
+  const first = lines.find((l) => !l.raw.startsWith('::'));
   if (!first) return undefined;
   const root: MutNode = { label: cleanLabel(first.raw), children: [] };
   const stack: Array<{ node: MutNode; indent: number }> = [{ node: root, indent: first.indent }];
   let last: MutNode = root;
   let started = false;
   for (const ln of lines) {
-    if (!started) { if (ln === first) started = true; continue; }
+    if (!started) {
+      if (ln === first) started = true;
+      continue;
+    }
     // `::icon(...)` attaches to the most recent node rather than creating one.
     const iconMatch = ln.raw.match(/^::icon\(([^)]*)\)/);
-    if (iconMatch) { last.icon = iconMatch[1]!.trim(); continue; }
+    if (iconMatch) {
+      last.icon = iconMatch[1]!.trim();
+      continue;
+    }
     const node: MutNode = { label: cleanLabel(ln.raw), children: [] };
     while (stack.length > 1 && stack[stack.length - 1]!.indent >= ln.indent) stack.pop();
     stack[stack.length - 1]!.node.children.push(node);

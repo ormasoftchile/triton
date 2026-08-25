@@ -59,7 +59,9 @@ describe('tree layout', () => {
 
   it('handles an empty tree', () => {
     const { scene } = layoutTree(
-      { version: '1.0', metadata: {}, direction: 'TB', nodes: [] }, defaultTheme);
+      { version: '1.0', metadata: {}, direction: 'TB', nodes: [] },
+      defaultTheme,
+    );
     expect(scene.elements).toHaveLength(0);
   });
 });

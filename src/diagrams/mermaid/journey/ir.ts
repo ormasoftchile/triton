@@ -13,6 +13,10 @@ export interface JourneySection {
 }
 
 export interface JourneyDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly sections: readonly JourneySection[];
 }

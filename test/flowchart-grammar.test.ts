@@ -3,7 +3,9 @@ import { parse } from '../src/diagrams/mermaid/flowchart/parser.js';
 
 describe('flowchart grammar', () => {
   it('parses basic flowchart', () => {
-    const r = parse(`flowchart TD\nA[Start] --> B{Decision}\nB -->|Yes| C[OK]\nB -->|No| D[Fail]\n`);
+    const r = parse(
+      `flowchart TD\nA[Start] --> B{Decision}\nB -->|Yes| C[OK]\nB -->|No| D[Fail]\n`,
+    );
     expect(r.flow.nodes).toHaveLength(4);
     expect(r.flow.edges).toHaveLength(3);
     expect(r.direction).toBe('TD');
@@ -27,7 +29,9 @@ describe('flowchart grammar', () => {
   });
 
   it('parses all node shapes', () => {
-    const r = parse(`flowchart LR\nA[Rect]\nB(Rounded)\nC((Circle))\nD{Diamond}\nE([Stadium])\nF[[Sub]]\n`);
+    const r = parse(
+      `flowchart LR\nA[Rect]\nB(Rounded)\nC((Circle))\nD{Diamond}\nE([Stadium])\nF[[Sub]]\n`,
+    );
     expect(r.flow.nodes).toHaveLength(6);
     const shapes = r.flow.nodes.map((n: any) => n.shape);
     expect(shapes).toContain('rect');
@@ -55,7 +59,9 @@ describe('flowchart grammar', () => {
   });
 
   it('parses subgraph', () => {
-    const r = parse(`flowchart TD\nsubgraph api Backend\n  A[Server] --> B[DB]\nend\nC[Client] --> A\n`);
+    const r = parse(
+      `flowchart TD\nsubgraph api Backend\n  A[Server] --> B[DB]\nend\nC[Client] --> A\n`,
+    );
     expect(r.flow.edges).toHaveLength(2);
   });
 

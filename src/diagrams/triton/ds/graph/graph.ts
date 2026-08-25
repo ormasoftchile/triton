@@ -20,7 +20,14 @@
  */
 
 import type {
-  DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry, Rect, BaseIR,
+  DiagramModule,
+  ResolvedTheme,
+  LayoutResult,
+  Scene,
+  SceneElement,
+  NodeAnchorRegistry,
+  Rect,
+  BaseIR,
 } from '../../../../contracts/index.js';
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
@@ -30,8 +37,16 @@ import { orthogonalRouter } from '../../../../routing/router.js';
 import { rhu } from '../../../../util/round.js';
 import { ARROW_ID, arrowDef } from '../struct/shared.js';
 
-export interface GNode { id: string; label: string; }
-export interface GEdge { from: string; to: string; label?: string; kind?: 'active' | 'dashed'; }
+export interface GNode {
+  id: string;
+  label: string;
+}
+export interface GEdge {
+  from: string;
+  to: string;
+  label?: string;
+  kind?: 'active' | 'dashed';
+}
 
 export interface GraphDoc extends BaseIR {
   title?: string;
@@ -48,37 +63,59 @@ function parse(input: string): Omit<GraphDoc, keyof BaseIR> {
   const order: string[] = [];
   const labels = new Map<string, string>();
   const edges: GEdge[] = [];
-  const ensure = (id: string): void => { if (!labels.has(id)) { labels.set(id, id); order.push(id); } };
+  const ensure = (id: string): void => {
+    if (!labels.has(id)) {
+      labels.set(id, id);
+      order.push(id);
+    }
+  };
 
   for (const raw of input.split(/\r?\n/)) {
     const line = raw.trim();
     if (!line) continue;
     const t = line.split(/\s+/);
     if (t[0] === 'nodegraph' || t[0] === 'dsgraph') continue;
-    if (t[0] === 'directed') { directed = true; continue; }
-    if (t[0] === 'undirected') { directed = false; continue; }
-    if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
+    if (t[0] === 'directed') {
+      directed = true;
+      continue;
+    }
+    if (t[0] === 'undirected') {
+      directed = false;
+      continue;
+    }
+    if (t[0] === 'title') {
+      title = line.slice(5).trim();
+      continue;
+    }
     if (t[0] === 'node') {
-      const parts = line.slice(4).split(':').map(s => s.trim());
+      const parts = line
+        .slice(4)
+        .split(':')
+        .map((s) => s.trim());
       const id = parts[0] ?? '';
-      if (id) { ensure(id); labels.set(id, parts[1] || id); }
+      if (id) {
+        ensure(id);
+        labels.set(id, parts[1] || id);
+      }
       continue;
     }
     const m = line.match(EDGE_RE);
     if (m) {
-      const from = m[1]!, to = m[3]!;
+      const from = m[1]!,
+        to = m[3]!;
       const rawLabel = m[4]?.trim();
       let label: string | undefined;
       let kind: GEdge['kind'] | undefined;
       if (rawLabel === 'active') kind = 'active';
       else if (rawLabel === 'dashed') kind = 'dashed';
       else label = rawLabel;
-      ensure(from); ensure(to);
+      ensure(from);
+      ensure(to);
       edges.push({ from, to, ...(label ? { label } : {}), ...(kind ? { kind } : {}) });
     }
   }
 
-  const nodes: GNode[] = order.map(id => ({ id, label: labels.get(id)! }));
+  const nodes: GNode[] = order.map((id) => ({ id, label: labels.get(id)! }));
   return { ...(title !== undefined ? { title } : {}), directed, nodes, edges };
 }
 
@@ -92,9 +129,14 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   const nodeH = 40;
 
   const sizeOf = (n: GNode): number => Math.max(64, measureText(n.label, font).width + 28);
-  const gNodes: GraphNode[] = doc.nodes.map(n => ({ id: n.id, width: sizeOf(n), height: nodeH }));
-  const gEdges: GraphEdge[] = doc.edges.map(e => ({ from: e.from, to: e.to }));
-  const placed = layeredLayout(gNodes, gEdges, { direction: 'TB', layerGap: 64, nodeGap: 44, margin });
+  const gNodes: GraphNode[] = doc.nodes.map((n) => ({ id: n.id, width: sizeOf(n), height: nodeH }));
+  const gEdges: GraphEdge[] = doc.edges.map((e) => ({ from: e.from, to: e.to }));
+  const placed = layeredLayout(gNodes, gEdges, {
+    direction: 'TB',
+    layerGap: 64,
+    nodeGap: 44,
+    margin,
+  });
 
   const box = (id: string): Rect => {
     const b = placed.boxes.get(id)!;
@@ -128,27 +170,35 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   type Wall = 'top' | 'bottom' | 'left' | 'right';
   const dirForWall = (wall: Wall): PortDir => {
     switch (wall) {
-      case 'top': return 'N';
-      case 'bottom': return 'S';
-      case 'left': return 'W';
-      case 'right': return 'E';
+      case 'top':
+        return 'N';
+      case 'bottom':
+        return 'S';
+      case 'left':
+        return 'W';
+      case 'right':
+        return 'E';
     }
   };
   const targetWall = (from: Rect, to: Rect): Wall => {
     if (from.y + from.height <= to.y) return 'top';
     if (to.y + to.height <= from.y) return 'bottom';
-    const dx = (to.x + to.width / 2) - (from.x + from.width / 2);
-    const dy = (to.y + to.height / 2) - (from.y + from.height / 2);
+    const dx = to.x + to.width / 2 - (from.x + from.width / 2);
+    const dy = to.y + to.height / 2 - (from.y + from.height / 2);
     if (Math.abs(dy) >= Math.abs(dx)) return dy >= 0 ? 'top' : 'bottom';
     return dx >= 0 ? 'left' : 'right';
   };
   const sourceWall = (from: Rect, to: Rect): Wall => targetWall(to, from);
   const wallPoint = (r: Rect, wall: Wall, axis: number): Pt => {
     switch (wall) {
-      case 'top': return { x: axis, y: r.y };
-      case 'bottom': return { x: axis, y: r.y + r.height };
-      case 'left': return { x: r.x, y: axis };
-      case 'right': return { x: r.x + r.width, y: axis };
+      case 'top':
+        return { x: axis, y: r.y };
+      case 'bottom':
+        return { x: axis, y: r.y + r.height };
+      case 'left':
+        return { x: r.x, y: axis };
+      case 'right':
+        return { x: r.x + r.width, y: axis };
     }
   };
 
@@ -167,18 +217,27 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
       const step = (hi - lo) / (n + 1);
       return Array.from({ length: n }, (_, i) => lo + step * (i + 1));
     }
-    const pos = ideals.map(v => Math.max(lo, Math.min(hi, v)));
+    const pos = ideals.map((v) => Math.max(lo, Math.min(hi, v)));
     for (let iter = 0; iter < 5; iter++) {
       let changed = false;
       for (let i = 1; i < n; i++) {
         const minI = pos[i - 1]! + MIN_PORT_GAP;
-        if (pos[i]! < minI) { pos[i] = minI; changed = true; }
+        if (pos[i]! < minI) {
+          pos[i] = minI;
+          changed = true;
+        }
       }
       for (let i = n - 1; i >= 0; i--) {
         const maxI = i === n - 1 ? hi : pos[i + 1]! - MIN_PORT_GAP;
-        if (pos[i]! > maxI) { pos[i] = maxI; changed = true; }
+        if (pos[i]! > maxI) {
+          pos[i] = maxI;
+          changed = true;
+        }
       }
-      if (pos[0]! < lo) { pos[0] = lo; changed = true; }
+      if (pos[0]! < lo) {
+        pos[0] = lo;
+        changed = true;
+      }
       if (!changed) break;
     }
     return pos;
@@ -197,7 +256,11 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     const len = horizontal ? rect.width : rect.height;
     const lo = base + Math.min(WALL_MARGIN, len / 3);
     const hi = base + len - Math.min(WALL_MARGIN, len / 3);
-    const positions = cascadePorts(sorted.map(e => e.ideal), lo, hi);
+    const positions = cascadePorts(
+      sorted.map((e) => e.ideal),
+      lo,
+      hi,
+    );
     for (let i = 0; i < sorted.length; i++) {
       result.set(sorted[i]!.edgeIndex, wallPoint(rect, wall, positions[i]!));
     }
@@ -212,8 +275,10 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
         points.push(pt);
       }
     }
-    for (let i = 1; i < points.length - 1;) {
-      const a = points[i - 1]!, b = points[i]!, c = points[i + 1]!;
+    for (let i = 1; i < points.length - 1; ) {
+      const a = points[i - 1]!,
+        b = points[i]!,
+        c = points[i + 1]!;
       const collinearX = Math.abs(a.x - b.x) < 1e-6 && Math.abs(b.x - c.x) < 1e-6;
       const collinearY = Math.abs(a.y - b.y) < 1e-6 && Math.abs(b.y - c.y) < 1e-6;
       if (collinearX || collinearY) points.splice(i, 1);
@@ -233,11 +298,11 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     if (!a || !b) continue;
     const minCy = Math.min(a.y + a.height / 2, b.y + b.height / 2);
     const maxCy = Math.max(a.y + a.height / 2, b.y + b.height / 2);
-    const spanBoxes = realBoxes.filter(ob => {
+    const spanBoxes = realBoxes.filter((ob) => {
       const cy = ob.y + ob.height / 2;
       return cy >= minCy && cy <= maxCy;
     });
-    const right = Math.max(...spanBoxes.map(ob => ob.x + ob.width));
+    const right = Math.max(...spanBoxes.map((ob) => ob.x + ob.width));
     skipLaneX.set(i, right + SKIP_LANE_CLEARANCE + skipLaneOrdinal * SKIP_LANE_GAP);
     skipLaneOrdinal++;
   }
@@ -250,7 +315,7 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   const axisIdeal = (wall: Wall, other: Rect, edgeIndex: number): number => {
     const lane = skipLaneX.get(edgeIndex);
     if (lane !== undefined && (wall === 'top' || wall === 'bottom')) return lane;
-    return (wall === 'top' || wall === 'bottom')
+    return wall === 'top' || wall === 'bottom'
       ? other.x + other.width / 2
       : other.y + other.height / 2;
   };
@@ -285,7 +350,16 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   const labelElements: SceneElement[] = [];
   let maxRouteX = placed.width - margin;
   if (doc.title) {
-    elements.push(p.text(doc.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
+    elements.push(
+      p.text(
+        doc.title,
+        margin,
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold' },
+      ),
+    );
   }
 
   // Edges first (under the nodes).
@@ -296,55 +370,64 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     const bends = placed.edgeBends.get(i);
     const fw = fromWallByEdge.get(i) ?? sourceWall(a, b);
     const tw = toWallByEdge.get(i) ?? targetWall(a, b);
-    const fromPt = fromPorts.get(groupKey(e.from, fw))?.get(i) ?? borderPoint(a, b.x + b.width / 2, b.y + b.height / 2);
-    const toPt = toPorts.get(groupKey(e.to, tw))?.get(i) ?? borderPoint(b, a.x + a.width / 2, a.y + a.height / 2);
-    const points: readonly Pt[] = bends && bends.length > 0 && skipLaneX.has(i) && (fw === 'top' || fw === 'bottom') && (tw === 'top' || tw === 'bottom')
-      ? (() => {
-          const sign = toPt.y >= fromPt.y ? 1 : -1;
-          const span = Math.abs(toPt.y - fromPt.y);
-          const stub = Math.min(SKIP_STUB, Math.max(8, (span - 24) / 2));
-          const sourceStubY = fromPt.y + sign * stub;
-          const targetStubY = toPt.y - sign * stub;
-          const laneX = skipLaneX.get(i)!;
-          return simplifyPoints([
-            fromPt,
-            { x: fromPt.x, y: sourceStubY },
-            { x: laneX, y: sourceStubY },
-            { x: laneX, y: targetStubY },
-            { x: toPt.x, y: targetStubY },
-            toPt,
-          ]);
-        })()
-      : bends && bends.length > 0
-      ? (() => {
-          const obstacles = [...placed.boxes.values()]
-            .filter(ob => ob.id !== e.from && ob.id !== e.to)
-            .map(ob => ({ x: ob.x, y: ob.y + titleH, width: ob.width, height: ob.height }));
-          return orthogonalRouter.route({
-            from: fromPt,
-            to: toPt,
-            style: 'orthogonal',
-            obstacles,
-            padding: 10,
-            fromDir: dirForWall(fw),
-            toDir: dirForWall(tw),
-          }).points;
-        })()
-      : (() => {
-          const obstacles = [...placed.boxes.values()]
-            .filter(ob => ob.id !== e.from && ob.id !== e.to)
-            .map(ob => ({ x: ob.x, y: ob.y + titleH, width: ob.width, height: ob.height }));
-          return orthogonalRouter.route({
-            from: fromPt,
-            to: toPt,
-            style: 'orthogonal',
-            obstacles,
-            padding: 10,
-            fromDir: dirForWall(fw),
-            toDir: dirForWall(tw),
-          }).points;
-        })();
-    maxRouteX = Math.max(maxRouteX, ...points.map(pt => pt.x));
+    const fromPt =
+      fromPorts.get(groupKey(e.from, fw))?.get(i) ??
+      borderPoint(a, b.x + b.width / 2, b.y + b.height / 2);
+    const toPt =
+      toPorts.get(groupKey(e.to, tw))?.get(i) ??
+      borderPoint(b, a.x + a.width / 2, a.y + a.height / 2);
+    const points: readonly Pt[] =
+      bends &&
+      bends.length > 0 &&
+      skipLaneX.has(i) &&
+      (fw === 'top' || fw === 'bottom') &&
+      (tw === 'top' || tw === 'bottom')
+        ? (() => {
+            const sign = toPt.y >= fromPt.y ? 1 : -1;
+            const span = Math.abs(toPt.y - fromPt.y);
+            const stub = Math.min(SKIP_STUB, Math.max(8, (span - 24) / 2));
+            const sourceStubY = fromPt.y + sign * stub;
+            const targetStubY = toPt.y - sign * stub;
+            const laneX = skipLaneX.get(i)!;
+            return simplifyPoints([
+              fromPt,
+              { x: fromPt.x, y: sourceStubY },
+              { x: laneX, y: sourceStubY },
+              { x: laneX, y: targetStubY },
+              { x: toPt.x, y: targetStubY },
+              toPt,
+            ]);
+          })()
+        : bends && bends.length > 0
+          ? (() => {
+              const obstacles = [...placed.boxes.values()]
+                .filter((ob) => ob.id !== e.from && ob.id !== e.to)
+                .map((ob) => ({ x: ob.x, y: ob.y + titleH, width: ob.width, height: ob.height }));
+              return orthogonalRouter.route({
+                from: fromPt,
+                to: toPt,
+                style: 'orthogonal',
+                obstacles,
+                padding: 10,
+                fromDir: dirForWall(fw),
+                toDir: dirForWall(tw),
+              }).points;
+            })()
+          : (() => {
+              const obstacles = [...placed.boxes.values()]
+                .filter((ob) => ob.id !== e.from && ob.id !== e.to)
+                .map((ob) => ({ x: ob.x, y: ob.y + titleH, width: ob.width, height: ob.height }));
+              return orthogonalRouter.route({
+                from: fromPt,
+                to: toPt,
+                style: 'orthogonal',
+                obstacles,
+                padding: 10,
+                fromDir: dirForWall(fw),
+                toDir: dirForWall(tw),
+              }).points;
+            })();
+    maxRouteX = Math.max(maxRouteX, ...points.map((pt) => pt.x));
     const isActive = e.kind === 'active';
     const edgeColor = isActive ? palette.primary : palette.textMuted;
     const edgeWidth = isActive ? 2.5 : 1.5;
@@ -357,8 +440,21 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
       const { x: mx, y: my } = pathMidpoint(points);
       const w = measureText(e.label, small).width + 8;
       maxRouteX = Math.max(maxRouteX, mx + w / 2);
-      labelElements.push(p.rect({ x: mx - w / 2, y: my - 9, width: w, height: 16 }, palette.background, palette.background, 0, { rx: 3 }));
-      labelElements.push(p.text(e.label, mx, my + 3, small, isActive ? palette.primary : palette.textMuted, { anchor: 'middle', weight: 'bold' }));
+      labelElements.push(
+        p.rect(
+          { x: mx - w / 2, y: my - 9, width: w, height: 16 },
+          palette.background,
+          palette.background,
+          0,
+          { rx: 3 },
+        ),
+      );
+      labelElements.push(
+        p.text(e.label, mx, my + 3, small, isActive ? palette.primary : palette.textMuted, {
+          anchor: 'middle',
+          weight: 'bold',
+        }),
+      );
     }
   }
   elements.push(...labelElements);
@@ -368,7 +464,12 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   for (const n of doc.nodes) {
     const b = box(n.id);
     elements.push(p.rect(b, palette.surface, palette.primary, 2, { rx: 8 }));
-    elements.push(p.text(n.label, b.x + b.width / 2, b.y + b.height / 2 + font * 0.35, font, palette.text, { anchor: 'middle', weight: 'bold' }));
+    elements.push(
+      p.text(n.label, b.x + b.width / 2, b.y + b.height / 2 + font * 0.35, font, palette.text, {
+        anchor: 'middle',
+        weight: 'bold',
+      }),
+    );
     anchors[n.id] = { bounds: b };
   }
 

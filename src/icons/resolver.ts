@@ -59,10 +59,10 @@ const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 // ─── System defaults ──────────────────────────────────────────────────────────
 
-const DEFAULT_WIDTH  = 16;
+const DEFAULT_WIDTH = 16;
 const DEFAULT_HEIGHT = 16;
-const DEFAULT_LEFT   = 0;
-const DEFAULT_TOP    = 0;
+const DEFAULT_LEFT = 0;
+const DEFAULT_TOP = 0;
 
 /** Maximum alias chain depth. Prevents infinite loops from circular aliases. */
 const MAX_ALIAS_DEPTH = 4;
@@ -81,12 +81,18 @@ const MAX_ALIAS_DEPTH = 4;
  */
 export function parseIconRef(token: string): Result<IconRef> {
   if (typeof token !== 'string' || token.length === 0) {
-    return err('ICON_NOT_FOUND', `Icon token must be a non-empty string, got ${JSON.stringify(token)}`);
+    return err(
+      'ICON_NOT_FOUND',
+      `Icon token must be a non-empty string, got ${JSON.stringify(token)}`,
+    );
   }
 
   const colonIdx = token.indexOf(':');
   if (colonIdx === -1) {
-    return err('ICON_NOT_FOUND', `Invalid icon token ${JSON.stringify(token)}: must be "prefix:name"`);
+    return err(
+      'ICON_NOT_FOUND',
+      `Invalid icon token ${JSON.stringify(token)}: must be "prefix:name"`,
+    );
   }
 
   // Only one colon allowed
@@ -98,7 +104,7 @@ export function parseIconRef(token: string): Result<IconRef> {
   }
 
   const prefix = token.slice(0, colonIdx);
-  const name   = token.slice(colonIdx + 1);
+  const name = token.slice(colonIdx + 1);
 
   if (!PREFIX_RE.test(prefix)) {
     return err(
@@ -182,10 +188,10 @@ function mergeViewBox(
   packLevel: DimSource,
 ): IconViewBox {
   return {
-    width:  aliasLevel.width  ?? iconLevel.width  ?? packLevel.width  ?? DEFAULT_WIDTH,
+    width: aliasLevel.width ?? iconLevel.width ?? packLevel.width ?? DEFAULT_WIDTH,
     height: aliasLevel.height ?? iconLevel.height ?? packLevel.height ?? DEFAULT_HEIGHT,
-    left:   aliasLevel.left   ?? iconLevel.left   ?? packLevel.left   ?? DEFAULT_LEFT,
-    top:    aliasLevel.top    ?? iconLevel.top    ?? packLevel.top    ?? DEFAULT_TOP,
+    left: aliasLevel.left ?? iconLevel.left ?? packLevel.left ?? DEFAULT_LEFT,
+    top: aliasLevel.top ?? iconLevel.top ?? packLevel.top ?? DEFAULT_TOP,
   };
 }
 
@@ -195,26 +201,26 @@ function composeTransforms(
   icon: Pick<IconData, 'rotate' | 'hFlip' | 'vFlip'>,
   alias: Pick<IconAlias, 'rotate' | 'hFlip' | 'vFlip'> | null,
 ): IconTransforms {
-  const iconRotate  = icon.rotate  ?? 0;
-  const iconHFlip   = icon.hFlip   ?? false;
-  const iconVFlip   = icon.vFlip   ?? false;
+  const iconRotate = icon.rotate ?? 0;
+  const iconHFlip = icon.hFlip ?? false;
+  const iconVFlip = icon.vFlip ?? false;
 
   if (alias === null) {
     return {
       rotate: iconRotate as IconRotate,
-      hFlip:  iconHFlip,
-      vFlip:  iconVFlip,
+      hFlip: iconHFlip,
+      vFlip: iconVFlip,
     };
   }
 
   const aliasRotate = alias.rotate ?? 0;
-  const aliasHFlip  = alias.hFlip  ?? false;
-  const aliasVFlip  = alias.vFlip  ?? false;
+  const aliasHFlip = alias.hFlip ?? false;
+  const aliasVFlip = alias.vFlip ?? false;
 
   return {
     rotate: ((iconRotate + aliasRotate) % 4) as IconRotate,
-    hFlip:  iconHFlip  !== aliasHFlip,   // XOR
-    vFlip:  iconVFlip  !== aliasVFlip,   // XOR
+    hFlip: iconHFlip !== aliasHFlip, // XOR
+    vFlip: iconVFlip !== aliasVFlip, // XOR
   };
 }
 
@@ -237,19 +243,22 @@ function composeTransforms(
 export function resolveIcon(ref: IconRef, packs: IconPackMap): Result<ResolvedIcon> {
   const pack = packs.get(ref.prefix);
   if (pack === undefined) {
-    return err('ICON_NOT_FOUND', `Icon pack "${ref.prefix}" not loaded (looking up "${ref.prefix}:${ref.name}")`);
+    return err(
+      'ICON_NOT_FOUND',
+      `Icon pack "${ref.prefix}" not loaded (looking up "${ref.prefix}:${ref.name}")`,
+    );
   }
 
   // Try direct icon lookup first
   const directIcon = pack.icons[ref.name];
   if (directIcon !== undefined) {
-    const viewBox    = mergeViewBox({}, directIcon, pack);
+    const viewBox = mergeViewBox({}, directIcon, pack);
     const transforms = composeTransforms(directIcon, null);
     return ok({
-      body:       directIcon.body,
+      body: directIcon.body,
       viewBox,
       transforms,
-      colorMode:  detectColorMode(directIcon.body),
+      colorMode: detectColorMode(directIcon.body),
     });
   }
 
@@ -263,9 +272,9 @@ export function resolveIcon(ref: IconRef, packs: IconPackMap): Result<ResolvedIc
   }
 
   // Follow alias chain, accumulating the first alias's transform/dim overrides
-  let currentName  = ref.name;
+  let currentName = ref.name;
   let currentAlias: IconAlias | null = aliases[ref.name] ?? null;
-  const topAlias = currentAlias;  // preserve top-level alias for dim/transform composition
+  const topAlias = currentAlias; // preserve top-level alias for dim/transform composition
 
   for (let depth = 0; depth < MAX_ALIAS_DEPTH; depth++) {
     if (currentAlias === null) break;
@@ -275,10 +284,10 @@ export function resolveIcon(ref: IconRef, packs: IconPackMap): Result<ResolvedIc
 
     if (parentIcon !== undefined) {
       // Found the base icon — compose transforms and merge viewBox
-      const viewBox    = mergeViewBox(topAlias ?? {}, parentIcon, pack);
+      const viewBox = mergeViewBox(topAlias ?? {}, parentIcon, pack);
       const transforms = composeTransforms(parentIcon, topAlias);
       return ok({
-        body:      parentIcon.body,
+        body: parentIcon.body,
         viewBox,
         transforms,
         colorMode: detectColorMode(parentIcon.body),
@@ -294,7 +303,7 @@ export function resolveIcon(ref: IconRef, packs: IconPackMap): Result<ResolvedIc
       );
     }
 
-    currentName  = parentName;
+    currentName = parentName;
     currentAlias = parentAlias;
   }
 

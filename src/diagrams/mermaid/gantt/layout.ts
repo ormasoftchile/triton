@@ -23,25 +23,28 @@ export function layoutGantt(ir: GanttDocument, theme: ResolvedTheme): LayoutResu
 
   // ── Date range ─────────────────────────────────────────────────────────────
   const ords: number[] = [];
-  for (const sec of ir.sections) for (const t of sec.tasks) { ords.push(startOrdinal(t.start), startOrdinal(t.end)); }
+  for (const sec of ir.sections)
+    for (const t of sec.tasks) {
+      ords.push(startOrdinal(t.start), startOrdinal(t.end));
+    }
   if (ords.length === 0) ords.push(0, 30);
   const minOrd = Math.min(...ords);
   const maxOrd = Math.max(...ords);
-  const span   = Math.max(1, maxOrd - minOrd);
-  const unit   = inferAxisUnit(span);
-  const ticks  = enumTicks(minOrd, maxOrd, unit);
+  const span = Math.max(1, maxOrd - minOrd);
+  const unit = inferAxisUnit(span);
+  const ticks = enumTicks(minOrd, maxOrd, unit);
 
   // ── Geometry ───────────────────────────────────────────────────────────────
-  const title   = ir.metadata.title;
-  const titleH  = title ? typography.titleFontSize + 18 : 0;
+  const title = ir.metadata.title;
+  const titleH = title ? typography.titleFontSize + 18 : 0;
   const leftColW = 230;
   const gridLeft = margin + leftColW;
-  const gridW    = 720;
+  const gridW = 720;
   const gridRight = gridLeft + gridW;
-  const axisH    = 26;
-  const rowH     = 26;
-  const rowGap   = 4;
-  const secHdrH  = 26;
+  const axisH = 26;
+  const rowH = 26;
+  const rowGap = 4;
+  const secHdrH = 26;
 
   const gridTop = margin + titleH + axisH;
   const dateX = (ord: number): number => rhu(gridLeft + ((ord - minOrd) / span) * gridW);
@@ -49,7 +52,16 @@ export function layoutGantt(ir: GanttDocument, theme: ResolvedTheme): LayoutResu
   const elements: SceneElement[] = [];
 
   if (title) {
-    elements.push(p.text(title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
+    elements.push(
+      p.text(
+        title,
+        margin,
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold' },
+      ),
+    );
   }
 
   // ── Compute total height first (for full-height gridlines) ────────────────
@@ -61,8 +73,19 @@ export function layoutGantt(ir: GanttDocument, theme: ResolvedTheme): LayoutResu
   // ── Date gridlines + axis labels ──────────────────────────────────────────
   ticks.forEach((t, i) => {
     const x = dateX(t.ordinal);
-    elements.push(p.path(`M ${x} ${gridTop} L ${x} ${gridBottom}`, palette.border, 1, { opacity: 0.4 }));
-    elements.push(p.text(formatTickLabel(t, unit, i), x, margin + titleH + axisH - 8, typography.smallFontSize, palette.textMuted, { anchor: 'middle' }));
+    elements.push(
+      p.path(`M ${x} ${gridTop} L ${x} ${gridBottom}`, palette.border, 1, { opacity: 0.4 }),
+    );
+    elements.push(
+      p.text(
+        formatTickLabel(t, unit, i),
+        x,
+        margin + titleH + axisH - 8,
+        typography.smallFontSize,
+        palette.textMuted,
+        { anchor: 'middle' },
+      ),
+    );
   });
   // axis baseline
   elements.push(p.path(`M ${gridLeft} ${gridTop} L ${gridRight} ${gridTop}`, palette.border, 1.5));
@@ -71,8 +94,24 @@ export function layoutGantt(ir: GanttDocument, theme: ResolvedTheme): LayoutResu
   let y = gridTop;
   for (const sec of ir.sections) {
     // Section header band
-    elements.push(p.rect({ x: margin, y, width: leftColW + gridW, height: secHdrH }, palette.surface, palette.surface, 0));
-    elements.push(p.text(sec.label, margin + 6, y + secHdrH / 2 + typography.baseFontSize * 0.35, typography.baseFontSize, palette.text, { weight: 'bold' }));
+    elements.push(
+      p.rect(
+        { x: margin, y, width: leftColW + gridW, height: secHdrH },
+        palette.surface,
+        palette.surface,
+        0,
+      ),
+    );
+    elements.push(
+      p.text(
+        sec.label,
+        margin + 6,
+        y + secHdrH / 2 + typography.baseFontSize * 0.35,
+        typography.baseFontSize,
+        palette.text,
+        { weight: 'bold' },
+      ),
+    );
     y += secHdrH + rowGap;
 
     for (const task of sec.tasks) {
@@ -80,15 +119,36 @@ export function layoutGantt(ir: GanttDocument, theme: ResolvedTheme): LayoutResu
       const color = statusColor(palette, task.status === 'crit' ? 'blocked' : task.status);
 
       // Task name (left column)
-      elements.push(p.text(truncateText(task.label, typography.smallFontSize, leftColW - 12), margin + 4, y + rowH / 2 + typography.smallFontSize * 0.35, typography.smallFontSize, palette.text));
+      elements.push(
+        p.text(
+          truncateText(task.label, typography.smallFontSize, leftColW - 12),
+          margin + 4,
+          y + rowH / 2 + typography.smallFontSize * 0.35,
+          typography.smallFontSize,
+          palette.text,
+        ),
+      );
 
       if (task.isMilestone) {
-        const cx = x0, cy = y + rowH / 2, r = 8;
-        elements.push(p.path(`M ${cx} ${cy - r} L ${cx + r} ${cy} L ${cx} ${cy + r} L ${cx - r} ${cy} Z`, palette.background, 1.5, { fill: color }));
+        const cx = x0,
+          cy = y + rowH / 2,
+          r = 8;
+        elements.push(
+          p.path(
+            `M ${cx} ${cy - r} L ${cx + r} ${cy} L ${cx} ${cy + r} L ${cx - r} ${cy} Z`,
+            palette.background,
+            1.5,
+            { fill: color },
+          ),
+        );
       } else {
         const x1 = dateX(startOrdinal(task.end));
         const barW = Math.max(4, x1 - x0);
-        elements.push(p.rect({ x: x0, y: y + 4, width: rhu(barW), height: rowH - 8 }, color, color, 0, { rx: 3 }));
+        elements.push(
+          p.rect({ x: x0, y: y + 4, width: rhu(barW), height: rowH - 8 }, color, color, 0, {
+            rx: 3,
+          }),
+        );
       }
       y += rowH + rowGap;
     }
@@ -97,11 +157,15 @@ export function layoutGantt(ir: GanttDocument, theme: ResolvedTheme): LayoutResu
   const totalW = rhuInt(gridRight + margin);
   const totalH = rhuInt(gridBottom + margin);
 
-  const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: totalW, height: totalH },
-    background: palette.background,
-    elements,
-  }, ir.overlays, theme);
+  const scene: Scene = applyOverlays(
+    {
+      viewBox: { x: 0, y: 0, width: totalW, height: totalH },
+      background: palette.background,
+      elements,
+    },
+    ir.overlays,
+    theme,
+  );
 
   return { scene, anchors: {} };
 }

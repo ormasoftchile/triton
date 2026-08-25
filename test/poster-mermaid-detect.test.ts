@@ -7,7 +7,7 @@ async function renderPosterCell(title: string, lines: readonly string[]) {
     '    columns 1',
     '',
     `    cell cell "${title}"`,
-    ...lines.map(line => `        ${line}`),
+    ...lines.map((line) => `        ${line}`),
     '    end',
     '',
   ].join('\n');

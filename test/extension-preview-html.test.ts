@@ -10,7 +10,9 @@ describe('preview webview shell HTML', () => {
     expect(html).toContain('<select id="theme"');
     expect(html).toContain('<option value="">Auto</option>');
     for (const name of themePresetNames) {
-      expect(html).toContain(`<option value="${name}"${name === 'minimal' ? ' selected' : ''}>${name}</option>`);
+      expect(html).toContain(
+        `<option value="${name}"${name === 'minimal' ? ' selected' : ''}>${name}</option>`,
+      );
     }
   });
 

@@ -28,7 +28,7 @@ import type { Point } from './primitives.js';
  * The target is an element label or ID — not yet a screen coordinate.
  */
 export interface RawNote {
-  readonly type: 'note';
+  readonly type: 'note' | 'callout';
   readonly text: string;
   /** Element ID or label this note is anchored to. */
   readonly target: string;
@@ -81,6 +81,7 @@ export interface Legend {
  */
 export interface Annotation {
   readonly id: string;
+  readonly type?: 'note' | 'callout';
   readonly text: string;
   /** Top-left corner of the annotation box in diagram coordinates. */
   readonly position: Point;

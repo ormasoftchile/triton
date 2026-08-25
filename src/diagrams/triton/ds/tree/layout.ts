@@ -10,7 +10,12 @@
 
 import type { TreeDocument, TreeNode } from './ir.js';
 import type {
-  Scene, SceneElement, LayoutResult, NodeAnchorRegistry, ResolvedTheme, Color,
+  Scene,
+  SceneElement,
+  LayoutResult,
+  NodeAnchorRegistry,
+  ResolvedTheme,
+  Color,
 } from '../../../../contracts/index.js';
 import { pen } from '../../../../scene/build.js';
 import { treeLayout, type TreeNodeInput } from '../../../../graph/tree.js';
@@ -31,26 +36,38 @@ interface NodeStyle {
 
 /** Split a `a | b | c` strip label into per-key cells with measured widths. */
 function stripCells(label: string, font: number): { key: string; width: number }[] {
-  return label.split('|').map(s => s.trim()).map(key => ({
-    key, width: Math.max(measureText(key, font).width + 18, 34),
-  }));
+  return label
+    .split('|')
+    .map((s) => s.trim())
+    .map((key) => ({
+      key,
+      width: Math.max(measureText(key, font).width + 18, 34),
+    }));
 }
 
 function parseHex(c: Color): [number, number, number] | null {
   const s = c.trim();
   const m3 = s.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
-  if (m3) return [parseInt(m3[1]! + m3[1]!, 16), parseInt(m3[2]! + m3[2]!, 16), parseInt(m3[3]! + m3[3]!, 16)];
+  if (m3)
+    return [
+      parseInt(m3[1]! + m3[1]!, 16),
+      parseInt(m3[2]! + m3[2]!, 16),
+      parseInt(m3[3]! + m3[3]!, 16),
+    ];
   const m6 = s.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
   if (m6) return [parseInt(m6[1]!, 16), parseInt(m6[2]!, 16), parseInt(m6[3]!, 16)];
   return null;
 }
 
 function toHex(n: number): string {
-  return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+  return Math.max(0, Math.min(255, Math.round(n)))
+    .toString(16)
+    .padStart(2, '0');
 }
 
 function mixHex(a: Color, b: Color, t: number): Color {
-  const ca = parseHex(a), cb = parseHex(b);
+  const ca = parseHex(a),
+    cb = parseHex(b);
   if (!ca || !cb) return a;
   const r = ca[0] + (cb[0] - ca[0]) * t;
   const g = ca[1] + (cb[1] - ca[1]) * t;
@@ -63,24 +80,39 @@ function canvasColor(theme: ResolvedTheme): Color {
 }
 
 function isDarkTheme(theme: ResolvedTheme): boolean {
-  const lum = relativeLuminance(theme.palette.background) ?? relativeLuminance(theme.palette.surface);
+  const lum =
+    relativeLuminance(theme.palette.background) ?? relativeLuminance(theme.palette.surface);
   return lum !== undefined ? lum < 0.5 : false;
 }
 
 function readableText(fill: Color, theme: ResolvedTheme): Color {
-  const themed = bestContrast(fill, [theme.palette.text, theme.palette.background], theme.palette.text);
+  const themed = bestContrast(
+    fill,
+    [theme.palette.text, theme.palette.background],
+    theme.palette.text,
+  );
   if (contrastRatio(themed, fill) >= 4.5) return themed;
   return bestContrast(fill, ['#ffffff', '#000000'], themed);
 }
 
 function outlineStroke(fill: Color, theme: ResolvedTheme): Color {
   const canvas = canvasColor(theme);
-  const candidates = [theme.palette.text, theme.palette.border, theme.palette.textMuted, theme.palette.background];
-  let best = theme.palette.text, score = -Infinity;
+  const candidates = [
+    theme.palette.text,
+    theme.palette.border,
+    theme.palette.textMuted,
+    theme.palette.background,
+  ];
+  let best = theme.palette.text,
+    score = -Infinity;
   for (const c of candidates) {
     if (!parseHex(c)) continue;
-    const next = Math.min(contrastRatio(c, fill), contrastRatio(c, canvas)) + contrastRatio(c, canvas) * 0.15;
-    if (next > score) { best = c; score = next; }
+    const next =
+      Math.min(contrastRatio(c, fill), contrastRatio(c, canvas)) + contrastRatio(c, canvas) * 0.15;
+    if (next > score) {
+      best = c;
+      score = next;
+    }
   }
   return best;
 }
@@ -114,11 +146,13 @@ function blackNodeFill(theme: ResolvedTheme): Color {
 function nodeStyle(kinds: readonly string[], theme: ResolvedTheme): NodeStyle {
   const { palette } = theme;
   const has = (k: string): boolean => kinds.includes(k);
-  const shape: NodeStyle['shape'] =
-    has('strip') ? 'strip'
-    : has('leaf') || has('pill') ? 'pill'
-    : has('circle') || has('red') || has('black') || has('dot') ? 'circle'
-    : 'rect';
+  const shape: NodeStyle['shape'] = has('strip')
+    ? 'strip'
+    : has('leaf') || has('pill')
+      ? 'pill'
+      : has('circle') || has('red') || has('black') || has('dot')
+        ? 'circle'
+        : 'rect';
   if (has('red')) {
     const fill = redNodeFill(theme);
     return { shape, fill, stroke: outlineStroke(fill, theme), text: readableText(fill, theme) };
@@ -127,10 +161,19 @@ function nodeStyle(kinds: readonly string[], theme: ResolvedTheme): NodeStyle {
     const fill = blackNodeFill(theme);
     return { shape, fill, stroke: outlineStroke(fill, theme), text: readableText(fill, theme) };
   }
-  if (has('active') || has('primary')) return { shape, fill: palette.primary, stroke: palette.primary, text: readableText(palette.primary, theme) };
-  if (has('scan'))   return { shape, fill: palette.surface, stroke: palette.primary, text: palette.text };
-  if (has('join'))   return { shape, fill: palette.surface, stroke: palette.secondary, text: palette.text };
-  if (has('build') || has('muted')) return { shape, fill: palette.surface, stroke: palette.textMuted, text: palette.text };
+  if (has('active') || has('primary') || has('focal'))
+    return {
+      shape,
+      fill: palette.primary,
+      stroke: palette.primary,
+      text: readableText(palette.primary, theme),
+    };
+  if (has('scan'))
+    return { shape, fill: palette.surface, stroke: palette.primary, text: palette.text };
+  if (has('join'))
+    return { shape, fill: palette.surface, stroke: palette.secondary, text: palette.text };
+  if (has('build') || has('muted'))
+    return { shape, fill: palette.surface, stroke: palette.textMuted, text: palette.text };
   const fill = palette.surface;
   return { shape, fill, stroke: palette.primary, text: palette.text };
 }
@@ -158,7 +201,11 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
   const smallFont = typography.smallFontSize;
 
   if (ir.nodes.length === 0) {
-    const scene: Scene = { viewBox: { x: 0, y: 0, width: 120, height: 80 }, background: palette.background, elements: [] };
+    const scene: Scene = {
+      viewBox: { x: 0, y: 0, width: 120, height: 80 },
+      background: palette.background,
+      elements: [],
+    };
     return { scene, anchors: {} };
   }
 
@@ -180,15 +227,23 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
       sizes.set(node.id, { width: side, height: side });
     } else {
       const width = contentW + 28;
-      const height = (info ? font + smallFont + 8 : font + 16);
+      const height = info ? font + smallFont + 8 : font + 16;
       sizes.set(node.id, { width, height });
     }
   }
 
-  const inputs: TreeNodeInput[] = ir.nodes.map(n => ({
-    id: n.id, width: sizes.get(n.id)!.width, height: sizes.get(n.id)!.height, children: n.children,
+  const inputs: TreeNodeInput[] = ir.nodes.map((n) => ({
+    id: n.id,
+    width: sizes.get(n.id)!.width,
+    height: sizes.get(n.id)!.height,
+    children: n.children,
   }));
-  const placed = treeLayout(inputs, { direction: ir.direction, levelGap: 52, siblingGap: 28, margin });
+  const placed = treeLayout(inputs, {
+    direction: ir.direction,
+    levelGap: 52,
+    siblingGap: 28,
+    margin,
+  });
 
   const titleH = ir.metadata['title'] ? typography.titleFontSize + 18 : 0;
   const box = (id: string) => {
@@ -198,12 +253,20 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
 
   const elements: SceneElement[] = [];
   if (titleH > 0) {
-    elements.push(p.text(String(ir.metadata['title']), placed.width / 2, margin + typography.titleFontSize,
-      typography.titleFontSize, palette.text, { anchor: 'middle', weight: 'bold' }));
+    elements.push(
+      p.text(
+        String(ir.metadata['title']),
+        placed.width / 2,
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { anchor: 'middle', weight: 'bold' },
+      ),
+    );
   }
 
   // ─── Edges first (parent → child), so nodes draw over them ───
-  const byId = new Map(ir.nodes.map(n => [n.id, n]));
+  const byId = new Map(ir.nodes.map((n) => [n.id, n]));
   // Build active-edge set for highlighted paths (e.g. DFS/BFS traversal)
   const activeEdgeSet = new Set<string>((ir.activePaths ?? []).map(([a, b]) => `${a}:${b}`));
 
@@ -212,7 +275,7 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
     center: { x: number; y: number },
     radius: number,
     dir: { x: number; y: number },
-    sign: 1 | -1,           // +1 = move in dir (parent side), -1 = move against dir (child side)
+    sign: 1 | -1, // +1 = move in dir (parent side), -1 = move against dir (child side)
   ): { x: number; y: number } {
     return { x: rhu(center.x + sign * radius * dir.x), y: rhu(center.y + sign * radius * dir.y) };
   }
@@ -227,30 +290,51 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
       // Centers
       const pc = { x: pb.x + pb.width / 2, y: pb.y + pb.height / 2 };
       const cc = { x: cb.x + cb.width / 2, y: cb.y + cb.height / 2 };
-      const dx = cc.x - pc.x, dy = cc.y - pc.y;
+      const dx = cc.x - pc.x,
+        dy = cc.y - pc.y;
       const len = Math.hypot(dx, dy);
       const dir = len > 0 ? { x: dx / len, y: dy / len } : { x: 0, y: 1 };
 
       // Box-based fallback for non-circle shapes
       const { start: boxStart, end: boxEnd } = connectSlots(pb, cb);
 
-      const start = parentShape === 'circle'
-        ? circleBorder(pc, pb.width / 2, dir, 1)
-        : boxStart;
-      const end = childShape === 'circle'
-        ? circleBorder(cc, cb.width / 2, dir, -1)
-        : boxEnd;
+      const start = parentShape === 'circle' ? circleBorder(pc, pb.width / 2, dir, 1) : boxStart;
+      const end = childShape === 'circle' ? circleBorder(cc, cb.width / 2, dir, -1) : boxEnd;
 
       const isActive = activeEdgeSet.has(`${node.id}:${cid}`);
       const edgeColor = isActive ? palette.primary : palette.textMuted;
       const edgeWidth = isActive ? 2.5 : 1.5;
-      elements.push(p.path(`M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`, edgeColor, edgeWidth));
+      elements.push(
+        p.path(
+          `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`,
+          edgeColor,
+          edgeWidth,
+        ),
+      );
       const child = byId.get(cid)!;
       if (child.edgeLabel) {
-        const mx = (start.x + end.x) / 2, my = (start.y + end.y) / 2;
+        const mx = (start.x + end.x) / 2,
+          my = (start.y + end.y) / 2;
         const w = measureText(child.edgeLabel, smallFont).width + 8;
-        elements.push(p.rect({ x: mx - w / 2, y: my - 9, width: w, height: 16 }, palette.background, palette.background, 0, { rx: 3 }));
-        elements.push(p.text(child.edgeLabel, mx, my + 3, smallFont, isActive ? palette.primary : palette.textMuted, { anchor: 'middle', weight: 'bold' }));
+        elements.push(
+          p.rect(
+            { x: mx - w / 2, y: my - 9, width: w, height: 16 },
+            palette.background,
+            palette.background,
+            0,
+            { rx: 3 },
+          ),
+        );
+        elements.push(
+          p.text(
+            child.edgeLabel,
+            mx,
+            my + 3,
+            smallFont,
+            isActive ? palette.primary : palette.textMuted,
+            { anchor: 'middle', weight: 'bold' },
+          ),
+        );
       }
     }
   }
@@ -260,14 +344,27 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
     const b = box(node.id);
     const st = style.get(node.id)!;
     const info = infoLine(node);
-    const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+    const cx = b.x + b.width / 2,
+      cy = b.y + b.height / 2;
 
     if (st.shape === 'strip') {
       elements.push(p.rect(b, st.fill, st.stroke, 2, { rx: 4 }));
       let sx = b.x;
       stripCells(node.label, font).forEach((cell, idx) => {
-        if (idx > 0) elements.push(p.path(`M ${rhu(sx)} ${rhu(b.y)} L ${rhu(sx)} ${rhu(b.y + b.height)}`, st.stroke, 1));
-        elements.push(p.text(cell.key, rhu(sx + cell.width / 2), rhu(b.y + b.height / 2 + font * 0.35), font, st.text, { anchor: 'middle', weight: 'bold' }));
+        if (idx > 0)
+          elements.push(
+            p.path(`M ${rhu(sx)} ${rhu(b.y)} L ${rhu(sx)} ${rhu(b.y + b.height)}`, st.stroke, 1),
+          );
+        elements.push(
+          p.text(
+            cell.key,
+            rhu(sx + cell.width / 2),
+            rhu(b.y + b.height / 2 + font * 0.35),
+            font,
+            st.text,
+            { anchor: 'middle', weight: 'bold' },
+          ),
+        );
         sx += cell.width;
       });
     } else if (st.shape === 'circle') {
@@ -279,28 +376,59 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
 
     if (st.shape !== 'strip') {
       if (info) {
-        elements.push(p.text(node.label, cx, b.y + font + 4, font, st.text, { anchor: 'middle', weight: 'bold' }));
-        elements.push(p.text(info, cx, b.y + font + smallFont + 6, smallFont, st.fill === palette.surface ? palette.textMuted : st.text, { anchor: 'middle' }));
+        elements.push(
+          p.text(node.label, cx, b.y + font + 4, font, st.text, {
+            anchor: 'middle',
+            weight: 'bold',
+          }),
+        );
+        elements.push(
+          p.text(
+            info,
+            cx,
+            b.y + font + smallFont + 6,
+            smallFont,
+            st.fill === palette.surface ? palette.textMuted : st.text,
+            { anchor: 'middle' },
+          ),
+        );
       } else {
-        elements.push(p.text(node.label, cx, cy + font * 0.35, font, st.text, { anchor: 'middle', weight: 'bold' }));
+        elements.push(
+          p.text(node.label, cx, cy + font * 0.35, font, st.text, {
+            anchor: 'middle',
+            weight: 'bold',
+          }),
+        );
       }
     }
 
     if (node.badge !== undefined) {
       const bc = badgeColor(node.badge, theme);
       elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.surface, bc, 1.5));
-      elements.push(p.text(node.badge, b.x + b.width - 3, b.y + 7, smallFont, bc, { anchor: 'middle', weight: 'bold' }));
+      elements.push(
+        p.text(node.badge, b.x + b.width - 3, b.y + 7, smallFont, bc, {
+          anchor: 'middle',
+          weight: 'bold',
+        }),
+      );
     }
   }
 
-  const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
+  const anchors: Record<
+    string,
+    { bounds: { x: number; y: number; width: number; height: number } }
+  > = {};
   for (const node of ir.nodes) anchors[node.id] = { bounds: box(node.id) };
 
-  const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: placed.width, height: placed.height + titleH },
-    background: palette.background,
-    elements,
-  }, ir.overlays, theme);
+  const scene: Scene = applyOverlays(
+    {
+      viewBox: { x: 0, y: 0, width: placed.width, height: placed.height + titleH },
+      background: palette.background,
+      elements,
+    },
+    ir.overlays,
+    theme,
+  );
 
   return { scene, anchors: anchors as NodeAnchorRegistry };
 }

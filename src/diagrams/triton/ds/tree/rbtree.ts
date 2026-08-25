@@ -10,8 +10,14 @@ import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../../con
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 
-const RED = true, BLACK = false;
-interface RbNode { key: number; left: RbNode | null; right: RbNode | null; color: boolean; }
+const RED = true,
+  BLACK = false;
+interface RbNode {
+  key: number;
+  left: RbNode | null;
+  right: RbNode | null;
+  color: boolean;
+}
 
 const isRed = (n: RbNode | null): boolean => n !== null && n.color === RED;
 
@@ -51,7 +57,10 @@ function insert(h: RbNode | null, key: number): RbNode {
 export function buildRbtree(input: string): TreeDocument {
   const keys = (input.match(/-?\d+/g) ?? []).map(Number);
   let root: RbNode | null = null;
-  for (const k of keys) { root = insert(root, k); root.color = BLACK; }
+  for (const k of keys) {
+    root = insert(root, k);
+    root.color = BLACK;
+  }
 
   const nodes: TreeNode[] = [];
   let i = 0;

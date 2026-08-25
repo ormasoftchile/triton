@@ -40,9 +40,9 @@ describe('resolveCliTheme: --theme-file flag', () => {
   });
 
   it('throws with a clear message for a nonexistent --theme-file', () => {
-    expect(() =>
-      resolveCliTheme({ themeFile: 'does-not-exist.json' }, ROOT),
-    ).toThrow(/--theme-file|Cannot read|ENOENT/);
+    expect(() => resolveCliTheme({ themeFile: 'does-not-exist.json' }, ROOT)).toThrow(
+      /--theme-file|Cannot read|ENOENT/,
+    );
   });
 });
 

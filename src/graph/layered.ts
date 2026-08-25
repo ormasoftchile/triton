@@ -47,7 +47,14 @@ interface DummyNode extends GraphNode {
 }
 
 function makeDummy(edgeIdx: number, segIdx: number): DummyNode {
-  return { id: `__dummy_${edgeIdx}_${segIdx}`, width: 0, height: 0, isDummy: true, originalEdgeIndex: edgeIdx, segmentIndex: segIdx };
+  return {
+    id: `__dummy_${edgeIdx}_${segIdx}`,
+    width: 0,
+    height: 0,
+    isDummy: true,
+    originalEdgeIndex: edgeIdx,
+    segmentIndex: segIdx,
+  };
 }
 
 export interface NodeBox {
@@ -94,7 +101,10 @@ export interface LayeredResult {
 // ─── Phase 1: Layer Assignment ────────────────────────────────────────────────
 
 /** Assign each node a layer via longest-path; cycles are broken by a pass cap. */
-function assignLayers(nodes: readonly GraphNode[], edges: readonly GraphEdge[]): Map<string, number> {
+function assignLayers(
+  nodes: readonly GraphNode[],
+  edges: readonly GraphEdge[],
+): Map<string, number> {
   const layer = new Map<string, number>();
   for (const n of nodes) layer.set(n.id, 0);
   const present = (id: string): boolean => layer.has(id);
@@ -104,7 +114,10 @@ function assignLayers(nodes: readonly GraphNode[], edges: readonly GraphEdge[]):
     for (const e of edges) {
       if (!present(e.from) || !present(e.to)) continue;
       const want = layer.get(e.from)! + 1;
-      if (layer.get(e.to)! < want) { layer.set(e.to, want); changed = true; }
+      if (layer.get(e.to)! < want) {
+        layer.set(e.to, want);
+        changed = true;
+      }
     }
     if (!changed) break;
   }
@@ -121,10 +134,7 @@ function assignLayers(nodes: readonly GraphNode[], edges: readonly GraphEdge[]):
  * Uses an iterative DFS to avoid call-stack overflow on deep graphs.
  * Returns a set of indices into `edges`.
  */
-function detectBackEdges(
-  nodes: readonly GraphNode[],
-  edges: readonly GraphEdge[],
-): Set<number> {
+function detectBackEdges(nodes: readonly GraphNode[], edges: readonly GraphEdge[]): Set<number> {
   // Build adjacency list: node id → [{to, edgeIdx}]
   const adj = new Map<string, Array<{ to: string; edgeIdx: number }>>();
   for (const n of nodes) adj.set(n.id, []);
@@ -215,7 +225,7 @@ function insertDummyNodes(
     }
 
     const lu = layer.get(e.from) ?? 0;
-    const lv = layer.get(e.to)   ?? 0;
+    const lv = layer.get(e.to) ?? 0;
     const span = lv - lu;
 
     if (span <= 1) {
@@ -267,11 +277,7 @@ function crossCount(
 
   let cc = 0;
   for (let i = 1; i < layerKeys.length; i++) {
-    cc += bilayerCrossCount(
-      byLayer.get(layerKeys[i - 1]!)!,
-      byLayer.get(layerKeys[i]!)!,
-      succList,
-    );
+    cc += bilayerCrossCount(byLayer.get(layerKeys[i - 1]!)!, byLayer.get(layerKeys[i]!)!, succList);
   }
   return cc;
 }
@@ -286,10 +292,10 @@ function bilayerCrossCount(
   const southPos = new Map<string, number>();
   southLayer.forEach((n, i) => southPos.set(n.id, i));
 
-  const positions: number[] = northLayer.flatMap(n =>
+  const positions: number[] = northLayer.flatMap((n) =>
     (succList.get(n.id) ?? [])
-      .filter(sid => southPos.has(sid))
-      .map(sid => southPos.get(sid)!)
+      .filter((sid) => southPos.has(sid))
+      .map((sid) => southPos.get(sid)!)
       .sort((a, b) => a - b),
   );
   if (positions.length === 0) return 0;
@@ -297,7 +303,7 @@ function bilayerCrossCount(
   let firstIndex = 1;
   while (firstIndex < southLayer.length) firstIndex <<= 1;
   const treeSize = 2 * firstIndex - 1;
-  firstIndex    -= 1;
+  firstIndex -= 1;
   const tree = new Array<number>(treeSize).fill(0);
 
   let cc = 0;
@@ -344,7 +350,10 @@ function minimizeCrossings(
   const predIds = new Map<string, string[]>();
   const succIds = new Map<string, string[]>();
   for (const [, ns] of byLayer) {
-    for (const n of ns) { predIds.set(n.id, []); succIds.set(n.id, []); }
+    for (const n of ns) {
+      predIds.set(n.id, []);
+      succIds.set(n.id, []);
+    }
   }
   edges.forEach((e, i) => {
     if (backEdgeSet.has(i) || e.from === e.to) return;
@@ -354,19 +363,20 @@ function minimizeCrossings(
 
   const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
 
-  const nodeById2  = new Map<string, GraphNode>();
+  const nodeById2 = new Map<string, GraphNode>();
   const nodeLayer2 = new Map<string, number>();
-  for (const [lk, ns] of byLayer) for (const n of ns) {
-    nodeById2.set(n.id, n);
-    nodeLayer2.set(n.id, lk);
-  }
+  for (const [lk, ns] of byLayer)
+    for (const n of ns) {
+      nodeById2.set(n.id, n);
+      nodeLayer2.set(n.id, lk);
+    }
 
   // initOrder: DFS-based initial ordering (port of dagre's init-order.ts).
   // Nodes visited first via DFS end up earlier in their layer, correlating
   // initial order with edge directions and reducing starting crossings.
   function initOrder(): Map<number, GraphNode[]> {
     const visited = new Set<string>();
-    const layers  = new Map<number, GraphNode[]>();
+    const layers = new Map<number, GraphNode[]>();
     for (const k of layerKeys) layers.set(k, []);
 
     function dfs(v: string): void {
@@ -374,7 +384,7 @@ function minimizeCrossings(
       visited.add(v);
       const lk = nodeLayer2.get(v);
       if (lk !== undefined) layers.get(lk)?.push(nodeById2.get(v)!);
-      for (const w of (succIds.get(v) ?? [])) dfs(w);
+      for (const w of succIds.get(v) ?? []) dfs(w);
     }
 
     // Visit all nodes sorted by layer (ascending) so DFS starts from roots first.
@@ -385,7 +395,7 @@ function minimizeCrossings(
     return layers;
   }
 
-  const order      = initOrder();
+  const order = initOrder();
   const posInLayer = new Map<string, number>();
   function rebuildPos(): void {
     for (const [, ns] of order) ns.forEach((n, i) => posInLayer.set(n.id, i));
@@ -395,19 +405,23 @@ function minimizeCrossings(
   // Port of dagre's sort() — separates sortable (have barycenter) from unsortable
   // (no neighbours) entries, then interleaves unsortable nodes at their original
   // positions rather than lumping them at arbitrary barycenters.
-  function sortLayer(layerIdx: number, neighborMap: Map<string, string[]>, biasRight: boolean): void {
+  function sortLayer(
+    layerIdx: number,
+    neighborMap: Map<string, string[]>,
+    biasRight: boolean,
+  ): void {
     const curr = order.get(layerIdx)!;
 
     const entries = curr.map((node, origIdx) => {
-      const nbrs = (neighborMap.get(node.id) ?? []).filter(w => posInLayer.has(w));
+      const nbrs = (neighborMap.get(node.id) ?? []).filter((w) => posInLayer.has(w));
       if (nbrs.length === 0) return { node, barycenter: undefined as number | undefined, origIdx };
       const sum = nbrs.reduce((s, nid) => s + posInLayer.get(nid)!, 0);
       return { node, barycenter: sum / nbrs.length, origIdx };
     });
 
-    const sortable   = entries.filter(e => e.barycenter !== undefined);
+    const sortable = entries.filter((e) => e.barycenter !== undefined);
     const unsortable = entries
-      .filter(e => e.barycenter === undefined)
+      .filter((e) => e.barycenter === undefined)
       .sort((a, b) => b.origIdx - a.origIdx); // descending → pop from end gives ascending
 
     sortable.sort((a, b) => {
@@ -448,12 +462,13 @@ function minimizeCrossings(
       for (let li = 1; li < layerKeys.length; li++) sortLayer(layerKeys[li]!, predIds, biasRight);
     } else {
       // Up sweep: fix each layer using its successors.
-      for (let li = layerKeys.length - 2; li >= 0; li--) sortLayer(layerKeys[li]!, succIds, biasRight);
+      for (let li = layerKeys.length - 2; li >= 0; li--)
+        sortLayer(layerKeys[li]!, succIds, biasRight);
     }
     const cc = crossCount(order, edges, backEdgeSet);
     if (cc < bestCC) {
       lastBest = 0;
-      bestCC   = cc;
+      bestCC = cc;
       for (const [k, v] of order) best.set(k, [...v]);
     } else if (cc === bestCC) {
       for (const [k, v] of order) best.set(k, [...v]);
@@ -483,9 +498,9 @@ function assignCoordinatesBK4(
   layerGap: number,
   margin: number,
 ): { boxes: Map<string, NodeBox>; dummySweepXs: Map<string, number[]> } {
-  const cross   = (n: GraphNode) => isLR ? n.height : n.width;
-  const along   = (n: GraphNode) => isLR ? n.width  : n.height;
-  const isDummy = (id: string)   => id.startsWith('__dummy_');
+  const cross = (n: GraphNode) => (isLR ? n.height : n.width);
+  const along = (n: GraphNode) => (isLR ? n.width : n.height);
+  const isDummy = (id: string) => id.startsWith('__dummy_');
 
   const nodeById = new Map<string, GraphNode>();
   for (const [, ns] of byLayer) for (const n of ns) nodeById.set(n.id, n);
@@ -500,9 +515,9 @@ function assignCoordinatesBK4(
     return cross(an) / 2 + nodeGap + cross(bn) / 2;
   }
 
-  const layerKeys  = [...byLayer.keys()].sort((a, b) => a - b);
-  const numLayers  = layerKeys.length;
-  const baseLayers: string[][] = layerKeys.map(lk => byLayer.get(lk)!.map(n => n.id));
+  const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
+  const numLayers = layerKeys.length;
+  const baseLayers: string[][] = layerKeys.map((lk) => byLayer.get(lk)!.map((n) => n.id));
 
   // Map each node id → its layer position index (0-based).
   const nodeLayerIdx = new Map<string, number>();
@@ -512,10 +527,11 @@ function assignCoordinatesBK4(
 
   const predMap = new Map<string, string[]>();
   const succMap = new Map<string, string[]>();
-  for (const [, ns] of byLayer) for (const n of ns) {
-    predMap.set(n.id, []);
-    succMap.set(n.id, []);
-  }
+  for (const [, ns] of byLayer)
+    for (const n of ns) {
+      predMap.set(n.id, []);
+      succMap.set(n.id, []);
+    }
   edges.forEach((e, i) => {
     if (backEdgeSet.has(i) || e.from === e.to) return;
     predMap.get(e.to)?.push(e.from);
@@ -525,26 +541,29 @@ function assignCoordinatesBK4(
   // ── BK Step 1: Type-1 Conflict Detection ─────────────────────────────────────
   // A type-1 conflict: a non-inner edge crosses an inner segment (dummy→dummy).
   const conflicts = new Set<string>();
-  const ck          = (u: string, v: string) => u < v ? `${u}\0${v}` : `${v}\0${u}`;
+  const ck = (u: string, v: string) => (u < v ? `${u}\0${v}` : `${v}\0${u}`);
   const addConflict = (u: string, v: string) => conflicts.add(ck(u, v));
   const hasConflict = (u: string, v: string) => conflicts.has(ck(u, v));
 
   for (let li = 1; li < numLayers; li++) {
     const prevLayer = baseLayers[li - 1]!;
-    const layer     = baseLayers[li]!;
+    const layer = baseLayers[li]!;
 
     const prevPos = new Map<string, number>();
     prevLayer.forEach((id, i) => prevPos.set(id, i));
 
-    let k0      = 0;
+    let k0 = 0;
     let scanPos = 0;
     const lastNode = layer[layer.length - 1];
 
     layer.forEach((v, i) => {
       let innerPredPos: number | undefined;
       if (isDummy(v)) {
-        for (const u of (predMap.get(v) ?? [])) {
-          if (isDummy(u) && prevPos.has(u)) { innerPredPos = prevPos.get(u)!; break; }
+        for (const u of predMap.get(v) ?? []) {
+          if (isDummy(u) && prevPos.has(u)) {
+            innerPredPos = prevPos.get(u)!;
+            break;
+          }
         }
       }
       const k1 = innerPredPos !== undefined ? innerPredPos : prevLayer.length;
@@ -552,7 +571,7 @@ function assignCoordinatesBK4(
       if (innerPredPos !== undefined || v === lastNode) {
         for (let si = scanPos; si <= i; si++) {
           const sn = layer[si]!;
-          for (const u of (predMap.get(sn) ?? [])) {
+          for (const u of predMap.get(sn) ?? []) {
             if (!prevPos.has(u)) continue;
             const uPos = prevPos.get(u)!;
             if ((uPos < k0 || uPos > k1) && !(isDummy(u) && isDummy(sn))) {
@@ -561,7 +580,7 @@ function assignCoordinatesBK4(
           }
         }
         scanPos = i + 1;
-        k0      = k1;
+        k0 = k1;
       }
     });
   }
@@ -572,14 +591,18 @@ function assignCoordinatesBK4(
   // it forms the block chains that make skip-edge segments travel in straight lines.
   function verticalAlignment(
     sweepLayers: readonly string[][],
-    neighborFn:  (v: string) => string[],
+    neighborFn: (v: string) => string[],
   ): { root: Map<string, string>; align: Map<string, string> } {
-    const root  = new Map<string, string>();
+    const root = new Map<string, string>();
     const align = new Map<string, string>();
-    const pos   = new Map<string, number>();
+    const pos = new Map<string, number>();
 
     for (const layer of sweepLayers) {
-      layer.forEach((v, i) => { root.set(v, v); align.set(v, v); pos.set(v, i); });
+      layer.forEach((v, i) => {
+        root.set(v, v);
+        align.set(v, v);
+        pos.set(v, i);
+      });
     }
 
     for (const layer of sweepLayers) {
@@ -589,12 +612,12 @@ function assignCoordinatesBK4(
         const wsRaw = neighborFn(v);
         if (!wsRaw.length) continue;
 
-        const ws = wsRaw.filter(w => pos.has(w)).sort((a, b) => pos.get(a)! - pos.get(b)!);
+        const ws = wsRaw.filter((w) => pos.has(w)).sort((a, b) => pos.get(a)! - pos.get(b)!);
         if (ws.length === 0) continue;
 
         const mp = (ws.length - 1) / 2;
         for (let mi = Math.floor(mp), mEnd = Math.ceil(mp); mi <= mEnd; mi++) {
-          const w    = ws[mi]!;
+          const w = ws[mi]!;
           const wPos = pos.get(w)!;
           if (align.get(v) === v && prevIdx < wPos && !hasConflict(v, w)) {
             align.set(w, v);
@@ -611,13 +634,16 @@ function assignCoordinatesBK4(
   // ── BK Step 3: Horizontal Compaction ─────────────────────────────────────────
   function horizontalCompaction(
     sweepLayers: readonly string[][],
-    root:        Map<string, string>,
+    root: Map<string, string>,
   ): Map<string, number> {
     const blockSucc = new Map<string, Map<string, number>>();
     const blockPred = new Map<string, Map<string, number>>();
 
     function ensureBlock(r: string): void {
-      if (!blockSucc.has(r)) { blockSucc.set(r, new Map()); blockPred.set(r, new Map()); }
+      if (!blockSucc.has(r)) {
+        blockSucc.set(r, new Map());
+        blockPred.set(r, new Map());
+      }
     }
 
     for (const layer of sweepLayers) {
@@ -628,7 +654,7 @@ function assignCoordinatesBK4(
         if (prevId !== undefined) {
           const rp = root.get(prevId)!;
           if (rp !== rv) {
-            const w    = sep(prevId, v);
+            const w = sep(prevId, v);
             const curW = blockSucc.get(rp)!.get(rv) ?? 0;
             if (w > curW) {
               blockSucc.get(rp)!.set(rv, w);
@@ -644,9 +670,9 @@ function assignCoordinatesBK4(
 
     function iterate(
       applyFn: (elem: string) => void,
-      nextFn:  (elem: string) => Iterable<string>,
+      nextFn: (elem: string) => Iterable<string>,
     ): void {
-      const stack   = [...blockSucc.keys()];
+      const stack = [...blockSucc.keys()];
       const visited = new Set<string>();
       while (stack.length > 0) {
         const elem = stack[stack.length - 1]!;
@@ -662,18 +688,18 @@ function assignCoordinatesBK4(
 
     // Pass 1: assign minimum coordinates.
     iterate(
-      elem => {
+      (elem) => {
         let max = 0;
-        for (const [from, w] of (blockPred.get(elem) ?? new Map()))
+        for (const [from, w] of blockPred.get(elem) ?? new Map())
           max = Math.max(max, (xs.get(from) ?? 0) + w);
         xs.set(elem, max);
       },
-      elem => blockPred.get(elem)?.keys() ?? [],
+      (elem) => blockPred.get(elem)?.keys() ?? [],
     );
 
     // Pass 2: compact rightward (remove slack).
     iterate(
-      elem => {
+      (elem) => {
         const succs = blockSucc.get(elem);
         if (succs && succs.size > 0) {
           let min = Infinity;
@@ -681,7 +707,7 @@ function assignCoordinatesBK4(
           if (min !== Infinity) xs.set(elem, Math.max(xs.get(elem) ?? 0, min));
         }
       },
-      elem => blockSucc.get(elem)?.keys() ?? [],
+      (elem) => blockSucc.get(elem)?.keys() ?? [],
     );
 
     // Propagate block-root coordinates to all member nodes.
@@ -697,12 +723,10 @@ function assignCoordinatesBK4(
   for (const vert of ['u', 'd'] as const) {
     const vertLayers = vert === 'u' ? baseLayers : [...baseLayers].reverse();
     for (const horiz of ['l', 'r'] as const) {
-      const sweepLayers = horiz === 'r'
-        ? vertLayers.map(layer => [...layer].reverse())
-        : vertLayers;
-      const neighborFn = vert === 'u'
-        ? (v: string) => predMap.get(v) ?? []
-        : (v: string) => succMap.get(v) ?? [];
+      const sweepLayers =
+        horiz === 'r' ? vertLayers.map((layer) => [...layer].reverse()) : vertLayers;
+      const neighborFn =
+        vert === 'u' ? (v: string) => predMap.get(v) ?? [] : (v: string) => succMap.get(v) ?? [];
 
       const { root } = verticalAlignment(sweepLayers, neighborFn);
       let xs = horizontalCompaction(sweepLayers, root);
@@ -723,15 +747,16 @@ function assignCoordinatesBK4(
   const dummySweepXs = new Map<string, number[]>();
   for (const id of nodeById.keys()) {
     if (!isDummy(id)) continue;
-    const vals = SWEEP_KEYS.map(k => xss.get(k)?.get(id) ?? 0);
+    const vals = SWEEP_KEYS.map((k) => xss.get(k)?.get(id) ?? 0);
     dummySweepXs.set(id, vals);
   }
 
   // ── BK Step 5: Find smallest-width alignment ──────────────────────────────────
-  let minSpan    = Infinity;
+  let minSpan = Infinity;
   let smallestXs = xss.get('ul')!;
   for (const [, xs] of xss) {
-    let lo = Infinity, hi = -Infinity;
+    let lo = Infinity,
+      hi = -Infinity;
     for (const [id, x] of xs) {
       const n = nodeById.get(id);
       if (!n) continue;
@@ -739,21 +764,22 @@ function assignCoordinatesBK4(
       lo = Math.min(lo, x - half);
       hi = Math.max(hi, x + half);
     }
-    if (hi - lo < minSpan) { minSpan = hi - lo; smallestXs = xs; }
+    if (hi - lo < minSpan) {
+      minSpan = hi - lo;
+      smallestXs = xs;
+    }
   }
 
   // ── BK Step 6: Align all 4 layouts to the smallest-width one ─────────────────
   const refVals = [...smallestXs.values()];
-  const refMin  = Math.min(...refVals);
-  const refMax  = Math.max(...refVals);
+  const refMin = Math.min(...refVals);
+  const refMax = Math.max(...refVals);
 
   for (const [key, xs] of xss) {
     if (xs === smallestXs) continue;
-    const vals    = [...xs.values()];
+    const vals = [...xs.values()];
     const isRight = key.endsWith('r');
-    const delta   = isRight
-      ? refMax - Math.max(...vals)
-      : refMin - Math.min(...vals);
+    const delta = isRight ? refMax - Math.max(...vals) : refMin - Math.min(...vals);
     if (delta !== 0) {
       const shifted = new Map<string, number>();
       for (const [id, x] of xs) shifted.set(id, x + delta);
@@ -764,7 +790,7 @@ function assignCoordinatesBK4(
   // ── BK Step 7: Balance — per-node median of the 4 aligned values ─────────────
   const balanced = new Map<string, number>();
   for (const [id] of xss.get('ul')!) {
-    const vals = ([...xss.values()].map(xs => xs.get(id) ?? 0)).sort((a, b) => a - b);
+    const vals = [...xss.values()].map((xs) => xs.get(id) ?? 0).sort((a, b) => a - b);
     balanced.set(id, ((vals[1] ?? 0) + (vals[2] ?? 0)) / 2);
   }
 
@@ -783,7 +809,8 @@ function assignCoordinatesBK4(
     return r;
   };
   const csUnion = (a: string, b: string): void => {
-    const ra = csFind(a), rb = csFind(b);
+    const ra = csFind(a),
+      rb = csFind(b);
     if (ra !== rb) csParent.set(ra, rb);
   };
 
@@ -792,12 +819,12 @@ function assignCoordinatesBK4(
     if (isDummy(edge.from) || isDummy(edge.to)) return;
 
     const fromLayer = nodeLayerIdx.get(edge.from);
-    const toLayer   = nodeLayerIdx.get(edge.to);
+    const toLayer = nodeLayerIdx.get(edge.to);
     if (fromLayer === undefined || toLayer === undefined) return;
     if (Math.abs(toLayer - fromLayer) !== 1) return;
 
     const fromX = balanced.get(edge.from);
-    const toX   = balanced.get(edge.to);
+    const toX = balanced.get(edge.to);
     if (fromX === undefined || toX === undefined) return;
     if (Math.abs(fromX - toX) > COLUMN_SNAP_EPSILON) return;
 
@@ -814,10 +841,11 @@ function assignCoordinatesBK4(
   }
   for (const members of csGroups.values()) {
     if (members.length < 2) continue;
-    const xs = members.map(id => balanced.get(id)!).sort((a, b) => a - b);
-    const medX = xs.length % 2 === 1
-      ? xs[Math.floor(xs.length / 2)]!
-      : (xs[xs.length / 2 - 1]! + xs[xs.length / 2]!) / 2;
+    const xs = members.map((id) => balanced.get(id)!).sort((a, b) => a - b);
+    const medX =
+      xs.length % 2 === 1
+        ? xs[Math.floor(xs.length / 2)]!
+        : (xs[xs.length / 2 - 1]! + xs[xs.length / 2]!) / 2;
     for (const id of members) balanced.set(id, medX);
   }
 
@@ -830,26 +858,27 @@ function assignCoordinatesBK4(
   const shift = margin - (isFinite(minLeft) ? minLeft : 0);
 
   // ── Build NodeBox results ─────────────────────────────────────────────────────
-  const nodePos   = new Map<string, NodeBox>();
+  const nodePos = new Map<string, NodeBox>();
   let alongCursor = margin;
 
   for (let li = 0; li < numLayers; li++) {
-    const layerIdx  = layerKeys[li]!;
-    const ns        = byLayer.get(layerIdx)!;
+    const layerIdx = layerKeys[li]!;
+    const ns = byLayer.get(layerIdx)!;
     const layerSize = ns.length > 0 ? Math.max(...ns.map(along)) : 0;
 
     for (const node of ns) {
-      const cx        = (balanced.get(node.id) ?? 0) + shift;
+      const cx = (balanced.get(node.id) ?? 0) + shift;
       const crossLeft = cx - cross(node) / 2;
-      const alongPos = (isDummy(node.id) && li > 0)
-        ? alongCursor - layerGap / 2
-        : alongCursor + (layerSize - along(node)) / 2;
+      const alongPos =
+        isDummy(node.id) && li > 0
+          ? alongCursor - layerGap / 2
+          : alongCursor + (layerSize - along(node)) / 2;
 
       nodePos.set(node.id, {
-        id:     node.id,
-        x:      isLR ? alongPos  : crossLeft,
-        y:      isLR ? crossLeft : alongPos,
-        width:  node.width,
+        id: node.id,
+        x: isLR ? alongPos : crossLeft,
+        y: isLR ? crossLeft : alongPos,
+        width: node.width,
         height: node.height,
       });
     }
@@ -866,27 +895,39 @@ export function layeredLayout(
   edges: readonly GraphEdge[],
   options: LayeredOptions = {},
 ): LayeredResult {
-  const direction  = options.direction ?? 'TB';
-  const layerGap   = options.layerGap ?? 70;
-  const nodeGap    = options.nodeGap ?? 40;
-  const margin     = options.margin ?? 32;
-  const isLR       = direction === 'LR';
+  const direction = options.direction ?? 'TB';
+  const layerGap = options.layerGap ?? 70;
+  const nodeGap = options.nodeGap ?? 40;
+  const margin = options.margin ?? 32;
+  const isLR = direction === 'LR';
 
-  if (nodes.length === 0) return { boxes: new Map(), width: margin * 2, height: margin * 2, edgeBends: new Map(), dummySweepXs: new Map(), dummyChainIds: new Map() };
+  if (nodes.length === 0)
+    return {
+      boxes: new Map(),
+      width: margin * 2,
+      height: margin * 2,
+      edgeBends: new Map(),
+      dummySweepXs: new Map(),
+      dummyChainIds: new Map(),
+    };
 
   // Phase 1: Layer assignment.
-  const layer    = assignLayers(nodes, edges);
+  const layer = assignLayers(nodes, edges);
 
   // Phase 2a: Back-edge detection (DFS).
   const backEdges = detectBackEdges(nodes, edges);
 
   // Phase 2b: Dummy node insertion for skip edges (spans > 1 layer).
   // `layer` is mutated to include dummy node layer assignments.
-  const { newNodes, newEdges, newBackEdgeSet, dummyChains } =
-    insertDummyNodes(nodes, edges, layer, backEdges);
+  const { newNodes, newEdges, newBackEdgeSet, dummyChains } = insertDummyNodes(
+    nodes,
+    edges,
+    layer,
+    backEdges,
+  );
 
   // Rebuild byLayer with all nodes (real + dummy).
-  const newMaxLayer = Math.max(...newNodes.map(n => layer.get(n.id)!));
+  const newMaxLayer = Math.max(...newNodes.map((n) => layer.get(n.id)!));
   const byLayerArr: Map<number, GraphNode[]> = new Map();
   for (let i = 0; i <= newMaxLayer; i++) byLayerArr.set(i, []);
   for (const n of newNodes) byLayerArr.get(layer.get(n.id)!)!.push(n);
@@ -896,14 +937,19 @@ export function layeredLayout(
 
   // Phase 4: Full 4-layout B–K coordinate assignment (variable node sizes).
   const { boxes: allBoxesMap, dummySweepXs } = assignCoordinatesBK4(
-    orderedByLayer, newEdges, newBackEdgeSet,
-    isLR, nodeGap, layerGap, margin,
+    orderedByLayer,
+    newEdges,
+    newBackEdgeSet,
+    isLR,
+    nodeGap,
+    layerGap,
+    margin,
   );
 
   // Phase 5: Extract bend points from dummy node positions.
   const edgeBends = new Map<number, Array<{ x: number; y: number }>>();
   for (const [origEdgeIdx, dummyIds] of dummyChains) {
-    const bends = dummyIds.map(id => {
+    const bends = dummyIds.map((id) => {
       const b = allBoxesMap.get(id)!;
       return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
     });
@@ -918,14 +964,18 @@ export function layeredLayout(
 
   // Phase 6: Compact gaps between disconnected subgraphs.
   if (boxes.size > 1) {
-    const uf = new Map<string, string>(nodes.map(n => [n.id, n.id]));
+    const uf = new Map<string, string>(nodes.map((n) => [n.id, n.id]));
     const find = (x: string): string => {
-      while (uf.get(x) !== x) { uf.set(x, uf.get(uf.get(x)!)!); x = uf.get(x)!; }
+      while (uf.get(x) !== x) {
+        uf.set(x, uf.get(uf.get(x)!)!);
+        x = uf.get(x)!;
+      }
       return x;
     };
     for (const e of edges) {
       if (boxes.has(e.from) && boxes.has(e.to)) {
-        const ra = find(e.from), rb = find(e.to);
+        const ra = find(e.from),
+          rb = find(e.to);
         if (ra !== rb) uf.set(ra, rb);
       }
     }
@@ -936,11 +986,13 @@ export function layeredLayout(
       comps.get(r)!.push(id);
     }
     if (comps.size > 1) {
-      const compInfos = [...comps.values()].map(ids => ({
-        ids,
-        left:  Math.min(...ids.map(id => boxes.get(id)!.x)),
-        right: Math.max(...ids.map(id => boxes.get(id)!.x + boxes.get(id)!.width)),
-      })).sort((a, b) => a.left - b.left);
+      const compInfos = [...comps.values()]
+        .map((ids) => ({
+          ids,
+          left: Math.min(...ids.map((id) => boxes.get(id)!.x)),
+          right: Math.max(...ids.map((id) => boxes.get(id)!.x + boxes.get(id)!.width)),
+        }))
+        .sort((a, b) => a.left - b.left);
 
       let cursor = compInfos[0]!.right;
       for (let ci = 1; ci < compInfos.length; ci++) {
@@ -953,7 +1005,7 @@ export function layeredLayout(
             const b = boxes.get(id)!;
             boxes.set(id, { id: b.id, x: b.x + dx, y: b.y, width: b.width, height: b.height });
           }
-          comp.left  += dx;
+          comp.left += dx;
           comp.right += dx;
         }
         cursor = comp.right;
@@ -963,12 +1015,10 @@ export function layeredLayout(
 
   // Compute total diagram dimensions from placed real boxes.
   const allBoxes = [...boxes.values()];
-  const width  = allBoxes.length > 0
-    ? Math.max(...allBoxes.map(b => b.x + b.width))  + margin
-    : margin * 2;
-  const height = allBoxes.length > 0
-    ? Math.max(...allBoxes.map(b => b.y + b.height)) + margin
-    : margin * 2;
+  const width =
+    allBoxes.length > 0 ? Math.max(...allBoxes.map((b) => b.x + b.width)) + margin : margin * 2;
+  const height =
+    allBoxes.length > 0 ? Math.max(...allBoxes.map((b) => b.y + b.height)) + margin : margin * 2;
 
   return { boxes, width, height, edgeBends, dummySweepXs, dummyChainIds: dummyChains };
 }
@@ -985,26 +1035,36 @@ function straightLineObstacleFree(
   obstacles: ReadonlyArray<Rect>,
   padding: number,
 ): boolean {
-  const dx = p2.x - p1.x, dy = p2.y - p1.y;
+  const dx = p2.x - p1.x,
+    dy = p2.y - p1.y;
   for (const obs of obstacles) {
-    const xmin = obs.x - padding, xmax = obs.x + obs.width  + padding;
-    const ymin = obs.y - padding, ymax = obs.y + obs.height + padding;
-    let tmin = 0, tmax = 1;
+    const xmin = obs.x - padding,
+      xmax = obs.x + obs.width + padding;
+    const ymin = obs.y - padding,
+      ymax = obs.y + obs.height + padding;
+    let tmin = 0,
+      tmax = 1;
     const clips = [
       { p: -dx, q: p1.x - xmin },
-      { p:  dx, q: xmax - p1.x },
+      { p: dx, q: xmax - p1.x },
       { p: -dy, q: p1.y - ymin },
-      { p:  dy, q: ymax - p1.y },
+      { p: dy, q: ymax - p1.y },
     ];
     let crosses = true;
     for (const { p, q } of clips) {
       if (Math.abs(p) < 1e-10) {
-        if (q <= 0) { crosses = false; break; }
+        if (q <= 0) {
+          crosses = false;
+          break;
+        }
       } else {
         const t = q / p;
         if (p < 0) tmin = Math.max(tmin, t);
-        else       tmax = Math.min(tmax, t);
-        if (tmin >= tmax) { crosses = false; break; }
+        else tmax = Math.min(tmax, t);
+        if (tmin >= tmax) {
+          crosses = false;
+          break;
+        }
       }
     }
     if (crosses) return false; // this obstacle blocks the straight line
@@ -1036,42 +1096,49 @@ export function routeEdge(
   toPt?: { x: number; y: number },
   forceOrthogonal = false,
 ): { path: string; labelMidpoint: { x: number; y: number } } {
-  const fromRect: Rect = { x: fromBox.x, y: fromBox.y + yOff, width: fromBox.width, height: fromBox.height };
-  const toRect:   Rect = { x: toBox.x,   y: toBox.y   + yOff, width: toBox.width,   height: toBox.height   };
+  const fromRect: Rect = {
+    x: fromBox.x,
+    y: fromBox.y + yOff,
+    width: fromBox.width,
+    height: fromBox.height,
+  };
+  const toRect: Rect = { x: toBox.x, y: toBox.y + yOff, width: toBox.width, height: toBox.height };
 
-  const fromCx = fromRect.x + fromRect.width  / 2;
+  const fromCx = fromRect.x + fromRect.width / 2;
   const fromCy = fromRect.y + fromRect.height / 2;
-  const toCx   = toRect.x   + toRect.width    / 2;
-  const toCy   = toRect.y   + toRect.height   / 2;
+  const toCx = toRect.x + toRect.width / 2;
+  const toCy = toRect.y + toRect.height / 2;
 
   // Infer port directions from geometry (favour dominant axis).
   const dx = toCx - fromCx;
   const dy = toCy - fromCy;
   let fromDir: PortDirection;
-  let toDir:   PortDirection;
+  let toDir: PortDirection;
   if (Math.abs(dy) >= Math.abs(dx)) {
     fromDir = dy > 0 ? 'S' : 'N';
-    toDir   = dy > 0 ? 'N' : 'S';
+    toDir = dy > 0 ? 'N' : 'S';
   } else {
     fromDir = dx > 0 ? 'E' : 'W';
-    toDir   = dx > 0 ? 'W' : 'E';
+    toDir = dx > 0 ? 'W' : 'E';
   }
 
   // Use caller-supplied attachment points when provided; otherwise clip to border.
   const pa = fromPt ?? borderPoint(fromRect, toCx, toCy);
-  const pb = toPt   ?? borderPoint(toRect,   fromCx, fromCy);
+  const pb = toPt ?? borderPoint(toRect, fromCx, fromCy);
 
   // Every box that is neither the source nor the target is an obstacle.
   const fromId = fromBox.id;
-  const toId   = toBox.id;
+  const toId = toBox.id;
   const obstacles: Rect[] = allBoxes
-    .filter(b => b.id !== fromId && b.id !== toId)
-    .map(b => ({ x: b.x, y: b.y + yOff, width: b.width, height: b.height }));
+    .filter((b) => b.id !== fromId && b.id !== toId)
+    .map((b) => ({ x: b.x, y: b.y + yOff, width: b.width, height: b.height }));
 
   // Fast path: use a straight line when no obstacle blocks it.
   // Skipped when forceOrthogonal=true (e.g. class diagrams require rectilinear routing).
-  if (!forceOrthogonal &&
-      (obstacles.length === 0 || straightLineObstacleFree(pa, pb, obstacles, 10))) {
+  if (
+    !forceOrthogonal &&
+    (obstacles.length === 0 || straightLineObstacleFree(pa, pb, obstacles, 10))
+  ) {
     return {
       path: `M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}`,
       labelMidpoint: { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 },
@@ -1079,7 +1146,8 @@ export function routeEdge(
   }
 
   const route = orthogonalRouter.route({
-    from: pa, to: pb,
+    from: pa,
+    to: pb,
     style: 'orthogonal',
     obstacles,
     padding: 10,
@@ -1089,9 +1157,10 @@ export function routeEdge(
 
   // Fallback: if the router produces an empty path, use a straight line.
   // When forceOrthogonal is set, prefer a degenerate orthogonal path (V+H) over diagonal.
-  const path = route.path
-    || (forceOrthogonal
-        ? `M ${pa.x} ${pa.y} L ${pa.x} ${pb.y} L ${pb.x} ${pb.y}`
-        : `M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}`);
+  const path =
+    route.path ||
+    (forceOrthogonal
+      ? `M ${pa.x} ${pa.y} L ${pa.x} ${pb.y} L ${pb.x} ${pb.y}`
+      : `M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}`);
   return { path, labelMidpoint: route.labelPosition };
 }

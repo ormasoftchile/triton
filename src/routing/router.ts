@@ -8,8 +8,7 @@ class StraightRouter implements Router {
     const pad = padding ?? 12;
 
     // If no obstacles or no crossing, use a direct line
-    if (!obstacles || obstacles.length === 0 ||
-        !straightHitsObstacles(from, to, obstacles, pad)) {
+    if (!obstacles || obstacles.length === 0 || !straightHitsObstacles(from, to, obstacles, pad)) {
       return {
         points: [from, to],
         path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
@@ -19,20 +18,28 @@ class StraightRouter implements Router {
 
     // Deflect: find a waypoint that avoids all obstacles.
     // Try perpendicular offsets of increasing magnitude in both directions.
-    const dx = to.x - from.x, dy = to.y - from.y;
+    const dx = to.x - from.x,
+      dy = to.y - from.y;
     const len = Math.sqrt(dx * dx + dy * dy);
     if (len < 1) {
-      return { points: [from, to], path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`, labelPosition: from };
+      return {
+        points: [from, to],
+        path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
+        labelPosition: from,
+      };
     }
 
-    const perpX = -dy / len, perpY = dx / len;
+    const perpX = -dy / len,
+      perpY = dx / len;
     const mid = midpoint(from, to);
 
     for (let offset = len * 0.1; offset <= len * 0.6; offset += len * 0.1) {
       for (const sign of [1, -1]) {
         const wp: Point = { x: mid.x + perpX * offset * sign, y: mid.y + perpY * offset * sign };
-        if (!straightHitsObstacles(from, wp, obstacles, pad) &&
-            !straightHitsObstacles(wp, to, obstacles, pad)) {
+        if (
+          !straightHitsObstacles(from, wp, obstacles, pad) &&
+          !straightHitsObstacles(wp, to, obstacles, pad)
+        ) {
           return {
             points: [from, wp, to],
             path: `M ${from.x} ${from.y} L ${wp.x} ${wp.y} L ${to.x} ${to.y}`,
@@ -53,15 +60,25 @@ class StraightRouter implements Router {
 
 /** Check if a straight line from→to passes through any obstacle interior. */
 function straightHitsObstacles(
-  from: Point, to: Point,
+  from: Point,
+  to: Point,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): boolean {
   for (const obs of obstacles) {
-    if (segCrossesInterior(from, to, {
-      x: obs.x - pad, y: obs.y - pad,
-      width: obs.width + 2 * pad, height: obs.height + 2 * pad,
-    }, 0)) {
+    if (
+      segCrossesInterior(
+        from,
+        to,
+        {
+          x: obs.x - pad,
+          y: obs.y - pad,
+          width: obs.width + 2 * pad,
+          height: obs.height + 2 * pad,
+        },
+        0,
+      )
+    ) {
       return true;
     }
   }
@@ -84,8 +101,8 @@ class OrthogonalRouter implements Router {
     // Already aligned on one axis — straight line. But only shortcut when the
     // segment actually leaves the source along its wall normal, approaches the
     // target from that wall's outboard side, and crosses no obstacles.
-    const straightH = Math.abs(dy) < 1;   // horizontal straight line
-    const straightV = Math.abs(dx) < 1;   // vertical straight line
+    const straightH = Math.abs(dy) < 1; // horizontal straight line
+    const straightV = Math.abs(dx) < 1; // vertical straight line
     if (straightH || straightV) {
       const dirsOk = straightDirsOk(from, to, straightH, straightV, fromDir, toDir);
       const clear = !obstacles || countRouteCollisions([from, to], obstacles) === 0;
@@ -113,12 +130,11 @@ class OrthogonalRouter implements Router {
         // way, so the connecting segment must sit OUTSIDE both ports, otherwise
         // the route collapses back onto the wall.
         const sameWall = fromDir === toDir;
-        const baseX =
-          sameWall
-            ? fromDir === 'E'
-              ? Math.max(from.x, to.x) + STUB
-              : Math.min(from.x, to.x) - STUB
-            : midX;
+        const baseX = sameWall
+          ? fromDir === 'E'
+            ? Math.max(from.x, to.x) + STUB
+            : Math.min(from.x, to.x) - STUB
+          : midX;
         let bendX: number;
         if (sameWall) {
           // The connecting channel must stay OUTBOARD of the shared wall. The
@@ -138,7 +154,10 @@ class OrthogonalRouter implements Router {
           const originalCollisions = countRouteCollisions(hhPoints, obstacles);
           if (originalCollisions > 0) {
             const detour = buildSameHorizontalWallRoute(from, to, fromDir, obstacles, pad, STUB);
-            if (countRouteCollisions(detour, obstacles) < originalCollisions || routeHitsEndpointObstacle(hhPoints, from, to, obstacles)) {
+            if (
+              countRouteCollisions(detour, obstacles) < originalCollisions ||
+              routeHitsEndpointObstacle(hhPoints, from, to, obstacles)
+            ) {
               hhPoints = detour;
             }
           }
@@ -150,7 +169,9 @@ class OrthogonalRouter implements Router {
         // it even if it grazes other cells.
         if (!sameWall && obstacles && countRouteCollisions(hhPoints, obstacles) > 0) {
           const vvRoute = buildVVRouteWithStubs(from, to, fromDir!, toDir!, obstacles, pad);
-          if (countRouteCollisions(vvRoute, obstacles) < countRouteCollisions(hhPoints, obstacles)) {
+          if (
+            countRouteCollisions(vvRoute, obstacles) < countRouteCollisions(hhPoints, obstacles)
+          ) {
             points = vvRoute;
           } else {
             points = hhPoints;
@@ -164,12 +185,11 @@ class OrthogonalRouter implements Router {
         // For a same-wall pair (both N or both S) push the connecting segment
         // OUTSIDE both ports so the route arcs over/under the nodes.
         const sameWall = fromDir === toDir;
-        const baseY =
-          sameWall
-            ? fromDir === 'S'
-              ? Math.max(from.y, to.y) + STUB
-              : Math.min(from.y, to.y) - STUB
-            : midY;
+        const baseY = sameWall
+          ? fromDir === 'S'
+            ? Math.max(from.y, to.y) + STUB
+            : Math.min(from.y, to.y) - STUB
+          : midY;
         let bendY: number;
         if (sameWall) {
           // Same reasoning as the horizontal case: keep the connecting channel
@@ -181,13 +201,16 @@ class OrthogonalRouter implements Router {
           bendY = clearVerticalSegments(bendY, from, to, obstacles, pad);
         }
         const v1: Point = { x: from.x, y: bendY };
-        const v2: Point = { x: to.x,   y: bendY };
+        const v2: Point = { x: to.x, y: bendY };
         let vvPoints: Point[] = [from, v1, v2, to];
         if (sameWall && obstacles) {
           const originalCollisions = countRouteCollisions(vvPoints, obstacles);
           if (originalCollisions > 0) {
             const detour = buildSameVerticalWallRoute(from, to, fromDir, obstacles, pad, STUB);
-            if (countRouteCollisions(detour, obstacles) < originalCollisions || routeHitsEndpointObstacle(vvPoints, from, to, obstacles)) {
+            if (
+              countRouteCollisions(detour, obstacles) < originalCollisions ||
+              routeHitsEndpointObstacle(vvPoints, from, to, obstacles)
+            ) {
               vvPoints = detour;
             }
           }
@@ -197,7 +220,9 @@ class OrthogonalRouter implements Router {
         // Same-wall pairs keep their outboard V+V route (see horizontal case).
         if (!sameWall && obstacles && countRouteCollisions(vvPoints, obstacles) > 0) {
           const hhRoute = buildHHRouteWithStubs(from, to, fromDir!, toDir!, obstacles, pad);
-          if (countRouteCollisions(hhRoute, obstacles) < countRouteCollisions(vvPoints, obstacles)) {
+          if (
+            countRouteCollisions(hhRoute, obstacles) < countRouteCollisions(vvPoints, obstacles)
+          ) {
             points = hhRoute;
           } else {
             points = vvPoints;
@@ -229,16 +254,16 @@ class OrthogonalRouter implements Router {
       // Mainly vertical — bend at mid-Y
       const bendY = clearHorizontalBend(midY, from.x, to.x, from.y, to.y, obstacles, pad);
       const v1: Point = { x: from.x, y: bendY };
-      const v2: Point = { x: to.x,   y: bendY };
+      const v2: Point = { x: to.x, y: bendY };
       points = [from, v1, v2, to];
-      path   = `M ${from.x} ${from.y} L ${v1.x} ${v1.y} L ${v2.x} ${v2.y} L ${to.x} ${to.y}`;
+      path = `M ${from.x} ${from.y} L ${v1.x} ${v1.y} L ${v2.x} ${v2.y} L ${to.x} ${to.y}`;
     } else {
       // Mainly horizontal — bend at mid-X
       const bendX = clearVerticalBend(midX, from.y, to.y, from.x, to.x, obstacles, pad);
       const v1: Point = { x: bendX, y: from.y };
       const v2: Point = { x: bendX, y: to.y };
       points = [from, v1, v2, to];
-      path   = `M ${from.x} ${from.y} L ${v1.x} ${v1.y} L ${v2.x} ${v2.y} L ${to.x} ${to.y}`;
+      path = `M ${from.x} ${from.y} L ${v1.x} ${v1.y} L ${v2.x} ${v2.y} L ${to.x} ${to.y}`;
     }
 
     return { points, path, labelPosition: { x: midX, y: midY } };
@@ -268,12 +293,12 @@ function clearBendXOutboard(
   for (let pass = 0; pass < obstacles.length * 2 + 2; pass++) {
     let moved = false;
     for (const obs of obstacles) {
-      const oLeft   = obs.x - pad;
-      const oRight  = obs.x + obs.width + pad;
-      const oTop    = obs.y;
+      const oLeft = obs.x - pad;
+      const oRight = obs.x + obs.width + pad;
+      const oTop = obs.y;
       const oBottom = obs.y + obs.height;
       const vHits = x > oLeft && x < oRight && yMax > oTop && yMin < oBottom;
-      const hHitTo   = segCrossesInterior({ x, y: to.y },   { x: to.x,   y: to.y   }, obs, pad);
+      const hHitTo = segCrossesInterior({ x, y: to.y }, { x: to.x, y: to.y }, obs, pad);
       const hHitFrom = segCrossesInterior({ x: from.x, y: from.y }, { x, y: from.y }, obs, pad);
       if (vHits || hHitTo || hHitFrom) {
         const edge = dir < 0 ? oLeft : oRight;
@@ -308,13 +333,13 @@ function clearBendYOutboard(
   for (let pass = 0; pass < obstacles.length * 2 + 2; pass++) {
     let moved = false;
     for (const obs of obstacles) {
-      const oTop    = obs.y - pad;
+      const oTop = obs.y - pad;
       const oBottom = obs.y + obs.height + pad;
-      const oLeft   = obs.x;
-      const oRight  = obs.x + obs.width;
+      const oLeft = obs.x;
+      const oRight = obs.x + obs.width;
       const hHits = y > oTop && y < oBottom && xMax > oLeft && xMin < oRight;
-      const vHitTo   = segCrossesInterior({ x: to.x,   y },        { x: to.x,   y: to.y   }, obs, pad);
-      const vHitFrom = segCrossesInterior({ x: from.x, y: from.y }, { x: from.x, y },        obs, pad);
+      const vHitTo = segCrossesInterior({ x: to.x, y }, { x: to.x, y: to.y }, obs, pad);
+      const vHitFrom = segCrossesInterior({ x: from.x, y: from.y }, { x: from.x, y }, obs, pad);
       if (hHits || vHitTo || vHitFrom) {
         const edge = dir < 0 ? oTop : oBottom;
         if ((dir < 0 && edge < y) || (dir > 0 && edge > y)) {
@@ -370,8 +395,8 @@ function buildSameVerticalWallRoute(
   const toOut: Point = { x: to.x, y: to.y + dir * stub };
   const colliders = collidingObstacles([from, fromOut, { x: to.x, y: fromOut.y }, to], obstacles);
   const relevant = colliders.length > 0 ? colliders : obstacles;
-  const leftX = Math.min(...relevant.map(o => o.x - pad));
-  const rightX = Math.max(...relevant.map(o => o.x + o.width + pad));
+  const leftX = Math.min(...relevant.map((o) => o.x - pad));
+  const rightX = Math.max(...relevant.map((o) => o.x + o.width + pad));
   return bestSameVerticalCandidate(from, to, fromOut, toOut, [leftX, rightX], obstacles);
 }
 
@@ -388,8 +413,8 @@ function buildSameHorizontalWallRoute(
   const toOut: Point = { x: to.x + dir * stub, y: to.y };
   const colliders = collidingObstacles([from, fromOut, { x: fromOut.x, y: to.y }, to], obstacles);
   const relevant = colliders.length > 0 ? colliders : obstacles;
-  const topY = Math.min(...relevant.map(o => o.y - pad));
-  const bottomY = Math.max(...relevant.map(o => o.y + o.height + pad));
+  const topY = Math.min(...relevant.map((o) => o.y - pad));
+  const bottomY = Math.max(...relevant.map((o) => o.y + o.height + pad));
   return bestSameHorizontalCandidate(from, to, fromOut, toOut, [topY, bottomY], obstacles);
 }
 
@@ -450,7 +475,7 @@ function bestSameHorizontalCandidate(
 }
 
 function collidingObstacles(points: readonly Point[], obstacles: ReadonlyArray<Rect>): Rect[] {
-  return obstacles.filter(obs => {
+  return obstacles.filter((obs) => {
     for (let i = 0; i < points.length - 1; i++) {
       if (segCrossesInterior(points[i]!, points[i + 1]!, obs, 0)) return true;
     }
@@ -464,15 +489,19 @@ function routeHitsEndpointObstacle(
   to: Point,
   obstacles: ReadonlyArray<Rect>,
 ): boolean {
-  return collidingObstacles(points, obstacles).some(obs =>
-    pointInOrOnRect(from, obs) || pointInOrOnRect(to, obs),
+  return collidingObstacles(points, obstacles).some(
+    (obs) => pointInOrOnRect(from, obs) || pointInOrOnRect(to, obs),
   );
 }
 
 function pointInOrOnRect(p: Point, r: Rect): boolean {
   const eps = 1e-6;
-  return p.x >= r.x - eps && p.x <= r.x + r.width + eps &&
-    p.y >= r.y - eps && p.y <= r.y + r.height + eps;
+  return (
+    p.x >= r.x - eps &&
+    p.x <= r.x + r.width + eps &&
+    p.y >= r.y - eps &&
+    p.y <= r.y + r.height + eps
+  );
 }
 
 function polylineLength(points: readonly Point[]): number {
@@ -490,8 +519,11 @@ function polylineLength(points: readonly Point[]): number {
  * to the nearest clear side of all intersecting obstacles.
  */
 function clearVerticalBend(
-  bendX: number, y1: number, y2: number,
-  fromX: number, toX: number,
+  bendX: number,
+  y1: number,
+  y2: number,
+  fromX: number,
+  toX: number,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): number {
@@ -505,30 +537,30 @@ function clearVerticalBend(
   for (let pass = 0; pass < obstacles.length; pass++) {
     let hit = false;
     for (const obs of obstacles) {
-      const oLeft   = obs.x - pad;
-      const oRight  = obs.x + obs.width + pad;
-      const oTop    = obs.y;
+      const oLeft = obs.x - pad;
+      const oRight = obs.x + obs.width + pad;
+      const oTop = obs.y;
       const oBottom = obs.y + obs.height;
 
       if (shifted > oLeft && shifted < oRight && yMax > oTop && yMin < oBottom) {
-        const leftCandidate  = oLeft;
+        const leftCandidate = oLeft;
         const rightCandidate = oRight;
         const minX = Math.min(fromX, toX);
         const maxX = Math.max(fromX, toX);
 
-        const leftValid  = leftCandidate >= minX;
+        const leftValid = leftCandidate >= minX;
         const rightValid = rightCandidate <= maxX;
 
         if (leftValid && rightValid) {
-          shifted = (shifted - leftCandidate < rightCandidate - shifted)
-            ? leftCandidate : rightCandidate;
+          shifted =
+            shifted - leftCandidate < rightCandidate - shifted ? leftCandidate : rightCandidate;
         } else if (leftValid) {
           shifted = leftCandidate;
         } else if (rightValid) {
           shifted = rightCandidate;
         } else {
-          shifted = (shifted - leftCandidate < rightCandidate - shifted)
-            ? leftCandidate : rightCandidate;
+          shifted =
+            shifted - leftCandidate < rightCandidate - shifted ? leftCandidate : rightCandidate;
         }
         hit = true;
         break; // re-check from start with new position
@@ -544,8 +576,11 @@ function clearVerticalBend(
  * Shift a horizontal bend line (at y=bendY, spanning xMin–xMax) to avoid obstacles.
  */
 function clearHorizontalBend(
-  bendY: number, x1: number, x2: number,
-  fromY: number, toY: number,
+  bendY: number,
+  x1: number,
+  x2: number,
+  fromY: number,
+  toY: number,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): number {
@@ -559,30 +594,30 @@ function clearHorizontalBend(
   for (let pass = 0; pass < obstacles.length; pass++) {
     let hit = false;
     for (const obs of obstacles) {
-      const oTop    = obs.y - pad;
+      const oTop = obs.y - pad;
       const oBottom = obs.y + obs.height + pad;
-      const oLeft   = obs.x;
-      const oRight  = obs.x + obs.width;
+      const oLeft = obs.x;
+      const oRight = obs.x + obs.width;
 
       if (shifted > oTop && shifted < oBottom && xMax > oLeft && xMin < oRight) {
-        const topCandidate    = oTop;
+        const topCandidate = oTop;
         const bottomCandidate = oBottom;
         const minY = Math.min(fromY, toY);
         const maxY = Math.max(fromY, toY);
 
-        const topValid    = topCandidate >= minY;
+        const topValid = topCandidate >= minY;
         const bottomValid = bottomCandidate <= maxY;
 
         if (topValid && bottomValid) {
-          shifted = (shifted - topCandidate < bottomCandidate - shifted)
-            ? topCandidate : bottomCandidate;
+          shifted =
+            shifted - topCandidate < bottomCandidate - shifted ? topCandidate : bottomCandidate;
         } else if (topValid) {
           shifted = topCandidate;
         } else if (bottomValid) {
           shifted = bottomCandidate;
         } else {
-          shifted = (shifted - topCandidate < bottomCandidate - shifted)
-            ? topCandidate : bottomCandidate;
+          shifted =
+            shifted - topCandidate < bottomCandidate - shifted ? topCandidate : bottomCandidate;
         }
         hit = true;
         break; // re-check from start with new position
@@ -620,14 +655,14 @@ function clearHorizontalSegments(
     for (const obs of obstacles) {
       // Check last horizontal: shifted → to.x at y=to.y
       if (segCrossesInterior({ x: shifted, y: to.y }, { x: to.x, y: to.y }, obs, pad)) {
-        shifted = (to.x < obs.x) ? obs.x - pad : obs.x + obs.width + pad;
+        shifted = to.x < obs.x ? obs.x - pad : obs.x + obs.width + pad;
         hit = true;
         break;
       }
 
       // Check first horizontal: from.x → shifted at y=from.y
       if (segCrossesInterior({ x: from.x, y: from.y }, { x: shifted, y: from.y }, obs, pad)) {
-        shifted = (from.x < obs.x) ? obs.x - pad : obs.x + obs.width + pad;
+        shifted = from.x < obs.x ? obs.x - pad : obs.x + obs.width + pad;
         hit = true;
         break;
       }
@@ -636,13 +671,15 @@ function clearHorizontalSegments(
   }
 
   // Final verification — if still colliding, push outside all obstacles
-  const stillCollides = obstacles.some(obs =>
-    segCrossesInterior({ x: shifted, y: to.y }, { x: to.x, y: to.y }, obs, pad) ||
-    segCrossesInterior({ x: from.x, y: from.y }, { x: shifted, y: from.y }, obs, pad),
+  const stillCollides = obstacles.some(
+    (obs) =>
+      segCrossesInterior({ x: shifted, y: to.y }, { x: to.x, y: to.y }, obs, pad) ||
+      segCrossesInterior({ x: from.x, y: from.y }, { x: shifted, y: from.y }, obs, pad),
   );
   if (stillCollides) {
     // Compute the leftmost and rightmost obstacle edges
-    let globalLeft = Infinity, globalRight = -Infinity;
+    let globalLeft = Infinity,
+      globalRight = -Infinity;
     for (const obs of obstacles) {
       globalLeft = Math.min(globalLeft, obs.x - pad);
       globalRight = Math.max(globalRight, obs.x + obs.width + pad);
@@ -679,12 +716,12 @@ function clearVerticalSegments(
     let hit = false;
     for (const obs of obstacles) {
       if (segCrossesInterior({ x: to.x, y: shifted }, { x: to.x, y: to.y }, obs, pad)) {
-        shifted = (to.y < obs.y) ? obs.y - pad : obs.y + obs.height + pad;
+        shifted = to.y < obs.y ? obs.y - pad : obs.y + obs.height + pad;
         hit = true;
         break;
       }
       if (segCrossesInterior({ x: from.x, y: from.y }, { x: from.x, y: shifted }, obs, pad)) {
-        shifted = (from.y < obs.y) ? obs.y - pad : obs.y + obs.height + pad;
+        shifted = from.y < obs.y ? obs.y - pad : obs.y + obs.height + pad;
         hit = true;
         break;
       }
@@ -693,12 +730,14 @@ function clearVerticalSegments(
   }
 
   // Final verification
-  const stillCollides = obstacles.some(obs =>
-    segCrossesInterior({ x: to.x, y: shifted }, { x: to.x, y: to.y }, obs, pad) ||
-    segCrossesInterior({ x: from.x, y: from.y }, { x: from.x, y: shifted }, obs, pad),
+  const stillCollides = obstacles.some(
+    (obs) =>
+      segCrossesInterior({ x: to.x, y: shifted }, { x: to.x, y: to.y }, obs, pad) ||
+      segCrossesInterior({ x: from.x, y: from.y }, { x: from.x, y: shifted }, obs, pad),
   );
   if (stillCollides) {
-    let globalTop = Infinity, globalBottom = -Infinity;
+    let globalTop = Infinity,
+      globalBottom = -Infinity;
     for (const obs of obstacles) {
       globalTop = Math.min(globalTop, obs.y - pad);
       globalBottom = Math.max(globalBottom, obs.y + obs.height + pad);
@@ -718,15 +757,19 @@ function segCrossesInterior(
   obs: import('../contracts/index.js').Rect,
   _pad: number,
 ): boolean {
-  const dx = p2.x - p1.x, dy = p2.y - p1.y;
-  const xmin = obs.x, xmax = obs.x + obs.width;
-  const ymin = obs.y, ymax = obs.y + obs.height;
-  let tmin = 0, tmax = 1;
+  const dx = p2.x - p1.x,
+    dy = p2.y - p1.y;
+  const xmin = obs.x,
+    xmax = obs.x + obs.width;
+  const ymin = obs.y,
+    ymax = obs.y + obs.height;
+  let tmin = 0,
+    tmax = 1;
   const edges = [
     { p: -dx, q: p1.x - xmin },
-    { p:  dx, q: xmax - p1.x },
+    { p: dx, q: xmax - p1.x },
     { p: -dy, q: p1.y - ymin },
-    { p:  dy, q: ymax - p1.y },
+    { p: dy, q: ymax - p1.y },
   ];
   for (const { p, q } of edges) {
     if (Math.abs(p) < 1e-10) {
@@ -758,7 +801,8 @@ export function countRouteCollisions(
 
 /** Build a V→H→V route (vertical-first) with obstacle avoidance. */
 function buildVVRoute(
-  from: Point, to: Point,
+  from: Point,
+  to: Point,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): Point[] {
@@ -770,7 +814,8 @@ function buildVVRoute(
 
 /** Build an H→V→H route (horizontal-first) with obstacle avoidance. */
 function buildHHRoute(
-  from: Point, to: Point,
+  from: Point,
+  to: Point,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): Point[] {
@@ -786,8 +831,10 @@ function buildHHRoute(
  * Route shape: from → stub1 → (stub1.x, bendY) → (stub2.x, bendY) → stub2 → to
  */
 function buildVVRouteWithStubs(
-  from: Point, to: Point,
-  fromDir: PortDirection, toDir: PortDirection,
+  from: Point,
+  to: Point,
+  fromDir: PortDirection,
+  toDir: PortDirection,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): Point[] {
@@ -815,8 +862,10 @@ function buildVVRouteWithStubs(
  * Adds short vertical stubs at start/end, then routes H→V→H in between.
  */
 function buildHHRouteWithStubs(
-  from: Point, to: Point,
-  fromDir: PortDirection, toDir: PortDirection,
+  from: Point,
+  to: Point,
+  fromDir: PortDirection,
+  toDir: PortDirection,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): Point[] {
@@ -841,10 +890,14 @@ function buildHHRouteWithStubs(
 
 function controlPointForPort(point: Point, dir: PortDirection, pull: number): Point {
   switch (dir) {
-    case 'N': return { x: point.x, y: point.y - pull };
-    case 'S': return { x: point.x, y: point.y + pull };
-    case 'E': return { x: point.x + pull, y: point.y };
-    case 'W': return { x: point.x - pull, y: point.y };
+    case 'N':
+      return { x: point.x, y: point.y - pull };
+    case 'S':
+      return { x: point.x, y: point.y + pull };
+    case 'E':
+      return { x: point.x + pull, y: point.y };
+    case 'W':
+      return { x: point.x - pull, y: point.y };
   }
 }
 
@@ -872,13 +925,16 @@ function avoidObstaclesWithPortTangents(
   const step = Math.max(pad / 2, 6);
   const fromPulls = fromDir ? portPullCandidates(basePull, maxPull, step) : [basePull];
   const toPulls = toDir ? portPullCandidates(basePull, maxPull, step) : [basePull];
-  const pairs = fromPulls.flatMap(fromPull =>
-    toPulls.map(toPull => ({
-      fromPull,
-      toPull,
-      cost: (fromDir ? Math.abs(fromPull - basePull) : 0) + (toDir ? Math.abs(toPull - basePull) : 0),
-    })),
-  ).sort((a, b) => a.cost - b.cost);
+  const pairs = fromPulls
+    .flatMap((fromPull) =>
+      toPulls.map((toPull) => ({
+        fromPull,
+        toPull,
+        cost:
+          (fromDir ? Math.abs(fromPull - basePull) : 0) + (toDir ? Math.abs(toPull - basePull) : 0),
+      })),
+    )
+    .sort((a, b) => a.cost - b.cost);
 
   for (const { fromPull, toPull } of pairs) {
     const candidateCp1 = fromDir ? controlPointForPort(from, fromDir, fromPull) : cp1;
@@ -920,7 +976,7 @@ function bezierSegmentsHitObstacles(
 
 class BezierRouter implements Router {
   route({ from, to, tension, obstacles, padding, fromDir, toDir }: RouteRequest): Route {
-    const t  = tension ?? 0.4;
+    const t = tension ?? 0.4;
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const pad = padding ?? 12;
@@ -936,11 +992,11 @@ class BezierRouter implements Router {
     if (Math.abs(dy) >= Math.abs(dx)) {
       const pull = Math.min(Math.abs(dy) * t, MAX_PULL);
       cp1 = { x: from.x, y: from.y + (dy >= 0 ? pull : -pull) };
-      cp2 = { x: to.x,   y: to.y   + (dy >= 0 ? -pull : pull) };
+      cp2 = { x: to.x, y: to.y + (dy >= 0 ? -pull : pull) };
     } else {
       const pull = Math.min(Math.abs(dx) * t, MAX_PULL);
       cp1 = { x: from.x + (dx >= 0 ? pull : -pull), y: from.y };
-      cp2 = { x: to.x   + (dx >= 0 ? -pull : pull), y: to.y };
+      cp2 = { x: to.x + (dx >= 0 ? -pull : pull), y: to.y };
     }
 
     const portPull = Math.min(dist * t, MAX_PULL);
@@ -954,7 +1010,17 @@ class BezierRouter implements Router {
       cp2 = adjusted.cp2;
       if (fromDir) cp1 = controlPointForPort(from, fromDir, portPull);
       if (toDir) cp2 = controlPointForPort(to, toDir, portPull);
-      const portAdjusted = avoidObstaclesWithPortTangents(from, to, cp1, cp2, fromDir, toDir, portPull, obstacles, pad);
+      const portAdjusted = avoidObstaclesWithPortTangents(
+        from,
+        to,
+        cp1,
+        cp2,
+        fromDir,
+        toDir,
+        portPull,
+        obstacles,
+        pad,
+      );
       cp1 = portAdjusted.cp1;
       cp2 = portAdjusted.cp2;
       if (bezierSegmentsHitObstacles(from, cp1, cp2, to, obstacles, 96)) {
@@ -989,8 +1055,10 @@ class BezierRouter implements Router {
  * increase the perpendicular offset until clear (up to a limit).
  */
 function avoidObstaclesBezier(
-  from: Point, to: Point,
-  cp1: Point, cp2: Point,
+  from: Point,
+  to: Point,
+  cp1: Point,
+  cp2: Point,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
   tension: number,
@@ -1003,7 +1071,8 @@ function avoidObstaclesBezier(
   }
 
   // Perpendicular to from→to
-  const dx = to.x - from.x, dy = to.y - from.y;
+  const dx = to.x - from.x,
+    dy = to.y - from.y;
   const len = Math.sqrt(dx * dx + dy * dy);
   if (len < 1) return { cp1, cp2 };
   const perpX = -dy / len;
@@ -1060,18 +1129,25 @@ function avoidObstaclesBezier(
 
 /** Sample a cubic bezier and check if any sample is inside an obstacle. */
 function bezierHitsObstacles(
-  p0: Point, p1: Point, p2: Point, p3: Point,
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
-  pad: number, samples: number,
+  pad: number,
+  samples: number,
 ): boolean {
   for (let i = 1; i < samples; i++) {
     const t = i / samples;
     const pt = sampleBezier(p0, p1, p2, p3, t);
     for (const obs of obstacles) {
       if (
-        pt.x > obs.x - pad && pt.x < obs.x + obs.width + pad &&
-        pt.y > obs.y - pad && pt.y < obs.y + obs.height + pad
-      ) return true;
+        pt.x > obs.x - pad &&
+        pt.x < obs.x + obs.width + pad &&
+        pt.y > obs.y - pad &&
+        pt.y < obs.y + obs.height + pad
+      )
+        return true;
     }
   }
   return false;
@@ -1079,9 +1155,13 @@ function bezierHitsObstacles(
 
 /** Count obstacle hits along a bezier curve. */
 function countBezierHits(
-  p0: Point, p1: Point, p2: Point, p3: Point,
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
-  pad: number, samples: number,
+  pad: number,
+  samples: number,
 ): number {
   let count = 0;
   for (let i = 1; i < samples; i++) {
@@ -1089,9 +1169,12 @@ function countBezierHits(
     const pt = sampleBezier(p0, p1, p2, p3, t);
     for (const obs of obstacles) {
       if (
-        pt.x > obs.x - pad && pt.x < obs.x + obs.width + pad &&
-        pt.y > obs.y - pad && pt.y < obs.y + obs.height + pad
-      ) count++;
+        pt.x > obs.x - pad &&
+        pt.x < obs.x + obs.width + pad &&
+        pt.y > obs.y - pad &&
+        pt.y < obs.y + obs.height + pad
+      )
+        count++;
     }
   }
   return count;
@@ -1101,8 +1184,8 @@ function countBezierHits(
 function sampleBezier(p0: Point, p1: Point, p2: Point, p3: Point, t: number): Point {
   const u = 1 - t;
   return {
-    x: u*u*u*p0.x + 3*u*u*t*p1.x + 3*u*t*t*p2.x + t*t*t*p3.x,
-    y: u*u*u*p0.y + 3*u*u*t*p1.y + 3*u*t*t*p2.y + t*t*t*p3.y,
+    x: u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x,
+    y: u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y,
   };
 }
 
@@ -1117,20 +1200,24 @@ class PolylineRouter implements Router {
 
 // ─── Singleton Instances ──────────────────────────────────────────────────────
 
-export const straightRouter: Router   = new StraightRouter();
-export const orthogonalRouter: Router  = new OrthogonalRouter();
-export const bezierRouter: Router      = new BezierRouter();
-export const polylineRouter: Router    = new PolylineRouter();
+export const straightRouter: Router = new StraightRouter();
+export const orthogonalRouter: Router = new OrthogonalRouter();
+export const bezierRouter: Router = new BezierRouter();
+export const polylineRouter: Router = new PolylineRouter();
 
 // ─── Factory & Default ────────────────────────────────────────────────────────
 
 /** Create (or look up) a router by style name. */
 export function createRouter(style: RouteStyle): Router {
   switch (style) {
-    case 'straight':    return straightRouter;
-    case 'orthogonal':  return orthogonalRouter;
-    case 'bezier':      return bezierRouter;
-    case 'polyline':    return polylineRouter;
+    case 'straight':
+      return straightRouter;
+    case 'orthogonal':
+      return orthogonalRouter;
+    case 'bezier':
+      return bezierRouter;
+    case 'polyline':
+      return polylineRouter;
   }
 }
 

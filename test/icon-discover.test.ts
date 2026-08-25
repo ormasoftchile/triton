@@ -63,8 +63,8 @@ describe('discoverIconPacks', () => {
 
   it('skips malformed JSON and adds a warning', () => {
     expect(result.map.has('broken')).toBe(false);
-    const hasBadJsonWarning = result.warnings.some(w =>
-      w.includes('bad-json') || w.includes('Invalid JSON'),
+    const hasBadJsonWarning = result.warnings.some(
+      (w) => w.includes('bad-json') || w.includes('Invalid JSON'),
     );
     expect(hasBadJsonWarning).toBe(true);
   });
@@ -72,8 +72,8 @@ describe('discoverIconPacks', () => {
   it('skips packs that fail validation and adds a warning', () => {
     // invalid-pack.triton-icons.json has an empty icons object — fails validateIconPack
     expect(result.map.has('invalid')).toBe(false);
-    const hasValidationWarning = result.warnings.some(w =>
-      w.includes('invalid-pack') || w.includes('failed validation'),
+    const hasValidationWarning = result.warnings.some(
+      (w) => w.includes('invalid-pack') || w.includes('failed validation'),
     );
     expect(hasValidationWarning).toBe(true);
   });
@@ -121,9 +121,7 @@ describe('discoverIconPacks', () => {
     expect(r.map.has('mypack')).toBe(true);
     // Exactly one pack in the map — the later file won
     expect(r.map.size).toBe(1);
-    const hasDupWarning = r.warnings.some(w =>
-      w.includes('mypack') && w.includes('Duplicate'),
-    );
+    const hasDupWarning = r.warnings.some((w) => w.includes('mypack') && w.includes('Duplicate'));
     expect(hasDupWarning).toBe(true);
   });
 });
@@ -171,7 +169,7 @@ describe('loadIconPacks', () => {
       join(iconsDir, 'test-pack.triton-icons.json'),
       JSON.stringify({
         prefix: 'test',
-        icons: { 'check': { body: '<path d="M0 0 L4 4 L8 0"/>' } },
+        icons: { check: { body: '<path d="M0 0 L4 4 L8 0"/>' } },
       }),
     );
 

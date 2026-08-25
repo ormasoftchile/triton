@@ -4,7 +4,13 @@ import { hashmap, layoutHashmap } from '../src/diagrams/triton/ds/hashmap/hashma
 import { matrix, layoutMatrix } from '../src/diagrams/triton/ds/matrix/matrix.js';
 import { render } from '../src/frontend/index.js';
 import { detect } from '../src/frontend/detect.js';
-import type { Scene, SceneElement, ScenePath, SceneRect, SceneText } from '../src/contracts/index.js';
+import type {
+  Scene,
+  SceneElement,
+  ScenePath,
+  SceneRect,
+  SceneText,
+} from '../src/contracts/index.js';
 import { measureText } from '../src/text/metrics.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
@@ -31,7 +37,9 @@ describe('stack', () => {
     const ir = stack.parseMermaid('stack\n  cells A B C\n  capacity 5\n');
     const { scene, anchors } = layoutStack(ir, defaultTheme);
     expect(Object.keys(anchors)).toEqual(['c0', 'c1', 'c2', 'c3', 'c4']);
-    const texts = scene.elements.filter(e => e.type === 'text').map(e => (e as { content: string }).content);
+    const texts = scene.elements
+      .filter((e) => e.type === 'text')
+      .map((e) => (e as { content: string }).content);
     expect(texts).toContain('push / pop');
     expect(texts).toContain('top');
   });
@@ -40,9 +48,10 @@ describe('stack', () => {
     // A B C → C is on top, drawn highest; with capacity the empties sit above.
     const ir = stack.parseMermaid('stack A B C');
     const { scene } = layoutStack(ir, defaultTheme);
-    const labelOf = (s: string) => scene.elements.find(
-      e => e.type === 'text' && (e as { content: string }).content === s,
-    ) as { position: { y: number } };
+    const labelOf = (s: string) =>
+      scene.elements.find((e) => e.type === 'text' && (e as { content: string }).content === s) as {
+        position: { y: number };
+      };
     expect(labelOf('C').position.y).toBeLessThan(labelOf('B').position.y);
     expect(labelOf('B').position.y).toBeLessThan(labelOf('A').position.y);
   });
@@ -52,7 +61,9 @@ describe('stack', () => {
     const { scene, anchors } = layoutStack(ir, defaultTheme);
     expect(anchors.c1!.bounds.x).toBeGreaterThan(anchors.c0!.bounds.x);
     expect(anchors.c1!.bounds.y).toBe(anchors.c0!.bounds.y);
-    expect(textOf(scene, 'top').position.y).toBeGreaterThan(anchors.c0!.bounds.y + anchors.c0!.bounds.height);
+    expect(textOf(scene, 'top').position.y).toBeGreaterThan(
+      anchors.c0!.bounds.y + anchors.c0!.bounds.height,
+    );
     expect(JSON.stringify(scene.elements)).not.toContain('rotate(');
     expectSceneFits(scene);
   });
@@ -64,11 +75,19 @@ describe('stack', () => {
 
 describe('hashmap', () => {
   it('parses bucket count and chained entries', () => {
-    const ir = hashmap.parseMermaid('hashmap\n  buckets 5\n  bucket 0: alice->1, bob->2\n  bucket 2: carol->3\n');
+    const ir = hashmap.parseMermaid(
+      'hashmap\n  buckets 5\n  bucket 0: alice->1, bob->2\n  bucket 2: carol->3\n',
+    );
     expect(ir.buckets).toBe(5);
     expect(ir.bucketLabels).toEqual(['0', '1', '2', '3', '4']);
     expect(ir.chains).toHaveLength(2);
-    expect(ir.chains[0]).toEqual({ index: 0, entries: [{ key: 'alice', value: '1' }, { key: 'bob', value: '2' }] });
+    expect(ir.chains[0]).toEqual({
+      index: 0,
+      entries: [
+        { key: 'alice', value: '1' },
+        { key: 'bob', value: '2' },
+      ],
+    });
     expect(ir.chains[1]!.index).toBe(2);
   });
 
@@ -79,7 +98,9 @@ describe('hashmap', () => {
   });
 
   it('parses string bucket labels and routes chains by label', () => {
-    const ir = hashmap.parseMermaid('hashmap\n  buckets name, email, phone\n  bucket name: alice->1\n  bucket phone: bob->2\n');
+    const ir = hashmap.parseMermaid(
+      'hashmap\n  buckets name, email, phone\n  bucket name: alice->1\n  bucket phone: bob->2\n',
+    );
     expect(ir.buckets).toBe(3);
     expect(ir.bucketLabels).toEqual(['name', 'email', 'phone']);
     expect(ir.chains).toEqual([
@@ -89,7 +110,9 @@ describe('hashmap', () => {
   });
 
   it('supports quoted bucket labels and widens the bucket column', () => {
-    const ir = hashmap.parseMermaid('hashmap\n  buckets "user name", "email address"\n  bucket "email address": carol->carol@example.com\n');
+    const ir = hashmap.parseMermaid(
+      'hashmap\n  buckets "user name", "email address"\n  bucket "email address": carol->carol@example.com\n',
+    );
     const { scene, anchors } = layoutHashmap(ir, defaultTheme);
     expect(textOf(scene, 'user name')).toBeDefined();
     expect(textOf(scene, 'email address')).toBeDefined();
@@ -99,7 +122,9 @@ describe('hashmap', () => {
   });
 
   it('renders one anchor per bucket plus one per chained entry', () => {
-    const ir = hashmap.parseMermaid('hashmap\n  buckets 4\n  bucket 0: a->1, b->2\n  bucket 2: c->3\n');
+    const ir = hashmap.parseMermaid(
+      'hashmap\n  buckets 4\n  bucket 0: a->1, b->2\n  bucket 2: c->3\n',
+    );
     const { anchors } = layoutHashmap(ir, defaultTheme);
     const keys = Object.keys(anchors);
     expect(keys).toContain('b0');
@@ -111,14 +136,14 @@ describe('hashmap', () => {
     expect(keys).toContain('b0e1');
     expect(keys).toContain('b2e0');
     // bucket count cells = 4
-    expect(keys.filter(k => /^b\d+$/.test(k))).toHaveLength(4);
+    expect(keys.filter((k) => /^b\d+$/.test(k))).toHaveLength(4);
   });
 
   it('wires a pointer arrow into each chained entry', () => {
     const ir = hashmap.parseMermaid('hashmap\n  buckets 3\n  bucket 1: a->1, b->2\n');
     const { scene } = layoutHashmap(ir, defaultTheme);
     const arrows = scene.elements.filter(
-      e => e.type === 'path' && (e as { markerEnd?: string }).markerEnd != null,
+      (e) => e.type === 'path' && (e as { markerEnd?: string }).markerEnd != null,
     );
     // two entries → two pointer arrows
     expect(arrows.length).toBe(2);
@@ -163,7 +188,10 @@ describe('matrix', () => {
 
   it('parses highlight directive as r,c pairs', () => {
     const ir = matrix.parseMermaid('matrix\n  row 1 2 3\n  highlight 0,1 1,2\n');
-    expect(ir.highlights).toEqual([[0, 1], [1, 2]]);
+    expect(ir.highlights).toEqual([
+      [0, 1],
+      [1, 2],
+    ]);
   });
 
   it('renders highlighted cells with primary fill', () => {
@@ -177,7 +205,7 @@ describe('matrix', () => {
       }
     };
     collectRects(scene.elements);
-    const highlighted = allRects.filter(r => r.fillOpacity !== undefined && r.fillOpacity < 1);
+    const highlighted = allRects.filter((r) => r.fillOpacity !== undefined && r.fillOpacity < 1);
     expect(highlighted.length).toBeGreaterThanOrEqual(2);
     expect(highlighted[0]!.fill).toBe(defaultTheme.palette.primary);
   });
@@ -200,7 +228,9 @@ describe('ds B1 renders to SVG', () => {
 });
 
 function textOf(scene: Scene, content: string): SceneText {
-  const found = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === content);
+  const found = scene.elements.find(
+    (e): e is SceneText => e.type === 'text' && e.content === content,
+  );
   if (!found) throw new Error(`missing text ${content}`);
   return found;
 }
@@ -229,28 +259,36 @@ function elementBounds(element: SceneElement): SceneRect['bounds'] | undefined {
     };
   }
   if (element.type === 'group') {
-    const bounds = element.children.map(elementBounds).filter((b): b is SceneRect['bounds'] => b !== undefined);
+    const bounds = element.children
+      .map(elementBounds)
+      .filter((b): b is SceneRect['bounds'] => b !== undefined);
     if (bounds.length === 0) return undefined;
-    const minX = Math.min(...bounds.map(b => b.x));
-    const minY = Math.min(...bounds.map(b => b.y));
-    const maxX = Math.max(...bounds.map(b => b.x + b.width));
-    const maxY = Math.max(...bounds.map(b => b.y + b.height));
+    const minX = Math.min(...bounds.map((b) => b.x));
+    const minY = Math.min(...bounds.map((b) => b.y));
+    const maxX = Math.max(...bounds.map((b) => b.x + b.width));
+    const maxY = Math.max(...bounds.map((b) => b.y + b.height));
     return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
   }
 }
 
 function textBounds(text: SceneText): SceneRect['bounds'] {
   const measured = measureText(text.content, text.fontSize);
-  const x = text.anchor === 'middle'
-    ? text.position.x - measured.width / 2
-    : text.anchor === 'end'
-      ? text.position.x - measured.width
-      : text.position.x;
-  return { x, y: text.position.y - text.fontSize, width: measured.width, height: text.fontSize * 1.25 };
+  const x =
+    text.anchor === 'middle'
+      ? text.position.x - measured.width / 2
+      : text.anchor === 'end'
+        ? text.position.x - measured.width
+        : text.position.x;
+  return {
+    x,
+    y: text.position.y - text.fontSize,
+    width: measured.width,
+    height: text.fontSize * 1.25,
+  };
 }
 
 function pathBounds(path: ScenePath): SceneRect['bounds'] {
-  const nums = [...path.d.matchAll(/-?\d+(?:\.\d+)?/g)].map(match => Number(match[0]));
+  const nums = [...path.d.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) => Number(match[0]));
   const xs = nums.filter((_, i) => i % 2 === 0);
   const ys = nums.filter((_, i) => i % 2 === 1);
   const pad = path.strokeWidth / 2;

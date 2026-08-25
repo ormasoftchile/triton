@@ -10,9 +10,16 @@ import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../../con
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 
-interface BNode { keys: number[]; children: BNode[]; leaf: boolean; }
+interface BNode {
+  keys: number[];
+  children: BNode[];
+  leaf: boolean;
+}
 
-interface Split { up: number; right: BNode; }
+interface Split {
+  up: number;
+  right: BNode;
+}
 
 /** Insert into a subtree; return a Split if this node overflowed and divided. */
 function insertRec(node: BNode, key: number, order: number): Split | null {

@@ -103,7 +103,7 @@ describe('loadThemeFile', () => {
     if (!result.ok) return;
 
     const minimalBase = getThemePreset('minimal');
-    expect(result.value.palette.primary).toBe('#2C7BE5');           // overridden
+    expect(result.value.palette.primary).toBe('#2C7BE5'); // overridden
     expect(result.value.palette.background).toBe(minimalBase.palette.background); // inherited
     expect(result.value.typography.lineHeight).toBe(minimalBase.typography.lineHeight);
   });
@@ -139,14 +139,16 @@ describe('discoverThemes', () => {
 
   it('excludes bad-json files and adds a warning', () => {
     expect(result.themes.has('bad-json')).toBe(false);
-    const hasBadJsonWarning = result.warnings.some(w => w.includes('bad-json') || w.includes('Invalid JSON'));
+    const hasBadJsonWarning = result.warnings.some(
+      (w) => w.includes('bad-json') || w.includes('Invalid JSON'),
+    );
     expect(hasBadJsonWarning).toBe(true);
   });
 
   it('excludes unknown-key files and adds a warning', () => {
     expect(result.themes.has('acme-unknown')).toBe(false);
-    const hasValidationWarning = result.warnings.some(w =>
-      w.includes('unknown-key') || w.includes('failed validation'),
+    const hasValidationWarning = result.warnings.some(
+      (w) => w.includes('unknown-key') || w.includes('failed validation'),
     );
     expect(hasValidationWarning).toBe(true);
   });
@@ -155,8 +157,8 @@ describe('discoverThemes', () => {
     // executive.triton-theme.json has name="executive" (built-in)
     const executiveTheme = result.themes.get('executive');
     expect(executiveTheme).toBeUndefined();
-    const hasCollisionWarning = result.warnings.some(w =>
-      w.includes('executive') && w.includes('built-in'),
+    const hasCollisionWarning = result.warnings.some(
+      (w) => w.includes('executive') && w.includes('built-in'),
     );
     expect(hasCollisionWarning).toBe(true);
   });
@@ -198,7 +200,9 @@ describe('discoverThemes', () => {
     const r = discoverThemes(dupDir);
     expect(r.themes.has('same-name')).toBe(true);
     // last-wins (readdir order may vary; check a duplicate warning exists)
-    const hasDupWarning = r.warnings.some(w => w.includes('same-name') && w.includes('Duplicate'));
+    const hasDupWarning = r.warnings.some(
+      (w) => w.includes('same-name') && w.includes('Duplicate'),
+    );
     expect(hasDupWarning).toBe(true);
   });
 });

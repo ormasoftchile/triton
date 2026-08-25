@@ -12,7 +12,14 @@
  */
 
 import type {
-  DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry, Rect, TextAnchor,
+  DiagramModule,
+  ResolvedTheme,
+  LayoutResult,
+  Scene,
+  SceneElement,
+  NodeAnchorRegistry,
+  Rect,
+  TextAnchor,
 } from '../../../../contracts/index.js';
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
@@ -126,7 +133,10 @@ function parse(input: string): ArrayDoc {
     }
 
     if (t[0] === 'highlight') {
-      highlights = t.slice(1).map(Number).filter(n => !isNaN(n) && Number.isInteger(n));
+      highlights = t
+        .slice(1)
+        .map(Number)
+        .filter((n) => !isNaN(n) && Number.isInteger(n));
       continue;
     }
 
@@ -137,7 +147,11 @@ function parse(input: string): ArrayDoc {
     }
 
     if (t[0] === 'ptr' && t.length >= 4 && t[2] === '->') {
-      ptrs.push({ id: t[1]!, target: parsePointerTarget(t[3]!), ...(t[4] !== undefined ? { label: t[4] } : {}) });
+      ptrs.push({
+        id: t[1]!,
+        target: parsePointerTarget(t[3]!),
+        ...(t[4] !== undefined ? { label: t[4] } : {}),
+      });
     }
   }
 
@@ -153,15 +167,16 @@ function parse(input: string): ArrayDoc {
 }
 
 function parseCells(tokens: readonly string[]): ArrayCell[] {
-  const cells = tokens.map(token => token === '...' ? { kind: 'gap' } as const : { kind: 'value', value: token } as const);
-  const gapPositions = cells
-    .map((cell, i) => cell.kind === 'gap' ? i : -1)
-    .filter(i => i >= 0);
+  const cells = tokens.map((token) =>
+    token === '...' ? ({ kind: 'gap' } as const) : ({ kind: 'value', value: token } as const),
+  );
+  const gapPositions = cells.map((cell, i) => (cell.kind === 'gap' ? i : -1)).filter((i) => i >= 0);
 
   if (gapPositions.length > 1) throw new Error('Array cells may contain at most one ... gap');
   if (gapPositions.length === 1) {
     const gap = gapPositions[0]!;
-    if (gap === 0 || gap === cells.length - 1) throw new Error('Array ... gap must be between concrete cells');
+    if (gap === 0 || gap === cells.length - 1)
+      throw new Error('Array ... gap must be between concrete cells');
   }
 
   return cells;
@@ -169,7 +184,8 @@ function parseCells(tokens: readonly string[]): ArrayCell[] {
 
 function parsePointerTarget(raw: string): ArrayPointerTarget {
   if (/^\d+$/.test(raw)) return { raw, value: Number(raw) };
-  if (/^c\d+$/.test(raw) || raw === 'cfirst' || raw === 'clast' || raw === 'cgap') return { raw, anchor: raw };
+  if (/^c\d+$/.test(raw) || raw === 'cfirst' || raw === 'clast' || raw === 'cgap')
+    return { raw, anchor: raw };
   return { raw, anchor: raw };
 }
 
@@ -202,7 +218,10 @@ function metadataFor(doc: ArrayDoc): ArrayIndexMetadata {
   };
 }
 
-export function resolveArrayElementAnchorId(doc: ArrayDoc, elementIndex: number): string | undefined {
+export function resolveArrayElementAnchorId(
+  doc: ArrayDoc,
+  elementIndex: number,
+): string | undefined {
   const meta = metadataFor(normalizeArrayDoc(doc));
   const logicalCount = meta.nonGapPhysicals.length;
 
@@ -225,7 +244,10 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
   const font = typography.baseFontSize;
   const smallFont = typography.smallFontSize;
   const cellH = 40;
-  const cellW = Math.max(40, ...doc.cells.map(c => measureText(c.kind === 'gap' ? '…' : c.value, font).width + 24));
+  const cellW = Math.max(
+    40,
+    ...doc.cells.map((c) => measureText(c.kind === 'gap' ? '…' : c.value, font).width + 24),
+  );
   const titleH = doc.title ? typography.titleFontSize + 14 : 0;
   const indexBand = doc.index.show ? smallFont + 12 : 0;
   const arrowLen = 30;
@@ -243,21 +265,24 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
   const labelFont = font;
   const labelLaneGap = labelFont + 8;
   const pointerSide: ArrayIndexSide = doc.index.side === 'before' ? 'after' : 'before';
-  const horizontalLanes = horizontal ? assignHorizontalPointerLanes(resolvedPtrs, doc, meta, cellW, labelFont) : [];
-  const pointerLaneCount = Math.max(0, ...horizontalLanes.map(l => l + 1));
-  const pointerBand = resolvedPtrs.length === 0
-    ? 0
-    : horizontal
-      ? arrowLen + labelGap + labelFont + Math.max(0, pointerLaneCount - 1) * labelLaneGap + 4
-      : arrowLen + labelGap + maxPointerLabelWidth(resolvedPtrs, labelFont) + 8;
+  const horizontalLanes = horizontal
+    ? assignHorizontalPointerLanes(resolvedPtrs, doc, meta, cellW, labelFont)
+    : [];
+  const pointerLaneCount = Math.max(0, ...horizontalLanes.map((l) => l + 1));
+  const pointerBand =
+    resolvedPtrs.length === 0
+      ? 0
+      : horizontal
+        ? arrowLen + labelGap + labelFont + Math.max(0, pointerLaneCount - 1) * labelLaneGap + 4
+        : arrowLen + labelGap + maxPointerLabelWidth(resolvedPtrs, labelFont) + 8;
 
   const topBand = horizontal
-    ? (doc.index.show && doc.index.side === 'before' ? indexBand : 0)
-      + (pointerSide === 'before' ? pointerBand : 0)
+    ? (doc.index.show && doc.index.side === 'before' ? indexBand : 0) +
+      (pointerSide === 'before' ? pointerBand : 0)
     : 0;
   const leftBand = !horizontal
-    ? (doc.index.show && doc.index.side === 'before' ? smallFont * 2 + indexPad : 0)
-      + (pointerSide === 'before' ? pointerBand : 0)
+    ? (doc.index.show && doc.index.side === 'before' ? smallFont * 2 + indexPad : 0) +
+      (pointerSide === 'before' ? pointerBand : 0)
     : 0;
   const origin = {
     x: leftBand,
@@ -267,40 +292,97 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
 
   const elements: SceneElement[] = [];
   if (doc.title) {
-    elements.push(p.text(doc.title, origin.x, typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
+    elements.push(
+      p.text(
+        doc.title,
+        origin.x,
+        typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold' },
+      ),
+    );
   }
 
   doc.cells.forEach((cell, physical) => {
     const slot = slots[physical]!;
     if (cell.kind === 'gap') {
       elements.push(p.rect(slot, palette.surface, palette.border, 1.5, { rx: 3, opacity: 0.45 }));
-      elements.push(p.text('…', slot.x + cellW / 2, slot.y + cellH / 2 + 5, font, palette.textMuted, { anchor: 'middle', weight: 'bold' }));
+      elements.push(
+        p.text('…', slot.x + cellW / 2, slot.y + cellH / 2 + 5, font, palette.textMuted, {
+          anchor: 'middle',
+          weight: 'bold',
+        }),
+      );
       return;
     }
 
     const logicalMaybe = meta.physicalToLogical[physical];
     const logical: number | null = logicalMaybe ?? null;
-    const isHighlit = logical !== null && (
-      (doc.highlights?.includes(logical) ?? false) ||
-      (doc.window !== undefined && logical >= doc.window.start && logical <= doc.window.end)
-    );
+    const isHighlit =
+      logical !== null &&
+      ((doc.highlights?.includes(logical) ?? false) ||
+        (doc.window !== undefined && logical >= doc.window.start && logical <= doc.window.end));
 
     if (isHighlit) {
-      elements.push(p.rect(slot, palette.primary, palette.primary, 2, { rx: 3, fillOpacity: 0.22 }));
+      elements.push(
+        p.rect(slot, palette.primary, palette.primary, 2, { rx: 3, fillOpacity: 0.22 }),
+      );
     } else {
       elements.push(p.rect(slot, palette.surface, palette.border, 1.5, { rx: 3 }));
     }
-    elements.push(p.text(cell.value, slot.x + cellW / 2, slot.y + cellH / 2 + 5, font, isHighlit ? palette.primary : palette.text, { anchor: 'middle', weight: 'bold' }));
+    elements.push(
+      p.text(
+        cell.value,
+        slot.x + cellW / 2,
+        slot.y + cellH / 2 + 5,
+        font,
+        isHighlit ? palette.primary : palette.text,
+        { anchor: 'middle', weight: 'bold' },
+      ),
+    );
 
     if (doc.index.show && logical !== null) {
-      elements.push(renderIndexText(p, theme, String(logical), slot, cellW, cellH, doc.axis, doc.index.side, indexPad));
+      elements.push(
+        renderIndexText(
+          p,
+          theme,
+          String(logical),
+          slot,
+          cellW,
+          cellH,
+          doc.axis,
+          doc.index.side,
+          indexPad,
+        ),
+      );
     }
   });
 
   if (horizontal) {
-    renderHorizontalPointers(elements, p, theme, resolvedPtrs, slots, pointerSide, horizontalLanes, arrowLen, labelGap, labelLaneGap);
+    renderHorizontalPointers(
+      elements,
+      p,
+      theme,
+      resolvedPtrs,
+      slots,
+      pointerSide,
+      horizontalLanes,
+      arrowLen,
+      labelGap,
+      labelLaneGap,
+    );
   } else {
-    renderVerticalPointers(elements, p, theme, resolvedPtrs, slots, doc.index.side, arrowLen, labelGap);
+    renderVerticalPointers(
+      elements,
+      p,
+      theme,
+      resolvedPtrs,
+      slots,
+      doc.index.side,
+      arrowLen,
+      labelGap,
+    );
   }
 
   const anchors: Record<string, { bounds: Rect }> = {};
@@ -336,30 +418,44 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
 
 function normalizeArrayDoc(doc: ArrayDoc | any): ArrayDoc {
   const cells: ArrayCell[] = (doc.cells ?? []).map((cell: string | ArrayCell) =>
-    typeof cell === 'string' ? (cell === '...' ? { kind: 'gap' } : { kind: 'value', value: cell }) : cell,
+    typeof cell === 'string'
+      ? cell === '...'
+        ? { kind: 'gap' }
+        : { kind: 'value', value: cell }
+      : cell,
   );
-  const index = typeof doc.index === 'boolean'
-    ? { show: doc.index, side: 'before' as const, order: 'normal' as const }
-    : {
-        show: Boolean(doc.index?.show),
-        side: doc.index?.side === 'after' ? 'after' as const : 'before' as const,
-        order: doc.index?.order === 'reverse' ? 'reverse' as const : 'normal' as const,
-      };
+  const index =
+    typeof doc.index === 'boolean'
+      ? { show: doc.index, side: 'before' as const, order: 'normal' as const }
+      : {
+          show: Boolean(doc.index?.show),
+          side: doc.index?.side === 'after' ? ('after' as const) : ('before' as const),
+          order: doc.index?.order === 'reverse' ? ('reverse' as const) : ('normal' as const),
+        };
   return {
     ...(doc.title !== undefined ? { title: doc.title } : {}),
     axis: doc.axis === 'vertical' ? 'vertical' : 'horizontal',
     index,
     cells,
     ptrs: (doc.ptrs ?? []).map((ptr: any) => {
-      if ('idx' in ptr) return { id: ptr.name ?? ptr.id, target: { raw: String(ptr.idx), value: Number(ptr.idx) } };
+      if ('idx' in ptr)
+        return { id: ptr.name ?? ptr.id, target: { raw: String(ptr.idx), value: Number(ptr.idx) } };
       return ptr;
     }),
-    ...(Array.isArray(doc.highlights) && doc.highlights.length > 0 ? { highlights: doc.highlights as number[] } : {}),
+    ...(Array.isArray(doc.highlights) && doc.highlights.length > 0
+      ? { highlights: doc.highlights as number[] }
+      : {}),
     ...(doc.window !== undefined ? { window: doc.window as { start: number; end: number } } : {}),
   };
 }
 
-function buildSlots(count: number, origin: { x: number; y: number }, cellW: number, cellH: number, axis: ArrayAxis): Rect[] {
+function buildSlots(
+  count: number,
+  origin: { x: number; y: number },
+  cellW: number,
+  cellH: number,
+  axis: ArrayAxis,
+): Rect[] {
   return Array.from({ length: count }, (_, i) => ({
     x: origin.x + (axis === 'horizontal' ? i * cellW : 0),
     y: origin.y + (axis === 'horizontal' ? 0 : i * cellH),
@@ -368,7 +464,11 @@ function buildSlots(count: number, origin: { x: number; y: number }, cellW: numb
   }));
 }
 
-function resolvePointerPhysical(target: ArrayPointerTarget, doc: ArrayDoc, meta: ArrayIndexMetadata): number | undefined {
+function resolvePointerPhysical(
+  target: ArrayPointerTarget,
+  doc: ArrayDoc,
+  meta: ArrayIndexMetadata,
+): number | undefined {
   if (target.value !== undefined) {
     const physical = meta.indexToPhysical.get(target.value);
     if (physical !== undefined) return physical;
@@ -475,8 +575,20 @@ function renderHorizontalPointers(
     const tailY = edgeY + s * (arrowLen + lane * laneGap);
     const labelY = tailY + s * (labelGap + (s > 0 ? typography.baseFontSize : 0));
 
-    elements.push(p.path(`M ${rhu(attachX)} ${rhu(tailY)} L ${rhu(attachX)} ${rhu(tipY)}`, palette.primary, 1.5, { markerEnd: ARROW_ID }));
-    elements.push(p.text(pointerLabel(ptr.ptr), attachX, labelY, typography.baseFontSize, palette.primary, { anchor: 'middle', weight: 'bold' }));
+    elements.push(
+      p.path(
+        `M ${rhu(attachX)} ${rhu(tailY)} L ${rhu(attachX)} ${rhu(tipY)}`,
+        palette.primary,
+        1.5,
+        { markerEnd: ARROW_ID },
+      ),
+    );
+    elements.push(
+      p.text(pointerLabel(ptr.ptr), attachX, labelY, typography.baseFontSize, palette.primary, {
+        anchor: 'middle',
+        weight: 'bold',
+      }),
+    );
   });
 }
 
@@ -503,7 +615,7 @@ function renderVerticalPointers(
   }
 
   const seen = new Map<string, number>();
-  ptrs.forEach(ptr => {
+  ptrs.forEach((ptr) => {
     const slot = slots[ptr.physical]!;
     const key = `${ptr.physical}:${s}`;
     const widths = groups.get(key) ?? [];
@@ -516,15 +628,26 @@ function renderVerticalPointers(
     const labelX = tailX + s * labelGap;
     const anchor: TextAnchor = s > 0 ? 'start' : 'end';
 
-    elements.push(p.path(`M ${rhu(tailX)} ${rhu(attachY)} L ${rhu(edgeX)} ${rhu(attachY)}`, palette.primary, 1.5, { markerEnd: ARROW_ID }));
-    elements.push(p.text(pointerLabel(ptr.ptr), labelX, attachY + 4, typography.baseFontSize, palette.primary, { anchor, weight: 'bold' }));
+    elements.push(
+      p.path(
+        `M ${rhu(tailX)} ${rhu(attachY)} L ${rhu(edgeX)} ${rhu(attachY)}`,
+        palette.primary,
+        1.5,
+        { markerEnd: ARROW_ID },
+      ),
+    );
+    elements.push(
+      p.text(pointerLabel(ptr.ptr), labelX, attachY + 4, typography.baseFontSize, palette.primary, {
+        anchor,
+        weight: 'bold',
+      }),
+    );
   });
 }
 
 function maxPointerLabelWidth(ptrs: readonly ResolvedPointer[], font: number): number {
-  return Math.max(0, ...ptrs.map(ptr => measureText(pointerLabel(ptr.ptr), font).width));
+  return Math.max(0, ...ptrs.map((ptr) => measureText(pointerLabel(ptr.ptr), font).width));
 }
-
 
 function countByPointerPhysical(ptrs: readonly ResolvedPointer[]): Map<number, number> {
   const counts = new Map<number, number>();
@@ -547,10 +670,10 @@ function precedingLaneWidth(widths: readonly number[], lane: number, gap: number
 function boundsForElements(elements: readonly SceneElement[]): Rect {
   const bounds = elements.map(boundsForElement).filter((b): b is Rect => b !== undefined);
   if (bounds.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
-  const minX = Math.min(...bounds.map(b => b.x));
-  const minY = Math.min(...bounds.map(b => b.y));
-  const maxX = Math.max(...bounds.map(b => b.x + b.width));
-  const maxY = Math.max(...bounds.map(b => b.y + b.height));
+  const minX = Math.min(...bounds.map((b) => b.x));
+  const minY = Math.min(...bounds.map((b) => b.y));
+  const maxX = Math.max(...bounds.map((b) => b.x + b.width));
+  const maxY = Math.max(...bounds.map((b) => b.y + b.height));
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
@@ -576,11 +699,12 @@ function boundsForElement(element: SceneElement): Rect | undefined {
 
 function boundsForText(text: Extract<SceneElement, { type: 'text' }>): Rect {
   const measured = measureText(text.content, text.fontSize);
-  const x = text.anchor === 'middle'
-    ? text.position.x - measured.width / 2
-    : text.anchor === 'end'
-      ? text.position.x - measured.width
-      : text.position.x;
+  const x =
+    text.anchor === 'middle'
+      ? text.position.x - measured.width / 2
+      : text.anchor === 'end'
+        ? text.position.x - measured.width
+        : text.position.x;
   return {
     x,
     y: text.position.y - text.fontSize,
@@ -590,7 +714,7 @@ function boundsForText(text: Extract<SceneElement, { type: 'text' }>): Rect {
 }
 
 function boundsForPath(d: string, strokeWidth: number): Rect {
-  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(match => Number(match[0]));
+  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) => Number(match[0]));
   if (nums.length < 2) return { x: 0, y: 0, width: 0, height: 0 };
   const xs = nums.filter((_, i) => i % 2 === 0);
   const ys = nums.filter((_, i) => i % 2 === 1);
@@ -602,8 +726,12 @@ function boundsForPath(d: string, strokeWidth: number): Rect {
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
-function translateElements(elements: readonly SceneElement[], dx: number, dy: number): SceneElement[] {
-  return elements.map(element => translateElement(element, dx, dy));
+function translateElements(
+  elements: readonly SceneElement[],
+  dx: number,
+  dy: number,
+): SceneElement[] {
+  return elements.map((element) => translateElement(element, dx, dy));
 }
 
 function translateElement(element: SceneElement, dx: number, dy: number): SceneElement {
@@ -611,11 +739,17 @@ function translateElement(element: SceneElement, dx: number, dy: number): SceneE
     case 'rect':
       return { ...element, bounds: translateRect(element.bounds, dx, dy) };
     case 'circle':
-      return { ...element, center: { x: rhu(element.center.x + dx), y: rhu(element.center.y + dy) } };
+      return {
+        ...element,
+        center: { x: rhu(element.center.x + dx), y: rhu(element.center.y + dy) },
+      };
     case 'path':
       return { ...element, d: translatePathD(element.d, dx, dy) };
     case 'text':
-      return { ...element, position: { x: rhu(element.position.x + dx), y: rhu(element.position.y + dy) } };
+      return {
+        ...element,
+        position: { x: rhu(element.position.x + dx), y: rhu(element.position.y + dy) },
+      };
     case 'group':
       return { ...element, children: translateElements(element.children, dx, dy) };
     case 'icon':
@@ -623,9 +757,16 @@ function translateElement(element: SceneElement, dx: number, dy: number): SceneE
   }
 }
 
-function translateAnchors(anchors: Record<string, { bounds: Rect }>, dx: number, dy: number): Record<string, { bounds: Rect }> {
+function translateAnchors(
+  anchors: Record<string, { bounds: Rect }>,
+  dx: number,
+  dy: number,
+): Record<string, { bounds: Rect }> {
   return Object.fromEntries(
-    Object.entries(anchors).map(([key, anchor]) => [key, { bounds: translateRect(anchor.bounds, dx, dy) }]),
+    Object.entries(anchors).map(([key, anchor]) => [
+      key,
+      { bounds: translateRect(anchor.bounds, dx, dy) },
+    ]),
   );
 }
 
@@ -635,7 +776,7 @@ function translateRect(rect: Rect, dx: number, dy: number): Rect {
 
 function translatePathD(d: string, dx: number, dy: number): string {
   let i = 0;
-  return d.replace(/-?\d+(?:\.\d+)?/g, value => {
+  return d.replace(/-?\d+(?:\.\d+)?/g, (value) => {
     const delta = i++ % 2 === 0 ? dx : dy;
     return String(rhu(Number(value) + delta));
   });
@@ -645,13 +786,19 @@ function pointerLabel(ptr: ArrayPointer): string {
   return ptr.label ?? ptr.id;
 }
 
-export const array: DiagramModule<ArrayDoc & { version: string; metadata: Record<string, unknown> }> = {
+export const array: DiagramModule<
+  ArrayDoc & { version: string; metadata: Record<string, unknown> }
+> = {
   parseMermaid(input: string) {
     return { version: '1.0', metadata: {}, ...parse(input) };
   },
   parseYaml(input: string) {
     const parsed = JSON.parse(input);
-    return { version: parsed.version ?? '1.0', metadata: parsed.metadata ?? {}, ...normalizeArrayDoc(parsed) };
+    return {
+      version: parsed.version ?? '1.0',
+      metadata: parsed.metadata ?? {},
+      ...normalizeArrayDoc(parsed),
+    };
   },
   layout(ir, theme: ResolvedTheme): LayoutResult {
     return layoutArray(ir, theme);

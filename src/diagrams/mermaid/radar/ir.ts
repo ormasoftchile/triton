@@ -12,7 +12,11 @@ export interface RadarCurve {
 }
 
 export interface RadarDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly axes: readonly RadarAxis[];
   readonly curves: readonly RadarCurve[];
   readonly min?: number;

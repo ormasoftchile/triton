@@ -24,22 +24,31 @@ describe('memory', () => {
     expect(ir.regions[0]!.items[0]).toEqual({ kind: 'var', name: 'p', target: 'obj' });
     const obj = ir.regions[1]!.items[0]!;
     expect(obj).toMatchObject({ kind: 'object', id: 'obj', title: 'Point' });
-    expect((obj as { fields: unknown[] }).fields).toEqual([{ k: 'x', v: '1' }, { k: 'y', v: '2' }]);
+    expect((obj as { fields: unknown[] }).fields).toEqual([
+      { k: 'x', v: '1' },
+      { k: 'y', v: '2' },
+    ]);
   });
 
   it('parses quoted multi-word labels without changing bare labels', () => {
-    const ir = memory.parseMermaid([
-      'memory',
-      '  region "Stack Frame"',
-      '    var "head pointer" -> obj',
-      '  region HEAP',
-      '    object obj : "Point Record" : x=1',
-      '',
-    ].join('\n'));
+    const ir = memory.parseMermaid(
+      [
+        'memory',
+        '  region "Stack Frame"',
+        '    var "head pointer" -> obj',
+        '  region HEAP',
+        '    object obj : "Point Record" : x=1',
+        '',
+      ].join('\n'),
+    );
     expect(ir.regions[0]!.name).toBe('Stack Frame');
     expect(ir.regions[0]!.items[0]).toEqual({ kind: 'var', name: 'head pointer', target: 'obj' });
     expect(ir.regions[1]!.name).toBe('HEAP');
-    expect(ir.regions[1]!.items[0]).toMatchObject({ kind: 'object', id: 'obj', title: 'Point Record' });
+    expect(ir.regions[1]!.items[0]).toMatchObject({
+      kind: 'object',
+      id: 'obj',
+      title: 'Point Record',
+    });
   });
 
   it('anchors the var and the object, and draws a cross-region pointer', () => {
@@ -48,7 +57,7 @@ describe('memory', () => {
     expect(anchors['p']).toBeDefined();
     expect(anchors['obj']).toBeDefined();
     // the pointer is the only path with the arrow marker
-    const arrows = scene.elements.filter(e => e.type === 'path' && e.markerEnd != null);
+    const arrows = scene.elements.filter((e) => e.type === 'path' && e.markerEnd != null);
     expect(arrows.length).toBeGreaterThanOrEqual(1);
     // the object sits to the right of the var (cross-region)
     expect(anchors['obj']!.bounds.x).toBeGreaterThan(anchors['p']!.bounds.x);
@@ -64,14 +73,16 @@ describe('memory', () => {
         primary: '#abcdef',
       },
     };
-    const ir = memory.parseMermaid([
-      'memory',
-      '  region STACK',
-      '    var p -> obj',
-      '  region HEAP',
-      '    object obj : Point : x=1',
-      '',
-    ].join('\n'));
+    const ir = memory.parseMermaid(
+      [
+        'memory',
+        '  region STACK',
+        '    var p -> obj',
+        '  region HEAP',
+        '    object obj : Point : x=1',
+        '',
+      ].join('\n'),
+    );
     const { scene } = layoutMemory(ir, theme);
     const rects = scene.elements.filter((e): e is SceneRect => e.type === 'rect');
     const [regionRect, varRect, , objectRect] = rects;
@@ -98,7 +109,9 @@ describe('memory', () => {
     const wide = 'Stack frame region label wide enough to grow the memory box';
     const ir = memory.parseMermaid(`memory\n  region "${wide}"\n    var p\n`);
     const { scene } = layoutMemory(ir, defaultTheme);
-    const label = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === wide);
+    const label = scene.elements.find(
+      (e): e is SceneText => e.type === 'text' && e.content === wide,
+    );
     expect(label).toBeDefined();
     const bounds = textBounds(label!);
     expect(bounds.x).toBeGreaterThanOrEqual(0);
@@ -108,7 +121,9 @@ describe('memory', () => {
 
 describe('page', () => {
   it('parses slots and tuples', () => {
-    const ir = page.parseMermaid('page\n  title heap page\n  slots 3\n  tuples (10,Ann) (40,Bob) (50,Cy)\n');
+    const ir = page.parseMermaid(
+      'page\n  title heap page\n  slots 3\n  tuples (10,Ann) (40,Bob) (50,Cy)\n',
+    );
     expect(ir.slots).toBe(3);
     expect(ir.tuples).toHaveLength(3);
   });
@@ -131,14 +146,18 @@ describe('page', () => {
     const { scene, anchors } = layoutPage(ir, defaultTheme);
     expect(anchors['slot2']).toBeDefined();
     expect(anchors['tuple2']).toBeDefined();
-    const arrows = scene.elements.filter(e => e.type === 'path' && e.markerEnd != null);
+    const arrows = scene.elements.filter((e) => e.type === 'path' && e.markerEnd != null);
     expect(arrows).toHaveLength(3);
   });
 
   it('centers slots above tuples and keeps arrows short and vertical', () => {
-    const ir = page.parseMermaid('page\n  slots 4\n  tuples "(10,Alice Smith)" "(40,Bob)" "(90,Charlie Delta)"\n');
+    const ir = page.parseMermaid(
+      'page\n  slots 4\n  tuples "(10,Alice Smith)" "(40,Bob)" "(90,Charlie Delta)"\n',
+    );
     const { scene, anchors } = layoutPage(ir, defaultTheme);
-    const arrows = scene.elements.filter((e): e is ScenePath => e.type === 'path' && e.markerEnd != null);
+    const arrows = scene.elements.filter(
+      (e): e is ScenePath => e.type === 'path' && e.markerEnd != null,
+    );
 
     expect(arrows).toHaveLength(3);
     for (let i = 0; i < arrows.length; i++) {
@@ -185,7 +204,9 @@ describe('page', () => {
     const wide = '(10,Alice Smith with a tuple payload wide enough to expand the page)';
     const ir = page.parseMermaid(`page\n  slots 1\n  tuples "${wide}"\n`);
     const { scene } = layoutPage(ir, defaultTheme);
-    const label = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === wide);
+    const label = scene.elements.find(
+      (e): e is SceneText => e.type === 'text' && e.content === wide,
+    );
     expect(label).toBeDefined();
     const bounds = textBounds(label!);
     expect(bounds.x).toBeGreaterThanOrEqual(0);
@@ -200,11 +221,12 @@ function textBounds(text: {
   anchor?: TextAnchor;
 }): { x: number; width: number } {
   const width = measureText(text.content, text.fontSize).width;
-  const x = text.anchor === 'middle'
-    ? text.position.x - width / 2
-    : text.anchor === 'end'
-      ? text.position.x - width
-      : text.position.x;
+  const x =
+    text.anchor === 'middle'
+      ? text.position.x - width / 2
+      : text.anchor === 'end'
+        ? text.position.x - width
+        : text.position.x;
   return { x, width };
 }
 
@@ -213,6 +235,6 @@ function centerX(rect: { x: number; width: number }): number {
 }
 
 function uniquePathXCoords(d: string): number[] {
-  const coords = [...d.matchAll(/[ML] ([0-9.]+) [0-9.]+/g)].map(match => Number(match[1]));
+  const coords = [...d.matchAll(/[ML] ([0-9.]+) [0-9.]+/g)].map((match) => Number(match[1]));
   return [...new Set(coords)];
 }

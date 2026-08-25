@@ -10,7 +10,13 @@
 
 import { describe, it, expect } from 'vitest';
 import * as parser from '../src/diagrams/mermaid/architecture/parser.js';
-import type { ArchitectureDocument, ArchEdge, ArchIconAlign, ArchJunction, ArchGroup } from '../src/diagrams/mermaid/architecture/ir.js';
+import type {
+  ArchitectureDocument,
+  ArchEdge,
+  ArchIconAlign,
+  ArchJunction,
+  ArchGroup,
+} from '../src/diagrams/mermaid/architecture/ir.js';
 import type { ScenePath, SceneRect, SceneText } from '../src/contracts/index.js';
 import { layoutArchitecture } from '../src/diagrams/mermaid/architecture/layout.js';
 import { defaultTheme } from '../src/theme/preset.js';
@@ -32,7 +38,7 @@ describe('nested groups (in parentId)', () => {
   it('parses a group with explicit in clause', () => {
     const ir = parse(header('group outer(cloud)[Outer]\ngroup inner(server)[Inner] in outer'));
     expect(ir.groups).toHaveLength(2);
-    const inner = ir.groups.find(g => g.id === 'inner') as ArchGroup;
+    const inner = ir.groups.find((g) => g.id === 'inner') as ArchGroup;
     expect(inner).toBeDefined();
     expect(inner.parent).toBe('outer');
   });
@@ -43,8 +49,10 @@ describe('nested groups (in parentId)', () => {
   });
 
   it('preserves icon and label on nested group', () => {
-    const ir = parse(header('group parent_g(globe)[Parent]\ngroup child_g(server)[Child] in parent_g'));
-    const child = ir.groups.find(g => g.id === 'child_g') as ArchGroup;
+    const ir = parse(
+      header('group parent_g(globe)[Parent]\ngroup child_g(server)[Child] in parent_g'),
+    );
+    const child = ir.groups.find((g) => g.id === 'child_g') as ArchGroup;
     expect(child.icon).toBe('server');
     expect(child.label).toBe('Child');
   });
@@ -63,13 +71,13 @@ describe('junction', () => {
 
   it('parses a junction with in clause', () => {
     const ir = parse(header('group g1(cloud)[G1]\njunction jx2 in g1'));
-    const jx = ir.junctions.find(j => j.id === 'jx2') as ArchJunction;
+    const jx = ir.junctions.find((j) => j.id === 'jx2') as ArchJunction;
     expect(jx.group).toBe('g1');
   });
 
   it('assigns junction to group via indentation (no explicit in)', () => {
     const ir = parse(header('group g1(cloud)[G1]\n  junction jx_indent'));
-    const jx = ir.junctions.find(j => j.id === 'jx_indent') as ArchJunction;
+    const jx = ir.junctions.find((j) => j.id === 'jx_indent') as ArchJunction;
     expect(jx.group).toBe('g1');
   });
 
@@ -167,7 +175,7 @@ describe('connector rendering', () => {
     const scene = layoutFor('-->', tail);
     return scene.elements
       .filter((el): el is SceneRect => el.type === 'rect' && el.rx === 8)
-      .map(el => el.bounds);
+      .map((el) => el.bounds);
   }
 
   it('keeps plain Mermaid --> rendering unstyled except for the existing arrow marker', () => {
@@ -226,13 +234,17 @@ describe('connector rendering', () => {
   });
 
   it('@anim wins over { anim: ... } on conflict', () => {
-    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:flow { anim: pulse }'));
+    const ir = parse(
+      header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:flow { anim: pulse }'),
+    );
     expect(ir.edges[0]!.animation).toBe('flow');
     expect(edgePath('-->', ' @anim:flow { anim: pulse }').animated).toBe('flow');
   });
 
   it('tolerates multiple animation annotations on one edge', () => {
-    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:pulse @anim:glow'));
+    const ir = parse(
+      header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:pulse @anim:glow'),
+    );
     expect(ir.edges[0]!.animation).toBe('glow');
     expect(edgePath('-->', ' @anim:pulse @anim:glow').animated).toBe('glow');
   });
@@ -244,14 +256,21 @@ describe('connector rendering', () => {
   });
 
   it('rejects invalid animation names', () => {
-    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:spin'))).toThrow();
-    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { anim: spin }'))).toThrow();
+    expect(() =>
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @anim:spin')),
+    ).toThrow();
+    expect(() =>
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { anim: spin }')),
+    ).toThrow();
   });
 
-  it.each(['straight', 'orthogonal', 'bezier', 'polyline'] as const)('parses @route:%s', (style) => {
-    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:${style}`));
-    expect(ir.edges[0]!.routing).toBe(style);
-  });
+  it.each(['straight', 'orthogonal', 'bezier', 'polyline'] as const)(
+    'parses @route:%s',
+    (style) => {
+      const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:${style}`));
+      expect(ir.edges[0]!.routing).toBe(style);
+    },
+  );
 
   it('parses property-block route form', () => {
     const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { route: bezier }'));
@@ -259,7 +278,9 @@ describe('connector rendering', () => {
   });
 
   it('@route wins over { route: ... } on conflict', () => {
-    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:bezier { route: straight }'));
+    const ir = parse(
+      header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:bezier { route: straight }'),
+    );
     expect(ir.edges[0]!.routing).toBe('bezier');
     expect(edgePath('-->', ' @route:bezier { route: straight }').d).toContain('C');
   });
@@ -276,7 +297,9 @@ describe('connector rendering', () => {
   });
 
   it('parses @orthogonal wall hints and changes only path geometry', () => {
-    const hinted = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @orthogonal:SS'));
+    const hinted = parse(
+      header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @orthogonal:SS'),
+    );
     expect(hinted.edges[0]!.routing).toBe('orthogonal');
     expect(hinted.edges[0]!.exitWall).toBe('S');
     expect(hinted.edges[0]!.entryWall).toBe('S');
@@ -292,7 +315,9 @@ describe('connector rendering', () => {
     ['straight', 'SN', 'S', 'N'],
     ['polyline', 'E', 'E', undefined],
   ] as const)('parses @%s:%s wall shorthand', (style, walls, exitWall, entryWall) => {
-    const ir = parse(header(`service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @${style}:${walls}`));
+    const ir = parse(
+      header(`service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @${style}:${walls}`),
+    );
     expect(ir.edges[0]!.routing).toBe(style);
     expect(ir.edges[0]!.exitWall).toBe(exitWall);
     expect(ir.edges[0]!.entryWall).toBe(entryWall);
@@ -307,14 +332,18 @@ describe('connector rendering', () => {
   });
 
   it('@ wall shorthand wins over { route: ... } on conflict', () => {
-    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:EW { route: straight }'));
+    const ir = parse(
+      header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:EW { route: straight }'),
+    );
     expect(ir.edges[0]!.routing).toBe('bezier');
     expect(ir.edges[0]!.exitWall).toBe('E');
     expect(ir.edges[0]!.entryWall).toBe('W');
   });
 
   it('allows animation and route annotations on the same edge', () => {
-    const ir = parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R -.-> L:b @anim:flow @route:bezier'));
+    const ir = parse(
+      header('service a(foo)[A]\nservice b(bar)[B]\na:R -.-> L:b @anim:flow @route:bezier'),
+    );
     expect(ir.edges[0]!.animation).toBe('flow');
     expect(ir.edges[0]!.routing).toBe('bezier');
     const path = edgePath('-.->', ' @anim:flow @route:bezier');
@@ -323,15 +352,27 @@ describe('connector rendering', () => {
   });
 
   it('rejects invalid route styles and wall hints', () => {
-    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:spin'))).toThrow();
-    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { route: spin }'))).toThrow();
-    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @orthogonal:EQ'))).toThrow();
-    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:XY'))).toThrow();
-    expect(() => parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:'))).toThrow();
+    expect(() =>
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @route:spin')),
+    ).toThrow();
+    expect(() =>
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b { route: spin }')),
+    ).toThrow();
+    expect(() =>
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @orthogonal:EQ')),
+    ).toThrow();
+    expect(() =>
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:XY')),
+    ).toThrow();
+    expect(() =>
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b @bezier:')),
+    ).toThrow();
   });
 
   it('omitted routing remains the same as explicit orthogonal default', () => {
-    expect(parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b')).edges[0]!.routing).toBeUndefined();
+    expect(
+      parse(header('service a(foo)[A]\nservice b(bar)[B]\na:R --> L:b')).edges[0]!.routing,
+    ).toBeUndefined();
     expect(edgePath('-->').d).toBe(edgePath('-->', ' @route:orthogonal').d);
   });
 });
@@ -345,14 +386,14 @@ describe('group-edge {group} modifier', () => {
 
   it('fromGroup is true when from endpoint has {group}', () => {
     const ir = parse(snippet);
-    const e1 = ir.edges.find(e => e.from === 'svc') as ArchEdge;
+    const e1 = ir.edges.find((e) => e.from === 'svc') as ArchEdge;
     expect(e1.fromGroup).toBe(true);
     expect(e1.toGroup).toBe(false);
   });
 
   it('toGroup is true when to endpoint has {group}', () => {
     const ir = parse(snippet);
-    const e2 = ir.edges.find(e => e.from === 'ext') as ArchEdge;
+    const e2 = ir.edges.find((e) => e.from === 'ext') as ArchEdge;
     expect(e2.toGroup).toBe(true);
     expect(e2.fromGroup).toBe(false);
   });
@@ -375,14 +416,18 @@ describe('align directives', () => {
   });
 
   it('parses align column with 3 members', () => {
-    const ir = parse(header('service a(s)[A]\nservice b(s)[B]\nservice c(s)[C]\nalign column a b c'));
-    const al = ir.aligns.find(a => a.axis === 'column');
+    const ir = parse(
+      header('service a(s)[A]\nservice b(s)[B]\nservice c(s)[C]\nalign column a b c'),
+    );
+    const al = ir.aligns.find((a) => a.axis === 'column');
     expect(al).toBeDefined();
     expect(al!.members).toEqual(['a', 'b', 'c']);
   });
 
   it('parses multiple align lines', () => {
-    const ir = parse(header('service a(s)[A]\nservice b(s)[B]\nservice c(s)[C]\nalign row a b\nalign column b c'));
+    const ir = parse(
+      header('service a(s)[A]\nservice b(s)[B]\nservice c(s)[C]\nalign row a b\nalign column b c'),
+    );
     expect(ir.aligns).toHaveLength(2);
   });
 
@@ -437,8 +482,9 @@ describe('icon alignment', () => {
   }
 
   function iconRect(scene = serviceIconScene()) {
-    return scene.elements.find((el): el is SceneRect =>
-      el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
+    return scene.elements.find(
+      (el): el is SceneRect =>
+        el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
     )!;
   }
 
@@ -450,15 +496,15 @@ describe('icon alignment', () => {
     const topY = r.y + topBarH + iconSize / 2;
     const bottomY = r.y + r.height - iconSize / 2 - 4;
     const centers: Record<ArchIconAlign, { x: number; y: number }> = {
-      N:  { x: r.x + r.width / 2, y: topY },
-      S:  { x: r.x + r.width / 2, y: bottomY },
-      E:  { x: r.x + r.width - laneW / 2, y: sideY },
-      W:  { x: r.x + laneW / 2, y: sideY },
+      N: { x: r.x + r.width / 2, y: topY },
+      S: { x: r.x + r.width / 2, y: bottomY },
+      E: { x: r.x + r.width - laneW / 2, y: sideY },
+      W: { x: r.x + laneW / 2, y: sideY },
       NE: { x: r.x + r.width - laneW / 2, y: topY },
       NW: { x: r.x + laneW / 2, y: topY },
       SE: { x: r.x + r.width - laneW / 2, y: bottomY },
       SW: { x: r.x + laneW / 2, y: bottomY },
-      C:  { x: r.x + r.width / 2, y: topY },
+      C: { x: r.x + r.width / 2, y: topY },
     };
     const c = centers[align];
     return { x: c.x - 9, y: c.y - 9, width: 18, height: 18 };
@@ -489,7 +535,9 @@ describe('icon alignment', () => {
     const ir = parse(header('service a(custom)[A] @iconalign:E { iconalign: W }'));
     expect(ir.services[0]!.iconAlign).toBe('E');
     const scene = serviceIconScene('@iconalign:E { iconalign: W }');
-    const label = scene.elements.find((el): el is SceneText => el.type === 'text' && el.content === 'A')!;
+    const label = scene.elements.find(
+      (el): el is SceneText => el.type === 'text' && el.content === 'A',
+    )!;
     expect(label.anchor).toBe('start');
   });
 
@@ -497,15 +545,23 @@ describe('icon alignment', () => {
     const ir = parse(header('group g(custom)[G] { iconalign: NW }\n  service a(server)[A]'));
     expect(ir.groups[0]!.iconAlign).toBe('NW');
     const scene = layoutArchitecture(ir, defaultTheme).scene;
-    const groupRect = scene.elements.find((el): el is SceneRect =>
-      el.type === 'rect' && el.rx === 10,
+    const groupRect = scene.elements.find(
+      (el): el is SceneRect => el.type === 'rect' && el.rx === 10,
     )!;
-    const groupIcon = scene.elements.find((el): el is SceneRect =>
-      el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
+    const groupIcon = scene.elements.find(
+      (el): el is SceneRect =>
+        el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
     );
     expect(groupIcon).toBeDefined();
-    expect(groupIcon!.bounds).toEqual({ x: groupRect.bounds.x + 9, y: groupRect.bounds.y + 7, width: 18, height: 18 });
-    const label = scene.elements.find((el): el is SceneText => el.type === 'text' && el.content === 'G')!;
+    expect(groupIcon!.bounds).toEqual({
+      x: groupRect.bounds.x + 9,
+      y: groupRect.bounds.y + 7,
+      width: 18,
+      height: 18,
+    });
+    const label = scene.elements.find(
+      (el): el is SceneText => el.type === 'text' && el.content === 'G',
+    )!;
     expect(label.position).toEqual({ x: groupRect.bounds.x + 34, y: groupRect.bounds.y + 16 });
     expect(label.anchor).toBe('start');
   });
@@ -513,15 +569,26 @@ describe('icon alignment', () => {
   it('keeps right-aligned group icons and labels in the header strip', () => {
     const ir = parse(header('group g(custom)[G] @iconalign:E\n  service a(server)[A]'));
     const scene = layoutArchitecture(ir, defaultTheme).scene;
-    const groupRect = scene.elements.find((el): el is SceneRect =>
-      el.type === 'rect' && el.rx === 10,
+    const groupRect = scene.elements.find(
+      (el): el is SceneRect => el.type === 'rect' && el.rx === 10,
     )!;
-    const groupIcon = scene.elements.find((el): el is SceneRect =>
-      el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
+    const groupIcon = scene.elements.find(
+      (el): el is SceneRect =>
+        el.type === 'rect' && el.bounds.width === 18 && el.bounds.height === 18,
     )!;
-    expect(groupIcon.bounds).toEqual({ x: groupRect.bounds.x + groupRect.bounds.width - 27, y: groupRect.bounds.y + 7, width: 18, height: 18 });
-    const label = scene.elements.find((el): el is SceneText => el.type === 'text' && el.content === 'G')!;
-    expect(label.position).toEqual({ x: groupRect.bounds.x + groupRect.bounds.width - 34, y: groupRect.bounds.y + 16 });
+    expect(groupIcon.bounds).toEqual({
+      x: groupRect.bounds.x + groupRect.bounds.width - 27,
+      y: groupRect.bounds.y + 7,
+      width: 18,
+      height: 18,
+    });
+    const label = scene.elements.find(
+      (el): el is SceneText => el.type === 'text' && el.content === 'G',
+    )!;
+    expect(label.position).toEqual({
+      x: groupRect.bounds.x + groupRect.bounds.width - 34,
+      y: groupRect.bounds.y + 16,
+    });
     expect(label.anchor).toBe('end');
   });
 
@@ -564,8 +631,8 @@ describe('existing architecture example', () => {
 
   it('services indented inside group are assigned to that group', () => {
     const ir = parse(src);
-    const api = ir.services.find(s => s.id === 'api');
-    const db = ir.services.find(s => s.id === 'db');
+    const api = ir.services.find((s) => s.id === 'api');
+    const db = ir.services.find((s) => s.id === 'db');
     expect(api?.group).toBe('cloud_grp');
     expect(db?.group).toBe('cloud_grp');
   });

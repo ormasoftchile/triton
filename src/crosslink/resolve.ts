@@ -59,17 +59,23 @@ export function resolveCrossLinks(
   for (let i = 0; i < links.length; i++) {
     const link = links[i]!;
     const fromKey = addressToKey(link.from);
-    const toKey   = addressToKey(link.to);
+    const toKey = addressToKey(link.to);
 
     const fromAnchor = anchors[fromKey];
-    const toAnchor   = anchors[toKey];
+    const toAnchor = anchors[toKey];
 
     if (!fromAnchor) {
-      diagnostics.push({ linkIndex: i, message: `Cannot resolve source: "${fromKey}" not found in anchor registry` });
+      diagnostics.push({
+        linkIndex: i,
+        message: `Cannot resolve source: "${fromKey}" not found in anchor registry`,
+      });
       continue;
     }
     if (!toAnchor) {
-      diagnostics.push({ linkIndex: i, message: `Cannot resolve target: "${toKey}" not found in anchor registry` });
+      diagnostics.push({
+        linkIndex: i,
+        message: `Cannot resolve target: "${toKey}" not found in anchor registry`,
+      });
       continue;
     }
 
@@ -86,7 +92,7 @@ export function resolveCrossLinks(
         ownBoundsSet.add(anchor.bounds);
       }
     }
-    const crossingObstacles = allBounds.filter(b => !ownBoundsSet.has(b));
+    const crossingObstacles = allBounds.filter((b) => !ownBoundsSet.has(b));
 
     // Add shrunken intermediate-cell rects as crossing obstacles.
     // This guides port selection toward routes that travel through inter-cell
@@ -96,15 +102,24 @@ export function resolveCrossLinks(
       const dstId = link.to.cellPath.join('.');
       for (const [cellId, r] of cellRects) {
         if (cellId === srcId || cellId === dstId) continue;
-        const sw = r.width  - 2 * CELL_SHRINK;
+        const sw = r.width - 2 * CELL_SHRINK;
         const sh = r.height - 2 * CELL_SHRINK;
         if (sw > 0 && sh > 0) {
-          crossingObstacles.push({ x: r.x + CELL_SHRINK, y: r.y + CELL_SHRINK, width: sw, height: sh });
+          crossingObstacles.push({
+            x: r.x + CELL_SHRINK,
+            y: r.y + CELL_SHRINK,
+            width: sw,
+            height: sh,
+          });
         }
       }
     }
 
-    const { fromPort, toPort, fromSide, toSide } = selectBestPorts(fromAnchor, toAnchor, crossingObstacles);
+    const { fromPort, toPort, fromSide, toSide } = selectBestPorts(
+      fromAnchor,
+      toAnchor,
+      crossingObstacles,
+    );
 
     resolved.push({ link, fromAnchor, toAnchor, fromPort, toPort, fromSide, toSide });
   }
@@ -138,20 +153,24 @@ const OBSTACLE_PENALTY = 1_000_000;
  * Simulates the orthogonal route shape (not just straight line) when
  * counting obstacle crossings, because the actual router produces bends.
  */
-function selectBestPorts(from: NodeAnchor, to: NodeAnchor, obstacles: Rect[]): {
+function selectBestPorts(
+  from: NodeAnchor,
+  to: NodeAnchor,
+  obstacles: Rect[],
+): {
   fromPort: Point;
   toPort: Point;
   fromSide: CardinalSide;
   toSide: CardinalSide;
 } {
   const fromPorts = availablePorts(from);
-  const toPorts   = availablePorts(to);
+  const toPorts = availablePorts(to);
 
   let bestScore = Infinity;
   let bestFrom: Point = fromPorts[0]![1];
-  let bestTo: Point   = toPorts[0]![1];
+  let bestTo: Point = toPorts[0]![1];
   let bestFromSide: CardinalSide = fromPorts[0]![0];
-  let bestToSide: CardinalSide   = toPorts[0]![0];
+  let bestToSide: CardinalSide = toPorts[0]![0];
 
   for (const [fSide, fPt] of fromPorts) {
     for (const [tSide, tPt] of toPorts) {
@@ -178,8 +197,10 @@ function selectBestPorts(from: NodeAnchor, to: NodeAnchor, obstacles: Rect[]): {
  * along ALL segments (not just the straight line between ports).
  */
 function countOrthogonalRouteCrossings(
-  from: Point, to: Point,
-  fromSide: CardinalSide, toSide: CardinalSide,
+  from: Point,
+  to: Point,
+  fromSide: CardinalSide,
+  toSide: CardinalSide,
   obstacles: Rect[],
 ): number {
   // Simulate the orthogonal router's logic to get the actual waypoints
@@ -195,7 +216,12 @@ function countOrthogonalRouteCrossings(
  * Produce the waypoint segments the orthogonal router would generate.
  * Mirrors the logic in router.ts but returns segment pairs.
  */
-function simulateOrthogonalRoute(from: Point, to: Point, fromSide: CardinalSide, toSide: CardinalSide): [Point, Point][] {
+function simulateOrthogonalRoute(
+  from: Point,
+  to: Point,
+  fromSide: CardinalSide,
+  toSide: CardinalSide,
+): [Point, Point][] {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const midX = (from.x + to.x) / 2;
@@ -206,27 +232,41 @@ function simulateOrthogonalRoute(from: Point, to: Point, fromSide: CardinalSide,
     return [[from, to]];
   }
 
-  const exitH  = fromSide === 'E' || fromSide === 'W';
+  const exitH = fromSide === 'E' || fromSide === 'W';
   const entryH = toSide === 'E' || toSide === 'W';
 
   if (exitH && entryH) {
     // H → V → H (bend at midX)
     const v1: Point = { x: midX, y: from.y };
     const v2: Point = { x: midX, y: to.y };
-    return [[from, v1], [v1, v2], [v2, to]];
+    return [
+      [from, v1],
+      [v1, v2],
+      [v2, to],
+    ];
   } else if (!exitH && !entryH) {
     // V → H → V (bend at midY)
     const v1: Point = { x: from.x, y: midY };
-    const v2: Point = { x: to.x,   y: midY };
-    return [[from, v1], [v1, v2], [v2, to]];
+    const v2: Point = { x: to.x, y: midY };
+    return [
+      [from, v1],
+      [v1, v2],
+      [v2, to],
+    ];
   } else if (exitH && !entryH) {
     // H then V — single corner
     const corner: Point = { x: to.x, y: from.y };
-    return [[from, corner], [corner, to]];
+    return [
+      [from, corner],
+      [corner, to],
+    ];
   } else {
     // V then H — single corner
     const corner: Point = { x: from.x, y: to.y };
-    return [[from, corner], [corner, to]];
+    return [
+      [from, corner],
+      [corner, to],
+    ];
   }
 }
 
@@ -243,7 +283,7 @@ function countSegmentObstacleCrossings(p1: Point, p2: Point, obstacles: Rect[]):
   const segMaxY = Math.max(p1.y, p2.y);
 
   for (const obs of obstacles) {
-    const oRight  = obs.x + obs.width;
+    const oRight = obs.x + obs.width;
     const oBottom = obs.y + obs.height;
 
     // Quick AABB rejection
@@ -275,9 +315,9 @@ function segmentIntersectsRect(p1: Point, p2: Point, r: Rect): boolean {
 
   const edges = [
     { p: -dx, q: p1.x - xmin },
-    { p:  dx, q: xmax - p1.x },
+    { p: dx, q: xmax - p1.x },
     { p: -dy, q: p1.y - ymin },
-    { p:  dy, q: ymax - p1.y },
+    { p: dy, q: ymax - p1.y },
   ];
 
   for (const { p, q } of edges) {
@@ -317,10 +357,9 @@ function availablePorts(anchor: NodeAnchor): [CardinalSide, Point][] {
     W: { x: bounds.x, y: cy },
   };
 
-  return SIDES.map(side => [
-    side,
-    anchor.ports?.[side] ?? defaults[side],
-  ] as [CardinalSide, Point]);
+  return SIDES.map(
+    (side) => [side, anchor.ports?.[side] ?? defaults[side]] as [CardinalSide, Point],
+  );
 }
 
 // ─── Port Spreading ──────────────────────────────────────────────────────────
@@ -337,7 +376,7 @@ function spreadSharedPorts(resolved: ResolvedCrossLink[], anchors: NodeAnchorReg
   for (let i = 0; i < resolved.length; i++) {
     const r = resolved[i]!;
     const fromKey = addressToKey(r.link.from);
-    const toKey   = addressToKey(r.link.to);
+    const toKey = addressToKey(r.link.to);
     const fGroup = `${fromKey}.${r.fromSide}`;
     const tGroup = `${toKey}.${r.toSide}`;
 
@@ -366,10 +405,18 @@ function spreadSharedPorts(resolved: ResolvedCrossLink[], anchors: NodeAnchorReg
       const t = (i + 1) / (n + 1); // 1/(n+1), 2/(n+1), ... n/(n+1)
       let pt: Point;
       switch (side) {
-        case 'N': pt = { x: bounds.x + bounds.width * t, y: bounds.y }; break;
-        case 'S': pt = { x: bounds.x + bounds.width * t, y: bounds.y + bounds.height }; break;
-        case 'E': pt = { x: bounds.x + bounds.width, y: bounds.y + bounds.height * t }; break;
-        case 'W': pt = { x: bounds.x, y: bounds.y + bounds.height * t }; break;
+        case 'N':
+          pt = { x: bounds.x + bounds.width * t, y: bounds.y };
+          break;
+        case 'S':
+          pt = { x: bounds.x + bounds.width * t, y: bounds.y + bounds.height };
+          break;
+        case 'E':
+          pt = { x: bounds.x + bounds.width, y: bounds.y + bounds.height * t };
+          break;
+        case 'W':
+          pt = { x: bounds.x, y: bounds.y + bounds.height * t };
+          break;
       }
 
       const { index, isFrom } = members[i]!;

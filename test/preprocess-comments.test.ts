@@ -103,14 +103,16 @@ describe('detect after stripComments', () => {
 
 describe('render with %% comments in previously-unsupported families', () => {
   it('renders classDiagram with a leading %% comment', async () => {
-    const src = '%% This diagram has no built-in Comment rule\nclassDiagram\n  class Animal {\n    +String name\n  }\n  Animal <|-- Dog\n';
+    const src =
+      '%% This diagram has no built-in Comment rule\nclassDiagram\n  class Animal {\n    +String name\n  }\n  Animal <|-- Dog\n';
     const result = await render(src);
     if (!result.ok) throw new Error(`class: ${result.error.code} — ${result.error.message}`);
     expect(result.value).toContain('<svg');
   });
 
   it('renders packet-beta with a leading %% comment', async () => {
-    const src = '%% packet options\npacket-beta\n  title TCP\n  0-3: "Data Offset"\n  16-31: "Window"\n';
+    const src =
+      '%% packet options\npacket-beta\n  title TCP\n  0-3: "Data Offset"\n  16-31: "Window"\n';
     const result = await render(src);
     if (!result.ok) throw new Error(`packet: ${result.error.code} — ${result.error.message}`);
     expect(result.value).toContain('<svg');

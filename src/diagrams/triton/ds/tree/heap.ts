@@ -33,7 +33,8 @@ export function buildHeap(input: string): TreeDocument {
     const id = `n${idx}`;
     const children: string[] = [];
     nodes.push({ id, label: String(heap[idx]), kinds: ['circle'], children });
-    const l = 2 * idx + 1, r = 2 * idx + 2;
+    const l = 2 * idx + 1,
+      r = 2 * idx + 2;
     if (l < heap.length) children.push(emit(l));
     if (r < heap.length) children.push(emit(r));
     return id;

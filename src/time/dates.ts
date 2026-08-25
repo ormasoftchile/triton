@@ -112,20 +112,28 @@ export function parseIRDate(s: IRDate): ParsedDate {
 /** Coerce a parsed date to its period-start day (left-edge rule). */
 export function coerceLeft(parsed: ParsedDate): [number, number, number] {
   switch (parsed.precision) {
-    case 'day':     return [parsed.year, parsed.month!, parsed.day!];
-    case 'month':   return [parsed.year, parsed.month!, 1];
-    case 'year':    return [parsed.year, 1, 1];
-    case 'quarter': return [parsed.year, (parsed.quarter! - 1) * 3 + 1, 1];
-    case 'half':    return [parsed.year, parsed.half! === 1 ? 1 : 7, 1];
+    case 'day':
+      return [parsed.year, parsed.month!, parsed.day!];
+    case 'month':
+      return [parsed.year, parsed.month!, 1];
+    case 'year':
+      return [parsed.year, 1, 1];
+    case 'quarter':
+      return [parsed.year, (parsed.quarter! - 1) * 3 + 1, 1];
+    case 'half':
+      return [parsed.year, parsed.half! === 1 ? 1 : 7, 1];
   }
 }
 
 /** Coerce a parsed date to its period-end day (right-edge rule). */
 export function coerceRight(parsed: ParsedDate): [number, number, number] {
   switch (parsed.precision) {
-    case 'day':   return [parsed.year, parsed.month!, parsed.day!];
-    case 'month': return [parsed.year, parsed.month!, daysInMonth(parsed.year, parsed.month!)];
-    case 'year':  return [parsed.year, 12, 31];
+    case 'day':
+      return [parsed.year, parsed.month!, parsed.day!];
+    case 'month':
+      return [parsed.year, parsed.month!, daysInMonth(parsed.year, parsed.month!)];
+    case 'year':
+      return [parsed.year, 12, 31];
     case 'quarter': {
       const lastMonth = parsed.quarter! * 3;
       return [parsed.year, lastMonth, daysInMonth(parsed.year, lastMonth)];
@@ -153,9 +161,9 @@ export function parseAndCoerceRight(s: IRDate): number {
 
 /** Infer the axis unit from the span in days (first-match rule). */
 export function inferAxisUnit(spanDays: number): AxisUnit {
-  if (spanDays <= 14)   return 'day';
-  if (spanDays <= 91)   return 'week';
-  if (spanDays <= 548)  return 'month';
+  if (spanDays <= 14) return 'day';
+  if (spanDays <= 91) return 'week';
+  if (spanDays <= 548) return 'month';
   if (spanDays <= 1461) return 'quarter';
   if (spanDays <= 2922) return 'half';
   return 'year';
@@ -171,33 +179,59 @@ export interface TickDate {
 }
 
 /** Advance a (year, month, day) by one axis-unit period; returns next period start. */
-function advancePeriod(year: number, month: number, day: number, unit: AxisUnit): [number, number, number] {
+function advancePeriod(
+  year: number,
+  month: number,
+  day: number,
+  unit: AxisUnit,
+): [number, number, number] {
   switch (unit) {
-    case 'day':  return ordinalToDate(dateToOrdinal(year, month, day) + 1);
-    case 'week': return ordinalToDate(dateToOrdinal(year, month, day) + 7);
+    case 'day':
+      return ordinalToDate(dateToOrdinal(year, month, day) + 1);
+    case 'week':
+      return ordinalToDate(dateToOrdinal(year, month, day) + 7);
     case 'month': {
-      let m = month + 1, y = year;
-      if (m > 12) { m = 1; y += 1; }
+      let m = month + 1,
+        y = year;
+      if (m > 12) {
+        m = 1;
+        y += 1;
+      }
       return [y, m, 1];
     }
     case 'quarter': {
-      let m = month + 3, y = year;
-      if (m > 12) { m = m - 12; y += 1; }
+      let m = month + 3,
+        y = year;
+      if (m > 12) {
+        m = m - 12;
+        y += 1;
+      }
       return [y, m, 1];
     }
     case 'half': {
-      let m = month + 6, y = year;
-      if (m > 12) { m = m - 12; y += 1; }
+      let m = month + 6,
+        y = year;
+      if (m > 12) {
+        m = m - 12;
+        y += 1;
+      }
       return [y, m, 1];
     }
-    case 'year': return [year + 1, 1, 1];
+    case 'year':
+      return [year + 1, 1, 1];
   }
 }
 
 /** Snap a date to the start of its containing axis-unit period. */
-function snapToPeriodStart(year: number, month: number, _day: number, unit: AxisUnit): [number, number, number] {
+function snapToPeriodStart(
+  year: number,
+  month: number,
+  _day: number,
+  unit: AxisUnit,
+): [number, number, number] {
   switch (unit) {
-    case 'day': return [year, month, _day];
+    case 'day':
+      return [year, month, _day];
     case 'week': {
       const o = dateToOrdinal(year, month, _day);
       const jsEpoch = 946684800000; // 2000-01-01 UTC ms
@@ -206,13 +240,16 @@ function snapToPeriodStart(year: number, month: number, _day: number, unit: Axis
       const daysToMonday = jsDay === 0 ? 6 : jsDay - 1;
       return ordinalToDate(o - daysToMonday);
     }
-    case 'month': return [year, month, 1];
+    case 'month':
+      return [year, month, 1];
     case 'quarter': {
       const q = Math.floor((month - 1) / 3);
       return [year, q * 3 + 1, 1];
     }
-    case 'half': return [year, month <= 6 ? 1 : 7, 1];
-    case 'year': return [year, 1, 1];
+    case 'half':
+      return [year, month <= 6 ? 1 : 7, 1];
+    case 'year':
+      return [year, 1, 1];
   }
 }
 
@@ -240,18 +277,48 @@ export function enumTicks(tsOrd: number, teOrd: number, unit: AxisUnit): TickDat
 
 // ─── Date label formatting ─────────────────────────────────────────────────────
 
-const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTH_ABBR = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+const MONTH_FULL = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 function ordinalSuffix(n: number): string {
   const abs = Math.abs(n);
   const mod100 = abs % 100;
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
   switch (abs % 10) {
-    case 1: return `${n}st`;
-    case 2: return `${n}nd`;
-    case 3: return `${n}rd`;
-    default: return `${n}th`;
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
   }
 }
 
@@ -291,14 +358,22 @@ export function formatMilestoneDate(year: number, month: number, day: number): s
 
 /** Day-ordinal of a date's period START (e.g. "2026-Q2" → 1 Apr 2026). 0 on parse error. */
 export function startOrdinal(date: IRDate): number {
-  try { const [y, m, d] = coerceLeft(parseIRDate(date)); return dateToOrdinal(y, m, d); }
-  catch { return 0; }
+  try {
+    const [y, m, d] = coerceLeft(parseIRDate(date));
+    return dateToOrdinal(y, m, d);
+  } catch {
+    return 0;
+  }
 }
 
 /** Day-ordinal of a date's period END (e.g. "2026-Q2" → 1 Jul 2026). 0 on parse error. */
 export function endOrdinal(date: IRDate): number {
-  try { const [y, m, d] = coerceRight(parseIRDate(date)); return dateToOrdinal(y, m, d); }
-  catch { return 0; }
+  try {
+    const [y, m, d] = coerceRight(parseIRDate(date));
+    return dateToOrdinal(y, m, d);
+  } catch {
+    return 0;
+  }
 }
 
 /** Label style for {@link formatDate}. 'axis' shows "Jun 9" for days; 'full' shows "9th June 2026". */
@@ -317,11 +392,17 @@ export function formatDate(date: IRDate, style: DateLabelStyle = 'axis'): string
         return style === 'full'
           ? formatMilestoneDate(p.year, p.month ?? 1, p.day ?? 1)
           : `${MONTH_ABBR[(p.month ?? 1) - 1] ?? ''} ${p.day ?? 1}`;
-      case 'month':   return `${MONTH_ABBR[(p.month ?? 1) - 1] ?? ''} ${p.year}`;
-      case 'quarter': return `Q${p.quarter ?? ''} ${p.year}`;
-      case 'half':    return `H${p.half ?? ''} ${p.year}`;
-      case 'year':    return String(p.year);
+      case 'month':
+        return `${MONTH_ABBR[(p.month ?? 1) - 1] ?? ''} ${p.year}`;
+      case 'quarter':
+        return `Q${p.quarter ?? ''} ${p.year}`;
+      case 'half':
+        return `H${p.half ?? ''} ${p.year}`;
+      case 'year':
+        return String(p.year);
     }
-  } catch { /* fall through to raw */ }
+  } catch {
+    /* fall through to raw */
+  }
   return date;
 }

@@ -17,25 +17,11 @@
  *   diagram      ← scene, theme, overlay
  */
 
-export type {
-  Point,
-  Size,
-  Rect,
-  Color,
-  FontFamily,
-  TextAnchor,
-  FontWeight,
-} from './primitives.js';
+export type { Point, Size, Rect, Color, FontFamily, TextAnchor, FontWeight } from './primitives.js';
 
-export type {
-  RenderedConnectorAnimation,
-  CrossLinkAnimation,
-} from './animations.js';
+export type { RenderedConnectorAnimation, CrossLinkAnimation } from './animations.js';
 
-export {
-  CONNECTOR_ANIMATIONS,
-  isRenderedConnectorAnimation,
-} from './animations.js';
+export { CONNECTOR_ANIMATIONS, isRenderedConnectorAnimation } from './animations.js';
 
 export type {
   SceneRect,
@@ -87,11 +73,7 @@ export type {
   BaseIR,
 } from './diagram.js';
 
-export type {
-  DiagramErrorCode,
-  DiagramError,
-  Result,
-} from './result.js';
+export type { DiagramErrorCode, DiagramError, Result } from './result.js';
 
 export { ok, err } from './result.js';
 
@@ -120,11 +102,7 @@ export type {
   LayoutOptions,
 } from './anchors.js';
 
-export type {
-  RevealEffect,
-  RevealStep,
-  RevealTrack,
-} from './reveal.js';
+export type { RevealEffect, RevealStep, RevealTrack } from './reveal.js';
 
 export type {
   NodeAddress,

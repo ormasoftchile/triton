@@ -77,7 +77,9 @@ describe('flowchart grammar — node annotations', () => {
   });
 
   it('parses both @shape and @icon on the same node', () => {
-    const raw = parse(`flowchart TD\nA ["App Service"] @shape:card @icon:azure:app-service\n`) as any;
+    const raw = parse(
+      `flowchart TD\nA ["App Service"] @shape:card @icon:azure:app-service\n`,
+    ) as any;
     const node = raw.flow.nodes[0];
     expect(node.shape).toBe('card');
     expect(node.iconToken).toBe('azure:app-service');
@@ -105,7 +107,9 @@ describe('flowchart grammar — node annotations', () => {
   });
 
   it('edge annotations are unaffected alongside annotated nodes', () => {
-    const raw = parse(`flowchart LR\nA ["Server"] @icon:mdi:server\nA --> B @orthogonal:EW\n`) as any;
+    const raw = parse(
+      `flowchart LR\nA ["Server"] @icon:mdi:server\nA --> B @orthogonal:EW\n`,
+    ) as any;
     const aNode = raw.flow.nodes.find((n: any) => n.id === 'a');
     expect(aNode?.iconToken).toBe('mdi:server');
     const edge = raw.flow.edges[0];
@@ -136,9 +140,9 @@ describe('flowchart module parseMermaid — FlowNode.icon', () => {
 
   it('malformed @icon value throws a descriptive parse error', () => {
     // "BADREF" has no colon → parseIconRef returns err
-    expect(() =>
-      flowchart.parseMermaid(`flowchart TD\nA ["Node"] @icon:BADREF\n`)
-    ).toThrow(/invalid @icon value/i);
+    expect(() => flowchart.parseMermaid(`flowchart TD\nA ["Node"] @icon:BADREF\n`)).toThrow(
+      /invalid @icon value/i,
+    );
   });
 
   it('malformed @icon value error cites the bad token', () => {
@@ -235,13 +239,18 @@ describe('renderSync with icons — SVG output', () => {
   });
 
   it('@shape:card is stored but does not break layout (P7 TODO)', () => {
-    const doc = flowchart.parseMermaid(`flowchart TD\nA ["App"] @shape:card @icon:mdi:server\nA --> B\n`);
-    const aNode = doc.nodes.find(n => n.id === 'a')!;
+    const doc = flowchart.parseMermaid(
+      `flowchart TD\nA ["App"] @shape:card @icon:mdi:server\nA --> B\n`,
+    );
+    const aNode = doc.nodes.find((n) => n.id === 'a')!;
     expect(aNode.shape).toBe('card');
     // renderSync should not throw — card shape falls through to normal layout for now
     const result = renderSync(
       `flowchart TD\nA ["App"] @shape:card @icon:mdi:server\nA --> B\n`,
-      undefined, 'svg', undefined, PACK_MAP,
+      undefined,
+      'svg',
+      undefined,
+      PACK_MAP,
     );
     expect(result.ok).toBe(true);
   });

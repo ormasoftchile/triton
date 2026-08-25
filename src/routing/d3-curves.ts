@@ -7,7 +7,16 @@
  * converts computed geometry into well-formed SVG path strings.
  */
 
-import { line, curveLinear, curveCatmullRom, curveCardinal, curveBasis, curveNatural, curveMonotoneX, curveMonotoneY } from 'd3-shape';
+import {
+  line,
+  curveLinear,
+  curveCatmullRom,
+  curveCardinal,
+  curveBasis,
+  curveNatural,
+  curveMonotoneX,
+  curveMonotoneY,
+} from 'd3-shape';
 import type { CurveFactory } from 'd3-shape';
 import { path } from 'd3-path';
 import type { Point, CurveStyle } from '../contracts/index.js';
@@ -18,12 +27,7 @@ import type { Point, CurveStyle } from '../contracts/index.js';
  *
  * Output format: `M{x},{y}C{cx1},{cy1},{cx2},{cy2},{x},{y}`
  */
-export function buildCubicBezierPath(
-  from: Point,
-  cp1: Point,
-  cp2: Point,
-  to: Point,
-): string {
+export function buildCubicBezierPath(from: Point, cp1: Point, cp2: Point, to: Point): string {
   const p = path();
   p.moveTo(from.x, from.y);
   p.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, to.x, to.y);
@@ -46,13 +50,13 @@ export function buildLinePath(points: readonly Point[]): string {
 // ─── Named-curve dispatch ──────────────────────────────────────────────────────
 
 const CURVE_FACTORIES: Record<CurveStyle, CurveFactory> = {
-  'linear':      curveLinear,
+  linear: curveLinear,
   'catmull-rom': curveCatmullRom,
-  'cardinal':    curveCardinal,
-  'basis':       curveBasis,
-  'natural':     curveNatural,
-  'monotone-x':  curveMonotoneX,
-  'monotone-y':  curveMonotoneY,
+  cardinal: curveCardinal,
+  basis: curveBasis,
+  natural: curveNatural,
+  'monotone-x': curveMonotoneX,
+  'monotone-y': curveMonotoneY,
 };
 
 /**
@@ -61,10 +65,7 @@ const CURVE_FACTORIES: Record<CurveStyle, CurveFactory> = {
  * Control-point computation lives in the caller; this function only governs
  * how those points are interpolated into an SVG path string.
  */
-export function buildCurvedLinePath(
-  points: readonly Point[],
-  curveStyle: CurveStyle,
-): string {
+export function buildCurvedLinePath(points: readonly Point[], curveStyle: CurveStyle): string {
   const gen = line<Point>()
     .x((d: Point) => d.x)
     .y((d: Point) => d.y)

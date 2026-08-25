@@ -14,7 +14,9 @@ describe('embedAnchorManifest', () => {
     expect(result).toContain('<script type="application/json" id="triton-anchors">');
     expect(result).toContain('</script>');
     expect(result).toMatch(/<\/svg>$/);
-    const match = result.match(/<script type="application\/json" id="triton-anchors">([\s\S]*?)<\/script>/);
+    const match = result.match(
+      /<script type="application\/json" id="triton-anchors">([\s\S]*?)<\/script>/,
+    );
     expect(match).not.toBeNull();
     const parsed = JSON.parse(match![1]);
     expect(parsed.n0.bounds.width).toBe(50);
@@ -39,7 +41,9 @@ describe('embedAnchorManifest', () => {
       m_node: { bounds: { x: 2, y: 2, width: 10, height: 10 } },
     };
     const result = embedAnchorManifest(baseSvg, anchors);
-    const match = result.match(/<script type="application\/json" id="triton-anchors">([\s\S]*?)<\/script>/);
+    const match = result.match(
+      /<script type="application\/json" id="triton-anchors">([\s\S]*?)<\/script>/,
+    );
     const parsed = JSON.parse(match![1]);
     const keys = Object.keys(parsed);
     expect(keys).toEqual(['a_node', 'm_node', 'z_node']);
@@ -80,7 +84,9 @@ describe('embedAnchorManifest', () => {
   it('handles empty anchors gracefully', () => {
     const result = embedAnchorManifest(baseSvg, {});
     expect(result).toContain('<script type="application/json" id="triton-anchors">');
-    const match = result.match(/<script type="application\/json" id="triton-anchors">([\s\S]*?)<\/script>/);
+    const match = result.match(
+      /<script type="application\/json" id="triton-anchors">([\s\S]*?)<\/script>/,
+    );
     expect(JSON.parse(match![1])).toEqual({});
   });
 });
@@ -121,7 +127,9 @@ describe('compileAndRenderSync', () => {
     if (!result.ok) return;
     // Anchors are returned separately; svg must be manifest-free
     expect(result.value.svg).not.toContain('triton-anchors');
-    expect(Object.keys(result.value.anchors).sort()).toEqual(Object.keys(result.value.anchors).sort());
+    expect(Object.keys(result.value.anchors).sort()).toEqual(
+      Object.keys(result.value.anchors).sort(),
+    );
   });
 
   it('anchors object is populated (has at least one entry for linkable diagrams)', () => {

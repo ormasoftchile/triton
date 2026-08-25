@@ -9,14 +9,21 @@ import type { FlowDocument } from '../src/diagrams/mermaid/flowchart/ir.js';
 import type { TimelineDocument } from '../src/diagrams/mermaid/timeline/ir.js';
 
 const flowDoc: FlowDocument = {
-  version: '1.0', metadata: { title: 'CI' }, direction: 'LR',
-  nodes: [{ id: 'a', label: 'A', shape: 'rect' }, { id: 'b', label: 'B', shape: 'rect' }],
+  version: '1.0',
+  metadata: { title: 'CI' },
+  direction: 'LR',
+  nodes: [
+    { id: 'a', label: 'A', shape: 'rect' },
+    { id: 'b', label: 'B', shape: 'rect' },
+  ],
   edges: [{ from: 'a', to: 'b', style: 'solid' }],
   subgraphs: [],
 };
 
 const timelineDoc: TimelineDocument = {
-  version: '1.0', metadata: { title: 'Road' }, layout: 'horizontal',
+  version: '1.0',
+  metadata: { title: 'Road' },
+  layout: 'horizontal',
   tracks: [{ id: 'main', label: 'Main' }],
   activities: [{ id: 'a1', label: 'Phase 1', track: 'main', start: '2025-Q1', end: '2025-Q2' }],
   milestones: [{ id: 'm1', label: 'Launch', date: '2025-06' }],
@@ -27,10 +34,22 @@ const posterDoc: PosterDocument = {
   metadata: { title: 'Architecture Overview' },
   grid: { columns: 2 },
   cells: [
-    { id: 'flow',     title: 'Pipeline', content: { kind: 'diagram', diagramKind: 'flowchart', doc: flowDoc } },
-    { id: 'timeline', title: 'Roadmap',  content: { kind: 'diagram', diagramKind: 'timeline', doc: timelineDoc } },
-    { id: 'stat',     title: 'Uptime',   content: { kind: 'stat', value: '99.9%', label: 'Availability' } },
-    { id: 'note',                         content: { kind: 'text', text: 'All systems nominal.' } },
+    {
+      id: 'flow',
+      title: 'Pipeline',
+      content: { kind: 'diagram', diagramKind: 'flowchart', doc: flowDoc },
+    },
+    {
+      id: 'timeline',
+      title: 'Roadmap',
+      content: { kind: 'diagram', diagramKind: 'timeline', doc: timelineDoc },
+    },
+    {
+      id: 'stat',
+      title: 'Uptime',
+      content: { kind: 'stat', value: '99.9%', label: 'Availability' },
+    },
+    { id: 'note', content: { kind: 'text', text: 'All systems nominal.' } },
   ],
 };
 
@@ -44,20 +63,20 @@ describe('poster layout', () => {
 
   it('title appears in elements', async () => {
     const { scene } = await layoutPoster(posterDoc, defaultTheme);
-    const texts = scene.elements.filter(e => e.type === 'text') as any[];
-    expect(texts.some(t => t.content === 'Architecture Overview')).toBe(true);
+    const texts = scene.elements.filter((e) => e.type === 'text') as any[];
+    expect(texts.some((t) => t.content === 'Architecture Overview')).toBe(true);
   });
 
   it('produces cell border rects for all 4 cells', async () => {
     const { scene } = await layoutPoster(posterDoc, defaultTheme);
-    const rects = scene.elements.filter(e => e.type === 'rect') as any[];
+    const rects = scene.elements.filter((e) => e.type === 'rect') as any[];
     // 4 cell borders + possibly more from child scenes
     expect(rects.length).toBeGreaterThanOrEqual(4);
   });
 
   it('embeds child scenes as groups with transforms', async () => {
     const { scene } = await layoutPoster(posterDoc, defaultTheme);
-    const groups = scene.elements.filter(e => e.type === 'group') as any[];
+    const groups = scene.elements.filter((e) => e.type === 'group') as any[];
     const withTransform = groups.filter((g: any) => g.transform);
     expect(withTransform.length).toBeGreaterThan(0);
   });
@@ -65,13 +84,13 @@ describe('poster layout', () => {
   it('stat cell renders value text', async () => {
     const { scene } = await layoutPoster(posterDoc, defaultTheme);
     const allTexts = collectTexts(scene.elements);
-    expect(allTexts.some(t => t === '99.9%')).toBe(true);
+    expect(allTexts.some((t) => t === '99.9%')).toBe(true);
   });
 
   it('text cell renders its content', async () => {
     const { scene } = await layoutPoster(posterDoc, defaultTheme);
     const allTexts = collectTexts(scene.elements);
-    expect(allTexts.some(t => t === 'All systems nominal.')).toBe(true);
+    expect(allTexts.some((t) => t === 'All systems nominal.')).toBe(true);
   });
 
   it('auto-assigns row/col to cells without explicit position', () => {
@@ -80,7 +99,10 @@ describe('poster layout', () => {
   });
 
   it('theme change propagates to all child diagrams', async () => {
-    const dark = resolveTheme({ palette: { background: '#1a1a2e', primary: '#FF6B6B' } }, defaultTheme);
+    const dark = resolveTheme(
+      { palette: { background: '#1a1a2e', primary: '#FF6B6B' } },
+      defaultTheme,
+    );
     const { scene } = await layoutPoster(posterDoc, dark);
     expect(scene.background).toBe('#1a1a2e');
   });
@@ -299,7 +321,7 @@ describe('poster grammar — cross-links', () => {
     const { scene } = await layoutPoster(ir, defaultTheme);
 
     // Should have cross-link path elements (stroke-width thicker than internal edges)
-    const paths = scene.elements.filter(e => e.type === 'path') as any[];
+    const paths = scene.elements.filter((e) => e.type === 'path') as any[];
     const crossPaths = paths.filter((p: any) => p.markerEnd?.startsWith('triton-crosslink-arrow-'));
     expect(crossPaths).toHaveLength(1);
 
@@ -348,7 +370,12 @@ describe('poster phase-1 features', () => {
 `);
     const { scene } = await layoutPoster(ir, defaultTheme);
     const texts: string[] = [];
-    const collect = (els: readonly any[]) => { for (const e of els) { if (e.type === 'text') texts.push(e.content); if (e.children) collect(e.children); } };
+    const collect = (els: readonly any[]) => {
+      for (const e of els) {
+        if (e.type === 'text') texts.push(e.content);
+        if (e.children) collect(e.children);
+      }
+    };
     collect(scene.elements);
     expect(texts).toContain('slide →');
   });
@@ -383,7 +410,12 @@ describe('poster phase-1 features', () => {
 `);
     const { scene } = await layoutPoster(ir, defaultTheme);
     const texts: string[] = [];
-    const collect = (els: readonly any[]) => { for (const e of els) { if (e.type === 'text') texts.push(e.content); if (e.children) collect(e.children); } };
+    const collect = (els: readonly any[]) => {
+      for (const e of els) {
+        if (e.type === 'text') texts.push(e.content);
+        if (e.children) collect(e.children);
+      }
+    };
     collect(scene.elements);
     expect(texts).toContain('k=3');
   });
@@ -408,37 +440,43 @@ describe('connector syntax redesign — strict Mermaid superset', () => {
 ${links}`;
 
   it('poster Arrow: all 5 directed styles', () => {
-    const ir = poster.parseMermaid(twoCell(`  link A.n1 --> B.m1 "solid"
+    const ir = poster.parseMermaid(
+      twoCell(`  link A.n1 --> B.m1 "solid"
   link A.n1 -.-> B.m1 "dotted"
   link A.n1 ==> B.m1 "thick"
   link A.n1 -_-> B.m1 "dashed"
   link A.n1 -~-> B.m1 "wavy"
-`));
-    const styles = ir.links!.map(l => l.style);
+`),
+    );
+    const styles = ir.links!.map((l) => l.style);
     expect(styles).toEqual(['solid', 'dotted', 'thick', 'dashed', 'wavy']);
     for (const l of ir.links!) expect(l.direction).toBe('directed');
   });
 
   it('poster Arrow: all 5 undirected styles', () => {
-    const ir = poster.parseMermaid(twoCell(`  link A.n1 --- B.m1 "solid"
+    const ir = poster.parseMermaid(
+      twoCell(`  link A.n1 --- B.m1 "solid"
   link A.n1 -.- B.m1 "dotted"
   link A.n1 === B.m1 "thick"
   link A.n1 -_- B.m1 "dashed"
   link A.n1 -~- B.m1 "wavy"
-`));
-    const styles = ir.links!.map(l => l.style);
+`),
+    );
+    const styles = ir.links!.map((l) => l.style);
     expect(styles).toEqual(['solid', 'dotted', 'thick', 'dashed', 'wavy']);
     for (const l of ir.links!) expect(l.direction).toBe('undirected');
   });
 
   it('poster Arrow: all 5 bidirectional styles', () => {
-    const ir = poster.parseMermaid(twoCell(`  link A.n1 <--> B.m1 "solid"
+    const ir = poster.parseMermaid(
+      twoCell(`  link A.n1 <--> B.m1 "solid"
   link A.n1 <-.-> B.m1 "dotted"
   link A.n1 <==> B.m1 "thick"
   link A.n1 <-_-> B.m1 "dashed"
   link A.n1 <-~-> B.m1 "wavy"
-`));
-    const styles = ir.links!.map(l => l.style);
+`),
+    );
+    const styles = ir.links!.map((l) => l.style);
     expect(styles).toEqual(['solid', 'dotted', 'thick', 'dashed', 'wavy']);
     for (const l of ir.links!) expect(l.direction).toBe('bidirectional');
   });
@@ -455,7 +493,18 @@ ${links}`;
   });
 
   it('@anim: supports all animation values', () => {
-    const anims = ['march', 'particle', 'draw', 'pulse', 'glow', 'comet', 'stream', 'flow', 'colorcycle', 'none'];
+    const anims = [
+      'march',
+      'particle',
+      'draw',
+      'pulse',
+      'glow',
+      'comet',
+      'stream',
+      'flow',
+      'colorcycle',
+      'none',
+    ];
     for (const anim of anims) {
       const ir = poster.parseMermaid(twoCell(`  link A.n1 --> B.m1 @anim:${anim}\n`));
       if (anim === 'none') {
@@ -474,7 +523,9 @@ ${links}`;
   });
 
   it('@ wins over {} on conflict: @anim:march beats { anim: particle }', () => {
-    const ir = poster.parseMermaid(twoCell('  link A.n1 --> B.m1 @anim:march { anim: particle }\n'));
+    const ir = poster.parseMermaid(
+      twoCell('  link A.n1 --> B.m1 @anim:march { anim: particle }\n'),
+    );
     expect(ir.links![0]!.animation).toBe('march');
   });
 
@@ -514,15 +565,16 @@ import { wavifyPath } from '../src/crosslink/render.js';
 function endpointTangentAngles(d: string): { start: number; end: number } {
   const start = d.match(/^M\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/);
   if (!start) throw new Error(`Path missing M command: ${d}`);
-  const cubics = d.split(/\s+C\s+/).slice(1).map(part =>
-    [...part.matchAll(/-?\d+(?:\.\d+)?/g)].map(m => Number(m[0])),
-  );
+  const cubics = d
+    .split(/\s+C\s+/)
+    .slice(1)
+    .map((part) => [...part.matchAll(/-?\d+(?:\.\d+)?/g)].map((m) => Number(m[0])));
   if (cubics.length === 0) throw new Error(`Path missing cubic segments: ${d}`);
   const first = cubics[0]!;
   const last = cubics[cubics.length - 1]!;
   return {
-    start: Math.atan2(first[1]! - Number(start[2]), first[0]! - Number(start[1])) * 180 / Math.PI,
-    end: Math.atan2(last[5]! - last[3]!, last[4]! - last[2]!) * 180 / Math.PI,
+    start: (Math.atan2(first[1]! - Number(start[2]), first[0]! - Number(start[1])) * 180) / Math.PI,
+    end: (Math.atan2(last[5]! - last[3]!, last[4]! - last[2]!) * 180) / Math.PI,
   };
 }
 
@@ -535,26 +587,38 @@ function expectAngleNear(actual: number, expected: number, tolerance = 1): void 
 
 describe('wavifyPath', () => {
   it('is deterministic: same input produces same output', () => {
-    const pts = [{ x: 0, y: 50 }, { x: 200, y: 50 }];
+    const pts = [
+      { x: 0, y: 50 },
+      { x: 200, y: 50 },
+    ];
     const a = wavifyPath(pts, 3, 12);
     const b = wavifyPath(pts, 3, 12);
     expect(a).toBe(b);
   });
 
   it('starts with an M command at the first point region', () => {
-    const pts = [{ x: 10, y: 20 }, { x: 100, y: 20 }];
+    const pts = [
+      { x: 10, y: 20 },
+      { x: 100, y: 20 },
+    ];
     const d = wavifyPath(pts, 3, 12);
     expect(d.startsWith('M')).toBe(true);
   });
 
   it('contains C (cubic bezier) commands for smooth output', () => {
-    const pts = [{ x: 0, y: 0 }, { x: 200, y: 0 }];
+    const pts = [
+      { x: 0, y: 0 },
+      { x: 200, y: 0 },
+    ];
     const d = wavifyPath(pts, 3, 12);
     expect(d).toContain('C');
   });
 
   it('handles a single-segment horizontal line', () => {
-    const pts = [{ x: 0, y: 0 }, { x: 100, y: 0 }];
+    const pts = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+    ];
     const d = wavifyPath(pts, 3, 12);
     expect(d.length).toBeGreaterThan(5);
   });
@@ -566,22 +630,34 @@ describe('wavifyPath', () => {
   });
 
   it('displacement is present: output differs from straight path', () => {
-    const pts = [{ x: 0, y: 50 }, { x: 200, y: 50 }];
+    const pts = [
+      { x: 0, y: 50 },
+      { x: 200, y: 50 },
+    ];
     const wavy = wavifyPath(pts, 5, 20);
     const straight = `M 0 50 L 200 50`;
     expect(wavy).not.toBe(straight);
   });
 
   it('amplitude 0 produces same start/end points as input', () => {
-    const pts = [{ x: 0, y: 50 }, { x: 60, y: 50 }];
+    const pts = [
+      { x: 0, y: 50 },
+      { x: 60, y: 50 },
+    ];
     const d = wavifyPath(pts, 0, 12);
     // Path should start near 0,50 and end near 60,50
-    expect(d.startsWith('M 0 50') || d.startsWith('M 0.0 50') || d.startsWith('M 0 50.0')).toBe(true);
+    expect(d.startsWith('M 0 50') || d.startsWith('M 0.0 50') || d.startsWith('M 0 50.0')).toBe(
+      true,
+    );
     expect(d).toContain('C');
   });
 
   it('handles a multi-segment orthogonal polyline', () => {
-    const pts = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }];
+    const pts = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+    ];
     const d = wavifyPath(pts, 3, 12);
     expect(d.startsWith('M')).toBe(true);
     expect(d).toContain('C');
@@ -589,10 +665,34 @@ describe('wavifyPath', () => {
 
   it('keeps both endpoint tangents aligned with the net route direction', () => {
     const cases = [
-      { points: [{ x: 0, y: 0 }, { x: 200, y: 0 }], expected: 0 },
-      { points: [{ x: 0, y: 0 }, { x: 0, y: 200 }], expected: 90 },
-      { points: [{ x: 0, y: 0 }, { x: 8, y: 0 }], expected: 0 },
-      { points: [{ x: 0, y: 0 }, { x: 150, y: 150 }], expected: 45 },
+      {
+        points: [
+          { x: 0, y: 0 },
+          { x: 200, y: 0 },
+        ],
+        expected: 0,
+      },
+      {
+        points: [
+          { x: 0, y: 0 },
+          { x: 0, y: 200 },
+        ],
+        expected: 90,
+      },
+      {
+        points: [
+          { x: 0, y: 0 },
+          { x: 8, y: 0 },
+        ],
+        expected: 0,
+      },
+      {
+        points: [
+          { x: 0, y: 0 },
+          { x: 150, y: 150 },
+        ],
+        expected: 45,
+      },
     ];
 
     for (const { points, expected } of cases) {

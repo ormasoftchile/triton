@@ -30,7 +30,10 @@ describe('animation timing math', () => {
       colorcycle: 2.4,
     });
     for (const period of Object.values(ANIMATION_PERIOD_SECONDS)) {
-      expect(period / ANIMATION_BASE_PERIOD_SECONDS).toBeCloseTo(Math.round(period / ANIMATION_BASE_PERIOD_SECONDS), 8);
+      expect(period / ANIMATION_BASE_PERIOD_SECONDS).toBeCloseTo(
+        Math.round(period / ANIMATION_BASE_PERIOD_SECONDS),
+        8,
+      );
     }
   });
 
@@ -56,8 +59,12 @@ describe('animation timing math', () => {
     expect(glowStrokeOpacityAt(ANIMATION_PERIOD_SECONDS.glow)).toBe(1);
 
     expect(colorCycleStrokeAt(0)).toBe(colorCycleStrokeValues()[0]);
-    expect(colorCycleStrokeAt(ANIMATION_PERIOD_SECONDS.colorcycle / 2)).toBe(colorCycleStrokeValues()[2]);
-    expect(colorCycleStrokeAt(ANIMATION_PERIOD_SECONDS.colorcycle)).toBe(colorCycleStrokeValues()[0]);
+    expect(colorCycleStrokeAt(ANIMATION_PERIOD_SECONDS.colorcycle / 2)).toBe(
+      colorCycleStrokeValues()[2],
+    );
+    expect(colorCycleStrokeAt(ANIMATION_PERIOD_SECONDS.colorcycle)).toBe(
+      colorCycleStrokeValues()[0],
+    );
   });
 
   it('computes flow gradient stop offsets from shared keyframes', () => {
@@ -79,7 +86,7 @@ describe('animation timing math', () => {
   });
 
   it('preserves comet and stream phase spacing while periods change', () => {
-    expect(motionParticleSpecs('comet').map(spec => spec.phase)).toEqual([0, 0.1, 0.2]);
-    expect(motionParticleSpecs('stream').map(spec => spec.phase)).toEqual([0, 0.25, 0.5, 0.75]);
+    expect(motionParticleSpecs('comet').map((spec) => spec.phase)).toEqual([0, 0.1, 0.2]);
+    expect(motionParticleSpecs('stream').map((spec) => spec.phase)).toEqual([0, 0.25, 0.5, 0.75]);
   });
 });

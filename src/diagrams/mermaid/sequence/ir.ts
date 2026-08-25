@@ -28,16 +28,25 @@ export interface SeqNote {
 
 export interface SeqFragmentStart {
   readonly kind: 'frag-start';
-  readonly type: string;       // alt | opt | loop | par | critical | break
+  readonly type: string; // alt | opt | loop | par | critical | break
   readonly label: string;
 }
-export interface SeqFragmentElse { readonly kind: 'frag-else'; readonly label: string }
-export interface SeqFragmentEnd  { readonly kind: 'frag-end' }
+export interface SeqFragmentElse {
+  readonly kind: 'frag-else';
+  readonly label: string;
+}
+export interface SeqFragmentEnd {
+  readonly kind: 'frag-end';
+}
 
 export type SeqEvent = SeqMessage | SeqNote | SeqFragmentStart | SeqFragmentElse | SeqFragmentEnd;
 
 export interface SequenceDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly participants: readonly SeqParticipant[];
   readonly events: readonly SeqEvent[];
   readonly autonumber: boolean;

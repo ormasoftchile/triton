@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { resolveTheme } from '../src/theme/resolver.js';
-import { defaultTheme, executiveTheme, minimalTheme, themePresetNames } from '../src/theme/preset.js';
+import {
+  defaultTheme,
+  executiveTheme,
+  minimalTheme,
+  themePresetNames,
+} from '../src/theme/preset.js';
 import { compileSync, renderSync } from '../src/frontend/index.js';
 import { readFileSync } from 'node:fs';
 
@@ -18,6 +23,8 @@ describe('resolveTheme', () => {
         'default',
         'executive',
         'minimal',
+        'editorial',
+        'editorial-dark',
         'bw-light',
         'bw-dark',
         'consulting',
@@ -33,7 +40,11 @@ describe('resolveTheme', () => {
     });
 
     it('forced preset wins over diagram metadata', () => {
-      const result = compileSync('---\ntheme: minimal\n---\nflowchart TD\nA --> B\n', undefined, 'executive');
+      const result = compileSync(
+        '---\ntheme: minimal\n---\nflowchart TD\nA --> B\n',
+        undefined,
+        'executive',
+      );
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.value.scene.background).toBe(executiveTheme.palette.background);
@@ -47,7 +58,11 @@ describe('resolveTheme', () => {
     });
 
     it('unknown forced preset falls back safely to default', () => {
-      const result = compileSync('---\ntheme: executive\n---\nflowchart TD\nA --> B\n', undefined, 'not-a-theme');
+      const result = compileSync(
+        '---\ntheme: executive\n---\nflowchart TD\nA --> B\n',
+        undefined,
+        'not-a-theme',
+      );
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.value.scene.background).toBe(defaultTheme.palette.background);
@@ -94,7 +109,20 @@ describe('resolveTheme', () => {
   });
 
   it('full override produces independent object (does not mutate base)', () => {
-    const input = { palette: { primary: '#aaa', secondary: '#bbb', background: '#ccc', surface: '#ddd', border: '#eee', text: '#fff', textMuted: '#000', success: '#111', warning: '#222', error: '#333' } };
+    const input = {
+      palette: {
+        primary: '#aaa',
+        secondary: '#bbb',
+        background: '#ccc',
+        surface: '#ddd',
+        border: '#eee',
+        text: '#fff',
+        textMuted: '#000',
+        success: '#111',
+        warning: '#222',
+        error: '#333',
+      },
+    };
     resolveTheme(input, defaultTheme);
     expect(defaultTheme.palette.primary).toBe('#4A90D9'); // unchanged
   });

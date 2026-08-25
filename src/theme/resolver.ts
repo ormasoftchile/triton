@@ -6,11 +6,11 @@ import type { ResolvedTheme, ThemeInput } from '../contracts/index.js';
  */
 export function resolveTheme(input: ThemeInput, base: ResolvedTheme): ResolvedTheme {
   return {
-    name:       input.name       ?? base.name,
-    palette:    { ...base.palette,    ...input.palette },
+    name: input.name ?? base.name,
+    palette: { ...base.palette, ...input.palette },
     typography: { ...base.typography, ...input.typography },
-    spacing:    { ...base.spacing,    ...input.spacing },
-    edges:      { ...base.edges,      ...input.edges },
-    panel:      { ...base.panel,      ...input.panel },
+    spacing: { ...base.spacing, ...input.spacing },
+    edges: { ...base.edges, ...input.edges },
+    panel: { ...base.panel, ...input.panel },
   };
 }

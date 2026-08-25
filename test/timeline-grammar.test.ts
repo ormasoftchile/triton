@@ -19,7 +19,9 @@ describe('timeline grammar — mermaid-compatible (strict)', () => {
   });
 
   it('parses sections with events', () => {
-    const doc = parse(`timeline\n    section 2002-2006\n        2002 : LinkedIn\n        2004 : Facebook\n    section 2007-2010\n        2010 : Instagram\n`);
+    const doc = parse(
+      `timeline\n    section 2002-2006\n        2002 : LinkedIn\n        2004 : Facebook\n    section 2007-2010\n        2010 : Instagram\n`,
+    );
     expect(doc.sections).toHaveLength(2);
     expect(doc.sections![0]!.label).toBe('2002-2006');
     expect(doc.activities).toHaveLength(3);
@@ -75,7 +77,9 @@ describe('timeline grammar — triton extensions', () => {
   });
 
   it('parses frontmatter', () => {
-    const doc = parse(`---\nauthor: Team\ntheme: dark\n---\ntimeline\n    2025-01 : Start : milestone\n`);
+    const doc = parse(
+      `---\nauthor: Team\ntheme: dark\n---\ntimeline\n    2025-01 : Start : milestone\n`,
+    );
     expect(doc.metadata['author']).toBe('Team');
   });
 
@@ -97,7 +101,7 @@ describe('timeline grammar — triton extensions', () => {
   it('parses track assignment with @', () => {
     const doc = parse(`timeline\n    2025-Q1 -- 2025-Q2 : Design : active @design-team\n`);
     expect(doc.activities[0]!.track).toBe('design-team');
-    expect(doc.tracks.some(t => t.id === 'design-team')).toBe(true);
+    expect(doc.tracks.some((t) => t.id === 'design-team')).toBe(true);
   });
 
   it('parses point activity with status', () => {
@@ -106,20 +110,26 @@ describe('timeline grammar — triton extensions', () => {
   });
 
   it('generates slugified IDs', () => {
-    const doc = parse(`timeline\n    2025-01 : Alpha Release : milestone\n    2025-06 : Beta Release : milestone\n`);
+    const doc = parse(
+      `timeline\n    2025-01 : Alpha Release : milestone\n    2025-06 : Beta Release : milestone\n`,
+    );
     expect(doc.milestones[0]!.id).toBe('alpha-release');
     expect(doc.milestones[1]!.id).toBe('beta-release');
   });
 
   it('parses sections with extension entries', () => {
-    const doc = parse(`timeline\n    section Phase 1\n        2025-01 : Kickoff : milestone\n        2025-Q1 -- 2025-Q2 : Design : active @platform\n`);
+    const doc = parse(
+      `timeline\n    section Phase 1\n        2025-01 : Kickoff : milestone\n        2025-Q1 -- 2025-Q2 : Design : active @platform\n`,
+    );
     expect(doc.sections).toHaveLength(1);
     expect(doc.milestones).toHaveLength(1);
     expect(doc.activities).toHaveLength(1);
   });
 
   it('parses full complex timeline', () => {
-    const doc = parse(`---\ntheme: dark\n---\ntimeline\n    title Engineering Roadmap 2025\n    layout horizontal\n    section Q1\n        2025-01 : Kickoff : milestone\n        2025-01 -- 2025-03 : Foundation : active @platform\n    section Q2\n        2025-04 -- 2025-06 : Feature Sprint : active @product\n        2025-06 : MVP : milestone\n`);
+    const doc = parse(
+      `---\ntheme: dark\n---\ntimeline\n    title Engineering Roadmap 2025\n    layout horizontal\n    section Q1\n        2025-01 : Kickoff : milestone\n        2025-01 -- 2025-03 : Foundation : active @platform\n    section Q2\n        2025-04 -- 2025-06 : Feature Sprint : active @product\n        2025-06 : MVP : milestone\n`,
+    );
     expect(doc.metadata.title).toBe('Engineering Roadmap 2025');
     expect(doc.layout).toBe('horizontal');
     expect(doc.milestones).toHaveLength(2);

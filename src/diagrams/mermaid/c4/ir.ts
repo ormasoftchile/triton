@@ -1,6 +1,14 @@
 import type { BaseIR } from '../../../contracts/index.js';
 
-export type C4Kind = 'person' | 'person_ext' | 'system' | 'system_ext' | 'container' | 'container_ext' | 'component' | 'db';
+export type C4Kind =
+  | 'person'
+  | 'person_ext'
+  | 'system'
+  | 'system_ext'
+  | 'container'
+  | 'container_ext'
+  | 'component'
+  | 'db';
 
 export interface C4Node {
   readonly id: string;
@@ -26,7 +34,11 @@ export interface C4Rel {
 }
 
 export interface C4Document extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly nodes: readonly C4Node[];
   readonly boundaries: readonly C4Boundary[];
   readonly rels: readonly C4Rel[];

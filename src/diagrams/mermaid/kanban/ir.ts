@@ -11,6 +11,10 @@ export interface KanbanColumn {
 }
 
 export interface KanbanDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly columns: readonly KanbanColumn[];
 }

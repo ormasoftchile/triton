@@ -15,7 +15,7 @@ const scale: CostScale = {
 describe('classifyCost', () => {
   it('buckets a weight into the first tier whose bound it fits', () => {
     expect(classifyCost(scale, 80).name).toBe('local');
-    expect(classifyCost(scale, 90).name).toBe('local');   // inclusive
+    expect(classifyCost(scale, 90).name).toBe('local'); // inclusive
     expect(classifyCost(scale, 120).name).toBe('hop1');
     expect(classifyCost(scale, 200).name).toBe('hop2');
   });
@@ -36,8 +36,11 @@ describe('tierByName', () => {
 
 describe('buildLegend', () => {
   it('emits a frame plus a swatch and labels per tier', () => {
-    const { elements, bounds } = buildLegend(pen(defaultTheme), defaultTheme, scale, { x: 0, y: 0 });
-    const rects = elements.filter(e => e.type === 'rect');
+    const { elements, bounds } = buildLegend(pen(defaultTheme), defaultTheme, scale, {
+      x: 0,
+      y: 0,
+    });
+    const rects = elements.filter((e) => e.type === 'rect');
     expect(rects).toHaveLength(1 + scale.tiers.length); // frame + 1 swatch each
     expect(bounds.width).toBeGreaterThan(0);
     expect(bounds.height).toBeGreaterThan(0);

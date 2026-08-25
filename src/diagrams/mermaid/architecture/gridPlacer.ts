@@ -23,8 +23,14 @@ type ItemKind = 'leaf' | 'group';
 
 type ItemId = `node:${string}` | `group:${string}`;
 
-interface MutableCell { col: number; row: number }
-interface Size { width: number; height: number }
+interface MutableCell {
+  col: number;
+  row: number;
+}
+interface Size {
+  width: number;
+  height: number;
+}
 
 interface Item {
   id: ItemId;
@@ -80,10 +86,10 @@ const CLUSTER_ROUTING_LANE_GAP = 1;
 // apply to the CURRENT node's position to get the NEIGHBOR node's position.
 // Rows increase downward.
 const DELTA: Readonly<Record<string, readonly [number, number]>> = {
-  LR: [-1,  0],
-  RL: [+1,  0],
-  TB: [ 0, -1],
-  BT: [ 0, +1],
+  LR: [-1, 0],
+  RL: [+1, 0],
+  TB: [0, -1],
+  BT: [0, +1],
   LT: [-1, -1],
   LB: [-1, +1],
   RT: [+1, -1],
@@ -109,12 +115,12 @@ function upperSide(side: string): Side | undefined {
  * @returns      Map from node ID to {col, row} (0-indexed, non-negative).
  */
 export function directionalGridPlacer(
-  nodes:  ReadonlyArray<{ readonly id: string }>,
-  edges:  ReadonlyArray<{
-    readonly from:     string;
+  nodes: ReadonlyArray<{ readonly id: string }>,
+  edges: ReadonlyArray<{
+    readonly from: string;
     readonly fromSide: string;
-    readonly to:       string;
-    readonly toSide:   string;
+    readonly to: string;
+    readonly toSide: string;
   }>,
 ): Map<string, GridPlacerResult> {
   if (nodes.length === 0) return new Map();
@@ -125,24 +131,28 @@ export function directionalGridPlacer(
   for (const n of nodes) adjList.set(n.id, new Map());
 
   for (const e of edges) {
-    const fs  = e.fromSide.toUpperCase();
-    const ts  = e.toSide.toUpperCase();
+    const fs = e.fromSide.toUpperCase();
+    const ts = e.toSide.toUpperCase();
     const fwd = fs + ts;
     const rev = ts + fs;
 
     const fromAdj = adjList.get(e.from);
-    const toAdj   = adjList.get(e.to);
+    const toAdj = adjList.get(e.to);
     if (!fromAdj || !toAdj) continue; // unknown node — skip
 
     // Contradiction detection: same pair pointing to a DIFFERENT neighbor.
     if (fromAdj.has(fwd) && fromAdj.get(fwd) !== e.to) {
-      console.warn(`[gridPlacer] Contradictory constraint on "${e.from}" direction ${fwd} — first-wins`);
+      console.warn(
+        `[gridPlacer] Contradictory constraint on "${e.from}" direction ${fwd} — first-wins`,
+      );
     } else {
       fromAdj.set(fwd, e.to);
     }
 
     if (toAdj.has(rev) && toAdj.get(rev) !== e.from) {
-      console.warn(`[gridPlacer] Contradictory constraint on "${e.to}" direction ${rev} — first-wins`);
+      console.warn(
+        `[gridPlacer] Contradictory constraint on "${e.to}" direction ${rev} — first-wins`,
+      );
     } else {
       toAdj.set(rev, e.from);
     }
@@ -159,9 +169,9 @@ export function directionalGridPlacer(
     const queue: string[] = [seed];
 
     while (queue.length > 0) {
-      const curr     = queue.shift()!;
-      const currPos  = position.get(curr)!;
-      const adj      = adjList.get(curr);
+      const curr = queue.shift()!;
+      const currPos = position.get(curr)!;
+      const adj = adjList.get(curr);
       if (!adj) continue;
 
       for (const [pair, neighbor] of adj) {
@@ -190,16 +200,15 @@ export function directionalGridPlacer(
   }
 
   // Seed: prefer a node that has at least one edge, for a more centred layout.
-  const connected = new Set([...edges.map(e => e.from), ...edges.map(e => e.to)]);
-  const seed = nodes.find(n => connected.has(n.id)) ?? nodes[0]!;
+  const connected = new Set([...edges.map((e) => e.from), ...edges.map((e) => e.to)]);
+  const seed = nodes.find((n) => connected.has(n.id)) ?? nodes[0]!;
   bfs(seed.id, 0, 0);
 
   // ── 3. Handle disconnected components ─────────────────────────────────────
   for (const n of nodes) {
     if (!position.has(n.id)) {
-      const maxCol = position.size > 0
-        ? Math.max(...[...position.values()].map(p => p.col)) + 2
-        : 0;
+      const maxCol =
+        position.size > 0 ? Math.max(...[...position.values()].map((p) => p.col)) + 2 : 0;
       bfs(n.id, maxCol, 0);
     }
   }
@@ -210,9 +219,9 @@ export function directionalGridPlacer(
   }
 
   // ── 5. Normalise to non-negative ───────────────────────────────────────────
-  const vals    = [...position.values()];
-  const minCol  = Math.min(...vals.map(p => p.col));
-  const minRow  = Math.min(...vals.map(p => p.row));
+  const vals = [...position.values()];
+  const minCol = Math.min(...vals.map((p) => p.col));
+  const minRow = Math.min(...vals.map((p) => p.row));
 
   const result = new Map<string, GridPlacerResult>();
   for (const [id, pos] of position) {
@@ -223,22 +232,26 @@ export function directionalGridPlacer(
 
 // ─── Public API: group-aware cluster placer ──────────────────────────────────
 
-export function groupAwareDirectionalGridPlacer(ir: ArchitectureDocument): Map<string, GridPlacerResult> {
+export function groupAwareDirectionalGridPlacer(
+  ir: ArchitectureDocument,
+): Map<string, GridPlacerResult> {
   const nodeIds = new Set<string>([
-    ...ir.services.map(s => s.id),
-    ...ir.junctions.map(j => j.id),
+    ...ir.services.map((s) => s.id),
+    ...ir.junctions.map((j) => j.id),
   ]);
   if (nodeIds.size === 0) return new Map();
 
-  const groupIds = new Set(ir.groups.map(g => g.id));
+  const groupIds = new Set(ir.groups.map((g) => g.id));
   const parentOfGroup = new Map<string, ContainerId>();
   for (const g of ir.groups) {
     parentOfGroup.set(g.id, g.parent && groupIds.has(g.parent) ? g.parent : '__root__');
   }
 
   const ownerOfNode = new Map<string, ContainerId>();
-  for (const s of ir.services) ownerOfNode.set(s.id, s.group && groupIds.has(s.group) ? s.group : '__root__');
-  for (const j of ir.junctions) ownerOfNode.set(j.id, j.group && groupIds.has(j.group) ? j.group : '__root__');
+  for (const s of ir.services)
+    ownerOfNode.set(s.id, s.group && groupIds.has(s.group) ? s.group : '__root__');
+  for (const j of ir.junctions)
+    ownerOfNode.set(j.id, j.group && groupIds.has(j.group) ? j.group : '__root__');
 
   const groupOrder = new Map<string, number>();
   ir.groups.forEach((g, i) => groupOrder.set(g.id, i));
@@ -289,14 +302,14 @@ export function groupAwareDirectionalGridPlacer(ir: ArchitectureDocument): Map<s
   }
 
   function leastCommonContainer(memberIds: readonly string[]): ContainerId | undefined {
-    const known = memberIds.filter(id => nodeIds.has(id));
+    const known = memberIds.filter((id) => nodeIds.has(id));
     if (known.length < 2) return undefined;
     const chains = known.map(ancestorContainers);
     let lca: ContainerId = '__root__';
-    const minLen = Math.min(...chains.map(c => c.length));
+    const minLen = Math.min(...chains.map((c) => c.length));
     for (let i = 0; i < minLen; i++) {
       const candidate = chains[0]![i]!;
-      if (chains.every(c => c[i] === candidate)) lca = candidate;
+      if (chains.every((c) => c[i] === candidate)) lca = candidate;
       else break;
     }
     return lca;
@@ -323,12 +336,26 @@ export function groupAwareDirectionalGridPlacer(ir: ArchitectureDocument): Map<s
     }
     for (const s of ir.services) {
       if ((ownerOfNode.get(s.id) ?? '__root__') === container) {
-        items.push({ id: `node:${s.id}`, kind: 'leaf', sourceId: s.id, width: 1, height: 1, order: serviceOrder.get(s.id) ?? 0 });
+        items.push({
+          id: `node:${s.id}`,
+          kind: 'leaf',
+          sourceId: s.id,
+          width: 1,
+          height: 1,
+          order: serviceOrder.get(s.id) ?? 0,
+        });
       }
     }
     for (const j of ir.junctions) {
       if ((ownerOfNode.get(j.id) ?? '__root__') === container) {
-        items.push({ id: `node:${j.id}`, kind: 'leaf', sourceId: j.id, width: 1, height: 1, order: junctionOrder.get(j.id) ?? 0 });
+        items.push({
+          id: `node:${j.id}`,
+          kind: 'leaf',
+          sourceId: j.id,
+          width: 1,
+          height: 1,
+          order: junctionOrder.get(j.id) ?? 0,
+        });
       }
     }
 
@@ -353,7 +380,14 @@ export function groupAwareDirectionalGridPlacer(ir: ArchitectureDocument): Map<s
     });
 
     const itemPos = placeItemsAsRectangles(items, constraints);
-    applyContainerAligns(container, items, itemPos, ir.aligns, leastCommonContainer, directChildItem);
+    applyContainerAligns(
+      container,
+      items,
+      itemPos,
+      ir.aligns,
+      leastCommonContainer,
+      directChildItem,
+    );
 
     const nodePos = new Map<string, MutableCell>();
     for (const item of items) {
@@ -395,11 +429,14 @@ export function groupAwareDirectionalGridPlacer(ir: ArchitectureDocument): Map<s
 
 // ─── Rectangle item placement ────────────────────────────────────────────────
 
-function placeItemsAsRectangles(items: readonly Item[], constraints: readonly Constraint[]): Map<ItemId, MutableCell> {
+function placeItemsAsRectangles(
+  items: readonly Item[],
+  constraints: readonly Constraint[],
+): Map<ItemId, MutableCell> {
   const pos = new Map<ItemId, MutableCell>();
   if (items.length === 0) return pos;
 
-  const itemById = new Map(items.map(i => [i.id, i]));
+  const itemById = new Map(items.map((i) => [i.id, i]));
   const adj = buildAdjacency(items, constraints);
   const occupied: RectCell[] = [];
 
@@ -410,20 +447,30 @@ function placeItemsAsRectangles(items: readonly Item[], constraints: readonly Co
       connected.add(c.to);
     }
   }
-  const connectedSeeds = items.filter(i => connected.has(i.id));
-  const seeds = connectedSeeds.length > 0 ? [...connectedSeeds, ...items.filter(i => !connected.has(i.id))] : [...items];
+  const connectedSeeds = items.filter((i) => connected.has(i.id));
+  const seeds =
+    connectedSeeds.length > 0
+      ? [...connectedSeeds, ...items.filter((i) => !connected.has(i.id))]
+      : [...items];
 
   function place(item: Item, cell: MutableCell): void {
     pos.set(item.id, { col: cell.col, row: cell.row });
-    occupied.push({ id: item.id, col: cell.col, row: cell.row, width: item.width, height: item.height });
+    occupied.push({
+      id: item.id,
+      col: cell.col,
+      row: cell.row,
+      width: item.width,
+      height: item.height,
+    });
   }
 
   for (const seed of seeds) {
     if (!pos.has(seed.id)) {
-      const hasPlacedGroup = occupied.some(r => itemById.get(r.id)?.kind === 'group');
+      const hasPlacedGroup = occupied.some((r) => itemById.get(r.id)?.kind === 'group');
       const laneGap = seed.kind === 'group' || hasPlacedGroup ? CLUSTER_ROUTING_LANE_GAP : 0;
-      const seedCell = occupied.length === 0 ? { col: 0, row: 0 } : { col: maxRight(occupied) + laneGap, row: 0 };
-      place(seed, firstFreeRect(seedCell, seed, occupied),);
+      const seedCell =
+        occupied.length === 0 ? { col: 0, row: 0 } : { col: maxRight(occupied) + laneGap, row: 0 };
+      place(seed, firstFreeRect(seedCell, seed, occupied));
     }
 
     const queue: Item[] = [seed];
@@ -434,7 +481,15 @@ function placeItemsAsRectangles(items: readonly Item[], constraints: readonly Co
       for (const c of adj.get(curr.id) ?? []) {
         const next = itemById.get(c.to);
         if (!next || pos.has(next.id)) continue;
-        const candidate = candidateFromSidePair(curr, currPos, next, c.fromSide, c.toSide, c.currInner, c.nextInner);
+        const candidate = candidateFromSidePair(
+          curr,
+          currPos,
+          next,
+          c.fromSide,
+          c.toSide,
+          c.currInner,
+          c.nextInner,
+        );
         const free = firstNonOverlappingCandidate(candidate, curr, next, c, occupied);
         place(next, free);
         queue.push(next);
@@ -446,8 +501,11 @@ function placeItemsAsRectangles(items: readonly Item[], constraints: readonly Co
   return pos;
 }
 
-function buildAdjacency(items: readonly Item[], constraints: readonly Constraint[]): Map<ItemId, AdjConstraint[]> {
-  const itemIds = new Set(items.map(i => i.id));
+function buildAdjacency(
+  items: readonly Item[],
+  constraints: readonly Constraint[],
+): Map<ItemId, AdjConstraint[]> {
+  const itemIds = new Set(items.map((i) => i.id));
   const firstWins = new Map<ItemId, Map<string, AdjConstraint>>();
   for (const item of items) firstWins.set(item.id, new Map());
 
@@ -471,14 +529,26 @@ function buildAdjacency(items: readonly Item[], constraints: readonly Constraint
     });
   }
 
-  return new Map([...firstWins].map(([id, byPair]) => [id, [...byPair.values()].sort((a, b) => a.edgeOrder - b.edgeOrder)]));
+  return new Map(
+    [...firstWins].map(([id, byPair]) => [
+      id,
+      [...byPair.values()].sort((a, b) => a.edgeOrder - b.edgeOrder),
+    ]),
+  );
 }
 
-function addAdj(adj: Map<ItemId, Map<string, AdjConstraint>>, from: ItemId, pair: string, c: AdjConstraint): void {
+function addAdj(
+  adj: Map<ItemId, Map<string, AdjConstraint>>,
+  from: ItemId,
+  pair: string,
+  c: AdjConstraint,
+): void {
   const byPair = adj.get(from);
   if (!byPair) return;
   if (byPair.has(pair) && byPair.get(pair)!.to !== c.to) {
-    console.warn(`[gridPlacer] Contradictory constraint on "${from}" direction ${pair} — first-wins`);
+    console.warn(
+      `[gridPlacer] Contradictory constraint on "${from}" direction ${pair} — first-wins`,
+    );
     return;
   }
   if (!byPair.has(pair)) byPair.set(pair, c);
@@ -574,19 +644,24 @@ function firstNonOverlappingCandidate(
   if (!overlapsAny(candidate, next, occupied)) return candidate;
 
   const d = placementHalfPlaneDelta(c.fromSide, c.toSide);
-  const currRect = occupied.find(r => r.id === curr.id);
-  const limit = Math.max(12, occupied.length * 4 + maxRight(occupied) + maxBottom(occupied) + next.width + next.height);
+  const currRect = occupied.find((r) => r.id === curr.id);
+  const limit = Math.max(
+    12,
+    occupied.length * 4 + maxRight(occupied) + maxBottom(occupied) + next.width + next.height,
+  );
 
   const offsets = orderedOffsets(limit);
   if (d[0] !== 0 && d[1] === 0) {
     for (const off of offsets) {
       const cell = { col: candidate.col, row: candidate.row + off };
-      if (preservesHalfPlane(cell, next, currRect, d) && !overlapsAny(cell, next, occupied)) return cell;
+      if (preservesHalfPlane(cell, next, currRect, d) && !overlapsAny(cell, next, occupied))
+        return cell;
     }
   } else if (d[0] === 0 && d[1] !== 0) {
     for (const off of offsets) {
       const cell = { col: candidate.col + off, row: candidate.row };
-      if (preservesHalfPlane(cell, next, currRect, d) && !overlapsAny(cell, next, occupied)) return cell;
+      if (preservesHalfPlane(cell, next, currRect, d) && !overlapsAny(cell, next, occupied))
+        return cell;
     }
   } else {
     for (let radius = 0; radius <= limit; radius++) {
@@ -594,13 +669,16 @@ function firstNonOverlappingCandidate(
         const dyAbs = radius - Math.abs(dx);
         for (const dy of dyAbs === 0 ? [0] : [-dyAbs, dyAbs]) {
           const cell = { col: candidate.col + dx, row: candidate.row + dy };
-          if (preservesHalfPlane(cell, next, currRect, d) && !overlapsAny(cell, next, occupied)) return cell;
+          if (preservesHalfPlane(cell, next, currRect, d) && !overlapsAny(cell, next, occupied))
+            return cell;
         }
       }
     }
   }
 
-  console.warn(`[gridPlacer] Rectangle collision near (${candidate.col},${candidate.row}), placing "${next.id}" after occupied extent`);
+  console.warn(
+    `[gridPlacer] Rectangle collision near (${candidate.col},${candidate.row}), placing "${next.id}" after occupied extent`,
+  );
   return firstFreeRect({ col: maxRight(occupied), row: 0 }, next, occupied);
 }
 
@@ -619,7 +697,12 @@ function orderedOffsets(limit: number): number[] {
   return out;
 }
 
-function preservesHalfPlane(cell: MutableCell, item: Size, curr: RectCell | undefined, d: readonly number[]): boolean {
+function preservesHalfPlane(
+  cell: MutableCell,
+  item: Size,
+  curr: RectCell | undefined,
+  d: readonly number[],
+): boolean {
   if (!curr) return true;
   const dx = d[0] ?? 0;
   const dy = d[1] ?? 0;
@@ -642,37 +725,58 @@ function firstFreeRect(start: MutableCell, item: Size, occupied: readonly RectCe
   }
 }
 
-function overlapsAny(cell: MutableCell, item: Size, occupied: readonly RectCell[], ignore: ReadonlySet<ItemId> = new Set()): boolean {
-  return occupied.some(r => !ignore.has(r.id) && rectsOverlap(cell.col, cell.row, item.width, item.height, r.col, r.row, r.width, r.height));
+function overlapsAny(
+  cell: MutableCell,
+  item: Size,
+  occupied: readonly RectCell[],
+  ignore: ReadonlySet<ItemId> = new Set(),
+): boolean {
+  return occupied.some(
+    (r) =>
+      !ignore.has(r.id) &&
+      rectsOverlap(cell.col, cell.row, item.width, item.height, r.col, r.row, r.width, r.height),
+  );
 }
 
-function rectsOverlap(ax: number, ay: number, aw: number, ah: number, bx: number, by: number, bw: number, bh: number): boolean {
+function rectsOverlap(
+  ax: number,
+  ay: number,
+  aw: number,
+  ah: number,
+  bx: number,
+  by: number,
+  bw: number,
+  bh: number,
+): boolean {
   return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 }
 
 function maxRight(rects: readonly RectCell[]): number {
-  return rects.length === 0 ? 0 : Math.max(...rects.map(r => r.col + r.width));
+  return rects.length === 0 ? 0 : Math.max(...rects.map((r) => r.col + r.width));
 }
 
 function maxBottom(rects: readonly RectCell[]): number {
-  return rects.length === 0 ? 0 : Math.max(...rects.map(r => r.row + r.height));
+  return rects.length === 0 ? 0 : Math.max(...rects.map((r) => r.row + r.height));
 }
 
 function normalizeItemPositions(pos: Map<ItemId, MutableCell>): void {
   if (pos.size === 0) return;
-  const minCol = Math.min(...[...pos.values()].map(p => p.col));
-  const minRow = Math.min(...[...pos.values()].map(p => p.row));
+  const minCol = Math.min(...[...pos.values()].map((p) => p.col));
+  const minRow = Math.min(...[...pos.values()].map((p) => p.row));
   for (const p of pos.values()) {
     p.col -= minCol;
     p.row -= minRow;
   }
 }
 
-function normalizePositions(itemPos: Map<ItemId, MutableCell>, nodePos: Map<string, MutableCell>): void {
+function normalizePositions(
+  itemPos: Map<ItemId, MutableCell>,
+  nodePos: Map<string, MutableCell>,
+): void {
   if (itemPos.size === 0 && nodePos.size === 0) return;
   const vals = [...itemPos.values(), ...nodePos.values()];
-  const minCol = Math.min(...vals.map(p => p.col));
-  const minRow = Math.min(...vals.map(p => p.row));
+  const minCol = Math.min(...vals.map((p) => p.col));
+  const minRow = Math.min(...vals.map((p) => p.row));
   for (const p of itemPos.values()) {
     p.col -= minCol;
     p.row -= minRow;
@@ -706,16 +810,26 @@ function applyContainerAligns(
   leastCommonContainer: (memberIds: readonly string[]) => ContainerId | undefined,
   directChildItem: (container: ContainerId, nodeId: string) => ItemId | undefined,
 ): void {
-  const itemById = new Map(items.map(i => [i.id, i]));
+  const itemById = new Map(items.map((i) => [i.id, i]));
   for (const align of aligns) {
     if (leastCommonContainer(align.members) !== container) continue;
-    const itemIds = [...new Set(align.members.map(id => directChildItem(container, id)).filter((id): id is ItemId => !!id))];
+    const itemIds = [
+      ...new Set(
+        align.members
+          .map((id) => directChildItem(container, id))
+          .filter((id): id is ItemId => !!id),
+      ),
+    ];
     if (itemIds.length < 2) continue;
-    if (!itemIds.every(id => itemById.has(id) && itemPos.has(id))) continue;
+    if (!itemIds.every((id) => itemById.has(id) && itemPos.has(id))) continue;
 
-    const coords = itemIds.map(id => itemPos.get(id)![align.axis === 'row' ? 'row' : 'col']).sort((a, b) => a - b);
+    const coords = itemIds
+      .map((id) => itemPos.get(id)![align.axis === 'row' ? 'row' : 'col'])
+      .sort((a, b) => a - b);
     const target = coords[Math.floor(coords.length / 2)]!;
-    const proposed = new Map<ItemId, MutableCell>([...itemPos].map(([id, p]) => [id, { col: p.col, row: p.row }]));
+    const proposed = new Map<ItemId, MutableCell>(
+      [...itemPos].map(([id, p]) => [id, { col: p.col, row: p.row }]),
+    );
     for (const id of itemIds) {
       const p = proposed.get(id)!;
       if (align.axis === 'row') p.row = target;
@@ -723,7 +837,9 @@ function applyContainerAligns(
     }
 
     if (positionsOverlap(items, proposed)) {
-      console.warn(`[gridPlacer] Skipping align ${align.axis} [${align.members.join(', ')}] to preserve containment`);
+      console.warn(
+        `[gridPlacer] Skipping align ${align.axis} [${align.members.join(', ')}] to preserve containment`,
+      );
       continue;
     }
     for (const [id, p] of proposed) itemPos.set(id, p);

@@ -5,7 +5,13 @@ import { deque, layoutDeque } from '../src/diagrams/triton/ds/queue/deque.js';
 import { pqueue, layoutPQueue } from '../src/diagrams/triton/ds/queue/pqueue.js';
 import { render } from '../src/frontend/index.js';
 import { detect } from '../src/frontend/detect.js';
-import type { Scene, SceneElement, ScenePath, SceneRect, SceneText } from '../src/contracts/index.js';
+import type {
+  Scene,
+  SceneElement,
+  ScenePath,
+  SceneRect,
+  SceneText,
+} from '../src/contracts/index.js';
 import { measureText } from '../src/text/metrics.js';
 import { defaultTheme } from '../src/theme/preset.js';
 
@@ -33,7 +39,9 @@ describe('linear queue', () => {
     const ir = queue.parseMermaid('queue\n  cells A B C\n  capacity 5\n');
     const { scene, anchors } = layoutQueue(ir, defaultTheme);
     expect(Object.keys(anchors)).toEqual(['c0', 'c1', 'c2', 'c3', 'c4']);
-    const texts = scene.elements.filter(e => e.type === 'text').map(e => (e as { content: string }).content);
+    const texts = scene.elements
+      .filter((e) => e.type === 'text')
+      .map((e) => (e as { content: string }).content);
     expect(texts).toContain('enqueue');
     expect(texts).toContain('dequeue');
     expect(texts).toContain('front');
@@ -51,8 +59,12 @@ describe('linear queue', () => {
     const { scene, anchors } = layoutQueue(ir, defaultTheme);
     expect(anchors.c1!.bounds.y).toBeGreaterThan(anchors.c0!.bounds.y);
     expect(anchors.c1!.bounds.x).toBe(anchors.c0!.bounds.x);
-    expect(textOf(scene, 'front').position.x).toBeGreaterThan(anchors.c0!.bounds.x + anchors.c0!.bounds.width);
-    expect(textOf(scene, 'rear').position.x).toBeGreaterThan(anchors.c2!.bounds.x + anchors.c2!.bounds.width);
+    expect(textOf(scene, 'front').position.x).toBeGreaterThan(
+      anchors.c0!.bounds.x + anchors.c0!.bounds.width,
+    );
+    expect(textOf(scene, 'rear').position.x).toBeGreaterThan(
+      anchors.c2!.bounds.x + anchors.c2!.bounds.width,
+    );
     expectSceneFits(scene);
     expectNoRotatedText(scene);
   });
@@ -72,30 +84,40 @@ describe('circular queue', () => {
   });
 
   it('honours explicit front/rear and draws an orthogonal wrap connector', () => {
-    const ir = cqueue.parseMermaid('cqueue\n  capacity 5\n  cells A B _ _ E\n  front 4\n  rear 1\n');
+    const ir = cqueue.parseMermaid(
+      'cqueue\n  capacity 5\n  cells A B _ _ E\n  front 4\n  rear 1\n',
+    );
     expect(ir.front).toBe(4);
     expect(ir.rear).toBe(1);
     const { scene, anchors } = layoutCQueue(ir, defaultTheme);
     expect(Object.keys(anchors)).toEqual(['c0', 'c1', 'c2', 'c3', 'c4', 'front', 'rear']);
     expect(textOf(scene, 'mod 5')).toBeDefined();
     const paths = scene.elements.filter((e): e is ScenePath => e.type === 'path');
-    expect(paths.some(path => path.d.includes('C'))).toBe(false);
-    const wrap = paths.find(path => lCommandCount(path.d) >= 3);
+    expect(paths.some((path) => path.d.includes('C'))).toBe(false);
+    const wrap = paths.find((path) => lCommandCount(path.d) >= 3);
     expect(wrap?.d).toBeDefined();
     if (wrap) expectPathAxisAligned(wrap);
   });
 
   it('axis vertical moves slots down, indexes left, and front/rear markers right', () => {
-    const ir = cqueue.parseMermaid('cqueue\n  capacity 4\n  cells A B _ D\n  front 0\n  rear 3\n  axis vertical\n');
+    const ir = cqueue.parseMermaid(
+      'cqueue\n  capacity 4\n  cells A B _ D\n  front 0\n  rear 3\n  axis vertical\n',
+    );
     const { scene, anchors } = layoutCQueue(ir, defaultTheme);
     expect(anchors.c1!.bounds.y).toBeGreaterThan(anchors.c0!.bounds.y);
     expect(textOf(scene, '0').position.x).toBeLessThan(anchors.c0!.bounds.x);
-    expect(textOf(scene, 'front').position.x).toBeGreaterThan(anchors.c0!.bounds.x + anchors.c0!.bounds.width);
-    expect(textOf(scene, 'rear').position.x).toBeGreaterThan(anchors.c3!.bounds.x + anchors.c3!.bounds.width);
-    const wrap = scene.elements.find((e): e is ScenePath => e.type === 'path' && lCommandCount(e.d) >= 3);
+    expect(textOf(scene, 'front').position.x).toBeGreaterThan(
+      anchors.c0!.bounds.x + anchors.c0!.bounds.width,
+    );
+    expect(textOf(scene, 'rear').position.x).toBeGreaterThan(
+      anchors.c3!.bounds.x + anchors.c3!.bounds.width,
+    );
+    const wrap = scene.elements.find(
+      (e): e is ScenePath => e.type === 'path' && lCommandCount(e.d) >= 3,
+    );
     expect(wrap?.d).toBeDefined();
     if (wrap) expectPathAxisAligned(wrap);
-    expect(scene.elements.some(e => e.type === 'path' && e.d.includes('C'))).toBe(false);
+    expect(scene.elements.some((e) => e.type === 'path' && e.d.includes('C'))).toBe(false);
     expect(textOf(scene, 'mod 4')).toBeDefined();
     expectSceneFits(scene);
     expectNoRotatedText(scene);
@@ -104,12 +126,14 @@ describe('circular queue', () => {
   it('renders a non-degenerate orthogonal self-loop when front and rear share a cell', () => {
     const ir = cqueue.parseMermaid('cqueue\n  capacity 1\n  cells A\n  front 0\n  rear 0\n');
     const { scene } = layoutCQueue(ir, defaultTheme);
-    const wrap = scene.elements.find((e): e is ScenePath => e.type === 'path' && lCommandCount(e.d) >= 3);
+    const wrap = scene.elements.find(
+      (e): e is ScenePath => e.type === 'path' && lCommandCount(e.d) >= 3,
+    );
     expect(wrap?.d).toBeDefined();
     if (wrap) {
       expect(wrap.d).not.toContain('C');
       expectPathAxisAligned(wrap);
-      expect(new Set(pathPoints(wrap.d).map(p => `${p.x},${p.y}`)).size).toBeGreaterThan(2);
+      expect(new Set(pathPoints(wrap.d).map((p) => `${p.x},${p.y}`)).size).toBeGreaterThan(2);
     }
     expect(textOf(scene, 'mod 1')).toBeDefined();
     expectSceneFits(scene);
@@ -123,9 +147,10 @@ describe('deque', () => {
     expect(ir.axis).toBe('horizontal');
     const { scene } = layoutDeque(ir, defaultTheme);
     const doubleHeaded = scene.elements.filter(
-      e => e.type === 'path'
-        && (e as { markerStart?: string }).markerStart != null
-        && (e as { markerEnd?: string }).markerEnd != null,
+      (e) =>
+        e.type === 'path' &&
+        (e as { markerStart?: string }).markerStart != null &&
+        (e as { markerEnd?: string }).markerEnd != null,
     );
     expect(doubleHeaded.length).toBe(2);
   });
@@ -134,8 +159,12 @@ describe('deque', () => {
     const ir = deque.parseMermaid('deque\n  cells A B C\n  axis vertical\n');
     const { scene, anchors } = layoutDeque(ir, defaultTheme);
     expect(anchors.c1!.bounds.y).toBeGreaterThan(anchors.c0!.bounds.y);
-    expect(textOf(scene, 'front').position.x).toBeGreaterThan(anchors.c0!.bounds.x + anchors.c0!.bounds.width);
-    expect(textOf(scene, 'rear').position.x).toBeGreaterThan(anchors.c2!.bounds.x + anchors.c2!.bounds.width);
+    expect(textOf(scene, 'front').position.x).toBeGreaterThan(
+      anchors.c0!.bounds.x + anchors.c0!.bounds.width,
+    );
+    expect(textOf(scene, 'rear').position.x).toBeGreaterThan(
+      anchors.c2!.bounds.x + anchors.c2!.bounds.width,
+    );
     expectSceneFits(scene);
     expectNoRotatedText(scene);
   });
@@ -162,13 +191,17 @@ describe('priority queue', () => {
   it('shows the priority value per cell', () => {
     const ir = pqueue.parseMermaid('pqueue\n  item A 3\n  item B 8\n');
     const { scene } = layoutPQueue(ir, defaultTheme);
-    const texts = scene.elements.filter(e => e.type === 'text').map(e => (e as { content: string }).content);
+    const texts = scene.elements
+      .filter((e) => e.type === 'text')
+      .map((e) => (e as { content: string }).content);
     expect(texts).toContain('3');
     expect(texts).toContain('8');
   });
 
   it('axis vertical stacks priorities down without rotating text', () => {
-    const ir = pqueue.parseMermaid('pqueue\n  axis vertical\n  item Low 1\n  item High 9\n  item Mid 5\n');
+    const ir = pqueue.parseMermaid(
+      'pqueue\n  axis vertical\n  item Low 1\n  item High 9\n  item Mid 5\n',
+    );
     const { scene, anchors } = layoutPQueue(ir, defaultTheme);
     expect(anchors.c1!.bounds.y).toBeGreaterThan(anchors.c0!.bounds.y);
     expect(textOf(scene, 'High').position.y).toBeLessThan(textOf(scene, 'Mid').position.y);
@@ -196,7 +229,9 @@ describe('queue family renders to SVG', () => {
 });
 
 function textOf(scene: Scene, content: string): SceneText {
-  const found = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === content);
+  const found = scene.elements.find(
+    (e): e is SceneText => e.type === 'text' && e.content === content,
+  );
   if (!found) throw new Error(`missing text ${content}`);
   return found;
 }
@@ -216,7 +251,9 @@ function expectSceneFits(scene: Scene): void {
   }
 }
 
-function elementBounds(element: SceneElement): { x: number; y: number; width: number; height: number } | undefined {
+function elementBounds(
+  element: SceneElement,
+): { x: number; y: number; width: number; height: number } | undefined {
   if (element.type === 'rect') return element.bounds;
   if (element.type === 'path') return pathBounds(element);
   if (element.type === 'text') return textBounds(element);
@@ -229,27 +266,35 @@ function elementBounds(element: SceneElement): { x: number; y: number; width: nu
     };
   }
   if (element.type === 'group') {
-    const bounds = element.children.map(elementBounds).filter((b): b is SceneRect['bounds'] => b !== undefined);
-    const minX = Math.min(...bounds.map(b => b.x));
-    const minY = Math.min(...bounds.map(b => b.y));
-    const maxX = Math.max(...bounds.map(b => b.x + b.width));
-    const maxY = Math.max(...bounds.map(b => b.y + b.height));
+    const bounds = element.children
+      .map(elementBounds)
+      .filter((b): b is SceneRect['bounds'] => b !== undefined);
+    const minX = Math.min(...bounds.map((b) => b.x));
+    const minY = Math.min(...bounds.map((b) => b.y));
+    const maxX = Math.max(...bounds.map((b) => b.x + b.width));
+    const maxY = Math.max(...bounds.map((b) => b.y + b.height));
     return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
   }
 }
 
 function textBounds(text: SceneText): SceneRect['bounds'] {
   const measured = measureText(text.content, text.fontSize);
-  const x = text.anchor === 'middle'
-    ? text.position.x - measured.width / 2
-    : text.anchor === 'end'
-      ? text.position.x - measured.width
-      : text.position.x;
-  return { x, y: text.position.y - text.fontSize, width: measured.width, height: text.fontSize * 1.25 };
+  const x =
+    text.anchor === 'middle'
+      ? text.position.x - measured.width / 2
+      : text.anchor === 'end'
+        ? text.position.x - measured.width
+        : text.position.x;
+  return {
+    x,
+    y: text.position.y - text.fontSize,
+    width: measured.width,
+    height: text.fontSize * 1.25,
+  };
 }
 
 function pathBounds(path: ScenePath): SceneRect['bounds'] {
-  const nums = [...path.d.matchAll(/-?\d+(?:\.\d+)?/g)].map(match => Number(match[0]));
+  const nums = [...path.d.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) => Number(match[0]));
   const xs = nums.filter((_, i) => i % 2 === 0);
   const ys = nums.filter((_, i) => i % 2 === 1);
   const pad = path.strokeWidth / 2;
@@ -265,7 +310,7 @@ function lCommandCount(d: string): number {
 }
 
 function pathPoints(d: string): Array<{ x: number; y: number }> {
-  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(match => Number(match[0]));
+  const nums = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map((match) => Number(match[0]));
   const points: Array<{ x: number; y: number }> = [];
   for (let i = 0; i + 1 < nums.length; i += 2) points.push({ x: nums[i]!, y: nums[i + 1]! });
   return points;

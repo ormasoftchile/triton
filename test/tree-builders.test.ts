@@ -11,14 +11,18 @@ import { resolveTheme } from '../src/theme/resolver.js';
 import type { TreeDocument } from '../src/diagrams/triton/ds/tree/ir.js';
 import type { Color, ResolvedTheme, SceneCircle, SceneRect } from '../src/contracts/index.js';
 
-const byId = (doc: TreeDocument) => new Map(doc.nodes.map(n => [n.id, n]));
+const byId = (doc: TreeDocument) => new Map(doc.nodes.map((n) => [n.id, n]));
 
 /** Binary BST in-order (children = [left, right]). */
 function bstInorder(doc: TreeDocument): number[] {
-  const m = byId(doc); const out: number[] = [];
+  const m = byId(doc);
+  const out: number[] = [];
   const walk = (id: string): void => {
-    const n = m.get(id)!; const [l, r] = n.children;
-    if (l) walk(l); out.push(Number(n.label)); if (r) walk(r);
+    const n = m.get(id)!;
+    const [l, r] = n.children;
+    if (l) walk(l);
+    out.push(Number(n.label));
+    if (r) walk(r);
   };
   if (doc.nodes.length) walk(doc.nodes[0]!.id);
   return out;
@@ -27,7 +31,12 @@ function bstInorder(doc: TreeDocument): number[] {
 function parseHex(c: Color): [number, number, number] | null {
   const s = c.trim();
   const m3 = s.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
-  if (m3) return [parseInt(m3[1]! + m3[1]!, 16), parseInt(m3[2]! + m3[2]!, 16), parseInt(m3[3]! + m3[3]!, 16)];
+  if (m3)
+    return [
+      parseInt(m3[1]! + m3[1]!, 16),
+      parseInt(m3[2]! + m3[2]!, 16),
+      parseInt(m3[3]! + m3[3]!, 16),
+    ];
   const m6 = s.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
   if (m6) return [parseInt(m6[1]!, 16), parseInt(m6[2]!, 16), parseInt(m6[3]!, 16)];
   return null;
@@ -44,25 +53,41 @@ function relativeLuminance(c: Color): number {
 }
 
 function contrastRatio(a: Color, b: Color): number {
-  const la = relativeLuminance(a), lb = relativeLuminance(b);
-  const hi = Math.max(la, lb), lo = Math.min(la, lb);
+  const la = relativeLuminance(a),
+    lb = relativeLuminance(b);
+  const hi = Math.max(la, lb),
+    lo = Math.min(la, lb);
   return (hi + 0.05) / (lo + 0.05);
 }
 
 function outlineStroke(fill: Color, theme: ResolvedTheme): Color {
-  const canvas = parseHex(theme.palette.background) ? theme.palette.background : theme.palette.surface;
-  const candidates = [theme.palette.text, theme.palette.border, theme.palette.textMuted, theme.palette.background];
-  let best = theme.palette.text, score = -Infinity;
+  const canvas = parseHex(theme.palette.background)
+    ? theme.palette.background
+    : theme.palette.surface;
+  const candidates = [
+    theme.palette.text,
+    theme.palette.border,
+    theme.palette.textMuted,
+    theme.palette.background,
+  ];
+  let best = theme.palette.text,
+    score = -Infinity;
   for (const c of candidates) {
     if (!parseHex(c)) continue;
-    const next = Math.min(contrastRatio(c, fill), contrastRatio(c, canvas)) + contrastRatio(c, canvas) * 0.15;
-    if (next > score) { best = c; score = next; }
+    const next =
+      Math.min(contrastRatio(c, fill), contrastRatio(c, canvas)) + contrastRatio(c, canvas) * 0.15;
+    if (next > score) {
+      best = c;
+      score = next;
+    }
   }
   return best;
 }
 
 function nodeCircles(doc: TreeDocument, theme = defaultTheme): SceneCircle[] {
-  return layoutTree(doc, theme).scene.elements.filter((el): el is SceneCircle => el.type === 'circle');
+  return layoutTree(doc, theme).scene.elements.filter(
+    (el): el is SceneCircle => el.type === 'circle',
+  );
 }
 
 function nodeRects(doc: TreeDocument, theme = defaultTheme): SceneRect[] {
@@ -74,7 +99,8 @@ describe('rbtree builder', () => {
     const doc = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
     expect(doc.nodes[0]!.kinds).toContain('black');
     for (const n of doc.nodes) {
-      const red = n.kinds.includes('red'), black = n.kinds.includes('black');
+      const red = n.kinds.includes('red'),
+        black = n.kinds.includes('black');
       expect(red !== black).toBe(true); // exactly one colour
     }
   });
@@ -88,7 +114,7 @@ describe('rbtree builder', () => {
     const light = nodeCircles(doc, defaultTheme);
     const darkTheme = resolveTheme({ palette: { background: '#0f1117' } }, executiveTheme);
     const dark = nodeCircles(doc, darkTheme);
-    const redIndex = doc.nodes.findIndex(n => n.kinds.includes('red'));
+    const redIndex = doc.nodes.findIndex((n) => n.kinds.includes('red'));
 
     expect(light[0]!.fill).not.toBe('#2b2b2b');
     expect(light[0]!.stroke).not.toBe('#2b2b2b');
@@ -104,7 +130,9 @@ describe('rbtree builder', () => {
     const doc = buildRbtree('rbtree insert 13 8 17 1 11 15 25 6');
     const blackRoot = nodeCircles(doc, darkTheme)[0]!;
 
-    expect(contrastRatio(blackRoot.stroke, darkTheme.palette.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(blackRoot.stroke, darkTheme.palette.background)).toBeGreaterThanOrEqual(
+      4.5,
+    );
     expect(contrastRatio(blackRoot.fill, darkTheme.palette.background)).toBeGreaterThanOrEqual(1.7);
   });
 
@@ -114,7 +142,9 @@ describe('rbtree builder', () => {
     const blackRoot = nodeCircles(doc, transparentExecutive)[0]!;
 
     expect(blackRoot.fill).not.toBe(nodeCircles(doc, defaultTheme)[0]!.fill);
-    expect(contrastRatio(blackRoot.stroke, transparentExecutive.palette.surface)).toBeGreaterThanOrEqual(4.5);
+    expect(
+      contrastRatio(blackRoot.stroke, transparentExecutive.palette.surface),
+    ).toBeGreaterThanOrEqual(4.5);
   });
 
   it('uses the neutral outline treatment for AVL, plain circle, and RB structural borders', () => {
@@ -135,7 +165,7 @@ describe('rbtree builder', () => {
       const plain = nodeCircles(plainCircle, theme)[0]!;
       const avlRoot = nodeCircles(avl, theme)[0]!;
       const rbCircles = nodeCircles(rb, theme);
-      const redIndex = rb.nodes.findIndex(n => n.kinds.includes('red'));
+      const redIndex = rb.nodes.findIndex((n) => n.kinds.includes('red'));
 
       // Default/plain nodes now use palette.primary border (matches nodegraph default nodes)
       expect(plain.stroke).toBe(theme.palette.primary);
@@ -169,13 +199,19 @@ describe('rbtree builder', () => {
 
 describe('btree builder', () => {
   const doc = buildBtree('btree order 3 insert 10 20 5 6 12 30 7 17');
-  const keysOf = (label: string) => label.split('|').map(s => Number(s.trim()));
+  const keysOf = (label: string) => label.split('|').map((s) => Number(s.trim()));
 
   it('holds every key, sorted, via B-tree in-order traversal', () => {
-    const m = byId(doc); const out: number[] = [];
+    const m = byId(doc);
+    const out: number[] = [];
     const walk = (id: string): void => {
-      const n = m.get(id)!; const keys = keysOf(n.label); const ch = n.children;
-      for (let i = 0; i < keys.length; i++) { if (ch[i]) walk(ch[i]!); out.push(keys[i]!); }
+      const n = m.get(id)!;
+      const keys = keysOf(n.label);
+      const ch = n.children;
+      for (let i = 0; i < keys.length; i++) {
+        if (ch[i]) walk(ch[i]!);
+        out.push(keys[i]!);
+      }
       if (ch[keys.length]) walk(ch[keys.length]!);
     };
     walk(doc.nodes[0]!.id);
@@ -190,11 +226,14 @@ describe('btree builder', () => {
 describe('radix builder', () => {
   const doc = buildRadix('radix insert cat car card dog do');
   it('marks every inserted word as a terminal node', () => {
-    const words = doc.nodes.filter(n => n.kinds.includes('active')).map(n => n.label).sort();
+    const words = doc.nodes
+      .filter((n) => n.kinds.includes('active'))
+      .map((n) => n.label)
+      .sort();
     expect(words).toEqual(['car', 'card', 'cat', 'do', 'dog']);
   });
   it('compresses shared prefixes onto a single edge', () => {
-    expect(doc.nodes.some(n => n.edgeLabel === 'ca')).toBe(true);
+    expect(doc.nodes.some((n) => n.edgeLabel === 'ca')).toBe(true);
   });
 });
 

@@ -65,17 +65,33 @@ export function buildStrip(
     const y = origin.y + (horizontal ? 0 : i * step);
     const slot: Rect = { x, y, width: cellWidth, height: cellHeight };
     slots.push(slot);
-    elements.push(pen.rect(slot, cell.fill ?? palette.surface, cell.stroke ?? palette.border, 1.5, { rx: 3, ...(cell.fillOpacity !== undefined ? { fillOpacity: cell.fillOpacity } : {}) }));
+    elements.push(
+      pen.rect(slot, cell.fill ?? palette.surface, cell.stroke ?? palette.border, 1.5, {
+        rx: 3,
+        ...(cell.fillOpacity !== undefined ? { fillOpacity: cell.fillOpacity } : {}),
+      }),
+    );
     if (cell.label !== undefined) {
-      elements.push(pen.text(cell.label, x + cellWidth / 2, y + cellHeight / 2 + 5,
-        theme.typography.baseFontSize, palette.text, { anchor: 'middle', weight: 'bold' }));
+      elements.push(
+        pen.text(
+          cell.label,
+          x + cellWidth / 2,
+          y + cellHeight / 2 + 5,
+          theme.typography.baseFontSize,
+          palette.text,
+          { anchor: 'middle', weight: 'bold' },
+        ),
+      );
     }
     if (cell.index !== undefined) {
       // index sits just outside the strip on the leading cross edge
       const ix = horizontal ? x + cellWidth / 2 : x - 6;
       const iy = horizontal ? y - 6 : y + cellHeight / 2 + 4;
-      elements.push(pen.text(cell.index, ix, iy, theme.typography.smallFontSize, palette.textMuted,
-        { anchor: horizontal ? 'middle' : 'end' }));
+      elements.push(
+        pen.text(cell.index, ix, iy, theme.typography.smallFontSize, palette.textMuted, {
+          anchor: horizontal ? 'middle' : 'end',
+        }),
+      );
     }
   });
 
@@ -84,7 +100,7 @@ export function buildStrip(
   const bounds: Rect = {
     x: origin.x,
     y: origin.y,
-    width:  horizontal ? totalAlong : cellWidth,
+    width: horizontal ? totalAlong : cellWidth,
     height: horizontal ? cellHeight : totalAlong,
   };
 

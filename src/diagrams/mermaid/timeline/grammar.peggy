@@ -216,9 +216,9 @@ Identifier = $([a-zA-Z_][a-zA-Z0-9_\-]*)
 // ─── Overlays ─────────────────────────────────────────────────────────────────
 
 NoteDirective
-  = _ "note" __ "\"" text:$[^"]* "\"" __ "at" __ target:$([a-zA-Z0-9_\-/.]+)
+  = _ kind:("note" / "callout") __ "\"" text:$[^"]* "\"" __ "at" __ target:$([a-zA-Z0-9_\-/.]+)
     offset:NoteOffset? _ Comment? LineEnd {
-      const note = { type: 'note', text, target, offset: offset || undefined };
+      const note = { type: kind, text, target, offset: offset || undefined };
       overlays.push(note);
       return note;
     }

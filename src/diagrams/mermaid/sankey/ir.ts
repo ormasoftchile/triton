@@ -7,6 +7,10 @@ export interface SankeyLink {
 }
 
 export interface SankeyDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly links: readonly SankeyLink[];
 }

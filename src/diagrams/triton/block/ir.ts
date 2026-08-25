@@ -19,7 +19,11 @@ export interface BlockEdge {
 }
 
 export interface BlockDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly columns: number;
   readonly blocks: readonly BlockNode[];
   readonly edges: readonly BlockEdge[];

@@ -32,10 +32,14 @@ export function slotAnchor(box: BoxLike, side: Side): { x: number; y: number } {
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
   switch (side) {
-    case 'left':   return { x: box.x, y: cy };
-    case 'right':  return { x: box.x + box.width, y: cy };
-    case 'top':    return { x: cx, y: box.y };
-    case 'bottom': return { x: cx, y: box.y + box.height };
+    case 'left':
+      return { x: box.x, y: cy };
+    case 'right':
+      return { x: box.x + box.width, y: cy };
+    case 'top':
+      return { x: cx, y: box.y };
+    case 'bottom':
+      return { x: cx, y: box.y + box.height };
   }
 }
 
@@ -44,7 +48,10 @@ export function slotAnchor(box: BoxLike, side: Side): { x: number; y: number } {
  * joining their centres. Works for cells in a strip, nodes in a tree, or
  * panels in a poster (the same router the cross-link feature uses).
  */
-export function connectSlots(from: BoxLike, to: BoxLike): {
+export function connectSlots(
+  from: BoxLike,
+  to: BoxLike,
+): {
   start: { x: number; y: number };
   end: { x: number; y: number };
 } {
@@ -52,6 +59,6 @@ export function connectSlots(from: BoxLike, to: BoxLike): {
   const tc = { x: to.x + to.width / 2, y: to.y + to.height / 2 };
   return {
     start: borderPoint(from, tc.x, tc.y),
-    end:   borderPoint(to, fc.x, fc.y),
+    end: borderPoint(to, fc.x, fc.y),
   };
 }

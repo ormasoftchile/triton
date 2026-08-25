@@ -10,7 +10,10 @@ import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../../con
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 
-interface RNode { edges: Map<string, RNode>; end: boolean; }
+interface RNode {
+  edges: Map<string, RNode>;
+  end: boolean;
+}
 
 const newNode = (): RNode => ({ edges: new Map(), end: false });
 
@@ -26,7 +29,10 @@ function insert(root: RNode, word: string): void {
   while (rest.length > 0) {
     let matched: string | undefined;
     for (const label of node.edges.keys()) {
-      if (label[0] === rest[0]) { matched = label; break; }
+      if (label[0] === rest[0]) {
+        matched = label;
+        break;
+      }
     }
     if (matched === undefined) {
       const child = newNode();
@@ -62,7 +68,7 @@ function insert(root: RNode, word: string): void {
 export function buildRadix(input: string): TreeDocument {
   // words = alphabetic tokens after the leading `radix`/`insert` keywords
   const tokens = input.split(/\s+/).filter(Boolean);
-  const words = tokens.filter(t => /^[A-Za-z]+$/.test(t) && t !== 'radix' && t !== 'insert');
+  const words = tokens.filter((t) => /^[A-Za-z]+$/.test(t) && t !== 'radix' && t !== 'insert');
   const root = newNode();
   for (const w of words) insert(root, w);
 
@@ -72,8 +78,20 @@ export function buildRadix(input: string): TreeDocument {
     const id = `n${i++}`;
     const children: string[] = [];
     const node: TreeNode = n.end
-      ? { id, label: prefix, kinds: ['leaf', 'active'], children, ...(edgeLabel !== undefined ? { edgeLabel } : {}) }
-      : { id, label: '', kinds: ['dot'], children, ...(edgeLabel !== undefined ? { edgeLabel } : {}) };
+      ? {
+          id,
+          label: prefix,
+          kinds: ['leaf', 'active'],
+          children,
+          ...(edgeLabel !== undefined ? { edgeLabel } : {}),
+        }
+      : {
+          id,
+          label: '',
+          kinds: ['dot'],
+          children,
+          ...(edgeLabel !== undefined ? { edgeLabel } : {}),
+        };
     nodes.push(node);
     for (const [label, child] of n.edges) children.push(emit(child, prefix + label, label));
     return id;

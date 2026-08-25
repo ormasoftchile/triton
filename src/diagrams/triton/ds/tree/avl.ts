@@ -11,24 +11,33 @@ import type { DiagramModule, ResolvedTheme, LayoutResult } from '../../../../con
 import type { TreeDocument, TreeNode } from './ir.js';
 import { layoutTree } from './layout.js';
 
-interface AvlNode { key: number; left: AvlNode | null; right: AvlNode | null; height: number; }
+interface AvlNode {
+  key: number;
+  left: AvlNode | null;
+  right: AvlNode | null;
+  height: number;
+}
 
 const h = (n: AvlNode | null): number => (n ? n.height : 0);
-const upd = (n: AvlNode): void => { n.height = 1 + Math.max(h(n.left), h(n.right)); };
+const upd = (n: AvlNode): void => {
+  n.height = 1 + Math.max(h(n.left), h(n.right));
+};
 const bf = (n: AvlNode): number => h(n.left) - h(n.right);
 
 function rotateRight(y: AvlNode): AvlNode {
   const x = y.left!;
   y.left = x.right;
   x.right = y;
-  upd(y); upd(x);
+  upd(y);
+  upd(x);
   return x;
 }
 function rotateLeft(x: AvlNode): AvlNode {
   const y = x.right!;
   x.right = y.left;
   y.left = x;
-  upd(x); upd(y);
+  upd(x);
+  upd(y);
   return y;
 }
 
@@ -41,8 +50,14 @@ function insert(node: AvlNode | null, key: number): AvlNode {
   const balance = bf(node);
   if (balance > 1 && key < node.left!.key) return rotateRight(node);
   if (balance < -1 && key > node.right!.key) return rotateLeft(node);
-  if (balance > 1 && key > node.left!.key) { node.left = rotateLeft(node.left!); return rotateRight(node); }
-  if (balance < -1 && key < node.right!.key) { node.right = rotateRight(node.right!); return rotateLeft(node); }
+  if (balance > 1 && key > node.left!.key) {
+    node.left = rotateLeft(node.left!);
+    return rotateRight(node);
+  }
+  if (balance < -1 && key < node.right!.key) {
+    node.right = rotateRight(node.right!);
+    return rotateLeft(node);
+  }
   return node;
 }
 

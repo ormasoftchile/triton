@@ -26,7 +26,11 @@ export interface ClassRelation {
 }
 
 export interface ClassDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly classes: readonly ClassBox[];
   readonly relations: readonly ClassRelation[];
 }

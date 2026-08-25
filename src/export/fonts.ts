@@ -48,7 +48,14 @@ interface Fontkit {
 }
 
 const FONT_EXT_RE = /\.(?:ttf|otf|ttc|otc)$/i;
-const GENERIC_FAMILIES = new Set(['serif', 'sans-serif', 'monospace', 'system-ui', '-apple-system', 'blinkmacsystemfont']);
+const GENERIC_FAMILIES = new Set([
+  'serif',
+  'sans-serif',
+  'monospace',
+  'system-ui',
+  '-apple-system',
+  'blinkmacsystemfont',
+]);
 let systemFontIndexPromise: Promise<readonly IndexedFontFace[]> | undefined;
 let bundledFontFaces: readonly IndexedFontFace[] = defaultBundledFontFaces();
 
@@ -60,7 +67,8 @@ export async function resolveThemeFont(fontFamily: string): Promise<ResolvedThem
 export async function resolveThemeFontFromIndex(
   fontFamily: string,
   index: readonly IndexedFontFace[],
-  loadFile: (path: string) => Promise<Uint8Array> = async (path) => new Uint8Array(await readFile(path)),
+  loadFile: (path: string) => Promise<Uint8Array> = async (path) =>
+    new Uint8Array(await readFile(path)),
 ): Promise<ResolvedThemeFont | undefined> {
   const mergedIndex = [...bundledFontFaces, ...index];
   const byFamily = buildFamilyMap(mergedIndex);
@@ -77,7 +85,7 @@ export async function resolveThemeFontFromIndex(
       if (seen.has(face.path)) continue;
       seen.add(face.path);
       try {
-        buffers.push(face.bytes ?? await loadFile(face.path));
+        buffers.push(face.bytes ?? (await loadFile(face.path)));
       } catch {
         // Font disappeared or is unreadable. Try the next face/file.
       }
@@ -96,10 +104,18 @@ export function registerBundledFont(registration: BundledFontRegistration): void
     const fullName = cleanName(face.fullName) ?? `${family} ${subfamily}`.trim();
     const path = face.path ?? `bundled:${key}:${index}:${normalizeFamily(subfamily || fullName)}`;
     if (face.bytes == null && face.path == null) return [];
-    return [{ family, subfamily, fullName, path, ...(face.bytes != null ? { bytes: new Uint8Array(face.bytes) } : {}) }];
+    return [
+      {
+        family,
+        subfamily,
+        fullName,
+        path,
+        ...(face.bytes != null ? { bytes: new Uint8Array(face.bytes) } : {}),
+      },
+    ];
   });
   if (faces.length === 0) return;
-  const next = bundledFontFaces.filter(face => normalizeFamily(face.family) !== key);
+  const next = bundledFontFaces.filter((face) => normalizeFamily(face.family) !== key);
   bundledFontFaces = [...faces, ...next];
 }
 
@@ -136,7 +152,8 @@ export async function enumerateInstalledFonts(): Promise<IndexedFontFace[]> {
   for (const file of [...files].sort()) {
     try {
       const opened = fontkit.openSync(file);
-      const fonts = 'fonts' in opened && Array.isArray(opened.fonts) ? opened.fonts : [opened as FontkitFont];
+      const fonts =
+        'fonts' in opened && Array.isArray(opened.fonts) ? opened.fonts : [opened as FontkitFont];
       for (const font of fonts) {
         const family = cleanName(font.familyName);
         if (!family) continue;
@@ -184,7 +201,9 @@ function fontDirectories(): string[] {
     const windir = process.env.WINDIR || 'C:\\Windows';
     return [
       join(windir, 'Fonts'),
-      ...(process.env.LOCALAPPDATA ? [join(process.env.LOCALAPPDATA, 'Microsoft', 'Windows', 'Fonts')] : []),
+      ...(process.env.LOCALAPPDATA
+        ? [join(process.env.LOCALAPPDATA, 'Microsoft', 'Windows', 'Fonts')]
+        : []),
     ];
   }
   return [
@@ -235,25 +254,46 @@ function resolveFamilyName(
     const resolved = byFamily.get(normalizeFamily(family))?.[0]?.family;
     if (resolved) return resolved;
   }
-  const generic = key === 'serif' ? findSerif(index) : key === 'monospace' ? findMonospace(index) : findSans(index);
+  const generic =
+    key === 'serif'
+      ? findSerif(index)
+      : key === 'monospace'
+        ? findMonospace(index)
+        : findSans(index);
   return generic?.family;
 }
 
 function platformGenericCandidates(key: string): string[] {
-  const sans = process.platform === 'darwin'
-    ? ['SF Pro', 'SF Pro Text', '.AppleSystemUIFont', 'Helvetica Neue', 'Helvetica', 'Arial']
-    : process.platform === 'win32'
-      ? ['Segoe UI', 'Arial']
-      : ['Noto Sans', 'DejaVu Sans', 'Liberation Sans', 'Arial'];
-  if (key === 'system-ui' || key === '-apple-system' || key === 'blinkmacsystemfont' || key === 'sans-serif') return sans;
-  if (key === 'serif') return process.platform === 'win32' ? ['Times New Roman', 'Georgia'] : ['Georgia', 'Times New Roman', 'Noto Serif', 'DejaVu Serif'];
-  return process.platform === 'win32' ? ['Consolas', 'Courier New'] : ['JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', 'DejaVu Sans Mono'];
+  const sans =
+    process.platform === 'darwin'
+      ? ['SF Pro', 'SF Pro Text', '.AppleSystemUIFont', 'Helvetica Neue', 'Helvetica', 'Arial']
+      : process.platform === 'win32'
+        ? ['Segoe UI', 'Arial']
+        : ['Noto Sans', 'DejaVu Sans', 'Liberation Sans', 'Arial'];
+  if (
+    key === 'system-ui' ||
+    key === '-apple-system' ||
+    key === 'blinkmacsystemfont' ||
+    key === 'sans-serif'
+  )
+    return sans;
+  if (key === 'serif')
+    return process.platform === 'win32'
+      ? ['Times New Roman', 'Georgia']
+      : ['Georgia', 'Times New Roman', 'Noto Serif', 'DejaVu Serif'];
+  return process.platform === 'win32'
+    ? ['Consolas', 'Courier New']
+    : ['JetBrains Mono', 'Fira Code', 'Menlo', 'Monaco', 'DejaVu Sans Mono'];
 }
 
 function selectRegularAndBold(faces: readonly IndexedFontFace[]): IndexedFontFace[] {
-  const regular = faces.find(isRegularFace) ?? faces.find((face) => !isItalicFace(face)) ?? faces[0];
+  const regular =
+    faces.find(isRegularFace) ?? faces.find((face) => !isItalicFace(face)) ?? faces[0];
   const bold = faces.find(isBoldFace);
-  return [regular, bold].filter((face, index, arr): face is IndexedFontFace => face != null && arr.findIndex((f) => f?.path === face.path) === index);
+  return [regular, bold].filter(
+    (face, index, arr): face is IndexedFontFace =>
+      face != null && arr.findIndex((f) => f?.path === face.path) === index,
+  );
 }
 
 function isRegularFace(face: IndexedFontFace): boolean {
@@ -270,7 +310,9 @@ function isItalicFace(face: IndexedFontFace): boolean {
 }
 
 function findSans(index: readonly IndexedFontFace[]): IndexedFontFace | undefined {
-  return index.find((face) => /sans|arial|helvetica|segoe|sf pro|ubuntu|cantarell/i.test(face.family));
+  return index.find((face) =>
+    /sans|arial|helvetica|segoe|sf pro|ubuntu|cantarell/i.test(face.family),
+  );
 }
 
 function findSerif(index: readonly IndexedFontFace[]): IndexedFontFace | undefined {
@@ -282,12 +324,18 @@ function findMonospace(index: readonly IndexedFontFace[]): IndexedFontFace | und
 }
 
 function pushFamily(out: string[], value: string): void {
-  const cleaned = value.trim().replace(/^['"]|['"]$/g, '').trim();
+  const cleaned = value
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .trim();
   if (cleaned) out.push(cleaned);
 }
 
 function normalizeFamily(value: string): string {
-  return value.trim().replace(/^['"]|['"]$/g, '').toLowerCase();
+  return value
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .toLowerCase();
 }
 
 function cleanName(value: string | undefined): string | undefined {

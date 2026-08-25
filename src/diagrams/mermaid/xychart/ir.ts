@@ -8,7 +8,11 @@ export interface XYSeries {
 }
 
 export interface XYChartDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   /** Categorical x-axis labels (one per data point). */
   readonly categories: readonly string[];
   readonly yLabel?: string;

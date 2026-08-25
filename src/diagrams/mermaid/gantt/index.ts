@@ -7,9 +7,20 @@ import * as parser from './parser.js';
 
 export type { GanttDocument, GanttSection, GanttTask, GanttStatus } from './ir.js';
 
-interface RawTask { name: string; meta: string }
-interface RawSection { label: string; tasks: RawTask[] }
-interface RawDoc { version: string; metadata: GanttDocument['metadata']; dateFormat: string; sections: RawSection[] }
+interface RawTask {
+  name: string;
+  meta: string;
+}
+interface RawSection {
+  label: string;
+  tasks: RawTask[];
+}
+interface RawDoc {
+  version: string;
+  metadata: GanttDocument['metadata'];
+  dateFormat: string;
+  sections: RawSection[];
+}
 
 const STATUS_FLAGS = new Set(['done', 'active', 'crit', 'milestone']);
 
@@ -23,20 +34,30 @@ function durationDays(token: string): number {
   if (!m) return 1;
   const n = parseFloat(m[1]!);
   switch ((m[2] || 'd').toLowerCase()) {
-    case 'w': return n * 7;
-    case 'h': return Math.max(1, Math.round(n / 24));
-    default:  return n;            // days
+    case 'w':
+      return n * 7;
+    case 'h':
+      return Math.max(1, Math.round(n / 24));
+    default:
+      return n; // days
   }
 }
 
 function dateOrdinal(date: string): number {
-  try { const [y, m, d] = coerceLeft(parseIRDate(date)); return dateToOrdinal(y, m, d); }
-  catch { return 0; }
+  try {
+    const [y, m, d] = coerceLeft(parseIRDate(date));
+    return dateToOrdinal(y, m, d);
+  } catch {
+    return 0;
+  }
 }
 
 /** Resolve one raw task's metadata into a concrete GanttTask. */
 function resolveTask(raw: RawTask, endById: Map<string, number>): GanttTask {
-  const tokens = raw.meta.split(',').map(t => t.trim()).filter(Boolean);
+  const tokens = raw.meta
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
   const flags: string[] = [];
   const rest: string[] = [];
   for (const tok of tokens) {
@@ -48,8 +69,14 @@ function resolveTask(raw: RawTask, endById: Map<string, number>): GanttTask {
   let id: string | undefined;
   let startTok: string;
   let durTok: string;
-  if (rest.length >= 3) { id = rest[0]; startTok = rest[1]!; durTok = rest[2]!; }
-  else                  { startTok = rest[0] ?? ''; durTok = rest[1] ?? '0d'; }
+  if (rest.length >= 3) {
+    id = rest[0];
+    startTok = rest[1]!;
+    durTok = rest[2]!;
+  } else {
+    startTok = rest[0] ?? '';
+    durTok = rest[1] ?? '0d';
+  }
 
   const startOrd = /^after\s+/i.test(startTok)
     ? (endById.get(startTok.replace(/^after\s+/i, '').trim()) ?? 0)
@@ -59,10 +86,13 @@ function resolveTask(raw: RawTask, endById: Map<string, number>): GanttTask {
   const endOrd = isMilestone ? startOrd : startOrd + durationDays(durTok);
   if (id) endById.set(id, endOrd);
 
-  const status: GanttStatus =
-    flags.includes('done')   ? 'done' :
-    flags.includes('active') ? 'active' :
-    flags.includes('crit')   ? 'crit' : 'default';
+  const status: GanttStatus = flags.includes('done')
+    ? 'done'
+    : flags.includes('active')
+      ? 'active'
+      : flags.includes('crit')
+        ? 'crit'
+        : 'default';
 
   return {
     ...(id ? { id } : {}),
@@ -78,9 +108,9 @@ export const gantt: DiagramModule<GanttDocument> = {
   parseMermaid(input: string): GanttDocument {
     const raw = parser.parse(input) as RawDoc;
     const endById = new Map<string, number>();
-    const sections: GanttSection[] = raw.sections.map(sec => ({
+    const sections: GanttSection[] = raw.sections.map((sec) => ({
       label: sec.label,
-      tasks: sec.tasks.map(t => resolveTask(t, endById)),
+      tasks: sec.tasks.map((t) => resolveTask(t, endById)),
     }));
     return { version: raw.version, metadata: raw.metadata, sections };
   },

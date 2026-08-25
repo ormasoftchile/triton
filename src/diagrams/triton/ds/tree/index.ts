@@ -14,8 +14,14 @@ function extractPathDirectives(input: string): { clean: string; paths: string[][
   for (const line of input.split('\n')) {
     const m = line.match(PATH_RE);
     if (m && m[1]!.includes('->')) {
-      const nodes = m[1]!.split('->').map(s => s.trim()).filter(Boolean);
-      if (nodes.length >= 2) { paths.push(nodes); continue; }
+      const nodes = m[1]!
+        .split('->')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (nodes.length >= 2) {
+        paths.push(nodes);
+        continue;
+      }
     }
     cleanLines.push(line);
   }
@@ -38,7 +44,7 @@ export const tree: DiagramModule<TreeDocument> = {
     for (const seg of paths) {
       for (let i = 0; i < seg.length - 1; i++) {
         const fromId = labelToId.get(seg[i]!);
-        const toId   = labelToId.get(seg[i + 1]!);
+        const toId = labelToId.get(seg[i + 1]!);
         if (fromId && toId) activePairs.push([fromId, toId]);
       }
     }

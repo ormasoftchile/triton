@@ -8,7 +8,13 @@
 
 import type { SceneElement } from '../contracts/scene.js';
 import type { CardinalSide, NodeAnchorRegistry, OccupiedPort } from '../contracts/anchors.js';
-import type { CrossLink, CrossLinkAnimation, CrossLinkDirection, CrossLinkEdgeStyle, NodeAddress } from '../contracts/crosslink.js';
+import type {
+  CrossLink,
+  CrossLinkAnimation,
+  CrossLinkDirection,
+  CrossLinkEdgeStyle,
+  NodeAddress,
+} from '../contracts/crosslink.js';
 import type { Rect } from '../contracts/primitives.js';
 import type { CurveStyle, RouteStyle } from '../contracts/routing.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
@@ -69,25 +75,26 @@ export interface ConnectorStageResult {
 
 export function routeConnectors(input: ConnectorStageInput): ConnectorStageResult {
   const diagnostics = connectorDiagnostics(input.connectors, input.anchors);
-  const resolvable = input.connectors.filter(spec =>
-    input.anchors[spec.fromKey] !== undefined && input.anchors[spec.toKey] !== undefined,
+  const resolvable = input.connectors.filter(
+    (spec) => input.anchors[spec.fromKey] !== undefined && input.anchors[spec.toKey] !== undefined,
   );
 
   const links = resolvable.map(specToCrossLink);
-  const rendered = links.length > 0
-    ? routeAndRenderCrossLinks3(
-      links,
-      input.theme,
-      input.anchors,
-      input.occupiedPorts,
-      input.occupiedTextRects,
-      input.routingObstacles,
-      input.containerObstacles,
-    )
-    : { defs: [], elements: [] };
+  const rendered =
+    links.length > 0
+      ? routeAndRenderCrossLinks3(
+          links,
+          input.theme,
+          input.anchors,
+          input.occupiedPorts,
+          input.occupiedTextRects,
+          input.routingObstacles,
+          input.containerObstacles,
+        )
+      : { defs: [], elements: [] };
 
-  const pathElements = rendered.elements.filter(e => e.type !== 'text');
-  const labelElements = rendered.elements.filter(e => e.type === 'text');
+  const pathElements = rendered.elements.filter((e) => e.type !== 'text');
+  const labelElements = rendered.elements.filter((e) => e.type === 'text');
 
   return {
     pathElements,
@@ -103,7 +110,7 @@ export function crossLinksToConnectorSpecs(
   links: readonly CrossLink[],
   defaults?: { curveStyle?: CurveStyle },
 ): NormalizedConnectorSpec[] {
-  return links.map(link => {
+  return links.map((link) => {
     const fromKey = addressToKey(link.from);
     const toKey = addressToKey(link.to);
     const curveStyle = link.curveStyle ?? defaults?.curveStyle;
@@ -133,10 +140,16 @@ function connectorDiagnostics(
   for (let i = 0; i < connectors.length; i++) {
     const spec = connectors[i]!;
     if (!anchors[spec.fromKey]) {
-      diagnostics.push({ connectorIndex: i, message: `Cannot resolve source: "${spec.fromKey}" not found in anchor registry` });
+      diagnostics.push({
+        connectorIndex: i,
+        message: `Cannot resolve source: "${spec.fromKey}" not found in anchor registry`,
+      });
     }
     if (!anchors[spec.toKey]) {
-      diagnostics.push({ connectorIndex: i, message: `Cannot resolve target: "${spec.toKey}" not found in anchor registry` });
+      diagnostics.push({
+        connectorIndex: i,
+        message: `Cannot resolve target: "${spec.toKey}" not found in anchor registry`,
+      });
     }
   }
   return diagnostics;
@@ -197,11 +210,12 @@ function connectorExtents(elements: readonly SceneElement[]): ConnectorExtents {
       }
     } else if (el.type === 'text') {
       const approxW = el.content.length * (el.fontSize ?? 12) * 0.65;
-      const left = el.anchor === 'middle'
-        ? el.position.x - approxW / 2
-        : el.anchor === 'end'
-          ? el.position.x - approxW
-          : el.position.x;
+      const left =
+        el.anchor === 'middle'
+          ? el.position.x - approxW / 2
+          : el.anchor === 'end'
+            ? el.position.x - approxW
+            : el.position.x;
       const top = el.position.y - (el.fontSize ?? 12);
       minX = Math.min(minX, left);
       minY = Math.min(minY, top);

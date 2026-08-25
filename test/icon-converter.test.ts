@@ -32,11 +32,10 @@ const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 describe('convert-icons: SVG → Triton pack round-trip', () => {
   it('converts fixture SVG directory and passes validateIconPack', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { pack, iconCount, skipped } = await convertIconDirectory(
-      FIXTURE_DIR,
-      'azure-test',
-      { useSvgo: true, verbose: false },
-    );
+    const { pack, iconCount, skipped } = await convertIconDirectory(FIXTURE_DIR, 'azure-test', {
+      useSvgo: true,
+      verbose: false,
+    });
 
     expect(iconCount).toBe(3);
     expect(skipped).toHaveLength(0);

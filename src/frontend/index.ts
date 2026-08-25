@@ -64,6 +64,9 @@ import { graph } from '../diagrams/triton/ds/graph/graph.js';
 import { unionfind } from '../diagrams/triton/ds/unionfind/unionfind.js';
 import { topology } from '../diagrams/triton/topology/topology.js';
 import { list } from '../diagrams/triton/deck/list/list.js';
+import { fishbone } from '../diagrams/triton/fishbone/index.js';
+import { pyramid } from '../diagrams/triton/pyramid/index.js';
+import { loop } from '../diagrams/triton/loop/index.js';
 import { svgRenderer, embedAnchorManifest } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
@@ -121,6 +124,9 @@ registerDiagram('nodegraph', graph);
 registerDiagram('unionfind', unionfind);
 registerDiagram('topology', topology);
 registerDiagram('list', list);
+registerDiagram('fishbone', fishbone);
+registerDiagram('pyramid', pyramid);
+registerDiagram('loop', loop);
 registerRenderer(svgRenderer);
 registerRouter('straight', straightRouter);
 registerRouter('orthogonal', orthogonalRouter);
@@ -337,6 +343,8 @@ export async function render(
   return renderSync(input, themeInput, rendererName, forcedThemeName);
 }
 
-// ─── Theme validation (re-exported for npm consumers) ─────────────────────────
+// ─── Theme validation & Presets (re-exported for npm consumers) ───────────────
 
 export { validateThemeInput, isBuiltinThemeName } from '../theme/validate.js';
+export { getThemePreset, themePresetNames, THEMES } from '../theme/preset.js';
+export { resolveTheme } from '../theme/resolver.js';

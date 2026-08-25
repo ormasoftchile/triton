@@ -25,14 +25,16 @@ describe('array', () => {
   });
 
   it('parses axis, index bottom/reverse modifiers, labels, semantic targets, and gaps', () => {
-    const ir = array.parseMermaid([
-      'array',
-      '  cells 5 8 ... 34',
-      '  axis vertical',
-      '  index reverse bottom',
-      '  ptr p -> 2 "slow pointer"',
-      '  ptr q -> clast',
-    ].join('\n'));
+    const ir = array.parseMermaid(
+      [
+        'array',
+        '  cells 5 8 ... 34',
+        '  axis vertical',
+        '  index reverse bottom',
+        '  ptr p -> 2 "slow pointer"',
+        '  ptr q -> clast',
+      ].join('\n'),
+    );
     expect(ir.axis).toBe('vertical');
     expect(ir.index).toEqual({ show: true, side: 'after', order: 'reverse' });
     expect(ir.cells[2]).toEqual({ kind: 'gap' });
@@ -41,8 +43,16 @@ describe('array', () => {
   });
 
   it('accepts combined index modifiers in either order', () => {
-    expect(array.parseMermaid('array\n  cells 1 2\n  index bottom reverse\n').index).toEqual({ show: true, side: 'after', order: 'reverse' });
-    expect(array.parseMermaid('array\n  cells 1 2\n  index reverse bottom\n').index).toEqual({ show: true, side: 'after', order: 'reverse' });
+    expect(array.parseMermaid('array\n  cells 1 2\n  index bottom reverse\n').index).toEqual({
+      show: true,
+      side: 'after',
+      order: 'reverse',
+    });
+    expect(array.parseMermaid('array\n  cells 1 2\n  index reverse bottom\n').index).toEqual({
+      show: true,
+      side: 'after',
+      order: 'reverse',
+    });
   });
 
   it('renders a slot anchor per cell and an arrow marker', () => {
@@ -66,10 +76,16 @@ describe('array', () => {
   });
 
   it('index bottom flips pointers to the opposite side', () => {
-    const topIndex = layoutArray(array.parseMermaid('array\n  cells 1\n  index\n  ptr p -> 0\n'), defaultTheme);
-    const bottomIndex = layoutArray(array.parseMermaid('array\n  cells 1\n  index bottom\n  ptr p -> 0\n'), defaultTheme);
-    const topPath = topIndex.scene.elements.find(e => e.type === 'path') as any;
-    const bottomPath = bottomIndex.scene.elements.find(e => e.type === 'path') as any;
+    const topIndex = layoutArray(
+      array.parseMermaid('array\n  cells 1\n  index\n  ptr p -> 0\n'),
+      defaultTheme,
+    );
+    const bottomIndex = layoutArray(
+      array.parseMermaid('array\n  cells 1\n  index bottom\n  ptr p -> 0\n'),
+      defaultTheme,
+    );
+    const topPath = topIndex.scene.elements.find((e) => e.type === 'path') as any;
+    const bottomPath = bottomIndex.scene.elements.find((e) => e.type === 'path') as any;
     const topNums = topPath.d.match(/[-\d.]+/g).map(Number);
     const bottomNums = bottomPath.d.match(/[-\d.]+/g).map(Number);
     expect(topNums[1]).toBeGreaterThan(topNums[3]);
@@ -80,13 +96,15 @@ describe('array', () => {
     const ir = array.parseMermaid('array\n  cells 10 20 30\n  index reverse\n  ptr p -> 0\n');
     const { scene, anchors } = layoutArray(ir, defaultTheme);
     expect(anchors.c0!.bounds.x).toBeGreaterThan(anchors.c2!.bounds.x);
-    const path = scene.elements.find(e => e.type === 'path') as any;
+    const path = scene.elements.find((e) => e.type === 'path') as any;
     const x = Number(path.d.match(/[-\d.]+/g)[0]);
     expect(x).toBeCloseTo(anchors.c0!.bounds.x + anchors.c0!.bounds.width / 2);
   });
 
   it('exports cfirst, clast, and cgap while omitting a numeric index for the gap', () => {
-    const ir = array.parseMermaid('array\n  cells 5 8 ... 34\n  index\n  ptr probe -> cgap "gap label"\n');
+    const ir = array.parseMermaid(
+      'array\n  cells 5 8 ... 34\n  index\n  ptr probe -> cgap "gap label"\n',
+    );
     const { scene, anchors } = layoutArray(ir, defaultTheme);
     expect(anchors.cfirst).toEqual({ bounds: anchors.c0!.bounds });
     expect(anchors.clast).toEqual({ bounds: anchors.c2!.bounds });
@@ -97,29 +115,34 @@ describe('array', () => {
   });
 
   it('staggers overlapping horizontal pointer labels into distinct lanes', () => {
-    const ir = array.parseMermaid([
-      'array',
-      '  cells 1 2',
-      '  ptr p -> 0 "very long pointer label"',
-      '  ptr q -> 1 "very long pointer label"',
-    ].join('\n'));
+    const ir = array.parseMermaid(
+      [
+        'array',
+        '  cells 1 2',
+        '  ptr p -> 0 "very long pointer label"',
+        '  ptr q -> 1 "very long pointer label"',
+      ].join('\n'),
+    );
     const { scene } = layoutArray(ir, defaultTheme);
-    const labels = (scene.elements.filter(e => e.type === 'text') as any[])
-      .filter(e => e.content === 'very long pointer label');
-    expect(new Set(labels.map(e => e.position.y)).size).toBe(2);
+    const labels = (scene.elements.filter((e) => e.type === 'text') as any[]).filter(
+      (e) => e.content === 'very long pointer label',
+    );
+    expect(new Set(labels.map((e) => e.position.y)).size).toBe(2);
   });
 
   it('expands the viewBox to include wide title, index, and pointer labels', () => {
-    const ir = array.parseMermaid([
-      'array',
-      '  title Symbolic array with a deliberately wide title',
-      '  cells 5 8 ... 34',
-      '  axis vertical',
-      '  index bottom reverse',
-      '  ptr head -> 0 "start of the run with a wide label"',
-      '  ptr tail -> clast "last live element with a wide label"',
-      '  ptr probe -> cgap "somewhere in the middle with a wide label"',
-    ].join('\n'));
+    const ir = array.parseMermaid(
+      [
+        'array',
+        '  title Symbolic array with a deliberately wide title',
+        '  cells 5 8 ... 34',
+        '  axis vertical',
+        '  index bottom reverse',
+        '  ptr head -> 0 "start of the run with a wide label"',
+        '  ptr tail -> clast "last live element with a wide label"',
+        '  ptr probe -> cgap "somewhere in the middle with a wide label"',
+      ].join('\n'),
+    );
     const { scene } = layoutArray(ir, defaultTheme);
     for (const text of scene.elements.filter((e): e is SceneText => e.type === 'text')) {
       const bounds = textBounds(text);
@@ -129,14 +152,16 @@ describe('array', () => {
   });
 
   it('assigns co-located vertical pointers to distinct arrow coordinates', () => {
-    const ir = array.parseMermaid([
-      'array',
-      '  cells 5 8 ... 34',
-      '  axis vertical',
-      '  index bottom reverse',
-      '  ptr head -> 0 "start of the run"',
-      '  ptr tail -> clast "last live element"',
-    ].join('\n'));
+    const ir = array.parseMermaid(
+      [
+        'array',
+        '  cells 5 8 ... 34',
+        '  axis vertical',
+        '  index bottom reverse',
+        '  ptr head -> 0 "start of the run"',
+        '  ptr tail -> clast "last live element"',
+      ].join('\n'),
+    );
     const { scene } = layoutArray(ir, defaultTheme);
     const paths = scene.elements.filter((e): e is ScenePath => e.type === 'path');
     expect(paths).toHaveLength(2);
@@ -144,21 +169,27 @@ describe('array', () => {
   });
 
   it('keeps vertical array content near the top of the tight content bounds', () => {
-    const ir = array.parseMermaid([
-      'array',
-      '  title Symbolic array',
-      '  cells 5 8 ... 34',
-      '  axis vertical',
-      '  index bottom reverse',
-      '  ptr head -> 0 "start of the run"',
-      '  ptr tail -> clast "last live element"',
-      '  ptr probe -> cgap "somewhere in the middle"',
-    ].join('\n'));
+    const ir = array.parseMermaid(
+      [
+        'array',
+        '  title Symbolic array',
+        '  cells 5 8 ... 34',
+        '  axis vertical',
+        '  index bottom reverse',
+        '  ptr head -> 0 "start of the run"',
+        '  ptr tail -> clast "last live element"',
+        '  ptr probe -> cgap "somewhere in the middle"',
+      ].join('\n'),
+    );
     const { scene } = layoutArray(ir, defaultTheme);
-    const minCellY = Math.min(...scene.elements
-      .filter((e): e is SceneRect => e.type === 'rect' && e.strokeWidth === 1.5)
-      .map(e => e.bounds.y));
-    expect(minCellY).toBeLessThanOrEqual(defaultTheme.spacing.diagramMargin + defaultTheme.typography.titleFontSize + 16);
+    const minCellY = Math.min(
+      ...scene.elements
+        .filter((e): e is SceneRect => e.type === 'rect' && e.strokeWidth === 1.5)
+        .map((e) => e.bounds.y),
+    );
+    expect(minCellY).toBeLessThanOrEqual(
+      defaultTheme.spacing.diagramMargin + defaultTheme.typography.titleFontSize + 16,
+    );
     expect(minCellY).toBeLessThan(scene.viewBox.height / 3);
   });
 
@@ -187,7 +218,7 @@ describe('array', () => {
     const { scene } = layoutArray(ir, defaultTheme);
     // cell 1 should have a primary-colored rect
     const rects = scene.elements.filter((e): e is SceneRect => e.type === 'rect');
-    const highlightRect = rects.find(r => r.fillOpacity !== undefined && r.fillOpacity < 1);
+    const highlightRect = rects.find((r) => r.fillOpacity !== undefined && r.fillOpacity < 1);
     expect(highlightRect).toBeDefined();
     expect(highlightRect!.fill).toBe(defaultTheme.palette.primary);
   });
@@ -201,18 +232,27 @@ describe('array', () => {
     // logical indices 1 and 2 should be highlighted
     expect(highlightRects.length).toBe(2);
   });
-
 });
 
 describe('linkedlist', () => {
   it('parses values inline and on indented lines', () => {
     expect(linkedlist.parseMermaid('linkedlist 3 7 9').values).toEqual(['3', '7', '9']);
-    expect(linkedlist.parseMermaid('linkedlist\n  title q\n  3 7 9\n').values).toEqual(['3', '7', '9']);
+    expect(linkedlist.parseMermaid('linkedlist\n  title q\n  3 7 9\n').values).toEqual([
+      '3',
+      '7',
+      '9',
+    ]);
   });
 
   it('parses quoted multi-word node labels without changing bare labels', () => {
-    expect(linkedlist.parseMermaid('linkedlist "alpha beta" gamma').values).toEqual(['alpha beta', 'gamma']);
-    expect(linkedlist.parseMermaid('linkedlist\n  nodes bare "two words"\n').values).toEqual(['bare', 'two words']);
+    expect(linkedlist.parseMermaid('linkedlist "alpha beta" gamma').values).toEqual([
+      'alpha beta',
+      'gamma',
+    ]);
+    expect(linkedlist.parseMermaid('linkedlist\n  nodes bare "two words"\n').values).toEqual([
+      'bare',
+      'two words',
+    ]);
   });
 
   it('renders one node anchor per value', () => {
@@ -226,7 +266,9 @@ describe('linkedlist', () => {
     const wide = 'node label with enough words to widen the linked list cell';
     const ir = linkedlist.parseMermaid(`linkedlist "${wide}"`);
     const { scene } = layoutList(ir, defaultTheme);
-    const label = scene.elements.find((e): e is SceneText => e.type === 'text' && e.content === wide);
+    const label = scene.elements.find(
+      (e): e is SceneText => e.type === 'text' && e.content === wide,
+    );
     expect(label).toBeDefined();
     const bounds = textBounds(label!);
     expect(bounds.x).toBeGreaterThanOrEqual(0);
@@ -255,10 +297,11 @@ function textBounds(text: {
   anchor?: TextAnchor;
 }): { x: number; width: number } {
   const width = measureText(text.content, text.fontSize).width;
-  const x = text.anchor === 'middle'
-    ? text.position.x - width / 2
-    : text.anchor === 'end'
-      ? text.position.x - width
-      : text.position.x;
+  const x =
+    text.anchor === 'middle'
+      ? text.position.x - width / 2
+      : text.anchor === 'end'
+        ? text.position.x - width
+        : text.position.x;
   return { x, width };
 }

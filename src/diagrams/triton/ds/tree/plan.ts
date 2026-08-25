@@ -18,8 +18,15 @@ function inferKind(label: string): string | undefined {
   const l = label.toLowerCase();
   if (l.includes('join')) return 'join';
   if (l.includes('scan')) return 'scan';
-  if (l.includes('hash') || l.includes('sort') || l.includes('aggregate')
-    || l.includes('group') || l.includes('materialize') || l.includes('gather')) return 'build';
+  if (
+    l.includes('hash') ||
+    l.includes('sort') ||
+    l.includes('aggregate') ||
+    l.includes('group') ||
+    l.includes('materialize') ||
+    l.includes('gather')
+  )
+    return 'build';
   return undefined;
 }
 
@@ -28,7 +35,7 @@ export const plan: DiagramModule<TreeDocument> = {
     const raw = parseLines(input);
     const nodes = buildNodes(raw.lines);
     for (const n of nodes) {
-      if (n.kinds.some(k => COLOUR_KINDS.includes(k))) continue;
+      if (n.kinds.some((k) => COLOUR_KINDS.includes(k))) continue;
       const k = inferKind(n.label);
       if (k) n.kinds.push(k);
     }

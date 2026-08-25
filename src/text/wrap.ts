@@ -75,11 +75,7 @@ export function wrapText(
 /**
  * Truncate text to fit maxWidth (px) at fontSizePx, appending an ellipsis if cut.
  */
-export function truncateText(
-  text: string,
-  fontSizePx: number,
-  maxWidth: number,
-): string {
+export function truncateText(text: string, fontSizePx: number, maxWidth: number): string {
   if (measureText(text, fontSizePx).width <= maxWidth) return text;
 
   const ellipsisWidth = measureText(ELLIPSIS, fontSizePx).width;

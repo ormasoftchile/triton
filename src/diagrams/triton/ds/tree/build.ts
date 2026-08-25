@@ -53,14 +53,23 @@ export function buildNodes(lines: readonly RawLine[]): MutableTreeNode[] {
     const infoParts: string[] = [];
     let badge: string | undefined;
     for (const [k, v] of Object.entries(ln.attrs ?? {})) {
-      if (v === true) { kinds.push(k); continue; }
-      if (k === 'badge') { badge = String(v); continue; }
+      if (v === true) {
+        kinds.push(k);
+        continue;
+      }
+      if (k === 'badge') {
+        badge = String(v);
+        continue;
+      }
       infoParts.push(k === 'sub' || k === 'info' ? String(v) : `${k}: ${v}`);
     }
     const info = infoParts.length > 0 ? infoParts.join(' · ') : undefined;
 
     const node: MutableTreeNode = {
-      id, label: ln.label, kinds, children: [],
+      id,
+      label: ln.label,
+      kinds,
+      children: [],
       ...(info !== undefined ? { info } : {}),
       ...(badge !== undefined ? { badge } : {}),
       ...(ln.edgeLabel !== undefined ? { edgeLabel: ln.edgeLabel } : {}),

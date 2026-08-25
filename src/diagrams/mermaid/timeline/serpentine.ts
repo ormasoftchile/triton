@@ -23,8 +23,14 @@ import { pen } from '../../../scene/build.js';
 import { statusColor, collectEntries } from './shared.js';
 
 interface Geo {
-  xl: number; xr: number; pathStartY: number;
-  nRows: number; rowSpacing: number; turnRadius: number; rowWidth: number; totalLength: number;
+  xl: number;
+  xr: number;
+  pathStartY: number;
+  nRows: number;
+  rowSpacing: number;
+  turnRadius: number;
+  rowWidth: number;
+  totalLength: number;
 }
 
 /** Point (x,y) at arc-length s along the boustrophedon path. */
@@ -74,53 +80,78 @@ function buildPathD(geo: Geo): string {
   return parts.join(' ');
 }
 
-interface SerpEntry { id: string; label: string; ord: number; color: string; }
+interface SerpEntry {
+  id: string;
+  label: string;
+  ord: number;
+  color: string;
+}
 
 export function layoutSerpentine(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
   const { palette, typography } = theme;
   const p = pen(theme);
 
   // ── Entries ────────────────────────────────────────────────────────────────
-  const entries: SerpEntry[] = collectEntries(ir).map(e => ({
-    id: e.id, label: e.label, ord: e.ord,
+  const entries: SerpEntry[] = collectEntries(ir).map((e) => ({
+    id: e.id,
+    label: e.label,
+    ord: e.ord,
     color: e.kind === 'milestone' ? palette.primary : statusColor(palette, e.status),
   }));
   const n = entries.length;
 
   // ── Geometry ─────────────────────────────────────────────────────────────
-  const W           = 1040;
-  const turnRadius  = 80;
-  const rowSpacing  = 160;
-  const trackWidth  = 14;
-  const nodeR       = 10;
-  const badgeR      = 22;
-  const PATH_XL     = rhu(turnRadius + 10);
-  const PATH_XR     = rhu(W - turnRadius - 10);
-  const ROW_W       = rhu(PATH_XR - PATH_XL);
+  const W = 1040;
+  const turnRadius = 80;
+  const rowSpacing = 160;
+  const trackWidth = 14;
+  const nodeR = 10;
+  const badgeR = 22;
+  const PATH_XL = rhu(turnRadius + 10);
+  const PATH_XR = rhu(W - turnRadius - 10);
+  const ROW_W = rhu(PATH_XR - PATH_XL);
 
-  const nRows       = Math.max(2, Math.ceil(n / 3));
-  const headerH     = ir.metadata.title ? typography.titleFontSize + 28 : 0;
-  const TOP_PAD     = 64;
-  const BOTTOM_PAD  = 64;
-  const pathStartY  = rhu(headerH + TOP_PAD);
-  const L_turn      = rhu(Math.PI * turnRadius);
+  const nRows = Math.max(2, Math.ceil(n / 3));
+  const headerH = ir.metadata.title ? typography.titleFontSize + 28 : 0;
+  const TOP_PAD = 64;
+  const BOTTOM_PAD = 64;
+  const pathStartY = rhu(headerH + TOP_PAD);
+  const L_turn = rhu(Math.PI * turnRadius);
   const totalLength = rhu(nRows * ROW_W + (nRows - 1) * L_turn);
-  const pathEndY    = rhu(pathStartY + (nRows - 1) * rowSpacing);
-  const canvasH     = rhuInt(pathEndY + BOTTOM_PAD);
+  const pathEndY = rhu(pathStartY + (nRows - 1) * rowSpacing);
+  const canvasH = rhuInt(pathEndY + BOTTOM_PAD);
 
-  const geo: Geo = { xl: PATH_XL, xr: PATH_XR, pathStartY, nRows, rowSpacing, turnRadius, rowWidth: ROW_W, totalLength };
+  const geo: Geo = {
+    xl: PATH_XL,
+    xr: PATH_XR,
+    pathStartY,
+    nRows,
+    rowSpacing,
+    turnRadius,
+    rowWidth: ROW_W,
+    totalLength,
+  };
 
   const elements: SceneElement[] = [];
 
   // ── Title ─────────────────────────────────────────────────────────────────
   if (ir.metadata.title) {
-    elements.push(p.text(ir.metadata.title, rhu(W / 2), rhuInt(typography.titleFontSize + 8), typography.titleFontSize, palette.text, { weight: 'bold', anchor: 'middle' }));
+    elements.push(
+      p.text(
+        ir.metadata.title,
+        rhu(W / 2),
+        rhuInt(typography.titleFontSize + 8),
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold', anchor: 'middle' },
+      ),
+    );
   }
 
   // ── Track ─────────────────────────────────────────────────────────────────
-  const pathD     = buildPathD(geo);
+  const pathD = buildPathD(geo);
   const pathStart = pathPointAtS(0, geo);
-  const pathEnd   = pathPointAtS(totalLength, geo);
+  const pathEnd = pathPointAtS(totalLength, geo);
 
   elements.push(p.path(pathD, palette.primary, trackWidth, { fill: 'none' }));
 
@@ -130,47 +161,74 @@ export function layoutSerpentine(ir: TimelineDocument, theme: ResolvedTheme): La
     for (let row = 0; row < nRows; row++) {
       if (remaining <= ROW_W + 1e-9) return row;
       remaining -= ROW_W;
-      if (row < nRows - 1) { if (remaining <= L_turn + 1e-9) return row; remaining -= L_turn; }
+      if (row < nRows - 1) {
+        if (remaining <= L_turn + 1e-9) return row;
+        remaining -= L_turn;
+      }
     }
     return nRows - 1;
   }
 
   const labelFontSize = typography.smallFontSize;
   for (let i = 0; i < n; i++) {
-    const s  = rhu(((i + 0.5) / n) * totalLength);
+    const s = rhu(((i + 0.5) / n) * totalLength);
     const pt = pathPointAtS(s, geo);
-    const e  = entries[i]!;
+    const e = entries[i]!;
 
     elements.push(p.circle({ x: pt.x, y: pt.y }, nodeR, palette.background, e.color, 3));
 
     const isEvenRow = rowForS(s) % 2 === 0;
-    const labelY = isEvenRow
-      ? rhu(pt.y + nodeR + 6 + labelFontSize * 0.9)
-      : rhu(pt.y - nodeR - 8);
+    const labelY = isEvenRow ? rhu(pt.y + nodeR + 6 + labelFontSize * 0.9) : rhu(pt.y - nodeR - 8);
     const labelText = e.label.length > 18 ? `${e.label.slice(0, 16)}…` : e.label;
-    elements.push(p.text(labelText, pt.x, labelY, labelFontSize, palette.text, { anchor: 'middle' }));
+    elements.push(
+      p.text(labelText, pt.x, labelY, labelFontSize, palette.text, { anchor: 'middle' }),
+    );
   }
 
   // ── Start cap (play triangle) ─────────────────────────────────────────────
-  elements.push(p.circle({ x: pathStart.x, y: pathStart.y }, badgeR, palette.primary, palette.primary, 2));
+  elements.push(
+    p.circle({ x: pathStart.x, y: pathStart.y }, badgeR, palette.primary, palette.primary, 2),
+  );
   {
-    const cx = pathStart.x, cy = pathStart.y, t = badgeR * 0.5;
-    elements.push(p.path(
-      `M ${rhu(cx - t * 0.5)} ${rhu(cy - t)} L ${rhu(cx + t)} ${rhu(cy)} L ${rhu(cx - t * 0.5)} ${rhu(cy + t)} Z`,
-      palette.background, 0, { fill: palette.background },
-    ));
+    const cx = pathStart.x,
+      cy = pathStart.y,
+      t = badgeR * 0.5;
+    elements.push(
+      p.path(
+        `M ${rhu(cx - t * 0.5)} ${rhu(cy - t)} L ${rhu(cx + t)} ${rhu(cy)} L ${rhu(cx - t * 0.5)} ${rhu(cy + t)} Z`,
+        palette.background,
+        0,
+        { fill: palette.background },
+      ),
+    );
   }
 
   // ── End cap (target / bullseye) ───────────────────────────────────────────
-  elements.push(p.circle({ x: pathEnd.x, y: pathEnd.y }, badgeR, palette.primary, palette.primary, 2));
-  elements.push(p.circle({ x: pathEnd.x, y: pathEnd.y }, rhu(badgeR * 0.62), 'none', palette.background, 2.5));
-  elements.push(p.circle({ x: pathEnd.x, y: pathEnd.y }, rhu(badgeR * 0.28), palette.background, palette.background, 0));
+  elements.push(
+    p.circle({ x: pathEnd.x, y: pathEnd.y }, badgeR, palette.primary, palette.primary, 2),
+  );
+  elements.push(
+    p.circle({ x: pathEnd.x, y: pathEnd.y }, rhu(badgeR * 0.62), 'none', palette.background, 2.5),
+  );
+  elements.push(
+    p.circle(
+      { x: pathEnd.x, y: pathEnd.y },
+      rhu(badgeR * 0.28),
+      palette.background,
+      palette.background,
+      0,
+    ),
+  );
 
-  const scene: Scene = applyOverlays({
-    viewBox: { x: 0, y: 0, width: W, height: canvasH },
-    background: palette.background,
-    elements,
-  }, ir.overlays, theme);
+  const scene: Scene = applyOverlays(
+    {
+      viewBox: { x: 0, y: 0, width: W, height: canvasH },
+      background: palette.background,
+      elements,
+    },
+    ir.overlays,
+    theme,
+  );
 
   return { scene, anchors: {} };
 }

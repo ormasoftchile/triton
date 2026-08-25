@@ -3,9 +3,22 @@ import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { Resvg } from '@resvg/resvg-js';
 import UPNG from 'upng-js';
-import { ANIMATION_PERIOD_SECONDS, marchDashoffsetAt, pointAtPathFraction } from '../src/animation/index.js';
+import {
+  ANIMATION_PERIOD_SECONDS,
+  marchDashoffsetAt,
+  pointAtPathFraction,
+} from '../src/animation/index.js';
 import { renderSync } from '../src/frontend/index.js';
-import { bakeFrame, encodeApng, ExportCancelledError, exportAnimatedPng, exportStaticPng, initExportWasm, planLoop, renderToPng } from '../src/export/index.js';
+import {
+  bakeFrame,
+  encodeApng,
+  ExportCancelledError,
+  exportAnimatedPng,
+  exportStaticPng,
+  initExportWasm,
+  planLoop,
+  renderToPng,
+} from '../src/export/index.js';
 import { resolveThemeFont } from '../src/export/fonts.js';
 
 const require = createRequire(import.meta.url);
@@ -76,7 +89,9 @@ describe('animated export core', () => {
       </path>
     </svg>`;
     const baked = bakeFrame(svg, 0);
-    expect(baked).toContain('<path d="M 0 5 L 100 5" stroke="#777" fill="none" marker-end="url(#arrow)" />');
+    expect(baked).toContain(
+      '<path d="M 0 5 L 100 5" stroke="#777" fill="none" marker-end="url(#arrow)" />',
+    );
     expect(baked).toContain('stroke-dashoffset="0"');
     expect(baked).not.toMatch(/\/\s+stroke-dashoffset=/);
     expect(baked).not.toMatch(/<animate\b/);
@@ -123,62 +138,80 @@ describe('animated export core', () => {
   it('rejects with ExportCancelledError when already aborted', async () => {
     const controller = new AbortController();
     controller.abort();
-    await expect(exportAnimatedPng(animatedSvg, { signal: controller.signal })).rejects.toBeInstanceOf(ExportCancelledError);
+    await expect(
+      exportAnimatedPng(animatedSvg, { signal: controller.signal }),
+    ).rejects.toBeInstanceOf(ExportCancelledError);
   });
 
   it('encodes APNG frames that decode with the same frame count', () => {
     const red = new Uint8Array([255, 0, 0, 255]);
     const blue = new Uint8Array([0, 0, 255, 255]);
     const apng = encodeApng([red, blue], [100, 100], { width: 1, height: 1 });
-    const decoded = UPNG.decode(apng.buffer.slice(apng.byteOffset, apng.byteOffset + apng.byteLength));
+    const decoded = UPNG.decode(
+      apng.buffer.slice(apng.byteOffset, apng.byteOffset + apng.byteLength),
+    );
     expect(decoded.width).toBe(1);
     expect(decoded.height).toBe(1);
     expect(decoded.tabs?.acTL?.num_frames).toBe(2);
   });
 
-  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('reports progress once per rendered APNG frame', async () => {
-    const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
-    await initExportWasm(wasmBytes);
-    const calls: Array<readonly [number, number]> = [];
-    await exportAnimatedPng(animatedSvg, {
-      fps: 5,
-      speed: 10,
-      width: 12,
-      onProgress: (done, total) => calls.push([done, total]),
-    });
-    const total = calls[0]?.[1] ?? 0;
-    expect(total).toBeGreaterThan(0);
-    expect(calls).toHaveLength(total);
-    expect(calls.map(([done]) => done)).toEqual(Array.from({ length: total }, (_, i) => i + 1));
-    expect(calls.every(([, frameTotal]) => frameTotal === total)).toBe(true);
-  });
+  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')(
+    'reports progress once per rendered APNG frame',
+    async () => {
+      const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+      await initExportWasm(wasmBytes);
+      const calls: Array<readonly [number, number]> = [];
+      await exportAnimatedPng(animatedSvg, {
+        fps: 5,
+        speed: 10,
+        width: 12,
+        onProgress: (done, total) => calls.push([done, total]),
+      });
+      const total = calls[0]?.[1] ?? 0;
+      expect(total).toBeGreaterThan(0);
+      expect(calls).toHaveLength(total);
+      expect(calls.map(([done]) => done)).toEqual(Array.from({ length: total }, (_, i) => i + 1));
+      expect(calls.every(([, frameTotal]) => frameTotal === total)).toBe(true);
+    },
+  );
 
-  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('rasters a tiny SVG through resvg-wasm', async () => {
-    const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
-    await initExportWasm(wasmBytes);
-    const png = await renderToPng('<svg viewBox="0 0 1 1" width="1" height="1" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" fill="#fff"/></svg>');
-    expect(png.slice(1, 4)).toEqual(new Uint8Array([0x50, 0x4e, 0x47]));
-  });
+  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')(
+    'rasters a tiny SVG through resvg-wasm',
+    async () => {
+      const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+      await initExportWasm(wasmBytes);
+      const png = await renderToPng(
+        '<svg viewBox="0 0 1 1" width="1" height="1" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" fill="#fff"/></svg>',
+      );
+      expect(png.slice(1, 4)).toEqual(new Uint8Array([0x50, 0x4e, 0x47]));
+    },
+  );
 
-  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('static PNG export rasters a baked motion circle', async () => {
-    const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
-    await initExportWasm(wasmBytes);
-    const png = await exportStaticPng(animatedSvg, { width: 12 });
-    expect(png.slice(1, 4)).toEqual(new Uint8Array([0x50, 0x4e, 0x47]));
-  });
+  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')(
+    'static PNG export rasters a baked motion circle',
+    async () => {
+      const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+      await initExportWasm(wasmBytes);
+      const png = await exportStaticPng(animatedSvg, { width: 12 });
+      expect(png.slice(1, 4)).toEqual(new Uint8Array([0x50, 0x4e, 0x47]));
+    },
+  );
 
-  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')('renders text ink when theme font bytes are injected', async () => {
-    const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
-    await initExportWasm(wasmBytes);
-    const fonts = await resolveThemeFont('Inter, system-ui, -apple-system, sans-serif');
-    if (!fonts) return;
+  it.skipIf(process.env.TRITON_TEST_RESVG_WASM !== '1')(
+    'renders text ink when theme font bytes are injected',
+    async () => {
+      const wasmBytes = await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+      await initExportWasm(wasmBytes);
+      const fonts = await resolveThemeFont('Inter, system-ui, -apple-system, sans-serif');
+      if (!fonts) return;
 
-    const svg = `<svg viewBox="0 0 240 80" width="240" height="80" xmlns="http://www.w3.org/2000/svg">
+      const svg = `<svg viewBox="0 0 240 80" width="240" height="80" xmlns="http://www.w3.org/2000/svg">
       <text x="16" y="48" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="36" font-weight="700" fill="#000">Label</text>
     </svg>`;
-    const withoutFonts = await renderToPng(svg, { width: 240 });
-    const withFonts = await renderToPng(svg, { width: 240, fonts });
+      const withoutFonts = await renderToPng(svg, { width: 240 });
+      const withFonts = await renderToPng(svg, { width: 240, fonts });
 
-    expect(nonTransparentPixels(withFonts)).toBeGreaterThan(nonTransparentPixels(withoutFonts));
-  });
+      expect(nonTransparentPixels(withFonts)).toBeGreaterThan(nonTransparentPixels(withoutFonts));
+    },
+  );
 });

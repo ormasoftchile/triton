@@ -9,8 +9,19 @@
  */
 
 import type {
-  SceneElement, SceneText, SceneRect, SceneCircle, ScenePath, SceneGroup, SceneIcon,
-  Rect, Point, Color, FontWeight, TextAnchor, ResolvedTheme,
+  SceneElement,
+  SceneText,
+  SceneRect,
+  SceneCircle,
+  ScenePath,
+  SceneGroup,
+  SceneIcon,
+  Rect,
+  Point,
+  Color,
+  FontWeight,
+  TextAnchor,
+  ResolvedTheme,
 } from '../contracts/index.js';
 import type { ResolvedIcon } from '../contracts/icons.js';
 import type { RenderedConnectorAnimation } from '../contracts/animations.js';
@@ -50,9 +61,23 @@ export interface IconOpts {
 
 export interface Pen {
   /** Text at (x, y) with the theme font family; size + fill are explicit. */
-  text(content: string, x: number, y: number, size: number, fill: Color, opts?: TextOpts): SceneText;
+  text(
+    content: string,
+    x: number,
+    y: number,
+    size: number,
+    fill: Color,
+    opts?: TextOpts,
+  ): SceneText;
   rect(bounds: Rect, fill: Color, stroke: Color, strokeWidth: number, opts?: RectOpts): SceneRect;
-  circle(center: Point, radius: number, fill: Color, stroke: Color, strokeWidth: number, opts?: { opacity?: number }): SceneCircle;
+  circle(
+    center: Point,
+    radius: number,
+    fill: Color,
+    stroke: Color,
+    strokeWidth: number,
+    opts?: { opacity?: number },
+  ): SceneCircle;
   path(d: string, stroke: Color, strokeWidth: number, opts?: PathOpts): ScenePath;
   group(children: readonly SceneElement[], opts?: GroupOpts): SceneGroup;
   /**
@@ -72,49 +97,71 @@ export function pen(theme: ResolvedTheme): Pen {
   return {
     text(content, x, y, size, fill, opts = {}) {
       return {
-        type: 'text', content, position: { x, y }, fontSize: size, fontFamily, fill,
-        ...(opts.weight !== undefined  ? { fontWeight: opts.weight } : {}),
-        ...(opts.anchor !== undefined  ? { anchor: opts.anchor } : {}),
+        type: 'text',
+        content,
+        position: { x, y },
+        fontSize: size,
+        fontFamily,
+        fill,
+        ...(opts.weight !== undefined ? { fontWeight: opts.weight } : {}),
+        ...(opts.anchor !== undefined ? { anchor: opts.anchor } : {}),
         ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
       };
     },
     rect(bounds, fill, stroke, strokeWidth, opts = {}) {
       return {
-        type: 'rect', bounds, fill, stroke, strokeWidth,
-        ...(opts.rx !== undefined          ? { rx: opts.rx } : {}),
+        type: 'rect',
+        bounds,
+        fill,
+        stroke,
+        strokeWidth,
+        ...(opts.rx !== undefined ? { rx: opts.rx } : {}),
         ...(opts.fillOpacity !== undefined ? { fillOpacity: opts.fillOpacity } : {}),
-        ...(opts.opacity !== undefined     ? { opacity: opts.opacity } : {}),
+        ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
       };
     },
     circle(center, radius, fill, stroke, strokeWidth, opts = {}) {
       return {
-        type: 'circle', center, radius, fill, stroke, strokeWidth,
+        type: 'circle',
+        center,
+        radius,
+        fill,
+        stroke,
+        strokeWidth,
         ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
       };
     },
     path(d, stroke, strokeWidth, opts = {}) {
       return {
-        type: 'path', d, stroke, strokeWidth,
-        ...(opts.fill !== undefined      ? { fill: opts.fill } : {}),
-        ...(opts.dash !== undefined      ? { strokeDasharray: opts.dash } : {}),
+        type: 'path',
+        d,
+        stroke,
+        strokeWidth,
+        ...(opts.fill !== undefined ? { fill: opts.fill } : {}),
+        ...(opts.dash !== undefined ? { strokeDasharray: opts.dash } : {}),
         ...(opts.markerEnd !== undefined ? { markerEnd: opts.markerEnd } : {}),
         ...(opts.markerStart !== undefined ? { markerStart: opts.markerStart } : {}),
-        ...(opts.animated !== undefined  ? { animated: opts.animated } : {}),
-        ...(opts.opacity !== undefined   ? { opacity: opts.opacity } : {}),
+        ...(opts.animated !== undefined ? { animated: opts.animated } : {}),
+        ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
       };
     },
     group(children, opts = {}) {
       return {
-        type: 'group', children,
-        ...(opts.id !== undefined        ? { id: opts.id } : {}),
+        type: 'group',
+        children,
+        ...(opts.id !== undefined ? { id: opts.id } : {}),
         ...(opts.transform !== undefined ? { transform: opts.transform } : {}),
-        ...(opts.opacity !== undefined   ? { opacity: opts.opacity } : {}),
+        ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
       };
     },
     icon(resolvedIcon, x, y, size, opts = {}) {
       return {
-        type: 'icon' as const, icon: resolvedIcon, x, y, size,
-        ...(opts.color !== undefined   ? { color: opts.color } : {}),
+        type: 'icon' as const,
+        icon: resolvedIcon,
+        x,
+        y,
+        size,
+        ...(opts.color !== undefined ? { color: opts.color } : {}),
         ...(opts.opacity !== undefined ? { opacity: opts.opacity } : {}),
       };
     },

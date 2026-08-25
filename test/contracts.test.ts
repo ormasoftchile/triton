@@ -58,13 +58,24 @@ const aScene: Scene = {
 const aTheme = {
   name: 'test',
   palette: {
-    primary: '#000', secondary: '#111', background: '#fff',
-    surface: '#eee', border: '#ccc', text: '#000', textMuted: '#666',
-    success: '#0f0', warning: '#ff0', error: '#f00',
+    primary: '#000',
+    secondary: '#111',
+    background: '#fff',
+    surface: '#eee',
+    border: '#ccc',
+    text: '#000',
+    textMuted: '#666',
+    success: '#0f0',
+    warning: '#ff0',
+    error: '#f00',
   },
   typography: {
-    fontFamily: 'sans-serif', monoFamily: 'monospace',
-    baseFontSize: 14, titleFontSize: 18, smallFontSize: 11, lineHeight: 1.4,
+    fontFamily: 'sans-serif',
+    monoFamily: 'monospace',
+    baseFontSize: 14,
+    titleFontSize: 18,
+    smallFontSize: 11,
+    lineHeight: 1.4,
   },
   spacing: { unit: 8, nodePadding: 12, nodeGap: 40, diagramMargin: 24 },
   edges: { strokeWidth: 1.5, arrowSize: 8, labelFontSize: 12, curveTension: 0.4 },
@@ -90,7 +101,14 @@ describe('Scene', () => {
       { type: 'rect', bounds: aRect, fill: '#fff', stroke: '#000', strokeWidth: 1 },
       { type: 'circle', center: aPoint, radius: 10, fill: '#fff', stroke: '#000', strokeWidth: 1 },
       { type: 'path', d: 'M 0 0 L 10 10', stroke: '#000', strokeWidth: 1 },
-      { type: 'text', content: 'hi', position: aPoint, fontSize: 14, fontFamily: 'sans-serif', fill: '#000' },
+      {
+        type: 'text',
+        content: 'hi',
+        position: aPoint,
+        fontSize: 14,
+        fontFamily: 'sans-serif',
+        fill: '#000',
+      },
       { type: 'group', children: [] },
     ];
     const _: Scene = { viewBox: aRect, elements } satisfies Scene;
@@ -167,7 +185,9 @@ describe('RawOverlay', () => {
 
   it('RawLegend satisfies RawOverlay', () => {
     const _: RawOverlay = {
-      type: 'legend', corner: 'bottom-right', entries: [{ key: 'version', value: '1.0' }],
+      type: 'legend',
+      corner: 'bottom-right',
+      entries: [{ key: 'version', value: '1.0' }],
     } satisfies RawOverlay;
   });
 

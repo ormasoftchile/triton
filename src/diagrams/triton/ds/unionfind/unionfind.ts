@@ -41,7 +41,10 @@ function find(parent: number[], x: number): number {
 }
 
 export function buildUnionFind(input: string): UnionFindDoc {
-  const linesArr = input.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const linesArr = input
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   let count = 0;
   let parent: number[] = [];
   let title: string | undefined;
@@ -54,7 +57,10 @@ export function buildUnionFind(input: string): UnionFindDoc {
       if (Number.isFinite(n) && n > 0) count = Math.floor(n);
       continue;
     }
-    if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
+    if (t[0] === 'title') {
+      title = line.slice(5).trim();
+      continue;
+    }
     if (t[0] === 'parent') {
       const vals = t.slice(1).map(Number).filter(Number.isFinite);
       parent = vals;
@@ -62,7 +68,8 @@ export function buildUnionFind(input: string): UnionFindDoc {
       continue;
     }
     if (t[0] === 'union') {
-      const a = Number(t[1]); const b = Number(t[2]);
+      const a = Number(t[1]);
+      const b = Number(t[2]);
       if (Number.isFinite(a) && Number.isFinite(b)) {
         unions.push([a, b]);
         count = Math.max(count, a + 1, b + 1);
@@ -72,10 +79,13 @@ export function buildUnionFind(input: string): UnionFindDoc {
   }
 
   // Seed parent[] as singletons, then apply any explicit array + union ops.
-  const par: number[] = Array.from({ length: count }, (_, i) => (parent[i] !== undefined ? parent[i]! : i));
+  const par: number[] = Array.from({ length: count }, (_, i) =>
+    parent[i] !== undefined ? parent[i]! : i,
+  );
   for (const [a, b] of unions) {
-    const ra = find(par, a); const rb = find(par, b);
-    if (ra !== rb) par[ra] = rb;     // attach a's set under b's representative
+    const ra = find(par, a);
+    const rb = find(par, b);
+    if (ra !== rb) par[ra] = rb; // attach a's set under b's representative
   }
 
   const roots: number[] = [];

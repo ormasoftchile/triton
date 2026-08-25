@@ -25,7 +25,11 @@
  */
 
 import type { SceneElement } from '../contracts/scene.js';
-import { isRenderedConnectorAnimation, type CrossLink, type RenderedConnectorAnimation } from '../contracts/crosslink.js';
+import {
+  isRenderedConnectorAnimation,
+  type CrossLink,
+  type RenderedConnectorAnimation,
+} from '../contracts/crosslink.js';
 import type { CardinalSide, NodeAnchorRegistry, OccupiedPort } from '../contracts/anchors.js';
 import type { PortDirection } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
@@ -35,25 +39,25 @@ import { wavifyPath } from './render.js';
 import { crossLinkMarkerId } from './markers.js';
 
 export interface CrossLinkRenderResult {
-  readonly defs:     string[];
+  readonly defs: string[];
   readonly elements: SceneElement[];
 }
 
 // ─── Cost weights ─────────────────────────────────────────────────────────────
 
-const W_CROSS = 10_000;   // per crossing with a committed route
-const W_INTER  = 3_000;   // port conflict with another cross-link (same wall+pos)
-const W_SIDE   =   800;   // wrong-side wall (not facing the target)
-const W_INTRA  =   500;   // port conflict with an intra-diagram edge
-const W_BEND   =    50;   // per excess bend
-const W_LEN    =     1;   // per pixel of path length
-const W_ALIGN  =   400;   // per short jog segment (orthogonal only)
+const W_CROSS = 10_000; // per crossing with a committed route
+const W_INTER = 3_000; // port conflict with another cross-link (same wall+pos)
+const W_SIDE = 800; // wrong-side wall (not facing the target)
+const W_INTRA = 500; // port conflict with an intra-diagram edge
+const W_BEND = 50; // per excess bend
+const W_LEN = 1; // per pixel of path length
+const W_ALIGN = 400; // per short jog segment (orthogonal only)
 
-const SNAP_THRESHOLD  = 14;   // snap near-aligned E/W (or N/S) port pairs
-const CONFLICT_RADIUS = 28;   // pixel radius for port conflict detection
-const CELL_SHRINK     = 12;   // px to shrink intermediate cell rects
-const CHANNEL_GAP     = 12;   // gap between overlapping parallel segments
-const ROUTE_PADDING   = 12;   // obstacle clearance during routing
+const SNAP_THRESHOLD = 14; // snap near-aligned E/W (or N/S) port pairs
+const CONFLICT_RADIUS = 28; // pixel radius for port conflict detection
+const CELL_SHRINK = 12; // px to shrink intermediate cell rects
+const CHANNEL_GAP = 12; // gap between overlapping parallel segments
+const ROUTE_PADDING = 12; // obstacle clearance during routing
 
 /** Fractional wall positions tried per candidate (0 = wall start, 1 = wall end). */
 const WALL_TS: readonly number[] = [0.1, 0.25, 0.5, 0.75, 0.9];
@@ -64,93 +68,109 @@ const WALL_TS: readonly number[] = [0.1, 0.25, 0.5, 0.75, 0.9];
  */
 interface PortHint {
   readonly srcWall?: CardinalSide;
-  readonly srcT?:    number;
+  readonly srcT?: number;
   readonly dstWall?: CardinalSide;
-  readonly dstT?:    number;
+  readonly dstT?: number;
 }
 
-const ARROW_ID    = 'triton-crosslink-arrow';
+const ARROW_ID = 'triton-crosslink-arrow';
 const BI_ARROW_ID = 'triton-crosslink-arrow-both';
 
 // ─── Internal geometry types ──────────────────────────────────────────────────
 
 /** A horizontal segment for H/V crossing detection. */
-interface HSegment { readonly y: number; readonly x1: number; readonly x2: number }
+interface HSegment {
+  readonly y: number;
+  readonly x1: number;
+  readonly x2: number;
+}
 /** A vertical segment for H/V crossing detection. */
-interface VSegment { readonly x: number; readonly y1: number; readonly y2: number }
+interface VSegment {
+  readonly x: number;
+  readonly y1: number;
+  readonly y2: number;
+}
 
 // ─── Internal route types ─────────────────────────────────────────────────────
 
 interface CommittedRoute {
-  readonly linkIdx:  number;
-  readonly srcKey:   string;
-  readonly dstKey:   string;
-  readonly srcWall:  CardinalSide;
-  readonly srcT:     number;
-  readonly srcPort:  Point;
-  readonly dstWall:  CardinalSide;
-  readonly dstT:     number;
-  readonly dstPort:  Point;
+  readonly linkIdx: number;
+  readonly srcKey: string;
+  readonly dstKey: string;
+  readonly srcWall: CardinalSide;
+  readonly srcT: number;
+  readonly srcPort: Point;
+  readonly dstWall: CardinalSide;
+  readonly dstT: number;
+  readonly dstPort: Point;
   /** Actual curve points (sampled for bezier, vertices for orthogonal/straight). */
-  readonly points:   readonly Point[];
+  readonly points: readonly Point[];
   /** Raw router output — [from, cp1, cp2, to] for bezier, equals points otherwise. */
-  readonly rawPts:   readonly Point[];
+  readonly rawPts: readonly Point[];
   readonly isBezier: boolean;
   /** Pre-computed H/V decomposition (empty arrays for non-orthogonal). */
-  readonly hSegs:    readonly HSegment[];
-  readonly vSegs:    readonly VSegment[];
+  readonly hSegs: readonly HSegment[];
+  readonly vSegs: readonly VSegment[];
 }
 
 interface WorkingRoute {
-  points:           Point[];
-  isBezier?:        true;
-  color:            string;
-  dash?:            string;
-  strokeWidth?:     number;
-  isWavy?:          boolean;
-  wavyAmplitude?:   number;
-  wavyWavelength?:  number;
-  animation?:       RenderedConnectorAnimation;
-  markerEnd?:       string;
-  markerStart?:     string;
-  label?:           string;
-  labelPlacement?:  'path-midpoint';
+  points: Point[];
+  isBezier?: true;
+  color: string;
+  dash?: string;
+  strokeWidth?: number;
+  isWavy?: boolean;
+  wavyAmplitude?: number;
+  wavyWavelength?: number;
+  animation?: RenderedConnectorAnimation;
+  markerEnd?: string;
+  markerStart?: string;
+  label?: string;
+  labelPlacement?: 'path-midpoint';
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
 export function routeAndRenderCrossLinks3(
-  links:             readonly CrossLink[],
-  theme:             ResolvedTheme,
-  anchors:           NodeAnchorRegistry,
-  intraPorts?:       readonly OccupiedPort[],
-  occupiedRects?:    readonly Rect[],
+  links: readonly CrossLink[],
+  theme: ResolvedTheme,
+  anchors: NodeAnchorRegistry,
+  intraPorts?: readonly OccupiedPort[],
+  occupiedRects?: readonly Rect[],
   routingObstacles?: readonly Rect[],
-  cellRects?:        ReadonlyMap<string, Rect>,
+  cellRects?: ReadonlyMap<string, Rect>,
 ): CrossLinkRenderResult {
   const { palette, typography, edges: edgeTheme } = theme;
   const elements: SceneElement[] = [];
-  const defs:     string[]       = [];
+  const defs: string[] = [];
 
   // ── Colour assignment ─────────────────────────────────────────────────────
   const PALETTE = [
-    '#E11D48', '#16A34A', '#9333EA', '#0891B2',
-    '#CA8A04', '#DC2626', '#2563EB', '#7C3AED',
+    '#E11D48',
+    '#16A34A',
+    '#9333EA',
+    '#0891B2',
+    '#CA8A04',
+    '#DC2626',
+    '#2563EB',
+    '#7C3AED',
   ];
   let explicitColorIdx = 0;
 
-  const allNodeBounds: Rect[] = Object.values(anchors).map(a => a.bounds);
+  const allNodeBounds: Rect[] = Object.values(anchors).map((a) => a.bounds);
 
   const addrKey = (addr: { cellPath: readonly string[]; nodeId: string }): string =>
     [...addr.cellPath, addr.nodeId].join('.');
 
   function centerOf(key: string): Point {
     const a = anchors[key];
-    return a ? { x: a.bounds.x + a.bounds.width / 2, y: a.bounds.y + a.bounds.height / 2 } : { x: 0, y: 0 };
+    return a
+      ? { x: a.bounds.x + a.bounds.width / 2, y: a.bounds.y + a.bounds.height / 2 }
+      : { x: 0, y: 0 };
   }
 
   // ── Pass 1: Sort links axis-aligned first ─────────────────────────────────
-  const resolvable = links.filter(l => anchors[addrKey(l.from)] && anchors[addrKey(l.to)]);
+  const resolvable = links.filter((l) => anchors[addrKey(l.from)] && anchors[addrKey(l.to)]);
 
   // ── Pass 0: Pre-assign ports at shared endpoints ─────────────────────────
   // For every (node, wall) that has 2+ links, sort arrivals/departures by the
@@ -158,26 +178,41 @@ export function routeAndRenderCrossLinks3(
   // This guarantees a non-crossing fan at the shared node before routing starts.
   const portHints = preAssignSharedPorts(resolvable, anchors);
 
-  const sortedLinks = [...resolvable].sort((a, b) => {
-    const ca = centerOf(addrKey(a.from)), cb = centerOf(addrKey(a.to));
-    const cc = centerOf(addrKey(b.from)), cd = centerOf(addrKey(b.to));
-    const axA = Math.abs(cb.x - ca.x), ayA = Math.abs(cb.y - ca.y);
-    const axB = Math.abs(cd.x - cc.x), ayB = Math.abs(cd.y - cc.y);
-    const sA = Math.min(axA, ayA) / (Math.max(axA, ayA) + 1);
-    const sB = Math.min(axB, ayB) / (Math.max(axB, ayB) + 1);
-    if (Math.abs(sA - sB) > 0.05) return sA - sB;
-    return Math.hypot(cb.x - ca.x, cb.y - ca.y) - Math.hypot(cd.x - cc.x, cd.y - cc.y);
-  }).reverse();
+  const sortedLinks = [...resolvable]
+    .sort((a, b) => {
+      const ca = centerOf(addrKey(a.from)),
+        cb = centerOf(addrKey(a.to));
+      const cc = centerOf(addrKey(b.from)),
+        cd = centerOf(addrKey(b.to));
+      const axA = Math.abs(cb.x - ca.x),
+        ayA = Math.abs(cb.y - ca.y);
+      const axB = Math.abs(cd.x - cc.x),
+        ayB = Math.abs(cd.y - cc.y);
+      const sA = Math.min(axA, ayA) / (Math.max(axA, ayA) + 1);
+      const sB = Math.min(axB, ayB) / (Math.max(axB, ayB) + 1);
+      if (Math.abs(sA - sB) > 0.05) return sA - sB;
+      return Math.hypot(cb.x - ca.x, cb.y - ca.y) - Math.hypot(cd.x - cc.x, cd.y - cc.y);
+    })
+    .reverse();
 
   // ── Pass 2: Greedy routing ────────────────────────────────────────────────
   const committed: CommittedRoute[] = [];
   const workingByOriginalIdx = new Map<number, WorkingRoute>();
 
   for (let si = 0; si < sortedLinks.length; si++) {
-    const link   = sortedLinks[si]!;
-    const rIdx   = resolvable.indexOf(link);
-    const hint   = rIdx >= 0 ? portHints.get(rIdx) : undefined;
-    const best   = findBestRoute(si, link, anchors, allNodeBounds, cellRects, committed, intraPorts ?? [], hint);
+    const link = sortedLinks[si]!;
+    const rIdx = resolvable.indexOf(link);
+    const hint = rIdx >= 0 ? portHints.get(rIdx) : undefined;
+    const best = findBestRoute(
+      si,
+      link,
+      anchors,
+      allNodeBounds,
+      cellRects,
+      committed,
+      intraPorts ?? [],
+      hint,
+    );
     if (!best) continue;
     committed.push(best.committed);
 
@@ -193,44 +228,57 @@ export function routeAndRenderCrossLinks3(
     const dash = edgeStyleToDash(link.style);
     // Animation: explicit DSL value only. All styles are STATIC by default.
     const animation: RenderedConnectorAnimation | undefined =
-      link.animation === 'none'     ? undefined :
-      isRenderedConnectorAnimation(link.animation) ? link.animation :
-      undefined;
+      link.animation === 'none'
+        ? undefined
+        : isRenderedConnectorAnimation(link.animation)
+          ? link.animation
+          : undefined;
 
-    let markerEnd:   string | undefined;
+    let markerEnd: string | undefined;
     let markerStart: string | undefined;
     if (link.direction === 'directed') {
       markerEnd = crossLinkMarkerId(ARROW_ID, color);
     } else if (link.direction === 'bidirectional') {
-      markerEnd   = crossLinkMarkerId(ARROW_ID, color);
+      markerEnd = crossLinkMarkerId(ARROW_ID, color);
       markerStart = crossLinkMarkerId(BI_ARROW_ID, color);
     }
 
-    const strokeWidth = link.style === 'thick'
-      ? (edgeTheme.strokeWidth + 0.5) * 2
-      : undefined;
-    const isWavy      = link.style === 'wavy';
-    const wavyAmp     = (link.props?.amplitude  as number | undefined) ?? 3;
-    const wavyLambda  = (link.props?.wavelength as number | undefined) ?? 12;
+    const strokeWidth = link.style === 'thick' ? (edgeTheme.strokeWidth + 0.5) * 2 : undefined;
+    const isWavy = link.style === 'wavy';
+    const wavyAmp = (link.props?.amplitude as number | undefined) ?? 3;
+    const wavyLambda = (link.props?.wavelength as number | undefined) ?? 12;
 
     const origIdx = links.indexOf(link);
     workingByOriginalIdx.set(origIdx >= 0 ? origIdx : workingByOriginalIdx.size, {
       points: [...best.rawPts],
       ...(best.committed.isBezier ? { isBezier: true as const } : {}),
       color,
-      ...(dash        ? { dash }        : {}),
+      ...(dash ? { dash } : {}),
       ...(strokeWidth ? { strokeWidth } : {}),
-      ...(isWavy      ? { isWavy: true, wavyAmplitude: wavyAmp, wavyWavelength: wavyLambda } : {}),
-      ...(animation   ? { animation }   : {}),
-      ...(markerEnd   ? { markerEnd }   : {}),
+      ...(isWavy ? { isWavy: true, wavyAmplitude: wavyAmp, wavyWavelength: wavyLambda } : {}),
+      ...(animation ? { animation } : {}),
+      ...(markerEnd ? { markerEnd } : {}),
       ...(markerStart ? { markerStart } : {}),
-      ...(link.label  ? { label: link.label } : {}),
-      ...(link.props?.labelPlacement === 'path-midpoint' ? { labelPlacement: 'path-midpoint' as const } : {}),
+      ...(link.label ? { label: link.label } : {}),
+      ...(link.props?.labelPlacement === 'path-midpoint'
+        ? { labelPlacement: 'path-midpoint' as const }
+        : {}),
     });
   }
 
   // ── Pass 3: Crossing repair ───────────────────────────────────────────────
-  repairCrossings(committed, sortedLinks, anchors, allNodeBounds, cellRects, intraPorts ?? [], workingByOriginalIdx, links, portHints, resolvable);
+  repairCrossings(
+    committed,
+    sortedLinks,
+    anchors,
+    allNodeBounds,
+    cellRects,
+    intraPorts ?? [],
+    workingByOriginalIdx,
+    links,
+    portHints,
+    resolvable,
+  );
 
   // Reconstruct workingRoutes in original link order
   const workingRoutes: WorkingRoute[] = [];
@@ -248,20 +296,20 @@ export function routeAndRenderCrossLinks3(
   separateChannels(workingRoutes);
 
   // ── Pass 5: Label staggering ──────────────────────────────────────────────
-  const CORRIDOR_TOL  = 20;
+  const CORRIDOR_TOL = 20;
   const labelFractions = new Array<number>(workingRoutes.length).fill(0.5);
-  const labeledIdxs   = workingRoutes.map((r, i) => r.label ? i : -1).filter(i => i >= 0);
-  const staggered     = new Set<number>();
+  const labeledIdxs = workingRoutes.map((r, i) => (r.label ? i : -1)).filter((i) => i >= 0);
+  const staggered = new Set<number>();
 
   for (const i of labeledIdxs) {
     if (staggered.has(i)) continue;
-    const wrI  = workingRoutes[i]!;
+    const wrI = workingRoutes[i]!;
     const ptsI = sampledPts(wrI);
     const infoI = dominantSegment(ptsI);
     const group = [i];
     for (const j of labeledIdxs) {
       if (j === i || staggered.has(j)) continue;
-      const wrJ  = workingRoutes[j]!;
+      const wrJ = workingRoutes[j]!;
       const ptsJ = sampledPts(wrJ);
       const infoJ = dominantSegment(ptsJ);
       if (infoI.axis === infoJ.axis && Math.abs(infoI.coord - infoJ.coord) < CORRIDOR_TOL) {
@@ -270,8 +318,10 @@ export function routeAndRenderCrossLinks3(
     }
     if (group.length > 1) {
       group.sort((a, b) => a - b);
-      group.forEach((idx, k) => { labelFractions[idx] = (k + 1) / (group.length + 1); });
-      group.forEach(idx => staggered.add(idx));
+      group.forEach((idx, k) => {
+        labelFractions[idx] = (k + 1) / (group.length + 1);
+      });
+      group.forEach((idx) => staggered.add(idx));
     }
   }
 
@@ -280,12 +330,12 @@ export function routeAndRenderCrossLinks3(
   const biArrowMarkerColors = new Map<string, string>();
 
   const pendingLabels: Array<{
-    content:    string;
-    x:          number;
-    y:          number;
-    fontSize:   number;
+    content: string;
+    x: number;
+    y: number;
+    fontSize: number;
     fontFamily: string;
-    fill:       string;
+    fill: string;
   }> = [];
 
   for (let i = 0; i < workingRoutes.length; i++) {
@@ -302,45 +352,46 @@ export function routeAndRenderCrossLinks3(
     if (wr.markerStart) biArrowMarkerColors.set(wr.markerStart, wr.color);
 
     elements.push({
-      type:        'path',
-      d:           path,
-      stroke:      wr.color,
-      strokeWidth: wr.strokeWidth ?? (edgeTheme.strokeWidth + 0.5),
-      ...(wr.dash        ? { strokeDasharray: wr.dash }    : {}),
-      ...(wr.animation   ? { animated: wr.animation }      : {}),
-      ...(wr.markerEnd   ? { markerEnd: wr.markerEnd }     : {}),
+      type: 'path',
+      d: path,
+      stroke: wr.color,
+      strokeWidth: wr.strokeWidth ?? edgeTheme.strokeWidth + 0.5,
+      ...(wr.dash ? { strokeDasharray: wr.dash } : {}),
+      ...(wr.animation ? { animated: wr.animation } : {}),
+      ...(wr.markerEnd ? { markerEnd: wr.markerEnd } : {}),
       ...(wr.markerStart ? { markerStart: wr.markerStart } : {}),
     });
 
     if (wr.label) {
-      const pts    = sampledPts(wr);
+      const pts = sampledPts(wr);
       // Staggered labels (parallel links sharing a corridor) keep their
       // length-fraction offset so they don't stack. Otherwise anchor the label
       // on the route's longest HORIZONTAL run — labels are horizontal text and
       // read best along a horizontal segment, and this avoids parking them on a
       // short/outboard vertical channel that may sit at the diagram edge.
-      const labelPos = staggered.has(i) || wr.isBezier || wr.labelPlacement === 'path-midpoint'
-        ? pointAtFrac(pts, labelFractions[i] ?? 0.5)
-        : labelAnchor(pts);
+      const labelPos =
+        staggered.has(i) || wr.isBezier || wr.labelPlacement === 'path-midpoint'
+          ? pointAtFrac(pts, labelFractions[i] ?? 0.5)
+          : labelAnchor(pts);
       pendingLabels.push({
-        content:    wr.label,
-        x:          labelPos.x,
-        y:          labelPos.y - 6,
-        fontSize:   edgeTheme.labelFontSize,
+        content: wr.label,
+        x: labelPos.x,
+        y: labelPos.y - 6,
+        fontSize: edgeTheme.labelFontSize,
         fontFamily: typography.fontFamily,
-        fill:       wr.color,
+        fill: wr.color,
       });
     }
   }
 
   // Label de-collision
-  const CHAR_W    = 0.65;
+  const CHAR_W = 0.65;
   const LABEL_PAD = 4;
   const fixedRects: Rect[] = [...allNodeBounds, ...(occupiedRects ?? [])];
-  const labelRects = pendingLabels.map(l => ({
-    x:      l.x - (l.content.length * l.fontSize * CHAR_W) / 2 - LABEL_PAD,
-    y:      l.y - l.fontSize,
-    width:  l.content.length * l.fontSize * CHAR_W + LABEL_PAD * 2,
+  const labelRects = pendingLabels.map((l) => ({
+    x: l.x - (l.content.length * l.fontSize * CHAR_W) / 2 - LABEL_PAD,
+    y: l.y - l.fontSize,
+    width: l.content.length * l.fontSize * CHAR_W + LABEL_PAD * 2,
     height: l.fontSize + LABEL_PAD * 2,
   }));
   deCollideLabels(labelRects, fixedRects);
@@ -349,13 +400,13 @@ export function routeAndRenderCrossLinks3(
     const l = pendingLabels[i]!;
     const r = labelRects[i]!;
     elements.push({
-      type:       'text',
-      content:    l.content,
-      position:   { x: r.x + r.width / 2, y: r.y + r.height - LABEL_PAD },
-      fontSize:   l.fontSize,
+      type: 'text',
+      content: l.content,
+      position: { x: r.x + r.width / 2, y: r.y + r.height - LABEL_PAD },
+      fontSize: l.fontSize,
       fontFamily: typography.fontFamily,
-      fill:       l.fill,
-      anchor:     'middle',
+      fill: l.fill,
+      anchor: 'middle',
       fontWeight: 'bold',
     });
   }
@@ -364,13 +415,13 @@ export function routeAndRenderCrossLinks3(
   for (const [id, color] of arrowMarkerColors) {
     defs.push(
       `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="${s - 1}" refY="${s * 0.35}" orient="auto">` +
-      `<polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="${color}" /></marker>`,
+        `<polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="${color}" /></marker>`,
     );
   }
   for (const [id, color] of biArrowMarkerColors) {
     defs.push(
       `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="1" refY="${s * 0.35}" orient="auto">` +
-      `<polygon points="${s} 0, 0 ${s * 0.35}, ${s} ${s * 0.7}" fill="${color}" /></marker>`,
+        `<polygon points="${s} 0, 0 ${s * 0.35}, ${s} ${s * 0.7}" fill="${color}" /></marker>`,
     );
   }
 
@@ -380,30 +431,30 @@ export function routeAndRenderCrossLinks3(
 // ─── Route finding (shared by greedy pass and repair pass) ───────────────────
 
 function findBestRoute(
-  linkIdx:    number,
-  link:       CrossLink,
-  anchors:    NodeAnchorRegistry,
+  linkIdx: number,
+  link: CrossLink,
+  anchors: NodeAnchorRegistry,
   allNodeBounds: Rect[],
-  cellRects:  ReadonlyMap<string, Rect> | undefined,
-  committed:  readonly CommittedRoute[],
+  cellRects: ReadonlyMap<string, Rect> | undefined,
+  committed: readonly CommittedRoute[],
   intraPorts: readonly OccupiedPort[],
-  portHint?:  PortHint,
+  portHint?: PortHint,
 ): { committed: CommittedRoute; rawPts: readonly Point[] } | null {
   const addrKey = (addr: { cellPath: readonly string[]; nodeId: string }): string =>
     [...addr.cellPath, addr.nodeId].join('.');
 
-  const srcKey    = addrKey(link.from);
-  const dstKey    = addrKey(link.to);
+  const srcKey = addrKey(link.from);
+  const dstKey = addrKey(link.to);
   const srcAnchor = anchors[srcKey];
   const dstAnchor = anchors[dstKey];
   if (!srcAnchor || !dstAnchor) return null;
 
   const srcCenter: Point = {
-    x: srcAnchor.bounds.x + srcAnchor.bounds.width  / 2,
+    x: srcAnchor.bounds.x + srcAnchor.bounds.width / 2,
     y: srcAnchor.bounds.y + srcAnchor.bounds.height / 2,
   };
   const dstCenter: Point = {
-    x: dstAnchor.bounds.x + dstAnchor.bounds.width  / 2,
+    x: dstAnchor.bounds.x + dstAnchor.bounds.width / 2,
     y: dstAnchor.bounds.y + dstAnchor.bounds.height / 2,
   };
 
@@ -414,19 +465,19 @@ function findBestRoute(
   // as hard obstacles and produces large detours to reach the destination port.
   const srcCellId = link.from.cellPath.join('.');
   const dstCellId = link.to.cellPath.join('.');
-  const sameSourceCell = (key: string): boolean => srcCellId.length > 0 && key.startsWith(srcCellId + '.');
-  const sameTargetCell = (key: string): boolean => dstCellId.length > 0 && key.startsWith(dstCellId + '.');
+  const sameSourceCell = (key: string): boolean =>
+    srcCellId.length > 0 && key.startsWith(srcCellId + '.');
+  const sameTargetCell = (key: string): boolean =>
+    dstCellId.length > 0 && key.startsWith(dstCellId + '.');
   const linkObstacles: Rect[] = Object.entries(anchors)
-    .filter(([key]) =>
-      !sameSourceCell(key) &&
-      !sameTargetCell(key) &&
-      key !== srcKey && key !== dstKey,
+    .filter(
+      ([key]) => !sameSourceCell(key) && !sameTargetCell(key) && key !== srcKey && key !== dstKey,
     )
     .map(([, a]) => a.bounds);
   if (cellRects) {
     for (const [cellId, r] of cellRects) {
       if (cellId === srcCellId || cellId === dstCellId) continue;
-      const sw = r.width  - 2 * CELL_SHRINK;
+      const sw = r.width - 2 * CELL_SHRINK;
       const sh = r.height - 2 * CELL_SHRINK;
       if (sw > 0 && sh > 0) {
         linkObstacles.push({ x: r.x + CELL_SHRINK, y: r.y + CELL_SHRINK, width: sw, height: sh });
@@ -434,21 +485,29 @@ function findBestRoute(
     }
   }
 
-  const routeStyle  = link.routing ?? 'orthogonal';
+  const routeStyle = link.routing ?? 'orthogonal';
   const sides: CardinalSide[] = ['N', 'S', 'E', 'W'];
   // Collapse search dimensions. Precedence: explicit user exit/entry walls win,
   // then phase-0 shared-port fan hints, then full 4-wall search.
-  const srcWalls: CardinalSide[] = link.exitWall  ? [link.exitWall]  : portHint?.srcWall ? [portHint.srcWall] : sides;
-  const dstWalls: CardinalSide[] = link.entryWall ? [link.entryWall] : portHint?.dstWall ? [portHint.dstWall] : sides;
+  const srcWalls: CardinalSide[] = link.exitWall
+    ? [link.exitWall]
+    : portHint?.srcWall
+      ? [portHint.srcWall]
+      : sides;
+  const dstWalls: CardinalSide[] = link.entryWall
+    ? [link.entryWall]
+    : portHint?.dstWall
+      ? [portHint.dstWall]
+      : sides;
   // Honor a phase-0 fan t whenever one was assigned. Pinned walls always get a
   // fan slot (centre when alone, evenly spread when several share the wall), so
   // this is what centres the port on the wall.
   const srcTs: readonly number[] = portHint?.srcT !== undefined ? [portHint.srcT] : WALL_TS;
   const dstTs: readonly number[] = portHint?.dstT !== undefined ? [portHint.dstT] : WALL_TS;
 
-  let bestScore        = Infinity;
-  let bestCommitted!:  CommittedRoute;
-  let bestRawPts!:     readonly Point[];
+  let bestScore = Infinity;
+  let bestCommitted!: CommittedRoute;
+  let bestRawPts!: readonly Point[];
 
   for (const ss of srcWalls) {
     for (const ds of dstWalls) {
@@ -463,22 +522,34 @@ function findBestRoute(
           dp = snapped.dstPort;
 
           const router = createRouter(routeStyle);
-          const routePadding = typeof link.props?.routePadding === 'number' ? link.props.routePadding : ROUTE_PADDING;
+          const routePadding =
+            typeof link.props?.routePadding === 'number' ? link.props.routePadding : ROUTE_PADDING;
           const routeObstacles = [
             ...linkObstacles,
             ...forcedAwayEndpointObstacles(
-              link, ss, ds, srcCenter, dstCenter, anchors, cellRects,
-              srcKey, dstKey, srcCellId, dstCellId, sameSourceCell, sameTargetCell,
+              link,
+              ss,
+              ds,
+              srcCenter,
+              dstCenter,
+              anchors,
+              cellRects,
+              srcKey,
+              dstKey,
+              srcCellId,
+              dstCellId,
+              sameSourceCell,
+              sameTargetCell,
             ),
           ];
-          const route  = router.route({
-            from:    sp,
-            to:      dp,
-            style:   routeStyle,
+          const route = router.route({
+            from: sp,
+            to: dp,
+            style: routeStyle,
             obstacles: routeObstacles,
             padding: routePadding,
             fromDir: ss as PortDirection,
-            toDir:   ds as PortDirection,
+            toDir: ds as PortDirection,
           });
           const rawPts = route.points as Point[];
 
@@ -491,15 +562,23 @@ function findBestRoute(
 
           // ── Unified cost function ─────────────────────────────────────
           const score =
-            sidePenalty(ss, ds, srcCenter, dstCenter)                    +
-            crossingScore(pts, hSegs, vSegs, isBez, committed)           +
+            sidePenalty(ss, ds, srcCenter, dstCenter) +
+            crossingScore(pts, hSegs, vSegs, isBez, committed) +
             portConflictScore(
-              srcKey, ss, sp, srcT,
-              dstKey, ds, dp, dstT,
-              committed, intraPorts, anchors,
-            )                                                             +
-            (isBez ? 0 : Math.max(0, rawPts.length - 2) * W_BEND)       +
-            pathLen(pts) * W_LEN                                          +
+              srcKey,
+              ss,
+              sp,
+              srcT,
+              dstKey,
+              ds,
+              dp,
+              dstT,
+              committed,
+              intraPorts,
+              anchors,
+            ) +
+            (isBez ? 0 : Math.max(0, rawPts.length - 2) * W_BEND) +
+            pathLen(pts) * W_LEN +
             (isBez ? 0 : alignPenalty(rawPts));
 
           if (score < bestScore) {
@@ -507,9 +586,14 @@ function findBestRoute(
             bestRawPts = rawPts;
             bestCommitted = {
               linkIdx,
-              srcKey, dstKey,
-              srcWall: ss, srcT, srcPort: sp,
-              dstWall: ds, dstT, dstPort: dp,
+              srcKey,
+              dstKey,
+              srcWall: ss,
+              srcT,
+              srcPort: sp,
+              dstWall: ds,
+              dstT,
+              dstPort: dp,
               points: pts,
               rawPts,
               isBezier: isBez,
@@ -542,7 +626,9 @@ function forcedAwayEndpointObstacles(
 ): Rect[] {
   const exitAway = link.exitWall !== undefined && wallFacesAway(srcWall, srcCenter, dstCenter);
   const entryAway = link.entryWall !== undefined && wallFacesAway(dstWall, dstCenter, srcCenter);
-  const rects: Rect[] = [anchors[srcKey]?.bounds, anchors[dstKey]?.bounds].filter((r): r is Rect => r !== undefined);
+  const rects: Rect[] = [anchors[srcKey]?.bounds, anchors[dstKey]?.bounds].filter(
+    (r): r is Rect => r !== undefined,
+  );
 
   if (exitAway || entryAway) {
     for (const [key, anchor] of Object.entries(anchors)) {
@@ -568,16 +654,16 @@ function wallFacesAway(wall: CardinalSide, fromCenter: Point, toCenter: Point): 
 // ─── Pass 3: Crossing repair ──────────────────────────────────────────────────
 
 function repairCrossings(
-  committed:         CommittedRoute[],
-  sortedLinks:       readonly CrossLink[],
-  anchors:           NodeAnchorRegistry,
-  allNodeBounds:     Rect[],
-  cellRects:         ReadonlyMap<string, Rect> | undefined,
-  intraPorts:        readonly OccupiedPort[],
-  workingByOrigIdx:  Map<number, WorkingRoute>,
-  links:             readonly CrossLink[],
-  portHints:         ReadonlyMap<number, PortHint>,
-  resolvable:        readonly CrossLink[],
+  committed: CommittedRoute[],
+  sortedLinks: readonly CrossLink[],
+  anchors: NodeAnchorRegistry,
+  allNodeBounds: Rect[],
+  cellRects: ReadonlyMap<string, Rect> | undefined,
+  intraPorts: readonly OccupiedPort[],
+  workingByOrigIdx: Map<number, WorkingRoute>,
+  links: readonly CrossLink[],
+  portHints: ReadonlyMap<number, PortHint>,
+  resolvable: readonly CrossLink[],
 ): void {
   // One repair pass: for each crossing pair (i committed before j), try re-routing j
   for (let j = 1; j < committed.length; j++) {
@@ -595,11 +681,17 @@ function repairCrossings(
     const link = sortedLinks[crJ.linkIdx];
     if (!link) continue;
 
-    const rIdx  = resolvable.indexOf(link);
-    const hint   = rIdx >= 0 ? portHints.get(rIdx) : undefined;
+    const rIdx = resolvable.indexOf(link);
+    const hint = rIdx >= 0 ? portHints.get(rIdx) : undefined;
     const result = findBestRoute(
-      crJ.linkIdx, link, anchors, allNodeBounds, cellRects,
-      committedWithoutJ, intraPorts, hint,
+      crJ.linkIdx,
+      link,
+      anchors,
+      allNodeBounds,
+      cellRects,
+      committedWithoutJ,
+      intraPorts,
+      hint,
     );
     if (!result) continue;
 
@@ -630,12 +722,16 @@ function repairCrossings(
  * Decompose a polyline into horizontal and vertical segments for fast
  * crossing detection. Only meaningful for orthogonal routes.
  */
-function decomposeHV(pts: readonly Point[], style: string): { hSegs: HSegment[]; vSegs: VSegment[] } {
+function decomposeHV(
+  pts: readonly Point[],
+  style: string,
+): { hSegs: HSegment[]; vSegs: VSegment[] } {
   const hSegs: HSegment[] = [];
   const vSegs: VSegment[] = [];
   if (style !== 'orthogonal') return { hSegs, vSegs };
   for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i]!, b = pts[i + 1]!;
+    const a = pts[i]!,
+      b = pts[i + 1]!;
     if (Math.abs(b.y - a.y) < 0.5 && Math.abs(b.x - a.x) > 0.5) {
       hSegs.push({ y: (a.y + b.y) / 2, x1: Math.min(a.x, b.x), x2: Math.max(a.x, b.x) });
     } else if (Math.abs(b.x - a.x) < 0.5 && Math.abs(b.y - a.y) > 0.5) {
@@ -647,8 +743,10 @@ function decomposeHV(pts: readonly Point[], style: string): { hSegs: HSegment[];
 
 /** Count H/V crossings between two sets of decomposed segments. */
 function countHVCrossings(
-  aH: readonly HSegment[], aV: readonly VSegment[],
-  bH: readonly HSegment[], bV: readonly VSegment[],
+  aH: readonly HSegment[],
+  aV: readonly VSegment[],
+  bH: readonly HSegment[],
+  bV: readonly VSegment[],
 ): number {
   let n = 0;
   for (const h of aH) for (const v of bV) if (hvCross(h, v)) n++;
@@ -665,11 +763,15 @@ function hvCross(h: HSegment, v: VSegment): boolean {
 function countPolylineCrossings(a: readonly Point[], b: readonly Point[]): number {
   let n = 0;
   for (let i = 0; i < a.length - 1; i++) {
-    const a1 = a[i]!, a2 = a[i + 1]!;
-    const axMin = Math.min(a1.x, a2.x), axMax = Math.max(a1.x, a2.x);
-    const ayMin = Math.min(a1.y, a2.y), ayMax = Math.max(a1.y, a2.y);
+    const a1 = a[i]!,
+      a2 = a[i + 1]!;
+    const axMin = Math.min(a1.x, a2.x),
+      axMax = Math.max(a1.x, a2.x);
+    const ayMin = Math.min(a1.y, a2.y),
+      ayMax = Math.max(a1.y, a2.y);
     for (let j = 0; j < b.length - 1; j++) {
-      const b1 = b[j]!, b2 = b[j + 1]!;
+      const b1 = b[j]!,
+        b2 = b[j + 1]!;
       // AABB prefilter
       if (axMax < Math.min(b1.x, b2.x) || axMin > Math.max(b1.x, b2.x)) continue;
       if (ayMax < Math.min(b1.y, b2.y) || ayMin > Math.max(b1.y, b2.y)) continue;
@@ -689,10 +791,10 @@ function countCrossingsBetween(a: CommittedRoute, b: CommittedRoute): number {
 
 /** Total crossing score for a candidate against all committed routes. */
 function crossingScore(
-  pts:       readonly Point[],
-  hSegs:     readonly HSegment[],
-  vSegs:     readonly VSegment[],
-  isBezier:  boolean,
+  pts: readonly Point[],
+  hSegs: readonly HSegment[],
+  vSegs: readonly VSegment[],
+  isBezier: boolean,
   committed: readonly CommittedRoute[],
 ): number {
   let crossings = 0;
@@ -714,22 +816,20 @@ function crossingScore(
  * Each step away from ideal costs W_SIDE.
  */
 function sidePenalty(
-  srcWall:   CardinalSide,
-  dstWall:   CardinalSide,
+  srcWall: CardinalSide,
+  dstWall: CardinalSide,
   srcCenter: Point,
   dstCenter: Point,
 ): number {
-  const dx   = dstCenter.x - srcCenter.x;
-  const dy   = dstCenter.y - srcCenter.y;
-  const absX = Math.abs(dx), absY = Math.abs(dy);
+  const dx = dstCenter.x - srcCenter.x;
+  const dy = dstCenter.y - srcCenter.y;
+  const absX = Math.abs(dx),
+    absY = Math.abs(dy);
 
-  const idealSrc: CardinalSide =
-    absX >= absY ? (dx >= 0 ? 'E' : 'W') : (dy >= 0 ? 'S' : 'N');
-  const idealDst: CardinalSide =
-    absX >= absY ? (dx >= 0 ? 'W' : 'E') : (dy >= 0 ? 'N' : 'S');
+  const idealSrc: CardinalSide = absX >= absY ? (dx >= 0 ? 'E' : 'W') : dy >= 0 ? 'S' : 'N';
+  const idealDst: CardinalSide = absX >= absY ? (dx >= 0 ? 'W' : 'E') : dy >= 0 ? 'N' : 'S';
 
-  return sideSteps(srcWall, idealSrc) * W_SIDE +
-         sideSteps(dstWall, idealDst) * W_SIDE;
+  return sideSteps(srcWall, idealSrc) * W_SIDE + sideSteps(dstWall, idealDst) * W_SIDE;
 }
 
 function sideSteps(wall: CardinalSide, ideal: CardinalSide): number {
@@ -744,11 +844,17 @@ function sideSteps(wall: CardinalSide, ideal: CardinalSide): number {
  * W_INTRA for cross-link vs intra-diagram edge (softer, can be overridden).
  */
 function portConflictScore(
-  srcKey:   string, srcWall: CardinalSide, srcPt: Point, _srcT: number,
-  dstKey:   string, dstWall: CardinalSide, dstPt: Point, _dstT: number,
+  srcKey: string,
+  srcWall: CardinalSide,
+  srcPt: Point,
+  _srcT: number,
+  dstKey: string,
+  dstWall: CardinalSide,
+  dstPt: Point,
+  _dstT: number,
   committed: readonly CommittedRoute[],
   intraPorts: readonly OccupiedPort[],
-  anchors:    NodeAnchorRegistry,
+  anchors: NodeAnchorRegistry,
 ): number {
   let penalty = 0;
 
@@ -791,7 +897,8 @@ function portConflictScore(
 function alignPenalty(pts: readonly Point[]): number {
   let p = 0;
   for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i]!, b = pts[i + 1]!;
+    const a = pts[i]!,
+      b = pts[i + 1]!;
     if (Math.hypot(b.x - a.x, b.y - a.y) < SNAP_THRESHOLD) p += W_ALIGN;
   }
   return p;
@@ -800,15 +907,19 @@ function alignPenalty(pts: readonly Point[]): number {
 // ─── Port alignment snap ──────────────────────────────────────────────────────
 
 function snapAlignment(
-  ss: CardinalSide, sp: Point,
-  ds: CardinalSide, dp: Point,
+  ss: CardinalSide,
+  sp: Point,
+  ds: CardinalSide,
+  dp: Point,
 ): { srcPort: Point; dstPort: Point } {
-  const sH = ss === 'E' || ss === 'W', dH = ds === 'E' || ds === 'W';
+  const sH = ss === 'E' || ss === 'W',
+    dH = ds === 'E' || ds === 'W';
   if (sH && dH && Math.abs(sp.y - dp.y) < SNAP_THRESHOLD) {
     const avgY = (sp.y + dp.y) / 2;
     return { srcPort: { x: sp.x, y: avgY }, dstPort: { x: dp.x, y: avgY } };
   }
-  const sV = ss === 'N' || ss === 'S', dV = ds === 'N' || ds === 'S';
+  const sV = ss === 'N' || ss === 'S',
+    dV = ds === 'N' || ds === 'S';
   if (sV && dV && Math.abs(sp.x - dp.x) < SNAP_THRESHOLD) {
     const avgX = (sp.x + dp.x) / 2;
     return { srcPort: { x: avgX, y: sp.y }, dstPort: { x: avgX, y: dp.y } };
@@ -828,20 +939,21 @@ function snapAlignment(
  * form a non-crossing fan at the shared node, eliminating the need for repair.
  */
 function preAssignSharedPorts(
-  links:   readonly CrossLink[],
+  links: readonly CrossLink[],
   anchors: NodeAnchorRegistry,
 ): Map<number, PortHint> {
   const key = (addr: { cellPath: readonly string[]; nodeId: string }) =>
     [...addr.cellPath, addr.nodeId].join('.');
 
   // Step 1: determine ideal wall for each endpoint
-  const walls: Array<{ srcWall: CardinalSide; dstWall: CardinalSide }> = links.map(link => {
+  const walls: Array<{ srcWall: CardinalSide; dstWall: CardinalSide }> = links.map((link) => {
     const sa = anchors[key(link.from)];
     const da = anchors[key(link.to)];
     if (!sa || !da) return { srcWall: 'E' as CardinalSide, dstWall: 'W' as CardinalSide };
-    const sc = rectCenter(sa.bounds), dc = rectCenter(da.bounds);
+    const sc = rectCenter(sa.bounds),
+      dc = rectCenter(da.bounds);
     return {
-      srcWall: link.exitWall  ?? idealSrcWall(sc, dc),
+      srcWall: link.exitWall ?? idealSrcWall(sc, dc),
       dstWall: link.entryWall ?? idealDstWall(sc, dc),
     };
   });
@@ -851,26 +963,27 @@ function preAssignSharedPorts(
   const groups = new Map<string, Entry[]>();
 
   for (let i = 0; i < links.length; i++) {
-    const link    = links[i]!;
-    const srcKey  = key(link.from);
-    const dstKey  = key(link.to);
-    const sa      = anchors[srcKey];
-    const da      = anchors[dstKey];
+    const link = links[i]!;
+    const srcKey = key(link.from);
+    const dstKey = key(link.to);
+    const sa = anchors[srcKey];
+    const da = anchors[dstKey];
     if (!sa || !da) continue;
 
     const { srcWall, dstWall } = walls[i]!;
-    const sc = rectCenter(sa.bounds), dc = rectCenter(da.bounds);
+    const sc = rectCenter(sa.bounds),
+      dc = rectCenter(da.bounds);
 
     // tangent key = position of the OTHER endpoint along the wall's tangent axis
     // N/S walls run horizontally → sort by x; E/W walls run vertically → sort by y
-    const srcTK = (srcWall === 'N' || srcWall === 'S') ? dc.x : dc.y;
-    const dstTK = (dstWall === 'N' || dstWall === 'S') ? sc.x : sc.y;
+    const srcTK = srcWall === 'N' || srcWall === 'S' ? dc.x : dc.y;
+    const dstTK = dstWall === 'N' || dstWall === 'S' ? sc.x : sc.y;
 
     const sg = `${srcKey}:${srcWall}`;
     const dg = `${dstKey}:${dstWall}`;
     if (!groups.has(sg)) groups.set(sg, []);
     if (!groups.has(dg)) groups.set(dg, []);
-    groups.get(sg)!.push({ linkIdx: i, isSource: true,  tangentKey: srcTK });
+    groups.get(sg)!.push({ linkIdx: i, isSource: true, tangentKey: srcTK });
     groups.get(dg)!.push({ linkIdx: i, isSource: false, tangentKey: dstTK });
   }
 
@@ -884,7 +997,7 @@ function preAssignSharedPorts(
 
   for (const [groupKey, members] of groups) {
     const wall = groupKey.split(':').at(-1) as CardinalSide;
-    const pinnedHere = members.filter(m => {
+    const pinnedHere = members.filter((m) => {
       const l = links[m.linkIdx]!;
       return m.isSource ? l.exitWall === wall : l.entryWall === wall;
     });
@@ -902,9 +1015,9 @@ function preAssignSharedPorts(
       const { linkIdx, isSource } = fanned[k]!;
       const t = (k + 1) / (n + 1);
       const ex = result.get(linkIdx) ?? {};
-      result.set(linkIdx, isSource
-        ? { ...ex, srcWall: wall, srcT: t }
-        : { ...ex, dstWall: wall, dstT: t },
+      result.set(
+        linkIdx,
+        isSource ? { ...ex, srcWall: wall, srcT: t } : { ...ex, dstWall: wall, dstT: t },
       );
     }
   }
@@ -919,8 +1032,9 @@ function rectCenter(r: Rect): Point {
 
 /** Ideal exit wall on the source node when routing toward dst. */
 function idealSrcWall(sc: Point, dc: Point): CardinalSide {
-  const dx = dc.x - sc.x, dy = dc.y - sc.y;
-  return Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 'E' : 'W') : (dy >= 0 ? 'S' : 'N');
+  const dx = dc.x - sc.x,
+    dy = dc.y - sc.y;
+  return Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? 'E' : 'W') : dy >= 0 ? 'S' : 'N';
 }
 
 /** Ideal entry wall on the destination node (opposite of idealSrcWall). */
@@ -939,10 +1053,14 @@ function idealDstWall(sc: Point, dc: Point): CardinalSide {
 function wallPoint(bounds: Rect, wall: CardinalSide, t: number): Point {
   const { x, y, width: w, height: h } = bounds;
   switch (wall) {
-    case 'N': return { x: x + w * t, y };
-    case 'S': return { x: x + w * t, y: y + h };
-    case 'W': return { x, y: y + h * t };
-    case 'E': return { x: x + w, y: y + h * t };
+    case 'N':
+      return { x: x + w * t, y };
+    case 'S':
+      return { x: x + w * t, y: y + h };
+    case 'W':
+      return { x, y: y + h * t };
+    case 'E':
+      return { x: x + w, y: y + h * t };
   }
 }
 
@@ -950,8 +1068,12 @@ function wallPoint(bounds: Rect, wall: CardinalSide, t: number): Point {
 function sampleCubicBezier(p0: Point, p1: Point, p2: Point, p3: Point, n: number): Point[] {
   const pts: Point[] = [];
   for (let i = 0; i <= n; i++) {
-    const t = i / n, t2 = t * t, t3 = t2 * t;
-    const mt = 1 - t, mt2 = mt * mt, mt3 = mt2 * mt;
+    const t = i / n,
+      t2 = t * t,
+      t3 = t2 * t;
+    const mt = 1 - t,
+      mt2 = mt * mt,
+      mt3 = mt2 * mt;
     pts.push({
       x: mt3 * p0.x + 3 * mt2 * t * p1.x + 3 * mt * t2 * p2.x + t3 * p3.x,
       y: mt3 * p0.y + 3 * mt2 * t * p1.y + 3 * mt * t2 * p2.y + t3 * p3.y,
@@ -970,10 +1092,11 @@ function sampledPts(wr: WorkingRoute): Point[] {
 
 /** True iff two line segments properly cross (not merely touch). */
 function properlyCross(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
-  const d1 = cross2(p3, p4, p1), d2 = cross2(p3, p4, p2);
-  const d3 = cross2(p1, p2, p3), d4 = cross2(p1, p2, p4);
-  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
-         ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+  const d1 = cross2(p3, p4, p1),
+    d2 = cross2(p3, p4, p2);
+  const d3 = cross2(p1, p2, p3),
+    d4 = cross2(p1, p2, p4);
+  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
 }
 
 function cross2(a: Point, b: Point, c: Point): number {
@@ -983,7 +1106,8 @@ function cross2(a: Point, b: Point, c: Point): number {
 function pathLen(pts: readonly Point[]): number {
   let len = 0;
   for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i]!, b = pts[i + 1]!;
+    const a = pts[i]!,
+      b = pts[i + 1]!;
     len += Math.hypot(b.x - a.x, b.y - a.y);
   }
   return len;
@@ -996,7 +1120,8 @@ function pointAtFrac(pts: readonly Point[], t: number): Point {
   let total = 0;
   for (let i = 0; i < pts.length - 1; i++) {
     const l = Math.hypot(pts[i + 1]!.x - pts[i]!.x, pts[i + 1]!.y - pts[i]!.y);
-    lens.push(l); total += l;
+    lens.push(l);
+    total += l;
   }
   if (total === 0) return pts[0]!;
   let acc = 0;
@@ -1005,7 +1130,8 @@ function pointAtFrac(pts: readonly Point[], t: number): Point {
     const l = lens[i]!;
     if (acc + l >= target) {
       const frac = l > 0 ? (target - acc) / l : 0;
-      const a = pts[i]!, b = pts[i + 1]!;
+      const a = pts[i]!,
+        b = pts[i + 1]!;
       return { x: a.x + (b.x - a.x) * frac, y: a.y + (b.y - a.y) * frac };
     }
     acc += l;
@@ -1014,15 +1140,24 @@ function pointAtFrac(pts: readonly Point[], t: number): Point {
 }
 
 function dominantSegment(pts: readonly Point[]): { axis: 'h' | 'v'; coord: number } {
-  let bestLen = 0, axis: 'h' | 'v' = 'h', coord = 0;
+  let bestLen = 0,
+    axis: 'h' | 'v' = 'h',
+    coord = 0;
   for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i]!, b = pts[i + 1]!;
-    const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+    const a = pts[i]!,
+      b = pts[i + 1]!;
+    const dx = Math.abs(b.x - a.x),
+      dy = Math.abs(b.y - a.y);
     const len = dx + dy;
     if (len > bestLen) {
       bestLen = len;
-      if (dy > dx) { axis = 'v'; coord = (a.x + b.x) / 2; }
-      else          { axis = 'h'; coord = (a.y + b.y) / 2; }
+      if (dy > dx) {
+        axis = 'v';
+        coord = (a.x + b.x) / 2;
+      } else {
+        axis = 'h';
+        coord = (a.y + b.y) / 2;
+      }
     }
   }
   return { axis, coord };
@@ -1042,8 +1177,10 @@ function labelAnchor(pts: readonly Point[]): Point {
   let bestAny = -1;
   let anyMid: Point = pts[0]!;
   for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i]!, b = pts[i + 1]!;
-    const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+    const a = pts[i]!,
+      b = pts[i + 1]!;
+    const dx = Math.abs(b.x - a.x),
+      dy = Math.abs(b.y - a.y);
     const len = Math.hypot(dx, dy);
     if (len > bestAny) {
       bestAny = len;
@@ -1067,29 +1204,35 @@ function edgeStyleToDash(style: string | undefined): string | undefined {
 // ─── Post-route: border nudging ───────────────────────────────────────────────
 
 function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void {
-  const TOLERANCE = 3, NUDGE = 8;
-  const hBorderYs = borders.filter(b => b.width > b.height).map(b => b.y + b.height / 2);
-  const vBorderXs = borders.filter(b => b.height >= b.width).map(b => b.x + b.width / 2);
+  const TOLERANCE = 3,
+    NUDGE = 8;
+  const hBorderYs = borders.filter((b) => b.width > b.height).map((b) => b.y + b.height / 2);
+  const vBorderXs = borders.filter((b) => b.height >= b.width).map((b) => b.x + b.width / 2);
 
   for (const route of routes) {
     if (route.isBezier) continue;
     const pts = route.points;
     for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i]!, b = pts[i + 1]!;
+      const a = pts[i]!,
+        b = pts[i + 1]!;
       if (Math.abs(b.y - a.y) < 1 && Math.abs(b.x - a.x) > 1) {
         for (const borderY of hBorderYs) {
           if (Math.abs(a.y - borderY) < TOLERANCE) {
-            const midY = (Math.min(...pts.map(p => p.y)) + Math.max(...pts.map(p => p.y))) / 2;
+            const midY = (Math.min(...pts.map((p) => p.y)) + Math.max(...pts.map((p) => p.y))) / 2;
             const nd = a.y < midY ? -NUDGE : NUDGE;
-            pts[i] = { x: a.x, y: a.y + nd }; pts[i + 1] = { x: b.x, y: b.y + nd }; break;
+            pts[i] = { x: a.x, y: a.y + nd };
+            pts[i + 1] = { x: b.x, y: b.y + nd };
+            break;
           }
         }
       } else if (Math.abs(b.x - a.x) < 1 && Math.abs(b.y - a.y) > 1) {
         for (const borderX of vBorderXs) {
           if (Math.abs(a.x - borderX) < TOLERANCE) {
-            const midX = (Math.min(...pts.map(p => p.x)) + Math.max(...pts.map(p => p.x))) / 2;
+            const midX = (Math.min(...pts.map((p) => p.x)) + Math.max(...pts.map((p) => p.x))) / 2;
             const nd = a.x < midX ? -NUDGE : NUDGE;
-            pts[i] = { x: a.x + nd, y: a.y }; pts[i + 1] = { x: b.x + nd, y: b.y }; break;
+            pts[i] = { x: a.x + nd, y: a.y };
+            pts[i + 1] = { x: b.x + nd, y: b.y };
+            break;
           }
         }
       }
@@ -1101,19 +1244,40 @@ function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void
 
 function separateChannels(routes: WorkingRoute[]): void {
   interface Seg {
-    ri: number; si: number; isV: boolean; coord: number; lo: number; hi: number;
+    ri: number;
+    si: number;
+    isV: boolean;
+    coord: number;
+    lo: number;
+    hi: number;
   }
   const segs: Seg[] = [];
   for (let ri = 0; ri < routes.length; ri++) {
     if (routes[ri]!.isBezier) continue;
     const pts = routes[ri]!.points;
     for (let si = 0; si < pts.length - 1; si++) {
-      const a = pts[si]!, b = pts[si + 1]!;
-      const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+      const a = pts[si]!,
+        b = pts[si + 1]!;
+      const dx = Math.abs(b.x - a.x),
+        dy = Math.abs(b.y - a.y);
       if (dx < 1 && dy > 1) {
-        segs.push({ ri, si, isV: true,  coord: (a.x + b.x) / 2, lo: Math.min(a.y, b.y), hi: Math.max(a.y, b.y) });
+        segs.push({
+          ri,
+          si,
+          isV: true,
+          coord: (a.x + b.x) / 2,
+          lo: Math.min(a.y, b.y),
+          hi: Math.max(a.y, b.y),
+        });
       } else if (dy < 1 && dx > 1) {
-        segs.push({ ri, si, isV: false, coord: (a.y + b.y) / 2, lo: Math.min(a.x, b.x), hi: Math.max(a.x, b.x) });
+        segs.push({
+          ri,
+          si,
+          isV: false,
+          coord: (a.y + b.y) / 2,
+          lo: Math.min(a.x, b.x),
+          hi: Math.max(a.x, b.x),
+        });
       }
     }
   }
@@ -1129,7 +1293,10 @@ function separateChannels(routes: WorkingRoute[]): void {
       const sj = segs[j]!;
       if (sj.isV !== si.isV) continue;
       if (Math.abs(sj.coord - si.coord) > COORD_TOL) continue;
-      if (sj.hi - si.lo > 8 && si.hi - sj.lo > 8) { group.push(j); used.add(j); }
+      if (sj.hi - si.lo > 8 && si.hi - sj.lo > 8) {
+        group.push(j);
+        used.add(j);
+      }
     }
     used.add(i);
     if (group.length < 2) continue;
@@ -1139,10 +1306,10 @@ function separateChannels(routes: WorkingRoute[]): void {
       const offset = (k - (n - 1) / 2) * CHANNEL_GAP;
       const pts = routes[seg.ri]!.points;
       if (seg.isV) {
-        pts[seg.si]     = { x: pts[seg.si]!.x     + offset, y: pts[seg.si]!.y };
+        pts[seg.si] = { x: pts[seg.si]!.x + offset, y: pts[seg.si]!.y };
         pts[seg.si + 1] = { x: pts[seg.si + 1]!.x + offset, y: pts[seg.si + 1]!.y };
       } else {
-        pts[seg.si]     = { x: pts[seg.si]!.x,     y: pts[seg.si]!.y     + offset };
+        pts[seg.si] = { x: pts[seg.si]!.x, y: pts[seg.si]!.y + offset };
         pts[seg.si + 1] = { x: pts[seg.si + 1]!.x, y: pts[seg.si + 1]!.y + offset };
       }
     }
@@ -1155,31 +1322,41 @@ function deCollideLabels(
   labelRects: Array<{ x: number; y: number; width: number; height: number }>,
   fixedRects: readonly Rect[],
 ): void {
-  const MAX_PASSES = 20, NUDGE = 2;
+  const MAX_PASSES = 20,
+    NUDGE = 2;
   for (let pass = 0; pass < MAX_PASSES; pass++) {
     let moved = false;
     for (const lr of labelRects) {
       for (const fr of fixedRects) {
         if (!rectsOverlap(lr, fr)) continue;
-        const ox = Math.min(lr.x + lr.width,  fr.x + fr.width)  - Math.max(lr.x, fr.x);
+        const ox = Math.min(lr.x + lr.width, fr.x + fr.width) - Math.max(lr.x, fr.x);
         const oy = Math.min(lr.y + lr.height, fr.y + fr.height) - Math.max(lr.y, fr.y);
         if (ox <= oy) {
-          lr.x = (lr.x + lr.width / 2) <= (fr.x + fr.width / 2) ? fr.x - lr.width - NUDGE : fr.x + fr.width + NUDGE;
+          lr.x =
+            lr.x + lr.width / 2 <= fr.x + fr.width / 2
+              ? fr.x - lr.width - NUDGE
+              : fr.x + fr.width + NUDGE;
         } else {
-          lr.y = (lr.y + lr.height / 2) <= (fr.y + fr.height / 2) ? fr.y - lr.height - NUDGE : fr.y + fr.height + NUDGE;
+          lr.y =
+            lr.y + lr.height / 2 <= fr.y + fr.height / 2
+              ? fr.y - lr.height - NUDGE
+              : fr.y + fr.height + NUDGE;
         }
         moved = true;
       }
     }
     for (let i = 0; i < labelRects.length; i++) {
       for (let j = i + 1; j < labelRects.length; j++) {
-        const a = labelRects[i]!, b = labelRects[j]!;
+        const a = labelRects[i]!,
+          b = labelRects[j]!;
         if (!rectsOverlap(a, b)) continue;
         const oy = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
         if (a.y + a.height / 2 <= b.y + b.height / 2) {
-          a.y -= oy / 2 + NUDGE; b.y += oy / 2 + NUDGE;
+          a.y -= oy / 2 + NUDGE;
+          b.y += oy / 2 + NUDGE;
         } else {
-          a.y += oy / 2 + NUDGE; b.y -= oy / 2 + NUDGE;
+          a.y += oy / 2 + NUDGE;
+          b.y -= oy / 2 + NUDGE;
         }
         moved = true;
       }
@@ -1189,6 +1366,5 @@ function deCollideLabels(
 }
 
 function rectsOverlap(a: Rect, b: Rect): boolean {
-  return a.x < b.x + b.width  && a.x + a.width  > b.x &&
-         a.y < b.y + b.height && a.y + a.height > b.y;
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }

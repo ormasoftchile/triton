@@ -12,7 +12,13 @@ declare module 'upng-js' {
   }
 
   const UPNG: {
-    encode(imgs: readonly ArrayBuffer[], w: number, h: number, cnum: number, dels?: readonly number[]): ArrayBuffer;
+    encode(
+      imgs: readonly ArrayBuffer[],
+      w: number,
+      h: number,
+      cnum: number,
+      dels?: readonly number[],
+    ): ArrayBuffer;
     decode(buffer: ArrayBuffer): DecodedPng;
     toRGBA8(img: DecodedPng): ArrayBuffer[];
   };

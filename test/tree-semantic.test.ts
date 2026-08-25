@@ -8,7 +8,7 @@ import { defaultTheme } from '../src/theme/preset.js';
 
 /** In-order traversal of the emitted node list (n0 = root, children left,right). */
 function inorder(doc: TreeDocument): number[] {
-  const byId = new Map(doc.nodes.map(n => [n.id, n]));
+  const byId = new Map(doc.nodes.map((n) => [n.id, n]));
   const out: number[] = [];
   const walk = (id: string): void => {
     const n = byId.get(id)!;
@@ -66,7 +66,7 @@ describe('plan builder', () => {
       '',
     ].join('\n');
     const doc = plan.parseMermaid(src);
-    const kindOf = (label: string) => doc.nodes.find(n => n.label === label)!.kinds;
+    const kindOf = (label: string) => doc.nodes.find((n) => n.label === label)!.kinds;
     expect(kindOf('Hash Join')).toContain('join');
     expect(kindOf('Seq Scan orders')).toContain('scan');
     expect(kindOf('Hash')).toContain('build');
@@ -84,25 +84,17 @@ describe('plan builder', () => {
 
 describe('tree path directive', () => {
   it('extracts path directive and builds activePaths', () => {
-    const ir = tree.parseMermaid([
-      'tree',
-      '  A',
-      '    B',
-      '      C',
-      'path A -> B -> C',
-    ].join('\n'));
+    const ir = tree.parseMermaid(
+      ['tree', '  A', '    B', '      C', 'path A -> B -> C'].join('\n'),
+    );
     expect(ir.activePaths).toBeDefined();
     expect(ir.activePaths).toHaveLength(2);
   });
 
   it('renders active edges with a thicker path element', () => {
-    const ir = tree.parseMermaid([
-      'tree',
-      '  Root',
-      '    Left',
-      '    Right',
-      'path Root -> Left',
-    ].join('\n'));
+    const ir = tree.parseMermaid(
+      ['tree', '  Root', '    Left', '    Right', 'path Root -> Left'].join('\n'),
+    );
     const { scene } = layoutTree(ir, defaultTheme);
     const paths = scene.elements.filter((e: any) => e.type === 'path');
     const boldPath = paths.find((p: any) => p.strokeWidth === 2.5);

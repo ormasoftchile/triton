@@ -11,8 +11,14 @@
 
 /** Eight distinct hues, ordered for maximum adjacent contrast. */
 export const CATEGORICAL_HUES: readonly string[] = [
-  '#7C3AED', '#0EA5A8', '#D97706', '#5B4FCF',
-  '#DB2777', '#2563EB', '#16A34A', '#CA8A04',
+  '#7C3AED',
+  '#0EA5A8',
+  '#D97706',
+  '#5B4FCF',
+  '#DB2777',
+  '#2563EB',
+  '#16A34A',
+  '#CA8A04',
 ];
 
 /** Hue at `index`, wrapping the cycle. */

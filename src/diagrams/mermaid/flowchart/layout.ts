@@ -394,9 +394,10 @@ export function layoutFlowchart(
     if (!r) continue;
 
     const nodeElements: SceneElement[] = [];
-    const fill = nodeStatusFill(node, palette);
-    const stroke = palette.border;
-    const sw = edgeTheme.strokeWidth;
+    const isFocal = node.classes?.includes('focal') || node.status === 'active';
+    const fill = isFocal ? palette.primary + '22' : nodeStatusFill(node, palette);
+    const stroke = isFocal ? palette.primary : palette.border;
+    const sw = isFocal ? Math.max(edgeTheme.strokeWidth * 1.5, 2) : edgeTheme.strokeWidth;
 
     if (node.shape === 'card') {
       // ── Card two-region composition ──────────────────────────────────────

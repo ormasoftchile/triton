@@ -18,15 +18,26 @@
  */
 
 import type {
-  DiagramModule, ResolvedTheme, LayoutResult, Scene, SceneElement, NodeAnchorRegistry,
+  DiagramModule,
+  ResolvedTheme,
+  LayoutResult,
+  Scene,
+  SceneElement,
+  NodeAnchorRegistry,
 } from '../../../../contracts/index.js';
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { rhu } from '../../../../util/round.js';
 import { ARROW_ID, arrowDef, lines } from '../struct/shared.js';
 
-export interface HashEntry { key: string; value: string; }
-export interface HashChain { index: number | string; entries: HashEntry[]; }
+export interface HashEntry {
+  key: string;
+  value: string;
+}
+export interface HashChain {
+  index: number | string;
+  entries: HashEntry[];
+}
 
 export interface HashmapDoc {
   title?: string;
@@ -36,11 +47,15 @@ export interface HashmapDoc {
 }
 
 function parseEntries(spec: string): HashEntry[] {
-  return spec.split(',').map(s => s.trim()).filter(Boolean).map(pair => {
-    const m = pair.match(/^(.*?)\s*(?:->|=>|:|=)\s*(.*)$/);
-    if (m) return { key: m[1]!.trim(), value: m[2]!.trim() };
-    return { key: pair, value: '' };
-  });
+  return spec
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((pair) => {
+      const m = pair.match(/^(.*?)\s*(?:->|=>|:|=)\s*(.*)$/);
+      if (m) return { key: m[1]!.trim(), value: m[2]!.trim() };
+      return { key: pair, value: '' };
+    });
 }
 
 function parseBucketLabels(spec: string): string[] {
@@ -109,14 +124,23 @@ function parseBucketId(spec: string): number | string {
   return /^\d+$/.test(label) ? Number(label) : label;
 }
 
-function normalizeDoc(doc: { title?: string | undefined; buckets?: number | undefined; bucketLabels?: string[] | undefined; chains?: HashChain[] | undefined }): HashmapDoc {
+function normalizeDoc(doc: {
+  title?: string | undefined;
+  buckets?: number | undefined;
+  bucketLabels?: string[] | undefined;
+  chains?: HashChain[] | undefined;
+}): HashmapDoc {
   const chains = doc.chains ?? [];
   const bucketLabels = [...(doc.bucketLabels ?? [])];
   for (const chain of chains) {
-    if (typeof chain.index === 'string' && !bucketLabels.includes(chain.index)) bucketLabels.push(chain.index);
+    if (typeof chain.index === 'string' && !bucketLabels.includes(chain.index))
+      bucketLabels.push(chain.index);
   }
 
-  const maxIdx = chains.reduce((mx, c) => typeof c.index === 'number' ? Math.max(mx, c.index) : mx, -1);
+  const maxIdx = chains.reduce(
+    (mx, c) => (typeof c.index === 'number' ? Math.max(mx, c.index) : mx),
+    -1,
+  );
   const numericBucketCount = Math.max(doc.buckets ?? 0, maxIdx + 1, 1);
   if (bucketLabels.length === 0) {
     for (let i = 0; i < numericBucketCount; i++) bucketLabels.push(String(i));
@@ -140,8 +164,13 @@ function parse(input: string): HashmapDoc {
 
   for (const line of lines(input)) {
     const t = line.split(/\s+/);
-    if (t[0] === 'hashmap') { continue; }
-    if (t[0] === 'title') { title = line.slice(5).trim(); continue; }
+    if (t[0] === 'hashmap') {
+      continue;
+    }
+    if (t[0] === 'title') {
+      title = line.slice(5).trim();
+      continue;
+    }
     if (t[0] === 'buckets') {
       const spec = line.slice(7).trim();
       if (!spec) continue;
@@ -155,7 +184,8 @@ function parse(input: string): HashmapDoc {
     }
     if (t[0] === 'bucket') {
       const parsed = splitBucketDirective(line.slice(6).trim());
-      if (parsed) chains.push({ index: parseBucketId(parsed.id), entries: parseEntries(parsed.entries) });
+      if (parsed)
+        chains.push({ index: parseBucketId(parsed.id), entries: parseEntries(parsed.entries) });
     }
   }
 
@@ -172,22 +202,40 @@ export function layoutHashmap(doc: HashmapDoc, theme: ResolvedTheme): LayoutResu
   const margin = spacing.diagramMargin;
   const font = typography.baseFontSize;
   const cellH = 38;
-  const idxW = Math.max(46, ...doc.bucketLabels.map(label => measureText(label, font).width + 24));
+  const idxW = Math.max(
+    46,
+    ...doc.bucketLabels.map((label) => measureText(label, font).width + 24),
+  );
   const entryH = 30;
   const entryGap = 30;
-  const chainGap = 36;                     // bucket strip → first entry
+  const chainGap = 36; // bucket strip → first entry
 
   const titleH = doc.title ? typography.titleFontSize + 14 : 0;
   const origin = { x: margin, y: margin + titleH };
 
   const elements: SceneElement[] = [];
   if (doc.title) {
-    elements.push(p.text(doc.title, margin, margin + typography.titleFontSize, typography.titleFontSize, palette.text, { weight: 'bold' }));
+    elements.push(
+      p.text(
+        doc.title,
+        margin,
+        margin + typography.titleFontSize,
+        typography.titleFontSize,
+        palette.text,
+        { weight: 'bold' },
+      ),
+    );
   }
 
   // bucket label column (vertical strip)
-  const slotById = new Map<string, { row: number; bounds: { x: number; y: number; width: number; height: number } }>();
-  const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> = {};
+  const slotById = new Map<
+    string,
+    { row: number; bounds: { x: number; y: number; width: number; height: number } }
+  >();
+  const anchors: Record<
+    string,
+    { bounds: { x: number; y: number; width: number; height: number } }
+  > = {};
   for (let i = 0; i < doc.buckets; i++) {
     const slot = { x: origin.x, y: origin.y + i * cellH, width: idxW, height: cellH };
     const label = doc.bucketLabels[i] ?? String(i);
@@ -195,7 +243,16 @@ export function layoutHashmap(doc: HashmapDoc, theme: ResolvedTheme): LayoutResu
     if (!slotById.has(bucketKey(label))) slotById.set(bucketKey(label), { row: i, bounds: slot });
     anchors[`b${i}`] = { bounds: slot };
     elements.push(p.rect(slot, palette.surface, palette.border, 1.5, { rx: 3 }));
-    elements.push(p.text(label, slot.x + slot.width / 2, slot.y + slot.height / 2 + font * 0.35, font, palette.textMuted, { anchor: 'middle', weight: 'bold' }));
+    elements.push(
+      p.text(
+        label,
+        slot.x + slot.width / 2,
+        slot.y + slot.height / 2 + font * 0.35,
+        font,
+        palette.textMuted,
+        { anchor: 'middle', weight: 'bold' },
+      ),
+    );
   }
 
   const chainStartX = origin.x + idxW + chainGap;
@@ -213,9 +270,18 @@ export function layoutHashmap(doc: HashmapDoc, theme: ResolvedTheme): LayoutResu
       const w = measureText(label, font).width + 22;
       const box = { x, y: cy - entryH / 2, width: w, height: entryH };
       // pointer into this entry
-      elements.push(p.path(`M ${rhu(fromX)} ${rhu(cy)} L ${rhu(x - 3)} ${rhu(cy)}`, palette.primary, 1.5, { markerEnd: ARROW_ID }));
+      elements.push(
+        p.path(`M ${rhu(fromX)} ${rhu(cy)} L ${rhu(x - 3)} ${rhu(cy)}`, palette.primary, 1.5, {
+          markerEnd: ARROW_ID,
+        }),
+      );
       elements.push(p.rect(box, palette.surface, palette.border, 1.5, { rx: 4 }));
-      elements.push(p.text(label, x + w / 2, cy + font * 0.35, font, palette.text, { anchor: 'middle', weight: 'bold' }));
+      elements.push(
+        p.text(label, x + w / 2, cy + font * 0.35, font, palette.text, {
+          anchor: 'middle',
+          weight: 'bold',
+        }),
+      );
       anchors[`b${row}e${j}`] = { bounds: box };
       fromX = x + w;
       x = fromX + entryGap;
@@ -234,12 +300,18 @@ export function layoutHashmap(doc: HashmapDoc, theme: ResolvedTheme): LayoutResu
   return { scene, anchors: anchors as NodeAnchorRegistry };
 }
 
-export const hashmap: DiagramModule<HashmapDoc & { version: string; metadata: Record<string, unknown> }> = {
+export const hashmap: DiagramModule<
+  HashmapDoc & { version: string; metadata: Record<string, unknown> }
+> = {
   parseMermaid(input: string) {
     return { version: '1.0', metadata: {}, ...parse(input) };
   },
   parseYaml(input: string) {
-    return { version: '1.0', metadata: {}, ...normalizeDoc(JSON.parse(input) as Partial<HashmapDoc>) };
+    return {
+      version: '1.0',
+      metadata: {},
+      ...normalizeDoc(JSON.parse(input) as Partial<HashmapDoc>),
+    };
   },
   layout(ir, theme: ResolvedTheme): LayoutResult {
     return layoutHashmap(ir, theme);

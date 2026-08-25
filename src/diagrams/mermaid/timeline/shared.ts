@@ -18,10 +18,14 @@ import { startOrdinal } from '../../../time/dates.js';
  */
 export function statusColor(palette: ResolvedTheme['palette'], status?: string): string {
   switch (status) {
-    case 'done':    return palette.success;
-    case 'active':  return palette.primary;
-    case 'blocked': return palette.error;
-    default:        return palette.secondary;
+    case 'done':
+      return palette.success;
+    case 'active':
+      return palette.primary;
+    case 'blocked':
+      return palette.error;
+    default:
+      return palette.secondary;
   }
 }
 
@@ -49,18 +53,26 @@ export function collectEntries(ir: TimelineDocument): TimelineEntry[] {
   const entries: TimelineEntry[] = [];
   for (const m of ir.milestones) {
     entries.push({
-      id: m.id, label: m.label, kind: 'milestone', date: m.date, ord: startOrdinal(m.date),
+      id: m.id,
+      label: m.label,
+      kind: 'milestone',
+      date: m.date,
+      ord: startOrdinal(m.date),
       ...(m.description ? { description: m.description } : {}),
     });
   }
   for (const a of ir.activities) {
     entries.push({
-      id: a.id, label: a.label, kind: 'activity', date: a.start, ord: startOrdinal(a.start),
+      id: a.id,
+      label: a.label,
+      kind: 'activity',
+      date: a.start,
+      ord: startOrdinal(a.start),
       ...(a.end ? { end: a.end } : {}),
       ...(a.status ? { status: a.status } : {}),
       ...(a.description ? { description: a.description } : {}),
     });
   }
-  entries.sort((p, q) => (p.ord - q.ord) || (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
+  entries.sort((p, q) => p.ord - q.ord || (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
   return entries;
 }

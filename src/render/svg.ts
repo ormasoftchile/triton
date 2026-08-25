@@ -1,4 +1,11 @@
-import type { Scene, SceneElement, SceneIcon, Renderer, NodeAnchorRegistry, RevealTrack } from '../contracts/index.js';
+import type {
+  Scene,
+  SceneElement,
+  SceneIcon,
+  Renderer,
+  NodeAnchorRegistry,
+  RevealTrack,
+} from '../contracts/index.js';
 import type { IconTransforms } from '../contracts/icons.js';
 import {
   animationDuration,
@@ -38,7 +45,9 @@ export function renderSVG(scene: Scene): string {
 
   if (background) {
     // Use explicit x/width to cover the full viewBox, including negative x origins.
-    lines.push(`  <rect x="${viewBox.x}" y="${viewBox.y}" width="${viewBox.width}" height="${viewBox.height}" fill="${background}" />`);
+    lines.push(
+      `  <rect x="${viewBox.x}" y="${viewBox.y}" width="${viewBox.width}" height="${viewBox.height}" fill="${background}" />`,
+    );
   }
 
   for (const el of elements) {
@@ -51,14 +60,18 @@ export function renderSVG(scene: Scene): string {
 
 // ─── Element Rendering ────────────────────────────────────────────────────────
 
-function renderElement(el: SceneElement, depth: number, markerMetrics: Map<string, MarkerMetrics>): string {
+function renderElement(
+  el: SceneElement,
+  depth: number,
+  markerMetrics: Map<string, MarkerMetrics>,
+): string {
   const pad = '  '.repeat(depth);
 
   switch (el.type) {
     case 'rect': {
-      const rx          = el.rx          != null ? ` rx="${el.rx}"` : '';
+      const rx = el.rx != null ? ` rx="${el.rx}"` : '';
       const fillOpacity = el.fillOpacity != null ? ` fill-opacity="${el.fillOpacity}"` : '';
-      const opacity     = el.opacity     != null ? ` opacity="${el.opacity}"` : '';
+      const opacity = el.opacity != null ? ` opacity="${el.opacity}"` : '';
       return `${pad}<rect x="${el.bounds.x}" y="${el.bounds.y}" width="${el.bounds.width}" height="${el.bounds.height}" fill="${fillVal(el.fill)}"${fillOpacity} stroke="${el.stroke}" stroke-width="${el.strokeWidth}"${rx}${opacity} />`;
     }
 
@@ -68,24 +81,26 @@ function renderElement(el: SceneElement, depth: number, markerMetrics: Map<strin
     }
 
     case 'text': {
-      const anchor  = el.anchor    != null ? ` text-anchor="${el.anchor}"` : '';
-      const weight  = el.fontWeight != null ? ` font-weight="${el.fontWeight}"` : '';
-      const opacity = el.opacity   != null ? ` opacity="${el.opacity}"` : '';
+      const anchor = el.anchor != null ? ` text-anchor="${el.anchor}"` : '';
+      const weight = el.fontWeight != null ? ` font-weight="${el.fontWeight}"` : '';
+      const opacity = el.opacity != null ? ` opacity="${el.opacity}"` : '';
       return `${pad}<text x="${el.position.x}" y="${el.position.y}" font-size="${el.fontSize}" font-family="${escapeAttr(el.fontFamily)}" fill="${fillVal(el.fill)}"${anchor}${weight}${opacity}>${escapeXml(el.content)}</text>`;
     }
 
     case 'path': {
       const drawLength = el.animated === 'draw' ? pathLengthApprox(el.d) : undefined;
-      const dashValue  = drawLength != null ? `${drawLength} ${drawLength}` : el.strokeDasharray;
-      const dash       = dashValue          != null ? ` stroke-dasharray="${escapeAttr(dashValue)}"` : '';
-      const mEnd       = el.markerEnd       != null ? ` marker-end="url(#${escapeAttr(el.markerEnd)})"` : '';
-      const mStart     = el.markerStart     != null ? ` marker-start="url(#${escapeAttr(el.markerStart)})"` : '';
-      const fill       = ` fill="${fillVal(el.fill)}"`;
-      const opacity    = el.opacity         != null ? ` opacity="${el.opacity}"` : '';
-      const stroke     = el.animated === 'flow' ? `url(#${flowGradientId(el.d, el.stroke)})` : el.stroke;
-      const attrs      = `${pad}<path d="${escapeAttr(el.d)}" stroke="${escapeAttr(stroke)}" stroke-width="${el.strokeWidth}"${fill}${dash}${mEnd}${mStart}${opacity}`;
+      const dashValue = drawLength != null ? `${drawLength} ${drawLength}` : el.strokeDasharray;
+      const dash = dashValue != null ? ` stroke-dasharray="${escapeAttr(dashValue)}"` : '';
+      const mEnd = el.markerEnd != null ? ` marker-end="url(#${escapeAttr(el.markerEnd)})"` : '';
+      const mStart =
+        el.markerStart != null ? ` marker-start="url(#${escapeAttr(el.markerStart)})"` : '';
+      const fill = ` fill="${fillVal(el.fill)}"`;
+      const opacity = el.opacity != null ? ` opacity="${el.opacity}"` : '';
+      const stroke =
+        el.animated === 'flow' ? `url(#${flowGradientId(el.d, el.stroke)})` : el.stroke;
+      const attrs = `${pad}<path d="${escapeAttr(el.d)}" stroke="${escapeAttr(stroke)}" stroke-width="${el.strokeWidth}"${fill}${dash}${mEnd}${mStart}${opacity}`;
       if (el.animated === 'march' && el.strokeDasharray) {
-        const values  = marchDashoffsetValues(el.strokeDasharray);
+        const values = marchDashoffsetValues(el.strokeDasharray);
         const animate = `<animate attributeName="stroke-dashoffset" from="${values.from}" to="${values.to}" dur="${animationDuration('march')}" repeatCount="indefinite"/>`;
         return `${attrs}>\n${pad}  ${animate}\n${pad}</path>`;
       }
@@ -113,20 +128,33 @@ function renderElement(el: SceneElement, depth: number, markerMetrics: Map<strin
       }
       if (el.animated === 'particle') {
         const spec = motionParticleSpecs('particle')[0]!;
-        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, spec.radius, markerMetrics));
+        const motionPath = trimMotionPathForArrowhead(
+          el.d,
+          motionArrowheadClearance(el, spec.radius, markerMetrics),
+        );
         const circle = renderMotionCircle(motionPath, el.stroke, spec, 'particle', pad);
         return `${attrs} />\n${circle}`;
       }
       if (el.animated === 'comet') {
         const specs = motionParticleSpecs('comet');
-        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, specs[0]!.radius, markerMetrics));
-        const circles = specs.map(spec => renderMotionCircle(motionPath, el.stroke, spec, 'comet', pad)).join('\n');
+        const motionPath = trimMotionPathForArrowhead(
+          el.d,
+          motionArrowheadClearance(el, specs[0]!.radius, markerMetrics),
+        );
+        const circles = specs
+          .map((spec) => renderMotionCircle(motionPath, el.stroke, spec, 'comet', pad))
+          .join('\n');
         return `${attrs} />\n${circles}`;
       }
       if (el.animated === 'stream') {
         const specs = motionParticleSpecs('stream');
-        const motionPath = trimMotionPathForArrowhead(el.d, motionArrowheadClearance(el, specs[0]!.radius, markerMetrics));
-        const circles = specs.map(spec => renderMotionCircle(motionPath, el.stroke, spec, 'stream', pad)).join('\n');
+        const motionPath = trimMotionPathForArrowhead(
+          el.d,
+          motionArrowheadClearance(el, specs[0]!.radius, markerMetrics),
+        );
+        const circles = specs
+          .map((spec) => renderMotionCircle(motionPath, el.stroke, spec, 'stream', pad))
+          .join('\n');
         return `${attrs} />\n${circles}`;
       }
       return `${attrs} />`;
@@ -137,13 +165,13 @@ function renderElement(el: SceneElement, depth: number, markerMetrics: Map<strin
     }
 
     case 'group': {
-      const id        = el.id        != null ? ` id="${escapeAttr(el.id)}"` : '';
+      const id = el.id != null ? ` id="${escapeAttr(el.id)}"` : '';
       const transform = el.transform != null ? ` transform="${escapeAttr(el.transform)}"` : '';
-      const opacity   = el.opacity   != null ? ` opacity="${el.opacity}"` : '';
+      const opacity = el.opacity != null ? ` opacity="${el.opacity}"` : '';
       if (el.children.length === 0) {
         return `${pad}<g${id}${transform}${opacity} />`;
       }
-      const inner = el.children.map(c => renderElement(c, depth + 1, markerMetrics)).join('\n');
+      const inner = el.children.map((c) => renderElement(c, depth + 1, markerMetrics)).join('\n');
       return `${pad}<g${id}${transform}${opacity}>\n${inner}\n${pad}</g>`;
     }
   }
@@ -170,22 +198,20 @@ function renderIcon(el: SceneIcon, depth: number): string {
   const vbT = viewBox.top;
 
   // Scale to fit size×size box preserving aspect ratio; center inside box.
-  const scale   = Math.min(size / vbW, size / vbH);
+  const scale = Math.min(size / vbW, size / vbH);
   const scaledW = formatNum(vbW * scale);
   const scaledH = formatNum(vbH * scale);
-  const offX    = formatNum(x + (size - vbW * scale) / 2);
-  const offY    = formatNum(y + (size - vbH * scale) / 2);
+  const offX = formatNum(x + (size - vbW * scale) / 2);
+  const offY = formatNum(y + (size - vbH * scale) / 2);
 
   // Monochrome tint via CSS color inheritance.
-  const styleAttr  = colorMode === 'monochrome' && el.color
-    ? ` style="color:${escapeAttr(el.color)}"`
-    : '';
+  const styleAttr =
+    colorMode === 'monochrome' && el.color ? ` style="color:${escapeAttr(el.color)}"` : '';
   const opacityAttr = el.opacity != null ? ` opacity="${el.opacity}"` : '';
 
   // Build body — namespace brand IDs or use verbatim.
-  const body = colorMode === 'brand'
-    ? namespaceIconIds(icon.body, `icn${iconEmitCounter++}`)
-    : icon.body;
+  const body =
+    colorMode === 'brand' ? namespaceIconIds(icon.body, `icn${iconEmitCounter++}`) : icon.body;
 
   // Transform (rotate/flip) applied inside the icon's viewBox coordinate space.
   const cx = vbL + vbW / 2;
@@ -193,7 +219,7 @@ function renderIcon(el: SceneIcon, depth: number): string {
   const innerTransform = buildIconTransform(transforms, cx, cy);
 
   const vbAttr = `${vbL} ${vbT} ${formatNum(vbW)} ${formatNum(vbH)}`;
-  const inner  = innerTransform
+  const inner = innerTransform
     ? `${pad}  <g transform="${innerTransform}">${body}</g>`
     : `${pad}  ${body}`;
 
@@ -217,15 +243,15 @@ function buildIconTransform(t: IconTransforms, cx: number, cy: number): string |
   if (t.rotate === 0 && !t.hFlip && !t.vFlip) return null;
 
   const deg = t.rotate * 90;
-  const sf  = t.hFlip ? -1 : 1;
-  const vf  = t.vFlip ? -1 : 1;
+  const sf = t.hFlip ? -1 : 1;
+  const vf = t.vFlip ? -1 : 1;
   const cxs = formatNum(cx);
   const cys = formatNum(cy);
 
   const parts: string[] = [];
   parts.push(`translate(${cxs} ${cys})`);
   if (t.hFlip || t.vFlip) parts.push(`scale(${sf} ${vf})`);
-  if (t.rotate !== 0)     parts.push(`rotate(${deg})`);
+  if (t.rotate !== 0) parts.push(`rotate(${deg})`);
   parts.push(`translate(${formatNum(-cx)} ${formatNum(-cy)})`);
 
   return parts.join(' ');
@@ -240,8 +266,8 @@ function buildIconTransform(t: IconTransforms, cx: number, cy: number): string |
  * Uses a per-emit prefix (e.g. "icn3") generated from the module counter.
  */
 function namespaceIconIds(body: string, prefix: string): string {
-  const idRe  = /\bid="([^"]+)"/g;
-  const ids   = new Set<string>();
+  const idRe = /\bid="([^"]+)"/g;
+  const ids = new Set<string>();
   let m: RegExpExecArray | null;
 
   while ((m = idRe.exec(body)) !== null) {
@@ -310,7 +336,7 @@ function trimMotionPathForArrowhead(path: string, clearance: number): string {
         const roots = [
           (-qb - Math.sqrt(discriminant)) / (2 * qa),
           (-qb + Math.sqrt(discriminant)) / (2 * qa),
-        ].filter(t => t >= 0 && t <= 1);
+        ].filter((t) => t >= 0 && t <= 1);
         const t = roots.sort((left, right) => right - left)[0];
         if (t != null) {
           return [...pts.slice(0, i + 1), { x: a.x + dx * t, y: a.y + dy * t }]
@@ -332,9 +358,10 @@ function trimMotionPathForArrowhead(path: string, clearance: number): string {
   }
   if (totalLength === 0) return path;
 
-  const targetLength = totalLength > MIN_MOTION_SEGMENT_LENGTH
-    ? Math.max(MIN_MOTION_SEGMENT_LENGTH, totalLength - clearance)
-    : totalLength / 2;
+  const targetLength =
+    totalLength > MIN_MOTION_SEGMENT_LENGTH
+      ? Math.max(MIN_MOTION_SEGMENT_LENGTH, totalLength - clearance)
+      : totalLength / 2;
   let walked = 0;
   const motionPts = [pts[0]!];
   for (let i = 1; i < pts.length; i++) {
@@ -364,10 +391,12 @@ function motionArrowheadClearance(
   markerMetrics: Map<string, MarkerMetrics>,
 ): number {
   if (el.markerEnd == null) return 0;
-  const marker = markerMetrics.get(el.markerEnd) ?? { refX: DEFAULT_MARKER_REF_X, markerUnits: 'strokeWidth' as const };
-  const markerBackOffset = marker.markerUnits === 'strokeWidth'
-    ? marker.refX * el.strokeWidth
-    : marker.refX;
+  const marker = markerMetrics.get(el.markerEnd) ?? {
+    refX: DEFAULT_MARKER_REF_X,
+    markerUnits: 'strokeWidth' as const,
+  };
+  const markerBackOffset =
+    marker.markerUnits === 'strokeWidth' ? marker.refX * el.strokeWidth : marker.refX;
   return markerBackOffset + dotRadius;
 }
 
@@ -379,7 +408,8 @@ function markerMetricsById(defs: readonly string[]): Map<string, MarkerMetrics> 
       const id = attrValue(marker, 'id');
       const refX = attrNumber(marker, 'refX');
       if (id == null || refX == null) continue;
-      const markerUnits = attrValue(marker, 'markerUnits') === 'userSpaceOnUse' ? 'userSpaceOnUse' : 'strokeWidth';
+      const markerUnits =
+        attrValue(marker, 'markerUnits') === 'userSpaceOnUse' ? 'userSpaceOnUse' : 'strokeWidth';
       markers.set(id, { refX, markerUnits });
     }
   }
@@ -387,8 +417,10 @@ function markerMetricsById(defs: readonly string[]): Map<string, MarkerMetrics> 
 }
 
 function attrValue(text: string, name: string): string | undefined {
-  return text.match(new RegExp(`\\b${name}\\s*=\\s*"([^"]+)"`))?.[1]
-    ?? text.match(new RegExp(`\\b${name}\\s*=\\s*'([^']+)'`))?.[1];
+  return (
+    text.match(new RegExp(`\\b${name}\\s*=\\s*"([^"]+)"`))?.[1] ??
+    text.match(new RegExp(`\\b${name}\\s*=\\s*'([^']+)'`))?.[1]
+  );
 }
 
 function attrNumber(text: string, name: string): number | undefined {
@@ -407,13 +439,19 @@ function renderFlowGradient(el: Extract<SceneElement, { type: 'path' }>, pad: st
     `${pad}  <linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}">`,
     `${pad}    <stop offset="0%" stop-color="${base}" stop-opacity="0.75"/>`,
     `${pad}    <stop offset="20%" stop-color="${base}" stop-opacity="0.85">`,
-    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(0).map(v => `${v}%`).join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
+    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(0)
+      .map((v) => `${v}%`)
+      .join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
     `${pad}    </stop>`,
     `${pad}    <stop offset="35%" stop-color="#FFFFFF" stop-opacity="1">`,
-    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(1).map(v => `${v}%`).join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
+    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(1)
+      .map((v) => `${v}%`)
+      .join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
     `${pad}    </stop>`,
     `${pad}    <stop offset="50%" stop-color="${base}" stop-opacity="0.85">`,
-    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(2).map(v => `${v}%`).join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
+    `${pad}      <animate attributeName="offset" values="${flowStopOffsetValues(2)
+      .map((v) => `${v}%`)
+      .join(';')}" dur="${animationDuration('flow')}" repeatCount="indefinite"/>`,
     `${pad}    </stop>`,
     `${pad}    <stop offset="100%" stop-color="${base}" stop-opacity="0.75"/>`,
     `${pad}  </linearGradient>`,
@@ -425,7 +463,10 @@ function flowGradientId(path: string, stroke: string): string {
   return `triton-flow-${hashString(`${path}|${stroke}`)}`;
 }
 
-function pathEndpoints(path: string): { start: { x: number; y: number }; end: { x: number; y: number } } {
+function pathEndpoints(path: string): {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+} {
   const pts = pathPoints(path);
   const start = pts[0] ?? { x: 0, y: 0 };
   const end = pts[pts.length - 1] ?? { x: 1, y: 0 };
@@ -449,10 +490,7 @@ function fillVal(fill: string | null | undefined): string {
 }
 
 function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function escapeAttr(text: string): string {

@@ -9,7 +9,11 @@ export interface QuadrantPoint {
 }
 
 export interface QuadrantDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly xAxisLeft?: string;
   readonly xAxisRight?: string;
   readonly yAxisBottom?: string;

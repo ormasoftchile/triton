@@ -2,9 +2,17 @@ import type { BaseIR, CardinalSide, RouteStyle } from '../../../contracts/index.
 import type { IconRef } from '../../../contracts/icons.js';
 
 export type NodeShape =
-  | 'rect' | 'rounded-rect' | 'circle' | 'diamond' | 'stadium'
-  | 'subroutine' | 'cylinder' | 'hexagon'
-  | 'parallelogram' | 'parallelogram-alt' | 'asymmetric'
+  | 'rect'
+  | 'rounded-rect'
+  | 'circle'
+  | 'diamond'
+  | 'stadium'
+  | 'subroutine'
+  | 'cylinder'
+  | 'hexagon'
+  | 'parallelogram'
+  | 'parallelogram-alt'
+  | 'asymmetric'
   | 'card';
 
 export type NodeStatus = 'default' | 'active' | 'success' | 'warning' | 'error' | 'muted';
@@ -14,6 +22,7 @@ export interface FlowNode {
   readonly label: string;
   readonly shape: NodeShape;
   readonly status?: NodeStatus;
+  readonly classes?: readonly string[];
   readonly subgraph?: string;
   /** Parsed icon reference from an @icon:<prefix:name> node annotation. */
   readonly icon?: IconRef;
@@ -48,7 +57,11 @@ export interface FlowSubgraph {
 export type FlowDirection = 'TD' | 'TB' | 'BT' | 'LR' | 'RL';
 
 export interface FlowDocument extends BaseIR {
-  readonly metadata: { readonly title?: string; readonly theme?: string; readonly [key: string]: string | undefined };
+  readonly metadata: {
+    readonly title?: string;
+    readonly theme?: string;
+    readonly [key: string]: string | undefined;
+  };
   readonly direction: FlowDirection;
   readonly nodes: readonly FlowNode[];
   readonly edges: readonly FlowEdge[];

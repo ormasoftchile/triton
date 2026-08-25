@@ -21,16 +21,28 @@ import { ok, err, type Result } from '../contracts/result.js';
 
 // ─── Known key sets ───────────────────────────────────────────────────────────
 
-const TOP_LEVEL_KEYS = new Set([
-  'prefix', 'icons', 'aliases', 'width', 'height', 'left', 'top',
-]);
+const TOP_LEVEL_KEYS = new Set(['prefix', 'icons', 'aliases', 'width', 'height', 'left', 'top']);
 
 const ICON_DATA_KEYS = new Set([
-  'body', 'width', 'height', 'left', 'top', 'rotate', 'hFlip', 'vFlip',
+  'body',
+  'width',
+  'height',
+  'left',
+  'top',
+  'rotate',
+  'hFlip',
+  'vFlip',
 ]);
 
 const ICON_ALIAS_KEYS = new Set([
-  'parent', 'rotate', 'hFlip', 'vFlip', 'width', 'height', 'left', 'top',
+  'parent',
+  'rotate',
+  'hFlip',
+  'vFlip',
+  'width',
+  'height',
+  'left',
+  'top',
 ]);
 
 // ─── Token grammar regexes ────────────────────────────────────────────────────
@@ -263,9 +275,7 @@ export function validateIconPack(json: unknown): Result<IconifyJSON> {
     aliases = {};
     for (const aliasName of Object.keys(aliasesRaw)) {
       if (!NAME_RE.test(aliasName)) {
-        return fail(
-          `Alias name ${JSON.stringify(aliasName)} must match ^[a-z0-9][a-z0-9-]*$`,
-        );
+        return fail(`Alias name ${JSON.stringify(aliasName)} must match ^[a-z0-9][a-z0-9-]*$`);
       }
       const r = validateIconAlias(aliasName, aliasesRaw[aliasName]);
       if (!r.ok) return r;
@@ -295,10 +305,10 @@ export function validateIconPack(json: unknown): Result<IconifyJSON> {
     prefix: prefix as string,
     icons,
     ...(aliases !== undefined ? { aliases } : {}),
-    ...('width'  in json ? { width:  json['width']  as number } : {}),
+    ...('width' in json ? { width: json['width'] as number } : {}),
     ...('height' in json ? { height: json['height'] as number } : {}),
-    ...('left'   in json ? { left:   json['left']   as number } : {}),
-    ...('top'    in json ? { top:    json['top']    as number } : {}),
+    ...('left' in json ? { left: json['left'] as number } : {}),
+    ...('top' in json ? { top: json['top'] as number } : {}),
   };
 
   return ok(result);

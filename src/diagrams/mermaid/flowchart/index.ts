@@ -5,7 +5,17 @@ import { parseIconRef } from '../../../icons/resolver.js';
 import { layoutFlowchart } from './layout.js';
 import * as parser from './parser.js';
 
-export type { FlowDocument, FlowNode, FlowEdge, FlowSubgraph, FlowDirection, NodeShape, NodeStatus, EdgeStyle, EdgeEndMarker } from './ir.js';
+export type {
+  FlowDocument,
+  FlowNode,
+  FlowEdge,
+  FlowSubgraph,
+  FlowDirection,
+  NodeShape,
+  NodeStatus,
+  EdgeStyle,
+  EdgeEndMarker,
+} from './ir.js';
 
 export const flowchart: DiagramModule<FlowDocument> = {
   parseMermaid(input: string): FlowDocument {
@@ -21,20 +31,22 @@ export const flowchart: DiagramModule<FlowDocument> = {
       if (n.iconToken !== undefined) {
         const result = parseIconRef(String(n.iconToken));
         if (!result.ok) {
-          throw new Error(`Flowchart parse error: invalid @icon value "${n.iconToken}": ${result.error.message}`);
+          throw new Error(
+            `Flowchart parse error: invalid @icon value "${n.iconToken}": ${result.error.message}`,
+          );
         }
         return { ...base, icon: result.value };
       }
       return base;
     });
     return {
-      version:   raw.version,
-      metadata:  raw.metadata ?? {},
+      version: raw.version,
+      metadata: raw.metadata ?? {},
       direction: raw.direction,
       nodes,
-      edges:     raw.flow.edges,
+      edges: raw.flow.edges,
       subgraphs: raw.subgraphs ?? [],
-      overlays:  raw.overlays?.length > 0 ? raw.overlays : undefined,
+      overlays: raw.overlays?.length > 0 ? raw.overlays : undefined,
     };
   },
 

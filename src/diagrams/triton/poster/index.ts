@@ -1,4 +1,9 @@
-import type { DiagramModule, LayoutResult, LayoutOptions, DiagramKind } from '../../../contracts/index.js';
+import type {
+  DiagramModule,
+  LayoutResult,
+  LayoutOptions,
+  DiagramKind,
+} from '../../../contracts/index.js';
 import type { PosterNote, NotePosition } from './ir.js';
 import type { PosterDocument } from './ir.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
@@ -8,7 +13,15 @@ import { getModule } from '../../../frontend/registry.js';
 import { matchMermaid } from '../../../frontend/detect.js';
 import * as parser from './parser.js';
 
-export type { PosterDocument, PosterCell, PosterGrid, CellContent, DiagramCell, TextCell, StatCell } from './ir.js';
+export type {
+  PosterDocument,
+  PosterCell,
+  PosterGrid,
+  CellContent,
+  DiagramCell,
+  TextCell,
+  StatCell,
+} from './ir.js';
 
 export const poster: DiagramModule<PosterDocument> = {
   parseMermaid(input: string): PosterDocument {
@@ -17,8 +30,12 @@ export const poster: DiagramModule<PosterDocument> = {
       const { rawContent, caption, notes } = extractCellAnnotations(c.rawContent as string);
       const content = parseCell({ ...c, rawContent });
       return {
-        id: c.id, title: c.title, content,
-        colSpan: c.span?.colSpan, rowSpan: c.span?.rowSpan, theme: c.theme,
+        id: c.id,
+        title: c.title,
+        content,
+        colSpan: c.span?.colSpan,
+        rowSpan: c.span?.rowSpan,
+        theme: c.theme,
         ...(caption ? { caption } : {}),
         ...(notes.length > 0 ? { notes } : {}),
       };
@@ -29,9 +46,9 @@ export const poster: DiagramModule<PosterDocument> = {
     const allLinks = [...explicitLinks];
 
     return {
-      version:  raw.version ?? '1.0',
+      version: raw.version ?? '1.0',
       metadata: { ...raw.metadata },
-      grid:     raw.grid,
+      grid: raw.grid,
       cells,
       ...(allLinks.length > 0 ? { links: allLinks } : {}),
     };
@@ -61,7 +78,8 @@ function parseCell(raw: any): import('./ir.js').CellContent {
   }
 
   // Normalise aliases to canonical DiagramKind
-  const diagramKind: DiagramKind = resolvedKind === 'flow' ? 'flowchart' : resolvedKind as DiagramKind;
+  const diagramKind: DiagramKind =
+    resolvedKind === 'flow' ? 'flowchart' : (resolvedKind as DiagramKind);
 
   const module = getModule(diagramKind);
   if (!module) {
@@ -88,7 +106,8 @@ function inferCellKind(rawContent: string): string | null {
 // ─── Cell Annotation Extraction ──────────────────────────────────────────────
 
 const CAPTION_RE = /^[ \t]*caption[ \t]+"([^"]*)"[ \t]*$/;
-const NOTE_RE    = /^[ \t]*note[ \t]+"([^"]*)"(?:[ \t]+at[ \t]+(top-left|top-right|bottom-left|bottom-right|center))?[ \t]*$/;
+const NOTE_RE =
+  /^[ \t]*note[ \t]+"([^"]*)"(?:[ \t]+at[ \t]+(top-left|top-right|bottom-left|bottom-right|center))?[ \t]*$/;
 
 /**
  * Strip `caption "..."` and `note "..." [at position]` directives from
@@ -106,9 +125,15 @@ function extractCellAnnotations(rawContent: string): {
 
   for (const line of inputLines) {
     const cm = line.match(CAPTION_RE);
-    if (cm) { caption = cm[1]; continue; }
+    if (cm) {
+      caption = cm[1];
+      continue;
+    }
     const nm = line.match(NOTE_RE);
-    if (nm) { notes.push({ text: nm[1]!, ...(nm[2] ? { position: nm[2] as NotePosition } : {}) }); continue; }
+    if (nm) {
+      notes.push({ text: nm[1]!, ...(nm[2] ? { position: nm[2] as NotePosition } : {}) });
+      continue;
+    }
     outLines.push(line);
   }
 

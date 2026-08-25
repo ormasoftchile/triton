@@ -30,7 +30,7 @@ export interface DiagramError {
 }
 
 export type Result<T> =
-  | { readonly ok: true;  readonly value: T }
+  | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: DiagramError };
 
 /** Construct a successful result. */
@@ -39,11 +39,7 @@ export function ok<T>(value: T): Result<T> {
 }
 
 /** Construct a failed result. */
-export function err(
-  code: DiagramErrorCode,
-  message: string,
-  cause?: unknown,
-): Result<never> {
+export function err(code: DiagramErrorCode, message: string, cause?: unknown): Result<never> {
   return {
     ok: false,
     error: { code, message, ...(cause !== undefined ? { cause } : {}) },

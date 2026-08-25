@@ -19,11 +19,13 @@ export function compileOverlays(raw: readonly RawOverlay[]): CompiledOverlays {
 
   for (const item of raw) {
     switch (item.type) {
+      case 'callout':
       case 'note': {
         const dx = item.offset?.dx ?? 0;
         const dy = item.offset?.dy ?? -60;
         annotations.push({
-          id: `note-${slugify(item.target)}-${annotations.length}`,
+          id: `${item.type}-${slugify(item.target)}-${annotations.length}`,
+          type: item.type,
           text: item.text,
           // position is the offset from the anchor; absolute coords resolved at layout time
           position: { x: dx, y: dy },

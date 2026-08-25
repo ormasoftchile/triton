@@ -6,7 +6,18 @@
  */
 
 // ─── Public API ────────────────────────────────────────────────────────────────
-export { compileSync, renderSync, compile, render, compileAndRenderSync } from './frontend/index.js';
+export {
+  compileSync,
+  renderSync,
+  compile,
+  render,
+  compileAndRenderSync,
+  getThemePreset,
+  themePresetNames,
+  isBuiltinThemeName,
+  validateThemeInput,
+  resolveTheme,
+} from './frontend/index.js';
 
 // Reveal / anchor manifest embedding — used by presentation hosts (e.g. Deckpilot)
 // on the interactive path. Plain renderSync output stays manifest-free.
@@ -15,20 +26,48 @@ export { embedAnchorManifest, embedRevealManifest } from './render/svg.js';
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type {
   // Primitives
-  Point, Size, Rect, Color, FontFamily, TextAnchor, FontWeight,
+  Point,
+  Size,
+  Rect,
+  Color,
+  FontFamily,
+  TextAnchor,
+  FontWeight,
   // Scene
-  SceneRect, SceneCircle, ScenePath, SceneText, SceneGroup, SceneElement, Scene,
+  SceneRect,
+  SceneCircle,
+  ScenePath,
+  SceneText,
+  SceneGroup,
+  SceneElement,
+  Scene,
   // Theme
-  ThemePalette, ThemeTypography, ThemeSpacing, ThemeEdges, ThemePanel,
-  ResolvedTheme, ThemeInput,
+  ThemePalette,
+  ThemeTypography,
+  ThemeSpacing,
+  ThemeEdges,
+  ThemePanel,
+  ResolvedTheme,
+  ThemeInput,
   // Diagram
-  DiagramModule, DiagramKind, InputFormat, BaseIR,
+  DiagramModule,
+  DiagramKind,
+  InputFormat,
+  BaseIR,
   // Layout
-  LayoutResult, NodeAnchor, NodeAnchorRegistry,
+  LayoutResult,
+  NodeAnchor,
+  NodeAnchorRegistry,
   // Result
-  DiagramError, DiagramErrorCode, Result,
+  DiagramError,
+  DiagramErrorCode,
+  Result,
   // Routing
-  RouteStyle, Route, Router,
+  RouteStyle,
+  Route,
+  Router,
   // Reveal
-  RevealEffect, RevealStep, RevealTrack,
+  RevealEffect,
+  RevealStep,
+  RevealTrack,
 } from './contracts/index.js';

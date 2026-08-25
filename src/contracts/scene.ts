@@ -150,13 +150,7 @@ export interface SceneGroup {
 }
 
 /** Discriminated union of everything a renderer knows how to paint. */
-export type SceneElement =
-  | SceneRect
-  | SceneCircle
-  | ScenePath
-  | SceneText
-  | SceneGroup
-  | SceneIcon;
+export type SceneElement = SceneRect | SceneCircle | ScenePath | SceneText | SceneGroup | SceneIcon;
 
 // ─── Scene Root ───────────────────────────────────────────────────────────────
 

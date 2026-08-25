@@ -132,8 +132,8 @@ describe('SceneIcon brand gradient ID namespacing', () => {
   });
 
   it('uses DIFFERENT prefixes for two brand icons to avoid ID collisions', () => {
-    const el1 = makeIcon({ icon: GRAD_ICON, x: 0,   y: 0, size: 32 });
-    const el2 = makeIcon({ icon: GRAD_ICON, x: 50,  y: 0, size: 32 });
+    const el1 = makeIcon({ icon: GRAD_ICON, x: 0, y: 0, size: 32 });
+    const el2 = makeIcon({ icon: GRAD_ICON, x: 50, y: 0, size: 32 });
     const scene: Scene = {
       viewBox: { x: 0, y: 0, width: 300, height: 100 },
       elements: [el1, el2],
@@ -141,11 +141,11 @@ describe('SceneIcon brand gradient ID namespacing', () => {
     const svg = renderSVG(scene);
 
     // Collect all id= values in the SVG
-    const ids = [...svg.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+    const ids = [...svg.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]);
     // No two elements should share the same id
     expect(new Set(ids).size).toBe(ids.length);
     // There must be exactly two distinct icon-prefixed gradient ids
-    const iconIds = ids.filter(id => id?.startsWith('icn'));
+    const iconIds = ids.filter((id) => id?.startsWith('icn'));
     expect(iconIds).toHaveLength(2);
     expect(iconIds[0]).not.toBe(iconIds[1]);
   });
@@ -294,7 +294,7 @@ describe('SceneIcon opacity', () => {
     const el = makeIcon({ icon: MONO_ICON, x: 0, y: 0, size: 32 });
     const svg = renderSVG(iconScene(el));
     // The outer <svg> must not carry an opacity attribute
-    const nestedSvgLine = svg.split('\n').find(l => l.includes('viewBox="0 0 24 24"'));
+    const nestedSvgLine = svg.split('\n').find((l) => l.includes('viewBox="0 0 24 24"'));
     expect(nestedSvgLine).toBeDefined();
     expect(nestedSvgLine).not.toContain('opacity=');
   });

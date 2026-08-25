@@ -58,6 +58,6 @@ export function stripComments(input: string): string {
 function removeCommentLines(text: string): string {
   return text
     .split('\n')
-    .filter(line => !/^\s*%%/.test(line))
+    .filter((line) => !/^\s*%%/.test(line))
     .join('\n');
 }
