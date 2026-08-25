@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 830 600" width="830" height="600">
+  <rect x="0" y="0" width="830" height="600" fill="#2D3142" />
+  <text x="60" y="40" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F5F5F5" font-weight="bold">Production Outage Root Cause</text>
+  <path d="M 60 320 L 580 320" stroke="#F08A59" stroke-width="3" fill="none" />
+  <path d="M 570 312 L 586 320 L 570 328 Z" stroke="#F08A59" stroke-width="1" fill="#F08A59" />
+  <rect x="590" y="288" width="180" height="64" fill="#393E53" stroke="#F08A59" stroke-width="2" rx="6" />
+  <text x="680" y="324.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F5F5F5" text-anchor="middle" font-weight="bold">504 Gateway Timeout</text>
+  <path d="M 80 120 L 180 320" stroke="#4F5D75" stroke-width="2" fill="none" />
+  <rect x="35" y="94" width="90" height="26" fill="#393E53" stroke="#4F5D75" stroke-width="1.5" rx="4" />
+  <text x="80" y="110.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F5F5F5" text-anchor="middle" font-weight="bold">Infrastructure</text>
+  <path d="M 13.333333333333329 186.66666666666666 L 113.33333333333333 186.66666666666666" stroke="#4F5D75" stroke-width="1.2" fill="none" />
+  <text x="17.33333333333333" y="182.66666666666666" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#BFC0C0">Worker OOM crash</text>
+  <path d="M 46.66666666666666 253.33333333333331 L 146.66666666666666 253.33333333333331" stroke="#4F5D75" stroke-width="1.2" fill="none" />
+  <text x="50.66666666666666" y="249.33333333333331" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#BFC0C0">DNS propagation lag</text>
+  <path d="M 80 520 L 180 320" stroke="#4F5D75" stroke-width="2" fill="none" />
+  <rect x="35" y="520" width="90" height="26" fill="#393E53" stroke="#4F5D75" stroke-width="1.5" rx="4" />
+  <text x="80" y="536.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F5F5F5" text-anchor="middle" font-weight="bold">Code</text>
+  <path d="M 13.333333333333329 453.33333333333337 L 113.33333333333333 453.33333333333337" stroke="#4F5D75" stroke-width="1.2" fill="none" />
+  <text x="17.33333333333333" y="449.33333333333337" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#BFC0C0">Unindexed SQL query</text>
+  <path d="M 46.66666666666666 386.6666666666667 L 146.66666666666666 386.6666666666667" stroke="#4F5D75" stroke-width="1.2" fill="none" />
+  <text x="50.66666666666666" y="382.6666666666667" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#BFC0C0">Connection leak</text>
+  <path d="M 320 120 L 420 320" stroke="#4F5D75" stroke-width="2" fill="none" />
+  <rect x="275" y="94" width="90" height="26" fill="#393E53" stroke="#4F5D75" stroke-width="1.5" rx="4" />
+  <text x="320" y="110.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F5F5F5" text-anchor="middle" font-weight="bold">Process</text>
+  <path d="M 253.33333333333331 186.66666666666666 L 353.3333333333333 186.66666666666666" stroke="#4F5D75" stroke-width="1.2" fill="none" />
+  <text x="257.3333333333333" y="182.66666666666666" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#BFC0C0">Skipped staging canary</text>
+  <path d="M 286.66666666666663 253.33333333333331 L 386.66666666666663 253.33333333333331" stroke="#4F5D75" stroke-width="1.2" fill="none" />
+  <text x="290.66666666666663" y="249.33333333333331" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#BFC0C0">Unreviewed hotfix</text>
+  <path d="M 320 520 L 420 320" stroke="#4F5D75" stroke-width="2" fill="none" />
+  <rect x="275" y="520" width="90" height="26" fill="#393E53" stroke="#4F5D75" stroke-width="1.5" rx="4" />
+  <text x="320" y="536.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#F5F5F5" text-anchor="middle" font-weight="bold">External</text>
+  <path d="M 270 420 L 370 420" stroke="#4F5D75" stroke-width="1.2" fill="none" />
+  <text x="274" y="416" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#BFC0C0">Third-party auth outage</text>
+</svg>

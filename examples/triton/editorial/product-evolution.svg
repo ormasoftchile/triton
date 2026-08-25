@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 755.9999999999999 238" width="755.9999999999999" height="238">
+  <rect x="0" y="0" width="755.9999999999999" height="238" fill="#F5F5F5" />
+  <text x="24" y="44" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" font-weight="bold">"Product Release Roadmap"</text>
+  <path d="M 44 120 L 731.9999999999999 120" stroke="#BFC0C0" stroke-width="2" fill="none" />
+  <rect x="44" y="138" width="134.8" height="32" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1" rx="4" />
+  <text x="111.4" y="158.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Initial Foundation</text>
+  <rect x="202.8" y="138" width="141.39999999999998" height="32" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1" rx="4" />
+  <text x="273.5" y="158.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Real-time Streaming</text>
+  <rect x="368.2" y="138" width="174.39999999999998" height="32" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1" rx="4" />
+  <text x="455.4" y="158.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Autonomous Agents Launch</text>
+  <rect x="566.5999999999999" y="138" width="141.39999999999998" height="32" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1" rx="4" />
+  <text x="637.3" y="158.4" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Global Multi-Region</text>
+  <g id="callout-autonomous-agents-launch-0">
+    <path d="M 523.3873684210527 146.6 L 521.4 147.4" stroke="#EB6C36" stroke-width="1" fill="none" />
+    <circle cx="521.4" cy="147.4" r="2.5" fill="#EB6C36" stroke="#EB6C36" stroke-width="1" />
+    <rect x="521.4" y="87.4" width="151.04" height="59.199999999999996" fill="#F5F5F5" stroke="#EB6C36" stroke-width="1" rx="4" />
+    <text x="531.4" y="111.4" font-size="14" font-family="Instrument Serif, Georgia, &quot;Times New Roman&quot;, serif" fill="#2D3142">Breakthrough GenAI</text>
+    <text x="531.4" y="131" font-size="14" font-family="Instrument Serif, Georgia, &quot;Times New Roman&quot;, serif" fill="#2D3142">Integration</text>
+  </g>
+</svg>

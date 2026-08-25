@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 720" width="860" height="720">
+  <rect x="0" y="0" width="860" height="720" fill="#F5F5F5" />
+  <text x="60" y="40" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" font-weight="bold">Self-Improving Intelligence Flywheel</text>
+  <path d="M 430 370 L 430 170" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="4 4" />
+  <path d="M 430 370 L 630 370" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="4 4" />
+  <path d="M 430 370 L 430 570" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="4 4" />
+  <path d="M 430 370 L 230 370" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="4 4" />
+  <path d="M 498.5795614910903 182.12545743052422 Q 589.0990257669732 210.90097423302683 617.8745425694758 301.42043850890974" stroke="#EB6C36" stroke-width="1.8" fill="none" />
+  <path d="M 620.215938126273 292.28162748960256 L 617.8745425694758 301.42043850890974 L 610.6858857736389 295.31116576400234 Z" stroke="#EB6C36" stroke-width="1" fill="#EB6C36" />
+  <path d="M 617.8745425694758 438.57956149109026 Q 589.0990257669732 529.0990257669732 498.5795614910903 557.8745425694758" stroke="#EB6C36" stroke-width="1.8" fill="none" />
+  <path d="M 507.7183725103975 560.215938126273 L 498.5795614910903 557.8745425694758 L 504.6888342359977 550.6858857736389 Z" stroke="#EB6C36" stroke-width="1" fill="#EB6C36" />
+  <path d="M 361.42043850890974 557.8745425694758 Q 270.90097423302683 529.0990257669732 242.12545743052422 438.5795614910903" stroke="#EB6C36" stroke-width="1.8" fill="none" />
+  <path d="M 239.784061873727 447.7183725103975 L 242.12545743052422 438.5795614910903 L 249.31411422636108 444.6888342359977 Z" stroke="#EB6C36" stroke-width="1" fill="#EB6C36" />
+  <path d="M 242.12545743052422 301.42043850890974 Q 270.9009742330268 210.90097423302683 361.42043850890974 182.12545743052422" stroke="#EB6C36" stroke-width="1.8" fill="none" />
+  <path d="M 352.28162748960256 179.784061873727 L 361.42043850890974 182.12545743052422 L 355.31116576400234 189.31411422636108 Z" stroke="#EB6C36" stroke-width="1" fill="#EB6C36" />
+  <rect x="360" y="338" width="140" height="64" fill="#ECECEC" stroke="#EB6C36" stroke-width="2" rx="32" />
+  <text x="430" y="373.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="bold">Shared Vector Hub</text>
+  <rect x="355" y="144" width="150" height="52" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1.5" rx="6" />
+  <text x="430" y="173.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="bold">User Interactions</text>
+  <rect x="555" y="344" width="150" height="52" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1.5" rx="6" />
+  <text x="630" y="373.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="bold">Real-time Telemetry</text>
+  <rect x="355" y="544" width="150" height="52" fill="#EB6C36" stroke="#EB6C36" stroke-width="2" rx="6" />
+  <text x="430" y="573.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Model Evaluation</text>
+  <rect x="155" y="344" width="150" height="52" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1.5" rx="6" />
+  <text x="230" y="373.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="bold">Continuous Fine-Tuning</text>
+</svg>

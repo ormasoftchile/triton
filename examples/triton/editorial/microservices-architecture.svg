@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 268" width="788" height="268">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#EB6C36" /></marker>
+  </defs>
+  <rect x="0" y="0" width="788" height="268" fill="#F5F5F5" />
+  <path d="M 183 136 L 223 136" stroke="#EB6C36" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 418 136 L 441.25 136 L 441.25 48 L 464.5 48" stroke="#EB6C36" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 418 136 L 464.5 136" stroke="#EB6C36" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 418 136 L 438 136 L 438 224 L 458 224" stroke="#EB6C36" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 584.5 136 L 631 136" stroke="#EB6C36" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <g id="client">
+    <rect x="24" y="116" width="159" height="40" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1.5" rx="2" />
+    <text x="103.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Web &amp; Mobile Clients</text>
+  </g>
+  <g id="gateway">
+    <rect x="223" y="116" width="195" height="40" fill="#EB6C3622" stroke="#EB6C36" stroke-width="2.25" rx="2" />
+    <text x="320.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">API Gateway &amp; Edge Proxy</text>
+  </g>
+  <g id="auth">
+    <rect x="464.5" y="28" width="120" height="40" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1.5" rx="2" />
+    <text x="524.5" y="52.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Auth Service</text>
+  </g>
+  <g id="order">
+    <rect x="464.5" y="116" width="120" height="40" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1.5" rx="2" />
+    <text x="524.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Order Pipeline</text>
+  </g>
+  <g id="inventory">
+    <rect x="458" y="204" width="133" height="40" fill="#ECECEC" stroke="#BFC0C0" stroke-width="1.5" rx="2" />
+    <text x="524.5" y="228.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Inventory Service</text>
+  </g>
+  <g id="db">
+    <path d="M 631 119.2 A 66.5 7.199999999999999 0 0 1 764 119.2 L 764 152.8 A 66.5 7.199999999999999 0 0 1 631 152.8 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+    <path d="M 631 119.2 A 66.5 7.199999999999999 0 0 0 764 119.2" stroke="#BFC0C0" stroke-width="1.5" fill="none" />
+    <text x="697.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle">Transactional DB</text>
+  </g>
+  <g id="callout-gateway-0">
+    <path d="M 358.31210526315795 115.19999999999999 L 355.75 116" stroke="#EB6C36" stroke-width="1" fill="none" />
+    <circle cx="355.75" cy="116" r="2.5" fill="#EB6C36" stroke="#EB6C36" stroke-width="1" />
+    <rect x="355.75" y="56" width="194.72" height="59.199999999999996" fill="#F5F5F5" stroke="#EB6C36" stroke-width="1" rx="4" />
+    <text x="365.75" y="80" font-size="14" font-family="Instrument Serif, Georgia, &quot;Times New Roman&quot;, serif" fill="#2D3142">Target density 4/10: 1-2</text>
+    <text x="365.75" y="99.6" font-size="14" font-family="Instrument Serif, Georgia, &quot;Times New Roman&quot;, serif" fill="#2D3142">focal nodes max</text>
+  </g>
+</svg>

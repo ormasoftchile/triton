@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 414" width="860" height="414">
+  <rect x="0" y="0" width="860" height="414" fill="#F5F5F5" />
+  <text x="80" y="40" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" font-weight="bold">SaaS Customer Conversion Funnel</text>
+  <path d="M 100 60 L 660 60 L 624 114 L 136 114 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="91.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">100k Landing Page Visitors</text>
+  <path d="M 664 87 L 678 87" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="3 2" />
+  <text x="684" y="90.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#EB6C36" font-weight="bold">100000</text>
+  <path d="M 136 120 L 624 120 L 588 174 L 172 174 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="151.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">18k Free Trial Signups</text>
+  <path d="M 628 147 L 642 147" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="3 2" />
+  <text x="648" y="150.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#EB6C36" font-weight="bold">18000</text>
+  <path d="M 172 180 L 588 180 L 552 234 L 208 234 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="211.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">6.5k Active Product Users</text>
+  <path d="M 592 207 L 606 207" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="3 2" />
+  <text x="612" y="210.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#EB6C36" font-weight="bold">6500</text>
+  <path d="M 208 240 L 552 240 L 516 294 L 244 294 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="271.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">2.1k Sales Qualified Leads</text>
+  <path d="M 556 267 L 570 267" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="3 2" />
+  <text x="576" y="270.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#EB6C36" font-weight="bold">2100</text>
+  <path d="M 244 300 L 516 300 L 480 354 L 280 354 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="331.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">850 Closed-Won Enterprise Accounts</text>
+  <path d="M 520 327 L 534 327" stroke="#BFC0C0" stroke-width="1" fill="none" stroke-dasharray="3 2" />
+  <text x="540" y="330.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#EB6C36" font-weight="bold">850</text>
+</svg>

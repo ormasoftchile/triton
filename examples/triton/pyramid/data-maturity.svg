@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 414" width="860" height="414">
+  <rect x="0" y="0" width="860" height="414" fill="#F5F5F5" />
+  <text x="80" y="40" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" font-weight="bold">Enterprise Data Maturity Model</text>
+  <path d="M 280 60 L 480 60 L 516 114 L 244 114 Z" stroke="#EB6C36" stroke-width="1.5" fill="#EB6C36" />
+  <text x="380" y="91.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Autonomous AI Agents</text>
+  <path d="M 244 120 L 516 120 L 552 174 L 208 174 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="151.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">Self-Service BI &amp; Feature Store</text>
+  <path d="M 208 180 L 552 180 L 588 234 L 172 234 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="211.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">Unified Semantic Metrics Layer</text>
+  <path d="M 172 240 L 588 240 L 624 294 L 136 294 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="271.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">Cleaned &amp; Modeled Data Warehouse</text>
+  <path d="M 136 300 L 624 300 L 660 354 L 100 354 Z" stroke="#BFC0C0" stroke-width="1.5" fill="#ECECEC" />
+  <text x="380" y="331.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2D3142" text-anchor="middle" font-weight="normal">Raw Batch &amp; Stream Ingestion</text>
+</svg>

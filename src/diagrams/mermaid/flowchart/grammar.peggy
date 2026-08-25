@@ -264,7 +264,7 @@ ClickDirective = "click"    __ content:$[^\n;]+ { return { type: 'click',    raw
 // ─── Overlays ─────────────────────────────────────────────────────────────────
 
 NoteDirective
-  = kind:("note" / "callout") __ "\"" text:$[^"]* "\"" __ "at" __ target:$([a-zA-Z_][a-zA-Z0-9_]*)
+  = kind:("note" / "callout") __ "\"" text:$[^"]* "\"" __ "at" __ target:(("\"" t:$[^"]* "\"" { return t; }) / $([a-zA-Z_][a-zA-Z0-9_]*))
     offset:NoteOffset? {
       const note = { type: kind, text, target, offset: offset || undefined };
       overlays.push(note);

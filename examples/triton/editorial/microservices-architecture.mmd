@@ -1,0 +1,10 @@
+---
+theme: editorial
+---
+flowchart LR
+  Client[Web & Mobile Clients] --> Gateway[API Gateway & Edge Proxy]:::focal
+  Gateway --> Auth[Auth Service]
+  Gateway --> Order[Order Pipeline]
+  Gateway --> Inventory[Inventory Service]
+  Order --> DB[(Transactional DB)]
+  callout "Target density 4/10: 1-2 focal nodes max" at Gateway
