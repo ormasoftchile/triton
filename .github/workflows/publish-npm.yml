@@ -20,6 +20,17 @@ name: Publish npm packages & VS Code extension
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'Release level'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   publish:
@@ -31,29 +42,38 @@ jobs:
 
     steps:
       # Step 1 — decide whether this push is a release, and at what level.
-      # Parses the HEAD commit message for [version:patch|minor|major].
+      # Parses the HEAD commit message for [version:patch|minor|major] or uses workflow_dispatch input.
       - name: Detect release tag in commit message
         id: detect
         env:
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_LEVEL: ${{ inputs.level }}
         run: |
-          msg="$HEAD_COMMIT_MESSAGE"
-          echo "Head commit message:"
-          echo "$msg"
-          level=""
-          shopt -s nocasematch
-          if [[ "$msg" =~ \[version:(patch|minor|major)\] ]]; then
-            level="${BASH_REMATCH[1]}"
-            level="$(echo "$level" | tr '[:upper:]' '[:lower:]')"
-          fi
-          shopt -u nocasematch
-          if [[ -n "$level" ]]; then
-            echo "Release requested: level=$level"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            level="${INPUT_LEVEL:-patch}"
+            echo "Release requested via workflow_dispatch: level=$level"
             echo "release=true" >> "$GITHUB_OUTPUT"
             echo "level=$level" >> "$GITHUB_OUTPUT"
           else
-            echo "No version tag found — this run is a clean no-op."
-            echo "release=false" >> "$GITHUB_OUTPUT"
+            msg="$HEAD_COMMIT_MESSAGE"
+            echo "Head commit message:"
+            echo "$msg"
+            level=""
+            shopt -s nocasematch
+            if [[ "$msg" =~ \[version:(patch|minor|major)\] ]]; then
+              level="${BASH_REMATCH[1]}"
+              level="$(echo "$level" | tr '[:upper:]' '[:lower:]')"
+            fi
+            shopt -u nocasematch
+            if [[ -n "$level" ]]; then
+              echo "Release requested: level=$level"
+              echo "release=true" >> "$GITHUB_OUTPUT"
+              echo "level=$level" >> "$GITHUB_OUTPUT"
+            else
+              echo "No version tag found — this run is a clean no-op."
+              echo "release=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       # Step 2 — checkout (full history so we can commit + tag + push).
