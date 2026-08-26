@@ -48,7 +48,7 @@ jobs:
         env:
           HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           EVENT_NAME: ${{ github.event_name }}
-          INPUT_LEVEL: ${{ inputs.level }}
+          INPUT_LEVEL: ${{ github.event.inputs.level }}
         run: |
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
             level="${INPUT_LEVEL:-patch}"
