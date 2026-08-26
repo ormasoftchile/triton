@@ -704,3 +704,120 @@ describe('wavifyPath', () => {
     }
   });
 });
+
+describe('poster scale homologation', () => {
+  const multiFlowSrc = `poster "Scale Test"
+  columns 2
+  scale natural
+
+  cell UI "UI Layer" :: flow
+    flowchart LR
+      app[Mobile App] --> bff[BFF]
+      web[Web App] --> bff
+  end
+
+  cell ASYNC "Async" :: flow
+    flowchart LR
+      kafka[Kafka] --> consumer[Consumer]
+      consumer --> metrics[Metrics]
+  end
+`;
+
+  it('parses scale directive in poster header', () => {
+    const doc = poster.parseMermaid(multiFlowSrc);
+    expect(doc.grid.scale).toBe('natural');
+  });
+
+  it('natural scale renders embedded diagram groups with scale(1)', () => {
+    const doc = poster.parseMermaid(multiFlowSrc);
+    const { scene } = layoutPoster(doc, defaultTheme);
+    const groups = scene.elements.filter((e) => e.type === 'group' && (e as any).transform) as any[];
+    const transforms = groups.map((g) => g.transform);
+    expect(transforms.length).toBe(2);
+    for (const t of transforms) {
+      expect(t).toContain('scale(1)');
+    }
+  });
+
+  it('uniform scale renders all diagram cells with identical min scale factor', () => {
+    const uniformSrc = `poster "Uniform Scale Test"
+  columns 2
+  scale uniform
+
+  cell UI "UI Layer" :: flow
+    flowchart LR
+      app[Mobile App] --> bff[BFF]
+      web[Web App] --> bff
+  end
+
+  cell ASYNC "Async" :: flow
+    flowchart LR
+      kafka[Kafka] --> consumer[Consumer]
+      consumer --> metrics[Metrics]
+  end
+`;
+    const doc = poster.parseMermaid(uniformSrc);
+    const { scene } = layoutPoster(doc, defaultTheme);
+    const groups = scene.elements.filter((e) => e.type === 'group' && (e as any).transform) as any[];
+    const scales = groups.map((g) => {
+      const m = g.transform.match(/scale\(([^)]+)\)/);
+      return m ? parseFloat(m[1]) : null;
+    });
+    expect(scales.length).toBe(2);
+    expect(scales[0]).toBeCloseTo(scales[1]!, 4);
+    expect(scales[0]).toBeCloseTo(0.65, 2);
+  });
+
+  it('fixed numeric scale renders cells with specified scale factor', () => {
+    const fixedSrc = `poster "Fixed Scale Test"
+  columns 2
+  scale 0.8
+
+  cell UI "UI Layer" :: flow
+    flowchart LR
+      app[Mobile App] --> bff[BFF]
+      web[Web App] --> bff
+  end
+
+  cell ASYNC "Async" :: flow
+    flowchart LR
+      kafka[Kafka] --> consumer[Consumer]
+      consumer --> metrics[Metrics]
+  end
+`;
+    const doc = poster.parseMermaid(fixedSrc);
+    const { scene } = layoutPoster(doc, defaultTheme);
+    const groups = scene.elements.filter((e) => e.type === 'group' && (e as any).transform) as any[];
+    for (const g of groups) {
+      expect(g.transform).toContain('scale(0.8)');
+    }
+  });
+
+  it('default contain mode retains independent scaling', () => {
+    const defaultSrc = `poster "Default Test"
+  columns 2
+
+  cell UI "UI Layer" :: flow
+    flowchart LR
+      app[Mobile App] --> bff[BFF]
+      web[Web App] --> bff
+  end
+
+  cell ASYNC "Async" :: flow
+    flowchart LR
+      kafka[Kafka] --> consumer[Consumer]
+      consumer --> metrics[Metrics]
+  end
+`;
+    const doc = poster.parseMermaid(defaultSrc);
+    const { scene } = layoutPoster(doc, defaultTheme);
+    const groups = scene.elements.filter((e) => e.type === 'group' && (e as any).transform) as any[];
+    const scales = groups.map((g) => {
+      const m = g.transform.match(/scale\(([^)]+)\)/);
+      return m ? parseFloat(m[1]) : null;
+    });
+    expect(scales[0]).toBeCloseTo(0.905, 2);
+    expect(scales[1]).toBeCloseTo(0.65, 2);
+  });
+});
+

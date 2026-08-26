@@ -32,20 +32,23 @@ import type {
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { layeredLayout, type GraphNode, type GraphEdge } from '../../../../graph/layered.js';
-import { borderPoint } from '../../../../graph/connect.js';
+import { borderPoint, connectSlots } from '../../../../graph/connect.js';
 import { orthogonalRouter } from '../../../../routing/router.js';
 import { rhu } from '../../../../util/round.js';
 
 const ARROW_ID = 'dsgraph-arrow';
 const ARROW_ACTIVE_ID = 'dsgraph-arrow-active';
 
+import { readableText } from '../../../../theme/contrast.js';
+
 function graphArrowDef(color: string, id: string): string {
-  return `<marker id="${id}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="${color}" /></marker>`;
+  return `<marker id="${id}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="${color}" /></marker>`;
 }
 
 export interface GNode {
   id: string;
   label: string;
+  kind?: 'active' | undefined;
 }
 export interface GEdge {
   from: string;
@@ -68,6 +71,7 @@ function parse(input: string): Omit<GraphDoc, keyof BaseIR> {
   let directed = false;
   const order: string[] = [];
   const labels = new Map<string, string>();
+  const nodeKinds = new Map<string, GNode['kind']>();
   const edges: GEdge[] = [];
   const ensure = (id: string): void => {
     if (!labels.has(id)) {
@@ -101,7 +105,14 @@ function parse(input: string): Omit<GraphDoc, keyof BaseIR> {
       const id = parts[0] ?? '';
       if (id) {
         ensure(id);
-        labels.set(id, parts[1] || id);
+        if (parts.length === 2) {
+          labels.set(id, parts[1] || id);
+        } else if (parts.length >= 3) {
+          labels.set(id, parts[1] || id);
+          if (parts[2] === 'active') {
+            nodeKinds.set(id, 'active');
+          }
+        }
       }
       continue;
     }
@@ -121,7 +132,11 @@ function parse(input: string): Omit<GraphDoc, keyof BaseIR> {
     }
   }
 
-  const nodes: GNode[] = order.map((id) => ({ id, label: labels.get(id)! }));
+  const nodes: GNode[] = order.map((id) => ({
+    id,
+    label: labels.get(id)!,
+    ...(nodeKinds.has(id) ? { kind: nodeKinds.get(id) } : {}),
+  }));
   return { ...(title !== undefined ? { title } : {}), directed, nodes, edges };
 }
 
@@ -393,8 +408,9 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     const toPt =
       toPorts.get(groupKey(e.to, tw))?.get(i) ??
       borderPoint(b, a.x + a.width / 2, a.y + a.height / 2);
+    const hasBends = bends && bends.length > 0;
     const points: readonly Pt[] =
-      bends && bends.length > 0 && skipLaneX.has(i)
+      hasBends && skipLaneX.has(i)
         ? (() => {
             const laneX = skipLaneX.get(i)!;
             return simplifyPoints([
@@ -404,7 +420,7 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
               toPt,
             ]);
           })()
-        : bends && bends.length > 0
+        : hasBends
           ? (() => {
               const obstacles = [...placed.boxes.values()]
                 .filter((ob) => ob.id !== e.from && ob.id !== e.to)
@@ -420,18 +436,8 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
               }).points;
             })()
           : (() => {
-              const obstacles = [...placed.boxes.values()]
-                .filter((ob) => ob.id !== e.from && ob.id !== e.to)
-                .map((ob) => ({ x: ob.x, y: ob.y + titleH, width: ob.width, height: ob.height }));
-              return orthogonalRouter.route({
-                from: fromPt,
-                to: toPt,
-                style: 'orthogonal',
-                obstacles,
-                padding: 10,
-                fromDir: dirForWall(fw),
-                toDir: dirForWall(tw),
-              }).points;
+              const { start, end } = connectSlots(a, b);
+              return [start, end];
             })();
     maxRouteX = Math.max(maxRouteX, ...points.map((pt) => pt.x));
     const isActive = e.kind === 'active';
@@ -469,9 +475,13 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   const anchors: Record<string, { bounds: Rect }> = {};
   for (const n of doc.nodes) {
     const b = box(n.id);
-    elements.push(p.rect(b, palette.surface, palette.primary, 2, { rx: 8 }));
+    const isActive = n.kind === 'active';
+    const fill = isActive ? palette.primary : palette.surface;
+    const stroke = palette.primary;
+    const textColor = isActive ? readableText(fill, theme) : palette.text;
+    elements.push(p.rect(b, fill, stroke, 2, { rx: 8 }));
     elements.push(
-      p.text(n.label, b.x + b.width / 2, b.y + b.height / 2 + font * 0.35, font, palette.text, {
+      p.text(n.label, b.x + b.width / 2, b.y + b.height / 2 + font * 0.35, font, textColor, {
         anchor: 'middle',
         weight: 'bold',
       }),

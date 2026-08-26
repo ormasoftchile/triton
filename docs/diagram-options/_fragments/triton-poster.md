@@ -15,6 +15,7 @@ Optional title: `poster "Dashboard Title"`
 | `columns` | `columns <N>` | Number of grid columns (default 2)   |
 | `rows`    | `rows <N>`    | Number of grid rows                  |
 | `gap`     | `gap <N>`     | Gap between cells                    |
+| `scale`   | `scale <mode>`| Scale homologation: `natural` (1:1), `uniform` (same min scale), `contain` (independent fit), or `<number>` |
 
 ---
 

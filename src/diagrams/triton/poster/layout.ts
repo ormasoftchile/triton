@@ -1,4 +1,11 @@
-import type { PosterDocument, PosterCell, CellContent, PosterNote, NotePosition } from './ir.js';
+import type {
+  PosterDocument,
+  PosterCell,
+  CellContent,
+  PosterNote,
+  NotePosition,
+  PosterScaleMode,
+} from './ir.js';
 import type {
   Scene,
   SceneElement,
@@ -23,13 +30,26 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   const { grid, cells } = ir;
 
   const unit = spacing.unit;
-  const gap = spacing.nodeGap / 2;
+  const gap = grid.gap !== undefined ? grid.gap : spacing.nodeGap / 2;
   const padding = spacing.diagramMargin;
   const headerH = ir.metadata.title ? typography.titleFontSize + unit * 2 : 0;
   const MIN_CELL_W = unit * 20;
   const MIN_CELL_H = unit * 15;
   const MAX_CELL_W = unit * 42;
   const MIN_EMBED_SCALE = 0.65; // minimum scale — cells expand to ensure readability
+
+  const scaleConfig = resolveScaleConfig(
+    grid.scale,
+    ir.metadata.scale,
+    ir.metadata.uniform_scale ?? ir.metadata['uniform-scale'],
+  );
+
+  const targetScale =
+    scaleConfig.mode === 'natural'
+      ? 1.0
+      : scaleConfig.mode === 'fixed'
+        ? (scaleConfig.fixedScale ?? 1.0)
+        : MIN_EMBED_SCALE;
 
   // ── Assign row/col to cells that don't specify them ───────────────────────
   const positioned = assignPositions(cells, grid.columns);
@@ -47,20 +67,21 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
 
   const numRows = grid.rows ?? Math.max(...positioned.map((c) => (c.row ?? 0) + (c.rowSpan ?? 1)));
 
-  // Column widths: ensure child content is readable at MIN_EMBED_SCALE
+  // Column widths: ensure child content is readable at targetScale
   // Readability takes priority over MAX_CELL_W
   const colWidths = new Array<number>(grid.columns).fill(MIN_CELL_W);
   for (const { cell, result } of cellResults) {
     if ((cell.colSpan ?? 1) === 1) {
       const col = cell.col ?? 0;
       const inset = unit / 2;
-      // Cell must be wide enough that child fits at MIN_EMBED_SCALE
-      const needed = result.scene.viewBox.width * MIN_EMBED_SCALE + inset * 2;
+      // Cell must be wide enough that child fits at targetScale
+      const scaleForCol = cell.content.kind === 'diagram' ? targetScale : 1.0;
+      const needed = result.scene.viewBox.width * scaleForCol + inset * 2;
       colWidths[col] = Math.max(colWidths[col]!, needed);
     }
   }
 
-  // Row heights: proportional to column width, respecting MIN_EMBED_SCALE
+  // Row heights: proportional to column width, respecting targetScale
   const rowHeights = new Array<number>(numRows).fill(MIN_CELL_H);
   for (const { cell, cellTheme, result } of cellResults) {
     if ((cell.rowSpan ?? 1) === 1) {
@@ -72,12 +93,63 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       const contentW = colW - inset * 2;
       const scale = Math.min(contentW / Math.max(result.scene.viewBox.width, 1), 1);
       // If scale < MIN_EMBED_SCALE, the column already expanded; recompute
-      const effectiveScale = Math.max(scale, MIN_EMBED_SCALE);
+      const effectiveScale =
+        scaleConfig.mode === 'natural'
+          ? 1.0
+          : scaleConfig.mode === 'fixed'
+            ? (scaleConfig.fixedScale ?? 1.0)
+            : Math.max(scale, MIN_EMBED_SCALE);
       const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
       const neededH =
         result.scene.viewBox.height * effectiveScale + cellTitleH + captionH + inset * 2;
       rowHeights[row] = Math.max(rowHeights[row]!, neededH);
     }
+  }
+
+  // ── Compute homologated scale across cells ──────────────────────────────
+  let globalScale: number | undefined;
+  if (scaleConfig.mode === 'fixed') {
+    globalScale = scaleConfig.fixedScale;
+  } else if (scaleConfig.mode === 'natural') {
+    const diagramScales: number[] = [];
+    for (const { cell, cellTheme, result } of cellResults) {
+      if (cell.content.kind !== 'diagram') continue;
+      const col = cell.col ?? 0;
+      const row = cell.row ?? 0;
+      const colSpan = cell.colSpan ?? 1;
+      const rowSpan = cell.rowSpan ?? 1;
+      const cellW = sumWithGaps(colWidths, col, col + colSpan, gap) - gap;
+      const cellH = sumWithGaps(rowHeights, row, row + rowSpan, gap) - gap;
+      const reservedTop = cell.title ? reservedTitleHeight(cellTheme) : 0;
+      const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
+      const inset = unit / 2;
+      const contentW = cellW - inset * 2;
+      const contentH = cellH - reservedTop - captionH - inset * 2;
+      const sx = contentW / Math.max(result.scene.viewBox.width, 1);
+      const sy = contentH / Math.max(result.scene.viewBox.height, 1);
+      diagramScales.push(Math.min(sx, sy, 1.0));
+    }
+    globalScale = diagramScales.length > 0 ? Math.min(1.0, ...diagramScales) : 1.0;
+  } else if (scaleConfig.mode === 'uniform') {
+    const diagramScales: number[] = [];
+    for (const { cell, cellTheme, result } of cellResults) {
+      if (cell.content.kind !== 'diagram') continue;
+      const col = cell.col ?? 0;
+      const row = cell.row ?? 0;
+      const colSpan = cell.colSpan ?? 1;
+      const rowSpan = cell.rowSpan ?? 1;
+      const cellW = sumWithGaps(colWidths, col, col + colSpan, gap) - gap;
+      const cellH = sumWithGaps(rowHeights, row, row + rowSpan, gap) - gap;
+      const reservedTop = cell.title ? reservedTitleHeight(cellTheme) : 0;
+      const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
+      const inset = unit / 2;
+      const contentW = cellW - inset * 2;
+      const contentH = cellH - reservedTop - captionH - inset * 2;
+      const sx = contentW / Math.max(result.scene.viewBox.width, 1);
+      const sy = contentH / Math.max(result.scene.viewBox.height, 1);
+      diagramScales.push(Math.min(sx, sy, 1.0));
+    }
+    globalScale = diagramScales.length > 0 ? Math.min(...diagramScales) : undefined;
   }
 
   // ── Build elements ────────────────────────────────────────────────────────
@@ -171,7 +243,16 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       width: cellW - inset * 2,
       height: cellH - reservedTop - captionH - inset * 2,
     };
-    cellContent.push(embedScene(result.scene, contentRect));
+
+    const scaleX = contentRect.width / Math.max(result.scene.viewBox.width, 1);
+    const scaleY = contentRect.height / Math.max(result.scene.viewBox.height, 1);
+    const localScale = Math.min(scaleX, scaleY, 1);
+    const scale =
+      cell.content.kind === 'diagram' && globalScale !== undefined ? globalScale : localScale;
+    const offsetX = contentRect.x + (contentRect.width - result.scene.viewBox.width * scale) / 2;
+    const offsetY = contentRect.y + (contentRect.height - result.scene.viewBox.height * scale) / 2;
+
+    cellContent.push(embedScene(result.scene, contentRect, scale));
 
     // Caption — muted text below the sub-diagram
     if (cell.caption) {
@@ -195,12 +276,6 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     }
 
     // Transform child anchors to poster coordinates and merge
-    const scaleX = contentRect.width / Math.max(result.scene.viewBox.width, 1);
-    const scaleY = contentRect.height / Math.max(result.scene.viewBox.height, 1);
-    const scale = Math.min(scaleX, scaleY, 1);
-    const offsetX = contentRect.x + (contentRect.width - result.scene.viewBox.width * scale) / 2;
-    const offsetY = contentRect.y + (contentRect.height - result.scene.viewBox.height * scale) / 2;
-
     for (const [nodeId, anchor] of Object.entries(result.anchors)) {
       const prefixedId = `${cellId}.${nodeId}`;
       const transformed: NodeAnchor = {
@@ -521,12 +596,61 @@ function layoutCellContent(content: CellContent, theme: ResolvedTheme): LayoutRe
   }
 }
 
+// ─── Scale Mode Resolution ──────────────────────────────────────────────────
+
+export type ScaleModeType = 'contain' | 'uniform' | 'natural' | 'fixed';
+
+export interface ResolvedScaleConfig {
+  mode: ScaleModeType;
+  fixedScale?: number;
+}
+
+export function resolveScaleConfig(
+  gridScale?: PosterScaleMode | string,
+  metaScale?: unknown,
+  metaUniformScale?: unknown,
+): ResolvedScaleConfig {
+  const raw = gridScale ?? metaScale ?? (metaUniformScale ? 'uniform' : undefined);
+  if (
+    raw === undefined ||
+    raw === null ||
+    raw === '' ||
+    raw === 'contain' ||
+    raw === 'none' ||
+    raw === 'false'
+  ) {
+    return { mode: 'contain' };
+  }
+  if (typeof raw === 'number') {
+    return raw === 1 ? { mode: 'natural' } : { mode: 'fixed', fixedScale: raw };
+  }
+  if (typeof raw === 'boolean') {
+    return raw ? { mode: 'uniform' } : { mode: 'contain' };
+  }
+  const str = String(raw).trim().toLowerCase();
+  if (str === 'natural' || str === '1' || str === '1.0' || str === '100%') {
+    return { mode: 'natural' };
+  }
+  if (str === 'uniform' || str === 'homologate' || str === 'true' || str === 'same') {
+    return { mode: 'uniform' };
+  }
+  if (str === 'contain' || str === 'independent' || str === 'fit') {
+    return { mode: 'contain' };
+  }
+  const parsedNum = parseFloat(str.endsWith('%') ? str.slice(0, -1) : str);
+  if (!isNaN(parsedNum) && parsedNum > 0) {
+    const val = str.endsWith('%') ? parsedNum / 100 : parsedNum;
+    return val === 1 ? { mode: 'natural' } : { mode: 'fixed', fixedScale: val };
+  }
+  return { mode: 'contain' };
+}
+
 // ─── Scene Embedding ─────────────────────────────────────────────────────────
 
-function embedScene(scene: Scene, into: Rect): SceneElement {
+function embedScene(scene: Scene, into: Rect, overrideScale?: number): SceneElement {
   const scaleX = into.width / Math.max(scene.viewBox.width, 1);
   const scaleY = into.height / Math.max(scene.viewBox.height, 1);
-  const scale = Math.min(scaleX, scaleY, 1);
+  const scale = overrideScale !== undefined ? overrideScale : Math.min(scaleX, scaleY, 1);
 
   // Centre within the cell
   const offsetX = into.x + (into.width - scene.viewBox.width * scale) / 2;

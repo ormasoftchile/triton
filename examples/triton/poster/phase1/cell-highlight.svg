@@ -1,15 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 536.4000000000001 554.025" width="536.4000000000001" height="554.025">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 609.5" width="780" height="609.5">
   <defs>
     <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="536.4000000000001" height="554.025" fill="#FFFFFF" />
+  <rect x="0" y="0" width="780" height="609.5" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Cell Highlight — Array &amp; Matrix</text>
-  <rect x="24" y="58" width="247.20000000000005" height="152.025" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="291.20000000000005" y="58" width="221.20000000000002" height="152.025" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="24" y="230.025" width="247.20000000000005" height="300" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="291.20000000000005" y="230.025" width="221.20000000000002" height="300" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="58" width="376" height="207.5" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="420" y="58" width="336" height="207.5" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="285.5" width="376" height="300" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="420" y="285.5" width="336" height="300" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Sliding Window</text>
-  <g transform="translate(28.000000000000014, 84) scale(0.65)">
+  <g transform="translate(28, 84) scale(1)">
     <rect x="24" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
     <text x="44" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1</text>
     <text x="44" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">0</text>
@@ -39,9 +39,9 @@
     <path d="M 164 111 L 164 81" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
     <text x="164" y="131" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">R</text>
   </g>
-  <text x="147.60000000000002" y="208.025" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">window size k=3</text>
-  <text x="299.20000000000005" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Binary Search</text>
-  <g transform="translate(295.20000000000005, 84) scale(0.65)">
+  <text x="212" y="263.5" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">window size k=3</text>
+  <text x="428" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Binary Search</text>
+  <g transform="translate(424, 84) scale(1)">
     <rect x="24" y="41" width="40" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
     <text x="44" y="66" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">2</text>
     <text x="44" y="35" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">0</text>
@@ -70,9 +70,9 @@
     <path d="M 284 111 L 284 81" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
     <text x="284" y="131" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">R</text>
   </g>
-  <text x="401.80000000000007" y="208.025" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">target=11, mid highlighted</text>
-  <text x="32" y="245.225" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">DP Matrix</text>
-  <g transform="translate(32.60000000000002, 256.025) scale(1)">
+  <text x="588" y="263.5" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">target=11, mid highlighted</text>
+  <text x="32" y="300.7" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">DP Matrix</text>
+  <g transform="translate(97, 311.5) scale(1)">
     <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">dp table</text>
     <rect x="46" y="75" width="40" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
     <text x="66" y="99" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">0</text>
@@ -115,9 +115,9 @@
     <text x="146" y="69" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2</text>
     <text x="186" y="69" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">3</text>
   </g>
-  <text x="147.60000000000002" y="528.025" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">current cell highlighted</text>
-  <text x="299.20000000000005" y="245.225" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Visited Cells</text>
-  <g transform="translate(306.80000000000007, 291.025) scale(1)">
+  <text x="212" y="583.5" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">current cell highlighted</text>
+  <text x="428" y="300.7" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Visited Cells</text>
+  <g transform="translate(493, 346.5) scale(1)">
     <rect x="46" y="43" width="40" height="38" fill="#4A90D9" fill-opacity="0.22" stroke="#4A90D9" stroke-width="1.5" rx="3" />
     <text x="66" y="67" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1</text>
     <rect x="86" y="43" width="40" height="38" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="3" />
@@ -143,5 +143,5 @@
     <text x="106" y="37" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">1</text>
     <text x="146" y="37" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2</text>
   </g>
-  <text x="401.80000000000007" y="528.025" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">spiral-order visited</text>
+  <text x="588" y="583.5" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">spiral-order visited</text>
 </svg>

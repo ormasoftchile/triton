@@ -189,4 +189,22 @@ describe('nodegraph edge highlight', () => {
     expect(activePath).toBeDefined();
     expect(activePath?.stroke).toBe(defaultTheme.palette.primary);
   });
+
+  it('uses markerUnits="userSpaceOnUse" for uniform arrowhead sizes', () => {
+    const ir = graph.parseMermaid('nodegraph\n  directed\n  A -> B\n');
+    const { scene } = layoutGraph(ir, defaultTheme);
+    expect(scene.defs?.length).toBe(2);
+    expect(scene.defs?.[0]).toContain('markerUnits="userSpaceOnUse"');
+    expect(scene.defs?.[1]).toContain('markerUnits="userSpaceOnUse"');
+  });
+
+  it('parses and renders active nodes with primary fill', () => {
+    const ir = graph.parseMermaid('nodegraph\n  node S : Start : active\n  node A : parse\n  S -> A\n');
+    expect(ir.nodes.find((n) => n.id === 'S')?.kind).toBe('active');
+    expect(ir.nodes.find((n) => n.id === 'S')?.label).toBe('Start');
+    const { scene } = layoutGraph(ir, defaultTheme);
+    const rects = scene.elements.filter((e: any) => e.type === 'rect');
+    const activeRect = rects.find((r: any) => r.fill === defaultTheme.palette.primary);
+    expect(activeRect).toBeDefined();
+  });
 });

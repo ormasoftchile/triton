@@ -470,23 +470,24 @@ function markerRadius(depth: number, font: number): number {
 
 /**
  * Build a filled arrowhead triangle path string pointing in `dir`.
- * `tx`/`ty` is the TIP (sharpest point); `ah` is already-rounded half-size.
+ * `tx`/`ty` is the TIP (sharpest point); `al` is arrow length along direction, `aw` is half-width.
  */
 function arrowTriangle(
   tx: number,
   ty: number,
   dir: 'right' | 'left' | 'down' | 'up',
-  ah: number,
+  al: number,
+  aw: number = Math.max(4, rhu(al * 0.55)),
 ): string {
   switch (dir) {
     case 'right':
-      return `M ${rhu(tx - ah)} ${rhu(ty - ah)} L ${tx} ${ty} L ${rhu(tx - ah)} ${rhu(ty + ah)} Z`;
+      return `M ${rhu(tx - al)} ${rhu(ty - aw)} L ${tx} ${ty} L ${rhu(tx - al)} ${rhu(ty + aw)} Z`;
     case 'left':
-      return `M ${rhu(tx + ah)} ${rhu(ty - ah)} L ${tx} ${ty} L ${rhu(tx + ah)} ${rhu(ty + ah)} Z`;
+      return `M ${rhu(tx + al)} ${rhu(ty - aw)} L ${tx} ${ty} L ${rhu(tx + al)} ${rhu(ty + aw)} Z`;
     case 'down':
-      return `M ${rhu(tx - ah)} ${rhu(ty - ah)} L ${tx} ${ty} L ${rhu(tx + ah)} ${rhu(ty - ah)} Z`;
+      return `M ${rhu(tx - aw)} ${rhu(ty - al)} L ${tx} ${ty} L ${rhu(tx + aw)} ${rhu(ty - al)} Z`;
     case 'up':
-      return `M ${rhu(tx - ah)} ${rhu(ty + ah)} L ${tx} ${ty} L ${rhu(tx + ah)} ${rhu(ty + ah)} Z`;
+      return `M ${rhu(tx - aw)} ${rhu(ty + al)} L ${tx} ${ty} L ${rhu(tx + aw)} ${rhu(ty + al)} Z`;
   }
 }
 
@@ -888,7 +889,8 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
     const flow = doc.flow ?? 'ltr';
     const padX = rhu(font * 1.0);
     const arrowGap = rhu(font * 1.8);
-    const ah = Math.max(4, rhu(font * 0.42));
+    const al = Math.max(8, rhu(font * 0.65));
+    const aw = Math.max(4.5, rhu(font * 0.35));
     const itemInfos = doc.items.map((it) => measureItemLines(it.text, font, smallFont));
     let maxTextW = 0;
     let maxLines = 1;
@@ -911,9 +913,12 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
         if (i > 0) {
           const ax1 = rhu(x);
           const ax0 = rhu(x - arrowGap);
-          children.push(p.path(`M ${ax0} ${cy} L ${rhu(ax1 - ah)} ${cy}`, palette.textMuted, 2));
-          const tri = `M ${rhu(ax1 - ah)} ${rhu(cy - ah)} L ${ax1} ${cy} L ${rhu(ax1 - ah)} ${rhu(cy + ah)} Z`;
-          children.push(p.path(tri, palette.textMuted, 0, { fill: palette.textMuted }));
+          children.push(p.path(`M ${ax0} ${cy} L ${rhu(ax1 - al)} ${cy}`, palette.textMuted, 2));
+          children.push(
+            p.path(arrowTriangle(ax1, cy, 'right', al, aw), palette.textMuted, 0, {
+              fill: palette.textMuted,
+            }),
+          );
         }
         children.push(
           p.rect({ x, y, width: boxW, height: boxH }, palette.surface, palette.primary, 1.5, {
@@ -945,10 +950,15 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       // Grid engine: ttb / snake / snake-v.
       const wrap = doc.wrap ?? Math.ceil(Math.sqrt(n));
       const turn = doc.turn ?? 'corridor';
-      const elbow = rhu(arrowGap * 0.4);
+      const elbow = rhu(arrowGap * 0.75);
+
+      const hasTopTurn = flow === 'snake-v' && turn === 'corridor' && n > 2 * wrap;
+      const hasBottomTurn = flow === 'snake-v' && turn === 'corridor' && n > wrap;
+      const topExtra = hasTopTurn ? rhu(elbow + font * 0.3) : 0;
+      const processTop = top + topExtra;
 
       const cellX = (col: number) => rhu(margin + col * (boxW + arrowGap));
-      const cellY = (row: number) => rhu(top + row * (boxH + arrowGap));
+      const cellY = (row: number) => rhu(processTop + row * (boxH + arrowGap));
 
       let maxRow = 0;
 
@@ -975,13 +985,13 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
               const ty = y;
               children.push(
                 p.path(
-                  `M ${cx} ${rhu(prevY + boxH)} L ${cx} ${rhu(ty - ah)}`,
+                  `M ${cx} ${rhu(prevY + boxH)} L ${cx} ${rhu(ty - al)}`,
                   palette.textMuted,
                   2,
                 ),
               );
               children.push(
-                p.path(arrowTriangle(cx, ty, 'down', ah), palette.textMuted, 0, {
+                p.path(arrowTriangle(cx, ty, 'down', al, aw), palette.textMuted, 0, {
                   fill: palette.textMuted,
                 }),
               );
@@ -989,23 +999,23 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
               if (row % 2 === 0) {
                 children.push(
                   p.path(
-                    `M ${rhu(prevX + boxW)} ${cy} L ${rhu(x - ah)} ${cy}`,
+                    `M ${rhu(prevX + boxW)} ${cy} L ${rhu(x - al)} ${cy}`,
                     palette.textMuted,
                     2,
                   ),
                 );
                 children.push(
-                  p.path(arrowTriangle(x, cy, 'right', ah), palette.textMuted, 0, {
+                  p.path(arrowTriangle(x, cy, 'right', al, aw), palette.textMuted, 0, {
                     fill: palette.textMuted,
                   }),
                 );
               } else {
                 const tipX = rhu(x + boxW);
                 children.push(
-                  p.path(`M ${prevX} ${cy} L ${rhu(tipX + ah)} ${cy}`, palette.textMuted, 2),
+                  p.path(`M ${prevX} ${cy} L ${rhu(tipX + al)} ${cy}`, palette.textMuted, 2),
                 );
                 children.push(
-                  p.path(arrowTriangle(tipX, cy, 'left', ah), palette.textMuted, 0, {
+                  p.path(arrowTriangle(tipX, cy, 'left', al, aw), palette.textMuted, 0, {
                     fill: palette.textMuted,
                   }),
                 );
@@ -1015,23 +1025,23 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
                 const ty = y;
                 children.push(
                   p.path(
-                    `M ${cx} ${rhu(prevY + boxH)} L ${cx} ${rhu(ty - ah)}`,
+                    `M ${cx} ${rhu(prevY + boxH)} L ${cx} ${rhu(ty - al)}`,
                     palette.textMuted,
                     2,
                   ),
                 );
                 children.push(
-                  p.path(arrowTriangle(cx, ty, 'down', ah), palette.textMuted, 0, {
+                  p.path(arrowTriangle(cx, ty, 'down', al, aw), palette.textMuted, 0, {
                     fill: palette.textMuted,
                   }),
                 );
               } else {
                 const tipY = rhu(y + boxH);
                 children.push(
-                  p.path(`M ${cx} ${prevY} L ${cx} ${rhu(tipY + ah)}`, palette.textMuted, 2),
+                  p.path(`M ${cx} ${prevY} L ${cx} ${rhu(tipY + al)}`, palette.textMuted, 2),
                 );
                 children.push(
-                  p.path(arrowTriangle(cx, tipY, 'up', ah), palette.textMuted, 0, {
+                  p.path(arrowTriangle(cx, tipY, 'up', al, aw), palette.textMuted, 0, {
                     fill: palette.textMuted,
                   }),
                 );
@@ -1041,13 +1051,13 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
             if (turn === 'direct') {
               children.push(
                 p.path(
-                  `M ${prevCX} ${rhu(prevY + boxH)} L ${prevCX} ${rhu(y - ah)}`,
+                  `M ${prevCX} ${rhu(prevY + boxH)} L ${prevCX} ${rhu(y - al)}`,
                   palette.textMuted,
                   2,
                 ),
               );
               children.push(
-                p.path(arrowTriangle(prevCX, y, 'down', ah), palette.textMuted, 0, {
+                p.path(arrowTriangle(prevCX, y, 'down', al, aw), palette.textMuted, 0, {
                   fill: palette.textMuted,
                 }),
               );
@@ -1055,28 +1065,28 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
               const rx = rhu(prevX + boxW);
               children.push(
                 p.path(
-                  `M ${rx} ${prevCY} L ${rhu(rx + elbow)} ${prevCY} L ${rhu(rx + elbow)} ${cy} L ${rhu(rx + ah)} ${cy}`,
+                  `M ${rx} ${prevCY} L ${rhu(rx + elbow)} ${prevCY} L ${rhu(rx + elbow)} ${cy} L ${rhu(rx + al)} ${cy}`,
                   palette.textMuted,
                   2,
                 ),
               );
               children.push(
-                p.path(arrowTriangle(rx, cy, 'left', ah), palette.textMuted, 0, {
+                p.path(arrowTriangle(rx, cy, 'left', al, aw), palette.textMuted, 0, {
                   fill: palette.textMuted,
                 }),
               );
-              contentRight = Math.max(contentRight, rhu(rx + elbow));
+              contentRight = Math.max(contentRight, rhu(rx + elbow + margin));
             } else {
               const lx = prevX;
               children.push(
                 p.path(
-                  `M ${lx} ${prevCY} L ${rhu(lx - elbow)} ${prevCY} L ${rhu(lx - elbow)} ${cy} L ${rhu(lx - ah)} ${cy}`,
+                  `M ${lx} ${prevCY} L ${rhu(lx - elbow)} ${prevCY} L ${rhu(lx - elbow)} ${cy} L ${rhu(lx - al)} ${cy}`,
                   palette.textMuted,
                   2,
                 ),
               );
               children.push(
-                p.path(arrowTriangle(lx, cy, 'right', ah), palette.textMuted, 0, {
+                p.path(arrowTriangle(lx, cy, 'right', al, aw), palette.textMuted, 0, {
                   fill: palette.textMuted,
                 }),
               );
@@ -1084,10 +1094,10 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
           } else {
             if (turn === 'direct') {
               children.push(
-                p.path(`M ${rhu(prevX + boxW)} ${cy} L ${rhu(x - ah)} ${cy}`, palette.textMuted, 2),
+                p.path(`M ${rhu(prevX + boxW)} ${cy} L ${rhu(x - al)} ${cy}`, palette.textMuted, 2),
               );
               children.push(
-                p.path(arrowTriangle(x, cy, 'right', ah), palette.textMuted, 0, {
+                p.path(arrowTriangle(x, cy, 'right', al, aw), palette.textMuted, 0, {
                   fill: palette.textMuted,
                 }),
               );
@@ -1095,13 +1105,13 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
               const by = rhu(prevY + boxH);
               children.push(
                 p.path(
-                  `M ${prevCX} ${by} L ${prevCX} ${rhu(by + elbow)} L ${cx} ${rhu(by + elbow)} L ${cx} ${rhu(by + ah)}`,
+                  `M ${prevCX} ${by} L ${prevCX} ${rhu(by + elbow)} L ${cx} ${rhu(by + elbow)} L ${cx} ${rhu(by + al)}`,
                   palette.textMuted,
                   2,
                 ),
               );
               children.push(
-                p.path(arrowTriangle(cx, by, 'up', ah), palette.textMuted, 0, {
+                p.path(arrowTriangle(cx, by, 'up', al, aw), palette.textMuted, 0, {
                   fill: palette.textMuted,
                 }),
               );
@@ -1109,13 +1119,13 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
               const ty = prevY;
               children.push(
                 p.path(
-                  `M ${prevCX} ${ty} L ${prevCX} ${rhu(ty - elbow)} L ${cx} ${rhu(ty - elbow)} L ${cx} ${rhu(ty - ah)}`,
+                  `M ${prevCX} ${ty} L ${prevCX} ${rhu(ty - elbow)} L ${cx} ${rhu(ty - elbow)} L ${cx} ${rhu(ty - al)}`,
                   palette.textMuted,
                   2,
                 ),
               );
               children.push(
-                p.path(arrowTriangle(cx, ty, 'down', ah), palette.textMuted, 0, {
+                p.path(arrowTriangle(cx, ty, 'down', al, aw), palette.textMuted, 0, {
                   fill: palette.textMuted,
                 }),
               );
@@ -1148,7 +1158,8 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
         contentRight = Math.max(contentRight, x + boxW);
       });
 
-      height = rhu(top + (maxRow + 1) * (boxH + arrowGap) - arrowGap + margin);
+      const bottomExtra = hasBottomTurn ? elbow : 0;
+      height = rhu(processTop + (maxRow + 1) * (boxH + arrowGap) - arrowGap + bottomExtra + margin);
     }
   } else if (doc.style === 'timeline') {
     const dotR = Math.max(5, rhu(font * 0.5));

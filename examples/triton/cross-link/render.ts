@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { render } from '../../src/frontend/index.js';
+import { render } from '../../../src/frontend/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

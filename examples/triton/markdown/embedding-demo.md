@@ -53,7 +53,7 @@ with a lone `file:` directive. The path is resolved relative to this Markdown
 file and restricted to the open workspace:
 
 ```triton
-file: ../flowchart/flowchart.mmd
+file: ../../mermaid/flowchart/flowchart.mmd
 ```
 
 ## Poster

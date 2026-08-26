@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 436.7992 631.0601569719768" width="436.7992" height="631.0601569719768">
   <defs>
-    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#64748B" /></marker>
+    <marker id="dsgraph-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="#64748B" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="#4A90D9" /></marker>
   </defs>
   <rect x="0" y="0" width="436.7992" height="631.0601569719768" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Edge &amp; Path Highlight — Tree &amp; Graph</text>
@@ -51,9 +52,9 @@
   <text x="339.4192" y="100.8" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">backtrack from Bad</text>
   <text x="32" y="318.5726815621407" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">DFS Graph</text>
   <g transform="translate(28, 352.71641926705877) scale(0.65)">
-    <path d="M 110 64 L 110 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
-    <path d="M 120.38 168 L 153.62 232" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
-    <path d="M 99.62 168 L 66.38 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 110 64 L 110 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#dsgraph-arrow-active)" />
+    <path d="M 120.38 168 L 153.62 232" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#dsgraph-arrow-active)" />
+    <path d="M 99.62 168 L 66.38 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
     <rect x="78" y="24" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="110" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">parse</text>
     <rect x="78" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
@@ -68,9 +69,9 @@
   <text x="127.44999999999999" y="346.1726815621407" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">stack · go deep</text>
   <text x="218.6" y="318.5726815621407" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">BFS Graph</text>
   <g transform="translate(214.6, 329.3726815621407) scale(0.7958983606557377)">
-    <path d="M 120.38 64 L 153.62 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
-    <path d="M 99.62 64 L 66.38 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#struct-arrow)" />
-    <path d="M 164 168 L 164 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+    <path d="M 120.38 64 L 153.62 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#dsgraph-arrow-active)" />
+    <path d="M 99.62 64 L 66.38 128" stroke="#4A90D9" stroke-width="2.5" fill="none" marker-end="url(#dsgraph-arrow-active)" />
+    <path d="M 164 168 L 164 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
     <rect x="77.3037" y="24" width="65.39259999999999" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
     <text x="110" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">active</text>
     <rect x="132" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />

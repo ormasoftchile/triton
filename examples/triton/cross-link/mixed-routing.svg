@@ -1,7 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 657.2 786.7619047619048" width="657.2" height="786.7619047619048">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
-    <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
+    <marker id="triton-crosslink-arrow-e11d48" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#E11D48" /></marker>
+    <marker id="triton-crosslink-arrow-ca8a04" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#CA8A04" /></marker>
+    <marker id="triton-crosslink-arrow-16a34a" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#16A34A" /></marker>
+    <marker id="triton-crosslink-arrow-2563eb" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#2563EB" /></marker>
+    <marker id="triton-crosslink-arrow-7c3aed" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#7C3AED" /></marker>
+    <marker id="triton-crosslink-arrow-0891b2" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#0891B2" /></marker>
+    <marker id="triton-crosslink-arrow-dc2626" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#DC2626" /></marker>
+    <marker id="triton-crosslink-arrow-9333ea" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#9333EA" /></marker>
   </defs>
   <rect x="0" y="0" width="657.2" height="786.7619047619048" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Mixed Routing Styles</text>
@@ -9,20 +16,20 @@
   <rect x="204" y="58" width="429.2" height="358" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="24" y="436" width="160" height="326.76190476190476" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
   <rect x="204" y="436" width="429.2" height="326.76190476190476" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <path d="M 158.28571428571428 342.0952380952381 L 258.4428571428572 342.0952380952381 L 258.4428571428572 144 L 358.6 144" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 275.1428571428571 C 283.9733542800804 198.1033649344152 336.0362114229375 270.9605077915581 418.6 348" stroke="#CA8A04" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+  <path d="M 158.28571428571428 342.0952380952381 L 258.4428571428572 342.0952380952381 L 258.4428571428572 144 L 358.6 144" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-e11d48)" />
+  <path d="M 49.714285714285715 284.19047619047615 L 17.714285714285715 284.19047619047615 L 17.714285714285715 318.0952380952381 L 502.6 318.0952380952381 L 502.6 352 L 478.6 352" stroke="#CA8A04" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow-ca8a04)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
-  <path d="M 358.6 304 L 158.28571428571428 487.3333333333333" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 439 388 C 439 471.752380952381 439 513.6285714285714 439 597.3809523809524" stroke="#2563EB" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+  <path d="M 358.6 304 L 158.28571428571428 487.3333333333333" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-16a34a)" />
+  <path d="M 439 388 C 439 471.752380952381 439 513.6285714285714 439 597.3809523809524" stroke="#2563EB" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow-2563eb)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
-  <path d="M 158.28571428571428 594.3238095238096 L 223.6 594.3238095238096" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 704.4761904761905 C 308.2857142857143 704.4761904761905 385.6 620.7809523809524 535.6 620.7809523809524" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+  <path d="M 158.28571428571428 594.3238095238096 L 223.6 594.3238095238096" stroke="#7C3AED" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-7c3aed)" />
+  <path d="M 158.28571428571428 704.4761904761905 C 308.2857142857143 704.4761904761905 385.6 620.7809523809524 535.6 620.7809523809524" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow-0891b2)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
-  <path d="M 392.35 597.3809523809524 C 392.35 513.6285714285714 392.35 471.752380952381 392.35 388" stroke="#DC2626" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 147.42857142857142 229.90476190476193 L 231.4 597.3809523809524" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+  <path d="M 392.35 597.3809523809524 C 392.35 513.6285714285714 392.35 471.752380952381 392.35 388" stroke="#DC2626" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-dc2626)" />
+  <path d="M 147.42857142857142 229.90476190476193 L 231.4 597.3809523809524" stroke="#9333EA" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow-9333ea)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
   <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Authentication</text>
@@ -105,7 +112,7 @@
     </g>
   </g>
   <text x="208.36428571428573" y="340.0952380952381" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">validates</text>
-  <text x="301.751693878825" y="250.7318437485357" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#CA8A04" text-anchor="middle" font-weight="bold">syncs tokens</text>
+  <text x="260.15714285714284" y="316.0952380952381" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#CA8A04" text-anchor="middle" font-weight="bold">syncs tokens</text>
   <text x="258.4428571428572" y="390.6547619047619" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">enqueues</text>
   <text x="439" y="478.6904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2563EB" text-anchor="middle" font-weight="bold">reads cache</text>
   <text x="190.94285714285712" y="591.3809523809524" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">writes results</text>

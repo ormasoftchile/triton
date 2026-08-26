@@ -1,5 +1,6 @@
 poster "Mixed Routing Styles"
   columns 2
+  scale natural
 %% ────────────────────────────────────────────────────────────────────────────
 %% CROSS-LINK — options quick-ref
 %% ────────────────────────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ poster "Mixed Routing Styles"
   link AUTH.tokens -_-> API.cache "syncs tokens" @bezier @anim:march
   link API.dispatch --> WORKER.queue "enqueues" @straight
   link API.cache -_-> STORE.redis "reads cache" @bezier @anim:march
-  link WORKER.exec --> STORE.pg "writes results" @orthogonal
+  link WORKER.exec --> STORE.pg "writes results" @orthogonal:SW
   link WORKER.dlq -_-> STORE.s3 "archives" @anim:march { route: bezier, tension: 0.8 }
   link STORE.replica --> API.cache "feeds cache" @bezier
   link AUTH.oauth -_-> STORE.pg "stores grants" @straight @anim:march

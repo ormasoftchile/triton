@@ -62,10 +62,18 @@
 Document
   = frontmatter:Frontmatter? _ header:PosterHeader _ directives:GridDirective* _ body:BodyItems _ {
       const columns = (directives.find(d => d.key === 'columns') || {}).value || 2;
+      const rowsDirective = directives.find(d => d.key === 'rows');
+      const gapDirective = directives.find(d => d.key === 'gap');
+      const scaleDirective = directives.find(d => d.key === 'scale' || d.key === 'uniform-scale' || d.key === 'uniform_scale');
       return {
         version: '1.0',
         metadata: { ...(frontmatter || {}), title: header.title || undefined },
-        grid: { columns: parseInt(columns, 10) },
+        grid: {
+          columns: parseInt(columns, 10),
+          ...(rowsDirective ? { rows: parseInt(rowsDirective.value, 10) } : {}),
+          ...(gapDirective ? { gap: parseFloat(gapDirective.value) } : {}),
+          ...(scaleDirective ? { scale: scaleDirective.value } : {}),
+        },
         cells,
         ...(links.length > 0 ? { links } : {}),
       };
@@ -85,7 +93,7 @@ PosterHeader
   = "poster" title:(_ QuotedString)? _ NL { return { title: title ? title[1] : null }; }
 
 GridDirective
-  = _ key:("columns" / "rows" / "gap") __ value:$[^\n]+ NL { return { key, value: value.trim() }; }
+  = _ key:("columns" / "rows" / "gap" / "scale" / "uniform-scale" / "uniform_scale") __ value:$[^\n]+ NL { return { key, value: value.trim() }; }
 
 BodyItems
   = items:(CellBlock / LinkDecl / BlankLine)* { return items.filter(Boolean); }

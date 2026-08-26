@@ -17,6 +17,7 @@ export type {
   PosterDocument,
   PosterCell,
   PosterGrid,
+  PosterScaleMode,
   CellContent,
   DiagramCell,
   TextCell,

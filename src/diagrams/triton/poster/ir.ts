@@ -47,9 +47,13 @@ export interface PosterCell {
   readonly notes?: readonly PosterNote[];
 }
 
+export type PosterScaleMode = 'contain' | 'uniform' | 'natural' | number;
+
 export interface PosterGrid {
   readonly columns: number;
   readonly rows?: number;
+  readonly gap?: number;
+  readonly scale?: PosterScaleMode | string;
 }
 
 // ─── Document ─────────────────────────────────────────────────────────────────

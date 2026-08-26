@@ -6,38 +6,38 @@
     <text x="84.78" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Plan sprint</text>
   </g>
   <g id="item-1">
-    <path d="M 145.56 77.6 L 164.88 77.6" stroke="#64748B" stroke-width="2" fill="none" />
-    <path d="M 164.88 71.72 L 170.76 77.6 L 164.88 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <path d="M 145.56 77.6 L 161.66 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 161.66 72.7 L 170.76 77.6 L 161.66 82.5 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
     <rect x="170.76" y="58" width="121.56" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
     <text x="231.54" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Write code</text>
   </g>
   <g id="item-2">
-    <path d="M 292.32 77.6 L 311.64 77.6" stroke="#64748B" stroke-width="2" fill="none" />
-    <path d="M 311.64 71.72 L 317.52 77.6 L 311.64 83.48 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <path d="M 292.32 77.6 L 308.42 77.6" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 308.42 72.7 L 317.52 77.6 L 308.42 82.5 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
     <rect x="317.52" y="58" width="121.56" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
     <text x="378.3" y="82.36" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Code review</text>
   </g>
   <g id="item-3">
-    <path d="M 378.3 97.2 L 378.3 116.52" stroke="#64748B" stroke-width="2" fill="none" />
-    <path d="M 372.42 116.52 L 378.3 122.4 L 384.18 116.52 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <path d="M 378.3 97.2 L 378.3 113.3" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 373.4 113.3 L 378.3 122.4 L 383.2 113.3 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
     <rect x="317.52" y="122.4" width="121.56" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
     <text x="378.3" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Run CI</text>
   </g>
   <g id="item-4">
-    <path d="M 317.52 142 L 298.2 142" stroke="#64748B" stroke-width="2" fill="none" />
-    <path d="M 298.2 136.12 L 292.32 142 L 298.2 147.88 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <path d="M 317.52 142 L 301.42 142" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 301.42 137.1 L 292.32 142 L 301.42 146.9 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
     <rect x="170.76" y="122.4" width="121.56" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
     <text x="231.54" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Merge PR</text>
   </g>
   <g id="item-5">
-    <path d="M 170.76 142 L 151.44 142" stroke="#64748B" stroke-width="2" fill="none" />
-    <path d="M 151.44 136.12 L 145.56 142 L 151.44 147.88 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <path d="M 170.76 142 L 154.66 142" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 154.66 137.1 L 145.56 142 L 154.66 146.9 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
     <rect x="24" y="122.4" width="121.56" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
     <text x="84.78" y="146.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Deploy staging</text>
   </g>
   <g id="item-6">
-    <path d="M 84.78 161.6 L 84.78 180.92" stroke="#64748B" stroke-width="2" fill="none" />
-    <path d="M 78.9 180.92 L 84.78 186.8 L 90.66 180.92 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
+    <path d="M 84.78 161.6 L 84.78 177.7" stroke="#64748B" stroke-width="2" fill="none" />
+    <path d="M 79.88 177.7 L 84.78 186.8 L 89.68 177.7 Z" stroke="#64748B" stroke-width="0" fill="#64748B" />
     <rect x="24" y="186.8" width="121.56" height="39.2" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.5" rx="6" />
     <text x="84.78" y="211.16" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Ship to prod</text>
   </g>

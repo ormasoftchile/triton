@@ -1,14 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 553.2 336.3809523809524" width="553.2" height="336.3809523809524">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 557.75 336.3809523809524" width="557.75" height="336.3809523809524">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
-    <marker id="triton-crosslink-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="currentColor" /></marker>
+    <marker id="triton-crosslink-arrow-16a34a" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#16A34A" /></marker>
+    <marker id="triton-crosslink-arrow-e11d48" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#E11D48" /></marker>
   </defs>
-  <rect x="0" y="0" width="553.2" height="336.3809523809524" fill="#FFFFFF" />
+  <rect x="0" y="0" width="557.75" height="336.3809523809524" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Cross-Link Basic Demo</text>
   <rect x="24" y="58" width="160" height="254.3809523809524" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <rect x="204" y="58" width="325.2" height="254.3809523809524" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
-  <path d="M 158.28571428571428 196.1904761904762 L 223.6 196.1904761904762" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow)" />
-  <path d="M 158.28571428571428 268.57142857142856 L 366.6 268.57142857142856 L 366.6 209.1904761904762" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow)">
+  <rect x="204" y="58" width="329.75" height="254.3809523809524" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 158.28571428571428 196.84047619047624 L 223.6 196.84047619047624" stroke="#16A34A" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-16a34a)" />
+  <path d="M 158.28571428571428 268.57142857142856 L 366.6 268.57142857142856 L 366.6 210.49047619047622" stroke="#E11D48" stroke-width="2" fill="none" stroke-dasharray="8 4" marker-end="url(#triton-crosslink-arrow-e11d48)">
     <animate attributeName="stroke-dashoffset" from="0" to="-12" dur="0.8s" repeatCount="indefinite"/>
   </path>
   <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Frontend Services</text>
@@ -27,27 +28,28 @@
     </g>
   </g>
   <text x="212" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Backend Services</text>
-  <g transform="translate(208, 141.5904761904762) scale(0.65)">
-    <path d="M 144 84 L 184 84" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-    <path d="M 304 84 L 324 84 L 324 44 L 344 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-    <path d="M 304 84 L 324 84 L 324 124 L 344 124" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <g transform="translate(208, 137.6904761904762) scale(0.65)">
+    <path d="M 144 92 L 184 92" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 304 92 L 325.75 92 L 325.75 48 L 347.5 48" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 304 92 L 324 92 L 324 136 L 344 136" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
     <g id="gateway">
-      <rect x="24" y="64" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-      <text x="84" y="88.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Gateway</text>
+      <rect x="24" y="72" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="84" y="96.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Gateway</text>
     </g>
     <g id="orders">
-      <rect x="184" y="64" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-      <text x="244" y="88.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Order Service</text>
+      <rect x="184" y="72" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="244" y="96.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Order Service</text>
     </g>
     <g id="db">
-      <rect x="344" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-      <text x="404" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Database</text>
+      <path d="M 347.5 31.2 A 60 7.199999999999999 0 0 1 467.5 31.2 L 467.5 64.8 A 60 7.199999999999999 0 0 1 347.5 64.8 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+      <path d="M 347.5 31.2 A 60 7.199999999999999 0 0 0 467.5 31.2" stroke="#CBD5E1" stroke-width="1.5" fill="none" />
+      <text x="407.5" y="52.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Database</text>
     </g>
     <g id="queue">
-      <rect x="344" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-      <text x="404" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Message Queue</text>
+      <rect x="344" y="116" width="127" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="407.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Message Queue</text>
     </g>
   </g>
-  <text x="182.49999999999997" y="194.1904761904762" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">routes to</text>
+  <text x="199.38571428571427" y="178.49047619047622" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#16A34A" text-anchor="middle" font-weight="bold">routes to</text>
   <text x="262.4428571428572" y="266.57142857142856" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">validates</text>
 </svg>
