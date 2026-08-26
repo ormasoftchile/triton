@@ -154,7 +154,15 @@ function ensureDiagramHeader(kind: DiagramKind, rawContent: string): string {
 function parseCell(raw: any): import('./ir.js').CellContent {
   const kind: string | null | undefined = raw.kind;
   const inferredKind = inferCellKind(raw.rawContent);
-  const rawKind = (kind || inferredKind || '').trim();
+  let rawKind = (kind || inferredKind || '').trim();
+
+  // If inferred as text and no explicit :: kind, check if an explicit id matches a diagram kind (e.g. `cell packet-beta` or `cell flow`)
+  if ((!rawKind || rawKind === 'text') && !kind && raw.explicitId) {
+    const fromId = canonicalDiagramKind(raw.explicitId);
+    if (fromId) {
+      rawKind = fromId;
+    }
+  }
 
   // Poster-specific primitives (no diagram module needed)
   if (rawKind === 'stat') {

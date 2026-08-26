@@ -19,7 +19,7 @@
   function addCell(explicitId, title, kind, rawContent, span, theme) {
     cellCounter++;
     const id = explicitId || slugify(title) || `cell-${cellCounter}`;
-    cells.push({ id, title: title || undefined, kind, rawContent: rawContent.trim(), span, theme: theme || undefined });
+    cells.push({ id, explicitId: explicitId || undefined, title: title || undefined, kind, rawContent: rawContent.trim(), span, theme: theme || undefined });
   }
 
   function addLink(from, arrow, to, label, props) {

@@ -1,0 +1,35 @@
+poster "Network Protocol Architecture"
+    columns 2
+%% ────────────────────────────────────────────────────────────────────────────
+%% POSTER — Network Packet & Protocol Flow
+%% ────────────────────────────────────────────────────────────────────────────
+
+    cell pipe "Packet Processing Pipeline" :: flow
+        flowchart LR
+            NIC[NIC Ring] --> IP[IP Parser]
+            IP --> TCP[TCP Demux]
+            TCP --> App[App Socket]
+    end
+
+    cell stats "Link Metrics"
+        10 Gbps | Throughput
+    end
+
+    cell pkt "TCP Segment Header" [2]
+        packet-beta
+        title TCP Segment Header
+        0-15: "Source Port"
+        16-31: "Dest Port"
+        32-63: "Sequence Number"
+        64-79: "Ack Number"
+        80-83: "Data Offset"
+        84-89: "Reserved"
+        90: "URG"
+        91: "ACK"
+        92: "PSH"
+        93: "RST"
+        94: "SYN"
+        95: "FIN"
+        96-111: "Window Size"
+        112-127: "Checksum"
+    end
