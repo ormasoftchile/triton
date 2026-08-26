@@ -236,11 +236,13 @@ class OrthogonalRouter implements Router {
         const corner: Point = { x: to.x, y: from.y };
         points = [from, corner, to];
         path = `M ${from.x} ${from.y} L ${corner.x} ${corner.y} L ${to.x} ${to.y}`;
+        return { points, path, labelPosition: { x: (from.x + to.x) / 2, y: from.y } };
       } else {
         // Exit vertical, enter horizontal — single bend
         const corner: Point = { x: from.x, y: to.y };
         points = [from, corner, to];
         path = `M ${from.x} ${from.y} L ${corner.x} ${corner.y} L ${to.x} ${to.y}`;
+        return { points, path, labelPosition: { x: (from.x + to.x) / 2, y: to.y } };
       }
 
       return { points, path, labelPosition: { x: midX, y: midY } };

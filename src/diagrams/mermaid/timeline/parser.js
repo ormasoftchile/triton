@@ -366,9 +366,9 @@ function peg$parse(input, options) {
       };
     };
   var peg$f1 = function() { return 'timeline'; };
-  var peg$f2 = function(value) { return { key: 'title', value: value.trim() }; };
-  var peg$f3 = function(value) { return { key: 'subtitle', value: value.trim() }; };
-  var peg$f4 = function(value) { return { key: 'theme', value: value.trim() }; };
+  var peg$f2 = function(value) { return { key: 'title', value: value.trim().replace(/^["']|["']$/g, '') }; };
+  var peg$f3 = function(value) { return { key: 'subtitle', value: value.trim().replace(/^["']|["']$/g, '') }; };
+  var peg$f4 = function(value) { return { key: 'theme', value: value.trim().replace(/^["']|["']$/g, '') }; };
   var peg$f5 = function() { return ext; };
   var peg$f6 = function(key, value) { return { key, value: value.trim() }; };
   var peg$f7 = function() { return ext; };

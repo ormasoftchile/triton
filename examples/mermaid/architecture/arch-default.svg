@@ -6,9 +6,9 @@
   <rect x="-24" y="-34" width="688" height="404" fill="#FFFFFF" />
   <rect x="224" y="-10" width="390" height="110" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
   <text x="236" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="start" font-weight="bold">Cloud Services</text>
-  <path d="M 154 292 L 199 292 L 199 186 L 287.3333333333333 186 L 287.3333333333333 80" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 154 292 L 174 292 L 174 196 L 276.5 196 L 276.5 80" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
   <path d="M 374 52 L 464 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 330.66666666666663 80 L 330.66666666666663 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 309 80 L 309 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
   <rect x="244" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
   <rect x="244" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
   <rect x="299" y="35" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />

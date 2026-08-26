@@ -35,7 +35,13 @@ import { layeredLayout, type GraphNode, type GraphEdge } from '../../../../graph
 import { borderPoint } from '../../../../graph/connect.js';
 import { orthogonalRouter } from '../../../../routing/router.js';
 import { rhu } from '../../../../util/round.js';
-import { ARROW_ID, arrowDef } from '../struct/shared.js';
+
+const ARROW_ID = 'dsgraph-arrow';
+const ARROW_ACTIVE_ID = 'dsgraph-arrow-active';
+
+function graphArrowDef(color: string, id: string): string {
+  return `<marker id="${id}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="${color}" /></marker>`;
+}
 
 export interface GNode {
   id: string;
@@ -323,8 +329,19 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     const a = placed.boxes.has(e.from) ? box(e.from) : undefined;
     const b = placed.boxes.has(e.to) ? box(e.to) : undefined;
     if (!a || !b) continue;
-    const fw = sourceWall(a, b);
-    const tw = targetWall(a, b);
+    const lane = skipLaneX.get(i);
+    const fw =
+      lane !== undefined
+        ? lane > a.x + a.width / 2
+          ? 'right'
+          : 'left'
+        : sourceWall(a, b);
+    const tw =
+      lane !== undefined
+        ? lane > b.x + b.width / 2
+          ? 'right'
+          : 'left'
+        : targetWall(a, b);
     fromWallByEdge.set(i, fw);
     toWallByEdge.set(i, tw);
     const fk = groupKey(e.from, fw);
@@ -377,24 +394,13 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
       toPorts.get(groupKey(e.to, tw))?.get(i) ??
       borderPoint(b, a.x + a.width / 2, a.y + a.height / 2);
     const points: readonly Pt[] =
-      bends &&
-      bends.length > 0 &&
-      skipLaneX.has(i) &&
-      (fw === 'top' || fw === 'bottom') &&
-      (tw === 'top' || tw === 'bottom')
+      bends && bends.length > 0 && skipLaneX.has(i)
         ? (() => {
-            const sign = toPt.y >= fromPt.y ? 1 : -1;
-            const span = Math.abs(toPt.y - fromPt.y);
-            const stub = Math.min(SKIP_STUB, Math.max(8, (span - 24) / 2));
-            const sourceStubY = fromPt.y + sign * stub;
-            const targetStubY = toPt.y - sign * stub;
             const laneX = skipLaneX.get(i)!;
             return simplifyPoints([
               fromPt,
-              { x: fromPt.x, y: sourceStubY },
-              { x: laneX, y: sourceStubY },
-              { x: laneX, y: targetStubY },
-              { x: toPt.x, y: targetStubY },
+              { x: laneX, y: fromPt.y },
+              { x: laneX, y: toPt.y },
               toPt,
             ]);
           })()
@@ -432,7 +438,7 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     const edgeColor = isActive ? palette.primary : palette.textMuted;
     const edgeWidth = isActive ? 2.5 : 1.5;
     const pathOpts: Parameters<typeof p.path>[3] = {
-      ...(doc.directed ? { markerEnd: ARROW_ID } : {}),
+      ...(doc.directed ? { markerEnd: isActive ? ARROW_ACTIVE_ID : ARROW_ID } : {}),
       ...(e.kind === 'dashed' ? { dash: '6 3' } : {}),
     };
     elements.push(p.path(pathData(points), edgeColor, edgeWidth, pathOpts));
@@ -483,7 +489,9 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     viewBox: { x: 0, y: 0, width: viewWidth, height: placed.height + titleH + margin },
     background: palette.background,
     elements,
-    ...(doc.directed ? { defs: [arrowDef(palette.textMuted)] } : {}),
+    ...(doc.directed
+      ? { defs: [graphArrowDef(palette.textMuted, ARROW_ID), graphArrowDef(palette.primary, ARROW_ACTIVE_ID)] }
+      : {}),
   };
   return { scene, anchors: anchors as NodeAnchorRegistry };
 }

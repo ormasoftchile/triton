@@ -443,16 +443,20 @@ export function layoutArchitecture(
   }
 
   // ── Group boxes (outermost first so children render on top) ──────────────
+  const isMono = theme.name === 'bw-light' || theme.name === 'bw-dark' || theme.name === 'minimal';
   const orderedGroups = groupsByDepth(ir.groups);
   orderedGroups.forEach((g, gi) => {
     const r = computeGroupRect(g.id);
     if (!r) return;
-    const hue = categoricalHue(gi);
+    const hue = categoricalHue(gi, theme);
+    const groupStroke = isMono ? palette.border : hue;
+    const groupFill = isMono ? palette.surface : hue + '14';
+    const groupLabelColor = isMono ? palette.text : hue;
     elements.push(
       p.rect(
         { x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) },
-        hue + '14',
-        hue,
+        groupFill,
+        groupStroke,
         1.4,
         { rx: 10 },
       ),
@@ -465,7 +469,7 @@ export function layoutArchitecture(
           g.icon,
           header.icon.x,
           header.icon.y,
-          hue,
+          isMono ? palette.textMuted : hue,
           palette,
           iconPacks,
           warnedIcons,
@@ -473,7 +477,7 @@ export function layoutArchitecture(
       );
     }
     elements.push(
-      p.text(g.label, rhu(header.label.x), rhu(header.label.y), typography.smallFontSize, hue, {
+      p.text(g.label, rhu(header.label.x), rhu(header.label.y), typography.smallFontSize, groupLabelColor, {
         weight: 'bold',
         anchor: header.label.anchor,
       }),
@@ -506,7 +510,11 @@ export function layoutArchitecture(
   };
 
   type EndpointSlot = { sourceT?: number; targetT?: number };
-  type EndpointMember = { edgeIndex: number; isSource: boolean; tangentKey: number };
+  type EndpointMember = {
+    edgeIndex: number;
+    isSource: boolean;
+    tangentKey: number;
+  };
   const endpointGroups = new Map<string, EndpointMember[]>();
   const endpointSlots = new Map<number, EndpointSlot>();
 
@@ -550,6 +558,39 @@ export function layoutArchitecture(
       );
     }
   }
+
+  // Align straight on-axis connections where one side is multi-fanned and the other is single
+  ir.edges.forEach((e, edgeIndex) => {
+    const fromRect = endpointRect(e, true);
+    const toRect = endpointRect(e, false);
+    if (!fromRect || !toRect) return;
+
+    const fromSide = endpointSide(e, true).toUpperCase();
+    const toSide = endpointSide(e, false).toUpperCase();
+    const fromCenter = rectCenter(fromRect);
+    const toCenter = rectCenter(toRect);
+
+    const isVerticalStraight =
+      ((fromSide === 'B' && toSide === 'T') || (fromSide === 'T' && toSide === 'B')) &&
+      Math.abs(fromCenter.x - toCenter.x) < 4;
+
+    const isHorizontalStraight =
+      ((fromSide === 'R' && toSide === 'L') || (fromSide === 'L' && toSide === 'R')) &&
+      Math.abs(fromCenter.y - toCenter.y) < 4;
+
+    if (isVerticalStraight || isHorizontalStraight) {
+      const sourceKey = `${e.from}:${fromSide}`;
+      const targetKey = `${e.to}:${toSide}`;
+      const sourceCount = endpointGroups.get(sourceKey)?.length ?? 1;
+      const targetCount = endpointGroups.get(targetKey)?.length ?? 1;
+      const slot = endpointSlots.get(edgeIndex);
+      if (sourceCount > 1 && targetCount === 1 && slot?.sourceT !== undefined) {
+        endpointSlots.set(edgeIndex, { ...slot, targetT: slot.sourceT });
+      } else if (targetCount > 1 && sourceCount === 1 && slot?.targetT !== undefined) {
+        endpointSlots.set(edgeIndex, { ...slot, sourceT: slot.targetT });
+      }
+    }
+  });
 
   for (let edgeIndex = 0; edgeIndex < ir.edges.length; edgeIndex++) {
     const e = ir.edges[edgeIndex]!;
@@ -613,7 +654,7 @@ export function layoutArchitecture(
   ir.services.forEach((s, i) => {
     const r = rectOf(s.id);
     if (!r) return;
-    const hue = categoricalHue(i);
+    const hue = categoricalHue(i, theme);
     elements.push(
       p.rect(
         { x: rhu(r.x), y: rhu(r.y), width: rhu(r.width), height: rhu(r.height) },
@@ -634,7 +675,7 @@ export function layoutArchitecture(
       s.icon,
       iconPos.x,
       iconPos.y,
-      hue,
+      isMono ? palette.text : hue,
       palette,
       iconPacks,
       warnedIcons,
@@ -762,39 +803,105 @@ function mixedOrthogonalRoutePoints(
   obstacles: readonly Rect[],
   pad: number,
 ): Point[] {
-  const stubLen = Math.max(pad, 24);
+  // Check if a direct single-bend L-route is collision-free
+  const directCorner: Point = isHorizontalDir(fromDir)
+    ? { x: to.x, y: from.y }
+    : { x: from.x, y: to.y };
+  const simpleL = [from, directCorner, to];
+  if (routeCollisionCount(simpleL, obstacles) === 0) {
+    return simpleL;
+  }
+
+  // When direct L crosses an obstacle, route via corridor bend with minimal segments
+  const stubLen = Math.max(pad, 20);
   const stub1 = offsetPoint(from, fromDir, stubLen);
   const stub2 = offsetPoint(to, toDir, stubLen);
+
   if (isHorizontalDir(fromDir)) {
+    let bendX = (from.x + to.x) / 2;
+    const blockingObstacles = obstacles.filter(
+      (o) =>
+        ((fromDir === 'E' && o.x > from.x && o.x < to.x) ||
+          (fromDir === 'W' && o.x + o.width < from.x && o.x + o.width > to.x)) &&
+        from.y >= o.y - pad &&
+        from.y <= o.y + o.height + pad,
+    );
+    if (blockingObstacles.length > 0) {
+      if (fromDir === 'E') {
+        const nearest = Math.min(...blockingObstacles.map((o) => o.x));
+        bendX = (from.x + nearest) / 2;
+      } else {
+        const nearest = Math.max(...blockingObstacles.map((o) => o.x + o.width));
+        bendX = (from.x + nearest) / 2;
+      }
+    }
+
+    const candidates = [
+      (from.y + to.y) / 2,
+      (stub1.y + stub2.y) / 2,
+      ...obstacles.flatMap((o) => [
+        o.y - pad,
+        o.y + o.height + pad,
+        (o.y + to.y) / 2,
+        (o.y + o.height + to.y) / 2,
+      ]),
+    ];
     const bendY = bestBend(
-      [(stub1.y + stub2.y) / 2, ...obstacles.flatMap((o) => [o.y - pad, o.y + o.height + pad])],
-      (y) => [from, stub1, { x: stub1.x, y }, { x: stub2.x, y }, stub2, to],
+      candidates,
+      (y) => [from, { x: bendX, y: from.y }, { x: bendX, y }, { x: to.x, y }, to],
       obstacles,
     );
-    return clearMixedRoute(
-      [from, stub1, { x: stub1.x, y: bendY }, { x: stub2.x, y: bendY }, stub2, to],
+    const candidate = [
       from,
+      { x: bendX, y: from.y },
+      { x: bendX, y: bendY },
+      { x: to.x, y: bendY },
       to,
-      stub1,
-      stub2,
-      obstacles,
-      pad,
-    );
+    ];
+    return clearMixedRoute(candidate, from, to, stub1, stub2, obstacles, pad);
   }
+
+  let bendY = (from.y + to.y) / 2;
+  const blockingObstacles = obstacles.filter(
+    (o) =>
+      ((fromDir === 'S' && o.y > from.y && o.y < to.y) ||
+        (fromDir === 'N' && o.y + o.height < from.y && o.y + o.height > to.y)) &&
+      from.x >= o.x - pad &&
+      from.x <= o.x + o.width + pad,
+  );
+  if (blockingObstacles.length > 0) {
+    if (fromDir === 'S') {
+      const nearest = Math.min(...blockingObstacles.map((o) => o.y));
+      bendY = (from.y + nearest) / 2;
+    } else {
+      const nearest = Math.max(...blockingObstacles.map((o) => o.y + o.height));
+      bendY = (from.y + nearest) / 2;
+    }
+  }
+
+  const candidates = [
+    (from.x + to.x) / 2,
+    (stub1.x + stub2.x) / 2,
+    ...obstacles.flatMap((o) => [
+      o.x - pad,
+      o.x + o.width + pad,
+      (o.x + to.x) / 2,
+      (o.x + o.width + to.x) / 2,
+    ]),
+  ];
   const bendX = bestBend(
-    [(stub1.x + stub2.x) / 2, ...obstacles.flatMap((o) => [o.x - pad, o.x + o.width + pad])],
-    (x) => [from, stub1, { x, y: stub1.y }, { x, y: stub2.y }, stub2, to],
+    candidates,
+    (x) => [from, { x: from.x, y: bendY }, { x, y: bendY }, { x, y: to.y }, to],
     obstacles,
   );
-  return clearMixedRoute(
-    [from, stub1, { x: bendX, y: stub1.y }, { x: bendX, y: stub2.y }, stub2, to],
+  const candidate = [
     from,
+    { x: from.x, y: bendY },
+    { x: bendX, y: bendY },
+    { x: bendX, y: to.y },
     to,
-    stub1,
-    stub2,
-    obstacles,
-    pad,
-  );
+  ];
+  return clearMixedRoute(candidate, from, to, stub1, stub2, obstacles, pad);
 }
 
 function clearMixedRoute(

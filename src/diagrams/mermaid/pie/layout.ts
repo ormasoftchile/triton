@@ -68,7 +68,7 @@ export function layoutPie(ir: PieDocument, theme: ResolvedTheme): LayoutResult {
   slices.forEach((s, i) => {
     const frac = s.value / total;
     const a1 = a0 + frac * Math.PI * 2;
-    const color = categoricalHue(i);
+    const color = categoricalHue(i, theme);
 
     if (slices.length === 1) {
       elements.push(p.circle({ x: cx, y: cy }, R, color, palette.background, 1));
@@ -104,11 +104,12 @@ export function layoutPie(ir: PieDocument, theme: ResolvedTheme): LayoutResult {
   // ── Legend ───────────────────────────────────────────────────────────────
   slices.forEach((s, i) => {
     const ly = legendTop + i * rowH;
+    const swatchColor = categoricalHue(i, theme);
     elements.push(
       p.rect(
         { x: legendX, y: ly, width: swatch, height: swatch },
-        categoricalHue(i),
-        categoricalHue(i),
+        swatchColor,
+        swatchColor,
         0,
         { rx: 2 },
       ),

@@ -62,7 +62,7 @@ export function layoutKanban(ir: KanbanDocument, theme: ResolvedTheme): LayoutRe
   let maxColH = 0;
   columns.forEach((col, ci) => {
     const x = margin + ci * (colW + colGap);
-    const hue = categoricalHue(ci);
+    const hue = categoricalHue(ci, theme);
 
     // Column header
     elements.push(p.rect({ x, y: boardTop, width: colW, height: headerH }, hue, hue, 0, { rx: 6 }));

@@ -226,6 +226,54 @@ describe('flowchart layout', () => {
     const asymPath = asymGroup.children.find((c: any) => c.type === 'path');
     expect(asymPath).toBeDefined();
   });
+
+  it('aligns single-predecessor continuation nodes on a straight vertical spine', () => {
+    const pipeDoc: FlowDocument = {
+      version: '1.0',
+      metadata: {},
+      direction: 'TD',
+      nodes: [
+        { id: 'commit', label: 'Commit Pushed', shape: 'rect' },
+        { id: 'build', label: 'Build & Lint', shape: 'rect' },
+        { id: 'test', label: 'Tests Pass?', shape: 'diamond' },
+        { id: 'stage', label: 'Deploy to Staging', shape: 'stadium' },
+        { id: 'notify', label: 'Notify Author', shape: 'rounded-rect' },
+        { id: 'approve', label: 'Approved?', shape: 'diamond' },
+        { id: 'prod', label: 'Deploy to Production', shape: 'stadium' },
+        { id: 'hold', label: 'Hold for Review', shape: 'rounded-rect' },
+        { id: 'live', label: 'Live', shape: 'circle' },
+      ],
+      edges: [
+        { from: 'commit', to: 'build', style: 'solid' },
+        { from: 'build', to: 'test', style: 'solid' },
+        { from: 'test', to: 'stage', style: 'solid', label: 'yes' },
+        { from: 'test', to: 'notify', style: 'solid', label: 'no' },
+        { from: 'stage', to: 'approve', style: 'solid' },
+        { from: 'approve', to: 'prod', style: 'solid', label: 'yes' },
+        { from: 'approve', to: 'hold', style: 'solid', label: 'no' },
+        { from: 'prod', to: 'live', style: 'solid' },
+      ],
+      subgraphs: [],
+    };
+    const { scene, anchors } = layoutFlowchart(pipeDoc, defaultTheme);
+
+    // stage, approve, prod, live should all share the exact same center X
+    const stageCx = anchors['stage']!.bounds.x + anchors['stage']!.bounds.width / 2;
+    const approveCx = anchors['approve']!.bounds.x + anchors['approve']!.bounds.width / 2;
+    const prodCx = anchors['prod']!.bounds.x + anchors['prod']!.bounds.width / 2;
+    const liveCx = anchors['live']!.bounds.x + anchors['live']!.bounds.width / 2;
+
+    expect(stageCx).toBe(approveCx);
+    expect(approveCx).toBe(prodCx);
+    expect(prodCx).toBe(liveCx);
+
+    // stage -> approve edge should be a straight vertical path
+    const paths = scene.elements.filter((e) => e.type === 'path') as any[];
+    const straightEdge = paths.find(
+      (p) => p.d === `M ${stageCx} ${anchors['stage']!.bounds.y + anchors['stage']!.bounds.height} L ${approveCx} ${anchors['approve']!.bounds.y}`,
+    );
+    expect(straightEdge).toBeDefined();
+  });
 });
 
 function collectFills(elements: any[]): string[] {

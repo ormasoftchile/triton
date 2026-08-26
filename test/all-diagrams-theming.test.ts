@@ -64,5 +64,52 @@ describe('Universal Theme & Frontmatter Support across ALL Diagram Types', () =>
         expect(res.value).toContain('#0D1B2A');
       }
     });
+
+    it(`renders monochromatic styling in bw-dark for ${kind}`, () => {
+      const res = renderSync(src, undefined, 'svg', 'bw-dark');
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        // bw-dark uses #171717 background
+        expect(res.value).toContain('#171717');
+      }
+    });
+
+    it(`renders monochromatic styling in bw-light for ${kind}`, () => {
+      const res = renderSync(src, undefined, 'svg', 'bw-light');
+      expect(res.ok).toBe(true);
+    });
   }
+
+  it('renders architecture diagrams strictly monochromatic in bw-dark without categorical colors', () => {
+    const archSrc = `architecture-beta
+  group g(cloud)[Cloud Services]
+    service api(server)[API]
+    service db(database)[DB]
+  service client(internet)[Client]
+  client:R --> B:api
+  api:R --> L:db`;
+    const res = renderSync(archSrc, undefined, 'svg', 'bw-dark');
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      // Must not contain default categorical rainbow hues
+      expect(res.value).not.toContain('#7C3AED');
+      expect(res.value).not.toContain('#0EA5A8');
+      expect(res.value).not.toContain('#D97706');
+    }
+  });
+
+  it('renders block diagrams strictly monochromatic in bw-dark without categorical colors', () => {
+    const blockSrc = `block-beta
+  columns 2
+  a["Auth"] b["Database"]
+  a --> b`;
+    const res = renderSync(blockSrc, undefined, 'svg', 'bw-dark');
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.value).not.toContain('#7C3AED');
+      expect(res.value).not.toContain('#0EA5A8');
+      expect(res.value).not.toContain('#D97706');
+    }
+  });
 });
+

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -34 688 404" width="688" height="404">
+  <defs>
+    <marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#525252" /></marker>
+    <marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#525252" /></marker>
+  </defs>
+  <rect x="-24" y="-34" width="688" height="404" fill="#FFFFFF" />
+  <rect x="224" y="-10" width="390" height="110" fill="#F5F5F5" stroke="#E5E5E5" stroke-width="1.4" rx="10" />
+  <text x="236" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Cloud Services</text>
+  <path d="M 154 292 L 174 292 L 174 196 L 276.5 196 L 276.5 80" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 374 52 L 464 52" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 309 80 L 309 264" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <rect x="244" y="24" width="130" height="56" fill="#F5F5F5" stroke="#E5E5E5" stroke-width="1.4" rx="8" />
+  <rect x="244" y="24" width="130" height="8" fill="#525252" stroke="#525252" stroke-width="0" rx="4" />
+  <rect x="299" y="35" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="299" y="42" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="299" y="49" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="309" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">API Server</text>
+  <rect x="464" y="24" width="130" height="56" fill="#F5F5F5" stroke="#E5E5E5" stroke-width="1.4" rx="8" />
+  <rect x="464" y="24" width="130" height="8" fill="#737373" stroke="#737373" stroke-width="0" rx="4" />
+  <rect x="520" y="35" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 520 41 Q 529 45, 538 41" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="529" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Database</text>
+  <rect x="24" y="264" width="130" height="56" fill="#F5F5F5" stroke="#E5E5E5" stroke-width="1.4" rx="8" />
+  <rect x="24" y="264" width="130" height="8" fill="#404040" stroke="#404040" stroke-width="0" rx="4" />
+  <circle cx="89" cy="284" r="9" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" />
+  <path d="M 89 275 L 89 293 M 80 284 L 98 284" stroke="#171717" stroke-width="1" fill="none" />
+  <path d="M 80 284 Q 89 273, 98 284 Q 89 295, 80 284" stroke="#171717" stroke-width="1" fill="none" />
+  <text x="89" y="315.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Client</text>
+  <rect x="244" y="264" width="130" height="56" fill="#F5F5F5" stroke="#E5E5E5" stroke-width="1.4" rx="8" />
+  <rect x="244" y="264" width="130" height="8" fill="#8A8A8A" stroke="#8A8A8A" stroke-width="0" rx="4" />
+  <rect x="300" y="275" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 300 281 Q 309 285, 318 281" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="309" y="315.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Storage</text>
+</svg>

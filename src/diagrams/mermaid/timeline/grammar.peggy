@@ -133,9 +133,9 @@ Header
 Directive = ExtDirective / MermaidDirective
 
 MermaidDirective
-  = _ "title" __ value:$[^\n]+ _ LineEnd { return { key: 'title', value: value.trim() }; }
-  / _ "subtitle" __ value:$[^\n]+ _ LineEnd { return { key: 'subtitle', value: value.trim() }; }
-  / _ "theme" __ value:$[^\n]+ _ LineEnd { return { key: 'theme', value: value.trim() }; }
+  = _ "title" __ value:$[^\n]+ _ LineEnd { return { key: 'title', value: value.trim().replace(/^["']|["']$/g, '') }; }
+  / _ "subtitle" __ value:$[^\n]+ _ LineEnd { return { key: 'subtitle', value: value.trim().replace(/^["']|["']$/g, '') }; }
+  / _ "theme" __ value:$[^\n]+ _ LineEnd { return { key: 'theme', value: value.trim().replace(/^["']|["']$/g, '') }; }
 
 ExtDirective
   = &{ return ext; } _ key:("layout" / "axisUnit") __ value:$[^\n]+ _ LineEnd { return { key, value: value.trim() }; }

@@ -107,7 +107,7 @@ export function layoutSankey(ir: SankeyDocument, theme: ResolvedTheme): LayoutRe
   // ── Link ribbons (under nodes) ─────────────────────────────────────────────
   const outOff = new Map<string, number>();
   const inOff = new Map<string, number>();
-  const hueOf = new Map(order.map((n, i) => [n, categoricalHue(i)]));
+  const hueOf = new Map(order.map((n, i) => [n, categoricalHue(i, theme)]));
   for (const l of ir.links) {
     const sb = boxes.get(l.source)!,
       tb = boxes.get(l.target)!;

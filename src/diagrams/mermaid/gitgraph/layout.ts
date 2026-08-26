@@ -29,7 +29,7 @@ export function layoutGitgraph(ir: GitgraphDocument, theme: ResolvedTheme): Layo
 
   const cx = (x: number): number => leftPad + x * xGap;
   const cy = (lane: number): number => topPad + lane * laneGap;
-  const hue = (lane: number): string => categoricalHue(lane);
+  const hue = (lane: number): string => categoricalHue(lane, theme);
 
   const elements: SceneElement[] = [];
   if (ir.metadata.title)

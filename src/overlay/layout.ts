@@ -52,7 +52,7 @@ export function layoutOverlays(
   }
 
   for (const anno of compiled.annotations) {
-    const laid = layoutAnnotation(anno, boundsMap, theme);
+    const laid = layoutAnnotation(anno, boundsMap, theme, scene.elements);
     if (laid) {
       result.push(laid.group);
       viewBox = expandViewBox(viewBox, laid.bounds);
@@ -70,16 +70,43 @@ export function layoutOverlays(
 
 // ─── Annotation ───────────────────────────────────────────────────────────────
 
+function findObstructingHorizontalLine(
+  elements: readonly SceneElement[],
+  x: number,
+  yMin: number,
+  yMax: number,
+): number | null {
+  for (const el of elements) {
+    if (el.type === 'path' && el.d) {
+      const m = el.d.match(/^M\s*([\d.]+)\s*[, ]\s*([\d.]+)\s*L\s*([\d.]+)\s*[, ]\s*([\d.]+)/i);
+      if (m) {
+        const x1 = parseFloat(m[1]!),
+          y1 = parseFloat(m[2]!),
+          x2 = parseFloat(m[3]!),
+          y2 = parseFloat(m[4]!);
+        if (Math.abs(y1 - y2) < 1e-3) {
+          const minX = Math.min(x1, x2),
+            maxX = Math.max(x1, x2);
+          if (x >= minX - 10 && x <= maxX + 10 && y1 >= yMin && y1 <= yMax) {
+            return y1;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function layoutAnnotation(
   anno: Annotation,
   boundsMap: Map<string, Rect>,
   theme: ResolvedTheme,
+  sceneElements: readonly SceneElement[],
 ): { group: SceneGroup; bounds: Rect } | null {
   const { palette, typography } = theme;
 
   // Resolve absolute anchor point
   let anchorPt: Point;
-  let boxOrigin: Point;
 
   if ('elementId' in anno.anchor) {
     const rawId = anno.anchor.elementId;
@@ -87,10 +114,8 @@ function layoutAnnotation(
       boundsMap.get(rawId) ?? boundsMap.get(slugify(rawId)) ?? boundsMap.get(rawId.toLowerCase());
     if (!elBounds) return null;
     anchorPt = { x: elBounds.x + elBounds.width / 2, y: elBounds.y };
-    boxOrigin = { x: anchorPt.x + anno.position.x, y: anchorPt.y + anno.position.y };
   } else {
     anchorPt = anno.anchor.point;
-    boxOrigin = anno.position;
   }
 
   // Measure text
@@ -104,7 +129,25 @@ function layoutAnnotation(
   const lineH = typography.baseFontSize * typography.lineHeight;
   const boxW = textW;
   const boxH = lines.length * lineH + ANNO_PAD * 2;
-  const { x, y } = boxOrigin;
+
+  let x: number;
+  let y: number;
+  if ('elementId' in anno.anchor) {
+    x = anchorPt.x - boxW / 2 + anno.position.x;
+    // Default position.y is -60; place box 14px above anchor point, adjusted by any custom offset
+    const yOffset = anno.position.y !== -60 ? anno.position.y : -boxH - 14;
+    y = anchorPt.y + yOffset;
+    if (anno.position.y === -60) {
+      // Check if the proposed box intersects a horizontal divider/axis line above the anchor
+      const obstLineY = findObstructingHorizontalLine(sceneElements, anchorPt.x, y, y + boxH);
+      if (obstLineY !== null) {
+        y = obstLineY - boxH - 14;
+      }
+    }
+  } else {
+    x = anno.position.x;
+    y = anno.position.y;
+  }
 
   // Connector: dashed line from closest box-edge point to anchor
   const connStart = closestEdgePoint({ x, y, width: boxW, height: boxH }, anchorPt);
@@ -341,13 +384,22 @@ function elementBoundsAt(el: SceneElement, ox: number, oy: number): Rect | null 
         width: el.radius * 2,
         height: el.radius * 2,
       };
-    case 'text':
+    case 'text': {
+      const w = el.content.length * el.fontSize * 0.52;
+      const anchor = (el as { anchor?: string }).anchor ?? 'start';
+      const startX =
+        anchor === 'middle'
+          ? el.position.x - w / 2
+          : anchor === 'end'
+            ? el.position.x - w
+            : el.position.x;
       return {
-        x: el.position.x + ox,
+        x: startX + ox,
         y: el.position.y - el.fontSize + oy,
-        width: el.content.length * el.fontSize * 0.5,
+        width: w,
         height: el.fontSize * 1.4,
       };
+    }
     case 'group': {
       const [tx, ty] = parseTranslate(el.transform);
       const kids = el.children

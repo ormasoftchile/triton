@@ -1,47 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1128 168" width="1128" height="168">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1181 274.5" width="1181" height="274.5">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="1128" height="168" fill="#FFFFFF" />
-  <path d="M 144 84 L 184 84" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 304 84 L 344 84" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 464 84 L 484 84 L 484 44 L 504 44" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="484" y="60" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">yes</text>
-  <path d="M 464 84 L 484 84 L 484 124 L 504 124" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="484" y="100" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">no</text>
-  <path d="M 624 44 L 644 44 L 644 64 L 664 64" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 784 64 L 824 64" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 944 64 L 984 64" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="0" y="0" width="1181" height="274.5" fill="#FFFFFF" />
+  <path d="M 144 155 L 184 155" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 304 155 L 344 155" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 428 99.5 L 428 79.5 L 552 79.5" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="490" y="75.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">yes</text>
+  <path d="M 428 210.5 L 428 230.5 L 552 230.5" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="490" y="226.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">no</text>
+  <path d="M 672 79.5 L 712 79.5" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 832 79.5 L 872 79.5" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 997 79.5 L 1037 79.5" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="cart">
-    <rect x="24" y="64" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="84" y="88.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Shopping Cart</text>
+    <rect x="24" y="135" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="84" y="159.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Shopping Cart</text>
   </g>
   <g id="checkout">
-    <rect x="184" y="64" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="244" y="88.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Checkout</text>
+    <rect x="184" y="135" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="244" y="159.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Checkout</text>
   </g>
   <g id="pay">
-    <path d="M 404 64 L 464 84 L 404 104 L 344 84 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
-    <text x="404" y="88.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Payment OK?</text>
+    <path d="M 428 99.5 L 512 155 L 428 210.5 L 344 155 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+    <text x="428" y="159.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Payment OK?</text>
   </g>
   <g id="reserve">
-    <rect x="504" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="564" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Reserve Stock</text>
+    <rect x="552" y="59.5" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="612" y="84.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Reserve Stock</text>
   </g>
   <g id="decline">
-    <rect x="504" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="20" />
-    <text x="564" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Decline Order</text>
+    <rect x="552" y="210.5" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="612" y="235.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Decline Order</text>
   </g>
   <g id="ship">
-    <rect x="664" y="44" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="20" />
-    <text x="724" y="68.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Ship Order</text>
+    <rect x="712" y="59.5" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="20" />
+    <text x="772" y="84.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Ship Order</text>
   </g>
   <g id="email">
-    <rect x="824" y="44" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="20" />
-    <text x="884" y="68.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Email Customer</text>
+    <rect x="872" y="59.5" width="125" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="934.5" y="84.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Email Customer</text>
   </g>
   <g id="done">
-    <rect x="984" y="44" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="20" />
-    <text x="1044" y="68.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Complete</text>
+    <rect x="1037" y="59.5" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="20" />
+    <text x="1097" y="84.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Complete</text>
   </g>
 </svg>

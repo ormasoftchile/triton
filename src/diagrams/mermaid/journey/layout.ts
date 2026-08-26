@@ -109,7 +109,7 @@ export function layoutJourney(ir: JourneyDocument, theme: ResolvedTheme): Layout
     if (idxs.length === 0) return;
     const x0 = taskX(idxs[0]!) - step / 2;
     const x1 = taskX(idxs[idxs.length - 1]!) + step / 2;
-    const hue = categoricalHue(si);
+    const hue = categoricalHue(si, theme);
     elements.push(
       p.rect(
         { x: rhu(x0), y: margin + titleH, width: rhu(x1 - x0 - 6), height: sectionBandH },

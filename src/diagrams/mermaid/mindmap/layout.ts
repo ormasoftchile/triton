@@ -69,7 +69,7 @@ export function layoutMindmap(ir: MindmapDocument, theme: ResolvedTheme): Layout
     const h = info.lineCount > 1 ? rhu(info.lineCount * (f * 1.25) + 14) : baseH;
 
     const kids = node.children.map((c, i) =>
-      place(c, depth + 1, depth === 0 ? categoricalHue(i) : hue),
+      place(c, depth + 1, depth === 0 ? categoricalHue(i, theme) : hue),
     );
     let y: number;
     if (kids.length === 0) {

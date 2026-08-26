@@ -47,12 +47,58 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
   };
   const sizes = new Map(ir.states.map((s) => [s.id, sizeOf(s)]));
 
-  const nodes: GraphNode[] = ir.states.map((s) => ({
+  const composites = ir.composites ?? [];
+  const compositeIds = new Set(composites.map((c) => c.id));
+  const compositeMap = new Map(composites.map((c) => [c.id, c]));
+
+  // Find inner start/end nodes to hide them from the layout if composite has real members
+  const innerPseudostates = new Set<string>();
+  for (const comp of composites) {
+    for (const id of comp.nodeIds) {
+      if (id.startsWith('__start_') || id.startsWith('__end_')) {
+        innerPseudostates.add(id);
+      }
+    }
+  }
+
+  // Real member IDs per composite (excluding inner pseudostates if real members exist)
+  const compositeMemberIds = new Map<string, readonly string[]>();
+  for (const comp of composites) {
+    const realMembers = comp.nodeIds.filter((id) => !innerPseudostates.has(id));
+    compositeMemberIds.set(comp.id, realMembers.length > 0 ? realMembers : comp.nodeIds);
+  }
+
+  // For graph layout, composite containers are represented by their member flow.
+  // Real nodes to lay out exclude the composite container IDs themselves and inner pseudostates.
+  const layoutStates = ir.states.filter(
+    (s) => !compositeIds.has(s.id) && !innerPseudostates.has(s.id),
+  );
+  const nodes: GraphNode[] = layoutStates.map((s) => ({
     id: s.id,
     width: sizes.get(s.id)!.w,
     height: sizes.get(s.id)!.h,
   }));
-  const edges: GraphEdge[] = ir.transitions.map((t) => ({ from: t.from, to: t.to }));
+
+  // Map transitions to appropriate graph edge endpoints:
+  // If an edge targets a composite (e.g. Idle --> Processing), map it to the entry node of Processing.
+  // If an edge leaves a composite (e.g. Processing --> Authorized), map it from the exit node of Processing.
+  const edges: GraphEdge[] = [];
+  for (const t of ir.transitions) {
+    if (innerPseudostates.has(t.from) || innerPseudostates.has(t.to)) {
+      continue;
+    }
+    let from = t.from;
+    let to = t.to;
+    const fromMembers = compositeMemberIds.get(from);
+    if (fromMembers && fromMembers.length > 0) {
+      from = fromMembers[fromMembers.length - 1]!;
+    }
+    const toMembers = compositeMemberIds.get(to);
+    if (toMembers && toMembers.length > 0) {
+      to = toMembers[0]!;
+    }
+    edges.push({ from, to });
+  }
   const laid = layeredLayout(nodes, edges, { direction: 'TB', layerGap: 56, nodeGap: 40, margin });
 
   const title = ir.metadata.title;
@@ -73,12 +119,12 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
     );
 
   // ── Composite containers (bounding boxes around members) ──────────────────
-  const composites = ir.composites ?? [];
   const containerRect = new Map<string, { x: number; y: number; width: number; height: number }>();
   const hidden = new Set<string>(); // composite node ids hidden in favour of their container
   for (const comp of composites) {
-    const memberIdSet = new Set(comp.nodeIds);
-    const rects = comp.nodeIds
+    const members = compositeMemberIds.get(comp.id) ?? comp.nodeIds;
+    const memberIdSet = new Set(members);
+    const rects = members
       .map((id) => laid.boxes.get(id))
       .filter((r): r is NonNullable<typeof r> => !!r);
     if (rects.length === 0) continue;
@@ -145,7 +191,10 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
 
   // ── Transitions ────────────────────────────────────────────────────────────
   const allBoxes = [...laid.boxes.values()];
+  let validEdgeIdx = 0;
   for (const t of ir.transitions) {
+    if (innerPseudostates.has(t.from) || innerPseudostates.has(t.to)) continue;
+    const currentEdgeIdx = validEdgeIdx++;
     const a = rectFor(t.from),
       b = rectFor(t.to);
     if (!a || !b) continue;
@@ -158,7 +207,17 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
     const fromBox = laid.boxes.get(t.from),
       toBox = laid.boxes.get(t.to);
     let edgePath: string;
-    if (fromBox && toBox) {
+    const bends = laid.edgeBends.get(currentEdgeIdx);
+    if (bends && bends.length > 0 && fromBox && toBox) {
+      const fromPt = { x: a.x + a.width / 2, y: a.y + a.height };
+      const boxesAbove = allBoxes.filter((box) => box.y + box.height + yOff <= b.y);
+      const lowestObstacleBottom =
+        boxesAbove.length > 0 ? Math.max(...boxesAbove.map((box) => box.y + box.height + yOff)) : fromPt.y;
+      const turnY = (lowestObstacleBottom + b.y) / 2;
+      const targetPt = borderPoint(b, fromPt.x, turnY);
+      const pts = [fromPt, { x: fromPt.x, y: turnY }, targetPt];
+      edgePath = pts.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${rhu(p.x)} ${rhu(p.y)}`).join(' ');
+    } else if (fromBox && toBox) {
       ({ path: edgePath } = routeEdge(fromBox, toBox, allBoxes, yOff));
     } else {
       edgePath = `M ${rhu(pa.x)} ${rhu(pa.y)} L ${rhu(pb.x)} ${rhu(pb.y)}`;
@@ -207,7 +266,7 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
 
   // ── States ─────────────────────────────────────────────────────────────────
   for (const s of ir.states) {
-    if (hidden.has(s.id)) continue;
+    if (hidden.has(s.id) || innerPseudostates.has(s.id)) continue;
     const box = laid.boxes.get(s.id)!;
     const x = box.x,
       y = box.y + yOff;

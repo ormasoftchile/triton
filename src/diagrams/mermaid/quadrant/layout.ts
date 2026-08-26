@@ -58,11 +58,12 @@ export function layoutQuadrant(ir: QuadrantDocument, theme: ResolvedTheme): Layo
     { x: midX, y: midY, hue: 3 }, // q4 bottom-right
   ];
   quads.forEach((q, i) => {
+    const qColor = categoricalHue(q.hue, theme);
     elements.push(
       p.rect(
         { x: q.x, y: q.y, width: half, height: half },
-        categoricalHue(q.hue),
-        categoricalHue(q.hue),
+        qColor,
+        qColor,
         0,
         { opacity: 0.12 },
       ),
@@ -75,7 +76,7 @@ export function layoutQuadrant(ir: QuadrantDocument, theme: ResolvedTheme): Layo
           rhuInt(q.x + half / 2),
           q.y + typography.baseFontSize + 12,
           typography.baseFontSize,
-          categoricalHue(q.hue),
+          qColor,
           { weight: 'bold', anchor: 'middle' },
         ),
       );

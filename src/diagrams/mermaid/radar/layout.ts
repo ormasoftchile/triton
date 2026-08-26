@@ -95,7 +95,7 @@ export function layoutRadar(ir: RadarDocument, theme: ResolvedTheme): LayoutResu
 
   // ── Curves ─────────────────────────────────────────────────────────────────
   ir.curves.forEach((curve, ci) => {
-    const color = categoricalHue(ci);
+    const color = categoricalHue(ci, theme);
     const pts = axes.map((_, i) => {
       const v = curve.values[i] ?? min;
       const frac = Math.max(0, Math.min(1, (v - min) / span));
@@ -116,11 +116,12 @@ export function layoutRadar(ir: RadarDocument, theme: ResolvedTheme): LayoutResu
   let legendW = 0;
   ir.curves.forEach((curve, ci) => {
     const ly = legendTop + ci * (legendFont + 10);
+    const swatchColor = categoricalHue(ci, theme);
     elements.push(
       p.rect(
         { x: legendX, y: ly, width: swatch, height: swatch },
-        categoricalHue(ci),
-        categoricalHue(ci),
+        swatchColor,
+        swatchColor,
         0,
         { rx: 2 },
       ),

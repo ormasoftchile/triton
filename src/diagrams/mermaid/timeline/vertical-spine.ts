@@ -68,7 +68,7 @@ export function layoutVerticalSpine(ir: TimelineDocument, theme: ResolvedTheme):
         ? palette.primary
         : e.statusHint === 'blocked'
           ? palette.error
-          : categoricalHue(i);
+          : categoricalHue(i, theme);
   });
 
   // ── Geometry constants ────────────────────────────────────────────────────

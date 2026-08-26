@@ -123,7 +123,7 @@ export function layoutXYChart(ir: XYChartDocument, theme: ResolvedTheme): Layout
   const groupW = bandW * 0.62;
   const barW = groupW / nBars;
   barSeries.forEach((s, si) => {
-    const color = categoricalHue(si);
+    const color = categoricalHue(si, theme);
     (s.values as number[]).forEach((v, i) => {
       const x = catX(i) - groupW / 2 + si * barW;
       const y = yToPx(v);
@@ -139,7 +139,7 @@ export function layoutXYChart(ir: XYChartDocument, theme: ResolvedTheme): Layout
 
   // ── Lines (drawn on top) ─────────────────────────────────────────────────
   lineSeries.forEach((s, si) => {
-    const color = categoricalHue(barSeries.length + si);
+    const color = categoricalHue(barSeries.length + si, theme);
     const pts = (s.values as number[]).map((v, i) => `${rhu(catX(i))} ${yToPx(v)}`);
     if (pts.length) {
       elements.push(p.path(`M ${pts.join(' L ')}`, color, 2.5));

@@ -59,11 +59,39 @@ export function layoutRequirement(ir: RequirementDocument, theme: ResolvedTheme)
 
   // ── Relationships ──────────────────────────────────────────────────────────
   const allBoxes = [...laid.boxes.values()];
-  for (const r of ir.relations) {
+  ir.relations.forEach((r, ri) => {
     const a = laid.boxes.get(r.from),
       b = laid.boxes.get(r.to);
-    if (!a || !b) continue;
-    const { path, labelMidpoint } = routeEdge(a, b, allBoxes);
+    if (!a || !b) return;
+
+    let path: string;
+    let labelMidpoint: { x: number; y: number };
+
+    const bends = laid.edgeBends.get(ri);
+    if (bends && bends.length > 0) {
+      const fromPt = { x: a.x + a.width / 2, y: a.y + a.height };
+      const toPt = { x: b.x + b.width / 2, y: b.y };
+      const pts: Array<{ x: number; y: number }> = [fromPt];
+      for (const pt of bends) {
+        pts.push({ x: pt.x, y: pt.y });
+      }
+      const lastBend = bends[bends.length - 1]!;
+      const boxesAbove = allBoxes.filter((box) => box.y + box.height <= toPt.y);
+      const lowestObstacleBottom =
+        boxesAbove.length > 0 ? Math.max(...boxesAbove.map((box) => box.y + box.height)) : fromPt.y;
+      const turnY = (lowestObstacleBottom + toPt.y) / 2;
+      pts.length = 0;
+      pts.push(fromPt);
+      pts.push({ x: fromPt.x, y: turnY });
+      pts.push({ x: toPt.x, y: turnY });
+      pts.push(toPt);
+
+      path = pts.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${rhu(p.x)} ${rhu(p.y)}`).join(' ');
+      labelMidpoint = { x: (fromPt.x + toPt.x) / 2, y: turnY };
+    } else {
+      ({ path, labelMidpoint } = routeEdge(a, b, allBoxes));
+    }
+
     elements.push(p.path(path, palette.textMuted, 1.3, { dash: '6 4', markerEnd: ARROW_ID }));
     const mx = labelMidpoint.x,
       my = labelMidpoint.y;
@@ -81,7 +109,7 @@ export function layoutRequirement(ir: RequirementDocument, theme: ResolvedTheme)
         anchor: 'middle',
       }),
     );
-  }
+  });
 
   // ── Nodes ──────────────────────────────────────────────────────────────────
   for (const n of ir.nodes) {

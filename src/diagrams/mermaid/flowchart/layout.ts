@@ -348,14 +348,14 @@ export function layoutFlowchart(
       continue;
     }
 
-    // Forward edge — default orthogonal route; an @route hint may override the
-    // routing style (straight | bezier | polyline) and/or the exit/entry walls.
+    const fromNode = ir.nodes.find((n) => n.id === edge.from);
+    const toNode = ir.nodes.find((n) => n.id === edge.to);
     const fromAnchor = edge.exitWall
       ? wallAnchor(fromRect, edge.exitWall)
-      : edgeAnchor(fromRect, ir.direction, 'exit', toRect);
+      : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape);
     const toAnchor = edge.entryWall
       ? wallAnchor(toRect, edge.entryWall)
-      : edgeAnchor(toRect, ir.direction, 'enter', fromRect);
+      : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape);
 
     const style: RouteStyle = edge.routing ?? 'orthogonal';
     const router = getRouter(style) ?? defaultRouter;
@@ -527,8 +527,10 @@ export function layoutFlowchart(
     const fromRect = nodePos.get(edge.from);
     const toRect = nodePos.get(edge.to);
     if (!fromRect || !toRect) continue;
-    const fromAnch = edgeAnchor(fromRect, ir.direction, 'exit', toRect);
-    const toAnch = edgeAnchor(toRect, ir.direction, 'enter', fromRect);
+    const fromNode = ir.nodes.find((n) => n.id === edge.from);
+    const toNode = ir.nodes.find((n) => n.id === edge.to);
+    const fromAnch = edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape);
+    const toAnch = edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape);
     occupiedPorts.push({
       nodeKey: edge.from,
       wall: fromAnch.portDir as CardinalSide,
@@ -844,7 +846,10 @@ function assignCoordinatesBK(
    * (Individual nodes may be narrower; they are centred within their slot
    *  in the final rect-emission loop below.)
    */
-  function onePass(topDown: boolean): Map<string, number> {
+  function onePass(
+    topDown: boolean,
+    fallbackPositions?: Map<string, number>,
+  ): Map<string, number> {
     const crossPos = new Map<string, number>();
     const neighborMap = topDown ? predMap : succMap;
     const indices = topDown
@@ -867,7 +872,12 @@ function assignCoordinatesBK(
         const nbrPos = nbrs
           .map((nid) => crossPos.get(nid))
           .filter((p): p is number => p !== undefined);
-        if (nbrPos.length === 0) return centeredStart + i * crossStep;
+        if (nbrPos.length === 0) {
+          if (fallbackPositions && fallbackPositions.has(node.id)) {
+            return fallbackPositions.get(node.id)!;
+          }
+          return centeredStart + i * crossStep;
+        }
         return nbrPos.reduce((s, p) => s + p, 0) / nbrPos.length;
       });
 
@@ -885,7 +895,7 @@ function assignCoordinatesBK(
   }
 
   const pass1 = onePass(true); // predecessor-aligned (top-down)
-  const pass2 = onePass(false); // successor-aligned   (bottom-up)
+  const pass2 = onePass(false, pass1); // successor-aligned   (bottom-up)
 
   // Average the two passes and emit Rect entries.
   // Each node is centred within its cross-axis slot and within its layer band.
@@ -902,7 +912,17 @@ function assignCoordinatesBK(
     for (const node of nodes) {
       const c1 = pass1.get(node.id) ?? margin;
       const c2 = pass2.get(node.id) ?? margin;
-      const slotLeft = (c1 + c2) / 2;
+      const preds = predMap.get(node.id) ?? [];
+      const succs = succMap.get(node.id) ?? [];
+
+      let slotLeft: number;
+      if (preds.length === 1 && succs.length !== 1) {
+        slotLeft = c1;
+      } else if (succs.length === 1 && preds.length !== 1) {
+        slotLeft = c2;
+      } else {
+        slotLeft = (c1 + c2) / 2;
+      }
 
       const nw = getW(node.id);
       const nh = getH(node.id);
@@ -1045,7 +1065,13 @@ function wallAnchor(
   }
 }
 
-function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: Rect): AnchorResult {
+function edgeAnchor(
+  r: Rect,
+  dir: FlowDirection,
+  role: 'exit' | 'enter',
+  peer: Rect,
+  nodeShape?: string,
+): AnchorResult {
   const cx = r.x + r.width / 2;
   const cy = r.y + r.height / 2;
   const pcx = peer.x + peer.width / 2;
@@ -1057,6 +1083,13 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
   const isLR = dir === 'LR' || dir === 'RL';
 
   if (isLR) {
+    // Decision diamond lateral exits in LR (West/East is main axis; North/South is lateral)
+    if (nodeShape === 'diamond' && role === 'exit') {
+      if (dy < -1) return { point: { x: cx, y: r.y }, portDir: 'N' };
+      if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+      return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+    }
+
     // Primary axis is horizontal
     const offAxis = Math.abs(dy);
     const onAxis = Math.abs(dx);
@@ -1076,6 +1109,13 @@ function edgeAnchor(r: Rect, dir: FlowDirection, role: 'exit' | 'enter', peer: R
       ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
       : { point: { x: r.x, y: cy }, portDir: 'W' };
   } else {
+    // Decision diamond lateral exits in TD/TB/BT (North/South is main axis; West/East is lateral)
+    if (nodeShape === 'diamond' && role === 'exit') {
+      if (dx < -1) return { point: { x: r.x, y: cy }, portDir: 'W' };
+      if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+      return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+    }
+
     // Primary axis is vertical
     const offAxis = Math.abs(dx);
     const onAxis = Math.abs(dy);

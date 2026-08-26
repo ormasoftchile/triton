@@ -156,7 +156,7 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
   // ── Blocks ─────────────────────────────────────────────────────────────────
   ir.blocks.forEach((b, i) => {
     const r = rects.get(b.id)!;
-    const hue = categoricalHue(i);
+    const hue = categoricalHue(i, theme);
     const info = blockInfos.get(b.id);
     elements.push(
       p.rect(
