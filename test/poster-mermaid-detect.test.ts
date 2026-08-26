@@ -69,4 +69,53 @@ describe('poster embedded Mermaid detection', () => {
     expect(svg).toContain('Poster Window');
     expect(svg).not.toContain('packet-beta');
   });
+
+  it('renders explicit :: block-beta and :: packet-beta cell annotations', async () => {
+    const src = [
+      'poster "Explicit Kinds"',
+      '    columns 2',
+      '',
+      '    cell b "Block" :: block-beta',
+      '        columns 2',
+      '        Front["Front Node"]',
+      '        Back["Back Node"]',
+      '        Front --> Back',
+      '    end',
+      '',
+      '    cell p "Packet" :: packet-beta',
+      '        0-15: "Source Port"',
+      '        16-31: "Dest Port"',
+      '    end',
+      '',
+    ].join('\n');
+
+    const result = await render(src);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toContain('Front Node');
+    expect(result.value).toContain('Back Node');
+    expect(result.value).toContain('Source Port');
+    expect(result.value).toContain('Dest Port');
+    expect(result.value).not.toContain('[block-beta]');
+    expect(result.value).not.toContain('[packet-beta]');
+  });
+
+  it('renders explicit :: state cell annotations without PEG collision with stat', async () => {
+    const src = [
+      'poster "State Poster"',
+      '    columns 1',
+      '',
+      '    cell s "State Machine" :: state',
+      '        [*] --> Active',
+      '        Active --> [*]',
+      '    end',
+      '',
+    ].join('\n');
+
+    const result = await render(src);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toContain('Active');
+    expect(result.value).not.toContain('[state]');
+  });
 });

@@ -64,32 +64,121 @@ export const poster: DiagramModule<PosterDocument> = {
   },
 };
 
+const DEFAULT_HEADERS: Partial<Record<DiagramKind, string>> = {
+  block: 'block-beta\n',
+  packet: 'packet-beta\n',
+  architecture: 'architecture-beta\n',
+  flowchart: 'flowchart TD\n',
+  sequence: 'sequenceDiagram\n',
+  state: 'stateDiagram-v2\n',
+  class: 'classDiagram\n',
+  er: 'erDiagram\n',
+  gitgraph: 'gitGraph\n',
+  gantt: 'gantt\n',
+  journey: 'journey\n',
+  pie: 'pie\n',
+  quadrant: 'quadrantChart\n',
+  requirement: 'requirementDiagram\n',
+  c4: 'C4Context\n',
+  sankey: 'sankey-beta\n',
+  timeline: 'timeline\n',
+  mindmap: 'mindmap\n',
+  kanban: 'kanban\n',
+  xychart: 'xychart-beta\n',
+  radar: 'radar-beta\n',
+  tree: 'tree\n',
+  plan: 'plan\n',
+  list: 'list\n',
+  fishbone: 'fishbone\n',
+  pyramid: 'pyramid\n',
+  loop: 'loop\n',
+  topology: 'topology\n',
+  nodegraph: 'nodegraph\n',
+};
+
+function canonicalDiagramKind(rawKind: string): DiagramKind | undefined {
+  if (!rawKind) return undefined;
+  const k = rawKind.trim();
+  const lower = k.toLowerCase();
+
+  // Exact canonical match first
+  if (getModule(lower as DiagramKind)) return lower as DiagramKind;
+
+  // Direct match using detect's matchMermaid (handles C4Context, stateDiagram, packet, block, etc.)
+  const matched = matchMermaid(k) ?? matchMermaid(lower);
+  if (matched && getModule(matched)) return matched;
+
+  // Specific common aliases
+  if (lower === 'flow') return 'flowchart';
+  if (lower.startsWith('block')) return 'block';
+  if (lower.startsWith('packet')) return 'packet';
+  if (lower.startsWith('arch')) return 'architecture';
+  if (lower.startsWith('seq')) return 'sequence';
+  if (lower.startsWith('state')) return 'state';
+  if (lower.startsWith('class')) return 'class';
+  if (lower.startsWith('er')) return 'er';
+  if (lower.startsWith('git')) return 'gitgraph';
+  if (lower.startsWith('quad')) return 'quadrant';
+  if (lower.startsWith('req')) return 'requirement';
+  if (lower.startsWith('sankey')) return 'sankey';
+  if (lower.startsWith('radar')) return 'radar';
+  if (lower.startsWith('xychart')) return 'xychart';
+  if (lower.startsWith('mind')) return 'mindmap';
+  if (lower.startsWith('time')) return 'timeline';
+  if (lower.startsWith('kan')) return 'kanban';
+
+  return undefined;
+}
+
+function ensureDiagramHeader(kind: DiagramKind, rawContent: string): string {
+  const trimmed = rawContent.trimStart();
+  if (!trimmed) return rawContent;
+
+  // If the body already starts with a recognized keyword that matches this kind, keep as is
+  const detected = matchMermaid(trimmed);
+  if (detected === kind) return rawContent;
+
+  const defaultHeader = DEFAULT_HEADERS[kind];
+  if (defaultHeader) {
+    return defaultHeader + rawContent;
+  }
+
+  // Data structure types (array, avl, queue, stack, etc.)
+  if (!trimmed.startsWith(kind)) {
+    return `${kind} ${rawContent}`;
+  }
+
+  return rawContent;
+}
+
 function parseCell(raw: any): import('./ir.js').CellContent {
   const kind: string | null | undefined = raw.kind;
   const inferredKind = inferCellKind(raw.rawContent);
-  const resolvedKind = kind || inferredKind;
+  const rawKind = (kind || inferredKind || '').trim();
 
   // Poster-specific primitives (no diagram module needed)
-  if (resolvedKind === 'stat') {
+  if (rawKind === 'stat') {
     const [value, label] = raw.rawContent.split('|').map((s: string) => s.trim());
     return { kind: 'stat', value: value ?? '', label };
   }
-  if (resolvedKind === 'text') {
+  if (rawKind === 'text') {
     return { kind: 'text', text: raw.rawContent.trim() };
   }
 
-  // Normalise aliases to canonical DiagramKind
-  const diagramKind: DiagramKind =
-    resolvedKind === 'flow' ? 'flowchart' : (resolvedKind as DiagramKind);
+  // Normalise aliases / variants to canonical DiagramKind
+  const diagramKind = canonicalDiagramKind(rawKind);
 
-  const module = getModule(diagramKind);
-  if (!module) {
+  const module = diagramKind ? getModule(diagramKind) : undefined;
+  if (!module || !diagramKind) {
     // Unknown diagram kind — degrade to text
     return { kind: 'text', text: raw.rawContent.trim() };
   }
 
+  // Ensure appropriate header keyword if missing when explicit :: kind is declared
+  const preparedContent = ensureDiagramHeader(diagramKind, raw.rawContent);
+
   // Ensure trailing newline — sub-parsers (PEG grammars) require it
-  const content = raw.rawContent.endsWith('\n') ? raw.rawContent : raw.rawContent + '\n';
+  const content = preparedContent.endsWith('\n') ? preparedContent : preparedContent + '\n';
   return { kind: 'diagram', diagramKind, doc: module.parseMermaid(content) };
 }
 

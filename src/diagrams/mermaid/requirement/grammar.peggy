@@ -7,7 +7,7 @@
 }}
 
 Document
-  = fm:Frontmatter? _ "requirementDiagram"i LineEnd stmts:Statement* _ {
+  = fm:Frontmatter? _ ("requirementDiagram"i / "requirement"i) LineEnd stmts:Statement* _ {
       const nodes = [];
       const relations = [];
       for (const s of stmts.filter(Boolean)) {

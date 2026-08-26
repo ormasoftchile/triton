@@ -27,7 +27,7 @@ const MERMAID_PATTERNS: [RegExp, DiagramKind][] = [
   [/^C4(Context|Container|Component|Dynamic|Deployment)/i, 'c4'],
   [/^sankey/i, 'sankey'],
   [/^kanban/i, 'kanban'],
-  [/^requirement(Diagram)?/i, 'requirement'],
+  [/^requirementDiagram\b/i, 'requirement'],
   [/^gitGraph/i, 'gitgraph'],
   [/^packet/i, 'packet'],
   [/^pie\b/i, 'pie'],

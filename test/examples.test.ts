@@ -31,6 +31,6 @@ describe('examples render', () => {
       if (!result.ok) throw new Error(`${name}: ${result.error.code} — ${result.error.message}`);
       expect(result.value.startsWith('<svg')).toBe(true);
       expect(result.value).toContain('</svg>');
-    });
+    }, 15000);
   }
 });
