@@ -17,5 +17,11 @@ memory
   title quoted memory labels
   region "Stack Frame"
     var "current pointer" -> obj
+    var "next pointer" -> obj2
+    var "another pointer" -> obj3
+    var "yet another pointer" -> obj4
   region HEAP
     object obj : "Point Record" : x=1, y=2
+    object obj2 : "Point Record" : x=1, y=2
+    object obj3 : "Point Record" : x=1, y=2
+    object obj4 : "Point Record" : x=1, y=2

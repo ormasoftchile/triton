@@ -256,13 +256,13 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
     const key = target.includes('.') ? target.slice(target.indexOf('.') + 1) : target;
     const to = idBox.get(key);
     if (!to) continue;
-    const origin: Rect = {
-      x: from.x + from.width - 12,
-      y: from.y + from.height / 2 - 1,
-      width: 2,
-      height: 2,
-    };
-    const { start, end } = connectSlots(origin, to);
+    const startX = from.x + from.width - 12;
+    const startY = from.y + from.height / 2;
+    const start = { x: startX, y: startY };
+    // Connect to the near horizontal wall of target object at header height
+    const endX = startX <= to.x ? to.x : to.x + to.width;
+    const endY = to.y + Math.min(to.height / 2, 18);
+    const end = { x: endX, y: endY };
     elements.push(
       p.path(
         `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`,

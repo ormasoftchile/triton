@@ -63,6 +63,42 @@ describe('memory', () => {
     expect(anchors['obj']!.bounds.x).toBeGreaterThan(anchors['p']!.bounds.x);
   });
 
+  it('attaches cross-region pointers consistently to target object left wall without vertical drift', () => {
+    const manySrc = [
+      'memory',
+      '  region STACK',
+      '    var p1 -> obj1',
+      '    var p2 -> obj2',
+      '    var p3 -> obj3',
+      '    var p4 -> obj4',
+      '  region HEAP',
+      '    object obj1 : Point : x=1, y=1',
+      '    object obj2 : Point : x=2, y=2',
+      '    object obj3 : Point : x=3, y=3',
+      '    object obj4 : Point : x=4, y=4',
+      '',
+    ].join('\n');
+    const ir = memory.parseMermaid(manySrc);
+    const { scene, anchors } = layoutMemory(ir, defaultTheme);
+    const arrows = scene.elements.filter(
+      (e): e is ScenePath => e.type === 'path' && e.markerEnd != null,
+    );
+    expect(arrows).toHaveLength(4);
+    for (let i = 1; i <= 4; i++) {
+      const objBounds = anchors[`obj${i}`]!.bounds;
+      const arrowD = arrows[i - 1]!.d;
+      const m = arrowD.match(/L\s*([0-9.]+)\s+([0-9.]+)/);
+      expect(m).not.toBeNull();
+      const endX = parseFloat(m![1]!);
+      const endY = parseFloat(m![2]!);
+      // End point must hit the left edge of the object
+      expect(endX).toBeCloseTo(objBounds.x, 1);
+      // End point must hit inside the object header area
+      expect(endY).toBeGreaterThanOrEqual(objBounds.y);
+      expect(endY).toBeLessThanOrEqual(objBounds.y + 24);
+    }
+  });
+
   it('uses theme-derived translucent fills for memory panels', () => {
     const theme = {
       ...defaultTheme,
