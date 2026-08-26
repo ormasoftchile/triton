@@ -43,12 +43,17 @@ export function parseAxisToken(
  * points opposite it (markerStart) so a single straight segment can carry two
  * outward-pointing heads — the deque case.
  */
-export function arrowDefs(color: string): string {
+export function arrowDefs(color: string, size = 8): string {
+  const s = size;
+  const sH = s;
+  const sMidY = rhu(s / 2);
+  const sRefXFwd = rhu(s - 1);
+  const sRefXRev = rhu(1);
   return (
-    `<marker id="${ARROW_FWD}" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">` +
-    `<path d="M0 0 L8 4 L0 8 z" fill="${color}" /></marker>` +
-    `<marker id="${ARROW_REV}" markerWidth="9" markerHeight="9" refX="2" refY="4" orient="auto">` +
-    `<path d="M8 0 L0 4 L8 8 z" fill="${color}" /></marker>`
+    `<marker id="${ARROW_FWD}" markerWidth="${s + 1}" markerHeight="${sH}" refX="${sRefXFwd}" refY="${sMidY}" orient="auto">` +
+    `<path d="M0 0 L${s} ${sMidY} L0 ${sH} z" fill="${color}" /></marker>` +
+    `<marker id="${ARROW_REV}" markerWidth="${s + 1}" markerHeight="${sH}" refX="${sRefXRev}" refY="${sMidY}" orient="auto">` +
+    `<path d="M${s} 0 L0 ${sMidY} L${s} ${sH} z" fill="${color}" /></marker>`
   );
 }
 

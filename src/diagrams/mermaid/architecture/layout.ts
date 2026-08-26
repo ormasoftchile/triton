@@ -753,11 +753,18 @@ export function layoutArchitecture(
   const vbX = rhuInt(Math.min(0, ...allRects.map((r) => r.x)) - margin);
   const vbY = rhuInt(Math.min(0, ...allRects.map((r) => r.y)) - margin);
 
+  const s = theme.edges?.arrowSize ?? 8;
+  const sW = s * 2;
+  const sH = rhu(sW * 0.8125);
+  const sMidY = rhu(sH / 2);
+  const sRefX = rhu(sW * 0.9);
+  const sRefXStart = rhu(sW * 0.1);
+
   const defs = [
-    `<marker id="${ARROW_END_ID}" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto">` +
-      `<polygon points="0 0, 16 6.5, 0 13" fill="${palette.primary}" /></marker>`,
-    `<marker id="${ARROW_START_ID}" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse">` +
-      `<polygon points="0 0, 16 6.5, 0 13" fill="${palette.primary}" /></marker>`,
+    `<marker id="${ARROW_END_ID}" markerUnits="userSpaceOnUse" markerWidth="${sW}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto">` +
+      `<polygon points="0 0, ${sW} ${sMidY}, 0 ${sH}" fill="${palette.primary}" /></marker>`,
+    `<marker id="${ARROW_START_ID}" markerUnits="userSpaceOnUse" markerWidth="${sW}" markerHeight="${sH}" refX="${sRefXStart}" refY="${sMidY}" orient="auto-start-reverse">` +
+      `<polygon points="0 0, ${sW} ${sMidY}, 0 ${sH}" fill="${palette.primary}" /></marker>`,
   ];
 
   const scene: Scene = applyOverlays(

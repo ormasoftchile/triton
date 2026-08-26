@@ -71,8 +71,8 @@ export function layoutLoop(doc: LoopDocument, theme: ResolvedTheme): LayoutResul
       const len = Math.hypot(tangentX, tangentY) || 1;
       const ux = tangentX / len;
       const uy = tangentY / len;
-      const arrowLen = 8;
-      const arrowW = 5;
+      const arrowLen = theme.edges?.arrowSize ?? 8;
+      const arrowW = arrowLen * 0.6;
 
       const ax1 = p2x - ux * arrowLen + uy * arrowW;
       const ay1 = p2y - uy * arrowLen - ux * arrowW;

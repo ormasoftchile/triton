@@ -221,7 +221,9 @@ export function layoutQueue(doc: QueueDoc, theme: ResolvedTheme): LayoutResult {
     anchors[`c${i}`] = { bounds: slot };
   });
 
-  const finalized = finalizeStripScene(elements, anchors, theme, [arrowDefs(palette.primary)]);
+  const finalized = finalizeStripScene(elements, anchors, theme, [
+    arrowDefs(palette.primary, theme.edges?.arrowSize),
+  ]);
   return { scene: finalized.scene, anchors: finalized.anchors as NodeAnchorRegistry };
 }
 

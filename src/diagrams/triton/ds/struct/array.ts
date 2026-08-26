@@ -411,7 +411,7 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
     },
     background: palette.background,
     elements: shiftedElements,
-    defs: [arrowDef(palette.primary)],
+    defs: [arrowDef(palette.primary, theme.edges?.arrowSize)],
   };
   return { scene, anchors: shiftedAnchors as NodeAnchorRegistry };
 }

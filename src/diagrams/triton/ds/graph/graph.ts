@@ -41,8 +41,12 @@ const ARROW_ACTIVE_ID = 'dsgraph-arrow-active';
 
 import { readableText } from '../../../../theme/contrast.js';
 
-function graphArrowDef(color: string, id: string): string {
-  return `<marker id="${id}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="${color}" /></marker>`;
+function graphArrowDef(color: string, id: string, size = 8): string {
+  const s = size;
+  const sH = rhu(s * 0.7);
+  const sMidY = rhu(s * 0.35);
+  const sRefX = rhu(s - 1);
+  return `<marker id="${id}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${color}" /></marker>`;
 }
 
 export interface GNode {
@@ -500,7 +504,12 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     background: palette.background,
     elements,
     ...(doc.directed
-      ? { defs: [graphArrowDef(palette.textMuted, ARROW_ID), graphArrowDef(palette.primary, ARROW_ACTIVE_ID)] }
+      ? {
+          defs: [
+            graphArrowDef(palette.textMuted, ARROW_ID, theme.edges?.arrowSize ?? 8),
+            graphArrowDef(palette.primary, ARROW_ACTIVE_ID, theme.edges?.arrowSize ?? 8),
+          ],
+        }
       : {}),
   };
   return { scene, anchors: anchors as NodeAnchorRegistry };

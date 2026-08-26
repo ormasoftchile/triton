@@ -220,7 +220,9 @@ export function layoutCQueue(doc: CQueueDoc, theme: ResolvedTheme): LayoutResult
     elements.push(...front.elements, ...rear.elements);
   }
 
-  const finalized = finalizeStripScene(elements, anchors, theme, [arrowDefs(palette.primary)]);
+  const finalized = finalizeStripScene(elements, anchors, theme, [
+    arrowDefs(palette.primary, theme.edges?.arrowSize),
+  ]);
   return { scene: finalized.scene, anchors: finalized.anchors as NodeAnchorRegistry };
 }
 

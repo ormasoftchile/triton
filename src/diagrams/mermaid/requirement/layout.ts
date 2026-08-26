@@ -160,8 +160,12 @@ export function layoutRequirement(ir: RequirementDocument, theme: ResolvedTheme)
     }
   }
 
+  const s = theme.edges?.arrowSize ?? 8;
+  const openW = s + 1;
+  const openH = rhu(s * 0.8);
+  const openMidY = rhu(openH / 2);
   const defs = [
-    `<marker id="${ARROW_ID}" markerWidth="11" markerHeight="9" refX="9" refY="4.5" orient="auto"><polyline points="0 0, 10 4.5, 0 9" fill="none" stroke="${palette.textMuted}" stroke-width="1.3" /></marker>`,
+    `<marker id="${ARROW_ID}" markerWidth="${openW}" markerHeight="${openH}" refX="${s}" refY="${openMidY}" orient="auto"><polyline points="0 0, ${s} ${openMidY}, 0 ${openH}" fill="none" stroke="${palette.textMuted}" stroke-width="1.3" /></marker>`,
   ];
 
   const scene: Scene = applyOverlays(

@@ -195,7 +195,7 @@ export function layoutPage(doc: PageDoc, theme: ResolvedTheme): LayoutResult {
     viewBox: { x: 0, y: 0, width: pageW + margin * 2, height: py + pageH + margin },
     background: palette.background,
     elements,
-    defs: [arrowDef(palette.textMuted)],
+    defs: [arrowDef(palette.textMuted, theme.edges?.arrowSize)],
   };
   // Expose the PageHeader bar as chrome so the poster label de-collision pass
   // keeps cross-link labels from landing on top of it.

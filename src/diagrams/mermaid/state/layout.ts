@@ -320,8 +320,12 @@ export function layoutState(ir: StateDocument, theme: ResolvedTheme): LayoutResu
 
   const totalW = rhuInt(laid.width + margin);
   const totalH = rhuInt(laid.height + yOff + margin);
+  const s = theme.edges?.arrowSize ?? 8;
+  const sH = rhu(s * 0.7);
+  const sMidY = rhu(s * 0.35);
+  const sRefX = rhu(s - 1);
   const defs = [
-    `<marker id="${ARROW_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="${palette.textMuted}" /></marker>`,
+    `<marker id="${ARROW_ID}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.textMuted}" /></marker>`,
   ];
 
   const scene: Scene = applyOverlays(

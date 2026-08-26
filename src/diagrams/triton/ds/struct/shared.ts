@@ -12,8 +12,11 @@ export const ARROW_ID = 'struct-arrow';
  * (8 sw-units × 1.5 = 12 px). Active edges (sw=2.5) now get the same
  * arrowhead size instead of the previous ~1.67× balloon.
  */
-export function arrowDef(color: string): string {
-  return `<marker id="${ARROW_ID}" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="${color}" /></marker>`;
+export function arrowDef(color: string, size?: number): string {
+  const s = size != null ? size * 1.5 : 12;
+  const sMidY = s / 2;
+  const sRefX = s * (10 / 12);
+  return `<marker id="${ARROW_ID}" markerWidth="${s}" markerHeight="${s}" refX="${sRefX}" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L${s} ${sMidY} L0 ${s} z" fill="${color}" /></marker>`;
 }
 
 /** Tokens on the keyword line and directive lines, trimmed and split. */

@@ -188,9 +188,13 @@ export function layoutBlock(ir: BlockDocument, theme: ResolvedTheme): LayoutResu
 
   const maxRight = Math.max(margin, ...[...rects.values()].map((r) => r.x + r.width));
   const maxBottom = Math.max(top, ...[...rects.values()].map((r) => r.y + r.height));
+  const s = theme.edges?.arrowSize ?? 8;
+  const sH = rhu(s * 0.7);
+  const sMidY = rhu(s * 0.35);
+  const sRefX = rhu(s - 1);
   const defs = [
-    `<marker id="${ARROW_END_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`,
-    `<marker id="${ARROW_START_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 10 4, 0 8" fill="${palette.primary}" /></marker>`,
+    `<marker id="${ARROW_END_ID}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.primary}" /></marker>`,
+    `<marker id="${ARROW_START_ID}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.primary}" /></marker>`,
   ];
 
   const scene: Scene = applyOverlays(

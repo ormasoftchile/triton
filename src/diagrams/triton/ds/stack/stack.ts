@@ -179,7 +179,9 @@ export function layoutStack(doc: StackDoc, theme: ResolvedTheme): LayoutResult {
     anchors[`c${i}`] = { bounds: slot };
   });
 
-  const finalized = finalizeStripScene(elements, anchors, theme, [arrowDef(palette.primary)]);
+  const finalized = finalizeStripScene(elements, anchors, theme, [
+    arrowDef(palette.primary, theme.edges?.arrowSize),
+  ]);
   return { scene: finalized.scene, anchors: finalized.anchors as NodeAnchorRegistry };
 }
 

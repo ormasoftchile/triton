@@ -295,7 +295,7 @@ export function layoutHashmap(doc: HashmapDoc, theme: ResolvedTheme): LayoutResu
     viewBox: { x: 0, y: 0, width, height },
     background: palette.background,
     elements,
-    defs: [arrowDef(palette.primary)],
+    defs: [arrowDef(palette.primary, theme.edges?.arrowSize)],
   };
   return { scene, anchors: anchors as NodeAnchorRegistry };
 }

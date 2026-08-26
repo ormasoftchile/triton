@@ -13,13 +13,14 @@ import type { ResolvedTheme } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { measureText } from '../../../text/metrics.js';
+import { readableText } from '../../../theme/contrast.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 
 const ARROW_ID = 'seq-arrow';
 const OPEN_ID = 'seq-open';
 
 export function layoutSequence(ir: SequenceDocument, theme: ResolvedTheme): LayoutResult {
-  const { palette, typography, spacing } = theme;
+  const { palette, typography, spacing, edges } = theme;
   const p = pen(theme);
   const margin = spacing.diagramMargin;
 
@@ -229,18 +230,21 @@ export function layoutSequence(ir: SequenceDocument, theme: ResolvedTheme): Layo
         { x: rhu(left), y: rhu(top), width: rhu(right - left), height: rhu(bodyBottom - top) },
         'none',
         palette.border,
-        1.2,
+        1.5,
         { rx: 4 },
       ),
     );
     // label tab
     const tabW = measureText(f.type.toUpperCase(), typography.smallFontSize).width + 16;
+    const tabFill = palette.surface;
+    const tabTextColor = readableText(tabFill, theme);
     fragEls.push(
       p.rect(
         { x: rhu(left), y: rhu(top), width: rhu(tabW), height: 18 },
+        tabFill,
         palette.border,
-        palette.border,
-        0,
+        1.5,
+        { rx: 3 },
       ),
     );
     fragEls.push(
@@ -249,7 +253,7 @@ export function layoutSequence(ir: SequenceDocument, theme: ResolvedTheme): Layo
         rhu(left + 8),
         rhu(top + 13),
         typography.smallFontSize,
-        palette.background,
+        tabTextColor,
         { weight: 'bold' },
       ),
     );
@@ -266,8 +270,8 @@ export function layoutSequence(ir: SequenceDocument, theme: ResolvedTheme): Layo
       );
     for (const e of f.elses) {
       fragEls.push(
-        p.path(`M ${rhu(left)} ${rhu(e.y)} L ${rhu(right)} ${rhu(e.y)}`, palette.border, 1, {
-          dash: '4 3',
+        p.path(`M ${rhu(left)} ${rhu(e.y)} L ${rhu(right)} ${rhu(e.y)}`, palette.border, 1.2, {
+          dash: '5 4',
         }),
       );
       if (e.label)
@@ -301,19 +305,19 @@ export function layoutSequence(ir: SequenceDocument, theme: ResolvedTheme): Layo
       p.path(
         `M ${rhu(x)} ${rhu(headTop + headH)} L ${rhu(x)} ${rhu(bodyBottom)}`,
         palette.border,
-        1,
-        { dash: '3 4' },
+        1.5,
+        { dash: '4 4' },
       ),
     );
     const hx = rhu(x - colW / 2);
     const fill = pt.isActor ? palette.primary : palette.surface;
-    const txtFill = pt.isActor ? '#FFFFFF' : palette.text;
+    const txtFill = pt.isActor ? readableText(palette.primary, theme) : palette.text;
     elements.push(
       p.rect(
         { x: hx, y: rhu(headTop), width: rhu(colW), height: headH },
         fill,
         palette.border,
-        1.2,
+        1.5,
         { rx: 6 },
       ),
     );
@@ -331,9 +335,17 @@ export function layoutSequence(ir: SequenceDocument, theme: ResolvedTheme): Layo
   const totalW = rhuInt(maxX + colW / 2 + margin);
   const totalH = rhuInt(bodyBottom + margin);
 
+  const s = edges?.arrowSize ?? 8;
+  const sH = rhu(s * 0.7);
+  const sMidY = rhu(s * 0.35);
+  const sRefX = rhu(s - 1);
+  const openW = s + 1;
+  const openH = rhu(s * 0.8);
+  const openMidY = rhu(openH / 2);
+
   const defs = [
-    `<marker id="${ARROW_ID}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="${palette.text}" /></marker>`,
-    `<marker id="${OPEN_ID}" markerWidth="11" markerHeight="9" refX="9" refY="4.5" orient="auto"><polyline points="0 0, 10 4.5, 0 9" fill="none" stroke="${palette.text}" stroke-width="1.3" /></marker>`,
+    `<marker id="${ARROW_ID}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.text}" /></marker>`,
+    `<marker id="${OPEN_ID}" markerWidth="${openW}" markerHeight="${openH}" refX="${s}" refY="${openMidY}" orient="auto"><polyline points="0 0, ${s} ${openMidY}, 0 ${openH}" fill="none" stroke="${palette.text}" stroke-width="1.3" /></marker>`,
   ];
 
   const scene: Scene = applyOverlays(
