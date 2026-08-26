@@ -484,7 +484,7 @@ describe('routeConnectors', () => {
         visibleEnd.y - visiblePrev.y,
       );
       const motionPaths = animateMotionPaths(svg);
-      const expectedClearance = 7 * path.strokeWidth + dotRadii[anim];
+      const expectedClearance = 7 + dotRadii[anim];
       expect(motionPaths.length).toBeGreaterThan(0);
 
       for (const motionPath of motionPaths) {

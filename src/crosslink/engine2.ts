@@ -36,6 +36,7 @@ import type { ResolvedTheme } from '../contracts/theme.js';
 import { createRouter } from '../routing/router.js';
 import { wavifyPath } from './render.js';
 import { crossLinkMarkerId } from './markers.js';
+import { rhu } from '../util/round.js';
 
 export interface CrossLinkRenderResult {
   readonly defs: string[];
@@ -467,16 +468,19 @@ export function routeAndRenderCrossLinks2(
 
   // ── Defs ──────────────────────────────────────────────────────────────────
   const s = edgeTheme.arrowSize;
+  const sH = rhu(s * 0.7);
+  const sMidY = rhu(s * 0.35);
+  const sRefX = rhu(s - 1);
   for (const [id, color] of arrowMarkerColors) {
     defs.push(
-      `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="${s - 1}" refY="${s * 0.35}" orient="auto">` +
-        `<polygon points="0 0, ${s} ${s * 0.35}, 0 ${s * 0.7}" fill="${color}" /></marker>`,
+      `<marker id="${id}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse">` +
+        `<polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${color}" /></marker>`,
     );
   }
   for (const [id, color] of biArrowMarkerColors) {
     defs.push(
-      `<marker id="${id}" markerWidth="${s}" markerHeight="${s * 0.7}" refX="1" refY="${s * 0.35}" orient="auto">` +
-        `<polygon points="${s} 0, 0 ${s * 0.35}, ${s} ${s * 0.7}" fill="${color}" /></marker>`,
+      `<marker id="${id}" markerWidth="${s}" markerHeight="${sH}" refX="1" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse">` +
+        `<polygon points="${s} 0, 0 ${sMidY}, ${s} ${sH}" fill="${color}" /></marker>`,
     );
   }
 

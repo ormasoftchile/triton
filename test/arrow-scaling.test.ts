@@ -109,4 +109,29 @@ describe('Universal Arrowhead Scaling across all diagram types', () => {
     // 6 * 1.5 = 9
     expect(res.value).toContain('id="struct-arrow" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5"');
   });
+
+  it('scales crosslink arrowheads in posters with markerUnits=userSpaceOnUse and custom arrowSize', () => {
+    const src = `poster "Cross Link Test"
+    columns 2
+
+    cell q "Plan" :: plan
+        plan
+            Hash Join
+                Seq Scan orders
+                Index Scan customers
+    end
+
+    cell a "Array" :: array
+        array 5 8 13
+    end
+
+    link q.n2 --> a.c0 "uses index"
+`;
+    const res = renderSync(src, { edges: { arrowSize: 6 } }, 'svg');
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+
+    // Crosslink marker should use markerUnits="userSpaceOnUse" so it does not balloon with line stroke
+    expect(res.value).toMatch(/<marker id="triton-crosslink-arrow-[^"]+" markerWidth="6" markerHeight="4.2" refX="5" refY="2.1" orient="auto" markerUnits="userSpaceOnUse">/);
+  });
 });
