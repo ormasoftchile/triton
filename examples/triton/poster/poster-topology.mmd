@@ -19,11 +19,11 @@ poster "Multi-Tier Infrastructure & Deployment Poster"
 
   cell flow "CI/CD & Observability Pipeline" :: flowchart
     flowchart TD
-      Git["Git Push"] --> Build["Docker Build"]
-      Build --> Test["Integration Tests"]
-      Test --> Deploy["Rolling Deploy"]
-      Deploy --> Monitor["Prometheus Metrics"]
+      git["Git Push"] --> build["Docker Build"]
+      build --> test["Integration Tests"]
+      test --> deploy["Rolling Deploy"]
+      deploy --> monitor["Prometheus Metrics"]
   end
 
-  link flow.Deploy --> net.api1 @orthogonal "Deploys Image"
-  link net.api2 --> flow.Monitor @bezier "Exports Telemetry"
+  link flow.deploy --> net.api1 @orthogonal "Deploys Image"
+  link net.api2 --> flow.monitor @bezier "Exports Telemetry"

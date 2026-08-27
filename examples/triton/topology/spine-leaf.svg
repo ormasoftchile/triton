@@ -1,56 +1,72 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624 454" width="624" height="454">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 726 504" width="726" height="504">
   <defs>
     <marker id="topo-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
     <marker id="topo-arrow-start" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="624" height="454" fill="#FFFFFF" />
+  <rect x="0" y="0" width="726" height="504" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Datacenter Clos Spine-Leaf Fabric</text>
-  <path d="M 161.9163 256 L 154.0837 256 L 154.0837 256 L 288.1259 256" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="192.55" y="247" width="64.94" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="225.02" y="259.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
-  <path d="M 161.9163 256 L 276.1259 256 L 276.1259 256 L 428.1259 256" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="262.55" y="247" width="64.94" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="295.02" y="259.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
-  <path d="M 301.9163 256 L 288.1259 256" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="262.55" y="247" width="64.94" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="295.02" y="259.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
-  <path d="M 301.9163 256 L 276.1259 256 L 276.1259 256 L 428.1259 256" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="332.55" y="247" width="64.94" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="365.02" y="259.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
-  <rect x="26.083699999999993" y="228" width="135.8326" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="32.08369999999999" y="221.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="53.613899999999994" y="231.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
-  <text x="94" y="250" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Spine Switch 01</text>
-  <text x="94" y="270" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">100 Gbps</text>
-  <rect x="166.0837" y="228" width="135.8326" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="172.0837" y="221.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="193.6139" y="231.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
-  <text x="234" y="250" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Spine Switch 02</text>
-  <text x="234" y="270" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">100 Gbps</text>
-  <rect x="288.1259" y="228" width="171.7482" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="294.1259" y="221.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="315.6561" y="231.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
-  <text x="374" y="250" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ToR Leaf 01 (Rack A)</text>
-  <text x="374" y="270" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">40 Gbps</text>
-  <rect x="428.1259" y="228" width="171.7482" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="434.1259" y="221.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="455.6561" y="231.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
-  <text x="514" y="250" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ToR Leaf 02 (Rack B)</text>
-  <text x="514" y="270" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">40 Gbps</text>
-  <rect x="39" y="374" width="110" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="45" y="367.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="67.3078" y="377.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
-  <text x="94" y="406.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">10.0.1.10]</text>
-  <rect x="179" y="374" width="110" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="185" y="367.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="207.3078" y="377.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
-  <text x="234" y="406.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">10.0.1.11]</text>
-  <rect x="319" y="374" width="110" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="325" y="367.5" width="20.5334" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="335.2667" y="377.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DB</text>
-  <text x="374" y="406.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">10.0.2.10]</text>
-  <rect x="459" y="374" width="110" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
-  <rect x="465" y="367.5" width="20.5334" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
-  <text x="475.2667" y="377.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DB</text>
-  <text x="514" y="406.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">10.0.2.11]</text>
+  <path d="M 279 144 L 279 199 L 279 199 L 279 254" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="245.53" y="189.5" width="66.94" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="279" y="202.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
+  <path d="M 308.35 144 L 364 144 L 364 254 L 419.65 254" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="330.53" y="189.5" width="66.94" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="364" y="202.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
+  <path d="M 419.65 144 L 364 144 L 364 254 L 308.35 254" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="330.53" y="189.5" width="66.94" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="364" y="202.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
+  <path d="M 449 144 L 449 199 L 449 199 L 449 254" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="415.53" y="189.5" width="66.94" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="449" y="202.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
+  <path d="M 249.65 312 L 194 312 L 194 422 L 138.35 422" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="155.82" y="357.5" width="76.35" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="194" y="370.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
+  <path d="M 279 312 L 279 367 L 279 367 L 279 422" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="240.82" y="357.5" width="76.35" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="279" y="370.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
+  <path d="M 449 312 L 449 367 L 449 367 L 449 422" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="410.82" y="357.5" width="76.35" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="449" y="370.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
+  <path d="M 478.35 312 L 534 312 L 534 422 L 589.65 422" stroke="#4A90D9" stroke-width="1.8" fill="none" />
+  <rect x="495.82" y="357.5" width="76.35" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="534" y="370.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
+  <rect x="209.0837" y="86" width="139.8326" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="215.0837" y="79.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="236.6139" y="89.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
+  <text x="279" y="110" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Spine Switch 01</text>
+  <text x="279" y="130" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">100 Gbps</text>
+  <rect x="379.0837" y="86" width="139.8326" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="385.0837" y="79.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="406.6139" y="89.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
+  <text x="449" y="110" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Spine Switch 02</text>
+  <text x="449" y="130" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">100 Gbps</text>
+  <rect x="191.1259" y="254" width="175.7482" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="197.1259" y="247.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="218.6561" y="257.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
+  <text x="279" y="278" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ToR Leaf 01 (Rack A)</text>
+  <text x="279" y="298" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">40 Gbps</text>
+  <rect x="361.1259" y="254" width="175.7482" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="367.1259" y="247.5" width="43.0604" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="388.6561" y="257.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SWITCH</text>
+  <text x="449" y="278" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ToR Leaf 02 (Rack B)</text>
+  <text x="449" y="298" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">40 Gbps</text>
+  <rect x="33.622299999999996" y="422" width="150.7554" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="39.622299999999996" y="415.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="61.930099999999996" y="425.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+  <text x="109" y="446" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Compute Host 01</text>
+  <text x="109" y="466" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">eth0: 10.0.1.10</text>
+  <rect x="203.6223" y="422" width="150.7554" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="209.6223" y="415.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="231.93009999999998" y="425.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+  <text x="279" y="446" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Compute Host 02</text>
+  <text x="279" y="466" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">eth0: 10.0.1.11</text>
+  <rect x="365.4393" y="422" width="167.1214" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="371.4393" y="415.5" width="20.5334" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="381.706" y="425.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DB</text>
+  <text x="449" y="446" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">PostgreSQL Primary</text>
+  <text x="449" y="466" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">eth0: 10.0.2.10</text>
+  <rect x="535.8425" y="422" width="166.315" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="541.8425" y="415.5" width="20.5334" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="552.1092" y="425.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DB</text>
+  <text x="619" y="446" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">PostgreSQL Replica</text>
+  <text x="619" y="466" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">eth0: 10.0.2.11</text>
 </svg>

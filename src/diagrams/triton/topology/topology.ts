@@ -12,7 +12,7 @@
  *      - `subnet "10.0.1.0/24" "Public Subnet"`
  *      - `zone "DMZ"`, `vlan 100 "Prod VLAN"`, `rack "Rack-01"`
  *   4. Topology layout patterns:
- *      - `pattern spine-leaf` (Spines -> Leaves -> Compute)
+ *      - `pattern spine-leaf` (Spines -> Leaves -> Compute tiered Clos network)
  *      - `pattern hub-spoke` / `star` (Central Hub with radial/perimeter Spokes)
  *      - `pattern ring` (Circular loop topology)
  *      - `pattern mesh` (Full/partial mesh topology)
@@ -38,9 +38,8 @@ import type {
 } from '../../../contracts/index.js';
 import { pen } from '../../../scene/build.js';
 import { measureText } from '../../../text/metrics.js';
-import { connectSlots, borderPoint } from '../../../graph/connect.js';
+import { borderPoint } from '../../../graph/connect.js';
 import { classifyCost, buildLegend, type CostScale, type CostTier } from '../../../style/cost.js';
-import { getRouter } from '../../../routing/registry.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 
@@ -183,7 +182,7 @@ function parse(input: string): TopologyDoc {
       let label = '';
       let cidr: string | undefined;
 
-      if (rest.includes(':')) {
+      if (gType === 'group' && rest.includes(':') && !rest.includes('"')) {
         const parts = rest.split(':').map((s) => s.trim());
         id = parts[0]!;
         label = parts[1] || id;
@@ -240,7 +239,8 @@ function parse(input: string): TopologyDoc {
       let sub: string | undefined;
       let ip: string | undefined;
 
-      if (rest.includes(':')) {
+      if (role === 'node' && rest.includes(':') && !rest.includes('"')) {
+        // Legacy syntax: `node N0 : Node 0 : CPU+RAM`
         const parts = rest.split(':').map((s) => s.trim());
         id = parts[0]!;
         label = parts[1] || id;
@@ -360,14 +360,14 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
   const margin = spacing.diagramMargin;
   const font = typography.baseFontSize;
   const small = typography.smallFontSize;
-  const titleH = doc.title ? typography.titleFontSize + 20 : 0;
+  const titleH = doc.title ? typography.titleFontSize + 24 : 0;
 
   const nodeWidth = (n: TopoNode): number =>
     Math.max(
-      110,
-      Math.max(measureText(n.label, font).width, measureText(n.sub ?? '', small).width) + 36,
+      120,
+      Math.max(measureText(n.label, font).width, measureText(n.sub ?? '', small).width) + 40,
     );
-  const nodeH = doc.nodes.some((n) => n.sub || n.role) ? 56 : 42;
+  const nodeH = doc.nodes.some((n) => n.sub || n.role) ? 58 : 42;
 
   const elements: SceneElement[] = [];
   const box = new Map<string, Rect>();
@@ -390,38 +390,45 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
   // ─── Layout Positioning Strategies ──────────────────────────────────────────
 
   if (doc.pattern === 'spine-leaf') {
-    // Spine-Leaf layout: 3 tiers (Spines top, Leaves middle, Compute bottom)
-    const spines = doc.nodes.filter((n) => n.role === 'spine' || n.id.toLowerCase().includes('spine'));
-    const leaves = doc.nodes.filter((n) => n.role === 'leaf' || n.role === 'tor' || n.role === 'switch' || n.id.toLowerCase().includes('leaf'));
-    const compute = doc.nodes.filter((n) => !spines.includes(n) && !leaves.includes(n));
+    // 3-Tier Spine-Leaf Clos Network Layout
+    const isSpine = (n: TopoNode) => n.role === 'spine' || n.id.toLowerCase().startsWith('spine');
+    const isLeaf = (n: TopoNode) =>
+      !isSpine(n) && (n.role === 'leaf' || n.role === 'tor' || n.id.toLowerCase().startsWith('leaf') || n.role === 'switch');
+    const isCompute = (n: TopoNode) => !isSpine(n) && !isLeaf(n);
+
+    const spines = doc.nodes.filter(isSpine);
+    const leaves = doc.nodes.filter(isLeaf);
+    const compute = doc.nodes.filter(isCompute);
 
     const tiers = [spines, leaves, compute].filter((t) => t.length > 0);
     const startY = margin + titleH + 20;
-    const tierGap = 90;
-    const maxCols = Math.max(...tiers.map((t) => t.length), 1);
-    const colW = 140;
-    const totalW = maxCols * colW + margin * 2;
+    const tierGap = 110;
+    const maxCount = Math.max(...tiers.map((t) => t.length), 1);
+    const colSpacing = 170;
+    const totalContentW = maxCount * colSpacing;
 
     tiers.forEach((tierNodes, tIdx) => {
       const ty = startY + tIdx * (nodeH + tierGap);
-      const tierW = tierNodes.length * colW;
-      const startX = (totalW - tierW) / 2;
+      const tierW = tierNodes.length * colSpacing;
+      const startX = margin + (totalContentW - tierW) / 2;
 
       tierNodes.forEach((n, i) => {
         const w = nodeWidth(n);
-        const bx = startX + i * colW + (colW - w) / 2;
+        const bx = startX + i * colSpacing + (colSpacing - w) / 2;
         box.set(n.id, { x: bx, y: ty, width: w, height: nodeH });
       });
     });
   } else if (doc.pattern === 'hub-spoke' || doc.pattern === 'star') {
-    // Hub and Spoke radial layout
+    // Hub and Spoke radial layout with generous radius to prevent card collisions
     const hub = doc.nodes[0]!;
     const spokes = doc.nodes.slice(1);
-    const centerX = 360;
-    const centerY = margin + titleH + 200;
-    const radius = 160;
-
     const hubW = nodeWidth(hub);
+    const maxSpokeW = Math.max(...spokes.map(nodeWidth), 120);
+
+    const radius = Math.max(230, hubW / 2 + maxSpokeW / 2 + 70);
+    const centerX = margin + radius + maxSpokeW / 2 + 20;
+    const centerY = margin + titleH + radius + nodeH / 2 + 20;
+
     box.set(hub.id, { x: centerX - hubW / 2, y: centerY - nodeH / 2, width: hubW, height: nodeH });
 
     spokes.forEach((spoke, idx) => {
@@ -434,9 +441,10 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
   } else if (doc.pattern === 'ring') {
     // Ring circular loop layout
     const count = doc.nodes.length;
-    const centerX = 360;
-    const centerY = margin + titleH + 200;
-    const radius = 170;
+    const maxNodeW = Math.max(...doc.nodes.map(nodeWidth), 120);
+    const radius = Math.max(210, count * 35);
+    const centerX = margin + radius + maxNodeW / 2 + 20;
+    const centerY = margin + titleH + radius + nodeH / 2 + 20;
 
     doc.nodes.forEach((n, idx) => {
       const angle = (idx / count) * 2 * Math.PI - Math.PI / 2;
@@ -446,23 +454,24 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
       box.set(n.id, { x: nx - nw / 2, y: ny - nodeH / 2, width: nw, height: nodeH });
     });
   } else if (doc.groups.length > 0) {
-    // Grouped Containers (Subnets / Zones / Racks)
+    // Subnet / Zone Enclosures with clean vertical-column or side-by-side flow
     let gx = margin;
     const gy = margin + titleH + 10;
     let maxBottom = gy;
-    const GHEADER = 32,
-      GPAD = 16,
-      CGAP = 20,
-      GROUP_GAP = 40;
+    const GHEADER = 36,
+      GPAD = 20,
+      CGAP = 28,
+      GROUP_GAP = 60;
 
     for (const g of doc.groups) {
       const kids = doc.nodes.filter((n) => n.group === g.id);
-      const childW = Math.max(110, ...(kids.length > 0 ? kids.map(nodeWidth) : [110]));
-      const cols = Math.max(1, Math.min(3, Math.ceil(Math.sqrt(kids.length))));
+      const childW = Math.max(130, ...(kids.length > 0 ? kids.map(nodeWidth) : [130]));
+      // Use 1 column if <= 4 items for neat vertical stack, or 2 columns if larger
+      const cols = kids.length <= 4 ? 1 : 2;
       const rows = Math.max(1, Math.ceil(kids.length / cols));
       const innerW = cols * childW + (cols - 1) * CGAP;
       const innerH = rows * nodeH + (rows - 1) * CGAP;
-      const gw = Math.max(innerW + GPAD * 2, 180);
+      const gw = Math.max(innerW + GPAD * 2, 220);
       const gh = GHEADER + GPAD + innerH + GPAD;
 
       groupBox.set(g.id, { x: gx, y: gy, width: gw, height: gh });
@@ -489,10 +498,10 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     }
   } else {
     // Standard Grid layout
-    const nodeW = Math.max(110, ...doc.nodes.map(nodeWidth));
+    const nodeW = Math.max(130, ...doc.nodes.map(nodeWidth));
     const cols = Math.max(1, Math.ceil(Math.sqrt(doc.nodes.length)));
-    const colGap = 80,
-      rowGap = 64;
+    const colGap = 90,
+      rowGap = 70;
 
     doc.nodes.forEach((n, i) => {
       const col = i % cols;
@@ -521,13 +530,12 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     // Group Title Badge
     const tagText = g.cidr ? `${g.label} [${g.cidr}]` : g.label;
     elements.push(
-      p.text(tagText, gb.x + 14, gb.y + 20, small, palette.primary, { weight: 'bold' }),
+      p.text(tagText, gb.x + 16, gb.y + 22, small, palette.primary, { weight: 'bold' }),
     );
   }
 
   // ─── Render Edges & Connectors ──────────────────────────────────────────────
   const idBox = new Map<string, Rect>([...box, ...groupBox]);
-  const allObstacles = [...box.values()];
 
   for (const e of doc.edges) {
     const a = idBox.get(e.from);
@@ -541,33 +549,59 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
 
     const color = tier?.color ?? palette.primary;
     const strokeWidth = 1.8;
-    const { start, end } = connectSlots(a, b);
 
-    // Evaluate routing style
+    // Determine exit/entry attachment points
+    const acx = a.x + a.width / 2;
+    const acy = a.y + a.height / 2;
+    const bcx = b.x + b.width / 2;
+    const bcy = b.y + b.height / 2;
+
+    const dx = bcx - acx;
+    const dy = bcy - acy;
+
+    let start: Point;
+    let end: Point;
+
+    if (Math.abs(dx) > Math.abs(dy) * 1.3) {
+      // Dominantly horizontal layout
+      start = dx > 0 ? { x: a.x + a.width, y: acy } : { x: a.x, y: acy };
+      end = dx > 0 ? { x: b.x, y: bcy } : { x: b.x + b.width, y: bcy };
+    } else if (Math.abs(dy) > Math.abs(dx) * 1.3) {
+      // Dominantly vertical layout
+      start = dy > 0 ? { x: acx, y: a.y + a.height } : { x: acx, y: a.y };
+      end = dy > 0 ? { x: bcx, y: b.y } : { x: bcx, y: b.y + b.height };
+    } else {
+      // General ray border connection
+      start = borderPoint(a, bcx, bcy);
+      end = borderPoint(b, acx, acy);
+    }
+
     let pathD: string;
     let midPoint: Point = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
 
     if (e.routeStyle === 'orthogonal') {
-      const router = getRouter('orthogonal');
-      if (router) {
-        const obstacles = allObstacles.filter((o) => o !== a && o !== b);
-        const route = router.route({ from: start, to: end, style: 'orthogonal', obstacles, padding: 12 });
-        pathD = route.path;
-        if (route.labelPosition) midPoint = route.labelPosition;
-      } else {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal step-over
         const midX = (start.x + end.x) / 2;
         pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(midX)} ${rhu(start.y)} L ${rhu(midX)} ${rhu(end.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
+        midPoint = { x: midX, y: (start.y + end.y) / 2 };
+      } else {
+        // Vertical step-down
+        const midY = (start.y + end.y) / 2;
+        pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(start.x)} ${rhu(midY)} L ${rhu(end.x)} ${rhu(midY)} L ${rhu(end.x)} ${rhu(end.y)}`;
+        midPoint = { x: (start.x + end.x) / 2, y: midY };
       }
     } else if (e.routeStyle === 'bezier') {
-      const router = getRouter('bezier');
-      if (router) {
-        const route = router.route({ from: start, to: end, style: 'bezier', obstacles: [], padding: 12 });
-        pathD = route.path;
-        if (route.labelPosition) midPoint = route.labelPosition;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        const cx1 = start.x + dx * 0.45;
+        const cx2 = end.x - dx * 0.45;
+        pathD = `M ${rhu(start.x)} ${rhu(start.y)} C ${rhu(cx1)} ${rhu(start.y)}, ${rhu(cx2)} ${rhu(end.y)}, ${rhu(end.x)} ${rhu(end.y)}`;
       } else {
-        const cy = (start.y + end.y) / 2;
-        pathD = `M ${rhu(start.x)} ${rhu(start.y)} Q ${rhu((start.x + end.x) / 2)} ${rhu(cy - 20)} ${rhu(end.x)} ${rhu(end.y)}`;
+        const cy1 = start.y + dy * 0.45;
+        const cy2 = end.y - dy * 0.45;
+        pathD = `M ${rhu(start.x)} ${rhu(start.y)} C ${rhu(start.x)} ${rhu(cy1)}, ${rhu(end.x)} ${rhu(cy2)}, ${rhu(end.x)} ${rhu(end.y)}`;
       }
+      midPoint = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
     } else {
       // Straight direct link
       pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
@@ -581,18 +615,22 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
       }),
     );
 
-    // Interface Port Labels (at endpoints)
+    // Interface Port Labels (with offset avoiding arrow overlap)
     if (e.fromPort) {
+      const offsetX = start.x === a.x ? -6 : start.x === a.x + a.width ? 6 : 0;
+      const offsetY = start.y === a.y ? -6 : start.y === a.y + a.height ? 12 : -6;
       elements.push(
-        p.text(e.fromPort, start.x + (start.x < end.x ? 6 : -6), start.y - 6, small - 2, palette.textMuted, {
-          anchor: start.x < end.x ? 'start' : 'end',
+        p.text(e.fromPort, start.x + offsetX, start.y + offsetY, small - 2, palette.textMuted, {
+          anchor: offsetX < 0 ? 'end' : offsetX > 0 ? 'start' : 'middle',
         }),
       );
     }
     if (e.toPort) {
+      const offsetX = end.x === b.x ? -6 : end.x === b.x + b.width ? 6 : 0;
+      const offsetY = end.y === b.y ? -6 : end.y === b.y + b.height ? 12 : -6;
       elements.push(
-        p.text(e.toPort, end.x + (end.x < start.x ? 6 : -6), end.y - 6, small - 2, palette.textMuted, {
-          anchor: end.x < start.x ? 'start' : 'end',
+        p.text(e.toPort, end.x + offsetX, end.y + offsetY, small - 2, palette.textMuted, {
+          anchor: offsetX < 0 ? 'end' : offsetX > 0 ? 'start' : 'middle',
         }),
       );
     }
@@ -600,8 +638,8 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     // Edge Label / Cost Tag (in center)
     const labelText = e.label ?? (e.cost !== undefined ? (doc.scale.unit ? `${e.cost} ${doc.scale.unit}` : String(e.cost)) : undefined);
     if (labelText) {
-      const lw = measureText(labelText, small - 1).width + 12;
-      const lh = 18;
+      const lw = measureText(labelText, small - 1).width + 14;
+      const lh = 19;
       elements.push(
         p.rect(
           { x: rhu(midPoint.x - lw / 2), y: rhu(midPoint.y - lh / 2), width: rhu(lw), height: lh },
@@ -652,7 +690,7 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     }
 
     // Node Label
-    const textY = n.sub ? b.y + 22 : b.y + b.height / 2 + font * 0.35;
+    const textY = n.sub ? b.y + 24 : b.y + b.height / 2 + font * 0.35;
     elements.push(
       p.text(n.label, rhu(b.x + b.width / 2), rhu(textY), font, palette.text, {
         anchor: 'middle',
@@ -663,7 +701,7 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     // Subtitle / IP / Specs
     if (n.sub) {
       elements.push(
-        p.text(n.sub, rhu(b.x + b.width / 2), rhu(b.y + 42), small - 1, palette.textMuted, {
+        p.text(n.sub, rhu(b.x + b.width / 2), rhu(b.y + 44), small - 1, palette.textMuted, {
           anchor: 'middle',
         }),
       );
