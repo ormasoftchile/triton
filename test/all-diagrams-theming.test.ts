@@ -44,6 +44,12 @@ const SAMPLES: Record<string, string> = {
     'fishbone\n  title "Defect Analysis"\n  effect "Defect"\n  category Machine\n    "Motor stall"',
   pyramid: 'pyramid\n  title "Hierarchy"\n  "Top Tier"\n  "Base Tier"',
   loop: 'loop\n  title "Flywheel"\n  hub "Central DB"\n  step "Ingest"\n  step "Process"',
+  merkletree: 'merkletree\n  data "Tx1" "Tx2"',
+  lsmtree: 'lsmtree\n  memtable active "Active" [1 | 2]',
+  behaviortree: 'behaviortree\n  ? "Root"\n    [Action]',
+  quadtree: 'quadtree\n  insert (10, 10) "P1"',
+  treap: 'treap\n  insert (K:10, P:20)',
+  '234tree': '234tree\n  insert 10 20',
 };
 
 describe('Universal Theme & Frontmatter Support across ALL Diagram Types', () => {

@@ -6,6 +6,18 @@ import { parseLines, buildNodes } from './build.js';
 export type { TreeDocument, TreeNode, TreeDirection } from './ir.js';
 export { bplustree, buildBPlusTree, layoutBPlusTree } from './bplustree.js';
 export type { BPlusTreeDocument, BPlusTreeNode } from './bplustree.js';
+export { merkletree, buildMerkleTree, layoutMerkleTree } from './merkletree.js';
+export type { MerkleTreeDocument, MerkleNode } from './merkletree.js';
+export { lsmtree, buildLsmTree, layoutLsmTree } from './lsmtree.js';
+export type { LsmTreeDocument, LsmLevel, LsmSst, LsmMemtable } from './lsmtree.js';
+export { behaviortree, buildBehaviorTree, layoutBehaviorTree } from './behaviortree.js';
+export type { BehaviorTreeDocument, BehaviorTreeNode } from './behaviortree.js';
+export { quadtree, buildQuadTree, layoutQuadTree } from './quadtree.js';
+export type { QuadTreeDocument, QuadNode, QuadPoint } from './quadtree.js';
+export { treap, buildTreap, layoutTreap } from './treap.js';
+export type { TreapDocument, TreapNode } from './treap.js';
+export { tree234, buildTree234, layoutTree234 } from './tree234.js';
+export type { Tree234Document, Tree234Node } from './tree234.js';
 
 /** Pre-process `path A -> B -> C` directives, returning them separately. */
 function extractPathDirectives(input: string): { clean: string; paths: string[][] } {

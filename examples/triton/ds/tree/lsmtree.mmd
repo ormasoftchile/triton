@@ -1,0 +1,23 @@
+lsmtree
+  title "RocksDB Leveled LSM-Tree Architecture"
+  wal "Write-Ahead Log (WAL)"
+  memtable active "Active MemTable" [10 | 25 | 40]
+  memtable immutable "Immutable MemTable" [5 | 18 | 32]
+  level L0 "Level 0 (Overlapping)"
+    sst s0_1 [1..50] "64 MB"
+    sst s0_2 [25..75] "64 MB"
+  level L1 "Level 1 (Partitioned)"
+    sst s1_1 [1..30] "256 MB"
+    sst s1_2 [31..60] "256 MB"
+    sst s1_3 [61..90] "256 MB"
+  flush active -> L0
+  compact s0_2 -> s1_2
+%% ────────────────────────────────────────────────────────────────────────────
+%% LSMTREE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:   lsmtree
+%% Memory:   memtable <id> "<title>" [<k1> | <k2> …] · wal "<title>"
+%% Disk:     level <id> "<title>" · sst <id> [<min..max>] "<size>"
+%% Ops:      flush <from> -> <to> · compact <from> -> <to>
+%% Features: DRAM Buffer vs Disk tiers · SSTable blocks · Leveled compactions
+%% ────────────────────────────────────────────────────────────────────────────

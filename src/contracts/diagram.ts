@@ -169,7 +169,14 @@ export type DiagramKind =
   | 'list'
   | 'fishbone'
   | 'pyramid'
-  | 'loop';
+  | 'loop'
+  | 'merkletree'
+  | 'lsmtree'
+  | 'behaviortree'
+  | 'quadtree'
+  | 'treap'
+  | '234tree'
+  | '2-3-4tree';
 
 /** The two input formats Triton accepts. */
 export type InputFormat = 'mermaid' | 'yaml';

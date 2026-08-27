@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1046 338" width="1046" height="338">
+  <defs>
+    <marker id="quad-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+  </defs>
+  <rect x="0" y="0" width="1046" height="338" fill="#FFFFFF" />
+  <text x="523.1714" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Spatial Object Index (2D Collision Detection)</text>
+  <text x="140" y="68" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">SPATIAL 2D PARTITION</text>
+  <rect x="24" y="76" width="232" height="232" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <path d="M 140 76 L 140 308" stroke="#CBD5E1" stroke-width="1.2" fill="none" />
+  <path d="M 24 192 L 256 192" stroke="#CBD5E1" stroke-width="1.2" fill="none" />
+  <circle cx="70.4" cy="122.4" r="4.5" fill="#4A90D9" stroke="#FFFFFF" stroke-width="1.5" />
+  <text x="78.4" y="125.4" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Ship1 (20,20)</text>
+  <circle cx="198" cy="134" r="4.5" fill="#4A90D9" stroke="#FFFFFF" stroke-width="1.5" />
+  <text x="206" y="137" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Ship2 (75,25)</text>
+  <circle cx="105.19999999999999" cy="261.6" r="4.5" fill="#4A90D9" stroke="#FFFFFF" stroke-width="1.5" />
+  <text x="113.19999999999999" y="264.6" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Asteroid1 (35,80)</text>
+  <path d="M 198 192 L 198 308" stroke="#CBD5E1" stroke-width="1.2" fill="none" />
+  <path d="M 140 250 L 256 250" stroke="#CBD5E1" stroke-width="1.2" fill="none" />
+  <circle cx="174.79999999999998" cy="273.2" r="4.5" fill="#4A90D9" stroke="#FFFFFF" stroke-width="1.5" />
+  <text x="182.79999999999998" y="276.2" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Asteroid2 (65,85)</text>
+  <circle cx="221.2" cy="250" r="4.5" fill="#4A90D9" stroke="#FFFFFF" stroke-width="1.5" />
+  <text x="229.2" y="253" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Station (85,75)</text>
+  <path d="M 671.17 98 L 360 150" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <path d="M 671.17 98 L 460 150" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <path d="M 671.17 98 L 560 150" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <path d="M 671.17 98 L 821.17 156" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <path d="M 821.17 188 L 663.85 252" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <path d="M 821.17 188 L 770.04 252" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <path d="M 821.17 188 L 875.62 246" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <path d="M 821.17 188 L 980.61 246" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#quad-arrow)" />
+  <rect x="631.1714" y="66" width="80" height="32" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="671.17" y="85.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root</text>
+  <rect x="320" y="150" width="80" height="44" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="360" y="166" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-NW</text>
+  <text x="360" y="184" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle">Ship1</text>
+  <rect x="420" y="150" width="80" height="44" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="460" y="166" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-NE</text>
+  <text x="460" y="184" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle">Ship2</text>
+  <rect x="520" y="150" width="80" height="44" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="560" y="166" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-SW</text>
+  <text x="560" y="184" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle">Asteroid1</text>
+  <rect x="781.1714" y="156" width="80" height="32" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="821.17" y="175.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-SE</text>
+  <rect x="620" y="252" width="87.7021" height="32" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="663.85" y="271.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-SE-NW</text>
+  <rect x="727.7021" y="252" width="84.67269999999999" height="32" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="770.04" y="271.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-SE-NE</text>
+  <rect x="832.3747999999998" y="246" width="86.49869999999999" height="44" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="875.62" y="262" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-SE-SW</text>
+  <text x="875.62" y="280" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle">Asteroid2</text>
+  <rect x="938.8734999999999" y="246" width="83.4693" height="44" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="980.61" y="262" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Root-SE-SE</text>
+  <text x="980.61" y="280" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle">Station</text>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 318 216" width="318" height="216">
+  <defs>
+    <marker id="tree234-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+  </defs>
+  <rect x="0" y="0" width="318" height="216" fill="#FFFFFF" />
+  <text x="159.032" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">2-3-4 Search Tree</text>
+  <path d="M 99.61 100 L 43.81 158" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#tree234-arrow)" />
+  <path d="M 139.23 100 L 107.42 158" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#tree234-arrow)" />
+  <path d="M 178.84 100 L 171.03 158" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#tree234-arrow)" />
+  <path d="M 218.45 100 L 254.45 158" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#tree234-arrow)" />
+  <rect x="23.999999999999996" y="158" width="39.6128" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="4" />
+  <text x="43.81" y="179.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">10</text>
+  <text x="43.81" y="152" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2-node</text>
+  <rect x="87.6128" y="158" width="39.6128" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="4" />
+  <text x="107.42" y="179.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">30</text>
+  <text x="107.42" y="152" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2-node</text>
+  <rect x="151.2256" y="158" width="39.6128" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="4" />
+  <text x="171.03" y="179.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">50</text>
+  <text x="171.03" y="152" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">2-node</text>
+  <rect x="214.83839999999998" y="158" width="79.2256" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="4" />
+  <text x="234.64" y="179.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">70</text>
+  <path d="M 254.45 158 L 254.45 192" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="274.26" y="179.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">80</text>
+  <text x="254.45" y="152" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">3-node</text>
+  <rect x="99.61280000000001" y="66" width="118.83840000000001" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="4" />
+  <text x="119.42" y="87.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">20</text>
+  <path d="M 139.23 66 L 139.23 100" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="159.03" y="87.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">40</text>
+  <path d="M 178.84 66 L 178.84 100" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="198.64" y="87.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">60</text>
+  <text x="159.03" y="60" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">4-node</text>
+</svg>

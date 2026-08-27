@@ -1,0 +1,20 @@
+behaviortree
+  title "Enemy AI Combat Behavior Tree"
+  ? "Combat Root"
+    -> "Attack Sequence"
+      (Enemy In Range) { status: success }
+      (Has Weapon) { status: success }
+      [Fire Weapon] { status: running }
+    -> "Search & Reload"
+      (Knows Enemy Position) { status: failure }
+      [Reload Weapon] { status: idle }
+    [Patrol Perimeter]
+%% ────────────────────────────────────────────────────────────────────────────
+%% BEHAVIORTREE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:   behaviortree
+%% Ops:      ? (selector/fallback) · -> (sequence) · || (parallel)
+%% Nodes:    (condition) · [action] · decorator
+%% Status:   { status: success | running | failure | idle }
+%% Features: Game AI & Robotics control trees · Execution state badges
+%% ────────────────────────────────────────────────────────────────────────────

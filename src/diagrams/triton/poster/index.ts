@@ -93,10 +93,16 @@ const DEFAULT_HEADERS: Partial<Record<DiagramKind, string>> = {
   pyramid: 'pyramid\n',
   loop: 'loop\n',
   topology: 'topology\n',
-  nodegraph: 'nodegraph\n',
   bplustree: 'bplustree\n',
   'b+tree': 'bplustree\n',
   btree: 'btree\n',
+  merkletree: 'merkletree\n',
+  lsmtree: 'lsmtree\n',
+  behaviortree: 'behaviortree\n',
+  quadtree: 'quadtree\n',
+  treap: 'treap\n',
+  '234tree': '234tree\n',
+  '2-3-4tree': '234tree\n',
 };
 
 function canonicalDiagramKind(rawKind: string): DiagramKind | undefined {
@@ -121,6 +127,7 @@ function canonicalDiagramKind(rawKind: string): DiagramKind | undefined {
   if (lower.startsWith('class')) return 'class';
   if (lower.startsWith('er')) return 'er';
   if (lower.startsWith('git')) return 'gitgraph';
+  if (lower.startsWith('quadtree')) return 'quadtree';
   if (lower.startsWith('quad')) return 'quadrant';
   if (lower.startsWith('req')) return 'requirement';
   if (lower.startsWith('sankey')) return 'sankey';
@@ -130,6 +137,11 @@ function canonicalDiagramKind(rawKind: string): DiagramKind | undefined {
   if (lower.startsWith('time')) return 'timeline';
   if (lower.startsWith('bplus') || lower === 'b+tree') return 'bplustree';
   if (lower.startsWith('btree')) return 'btree';
+  if (lower.startsWith('merkle')) return 'merkletree';
+  if (lower.startsWith('lsm')) return 'lsmtree';
+  if (lower.startsWith('behavior')) return 'behaviortree';
+  if (lower.startsWith('treap')) return 'treap';
+  if (lower.startsWith('234') || lower.startsWith('2-3-4')) return '234tree';
   if (lower.startsWith('kan')) return 'kanban';
 
   return undefined;

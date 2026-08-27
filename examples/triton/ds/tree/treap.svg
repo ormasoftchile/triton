@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 392 398" width="392" height="398">
+  <defs>
+    <marker id="treap-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+  </defs>
+  <rect x="0" y="0" width="392" height="398" fill="#FFFFFF" />
+  <text x="196" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Treap (BST Search Keys + Max-Heap Priorities)</text>
+  <path d="M 104 284 L 58 336" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#treap-arrow)" />
+  <path d="M 104 284 L 150 336" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#treap-arrow)" />
+  <path d="M 150 194 L 104 246" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#treap-arrow)" />
+  <path d="M 150 194 L 242 246" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#treap-arrow)" />
+  <path d="M 196 104 L 150 156" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#treap-arrow)" />
+  <path d="M 196 104 L 334 156" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#treap-arrow)" />
+  <rect x="24" y="336" width="68" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="19" />
+  <text x="46" y="359.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">10</text>
+  <rect x="66.85" y="347" width="21.15" height="16" fill="#4A90D9" stroke="#4A90D9" stroke-width="1" rx="8" />
+  <text x="77.42" y="358.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">15</text>
+  <rect x="116" y="336" width="68" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="19" />
+  <text x="138" y="359.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">30</text>
+  <rect x="158.85" y="347" width="21.15" height="16" fill="#4A90D9" stroke="#4A90D9" stroke-width="1" rx="8" />
+  <text x="169.42" y="358.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">30</text>
+  <rect x="70" y="246" width="68" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="19" />
+  <text x="92" y="269.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">20</text>
+  <rect x="112.85" y="257" width="21.15" height="16" fill="#4A90D9" stroke="#4A90D9" stroke-width="1" rx="8" />
+  <text x="123.42" y="268.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">42</text>
+  <rect x="208" y="246" width="68" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="19" />
+  <text x="230" y="269.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">60</text>
+  <rect x="250.85" y="257" width="21.15" height="16" fill="#4A90D9" stroke="#4A90D9" stroke-width="1" rx="8" />
+  <text x="261.42" y="268.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">75</text>
+  <rect x="116" y="156" width="68" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="19" />
+  <text x="138" y="179.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">50</text>
+  <rect x="158.85" y="167" width="21.15" height="16" fill="#4A90D9" stroke="#4A90D9" stroke-width="1" rx="8" />
+  <text x="169.42" y="178.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">85</text>
+  <rect x="300" y="156" width="68" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="19" />
+  <text x="322" y="179.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">80</text>
+  <rect x="342.85" y="167" width="21.15" height="16" fill="#4A90D9" stroke="#4A90D9" stroke-width="1" rx="8" />
+  <text x="353.42" y="178.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">60</text>
+  <rect x="162" y="66" width="68" height="38" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="19" />
+  <text x="184" y="89.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">70</text>
+  <rect x="204.85" y="77" width="21.15" height="16" fill="#4A90D9" stroke="#4A90D9" stroke-width="1" rx="8" />
+  <text x="215.42" y="88.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FFFFFF" text-anchor="middle" font-weight="bold">90</text>
+</svg>

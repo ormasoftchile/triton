@@ -66,11 +66,16 @@ const MERMAID_PATTERNS: [RegExp, DiagramKind][] = [
   [/^unionfind\b/i, 'unionfind'],
   [/^dsu\b/i, 'unionfind'],
   [/^topology\b/i, 'topology'],
-  // Deck family — presentation-native, reveal-first objects.
   [/^list\b/i, 'list'],
   [/^fishbone\b/i, 'fishbone'],
   [/^(pyramid|funnel)\b/i, 'pyramid'],
   [/^(loop|flywheel)\b/i, 'loop'],
+  [/^merkletree\b/i, 'merkletree'],
+  [/^lsmtree\b/i, 'lsmtree'],
+  [/^behaviortree\b/i, 'behaviortree'],
+  [/^quadtree\b/i, 'quadtree'],
+  [/^treap\b/i, 'treap'],
+  [/^(2-3-4tree|234tree)\b/i, '234tree'],
 ];
 
 export function matchMermaid(text: string): DiagramKind | undefined {
