@@ -1,0 +1,18 @@
+bplustree
+  title "B+ tree"
+  page root [75 | 150 | 225] -> l1, l2, l3, l4
+  leaf l1 [25 | 50]
+  leaf l2 [75 | 100 | 125]
+  leaf l3 [150 | 175 | 200]
+  leaf l4 [225 | 250 | 275]
+%% ────────────────────────────────────────────────────────────────────────────
+%% BPLUSTREE — options quick-ref
+%% ────────────────────────────────────────────────────────────────────────────
+%% Header:   bplustree  (or alias b+tree)
+%% Manual:   page <id> [<k1> | <k2> …] -> <c1>, <c2> …
+%%           leaf <id> [<k1> | <k2> …]
+%% Insert:   bplustree order <N> insert <int1> …
+%% Options:  order <N> (min 3, def 3) · bidirectional (doubly linked leaves)
+%% Features: Copy-up leaf splits · Leaf-only data storage · Sibling leaf chain
+%% Comments: %% text  (stripped before parse — safe on any line)
+%% ────────────────────────────────────────────────────────────────────────────

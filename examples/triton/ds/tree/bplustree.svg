@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 639 244" width="639" height="244">
+  <defs>
+    <marker id="bplus-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="bplus-arrow-start" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="bplus-tree-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+  </defs>
+  <rect x="0" y="0" width="639" height="244" fill="#FFFFFF" />
+  <text x="319.6768" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">"B+ tree"</text>
+  <path d="M 255.26 98 L 62 162" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#bplus-tree-arrow)" />
+  <path d="M 293.26 98 L 202.42 162" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#bplus-tree-arrow)" />
+  <path d="M 338.68 98 L 372.97 162" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#bplus-tree-arrow)" />
+  <path d="M 384.1 98 L 547.22 162" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#bplus-tree-arrow)" />
+  <path d="M 100 179 L 138 179" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#bplus-arrow)" />
+  <path d="M 266.84 179 L 304.84 179" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#bplus-arrow)" />
+  <path d="M 441.1 179 L 479.1 179" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#bplus-arrow)" />
+  <rect x="255.25760000000002" y="64" width="128.8384" height="34" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="274.26" y="85.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">75</text>
+  <path d="M 293.26 64 L 293.26 98" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="315.97" y="85.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">150</text>
+  <path d="M 338.68 64 L 338.68 98" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="361.39" y="85.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">225</text>
+  <rect x="259.26" y="57" width="29.62" height="14" fill="#FFFFFF" stroke="#64748B" stroke-width="1.2" rx="3" />
+  <text x="274.07" y="67.85" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle" font-weight="bold">root</text>
+  <rect x="24" y="162" width="76" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="43" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">25</text>
+  <path d="M 62 162 L 62 196" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="81" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">50</text>
+  <rect x="28" y="155" width="18.57" height="14" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1.2" rx="3" />
+  <text x="37.29" y="165.85" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">l1</text>
+  <rect x="138" y="162" width="128.8384" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="157" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">75</text>
+  <path d="M 176 162 L 176 196" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="198.71" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">100</text>
+  <path d="M 221.42 162 L 221.42 196" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="244.13" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">125</text>
+  <rect x="142" y="155" width="18.57" height="14" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1.2" rx="3" />
+  <text x="151.29" y="165.85" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">l2</text>
+  <rect x="304.8384" y="162" width="136.25760000000002" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="327.55" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">150</text>
+  <path d="M 350.26 162 L 350.26 196" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="372.97" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">175</text>
+  <path d="M 395.68 162 L 395.68 196" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="418.39" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">200</text>
+  <rect x="308.84" y="155" width="18.57" height="14" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1.2" rx="3" />
+  <text x="318.12" y="165.85" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">l3</text>
+  <rect x="479.09599999999995" y="162" width="136.25760000000002" height="34" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="4" />
+  <text x="501.81" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">225</text>
+  <path d="M 524.52 162 L 524.52 196" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="547.22" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">250</text>
+  <path d="M 569.93 162 L 569.93 196" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="592.64" y="183.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">275</text>
+  <rect x="483.1" y="155" width="18.57" height="14" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1.2" rx="3" />
+  <text x="492.38" y="165.85" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">l4</text>
+</svg>
