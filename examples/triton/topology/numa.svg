@@ -6,23 +6,23 @@
   <rect x="0" y="0" width="684" height="296" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">NUMA interconnect</text>
   <path d="M 164 105 L 264 105" stroke="#2f80ed" stroke-width="1.8" fill="none" />
-  <rect x="176.95" y="95.5" width="44.1" height="19" fill="#FFFFFF" stroke="#2f80ed" stroke-width="1" rx="4" />
-  <text x="199" y="108.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <rect x="173.95" y="107" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="194" y="118.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
   <path d="M 94 134 L 94 214" stroke="#2f80ed" stroke-width="1.8" fill="none" />
-  <rect x="71.95" y="176.5" width="44.1" height="19" fill="#FFFFFF" stroke="#2f80ed" stroke-width="1" rx="4" />
-  <text x="94" y="189.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <rect x="63.95" y="182" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="84" y="193.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
   <path d="M 334 134 L 334 214" stroke="#2f80ed" stroke-width="1.8" fill="none" />
-  <rect x="311.95" y="152.5" width="44.1" height="19" fill="#FFFFFF" stroke="#2f80ed" stroke-width="1" rx="4" />
-  <text x="334" y="165.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <rect x="303.95" y="150" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="324" y="161.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
   <path d="M 164 243 L 264 243" stroke="#2f80ed" stroke-width="1.8" fill="none" />
-  <rect x="206.95" y="233.5" width="44.1" height="19" fill="#FFFFFF" stroke="#2f80ed" stroke-width="1" rx="4" />
-  <text x="229" y="246.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
+  <rect x="213.95" y="245" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="234" y="256.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#2f80ed" text-anchor="middle" font-weight="bold">140 ns</text>
   <path d="M 94 134 L 334 214" stroke="#e2574c" stroke-width="1.8" fill="none" stroke-dasharray="5 4" />
-  <rect x="155.95" y="152.5" width="44.1" height="19" fill="#FFFFFF" stroke="#e2574c" stroke-width="1" rx="4" />
-  <text x="178" y="165.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
+  <rect x="140.97" y="158.67" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="161.02" y="170.17" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
   <path d="M 334 134 L 94 214" stroke="#e2574c" stroke-width="1.8" fill="none" stroke-dasharray="5 4" />
-  <rect x="155.95" y="176.5" width="44.1" height="19" fill="#FFFFFF" stroke="#e2574c" stroke-width="1" rx="4" />
-  <text x="178" y="189.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
+  <rect x="140.97" y="193.33" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="161.02" y="204.83" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
   <rect x="24" y="76" width="140" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
   <text x="94" y="100" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Node 0</text>
   <text x="94" y="120" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">CPU+RAM</text>

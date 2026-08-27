@@ -7,24 +7,29 @@
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Global Transit Hub &amp; Spoke SD-WAN</text>
   <path d="M 424.19 370.54 L 424.19 144" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
   <text x="424.1889" y="364.54200000000003" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-  <rect x="375.96" y="247.77" width="96.45" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="424.19" y="260.77" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
-  <path d="M 533.08 399.54 L 568.16 399.54 L 568.16 311.61 L 607.71 311.61" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="424.1889" y="158" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">in</text>
+  <rect x="432.19" y="249.27" width="92.45" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="478.41" y="260.77" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
+  <path d="M 533.08 399.54 L 565.92 399.54 L 565.92 311.61 L 607.71 311.61" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
   <text x="539.0840000000001" y="393.54200000000003" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
-  <rect x="508.53" y="346.08" width="119.25" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="568.16" y="359.08" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DirectConnect 10 Gbps</text>
+  <text x="601.7101232596556" y="305.61368638656376" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">in</text>
+  <rect x="573.92" y="347.58" width="115.25" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="631.55" y="359.08" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DirectConnect 10 Gbps</text>
   <path d="M 424.19 428.54 C 424.19 532.13, 591.44 497.15, 591.44 600.74" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
   <text x="424.1889" y="442.54200000000003" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-  <rect x="459.59" y="505.14" width="96.45" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="507.81" y="518.14" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
-  <path d="M 424.19 428.54 L 424.19 550.8 L 256.94 550.8 L 256.94 600.74" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="591.4384912578049" y="594.7413136134363" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">in</text>
+  <rect x="461.59" y="498.64" width="92.45" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="507.81" y="510.14" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
+  <path d="M 424.19 428.54 L 424.19 545.64 L 256.94 545.64 L 256.94 600.74" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
   <text x="424.1889" y="442.54200000000003" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-  <rect x="280.94" y="541.3" width="119.25" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="340.56" y="554.3" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DirectConnect 10 Gbps</text>
+  <text x="256.9393087421951" y="594.7413136134363" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">in</text>
+  <rect x="282.94" y="531.64" width="115.25" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="340.56" y="543.14" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DirectConnect 10 Gbps</text>
   <path d="M 315.29 399.54 C 193.52 399.54, 365.58 311.61, 243.8 311.61" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
   <text x="309.2938" y="393.54200000000003" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">out</text>
-  <rect x="231.32" y="346.08" width="96.45" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="279.55" y="359.08" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
+  <text x="249.79877674034438" y="305.61368638656376" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">in</text>
+  <rect x="233.32" y="339.58" width="92.45" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="279.55" y="351.08" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
   <rect x="315.2938" y="370.54200000000003" width="217.79020000000003" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
   <rect x="321.2938" y="364.04200000000003" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
   <text x="344.3315" y="373.692" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>

@@ -12,7 +12,7 @@ topology :: "Datacenter Clos Spine-Leaf Fabric"
   db db1 "PostgreSQL Primary" [eth0: 10.0.2.10]
   db db2 "PostgreSQL Replica" [eth0: 10.0.2.11]
 
-  spine1 -- leaf1, leaf2 @orthogonal "100G Trunk"
-  spine2 -- leaf1, leaf2 @orthogonal "100G Trunk"
-  leaf1 -- srv1, srv2 @orthogonal "10G Downlink"
-  leaf2 -- db1, db2 @orthogonal "10G Downlink"
+  spine1 -- leaf1, leaf2 "100G Trunk"
+  spine2 -- leaf1, leaf2 "100G Trunk"
+  leaf1 -- srv1, srv2 "10G Downlink"
+  leaf2 -- db1, db2 "10G Downlink"

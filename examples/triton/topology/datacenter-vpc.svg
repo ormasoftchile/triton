@@ -13,27 +13,37 @@
   <text x="653.828" y="98" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Isolated Storage Subnet [10.0.3.0/24]</text>
   <path d="M 145.91 190 L 145.91 218" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
   <text x="145.91400000000002" y="204" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-  <rect x="113.27" y="194.5" width="65.28" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="145.91" y="207.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">HTTPS:443</text>
+  <text x="145.91400000000002" y="212" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">in</text>
+  <rect x="153.91" y="196" width="61.28" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="184.55" y="207.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">HTTPS:443</text>
   <path d="M 145.91 276 L 145.91 304" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
   <text x="145.91400000000002" y="290" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-  <rect x="103.27" y="284.7" width="85.3" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="145.91" y="297.7" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">WAF Inspection</text>
-  <path d="M 145.91 304 L 145.91 236.74 L 436.7 236.74 L 436.7 190" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+  <text x="145.91400000000002" y="298" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">in</text>
+  <rect x="95.27" y="287.6" width="81.3" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="135.91" y="299.1" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">WAF Inspection</text>
+  <path d="M 145.91 304 L 145.91 240.16 L 436.7 240.16 L 436.7 190" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
   <text x="145.91400000000002" y="298" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-  <rect x="245.02" y="227.24" width="92.57" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="291.31" y="240.24" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forwarded Traffic</text>
+  <text x="436.69870000000003" y="204" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">eth0</text>
+  <rect x="247.02" y="226.16" width="88.57" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="291.31" y="237.66" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forwarded Traffic</text>
+  <path d="M 247.83 333 L 322.63 333 L 322.63 247 L 357.83 247" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+  <text x="253.82800000000003" y="327" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+  <text x="351.82800000000003" y="241" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">eth0</text>
+  <rect x="330.63" y="282" width="88.57" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="374.91" y="293.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forwarded Traffic</text>
   <path d="M 515.57 161 L 657.83 161" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
   <text x="521.5694000000001" y="155" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">eth0</text>
-  <rect x="554.2" y="151.5" width="65.01" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="586.7" y="164.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Read/Write</text>
+  <text x="651.828" y="155" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">port5432</text>
+  <rect x="556.2" y="147" width="61.01" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="586.7" y="158.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Read/Write</text>
   <path d="M 515.57 247 L 657.83 247" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
   <text x="521.5694000000001" y="241" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">eth0</text>
-  <rect x="555.76" y="237.5" width="61.88" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="586.7" y="250.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Read-Only</text>
+  <text x="651.828" y="241" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">port5432</text>
+  <rect x="557.76" y="233" width="57.88" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="586.7" y="244.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Read-Only</text>
   <path d="M 730.83 190 C 730.83 228.7, 730.83 179.3, 730.83 218" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
-  <rect x="662.28" y="194.5" width="137.11" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-  <text x="730.83" y="207.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">WAL Streaming Replication</text>
+  <rect x="664.28" y="188" width="133.11" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="730.83" y="199.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">WAL Streaming Replication</text>
   <rect x="44" y="132" width="203.82800000000003" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
   <rect x="50" y="125.5" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
   <text x="73.0377" y="135.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>

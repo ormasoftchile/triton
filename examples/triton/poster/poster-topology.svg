@@ -21,16 +21,24 @@
     <text x="340" y="98" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Private Microservices [10.0.2.0/24]</text>
     <path d="M 118.59 190 L 118.59 218" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
     <text x="118.5916" y="204" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-    <rect x="85.95" y="194.5" width="65.28" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-    <text x="118.59" y="207.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">HTTPS:443</text>
+    <text x="118.5916" y="212" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">in</text>
+    <rect x="126.59" y="196" width="61.28" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+    <text x="157.23" y="207.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">HTTPS:443</text>
     <path d="M 118.59 276 L 118.59 304" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
     <text x="118.5916" y="290" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-    <rect x="95.17" y="284.7" width="46.85" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-    <text x="118.59" y="297.7" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Inspect</text>
-    <path d="M 118.59 304 L 118.59 236.74 L 414 236.74 L 414 190" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+    <text x="118.5916" y="298" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">in</text>
+    <rect x="87.17" y="287.6" width="42.85" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+    <text x="108.59" y="299.1" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Inspect</text>
+    <path d="M 118.59 304 L 118.59 240.16 L 414 240.16 L 414 190" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
     <text x="118.5916" y="298" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">out</text>
-    <rect x="240.91" y="227.24" width="50.77" height="19" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
-    <text x="266.3" y="240.24" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forward</text>
+    <text x="414" y="204" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">eth0</text>
+    <rect x="242.91" y="226.16" width="46.77" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+    <text x="266.3" y="237.66" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forward</text>
+    <path d="M 193.18 333 L 295.74 333 L 295.74 247 L 344 247" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+    <text x="199.1832" y="327" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+    <text x="338" y="241" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">eth0</text>
+    <rect x="303.74" y="282" width="46.77" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+    <text x="327.12" y="293.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forward</text>
     <rect x="44" y="132" width="149.1832" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
     <rect x="50" y="125.5" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
     <text x="73.0377" y="135.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>

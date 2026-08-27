@@ -18,10 +18,10 @@
  *      - `pattern mesh` (Full/partial mesh topology)
  *      - `pattern tiered` (Hierarchical ingress -> aggregation -> storage)
  *   5. Connection routing styles:
+ *      - Clean continuous paths with floating labels (never hide or sever paths)
  *      - Multi-track non-overlapping `@orthogonal` bus/channel routing
  *      - `@straight`, `@bezier`, `@polyline`
  *      - Interface ports and IP annotations (`r1:eth0 [10.0.0.1] -- sw1:ge-0/0/1`)
- *      - Label collision avoidance & deduplication
  *   6. Cost / latency scale and legend tiering (full backward compatibility).
  *   7. Comprehensive NodeAnchorRegistry for poster cross-linking.
  */
@@ -239,7 +239,6 @@ function parse(input: string): TopologyDoc {
       let ip: string | undefined;
 
       if (role === 'node' && rest.includes(':') && !rest.includes('"')) {
-        // Legacy syntax: `node N0 : Node 0 : CPU+RAM`
         const parts = rest.split(':').map((s) => s.trim());
         id = parts[0]!;
         label = parts[1] || id;
@@ -286,24 +285,40 @@ function parse(input: string): TopologyDoc {
     }
 
     // Connections / Edges
-    const edgeMatch = line.match(/^(\S+)\s*(-->|<-->|<--|--|\.\.|\.\.\.)\s*([^:@]+)(.*)$/);
+    const edgeMatch = line.match(/^(\S+)\s*(-->|<-->|<--|--|\.\.|\.\.\.)\s*(.+)$/);
     if (edgeMatch) {
       const fromRaw = edgeMatch[1]!;
       const op = edgeMatch[2]!;
-      const toRawList = edgeMatch[3]!.split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
-      const rest = edgeMatch[4]!.trim();
+      let rest = edgeMatch[3]!.trim();
 
       const directed = op === '-->' || op === '->';
       const bidirectional = op === '<-->';
 
-      const routerMatch = rest.match(/@(orthogonal|straight|bezier|polyline)\b/i);
-      const routeStyle = routerMatch ? (routerMatch[1]!.toLowerCase() as RouteStyle) : undefined;
-
-      const costMatch = rest.match(/:\s*(-?\d+(?:\.\d+)?)/);
-      const cost = costMatch ? Number(costMatch[1]) : undefined;
-
+      // Extract label if present: "100G Trunk" or '100G Trunk'
+      let edgeLabel: string | undefined;
       const labelMatch = rest.match(/"([^"]+)"|'([^']+)'/);
-      const edgeLabel = labelMatch ? labelMatch[1] ?? labelMatch[2] : undefined;
+      if (labelMatch) {
+        edgeLabel = labelMatch[1] ?? labelMatch[2];
+        rest = rest.replace(labelMatch[0], '').trim();
+      }
+
+      // Extract cost if present: : 140
+      let cost: number | undefined;
+      const costMatch = rest.match(/:\s*(-?\d+(?:\.\d+)?)/);
+      if (costMatch) {
+        cost = Number(costMatch[1]);
+        rest = rest.replace(costMatch[0], '').trim();
+      }
+
+      // Extract route style modifier: @orthogonal, @straight, @bezier, @polyline
+      let routeStyle: RouteStyle | undefined;
+      const routerMatch = rest.match(/@(orthogonal|straight|bezier|polyline)\b/i);
+      if (routerMatch) {
+        routeStyle = routerMatch[1]!.toLowerCase() as RouteStyle;
+        rest = rest.replace(routerMatch[0], '').trim();
+      }
+
+      const toRawList = rest.split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
 
       const fromParts = fromRaw.split(':');
       const fromId = fromParts[0]!;
@@ -574,36 +589,41 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     }
 
     let pathD: string;
-    let midPoint: Point;
+    let labelPos: Point;
+    let labelAnchor: 'start' | 'middle' = 'middle';
 
     if (e.routeStyle === 'orthogonal') {
       if (isTopToBottom || isBottomToTop) {
-        // Vertical step-down with distinct channel offsets
         if (Math.abs(start.x - end.x) < 4) {
-          // Direct straight vertical drop
+          // Straight vertical drop
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-          midPoint = { x: start.x, y: (start.y + end.y) / 2 };
+          labelPos = { x: start.x + 8, y: (start.y + end.y) / 2 };
+          labelAnchor = 'start';
         } else {
-          // Staggered horizontal bus track in the mid-tier corridor
-          const corridorFraction = 0.35 + (edgeIdx % 4) * 0.12;
+          // Multi-track horizontal bus segment in the mid-tier corridor
+          const corridorFraction = 0.32 + (edgeIdx % 4) * 0.12;
           const yMid = start.y + (end.y - start.y) * corridorFraction;
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(start.x)} ${rhu(yMid)} L ${rhu(end.x)} ${rhu(yMid)} L ${rhu(end.x)} ${rhu(end.y)}`;
-          midPoint = { x: (start.x + end.x) / 2, y: yMid };
+          // Floating above the horizontal bus segment
+          labelPos = { x: (start.x + end.x) / 2, y: yMid - 6 };
+          labelAnchor = 'middle';
         }
       } else if (isLeftToRight || isRightToLeft) {
-        // Horizontal step-over with distinct channel offsets
         if (Math.abs(start.y - end.y) < 4) {
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-          midPoint = { x: (start.x + end.x) / 2, y: start.y };
+          labelPos = { x: (start.x + end.x) / 2, y: start.y - 6 };
+          labelAnchor = 'middle';
         } else {
-          const corridorFraction = 0.35 + (edgeIdx % 4) * 0.12;
+          const corridorFraction = 0.32 + (edgeIdx % 4) * 0.12;
           const xMid = start.x + (end.x - start.x) * corridorFraction;
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(xMid)} ${rhu(start.y)} L ${rhu(xMid)} ${rhu(end.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-          midPoint = { x: xMid, y: (start.y + end.y) / 2 };
+          labelPos = { x: xMid + 8, y: (start.y + end.y) / 2 };
+          labelAnchor = 'start';
         }
       } else {
         pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-        midPoint = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+        labelPos = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - 6 };
+        labelAnchor = 'middle';
       }
     } else if (e.routeStyle === 'bezier') {
       if (Math.abs(dx) > Math.abs(dy)) {
@@ -615,15 +635,23 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
         const cy2 = end.y - dy * 0.45;
         pathD = `M ${rhu(start.x)} ${rhu(start.y)} C ${rhu(start.x)} ${rhu(cy1)}, ${rhu(end.x)} ${rhu(cy2)}, ${rhu(end.x)} ${rhu(end.y)}`;
       }
-      midPoint = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+      labelPos = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - 8 };
+      labelAnchor = 'middle';
     } else {
       // Straight direct line
       pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-      // Position label along straight diagonal at 35% or 65% to avoid center intersection
-      const t = edgeIdx % 2 === 0 ? 0.35 : 0.65;
-      midPoint = { x: start.x + (end.x - start.x) * t, y: start.y + (end.y - start.y) * t };
+      // Position label along the line near the source (30%) or destination (70%) with perpendicular offset
+      const t = edgeIdx % 2 === 0 ? 0.30 : 0.70;
+      const lx = start.x + (end.x - start.x) * t;
+      const ly = start.y + (end.y - start.y) * t;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      labelPos = { x: lx + nx * 10, y: ly + ny * 10 };
+      labelAnchor = 'middle';
     }
 
+    // Always draw continuous, crisp line paths
     elements.push(
       p.path(pathD, color, strokeWidth, {
         ...(tier?.dash ? { dash: tier.dash } : {}),
@@ -632,7 +660,7 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
       }),
     );
 
-    // Interface Port Labels (with non-overlapping clearance)
+    // Interface Port Labels
     if (e.fromPort) {
       const offsetX = start.x <= a.x + 2 ? -6 : start.x >= a.x + a.width - 2 ? 6 : 0;
       const offsetY = start.y <= a.y + 2 ? -6 : start.y >= a.y + a.height - 2 ? 14 : -6;
@@ -652,33 +680,35 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
       );
     }
 
-    // Edge Label with Collision Avoidance
+    // Floating Link Label (placed alongside path with non-obstructing halo/badge)
     const labelText = e.label ?? (e.cost !== undefined ? (doc.scale.unit ? `${e.cost} ${doc.scale.unit}` : String(e.cost)) : undefined);
     if (labelText) {
-      const lw = measureText(labelText, small - 1).width + 14;
-      const lh = 19;
-      let lx = midPoint.x - lw / 2;
-      let ly = midPoint.y - lh / 2;
+      const textDim = measureText(labelText, small - 1);
+      const lw = textDim.width + 10;
+      const lh = 16;
+      let lx = labelAnchor === 'start' ? labelPos.x : labelPos.x - lw / 2;
+      let ly = labelPos.y - lh / 2;
 
       // Adjust label position if colliding with already placed labels
       for (let attempt = 0; attempt < 6; attempt++) {
         const r: Rect = { x: lx, y: ly, width: lw, height: lh };
         const hits = placedLabels.some((pl) =>
-          !(r.x + r.width < pl.x - 4 || r.x > pl.x + pl.width + 4 || r.y + r.height < pl.y - 4 || r.y > pl.y + pl.height + 4)
+          !(r.x + r.width < pl.x - 2 || r.x > pl.x + pl.width + 2 || r.y + r.height < pl.y - 2 || r.y > pl.y + pl.height + 2)
         );
         if (!hits) break;
-        ly += (attempt % 2 === 0 ? 1 : -1) * (lh + 6) * Math.ceil((attempt + 1) / 2);
+        ly += (attempt % 2 === 0 ? 1 : -1) * (lh + 4) * Math.ceil((attempt + 1) / 2);
       }
 
       placedLabels.push({ x: lx, y: ly, width: lw, height: lh });
 
+      // Compact rounded pill offset from path
       elements.push(
         p.rect(
           { x: rhu(lx), y: rhu(ly), width: rhu(lw), height: lh },
           palette.background,
-          color,
-          1,
-          { rx: 4 },
+          palette.border,
+          0.8,
+          { rx: 3 },
         ),
       );
       elements.push(

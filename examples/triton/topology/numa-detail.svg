@@ -10,17 +10,17 @@
   <rect x="324" y="76" width="230" height="392" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.6" rx="10" />
   <text x="340" y="98" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">NUMA Node 1</text>
   <path d="M 114 362 L 114 390" stroke="#27ae60" stroke-width="1.8" fill="none" />
-  <rect x="94.74" y="362.3" width="38.52" height="19" fill="#FFFFFF" stroke="#27ae60" stroke-width="1" rx="4" />
-  <text x="114" y="375.3" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#27ae60" text-anchor="middle" font-weight="bold">90 ns</text>
+  <rect x="86.74" y="362.4" width="34.52" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="104" y="373.9" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#27ae60" text-anchor="middle" font-weight="bold">90 ns</text>
   <path d="M 414 362 L 414 390" stroke="#27ae60" stroke-width="1.8" fill="none" />
-  <rect x="394.74" y="370.7" width="38.52" height="19" fill="#FFFFFF" stroke="#27ae60" stroke-width="1" rx="4" />
-  <text x="414" y="383.7" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#27ae60" text-anchor="middle" font-weight="bold">90 ns</text>
+  <rect x="386.74" y="373.6" width="34.52" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="404" y="385.1" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#27ae60" text-anchor="middle" font-weight="bold">90 ns</text>
   <path d="M 254 272 L 324 272" stroke="#e2574c" stroke-width="1.8" fill="none" stroke-dasharray="5 4" />
-  <rect x="256.45" y="262.5" width="44.1" height="19" fill="#FFFFFF" stroke="#e2574c" stroke-width="1" rx="4" />
-  <text x="278.5" y="275.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">140 ns</text>
+  <rect x="254.95" y="274" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="275" y="285.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">140 ns</text>
   <path d="M 184 333 L 344 419" stroke="#e2574c" stroke-width="1.8" fill="none" stroke-dasharray="5 4" />
-  <rect x="265.95" y="379.4" width="44.1" height="19" fill="#FFFFFF" stroke="#e2574c" stroke-width="1" rx="4" />
-  <text x="288" y="392.4" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
+  <rect x="273.2" y="394.81" width="40.1" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="293.24" y="406.31" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#e2574c" text-anchor="middle" font-weight="bold">200 ns</text>
   <rect x="44" y="132" width="140" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
   <text x="114" y="165.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Core 0</text>
   <rect x="44" y="218" width="140" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
