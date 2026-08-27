@@ -17,8 +17,9 @@
  *      - `pattern ring` (Circular loop topology)
  *      - `pattern mesh` (Full/partial mesh topology)
  *      - `pattern tiered` (Hierarchical ingress -> aggregation -> storage)
- *   5. Connection routing styles:
- *      - Clean continuous paths with floating labels (never hide or sever paths)
+ *   5. Connection routing styles & collision-free label placement:
+ *      - Pre-layout edge label measurement & automatic clearance allocation
+ *      - Obstacle-aware label positioning (never overlaps nodes, group titles, or paths)
  *      - Multi-track non-overlapping `@orthogonal` bus/channel routing
  *      - `@straight`, `@bezier`, `@polyline`
  *      - Interface ports and IP annotations (`r1:eth0 [10.0.0.1] -- sw1:ge-0/0/1`)
@@ -361,6 +362,15 @@ function parse(input: string): TopologyDoc {
 const ARROW_ID = 'topo-arrow';
 const ARROW_START_ID = 'topo-arrow-start';
 
+function intersects(a: Rect, b: Rect, pad = 2): boolean {
+  return !(
+    a.x + a.width < b.x - pad ||
+    a.x > b.x + b.width + pad ||
+    a.y + a.height < b.y - pad ||
+    a.y > b.y + b.height + pad
+  );
+}
+
 export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing, edges } = theme;
   const p = pen(theme);
@@ -394,13 +404,61 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     );
   }
 
+  // ─── Pre-Layout Edge Label Measurement & Dynamic Clearance Allocation ───────
+  const nodeGroupMap = new Map<string, string>();
+  doc.nodes.forEach((n) => {
+    if (n.group) nodeGroupMap.set(n.id, n.group);
+  });
+
+  let maxInterGroupLabelW = 0;
+  let maxIntraGroupLabelW = 0;
+  let maxIntraGroupLabelH = 0;
+  let hasIntraGroupLabels = false;
+  let maxTierLabelH = 0;
+  let maxSpokeLabelW = 0;
+
+  for (const e of doc.edges) {
+    const labelText =
+      e.label ??
+      (e.cost !== undefined
+        ? doc.scale.unit
+          ? `${e.cost} ${doc.scale.unit}`
+          : String(e.cost)
+        : undefined);
+    if (!labelText) continue;
+
+    const lw = measureText(labelText, small - 1).width + 16;
+    const lh = 18;
+
+    const gFrom = nodeGroupMap.get(e.from);
+    const gTo = nodeGroupMap.get(e.to);
+
+    if (gFrom && gTo && gFrom !== gTo) {
+      maxInterGroupLabelW = Math.max(maxInterGroupLabelW, lw);
+    } else if (gFrom && gTo && gFrom === gTo) {
+      hasIntraGroupLabels = true;
+      maxIntraGroupLabelW = Math.max(maxIntraGroupLabelW, lw);
+      maxIntraGroupLabelH = Math.max(maxIntraGroupLabelH, lh);
+    } else if (!gFrom && !gTo) {
+      maxTierLabelH = Math.max(maxTierLabelH, lh);
+      maxSpokeLabelW = Math.max(maxSpokeLabelW, lw);
+      maxInterGroupLabelW = Math.max(maxInterGroupLabelW, lw);
+    } else {
+      maxInterGroupLabelW = Math.max(maxInterGroupLabelW, lw);
+    }
+  }
+
   // ─── Layout Positioning Strategies ──────────────────────────────────────────
 
   if (doc.pattern === 'spine-leaf') {
     // Clos 3-Tier Network: Spines (Tier 0) -> Leaves (Tier 1) -> Compute (Tier 2)
     const isSpine = (n: TopoNode) => n.role === 'spine' || n.id.toLowerCase().startsWith('spine');
     const isLeaf = (n: TopoNode) =>
-      !isSpine(n) && (n.role === 'leaf' || n.role === 'tor' || n.id.toLowerCase().startsWith('leaf') || n.role === 'switch');
+      !isSpine(n) &&
+      (n.role === 'leaf' ||
+        n.role === 'tor' ||
+        n.id.toLowerCase().startsWith('leaf') ||
+        n.role === 'switch');
     const isCompute = (n: TopoNode) => !isSpine(n) && !isLeaf(n);
 
     const spines = doc.nodes.filter(isSpine);
@@ -409,9 +467,9 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
 
     const tiers = [spines, leaves, compute].filter((t) => t.length > 0);
     const startY = margin + titleH + 20;
-    const tierGap = 130;
+    const tierGap = Math.max(130, maxTierLabelH + 110);
     const maxCount = Math.max(...tiers.map((t) => t.length), 1);
-    const colSpacing = 180;
+    const colSpacing = Math.max(180, maxInterGroupLabelW + 20);
     const totalContentW = maxCount * colSpacing;
 
     tiers.forEach((tierNodes, tIdx) => {
@@ -432,7 +490,7 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     const hubW = nodeWidth(hub);
     const maxSpokeW = Math.max(...spokes.map(nodeWidth), 130);
 
-    const radius = Math.max(240, hubW / 2 + maxSpokeW / 2 + 80);
+    const radius = Math.max(240, hubW / 2 + maxSpokeW / 2 + maxSpokeLabelW + 60);
     const centerX = margin + radius + maxSpokeW / 2 + 20;
     const centerY = margin + titleH + radius + nodeH / 2 + 20;
 
@@ -461,22 +519,23 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
       box.set(n.id, { x: nx - nw / 2, y: ny - nodeH / 2, width: nw, height: nodeH });
     });
   } else if (doc.groups.length > 0) {
-    // Subnet / Zone Enclosures with clean vertical columns and inter-group corridors
+    // Subnet / Zone Enclosures with clean vertical columns and dynamic clearance corridors
     let gx = margin;
     const gy = margin + titleH + 10;
     let maxBottom = gy;
     const GHEADER = 36,
-      GPAD = 20,
-      CGAP = 28,
-      GROUP_GAP = 70;
+      GPAD = 24,
+      CGAP_X = Math.max(28, maxIntraGroupLabelW > 0 ? 36 : 28),
+      CGAP_Y = hasIntraGroupLabels ? 56 : 32,
+      GROUP_GAP = Math.max(70, maxInterGroupLabelW + 60);
 
     for (const g of doc.groups) {
       const kids = doc.nodes.filter((n) => n.group === g.id);
       const childW = Math.max(140, ...(kids.length > 0 ? kids.map(nodeWidth) : [140]));
       const cols = kids.length <= 4 ? 1 : 2;
       const rows = Math.max(1, Math.ceil(kids.length / cols));
-      const innerW = cols * childW + (cols - 1) * CGAP;
-      const innerH = rows * nodeH + (rows - 1) * CGAP;
+      const innerW = cols * childW + (cols - 1) * CGAP_X;
+      const innerH = rows * nodeH + (rows - 1) * CGAP_Y;
       const gw = Math.max(innerW + GPAD * 2, 230);
       const gh = GHEADER + GPAD + innerH + GPAD;
 
@@ -485,8 +544,8 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
         const col = i % cols;
         const row = Math.floor(i / cols);
         box.set(n.id, {
-          x: gx + GPAD + col * (childW + CGAP),
-          y: gy + GHEADER + GPAD + row * (nodeH + CGAP),
+          x: gx + GPAD + col * (childW + CGAP_X),
+          y: gy + GHEADER + GPAD + row * (nodeH + CGAP_Y),
           width: childW,
           height: nodeH,
         });
@@ -506,8 +565,8 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     // Standard Grid layout
     const nodeW = Math.max(140, ...doc.nodes.map(nodeWidth));
     const cols = Math.max(1, Math.ceil(Math.sqrt(doc.nodes.length)));
-    const colGap = 100,
-      rowGap = 80;
+    const colGap = Math.max(100, maxInterGroupLabelW + 50);
+    const rowGap = hasIntraGroupLabels ? 90 : 80;
 
     doc.nodes.forEach((n, i) => {
       const col = i % cols;
@@ -522,6 +581,8 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
   }
 
   // ─── Render Group Panels (Subnets / Zones) ──────────────────────────────────
+  const groupHeaderBoxes: Rect[] = [];
+
   for (const g of doc.groups) {
     const gb = groupBox.get(g.id)!;
     const isSubnet = g.type === 'subnet' || Boolean(g.cidr);
@@ -536,11 +597,14 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     elements.push(
       p.text(tagText, gb.x + 16, gb.y + 22, small, palette.primary, { weight: 'bold' }),
     );
+
+    groupHeaderBoxes.push({ x: gb.x, y: gb.y, width: gb.width, height: 38 });
   }
 
   // ─── Render Edges & Multi-Track Corridor Routing ────────────────────────────
   const idBox = new Map<string, Rect>([...box, ...groupBox]);
   const placedLabels: Rect[] = [];
+  const obstacles: Rect[] = [...box.values(), ...groupHeaderBoxes];
 
   doc.edges.forEach((e, edgeIdx) => {
     const a = idBox.get(e.from);
@@ -566,10 +630,10 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
     let start: Point;
     let end: Point;
 
-    const isTopToBottom = dy > 40 && Math.abs(dy) > Math.abs(dx) * 0.4;
-    const isBottomToTop = dy < -40 && Math.abs(dy) > Math.abs(dx) * 0.4;
-    const isLeftToRight = dx > 40 && Math.abs(dx) >= Math.abs(dy) * 0.8;
-    const isRightToLeft = dx < -40 && Math.abs(dx) >= Math.abs(dy) * 0.8;
+    const isTopToBottom = dy > 30 && Math.abs(dy) > Math.abs(dx) * 0.4;
+    const isBottomToTop = dy < -30 && Math.abs(dy) > Math.abs(dx) * 0.4;
+    const isLeftToRight = dx > 30 && Math.abs(dx) >= Math.abs(dy) * 0.8;
+    const isRightToLeft = dx < -30 && Math.abs(dx) >= Math.abs(dy) * 0.8;
 
     if (isTopToBottom) {
       start = { x: acx, y: a.y + a.height };
@@ -590,40 +654,31 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
 
     let pathD: string;
     let labelPos: Point;
-    let labelAnchor: 'start' | 'middle' = 'middle';
 
     if (e.routeStyle === 'orthogonal') {
       if (isTopToBottom || isBottomToTop) {
         if (Math.abs(start.x - end.x) < 4) {
-          // Straight vertical drop
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-          labelPos = { x: start.x + 8, y: (start.y + end.y) / 2 };
-          labelAnchor = 'start';
+          labelPos = { x: start.x, y: (start.y + end.y) / 2 };
         } else {
-          // Multi-track horizontal bus segment in the mid-tier corridor
           const corridorFraction = 0.32 + (edgeIdx % 4) * 0.12;
           const yMid = start.y + (end.y - start.y) * corridorFraction;
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(start.x)} ${rhu(yMid)} L ${rhu(end.x)} ${rhu(yMid)} L ${rhu(end.x)} ${rhu(end.y)}`;
-          // Floating above the horizontal bus segment
           labelPos = { x: (start.x + end.x) / 2, y: yMid - 6 };
-          labelAnchor = 'middle';
         }
       } else if (isLeftToRight || isRightToLeft) {
         if (Math.abs(start.y - end.y) < 4) {
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
           labelPos = { x: (start.x + end.x) / 2, y: start.y - 6 };
-          labelAnchor = 'middle';
         } else {
           const corridorFraction = 0.32 + (edgeIdx % 4) * 0.12;
           const xMid = start.x + (end.x - start.x) * corridorFraction;
           pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(xMid)} ${rhu(start.y)} L ${rhu(xMid)} ${rhu(end.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-          labelPos = { x: xMid + 8, y: (start.y + end.y) / 2 };
-          labelAnchor = 'start';
+          labelPos = { x: xMid, y: (start.y + end.y) / 2 };
         }
       } else {
         pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
         labelPos = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - 6 };
-        labelAnchor = 'middle';
       }
     } else if (e.routeStyle === 'bezier') {
       if (Math.abs(dx) > Math.abs(dy)) {
@@ -636,22 +691,27 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
         pathD = `M ${rhu(start.x)} ${rhu(start.y)} C ${rhu(start.x)} ${rhu(cy1)}, ${rhu(end.x)} ${rhu(cy2)}, ${rhu(end.x)} ${rhu(end.y)}`;
       }
       labelPos = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - 8 };
-      labelAnchor = 'middle';
     } else {
       // Straight direct line
       pathD = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
-      // Position label along the line near the source (30%) or destination (70%) with perpendicular offset
-      const t = edgeIdx % 2 === 0 ? 0.30 : 0.70;
-      const lx = start.x + (end.x - start.x) * t;
-      const ly = start.y + (end.y - start.y) * t;
-      const len = Math.hypot(dx, dy) || 1;
-      const nx = -dy / len;
-      const ny = dx / len;
-      labelPos = { x: lx + nx * 10, y: ly + ny * 10 };
-      labelAnchor = 'middle';
+      if (Math.abs(start.x - end.x) < 4) {
+        // Vertical direct link: centered between top and bottom cards
+        labelPos = { x: start.x, y: (start.y + end.y) / 2 };
+      } else if (Math.abs(start.y - end.y) < 4) {
+        // Horizontal direct link
+        labelPos = { x: (start.x + end.x) / 2, y: start.y - 8 };
+      } else {
+        // Diagonal direct link
+        const t = edgeIdx % 2 === 0 ? 0.30 : 0.70;
+        const lx = start.x + (end.x - start.x) * t;
+        const ly = start.y + (end.y - start.y) * t;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+        labelPos = { x: lx + nx * 10, y: ly + ny * 10 };
+      }
     }
 
-    // Always draw continuous, crisp line paths
     elements.push(
       p.path(pathD, color, strokeWidth, {
         ...(tier?.dash ? { dash: tier.dash } : {}),
@@ -680,31 +740,67 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
       );
     }
 
-    // Floating Link Label (placed alongside path with non-obstructing halo/badge)
-    const labelText = e.label ?? (e.cost !== undefined ? (doc.scale.unit ? `${e.cost} ${doc.scale.unit}` : String(e.cost)) : undefined);
+    // ─── Obstacle-Aware Edge Label Placement ──────────────────────────────────
+    const labelText =
+      e.label ??
+      (e.cost !== undefined
+        ? doc.scale.unit
+          ? `${e.cost} ${doc.scale.unit}`
+          : String(e.cost)
+        : undefined);
     if (labelText) {
       const textDim = measureText(labelText, small - 1);
       const lw = textDim.width + 10;
       const lh = 16;
-      let lx = labelAnchor === 'start' ? labelPos.x : labelPos.x - lw / 2;
-      let ly = labelPos.y - lh / 2;
 
-      // Adjust label position if colliding with already placed labels
-      for (let attempt = 0; attempt < 6; attempt++) {
-        const r: Rect = { x: lx, y: ly, width: lw, height: lh };
-        const hits = placedLabels.some((pl) =>
-          !(r.x + r.width < pl.x - 2 || r.x > pl.x + pl.width + 2 || r.y + r.height < pl.y - 2 || r.y > pl.y + pl.height + 2)
-        );
-        if (!hits) break;
-        ly += (attempt % 2 === 0 ? 1 : -1) * (lh + 4) * Math.ceil((attempt + 1) / 2);
+      let bestX = labelPos.x - lw / 2;
+      let bestY = labelPos.y - lh / 2;
+
+      // Candidate search for collision-free placement
+      const allObstacles = [...obstacles, ...placedLabels];
+      let hasCollision = allObstacles.some((obs) =>
+        intersects({ x: bestX, y: bestY, width: lw, height: lh }, obs, 2),
+      );
+
+      if (hasCollision) {
+        // Try fractional positions along the edge path
+        const sampleT = [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8];
+        let found = false;
+
+        for (const t of sampleT) {
+          const cx = start.x + (end.x - start.x) * t;
+          const cy = start.y + (end.y - start.y) * t;
+          const testX = cx - lw / 2;
+          const testY = cy - lh / 2;
+
+          if (!allObstacles.some((obs) => intersects({ x: testX, y: testY, width: lw, height: lh }, obs, 2))) {
+            bestX = testX;
+            bestY = testY;
+            found = true;
+            break;
+          }
+        }
+
+        // If still colliding, offset perpendicular to the edge path
+        if (!found) {
+          for (let step = 1; step <= 8; step++) {
+            const offsetY = (step % 2 === 0 ? 1 : -1) * Math.ceil(step / 2) * (lh + 4);
+            const testY = bestY + offsetY;
+            if (!allObstacles.some((obs) => intersects({ x: bestX, y: testY, width: lw, height: lh }, obs, 2))) {
+              bestY = testY;
+              found = true;
+              break;
+            }
+          }
+        }
       }
 
-      placedLabels.push({ x: lx, y: ly, width: lw, height: lh });
+      const finalRect: Rect = { x: bestX, y: bestY, width: lw, height: lh };
+      placedLabels.push(finalRect);
 
-      // Compact rounded pill offset from path
       elements.push(
         p.rect(
-          { x: rhu(lx), y: rhu(ly), width: rhu(lw), height: lh },
+          { x: rhu(bestX), y: rhu(bestY), width: rhu(lw), height: lh },
           palette.background,
           palette.border,
           0.8,
@@ -712,10 +808,17 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
         ),
       );
       elements.push(
-        p.text(labelText, rhu(lx + lw / 2), rhu(ly + lh / 2 + (small - 1) * 0.35), small - 1, color, {
-          anchor: 'middle',
-          weight: 'bold',
-        }),
+        p.text(
+          labelText,
+          rhu(bestX + lw / 2),
+          rhu(bestY + lh / 2 + (small - 1) * 0.35),
+          small - 1,
+          color,
+          {
+            anchor: 'middle',
+            weight: 'bold',
+          },
+        ),
       );
     }
   });
@@ -726,10 +829,9 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
   for (const n of doc.nodes) {
     const b = box.get(n.id)!;
 
-    // Outer card
     elements.push(p.rect(b, palette.surface, palette.primary, 1.8, { rx: 6 }));
 
-    // Device Role Badge (e.g. `ROUTER`, `SWITCH`, `FIREWALL`, `SERVER`)
+    // Device Role Badge
     if (n.role) {
       const roleText = n.role.toUpperCase();
       const rw = measureText(roleText, small - 2).width + 8;
@@ -785,7 +887,7 @@ export function layoutTopology(doc: TopologyDoc, theme: ResolvedTheme): LayoutRe
   }
 
   // ─── Legend & ViewBox Dimensions ────────────────────────────────────────────
-  const allBoxes = [...box.values(), ...groupBox.values()];
+  const allBoxes = [...box.values(), ...groupBox.values(), ...placedLabels];
   const boxesRight = Math.max(margin, ...allBoxes.map((b) => b.x + b.width));
   const contentBottom = Math.max(margin + titleH, ...allBoxes.map((b) => b.y + b.height));
 

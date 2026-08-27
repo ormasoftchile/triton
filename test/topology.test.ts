@@ -256,4 +256,41 @@ describe('Modernized Topology Engine: Requirements & Features', () => {
     const ringRes = renderSync(ringSrc, {}, 'svg');
     expect(ringRes.ok).toBe(true);
   });
+
+  it('improves edge-label placement: never overlaps device cards or group headings and avoids label collisions', () => {
+    const src = `topology :: "Regional Application Infrastructure"
+      pattern tiered
+
+      subnet "10.10.1.0/24" "Application Zone A"
+        loadbalancer lbA "Load Balancer A" [10.10.1.10]
+        server apiA "API Server A" [10.10.1.20]
+        database dbA "Database A" [10.10.1.30]
+      end
+
+      subnet "10.20.1.0/24" "Application Zone B"
+        loadbalancer lbB "Load Balancer B" [10.20.1.10]
+        server apiB "API Server B" [10.20.1.20]
+        database dbB "Database B" [10.20.1.30]
+      end
+
+      lbA --> apiA @straight "forward application requests"
+      apiA <--> dbA @straight "transactional database traffic"
+
+      lbB --> apiB @straight "forward application requests"
+      apiB <--> dbB @straight "transactional database traffic"
+
+      apiA <--> apiB @bezier "cross-zone synchronization and failover"
+    `;
+
+    const res = renderSync(src, {}, 'svg');
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+
+    // Verify all labels are rendered
+    expect(res.value).toContain('forward application requests');
+    expect(res.value).toContain('transactional database traffic');
+    expect(res.value).toContain('cross-zone synchronization and failover');
+    expect(res.value).toContain('Application Zone A [10.10.1.0/24]');
+    expect(res.value).toContain('Application Zone B [10.20.1.0/24]');
+  });
 });

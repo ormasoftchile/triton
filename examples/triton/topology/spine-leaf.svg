@@ -6,8 +6,8 @@
   <rect x="0" y="0" width="761" height="544" fill="#FFFFFF" />
   <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Datacenter Clos Spine-Leaf Fabric</text>
   <path d="M 294 144 L 294 274" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="252.53" y="175" width="62.94" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
-  <text x="284" y="186.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
+  <rect x="262.53" y="201" width="62.94" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="294" y="212.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
   <path d="M 294 144 L 474 274" stroke="#4A90D9" stroke-width="1.8" fill="none" />
   <rect x="381.31" y="233.92" width="62.94" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
   <text x="412.78" y="245.42" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
@@ -15,17 +15,17 @@
   <rect x="381.31" y="168.08" width="62.94" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
   <text x="412.78" y="179.58" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
   <path d="M 474 144 L 474 274" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="432.53" y="267" width="62.94" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
-  <text x="464" y="278.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
+  <rect x="442.53" y="201" width="62.94" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="474" y="212.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">100G Trunk</text>
   <path d="M 294 332 L 114 462" stroke="#4A90D9" stroke-width="1.8" fill="none" />
   <rect x="196.6" y="356.08" width="72.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
   <text x="232.78" y="367.58" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
   <path d="M 294 332 L 294 462" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="247.82" y="415" width="72.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
-  <text x="284" y="426.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
+  <rect x="257.82" y="389" width="72.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="294" y="400.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
   <path d="M 474 332 L 474 462" stroke="#4A90D9" stroke-width="1.8" fill="none" />
-  <rect x="427.82" y="363" width="72.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
-  <text x="464" y="374.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
+  <rect x="437.82" y="389" width="72.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="474" y="400.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
   <path d="M 474 332 L 654 462" stroke="#4A90D9" stroke-width="1.8" fill="none" />
   <rect x="556.6" y="421.92" width="72.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
   <text x="592.78" y="433.42" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">10G Downlink</text>
