@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 761 470" width="761" height="470">
+  <defs>
+    <marker id="topo-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="topo-arrow-start" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="761" height="470" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Regional Application Infrastructure</text>
+  <rect x="24" y="76" width="230" height="370" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="10" />
+  <text x="40" y="98" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Application Zone A [10.10.1.0/24]</text>
+  <rect x="506.53200000000004" y="76" width="230" height="370" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="10" />
+  <text x="522.532" y="98" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Application Zone B [10.20.1.0/24]</text>
+  <path d="M 119.9 194 L 119.9 250" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+  <rect x="51.68" y="214" width="136.45" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="119.9" y="225.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">forward application requests</text>
+  <path d="M 119.9 308 L 119.9 364" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <rect x="49.73" y="328" width="140.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="119.9" y="339.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">transactional database traffic</text>
+  <path d="M 602.44 194 L 602.44 250" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+  <rect x="534.21" y="214" width="136.45" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="602.44" y="225.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">forward application requests</text>
+  <path d="M 602.44 308 L 602.44 364" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <rect x="532.26" y="328" width="140.35" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="602.44" y="339.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">transactional database traffic</text>
+  <path d="M 191.81 279 C 408.95 279, 313.39 279, 530.53 279" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <rect x="267.9" y="263" width="186.53" height="16" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.8" rx="3" />
+  <text x="361.17" y="274.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">cross-zone synchronization and failover</text>
+  <rect x="48" y="136" width="143.80859999999998" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="54" y="129.5" width="81.2132" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="94.6066" y="139.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">LOADBALANCER</text>
+  <text x="119.9" y="160" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Load Balancer A</text>
+  <text x="119.9" y="180" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.10.1.10</text>
+  <rect x="48" y="250" width="143.80859999999998" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="54" y="243.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="76.3078" y="253.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+  <text x="119.9" y="274" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API Server A</text>
+  <text x="119.9" y="294" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.10.1.20</text>
+  <rect x="48" y="364" width="143.80859999999998" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="54" y="357.5" width="55.6892" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="81.8446" y="367.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DATABASE</text>
+  <text x="119.9" y="388" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Database A</text>
+  <text x="119.9" y="408" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.10.1.30</text>
+  <rect x="530.532" y="136" width="143.80859999999998" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="536.532" y="129.5" width="81.2132" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="577.1386" y="139.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">LOADBALANCER</text>
+  <text x="602.44" y="160" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Load Balancer B</text>
+  <text x="602.44" y="180" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.20.1.10</text>
+  <rect x="530.532" y="250" width="143.80859999999998" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="536.532" y="243.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="558.8398000000001" y="253.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+  <text x="602.44" y="274" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API Server B</text>
+  <text x="602.44" y="294" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.20.1.20</text>
+  <rect x="530.532" y="364" width="143.80859999999998" height="58" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="536.532" y="357.5" width="55.6892" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="564.3766" y="367.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DATABASE</text>
+  <text x="602.44" y="388" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Database B</text>
+  <text x="602.44" y="408" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.20.1.30</text>
+</svg>
