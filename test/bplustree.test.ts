@@ -122,7 +122,7 @@ insert 10 20 30 40
       expect(res.value).toContain('>40<');
       expect(res.value).toContain('>50<');
       expect(res.value).toContain('root');
-      expect(res.value).toContain('l1');
+      expect(res.value).toContain('leaf');
       expect(res.value).toContain('marker-end="url(#bplus-arrow)"');
     });
 

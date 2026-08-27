@@ -12,7 +12,7 @@
  *      ordered horizontal sibling pointers (L_i -> L_{i+1}).
  *   6. Sibling pointers do not affect the hierarchical tree layout (constraint=false).
  *   7. Supports both algorithmic value-driven insertion (`order N insert ...`)
- *      and explicit manual authoring with custom page IDs and keys.
+ *      and explicit manual authoring with custom page IDs, keys, and notes.
  */
 
 import type {
@@ -122,9 +122,15 @@ export interface BPlusTreeNode extends TreeNode {
   readonly pageId?: string | undefined;
 }
 
+export interface BPlusTreeNote {
+  readonly target: 'internal' | 'root' | 'leaves' | 'leaf' | string;
+  readonly text: string;
+}
+
 export interface BPlusTreeDocument extends TreeDocument {
   readonly nodes: readonly BPlusTreeNode[];
   readonly bidirectionalLeaves?: boolean | undefined;
+  readonly notes?: readonly BPlusTreeNote[] | undefined;
 }
 
 // ─── Parser / Builder ────────────────────────────────────────────────────────
@@ -140,6 +146,7 @@ export function buildBPlusTree(input: string): BPlusTreeDocument {
 
   let title: string | undefined;
   const filteredLines: string[] = [];
+  const notes: BPlusTreeNote[] = [];
   let bidirectional = false;
 
   for (const line of lines) {
@@ -154,13 +161,20 @@ export function buildBPlusTree(input: string): BPlusTreeDocument {
 
     const titleMatch = line.match(/^title\s+(.+)$/i);
     if (titleMatch) {
-      title = titleMatch[1]!.trim();
+      title = titleMatch[1]!.trim().replace(/^["']|["']$/g, '');
       continue;
     }
     if (/^(bidirectional|doubly-linked|doublyLinked)\b/i.test(line)) {
       bidirectional = true;
       continue;
     }
+
+    const noteMatch = line.match(/^note\s+(\w+)\s+["']?([^"']+)["']?$/i);
+    if (noteMatch) {
+      notes.push({ target: noteMatch[1]!.toLowerCase(), text: noteMatch[2]!.trim() });
+      continue;
+    }
+
     filteredLines.push(line);
   }
 
@@ -172,10 +186,10 @@ export function buildBPlusTree(input: string): BPlusTreeDocument {
     (input.includes('\n  ') && !/\binsert\b/i.test(input) && !/\border\b/i.test(input));
 
   if (isExplicit) {
-    return parseExplicitBPlusTree(cleanInput, title, bidirectional);
+    return parseExplicitBPlusTree(cleanInput, title, bidirectional, notes);
   }
 
-  return buildAlgorithmicBPlusTree(cleanInput, title, bidirectional);
+  return buildAlgorithmicBPlusTree(cleanInput, title, bidirectional, notes);
 }
 
 /**
@@ -185,6 +199,7 @@ function buildAlgorithmicBPlusTree(
   input: string,
   title?: string,
   bidirectional?: boolean,
+  notes?: readonly BPlusTreeNote[],
 ): BPlusTreeDocument {
   const orderMatch = input.match(/order\s+(\d+)/i);
   const order = Math.max(3, orderMatch ? Number(orderMatch[1]) : 3);
@@ -198,6 +213,7 @@ function buildAlgorithmicBPlusTree(
       direction: 'TB',
       nodes: [],
       ...(bidirectional ? { bidirectionalLeaves: true } : {}),
+      ...(notes && notes.length > 0 ? { notes } : {}),
     };
   }
 
@@ -231,7 +247,6 @@ function buildAlgorithmicBPlusTree(
         id,
         label: n.keys.join(' | '),
         kinds: ['strip', 'leaf'],
-        badge: pageId,
         pageId,
         isLeaf: true,
         children: [],
@@ -249,7 +264,6 @@ function buildAlgorithmicBPlusTree(
       id,
       label: n.keys.join(' | '),
       kinds: ['strip', 'internal'],
-      badge: pageId,
       pageId,
       isLeaf: false,
       children: childIds,
@@ -265,6 +279,7 @@ function buildAlgorithmicBPlusTree(
     direction: 'TB',
     nodes,
     ...(bidirectional ? { bidirectionalLeaves: true } : {}),
+    ...(notes && notes.length > 0 ? { notes } : {}),
   };
 }
 
@@ -275,6 +290,7 @@ function parseExplicitBPlusTree(
   input: string,
   title?: string,
   bidirectional?: boolean,
+  notes?: readonly BPlusTreeNote[],
 ): BPlusTreeDocument {
   const nodes: BPlusTreeNode[] = [];
   const lines = input.split(/\r?\n/).filter((l) => l.trim().length > 0);
@@ -343,7 +359,7 @@ function parseExplicitBPlusTree(
         id: raw.id,
         label: raw.label,
         kinds: raw.isLeaf ? ['strip', 'leaf'] : ['strip', 'internal'],
-        ...(raw.pageId ? { badge: raw.pageId, pageId: raw.pageId } : {}),
+        ...(raw.pageId ? { pageId: raw.pageId } : {}),
         isLeaf: raw.isLeaf,
         children: raw.children,
       });
@@ -384,7 +400,7 @@ function parseExplicitBPlusTree(
         id,
         label: label.replace(/\s*\|\s*/g, ' | '),
         kinds: isLeaf ? ['strip', 'leaf'] : ['strip', 'internal'],
-        ...(pageId ? { badge: pageId, pageId } : {}),
+        ...(pageId ? { pageId } : {}),
         isLeaf,
         children: [],
       });
@@ -415,6 +431,7 @@ function parseExplicitBPlusTree(
     direction: 'TB',
     nodes,
     ...(bidirectional ? { bidirectionalLeaves: true } : {}),
+    ...(notes && notes.length > 0 ? { notes } : {}),
   };
 }
 
@@ -423,6 +440,7 @@ function parseExplicitBPlusTree(
 const ARROW_ID = 'bplus-arrow';
 const ARROW_START_ID = 'bplus-arrow-start';
 const TREE_ARROW_ID = 'bplus-tree-arrow';
+const NOTE_ARROW_ID = 'bplus-note-arrow';
 
 /** Split a `a | b | c` strip label into per-key cells with measured widths. */
 function stripCells(label: string, font: number): { key: string; width: number }[] {
@@ -431,7 +449,7 @@ function stripCells(label: string, font: number): { key: string; width: number }
     .map((s) => s.trim())
     .map((key) => ({
       key,
-      width: Math.max(measureText(key, font).width + 22, 38),
+      width: Math.max(measureText(key, font).width + 24, 40),
     }));
 }
 
@@ -464,7 +482,7 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
 
     const cells = stripCells(node.label, font);
     const width = cells.reduce((sum, c) => sum + c.width, 0);
-    const height = font + 20;
+    const height = font + 22;
     sizes.set(node.id, { width, height });
   }
 
@@ -478,12 +496,12 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
 
   const placed = treeLayout(inputs, {
     direction: ir.direction,
-    levelGap: 64,
+    levelGap: 68,
     siblingGap: 38, // generous gap for horizontal sibling pointer arrows
     margin,
   });
 
-  const titleH = ir.metadata['title'] ? typography.titleFontSize + 22 : 0;
+  const titleH = ir.metadata['title'] ? typography.titleFontSize + 24 : 0;
 
   // 3. Same-Rank Leaf Alignment: Ensure all leaves share the exact same baseline Y
   const leafIds = ir.nodes.filter((n) => isLeafNode.get(n.id)).map((n) => n.id);
@@ -510,7 +528,7 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
         String(ir.metadata['title']),
         placed.width / 2,
         margin + typography.titleFontSize,
-        typography.titleFontSize,
+        typography.titleFontSize + 2,
         palette.text,
         { anchor: 'middle', weight: 'bold' },
       ),
@@ -595,7 +613,7 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
     }
   }
 
-  // 6. Render Nodes (Strips with Cells and Badges/Headers)
+  // 6. Render Nodes (Strips with Cells and Clean Header Subtitles)
   for (const node of ir.nodes) {
     const b = box(node.id);
     const isLeaf = isLeafNode.get(node.id);
@@ -629,37 +647,86 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
       sx += cell.width;
     });
 
-    // Badge / Header above the node
-    const badgeText = node.badge ?? node.pageId ?? (isLeaf ? 'leaf' : 'internal node');
-    if (badgeText) {
-      const badgeW = measureText(badgeText, smallFont).width + 10;
-      const badgeH = 14;
-      const badgeX = b.x + 4;
-      const badgeY = b.y - badgeH / 2;
+    // Clean text header above the node (e.g. `internal node` or `leaf`)
+    const headerLabel =
+      node.badge ??
+      (node.pageId && !node.pageId.startsWith('n') && !node.pageId.startsWith('l') && !node.pageId.startsWith('p')
+        ? node.pageId
+        : isLeaf
+          ? 'leaf'
+          : 'internal node');
 
-      elements.push(
-        p.rect(
-          { x: rhu(badgeX), y: rhu(badgeY), width: rhu(badgeW), height: badgeH },
-          palette.background,
-          isLeaf ? palette.primary : palette.textMuted,
-          1.2,
-          { rx: 3 },
-        ),
-      );
+    if (headerLabel) {
       elements.push(
         p.text(
-          badgeText,
-          rhu(badgeX + badgeW / 2),
-          rhu(badgeY + badgeH / 2 + smallFont * 0.35),
-          smallFont - 1,
+          headerLabel,
+          rhu(b.x + b.width / 2),
+          rhu(b.y - 7),
+          smallFont,
           isLeaf ? palette.primary : palette.textMuted,
-          { anchor: 'middle', weight: 'bold' },
+          { anchor: 'middle', weight: 'normal' },
         ),
       );
     }
   }
 
-  // 7. Node Anchor Registry for Poster Cross-linking
+  // 7. Render Explanatory Notes & Callout Arrows (if specified)
+  const rootNode = ir.nodes.find((n) => !isLeafNode.get(n.id)) ?? ir.nodes[0];
+  const rootBox = rootNode ? box(rootNode.id) : undefined;
+  let extraBottomH = 0;
+  let extraRightW = 0;
+
+  if (ir.notes && ir.notes.length > 0) {
+    for (const note of ir.notes) {
+      if ((note.target === 'internal' || note.target === 'root') && rootBox) {
+        // Annotation on top-right of root
+        const noteX = rootBox.x + rootBox.width + 48;
+        const noteY = rootBox.y - 2;
+        extraRightW = Math.max(extraRightW, measureText(note.text, smallFont).width + 60);
+
+        elements.push(
+          p.text(note.text, rhu(noteX), rhu(noteY), smallFont, palette.textMuted, {
+            anchor: 'start',
+          }),
+        );
+        // Callout arrow pointing from note to right edge of internal node
+        elements.push(
+          p.path(
+            `M ${rhu(noteX - 6)} ${rhu(noteY - 4)} L ${rhu(rootBox.x + rootBox.width + 4)} ${rhu(rootBox.y + rootBox.height / 2)}`,
+            palette.textMuted,
+            1.2,
+            { markerEnd: NOTE_ARROW_ID },
+          ),
+        );
+      } else if (note.target === 'leaves' || note.target === 'leaf' || note.target === 'data') {
+        // Annotation below the linked leaves
+        const leafH = sizes.get(leafIds[0] ?? '')?.height ?? 34;
+        const noteY = maxLeafY + leafH + titleH + 34;
+        const noteX = placed.width / 2;
+        extraBottomH = Math.max(extraBottomH, 48);
+
+        elements.push(
+          p.text(note.text, rhu(noteX), rhu(noteY), smallFont, palette.textMuted, {
+            anchor: 'middle',
+          }),
+        );
+        // Curved arc arrow above the text indicating the leaf scan chain
+        const arcStart = noteX - 80;
+        const arcEnd = noteX + 80;
+        const arcMidY = noteY - 14;
+        elements.push(
+          p.path(
+            `M ${rhu(arcStart)} ${rhu(arcMidY)} Q ${rhu(noteX)} ${rhu(arcMidY + 10)} ${rhu(arcEnd)} ${rhu(arcMidY)}`,
+            palette.textMuted,
+            1.2,
+            { markerEnd: NOTE_ARROW_ID },
+          ),
+        );
+      }
+    }
+  }
+
+  // 8. Node Anchor Registry for Poster Cross-linking
   const anchors: Record<string, { bounds: { x: number; y: number; width: number; height: number } }> =
     {};
   for (const node of ir.nodes) {
@@ -672,7 +739,7 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
     }
   }
 
-  // 8. Dynamic Arrowhead Marker Definitions
+  // 9. Dynamic Arrowhead Marker Definitions
   const s = edges?.arrowSize ?? 8;
   const sH = rhu(s * 0.7);
   const sMidY = rhu(s * 0.35);
@@ -682,10 +749,11 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
     `<marker id="${ARROW_ID}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.primary}" /></marker>`,
     `<marker id="${ARROW_START_ID}" markerWidth="${s}" markerHeight="${sH}" refX="1" refY="${sMidY}" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.primary}" /></marker>`,
     `<marker id="${TREE_ARROW_ID}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.textMuted}" /></marker>`,
+    `<marker id="${NOTE_ARROW_ID}" markerWidth="${s}" markerHeight="${sH}" refX="${sRefX}" refY="${sMidY}" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, ${s} ${sMidY}, 0 ${sH}" fill="${palette.textMuted}" /></marker>`,
   ];
 
-  const totalH = rhuInt(maxLeafY + (sizes.get(leafIds[0] ?? '')?.height ?? 34) + margin * 2 + titleH);
-  const totalW = rhuInt(placed.width);
+  const totalH = rhuInt(maxLeafY + (sizes.get(leafIds[0] ?? '')?.height ?? 34) + margin * 2 + titleH + extraBottomH);
+  const totalW = rhuInt(placed.width + extraRightW);
 
   const scene: Scene = applyOverlays(
     {
