@@ -122,7 +122,7 @@ CellKind
 // ─── Cross-Link Declarations ─────────────────────────────────────────────────
 
 LinkDecl
-  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef label:(_ QuotedString)? anns:(_ "@" Annotation)* block:(_ PropBlock)? _ NL {
+  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef preAnns:(_ "@" Annotation)* label:(_ QuotedString)? postAnns:(_ "@" Annotation)* block:(_ PropBlock)? _ NL {
       // Start with props from { } block (lower precedence)
       const result = {};
       if (block) {
@@ -134,7 +134,8 @@ LinkDecl
         if (Object.keys(b).length > 0) result.props = b;
       }
       // Apply @ annotations last — @ WINS on conflict (superset rule §4.3)
-      for (const ann of anns) {
+      const allAnns = [...preAnns, ...postAnns];
+      for (const ann of allAnns) {
         Object.assign(result, ann[2]);
       }
       addLink(from, arrow, to, label ? label[1] : null, Object.keys(result).length > 0 ? result : null);

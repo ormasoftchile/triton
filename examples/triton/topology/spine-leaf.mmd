@@ -1,0 +1,18 @@
+topology :: "Datacenter Clos Spine-Leaf Fabric"
+  pattern spine-leaf
+
+  switch spine1 "Spine Switch 01" [100 Gbps]
+  switch spine2 "Spine Switch 02" [100 Gbps]
+
+  switch leaf1 "ToR Leaf 01 (Rack A)" [40 Gbps]
+  switch leaf2 "ToR Leaf 02 (Rack B)" [40 Gbps]
+
+  server srv1 "Compute Host 01" [eth0: 10.0.1.10]
+  server srv2 "Compute Host 02" [eth0: 10.0.1.11]
+  db db1 "PostgreSQL Primary" [eth0: 10.0.2.10]
+  db db2 "PostgreSQL Replica" [eth0: 10.0.2.11]
+
+  spine1 -- leaf1, leaf2 @orthogonal "100G Trunk"
+  spine2 -- leaf1, leaf2 @orthogonal "100G Trunk"
+  leaf1 -- srv1, srv2 @orthogonal "10G Downlink"
+  leaf2 -- db1, db2 @orthogonal "10G Downlink"

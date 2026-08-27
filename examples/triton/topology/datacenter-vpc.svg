@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1275 292" width="1275" height="292">
+  <defs>
+    <marker id="topo-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="topo-arrow-start" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="1275" height="292" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Enterprise VPC &amp; Cloud DMZ Architecture</text>
+  <rect x="24" y="72" width="451.65600000000006" height="196" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="10" />
+  <text x="38" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Public Ingress Subnet (DMZ) [10.0.1.0/24]</text>
+  <rect x="515.6560000000001" y="72" width="359.4828" height="120" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="10" />
+  <text x="529.6560000000001" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Private Application Subnet [10.0.2.0/24]</text>
+  <rect x="915.1388000000001" y="72" width="336.0244" height="120" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="10" />
+  <text x="929.1388000000001" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Isolated Storage Subnet [10.0.3.0/24]</text>
+  <path d="M 239.82800000000003 148 L 259.82800000000003 148" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+  <text x="245.82800000000003" y="142" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+  <rect x="218.19" y="139" width="63.28" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="249.83" y="151.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">HTTPS:443</text>
+  <path d="M 278.75 176 L 220.9 196" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+  <text x="272.7527368421053" y="170" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">out</text>
+  <rect x="208.18" y="177" width="83.3" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="249.83" y="189.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">WAF Inspection</text>
+  <path d="M 239.82800000000003 207.7958638338227 L 471.65600000000006 207.7958638338227 L 471.65600000000006 160.4669544807471 L 531.6560000000002 160.4669544807471" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+  <text x="245.82800000000003" y="201.7958638338227" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+  <rect x="340.46" y="175.13" width="90.57" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="385.74" y="187.63" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forwarded Traffic</text>
+  <path d="M 685.3974000000001 148 L 871.1388000000001 148 L 871.1388000000001 148 L 931.1388 148" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="691.3974000000001" y="142" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">eth0</text>
+  <rect x="776.77" y="139" width="63.01" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="808.27" y="151.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Read/Write</text>
+  <path d="M 859.1388 148 L 919.1388000000001 148 L 919.1388000000001 148 L 1093.151 148" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="865.1388" y="142" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">eth0</text>
+  <rect x="946.2" y="139" width="59.88" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="976.14" y="151.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Read-Only</text>
+  <path d="M 1073.151 148 C 1081.151 148 1085.151 148 1093.151 148" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <rect x="1015.6" y="139" width="135.11" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="1083.15" y="151.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">WAL Streaming Replication</text>
+  <rect x="40" y="120" width="199.82800000000003" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="46" y="113.5" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="69.0377" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+  <text x="139.91" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Internet Gateway</text>
+  <text x="139.91" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Public IP</text>
+  <rect x="259.82800000000003" y="120" width="199.82800000000003" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="265.82800000000003" y="113.5" width="81.2132" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="306.43460000000005" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">LOADBALANCER</text>
+  <text x="359.74" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Application Load Balancer</text>
+  <text x="359.74" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.1.10</text>
+  <rect x="40" y="196" width="199.82800000000003" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="46" y="189.5" width="53.131400000000006" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="72.5657" y="199.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">FIREWALL</text>
+  <text x="139.91" y="228.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Web Application Firewall</text>
+  <rect x="531.6560000000001" y="120" width="153.7414" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="537.6560000000001" y="113.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="559.9638000000001" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+  <text x="608.53" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Microservice API A</text>
+  <text x="608.53" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.2.11</text>
+  <rect x="705.3974000000001" y="120" width="153.7414" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="711.3974000000001" y="113.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="733.7052000000001" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+  <text x="782.27" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Microservice API B</text>
+  <text x="782.27" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.2.12</text>
+  <rect x="931.1388000000001" y="120" width="142.0122" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="937.1388000000001" y="113.5" width="55.6892" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="964.9834000000001" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DATABASE</text>
+  <text x="1002.14" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Postgres Master</text>
+  <text x="1002.14" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.3.10</text>
+  <rect x="1093.151" y="120" width="142.0122" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="1099.151" y="113.5" width="55.6892" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="1126.9956" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DATABASE</text>
+  <text x="1164.16" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Postgres Replica</text>
+  <text x="1164.16" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.3.11</text>
+</svg>

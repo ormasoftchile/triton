@@ -1,0 +1,24 @@
+topology :: "Enterprise VPC & Cloud DMZ Architecture"
+
+  subnet "10.0.1.0/24" "Public Ingress Subnet (DMZ)"
+    router igw "Internet Gateway" [Public IP]
+    loadbalancer alb "Application Load Balancer" [10.0.1.10]
+    firewall waf "Web Application Firewall"
+  end
+
+  subnet "10.0.2.0/24" "Private Application Subnet"
+    server app1 "Microservice API A" [10.0.2.11]
+    server app2 "Microservice API B" [10.0.2.12]
+  end
+
+  subnet "10.0.3.0/24" "Isolated Storage Subnet"
+    database dbPrimary "Postgres Master" [10.0.3.10]
+    database dbReplica "Postgres Replica" [10.0.3.11]
+  end
+
+  igw:out --> alb:in @orthogonal "HTTPS:443"
+  alb:out --> waf:in @straight "WAF Inspection"
+  waf:out --> app1:eth0, app2:eth0 @orthogonal "Forwarded Traffic"
+  app1:eth0 <--> dbPrimary:port5432 @orthogonal "Read/Write"
+  app2:eth0 <--> dbReplica:port5432 @orthogonal "Read-Only"
+  dbPrimary <--> dbReplica @bezier "WAL Streaming Replication"
