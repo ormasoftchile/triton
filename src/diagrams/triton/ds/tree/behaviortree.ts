@@ -48,6 +48,9 @@ export interface BehaviorTreeDocument extends BaseIR {
 export function buildBehaviorTree(input: string): BehaviorTreeDocument {
   const lines = input.split(/\r?\n/).filter((l) => l.trim().length > 0);
   let title: string | undefined;
+  let compact = false;
+  let maxWidth: number | undefined;
+  let direction: 'TB' | 'LR' | undefined;
   const filteredLines: { indent: number; text: string }[] = [];
 
   for (const line of lines) {
@@ -57,6 +60,25 @@ export function buildBehaviorTree(input: string): BehaviorTreeDocument {
     const titleMatch = trimmed.match(/^title\s+(.+)$/i);
     if (titleMatch) {
       title = titleMatch[1]!.trim().replace(/^["']|["']$/g, '');
+      continue;
+    }
+
+    const compactMatch = trimmed.match(/^(layout\s+compact|compact\s*(true)?|compact)\b/i);
+    if (compactMatch) {
+      compact = true;
+      continue;
+    }
+
+    const maxWidthMatch = trimmed.match(/^max-?width\s+(\d+)/i);
+    if (maxWidthMatch) {
+      maxWidth = Number(maxWidthMatch[1]);
+      compact = true;
+      continue;
+    }
+
+    const dirMatch = trimmed.match(/^direction\s+(TD|TB|LR)/i);
+    if (dirMatch) {
+      direction = dirMatch[1] === 'LR' ? 'LR' : 'TB';
       continue;
     }
 
@@ -119,16 +141,16 @@ export function buildBehaviorTree(input: string): BehaviorTreeDocument {
       text = text.replace(/^action\s+/i, '');
     }
 
-    const cleanLabel = text.replace(/^["']+|["']+$/g, '').trim() || (kind === 'selector' ? '?' : kind === 'sequence' ? '→' : 'Action');
-
-    nodes.push({
+    const node: BehaviorTreeNode = {
       id,
-      label: cleanLabel,
+      label: text.replace(/^["']+|["']+$/g, '').trim() || (kind === 'selector' ? '?' : kind === 'sequence' ? '→' : 'Action'),
       kind,
       ...(status ? { status } : {}),
       ...(decoratorType ? { decoratorType } : {}),
       children: [],
-    });
+    };
+
+    nodes.push(node);
 
     if (parent) {
       const pNode = nodes.find((n) => n.id === parent.id);
@@ -142,7 +164,12 @@ export function buildBehaviorTree(input: string): BehaviorTreeDocument {
 
   return {
     version: '1.0',
-    metadata: title ? { title } : {},
+    metadata: {
+      ...(title ? { title } : {}),
+      ...(compact ? { compact: true } : {}),
+      ...(maxWidth !== undefined ? { maxWidth } : {}),
+      ...(direction ? { direction } : {}),
+    },
     ...(title ? { title } : {}),
     nodes,
   };
@@ -168,23 +195,28 @@ export function layoutBehaviorTree(ir: BehaviorTreeDocument, theme: ResolvedThem
     return { scene, anchors: {} };
   }
 
+  const isCompact =
+    ir.metadata['compact'] === true ||
+    ir.metadata['layout'] === 'compact' ||
+    String(ir.metadata['compact']) === 'true';
+
   const sizes = new Map<string, { width: number; height: number }>();
   for (const node of ir.nodes) {
-    let w = measureText(node.label, font).width + 36;
-    let h = font + 24;
+    let w = measureText(node.label, isCompact ? smallFont : font).width + (isCompact ? 24 : 36);
+    let h = (isCompact ? smallFont : font) + (isCompact ? 16 : 24);
 
     if (node.kind === 'selector' || node.kind === 'sequence' || node.kind === 'parallel') {
-      w = Math.max(w, 54);
-      h = 44;
+      w = Math.max(w, isCompact ? 44 : 54);
+      h = isCompact ? 36 : 44;
     } else if (node.kind === 'condition') {
-      w = Math.max(w, 80);
-      h = 38;
+      w = Math.max(w, isCompact ? 64 : 80);
+      h = isCompact ? 30 : 38;
     } else {
-      w = Math.max(w, 90);
-      h = 42;
+      w = Math.max(w, isCompact ? 70 : 90);
+      h = isCompact ? 32 : 42;
     }
 
-    if (node.status) w += 20; // extra space for status badge
+    if (node.status) w += isCompact ? 14 : 20; // extra space for status badge
 
     sizes.set(node.id, { width: w, height: h });
   }
@@ -197,9 +229,9 @@ export function layoutBehaviorTree(ir: BehaviorTreeDocument, theme: ResolvedThem
   }));
 
   const placed = treeLayout(inputs, {
-    direction: 'TB',
-    levelGap: 56,
-    siblingGap: 24,
+    direction: (ir.metadata['direction'] as 'TB' | 'LR') ?? 'TB',
+    levelGap: isCompact ? 38 : 56,
+    siblingGap: isCompact ? 12 : 24,
     margin,
   });
 

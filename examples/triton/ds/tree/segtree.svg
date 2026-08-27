@@ -1,30 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 329.9364 251" width="329.9364" height="251">
-  <rect x="0" y="0" width="329.9364" height="251" fill="#FFFFFF" />
-  <path d="M 149.93 57 L 102.53 109" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 180.01 57 L 227.41 109" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 79.96 142 L 56.26 194" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 95 142 L 118.71 194" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 234.93 142 L 211.23 194" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <path d="M 249.97 142 L 273.67 194" stroke="#64748B" stroke-width="1.5" fill="none" />
-  <rect x="140.22615" y="24" width="49.4841" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
-  <text x="164.9682" y="42" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">47</text>
-  <text x="164.9682" y="55" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[0,3]</text>
-  <rect x="62.74205" y="109" width="49.4841" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
-  <text x="87.4841" y="127" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">13</text>
-  <text x="87.4841" y="140" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[0,1]</text>
-  <rect x="24" y="194" width="49.4841" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
-  <text x="48.74205" y="212" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">5</text>
-  <text x="48.74205" y="225" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[0,0]</text>
-  <rect x="101.48409999999998" y="194" width="49.4841" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
-  <text x="126.22614999999999" y="212" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">8</text>
-  <text x="126.22614999999999" y="225" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[1,1]</text>
-  <rect x="217.71024999999997" y="109" width="49.4841" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
-  <text x="242.45229999999998" y="127" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">34</text>
-  <text x="242.45229999999998" y="140" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[2,3]</text>
-  <rect x="178.9682" y="194" width="49.4841" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
-  <text x="203.71025" y="212" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">13</text>
-  <text x="203.71025" y="225" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[2,2]</text>
-  <rect x="256.4523" y="194" width="49.4841" height="33" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
-  <text x="281.19435" y="212" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">21</text>
-  <text x="281.19435" y="225" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[3,3]</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 329.9364 299" width="329.9364" height="299">
+  <rect x="0" y="0" width="329.9364" height="299" fill="#FFFFFF" />
+  <path d="M 146.17 73 L 106.28 125" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 183.76 73 L 223.66 125" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 78.09 174 L 58.14 226" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 96.88 174 L 116.83 226" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 233.05 174 L 213.11 226" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 251.85 174 L 271.8 226" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <rect x="140.22615" y="24" width="49.4841" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="164.9682" y="44.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">47</text>
+  <text x="164.9682" y="61.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[0,3]</text>
+  <rect x="62.74205" y="125" width="49.4841" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="87.4841" y="145.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">13</text>
+  <text x="87.4841" y="162.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[0,1]</text>
+  <rect x="24" y="226" width="49.4841" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="48.74205" y="246.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">5</text>
+  <text x="48.74205" y="263.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[0,0]</text>
+  <rect x="101.48409999999998" y="226" width="49.4841" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="126.22614999999999" y="246.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">8</text>
+  <text x="126.22614999999999" y="263.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[1,1]</text>
+  <rect x="217.71024999999997" y="125" width="49.4841" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="242.45229999999998" y="145.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">34</text>
+  <text x="242.45229999999998" y="162.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[2,3]</text>
+  <rect x="178.9682" y="226" width="49.4841" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="203.71025" y="246.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">13</text>
+  <text x="203.71025" y="263.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[2,2]</text>
+  <rect x="256.4523" y="226" width="49.4841" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="281.19435" y="246.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">21</text>
+  <text x="281.19435" y="263.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">[3,3]</text>
 </svg>

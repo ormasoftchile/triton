@@ -60,6 +60,9 @@ export function buildMerkleTree(input: string): MerkleTreeDocument {
 
   let title: string | undefined;
   let proofTarget: string | undefined;
+  let compact = false;
+  let maxWidth: number | undefined;
+  let direction: 'TB' | 'LR' | undefined;
   const dataItems: string[] = [];
   const manualLines: string[] = [];
 
@@ -78,6 +81,25 @@ export function buildMerkleTree(input: string): MerkleTreeDocument {
       continue;
     }
 
+    const compactMatch = line.match(/^(layout\s+compact|compact\s*(true)?|compact)\b/i);
+    if (compactMatch) {
+      compact = true;
+      continue;
+    }
+
+    const maxWidthMatch = line.match(/^max-?width\s+(\d+)/i);
+    if (maxWidthMatch) {
+      maxWidth = Number(maxWidthMatch[1]);
+      compact = true;
+      continue;
+    }
+
+    const dirMatch = line.match(/^direction\s+(TD|TB|LR)/i);
+    if (dirMatch) {
+      direction = dirMatch[1] === 'LR' ? 'LR' : 'TB';
+      continue;
+    }
+
     const dataMatch = line.match(/^data\s+(.+)$/i);
     if (dataMatch) {
       const items = dataMatch[1]!.match(/"([^"]+)"|'([^']+)'|(\S+)/g) ?? [];
@@ -90,17 +112,24 @@ export function buildMerkleTree(input: string): MerkleTreeDocument {
     manualLines.push(line);
   }
 
+  const extraMeta: Record<string, unknown> = {
+    ...(compact ? { compact: true } : {}),
+    ...(maxWidth !== undefined ? { maxWidth } : {}),
+    ...(direction ? { direction } : {}),
+  };
+
   if (dataItems.length > 0) {
-    return buildAlgorithmicMerkleTree(dataItems, title, proofTarget);
+    return buildAlgorithmicMerkleTree(dataItems, title, proofTarget, extraMeta);
   }
 
-  return parseExplicitMerkleTree(manualLines.join('\n'), title, proofTarget);
+  return parseExplicitMerkleTree(manualLines.join('\n'), title, proofTarget, extraMeta);
 }
 
 function buildAlgorithmicMerkleTree(
   dataItems: string[],
   title?: string,
   proofTarget?: string,
+  extraMeta?: Record<string, unknown>,
 ): MerkleTreeDocument {
   // Ensure power of 2 by duplicating last element if needed
   const leaves = [...dataItems];
@@ -191,7 +220,7 @@ function buildAlgorithmicMerkleTree(
 
   return {
     version: '1.0',
-    metadata: title ? { title } : {},
+    metadata: { ...(title ? { title } : {}), ...(extraMeta ?? {}) },
     ...(title ? { title } : {}),
     ...(proofTarget ? { proofTarget } : {}),
     nodes,
@@ -202,6 +231,7 @@ function parseExplicitMerkleTree(
   input: string,
   title?: string,
   proofTarget?: string,
+  extraMeta?: Record<string, unknown>,
 ): MerkleTreeDocument {
   const lines = input.split(/\r?\n/).filter((l) => l.trim().length > 0);
   const nodes: MerkleNode[] = [];
@@ -250,7 +280,7 @@ function parseExplicitMerkleTree(
 
   return {
     version: '1.0',
-    metadata: title ? { title } : {},
+    metadata: { ...(title ? { title } : {}), ...(extraMeta ?? {}) },
     ...(title ? { title } : {}),
     ...(proofTarget ? { proofTarget } : {}),
     nodes,
@@ -278,16 +308,27 @@ export function layoutMerkleTree(ir: MerkleTreeDocument, theme: ResolvedTheme): 
     return { scene, anchors: {} };
   }
 
+  const isCompact =
+    ir.metadata['compact'] === true ||
+    ir.metadata['layout'] === 'compact' ||
+    String(ir.metadata['compact']) === 'true';
+
   const sizes = new Map<string, { width: number; height: number }>();
   for (const node of ir.nodes) {
-    const hashLabel = `hash: ${node.hash.slice(0, 8)}`;
-    const dataLabel = node.data ? `data: ${node.data}` : undefined;
-    const w = Math.max(
-      measureText(hashLabel, smallFont).width + 24,
-      dataLabel ? measureText(dataLabel, smallFont).width + 24 : 0,
-      100,
-    );
-    const h = node.data ? 48 : 36;
+    const hashLabel = isCompact ? node.hash.slice(0, 6) : `hash: ${node.hash.slice(0, 8)}`;
+    const dataLabel = node.data ? (isCompact ? node.data : `data: ${node.data}`) : undefined;
+    const w = isCompact
+      ? Math.max(
+          measureText(hashLabel, smallFont - 1).width + 16,
+          dataLabel ? measureText(dataLabel, smallFont - 1).width + 16 : 0,
+          56,
+        )
+      : Math.max(
+          measureText(hashLabel, smallFont).width + 24,
+          dataLabel ? measureText(dataLabel, smallFont).width + 24 : 0,
+          100,
+        );
+    const h = node.data ? (isCompact ? 40 : 48) : (isCompact ? 28 : 36);
     sizes.set(node.id, { width: w, height: h });
   }
 
@@ -299,9 +340,9 @@ export function layoutMerkleTree(ir: MerkleTreeDocument, theme: ResolvedTheme): 
   }));
 
   const placed = treeLayout(inputs, {
-    direction: 'TB',
-    levelGap: 52,
-    siblingGap: 24,
+    direction: (ir.metadata['direction'] as 'TB' | 'LR') ?? 'TB',
+    levelGap: isCompact ? 36 : 52,
+    siblingGap: isCompact ? 10 : 24,
     margin,
   });
 
@@ -372,32 +413,40 @@ export function layoutMerkleTree(ir: MerkleTreeDocument, theme: ResolvedTheme): 
     }
 
     // Card rect
-    elements.push(p.rect(b, fill, stroke, strokeWidth, { rx: 6 }));
+    elements.push(p.rect(b, fill, stroke, strokeWidth, { rx: isCompact ? 4 : 6 }));
 
     // Hash text
-    const hashY = node.data ? b.y + 18 : b.y + b.height / 2 + smallFont * 0.35;
+    const hashText = isCompact ? node.hash.slice(0, 6) : node.hash.slice(0, 8);
+    const hashY = node.data
+      ? isCompact
+        ? b.y + 14
+        : b.y + 18
+      : b.y + b.height / 2 + (isCompact ? smallFont - 1 : smallFont) * 0.35;
+
     elements.push(
       p.text(
-        node.hash.slice(0, 8),
+        hashText,
         rhu(b.x + b.width / 2),
         rhu(hashY),
-        smallFont,
+        isCompact ? smallFont - 1 : smallFont,
         palette.text,
-        { anchor: 'middle', weight: 'bold' },
+        { anchor: 'middle', weight: node.isRoot || node.isProof ? 'bold' : 'normal' },
       ),
     );
 
     // Data text & divider (if leaf with data)
     if (node.data) {
+      const dataText = isCompact ? node.data : `data: ${node.data}`;
+      const divY = isCompact ? b.y + 22 : b.y + 28;
       elements.push(
-        p.path(`M ${rhu(b.x)} ${rhu(b.y + 26)} L ${rhu(b.x + b.width)} ${rhu(b.y + 26)}`, stroke, 1),
+        p.path(`M ${rhu(b.x)} ${rhu(divY)} L ${rhu(b.x + b.width)} ${rhu(divY)}`, stroke, 1),
       );
       elements.push(
         p.text(
-          node.data,
+          dataText,
           rhu(b.x + b.width / 2),
-          rhu(b.y + 40),
-          smallFont - 1,
+          rhu(divY + (isCompact ? 11 : 14)),
+          isCompact ? smallFont - 2 : smallFont - 1,
           palette.textMuted,
           { anchor: 'middle' },
         ),

@@ -48,6 +48,9 @@ export function buildQuadTree(input: string): QuadTreeDocument {
   let title: string | undefined;
   let capacity = 1;
   let bounds = { x: 0, y: 0, w: 100, h: 100 };
+  let compact = false;
+  let maxWidth: number | undefined;
+  let direction: 'TB' | 'LR' | undefined;
   const rawPoints: QuadPoint[] = [];
   const manualLines: string[] = [];
 
@@ -57,6 +60,25 @@ export function buildQuadTree(input: string): QuadTreeDocument {
     const titleMatch = line.match(/^title\s+(.+)$/i);
     if (titleMatch) {
       title = titleMatch[1]!.trim().replace(/^["']|["']$/g, '');
+      continue;
+    }
+
+    const compactMatch = line.match(/^(layout\s+compact|compact\s*(true)?|compact)\b/i);
+    if (compactMatch) {
+      compact = true;
+      continue;
+    }
+
+    const maxWidthMatch = line.match(/^max-?width\s+(\d+)/i);
+    if (maxWidthMatch) {
+      maxWidth = Number(maxWidthMatch[1]);
+      compact = true;
+      continue;
+    }
+
+    const dirMatch = line.match(/^direction\s+(TD|TB|LR)/i);
+    if (dirMatch) {
+      direction = dirMatch[1] === 'LR' ? 'LR' : 'TB';
       continue;
     }
 
@@ -90,11 +112,17 @@ export function buildQuadTree(input: string): QuadTreeDocument {
     manualLines.push(line);
   }
 
+  const extraMeta: Record<string, unknown> = {
+    ...(compact ? { compact: true } : {}),
+    ...(maxWidth !== undefined ? { maxWidth } : {}),
+    ...(direction ? { direction } : {}),
+  };
+
   if (rawPoints.length > 0) {
-    return buildAlgorithmicQuadTree(rawPoints, bounds, capacity, title);
+    return buildAlgorithmicQuadTree(rawPoints, bounds, capacity, title, extraMeta);
   }
 
-  return parseExplicitQuadTree(manualLines.join('\n'), bounds, title);
+  return parseExplicitQuadTree(manualLines.join('\n'), bounds, title, extraMeta);
 }
 
 function buildAlgorithmicQuadTree(
@@ -102,6 +130,7 @@ function buildAlgorithmicQuadTree(
   bounds: { x: number; y: number; w: number; h: number },
   capacity: number,
   title?: string,
+  extraMeta?: Record<string, unknown>,
 ): QuadTreeDocument {
   interface InternalQuad {
     id: string;
@@ -166,7 +195,7 @@ function buildAlgorithmicQuadTree(
 
   return {
     version: '1.0',
-    metadata: title ? { title } : {},
+    metadata: { ...(title ? { title } : {}), ...(extraMeta ?? {}) },
     ...(title ? { title } : {}),
     bounds,
     capacity,
@@ -178,6 +207,7 @@ function parseExplicitQuadTree(
   input: string,
   bounds: { x: number; y: number; w: number; h: number },
   title?: string,
+  extraMeta?: Record<string, unknown>,
 ): QuadTreeDocument {
   const lines = input.split(/\r?\n/).filter((l) => l.trim().length > 0);
   const nodes: QuadNode[] = [];
@@ -213,7 +243,7 @@ function parseExplicitQuadTree(
 
   return {
     version: '1.0',
-    metadata: title ? { title } : {},
+    metadata: { ...(title ? { title } : {}), ...(extraMeta ?? {}) },
     ...(title ? { title } : {}),
     bounds,
     capacity: 1,
@@ -241,14 +271,19 @@ export function layoutQuadTree(ir: QuadTreeDocument, theme: ResolvedTheme): Layo
     return { scene, anchors: {} };
   }
 
+  const isCompact =
+    ir.metadata['compact'] === true ||
+    ir.metadata['layout'] === 'compact' ||
+    String(ir.metadata['compact']) === 'true';
+
   // 1. Measure tree nodes
   const sizes = new Map<string, { width: number; height: number }>();
   for (const node of ir.nodes) {
     const ptText = node.points.length > 0 ? node.points.map((pt) => pt.label ?? `(${pt.x},${pt.y})`).join(', ') : '';
-    const mainW = measureText(node.label, smallFont).width + 24;
-    const ptW = ptText ? measureText(ptText, smallFont - 1).width + 24 : 0;
-    const w = Math.max(mainW, ptW, 80);
-    const h = ptText ? 44 : 32;
+    const mainW = measureText(node.label, smallFont).width + (isCompact ? 16 : 24);
+    const ptW = ptText ? measureText(ptText, smallFont - 1).width + (isCompact ? 16 : 24) : 0;
+    const w = Math.max(mainW, ptW, isCompact ? 56 : 80);
+    const h = ptText ? (isCompact ? 36 : 44) : (isCompact ? 26 : 32);
     sizes.set(node.id, { width: w, height: h });
   }
 
@@ -260,9 +295,9 @@ export function layoutQuadTree(ir: QuadTreeDocument, theme: ResolvedTheme): Layo
   }));
 
   const treePlaced = treeLayout(inputs, {
-    direction: 'TB',
-    levelGap: 52,
-    siblingGap: 20,
+    direction: (ir.metadata['direction'] as 'TB' | 'LR') ?? 'TB',
+    levelGap: isCompact ? 36 : 52,
+    siblingGap: isCompact ? 10 : 20,
     margin,
   });
 

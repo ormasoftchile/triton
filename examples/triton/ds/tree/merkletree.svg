@@ -20,43 +20,43 @@
   <path d="M 515.55 102 L 264.7 154" stroke="#4A90D9" stroke-width="2.2" fill="none" marker-end="url(#merkle-proof-arrow)" />
   <path d="M 515.55 102 L 768.25 154" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
   <rect x="24" y="330" width="100.0529" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="74.03" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">405312f8</text>
-  <path d="M 24 356 L 124.05 356" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="74.03" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx1</text>
+  <text x="74.03" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">405312f8</text>
+  <path d="M 24 358 L 124.05 358" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="74.03" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx1</text>
   <rect x="148.0529" y="330" width="103.1142" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="199.61" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">435317b1</text>
-  <path d="M 148.05 356 L 251.17 356" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="199.61" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx2</text>
+  <text x="199.61" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">435317b1</text>
+  <path d="M 148.05 358 L 251.17 358" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="199.61" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx2</text>
   <rect x="275.1671" y="330" width="103.1142" height="48" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="6" />
   <text x="326.72" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">4253161e</text>
-  <path d="M 275.17 356 L 378.28 356" stroke="#4A90D9" stroke-width="1" fill="none" />
-  <text x="326.72" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx3</text>
+  <path d="M 275.17 358 L 378.28 358" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="326.72" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx3</text>
   <rect x="333.67" y="323.5" width="40.62" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
   <text x="353.97" y="333.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">VERIFY</text>
   <rect x="402.2813" y="330" width="103.1142" height="48" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.8" rx="6" />
-  <text x="453.84" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">45531ad7</text>
-  <path d="M 402.28 356 L 505.4 356" stroke="#7C3AED" stroke-width="1" fill="none" />
-  <text x="453.84" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx4</text>
+  <text x="453.84" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">45531ad7</text>
+  <path d="M 402.28 358 L 505.4 358" stroke="#7C3AED" stroke-width="1" fill="none" />
+  <text x="453.84" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx4</text>
   <rect x="431.23" y="323.5" width="70.17" height="13" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1" rx="3" />
   <text x="466.31" y="333.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">SIBLING HASH</text>
   <rect x="529.3955" y="330" width="103.1142" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="580.95" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">44531944</text>
-  <path d="M 529.4 356 L 632.51 356" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="580.95" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx5</text>
+  <text x="580.95" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">44531944</text>
+  <path d="M 529.4 358 L 632.51 358" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="580.95" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx5</text>
   <rect x="656.5097" y="330" width="100.0529" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="706.54" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">47531dfd</text>
-  <path d="M 656.51 356 L 756.56 356" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="706.54" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx6</text>
+  <text x="706.54" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">47531dfd</text>
+  <path d="M 656.51 358 L 756.56 358" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="706.54" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx6</text>
   <rect x="780.5626" y="330" width="102.4806" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="831.8" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">46531c6a</text>
-  <path d="M 780.56 356 L 883.04 356" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="831.8" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx7</text>
+  <text x="831.8" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">46531c6a</text>
+  <path d="M 780.56 358 L 883.04 358" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="831.8" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx7</text>
   <rect x="907.0432" y="330" width="100.0529" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="957.07" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">395307f3</text>
-  <path d="M 907.04 356 L 1007.1 356" stroke="#CBD5E1" stroke-width="1" fill="none" />
-  <text x="957.07" y="370" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Tx8</text>
+  <text x="957.07" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">395307f3</text>
+  <path d="M 907.04 358 L 1007.1 358" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="957.07" y="372" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">data: Tx8</text>
   <rect x="86.02645000000001" y="242" width="103.1142" height="36" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.8" rx="6" />
-  <text x="137.58" y="263.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">8ba19725</text>
+  <text x="137.58" y="263.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">8ba19725</text>
   <rect x="114.97" y="235.5" width="70.17" height="13" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1" rx="3" />
   <text x="150.06" y="245.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">SIBLING HASH</text>
   <rect x="340.2813" y="242" width="100" height="36" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="6" />
@@ -64,15 +64,15 @@
   <rect x="395.67" y="235.5" width="40.62" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
   <text x="415.97" y="245.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">VERIFY</text>
   <rect x="592.9526" y="242" width="100.0529" height="36" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="642.98" y="263.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1775f03a</text>
+  <text x="642.98" y="263.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">1775f03a</text>
   <rect x="843.8029" y="242" width="100.0529" height="36" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
-  <text x="893.83" y="263.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">a3e77f0d</text>
+  <text x="893.83" y="263.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">a3e77f0d</text>
   <rect x="214.67129999999997" y="154" width="100.0529" height="36" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="6" />
   <text x="264.7" y="175.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">f232d1d8</text>
   <rect x="270.11" y="147.5" width="40.62" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
   <text x="290.42" y="157.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">VERIFY</text>
   <rect x="717.6390999999999" y="154" width="101.21340000000001" height="36" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.8" rx="6" />
-  <text x="768.25" y="175.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">895c3cc5</text>
+  <text x="768.25" y="175.85" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">895c3cc5</text>
   <rect x="744.69" y="147.5" width="70.17" height="13" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1" rx="3" />
   <text x="779.77" y="157.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">SIBLING HASH</text>
   <rect x="463.99095" y="66" width="103.1142" height="36" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="6" />

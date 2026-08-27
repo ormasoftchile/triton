@@ -197,9 +197,17 @@ export function layoutTree234(ir: Tree234Document, theme: ResolvedTheme): Layout
     children: n.children,
   }));
 
+  // Map child to parent for anchor clearance
+  const parentMap = new Map<string, string>();
+  for (const node of ir.nodes) {
+    for (const cid of node.children) {
+      parentMap.set(cid, node.id);
+    }
+  }
+
   const placed = treeLayout(inputs, {
     direction: 'TB',
-    levelGap: 58,
+    levelGap: 66,
     siblingGap: 24,
     margin,
   });
@@ -292,9 +300,10 @@ export function layoutTree234(ir: Tree234Document, theme: ResolvedTheme): Layout
       sx += cw;
     });
 
-    // Tag above node
+    // Tag placement: root is placed above, child nodes placed below so incoming connectors to top-center are unobstructed
+    const tagY = !parentMap.has(node.id) ? b.y - 8 : b.y + b.height + 12;
     elements.push(
-      p.text(nodeType, rhu(b.x + b.width / 2), rhu(b.y - 6), smallFont - 2, palette.textMuted, {
+      p.text(nodeType, rhu(b.x + b.width / 2), rhu(tagY), smallFont - 2, palette.textMuted, {
         anchor: 'middle',
       }),
     );

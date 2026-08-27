@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320.8348 335" width="320.8348" height="335">
+  <rect x="0" y="0" width="320.8348" height="335" fill="#FFFFFF" />
+  <text x="160.4174" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Generic processing plan</text>
+  <path d="M 142.17 109 L 103.45 161" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 178.66 109 L 222.22 167.5" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <path d="M 235.63 203.5 L 235.63 262" stroke="#64748B" stroke-width="1.5" fill="none" />
+  <rect x="92.63219999999998" y="60" width="135.5704" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="160.4174" y="80.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Combine Results</text>
+  <text x="160.4174" y="97.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rows: 980</text>
+  <rect x="24" y="161" width="122.41739999999999" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="85.2087" y="181.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Read Source A</text>
+  <text x="85.2087" y="198.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rows: 10000</text>
+  <rect x="186.91379999999998" y="167.5" width="97.4246" height="36" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="235.62609999999998" y="190.4" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Build Index</text>
+  <rect x="174.4174" y="262" width="122.41739999999999" height="49" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+  <text x="235.62609999999998" y="282.5" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Read Source B</text>
+  <text x="235.62609999999998" y="299.25" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">idx: sample_index</text>
+</svg>

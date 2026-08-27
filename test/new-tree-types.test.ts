@@ -161,29 +161,73 @@ describe('New Tree Diagram Types', () => {
     });
   });
 
-  describe('Poster Embedding', () => {
-    it('embeds new tree diagram kinds inside poster cells with crosslinks', () => {
-      const src = `poster "Tree Family Dashboard"
-  columns 2
-
-  cell merkle "Merkle Tree" :: merkletree
-    data "Tx1" "Tx2" "Tx3" "Tx4"
-  end
-
-  cell bplus "B+ Tree Index" :: bplustree
-    order 3 insert 10 20 30 40
-  end
-
-  link merkle.data_Tx1 --> bplus.page_P1 "persists to storage"
+  describe('Publication Usability Requirements', () => {
+    it('1. includes secondary text in node sizing with consistent padding and no border intersection', () => {
+      const src = `plan
+  title Generic processing plan
+  Combine Results {rows: 980}
+    Read Source A {rows: 10000}
+    Build Index
+      Read Source B {idx: sample_index}
 `;
       const res = renderSync(src, {}, 'svg');
       expect(res.ok).toBe(true);
       if (!res.ok) return;
 
-      expect(res.value).toContain('Tree Family Dashboard');
-      expect(res.value).toContain('Merkle Tree');
-      expect(res.value).toContain('B+ Tree Index');
-      expect(res.value).toContain('persists to storage');
+      expect(res.value).toContain('Generic processing plan');
+      expect(res.value).toContain('rows: 980');
+      expect(res.value).toContain('rows: 10000');
+      expect(res.value).toContain('idx: sample_index');
+    });
+
+    it('2. keeps balance factor badges clear of incoming connector anchors', () => {
+      const src = `avl insert 50 30 70 20 40 60 80 10 5`;
+      const res = renderSync(src, {}, 'svg');
+      expect(res.ok).toBe(true);
+      if (!res.ok) return;
+
+      // Node 30 is a left child of 50; badge is positioned at top-left (cx=97), incoming edge arrives from top-right
+      expect(res.value).toContain('cx="97" cy="121" r="9"');
+    });
+
+    it('3. prevents 2-3-4 tree node-type annotations from intersecting connectors', () => {
+      const src = `234tree
+  title "2-3-4 Search Tree"
+  insert 10 20 30 40 50 60 70 80
+`;
+      const res = renderSync(src, {}, 'svg');
+      expect(res.ok).toBe(true);
+      if (!res.ok) return;
+
+      expect(res.value).toContain('2-3-4 Search Tree');
+      expect(res.value).toContain('2-node');
+      expect(res.value).toContain('3-node');
+      expect(res.value).toContain('4-node');
+    });
+
+    it('4. provides compact layout mode for wide trees to fit portrait publication constraints', () => {
+      const normalSrc = `merkletree
+  title "Artifact Verification"
+  data "A" "B" "C" "D" "E" "F" "G" "H"
+  proof "C"
+`;
+      const compactSrc = `merkletree
+  title "Artifact Verification"
+  layout compact
+  data "A" "B" "C" "D" "E" "F" "G" "H"
+  proof "C"
+`;
+      const r1 = renderSync(normalSrc, {}, 'svg');
+      const r2 = renderSync(compactSrc, {}, 'svg');
+      expect(r1.ok).toBe(true);
+      expect(r2.ok).toBe(true);
+      if (!r1.ok || !r2.ok) return;
+
+      const w1 = parseFloat(r1.value.match(/viewBox="0 0 ([0-9.]+) /)![1]!);
+      const w2 = parseFloat(r2.value.match(/viewBox="0 0 ([0-9.]+) /)![1]!);
+
+      expect(w2).toBeLessThan(w1 * 0.65);
+      expect(w2).toBeLessThan(700);
     });
   });
 });

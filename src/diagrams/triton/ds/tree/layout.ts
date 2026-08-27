@@ -221,16 +221,23 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
     const contentW = Math.max(labelW, infoW);
     if (st.shape === 'strip') {
       const width = stripCells(node.label, font).reduce((s, c) => s + c.width, 0);
-      sizes.set(node.id, { width, height: font + 16 });
+      sizes.set(node.id, { width, height: font + 20 });
     } else if (st.shape === 'circle') {
-      const side = Math.max(contentW + 18, font + 22, 42);
+      const side = info
+        ? Math.max(contentW + 24, font + smallFont + 32, 48)
+        : Math.max(contentW + 18, font + 24, 42);
       sizes.set(node.id, { width: side, height: side });
     } else {
       const width = contentW + 28;
-      const height = info ? font + smallFont + 8 : font + 16;
+      const height = info ? font + smallFont + 24 : font + 22;
       sizes.set(node.id, { width, height });
     }
   }
+
+  const isCompact =
+    ir.metadata['compact'] === true ||
+    ir.metadata['layout'] === 'compact' ||
+    String(ir.metadata['compact']) === 'true';
 
   const inputs: TreeNodeInput[] = ir.nodes.map((n) => ({
     id: n.id,
@@ -240,8 +247,8 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
   }));
   const placed = treeLayout(inputs, {
     direction: ir.direction,
-    levelGap: 52,
-    siblingGap: 28,
+    levelGap: isCompact ? 38 : 52,
+    siblingGap: isCompact ? 12 : 28,
     margin,
   });
 
@@ -269,6 +276,14 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
   const byId = new Map(ir.nodes.map((n) => [n.id, n]));
   // Build active-edge set for highlighted paths (e.g. DFS/BFS traversal)
   const activeEdgeSet = new Set<string>((ir.activePaths ?? []).map(([a, b]) => `${a}:${b}`));
+
+  // Map child to parent for anchor clearance
+  const parentMap = new Map<string, { parentId: string; index: number; total: number }>();
+  for (const node of ir.nodes) {
+    node.children.forEach((cid, idx) => {
+      parentMap.set(cid, { parentId: node.id, index: idx, total: node.children.length });
+    });
+  }
 
   /** For circle-shaped nodes, snap the edge endpoint to the circle perimeter. */
   function circleBorder(
@@ -376,8 +391,9 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
 
     if (st.shape !== 'strip') {
       if (info) {
+        const topPad = 10;
         elements.push(
-          p.text(node.label, cx, b.y + font + 4, font, st.text, {
+          p.text(node.label, cx, rhu(b.y + topPad + font * 0.75), font, st.text, {
             anchor: 'middle',
             weight: 'bold',
           }),
@@ -386,7 +402,7 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
           p.text(
             info,
             cx,
-            b.y + font + smallFont + 6,
+            rhu(b.y + topPad + font + 5 + smallFont * 0.75),
             smallFont,
             st.fill === palette.surface ? palette.textMuted : st.text,
             { anchor: 'middle' },
@@ -394,7 +410,7 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
         );
       } else {
         elements.push(
-          p.text(node.label, cx, cy + font * 0.35, font, st.text, {
+          p.text(node.label, cx, rhu(cy + font * 0.35), font, st.text, {
             anchor: 'middle',
             weight: 'bold',
           }),
@@ -404,9 +420,17 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
 
     if (node.badge !== undefined) {
       const bc = badgeColor(node.badge, theme);
-      elements.push(p.circle({ x: b.x + b.width - 3, y: b.y + 3 }, 9, palette.surface, bc, 1.5));
+      const parentInfo = parentMap.get(node.id);
+      const pb = parentInfo ? box(parentInfo.parentId) : undefined;
+      const isLeftChild = pb ? b.x + b.width / 2 < pb.x + pb.width / 2 : false;
+
+      // Place badge on the outer side so incoming connectors from parent enter opposite side unobstructed
+      const badgeX = isLeftChild ? b.x + 3 : b.x + b.width - 3;
+      const badgeY = b.y + 3;
+
+      elements.push(p.circle({ x: badgeX, y: badgeY }, 9, palette.surface, bc, 1.5));
       elements.push(
-        p.text(node.badge, b.x + b.width - 3, b.y + 7, smallFont, bc, {
+        p.text(node.badge, badgeX, rhu(badgeY + smallFont * 0.35), smallFont, bc, {
           anchor: 'middle',
           weight: 'bold',
         }),

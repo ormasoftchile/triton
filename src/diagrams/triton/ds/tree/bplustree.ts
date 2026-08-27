@@ -145,6 +145,9 @@ export function buildBPlusTree(input: string): BPlusTreeDocument {
     .filter(Boolean);
 
   let title: string | undefined;
+  let compact = false;
+  let maxWidth: number | undefined;
+  let direction: 'TB' | 'LR' | undefined;
   const filteredLines: string[] = [];
   const notes: BPlusTreeNote[] = [];
   let bidirectional = false;
@@ -164,6 +167,26 @@ export function buildBPlusTree(input: string): BPlusTreeDocument {
       title = titleMatch[1]!.trim().replace(/^["']|["']$/g, '');
       continue;
     }
+
+    const compactMatch = line.match(/^(layout\s+compact|compact\s*(true)?|compact)\b/i);
+    if (compactMatch) {
+      compact = true;
+      continue;
+    }
+
+    const maxWidthMatch = line.match(/^max-?width\s+(\d+)/i);
+    if (maxWidthMatch) {
+      maxWidth = Number(maxWidthMatch[1]);
+      compact = true;
+      continue;
+    }
+
+    const dirMatch = line.match(/^direction\s+(TD|TB|LR)/i);
+    if (dirMatch) {
+      direction = dirMatch[1] === 'LR' ? 'LR' : 'TB';
+      continue;
+    }
+
     if (/^(bidirectional|doubly-linked|doublyLinked)\b/i.test(line)) {
       bidirectional = true;
       continue;
@@ -178,6 +201,12 @@ export function buildBPlusTree(input: string): BPlusTreeDocument {
     filteredLines.push(line);
   }
 
+  const extraMeta: Record<string, unknown> = {
+    ...(compact ? { compact: true } : {}),
+    ...(maxWidth !== undefined ? { maxWidth } : {}),
+    ...(direction ? { direction } : {}),
+  };
+
   const cleanInput = filteredLines.join('\n');
 
   // Check if input is explicit/manual tree authoring (contains `->`, `leaf`, `page`, or indented lines without `insert`)
@@ -186,10 +215,10 @@ export function buildBPlusTree(input: string): BPlusTreeDocument {
     (input.includes('\n  ') && !/\binsert\b/i.test(input) && !/\border\b/i.test(input));
 
   if (isExplicit) {
-    return parseExplicitBPlusTree(cleanInput, title, bidirectional, notes);
+    return parseExplicitBPlusTree(cleanInput, title, bidirectional, notes, extraMeta);
   }
 
-  return buildAlgorithmicBPlusTree(cleanInput, title, bidirectional, notes);
+  return buildAlgorithmicBPlusTree(cleanInput, title, bidirectional, notes, extraMeta);
 }
 
 /**
@@ -200,6 +229,7 @@ function buildAlgorithmicBPlusTree(
   title?: string,
   bidirectional?: boolean,
   notes?: readonly BPlusTreeNote[],
+  extraMeta?: Record<string, unknown>,
 ): BPlusTreeDocument {
   const orderMatch = input.match(/order\s+(\d+)/i);
   const order = Math.max(3, orderMatch ? Number(orderMatch[1]) : 3);
@@ -291,6 +321,7 @@ function parseExplicitBPlusTree(
   title?: string,
   bidirectional?: boolean,
   notes?: readonly BPlusTreeNote[],
+  extraMeta?: Record<string, unknown>,
 ): BPlusTreeDocument {
   const nodes: BPlusTreeNode[] = [];
   const lines = input.split(/\r?\n/).filter((l) => l.trim().length > 0);
@@ -374,7 +405,6 @@ function parseExplicitBPlusTree(
 
     const stack: { indent: number; id: string }[] = [];
     rawLines.forEach((ln, idx) => {
-      const id = `n${idx}`;
       while (stack.length > 0 && stack[stack.length - 1]!.indent >= ln.indent) stack.pop();
       const parent = stack.length > 0 ? stack[stack.length - 1] : undefined;
 
@@ -393,8 +423,14 @@ function parseExplicitBPlusTree(
         content = content.replace(/\{.*?\}/, '').trim();
       }
 
-      const bracketMatch = content.match(/\[(.*?)\]/);
-      const label = bracketMatch ? bracketMatch[1]!.trim() : content.trim();
+      const bracketMatch = content.match(/^(\w+)?\s*\[(.*?)\]/);
+      let label = content;
+      if (bracketMatch) {
+        label = bracketMatch[2]!;
+        if (bracketMatch[1] && !pageId) pageId = bracketMatch[1];
+      }
+      const id = pageId || `bn_${idx + 1}`;
+      if (!parent && rawLines.length === 1) isLeaf = true;
 
       nodes.push({
         id,
@@ -409,6 +445,7 @@ function parseExplicitBPlusTree(
         const pNode = nodes.find((n) => n.id === parent.id);
         if (pNode) {
           (pNode.children as string[]).push(id);
+          (pNode as any).isLeaf = false;
         }
       }
 
@@ -427,7 +464,7 @@ function parseExplicitBPlusTree(
 
   return {
     version: '1.0',
-    metadata: title ? { title } : {},
+    metadata: { ...(title ? { title } : {}), ...(extraMeta ?? {}) },
     direction: 'TB',
     nodes,
     ...(bidirectional ? { bidirectionalLeaves: true } : {}),
@@ -443,13 +480,13 @@ const TREE_ARROW_ID = 'bplus-tree-arrow';
 const NOTE_ARROW_ID = 'bplus-note-arrow';
 
 /** Split a `a | b | c` strip label into per-key cells with measured widths. */
-function stripCells(label: string, font: number): { key: string; width: number }[] {
+function stripCells(label: string, font: number, isCompact = false): { key: string; width: number }[] {
   return label
     .split('|')
     .map((s) => s.trim())
     .map((key) => ({
       key,
-      width: Math.max(measureText(key, font).width + 24, 40),
+      width: Math.max(measureText(key, isCompact ? font - 2 : font).width + (isCompact ? 14 : 24), isCompact ? 28 : 40),
     }));
 }
 
@@ -472,6 +509,11 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
     return { scene, anchors: {} };
   }
 
+  const isCompact =
+    ir.metadata['compact'] === true ||
+    ir.metadata['layout'] === 'compact' ||
+    String(ir.metadata['compact']) === 'true';
+
   // 1. Measure all nodes
   const sizes = new Map<string, { width: number; height: number }>();
   const isLeafNode = new Map<string, boolean>();
@@ -480,9 +522,9 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
     const isLeaf = Boolean(node.isLeaf || node.children.length === 0 || node.kinds.includes('leaf'));
     isLeafNode.set(node.id, isLeaf);
 
-    const cells = stripCells(node.label, font);
+    const cells = stripCells(node.label, font, isCompact);
     const width = cells.reduce((sum, c) => sum + c.width, 0);
-    const height = font + 22;
+    const height = (isCompact ? font - 2 : font) + (isCompact ? 16 : 22);
     sizes.set(node.id, { width, height });
   }
 
@@ -495,9 +537,9 @@ export function layoutBPlusTree(ir: BPlusTreeDocument, theme: ResolvedTheme): La
   }));
 
   const placed = treeLayout(inputs, {
-    direction: ir.direction,
-    levelGap: 68,
-    siblingGap: 38, // generous gap for horizontal sibling pointer arrows
+    direction: (ir.metadata['direction'] as 'TB' | 'LR') ?? ir.direction ?? 'TB',
+    levelGap: isCompact ? 42 : 68,
+    siblingGap: isCompact ? 16 : 38,
     margin,
   });
 

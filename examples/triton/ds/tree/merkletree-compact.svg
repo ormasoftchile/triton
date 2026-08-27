@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 566 322" width="566" height="322">
+  <defs>
+    <marker id="merkle-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+    <marker id="merkle-proof-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="566" height="322" fill="#FFFFFF" />
+  <text x="283" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Artifact Verification</text>
+  <path d="M 85 222 L 52 258" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 85 222 L 118 258" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 217 222 L 184 258" stroke="#4A90D9" stroke-width="2.2" fill="none" marker-end="url(#merkle-proof-arrow)" />
+  <path d="M 217 222 L 250 258" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 349 222 L 316 258" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 349 222 L 382 258" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 481 222 L 448 258" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 481 222 L 514 258" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 151 158 L 85 194" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 151 158 L 217 194" stroke="#4A90D9" stroke-width="2.2" fill="none" marker-end="url(#merkle-proof-arrow)" />
+  <path d="M 415 158 L 349 194" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 415 158 L 481 194" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <path d="M 283 94 L 151 130" stroke="#4A90D9" stroke-width="2.2" fill="none" marker-end="url(#merkle-proof-arrow)" />
+  <path d="M 283 94 L 415 130" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#merkle-arrow)" />
+  <rect x="24" y="258" width="56" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="52" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">a55c52</text>
+  <path d="M 24 280 L 80 280" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="52" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">A</text>
+  <rect x="90" y="258" width="56" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="118" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">a85c57</text>
+  <path d="M 90 280 L 146 280" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="118" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">B</text>
+  <rect x="156" y="258" width="56" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="4" />
+  <text x="184" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">a75c56</text>
+  <path d="M 156 280 L 212 280" stroke="#4A90D9" stroke-width="1" fill="none" />
+  <text x="184" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">C</text>
+  <rect x="167.38" y="251.5" width="40.62" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="187.69" y="261.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">VERIFY</text>
+  <rect x="222" y="258" width="56" height="40" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.8" rx="4" />
+  <text x="250" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">a25c4e</text>
+  <path d="M 222 280 L 278 280" stroke="#7C3AED" stroke-width="1" fill="none" />
+  <text x="250" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">D</text>
+  <rect x="203.83" y="251.5" width="70.17" height="13" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1" rx="3" />
+  <text x="238.92" y="261.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">SIBLING HASH</text>
+  <rect x="288" y="258" width="56" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="316" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">a15c4c</text>
+  <path d="M 288 280 L 344 280" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="316" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">E</text>
+  <rect x="354" y="258" width="56" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="382" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">a45c51</text>
+  <path d="M 354 280 L 410 280" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="382" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">F</text>
+  <rect x="420" y="258" width="56" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="448" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">a35c4f</text>
+  <path d="M 420 280 L 476 280" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="448" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">G</text>
+  <rect x="486" y="258" width="56" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="514" y="272" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">9e5c47</text>
+  <path d="M 486 280 L 542 280" stroke="#CBD5E1" stroke-width="1" fill="none" />
+  <text x="514" y="291" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">H</text>
+  <rect x="57" y="194" width="56" height="28" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.8" rx="4" />
+  <text x="85" y="211.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">29db1b</text>
+  <rect x="38.83" y="187.5" width="70.17" height="13" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1" rx="3" />
+  <text x="73.92" y="197.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">SIBLING HASH</text>
+  <rect x="189" y="194" width="56" height="28" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="4" />
+  <text x="217" y="211.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">7e2c9f</text>
+  <rect x="200.38" y="187.5" width="40.62" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="220.69" y="197.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">VERIFY</text>
+  <rect x="321" y="194" width="56" height="28" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="349" y="211.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">1d2e9f</text>
+  <rect x="453" y="194" width="56" height="28" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="4" />
+  <text x="481" y="211.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">2fde55</text>
+  <rect x="123" y="130" width="56" height="28" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="4" />
+  <text x="151" y="147.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">6a3781</text>
+  <rect x="134.38" y="123.5" width="40.62" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="154.69" y="133.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">VERIFY</text>
+  <rect x="387" y="130" width="56" height="28" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.8" rx="4" />
+  <text x="415" y="147.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">0eda08</text>
+  <rect x="368.83" y="123.5" width="70.17" height="13" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1" rx="3" />
+  <text x="403.92" y="133.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="middle" font-weight="bold">SIBLING HASH</text>
+  <rect x="255" y="66" width="56" height="28" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2.4" rx="4" />
+  <text x="283" y="83.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">03970d</text>
+  <rect x="272.95" y="59.5" width="34.05" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="289.97" y="69.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROOT</text>
+</svg>
