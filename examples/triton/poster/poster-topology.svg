@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 725.45 425.2121212121212" width="725.45" height="425.2121212121212">
+  <defs>
+    <marker id="topo-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="topo-arrow-start" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="725.45" height="425.2121212121212" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Multi-Tier Infrastructure &amp; Deployment Poster</text>
+  <rect x="24" y="58" width="497.45000000000005" height="343.2121212121212" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="541.45" y="58" width="160" height="343.2121212121212" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Cloud Network Topology</text>
+  <g transform="translate(28.00000000000003, 145.7060606060606) scale(0.65)">
+    <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">VPC Ingress &amp; Compute</text>
+    <rect x="24" y="72" width="342.3664" height="196" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="10" />
+    <text x="38" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Public DMZ [10.0.1.0/24]</text>
+    <rect x="406.3664" y="72" width="322.18399999999997" height="120" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.6" rx="10" />
+    <text x="420.3664" y="92" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" font-weight="bold">Private Microservices [10.0.2.0/24]</text>
+    <path d="M 185.1832 148 L 205.18320000000003 148" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+    <text x="191.1832" y="142" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+    <rect x="163.54" y="139" width="63.28" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+    <text x="195.18" y="151.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">HTTPS:443</text>
+    <path d="M 216.92 176 L 173.45 196" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+    <text x="210.91783157894739" y="170" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">out</text>
+    <rect x="172.76" y="177" width="44.85" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+    <text x="195.18" y="189.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Inspect</text>
+    <path d="M 185.1832 209.3785913737064 L 362.3664 209.3785913737064 L 362.3664 161.60512327971318 L 422.3664 161.60512327971318" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" />
+    <text x="191.1832" y="203.3785913737064" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+    <rect x="279.39" y="176.49" width="48.77" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+    <text x="303.77" y="188.99" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">Forward</text>
+    <rect x="40" y="120" width="145.1832" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+    <rect x="46" y="113.5" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+    <text x="69.0377" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+    <text x="112.59" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Internet Gateway</text>
+    <rect x="205.1832" y="120" width="145.1832" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+    <rect x="211.1832" y="113.5" width="81.2132" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+    <text x="251.7898" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">LOADBALANCER</text>
+    <text x="277.77" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Public ALB</text>
+    <text x="277.77" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.1.10</text>
+    <rect x="40" y="196" width="145.1832" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+    <rect x="46" y="189.5" width="53.131400000000006" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+    <text x="72.5657" y="199.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">FIREWALL</text>
+    <text x="112.59" y="228.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Cloud WAF</text>
+    <rect x="422.3664" y="120" width="135.09199999999998" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+    <rect x="428.3664" y="113.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+    <text x="450.6742" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+    <text x="489.91" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API Instance 01</text>
+    <text x="489.91" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.2.11</text>
+    <rect x="577.4584" y="120" width="135.09199999999998" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+    <rect x="583.4584" y="113.5" width="44.6156" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+    <text x="605.7662" y="123.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">SERVER</text>
+    <text x="645" y="142" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">API Instance 02</text>
+    <text x="645" y="162" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.2.12</text>
+  </g>
+  <text x="549.45" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">CI/CD &amp; Observability Pipeline</text>
+  <g transform="translate(545.45, 84) scale(0.7676767676767676)">
+    <path d="M 99 64 L 99 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 99 144 L 99 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 99 224 L 99 264" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 99 304 L 99 344" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <g id="git">
+      <rect x="39" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="99" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Git Push</text>
+    </g>
+    <g id="build">
+      <rect x="39" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="99" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Docker Build</text>
+    </g>
+    <g id="test">
+      <rect x="33.5" y="184" width="131" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="99" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Integration Tests</text>
+    </g>
+    <g id="deploy">
+      <rect x="39" y="264" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="99" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Rolling Deploy</text>
+    </g>
+    <g id="monitor">
+      <rect x="24" y="344" width="150" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="99" y="368.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Prometheus Metrics</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,15 @@
+topology :: "Global Transit Hub & Spoke SD-WAN"
+  pattern hub-spoke
+
+  router transitHub "AWS Transit Gateway (Hub)" [10.0.0.1/16]
+  router branchNYC "NYC Office Router" [10.1.0.1/24]
+  router branchLON "London Office Router" [10.2.0.1/24]
+  router branchTYO "Tokyo Office Router" [10.3.0.1/24]
+  router branchSFO "SF Datacenter Gateway" [10.4.0.1/24]
+  router branchFRA "Frankfurt Edge Router" [10.5.0.1/24]
+
+  transitHub:out <--> branchNYC:in @orthogonal "IPsec VPN 1 Gbps"
+  transitHub:out <--> branchLON:in @orthogonal "DirectConnect 10 Gbps"
+  transitHub:out <--> branchTYO:in @bezier "IPsec VPN 1 Gbps"
+  transitHub:out <--> branchSFO:in @orthogonal "DirectConnect 10 Gbps"
+  transitHub:out <--> branchFRA:in @bezier "IPsec VPN 1 Gbps"

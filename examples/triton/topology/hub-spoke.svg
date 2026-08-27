@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 621 443" width="621" height="443">
+  <defs>
+    <marker id="topo-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="topo-arrow-start" markerWidth="8" markerHeight="5.6" refX="1" refY="2.8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="621" height="443" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Global Transit Hub &amp; Spoke SD-WAN</text>
+  <path d="M 360 234 L 360 130" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="354" y="228" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">out</text>
+  <rect x="312.77" y="173" width="94.45" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="360" y="185.5" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
+  <path d="M 446.1751390409071 234 L 436.62494082406585 234 L 436.62494082406585 240.2060950071602 L 427.0747426072246 240.2060950071602" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="440.1751390409071" y="228" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">out</text>
+  <rect x="378" y="228.1" width="117.25" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="436.62" y="240.6" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DirectConnect 10 Gbps</text>
+  <path d="M 380.3431907841501 290 C 380.3431907841501 319.3770876399966 433.7024495826456 334.06563145999496 433.7024495826456 363.44271909999156" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="386.3431907841501" y="284" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+  <rect x="359.8" y="317.72" width="94.45" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="407.02" y="330.22" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
+  <path d="M 339.6568092158499 290 L 339.6568092158499 326.7213595499958 L 286.29755041735444 326.7213595499958 L 286.29755041735444 363.44271909999156" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="333.6568092158499" y="284" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="end">out</text>
+  <rect x="254.35" y="317.72" width="117.25" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="312.98" y="330.22" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">DirectConnect 10 Gbps</text>
+  <path d="M 273.82486095909286 234 C 281.89735514892874 234 285.9336022438467 240.55728090000844 294.00609643368256 240.55728090000844" stroke="#4A90D9" stroke-width="1.8" fill="none" marker-end="url(#topo-arrow)" marker-start="url(#topo-arrow-start)" />
+  <text x="279.82486095909286" y="228" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="start">out</text>
+  <rect x="236.69" y="228.28" width="94.45" height="18" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="4" />
+  <text x="283.92" y="240.78" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">IPsec VPN 1 Gbps</text>
+  <rect x="253.1049" y="234" width="213.79020000000003" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="259.1049" y="227.5" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="282.1426" y="237.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+  <text x="360" y="256" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">AWS Transit Gateway (Hub)</text>
+  <text x="360" y="276" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.0.0.1/16</text>
+  <rect x="283.51779999999997" y="74" width="152.9644" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="289.51779999999997" y="67.5" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="312.55549999999994" y="77.15" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+  <text x="360" y="96" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">NYC Office Router</text>
+  <text x="360" y="116" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.1.0.1/24</text>
+  <rect x="427.0747426072246" y="184.5572809000084" width="170.18859999999998" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="433.0747426072246" y="178.0572809000084" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="456.1124426072246" y="187.7072809000084" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+  <text x="512.17" y="206.56" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">London Office Router</text>
+  <text x="512.17" y="226.56" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.2.0.1/24</text>
+  <rect x="373.2710403667957" y="363.44271909999156" width="161.5492" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="379.2710403667957" y="356.94271909999156" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="402.30874036679575" y="366.59271909999154" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+  <text x="454.05" y="385.44" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Tokyo Office Router</text>
+  <text x="454.05" y="405.44" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.3.0.1/24</text>
+  <rect x="172.30745963320433" y="363.44271909999156" width="187.29379999999998" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="178.30745963320433" y="356.94271909999156" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="201.34515963320433" y="366.59271909999154" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+  <text x="265.95" y="385.44" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">SF Datacenter Gateway</text>
+  <text x="265.95" y="405.44" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.4.0.1/24</text>
+  <rect x="119.60555739277541" y="184.55728090000844" width="176.45080000000002" height="56" fill="#F8FAFC" stroke="#4A90D9" stroke-width="1.8" rx="6" />
+  <rect x="125.60555739277541" y="178.05728090000844" width="46.0754" height="13" fill="#FFFFFF" stroke="#4A90D9" stroke-width="1" rx="3" />
+  <text x="148.6432573927754" y="187.70728090000844" font-size="9" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#4A90D9" text-anchor="middle" font-weight="bold">ROUTER</text>
+  <text x="207.83" y="206.56" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Frankfurt Edge Router</text>
+  <text x="207.83" y="226.56" font-size="10" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">10.5.0.1/24</text>
+</svg>

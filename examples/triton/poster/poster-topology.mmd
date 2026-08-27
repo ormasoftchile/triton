@@ -1,0 +1,29 @@
+poster "Multi-Tier Infrastructure & Deployment Poster"
+  columns 2
+
+  cell net "Cloud Network Topology" :: topology
+    topology :: "VPC Ingress & Compute"
+    subnet "10.0.1.0/24" "Public DMZ"
+      router igw "Internet Gateway"
+      loadbalancer alb "Public ALB" [10.0.1.10]
+      firewall waf "Cloud WAF"
+
+    subnet "10.0.2.0/24" "Private Microservices"
+      server api1 "API Instance 01" [10.0.2.11]
+      server api2 "API Instance 02" [10.0.2.12]
+
+    igw:out --> alb:in @orthogonal "HTTPS:443"
+    alb:out --> waf:in @straight "Inspect"
+    waf:out --> api1:eth0, api2:eth0 @orthogonal "Forward"
+  end
+
+  cell flow "CI/CD & Observability Pipeline" :: flowchart
+    flowchart TD
+      Git["Git Push"] --> Build["Docker Build"]
+      Build --> Test["Integration Tests"]
+      Test --> Deploy["Rolling Deploy"]
+      Deploy --> Monitor["Prometheus Metrics"]
+  end
+
+  link flow.Deploy --> net.api1 @orthogonal "Deploys Image"
+  link net.api2 --> flow.Monitor @bezier "Exports Telemetry"
