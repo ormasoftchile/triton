@@ -16,6 +16,8 @@ Horizontal (or custom-layout) timeline with sections, dated activity entries, ra
 | `layout`   | L2    | `layout value`      |
 | `axisUnit` | L2    | `axisUnit value`    |
 
+**Layout values (L2):** `horizontal` (default) · `numbered` · `wave` (or `undulating`) · `vertical-spine` · `serpentine` · `roadmap` · `timeline-columns`
+
 L1 = Mermaid-compatible; L2 = Triton extension (requires `extensions !== false`).
 
 ---

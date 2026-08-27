@@ -34,6 +34,6 @@ export const timeline: DiagramModule<TimelineDocument> = {
   },
 
   layout(ir: TimelineDocument, theme: ResolvedTheme, options?: LayoutOptions): LayoutResult {
-    return layoutTimeline(ir, theme);
+    return layoutTimeline(ir, theme, options);
   },
 };

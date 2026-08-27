@@ -36,6 +36,7 @@ describe('resolveTheme', () => {
         'our-timeline',
         'subject-timeline',
         'showcase',
+        'spectrum',
       ]);
     });
 

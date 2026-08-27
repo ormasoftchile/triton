@@ -9,7 +9,9 @@ export type TimelineLayout =
   | 'roadmap'
   | 'gantt'
   | 'timeline-columns'
-  | 'numbered';
+  | 'numbered'
+  | 'wave'
+  | 'undulating';
 export type ActivityStatus = 'default' | 'active' | 'done' | 'blocked';
 
 export interface Track {

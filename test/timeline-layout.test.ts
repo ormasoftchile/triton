@@ -125,6 +125,56 @@ describe('timeline layout', () => {
       expect(new Set(ys).size).toBeGreaterThan(1);
     }
   });
+
+  describe('wave layout', () => {
+    const waveDoc: TimelineDocument = {
+      version: '1.0',
+      metadata: { title: 'Key Components' },
+      layout: 'wave',
+      tracks: [{ id: 'default', label: 'Default' }],
+      activities: [
+        { id: 'll', label: 'Linked Lists', track: 'default', start: '1' },
+        { id: 'st', label: 'Stacks', track: 'default', start: '2' },
+        { id: 'qu', label: 'Queues', track: 'default', start: '3' },
+        { id: 'tr', label: 'Trees', track: 'default', start: '4' },
+        { id: 'gr', label: 'Graphs', track: 'default', start: '5' },
+      ],
+      milestones: [],
+    };
+
+    it('renders continuous wave ribbon with linear gradient def', () => {
+      const { scene } = layoutTimeline(waveDoc, defaultTheme);
+      expect(scene.defs?.length).toBeGreaterThan(0);
+      expect(scene.defs?.[0]).toContain('linearGradient');
+      expect(scene.defs?.[0]).toContain('id="triton-wave-ribbon-grad"');
+      const paths = scene.elements.filter((e) => e.type === 'path') as any[];
+      const ribbon = paths.find((p) => p.stroke === 'url(#triton-wave-ribbon-grad)');
+      expect(ribbon).toBeDefined();
+      expect(ribbon.strokeWidth).toBeGreaterThanOrEqual(20);
+    });
+
+    it('renders white medallion circles with step numbers', () => {
+      const { scene } = layoutTimeline(waveDoc, defaultTheme);
+      const circles = scene.elements.filter((e) => e.type === 'circle') as any[];
+      expect(circles.length).toBe(5);
+      expect(circles.every((c) => c.fill === '#FFFFFF')).toBe(true);
+
+      const texts = scene.elements.filter((e) => e.type === 'text') as any[];
+      expect(texts.some((t) => t.content === '01')).toBe(true);
+      expect(texts.some((t) => t.content === '05')).toBe(true);
+      expect(texts.some((t) => t.content === 'Linked Lists')).toBe(true);
+      expect(texts.some((t) => t.content === 'Graphs')).toBe(true);
+    });
+
+    it('oscillates y-coordinates between peaks and valleys', () => {
+      const { scene } = layoutTimeline(waveDoc, defaultTheme);
+      const circles = scene.elements.filter((e) => e.type === 'circle') as any[];
+      const ys = circles.map((c) => c.center.y);
+      expect(ys[0]).toBe(ys[2]); // valley 0 and valley 2 have same Y
+      expect(ys[1]).toBe(ys[3]); // peak 1 and peak 3 have same Y
+      expect(ys[0]).toBeGreaterThan(ys[1]); // valley Y is lower (greater Y) than peak Y
+    });
+  });
 });
 
 function collectFills(elements: any[]): string[] {

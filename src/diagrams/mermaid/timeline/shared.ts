@@ -42,6 +42,7 @@ export interface TimelineEntry {
   readonly ord: number;
   readonly status?: string;
   readonly description?: string;
+  readonly icon?: string;
 }
 
 /**
@@ -50,7 +51,8 @@ export interface TimelineEntry {
  * lay both kinds along a single track (spine, serpentine).
  */
 export function collectEntries(ir: TimelineDocument): TimelineEntry[] {
-  const entries: TimelineEntry[] = [];
+  const entries: (TimelineEntry & { _idx: number })[] = [];
+  let counter = 0;
   for (const m of ir.milestones) {
     entries.push({
       id: m.id,
@@ -58,7 +60,9 @@ export function collectEntries(ir: TimelineDocument): TimelineEntry[] {
       kind: 'milestone',
       date: m.date,
       ord: startOrdinal(m.date),
+      ...(m.icon ? { icon: m.icon } : {}),
       ...(m.description ? { description: m.description } : {}),
+      _idx: counter++,
     });
   }
   for (const a of ir.activities) {
@@ -71,8 +75,9 @@ export function collectEntries(ir: TimelineDocument): TimelineEntry[] {
       ...(a.end ? { end: a.end } : {}),
       ...(a.status ? { status: a.status } : {}),
       ...(a.description ? { description: a.description } : {}),
+      _idx: counter++,
     });
   }
-  entries.sort((p, q) => p.ord - q.ord || (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
+  entries.sort((p, q) => p.ord - q.ord || p._idx - q._idx);
   return entries;
 }

@@ -390,6 +390,27 @@ export const editorialDarkTheme: ResolvedTheme = {
   panel: { titleAlign: 'left', titlePosition: 'inside', titleChrome: 'none' },
 } as const;
 
+/** Spectrum vibrant infographic aesthetic — obsidian tech canvas, multi-hue neon accents. */
+export const spectrumTheme: ResolvedTheme = {
+  name: 'spectrum',
+  palette: {
+    primary: '#00D4B2',
+    secondary: '#F72585',
+    background: '#0B1120',
+    surface: '#162032',
+    border: '#27354A',
+    text: '#F8FAFC',
+    textMuted: '#94A3B8',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+  },
+  typography: baseTypography,
+  spacing: baseSpacing,
+  edges: baseEdges,
+  panel: { titleAlign: 'center', titlePosition: 'on-border', titleChrome: 'pill' },
+} as const;
+
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
 /** Named theme presets. Selected via a diagram's `theme:` / metadata.theme. */
@@ -410,6 +431,7 @@ export const THEMES: Readonly<Record<string, ResolvedTheme>> = {
   'our-timeline': ourTimelineTheme,
   'subject-timeline': subjectTimelineTheme,
   showcase: showcaseTheme,
+  spectrum: spectrumTheme,
 };
 
 /** Ordered names of every built-in theme preset. */

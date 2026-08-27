@@ -1,5 +1,5 @@
 import type { TimelineDocument, Activity, Milestone, Section, Track } from './ir.js';
-import type { Scene, SceneElement, Rect, Point, LayoutResult } from '../../../contracts/index.js';
+import type { Scene, SceneElement, Rect, Point, LayoutResult, LayoutOptions } from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { pen } from '../../../scene/build.js';
@@ -9,10 +9,15 @@ import { layoutSerpentine } from './serpentine.js';
 import { layoutRoadmap } from './roadmap.js';
 import { layoutTimelineColumns } from './timeline-columns.js';
 import { layoutNumbered } from './numbered.js';
+import { layoutWave } from './wave.js';
 
 // ─── Public Entry ─────────────────────────────────────────────────────────────
 
-export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): LayoutResult {
+export function layoutTimeline(
+  ir: TimelineDocument,
+  theme: ResolvedTheme,
+  options?: LayoutOptions,
+): LayoutResult {
   switch (ir.layout) {
     case 'vertical-spine':
       return layoutVerticalSpine(ir, theme);
@@ -24,6 +29,9 @@ export function layoutTimeline(ir: TimelineDocument, theme: ResolvedTheme): Layo
       return layoutTimelineColumns(ir, theme);
     case 'numbered':
       return layoutNumbered(ir, theme);
+    case 'wave':
+    case 'undulating':
+      return layoutWave(ir, theme, options);
     case 'horizontal':
     default:
       return layoutHorizontal(ir, theme);
