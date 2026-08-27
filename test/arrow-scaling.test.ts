@@ -134,4 +134,15 @@ describe('Universal Arrowhead Scaling across all diagram types', () => {
     // Crosslink marker should use markerUnits="userSpaceOnUse" so it does not balloon with line stroke
     expect(res.value).toMatch(/<marker id="triton-crosslink-arrow-[^"]+" markerWidth="6" markerHeight="4.2" refX="5" refY="2.1" orient="auto" markerUnits="userSpaceOnUse">/);
   });
+
+  it('scales bplustree sibling arrowheads with custom arrowSize', () => {
+    const src = `bplustree
+      order 3
+      insert 10 20 30 40
+    `;
+    const res = renderSync(src, { edges: { arrowSize: 6 } }, 'svg');
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value).toContain('id="bplus-arrow" markerWidth="6" markerHeight="4.2" refX="5" refY="2.1"');
+  });
 });

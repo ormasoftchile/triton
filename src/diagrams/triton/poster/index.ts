@@ -94,6 +94,9 @@ const DEFAULT_HEADERS: Partial<Record<DiagramKind, string>> = {
   loop: 'loop\n',
   topology: 'topology\n',
   nodegraph: 'nodegraph\n',
+  bplustree: 'bplustree\n',
+  'b+tree': 'bplustree\n',
+  btree: 'btree\n',
 };
 
 function canonicalDiagramKind(rawKind: string): DiagramKind | undefined {
@@ -125,6 +128,8 @@ function canonicalDiagramKind(rawKind: string): DiagramKind | undefined {
   if (lower.startsWith('xychart')) return 'xychart';
   if (lower.startsWith('mind')) return 'mindmap';
   if (lower.startsWith('time')) return 'timeline';
+  if (lower.startsWith('bplus') || lower === 'b+tree') return 'bplustree';
+  if (lower.startsWith('btree')) return 'btree';
   if (lower.startsWith('kan')) return 'kanban';
 
   return undefined;

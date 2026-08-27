@@ -41,6 +41,8 @@ const MERMAID_PATTERNS: [RegExp, DiagramKind][] = [
   [/^plan\b/i, 'plan'],
   [/^avl\b/i, 'avl'],
   [/^rbtree\b/i, 'rbtree'],
+  [/^b\+tree\b/i, 'bplustree'],
+  [/^bplustree\b/i, 'bplustree'],
   [/^btree\b/i, 'btree'],
   [/^radix\b/i, 'radix'],
   [/^segtree\b/i, 'segtree'],

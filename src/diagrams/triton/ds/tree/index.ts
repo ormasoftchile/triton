@@ -4,6 +4,8 @@ import { layoutTree } from './layout.js';
 import { parseLines, buildNodes } from './build.js';
 
 export type { TreeDocument, TreeNode, TreeDirection } from './ir.js';
+export { bplustree, buildBPlusTree, layoutBPlusTree } from './bplustree.js';
+export type { BPlusTreeDocument, BPlusTreeNode } from './bplustree.js';
 
 /** Pre-process `path A -> B -> C` directives, returning them separately. */
 function extractPathDirectives(input: string): { clean: string; paths: string[][] } {

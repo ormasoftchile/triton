@@ -146,6 +146,8 @@ export type DiagramKind =
   | 'avl'
   | 'rbtree'
   | 'btree'
+  | 'bplustree'
+  | 'b+tree'
   | 'radix'
   | 'segtree'
   | 'heap'
