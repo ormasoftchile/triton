@@ -11,7 +11,7 @@
   <text x="237" y="255" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
   <path d="M 426 259 L 448 259 L 448 358" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="437" y="255" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
-  <path d="M 299 382 L 337 382 L 337 622" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 153 382 L 121.8 382 L 121.8 602 L 337 602 L 337 622" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 357 558 L 381.75 558 L 381.75 646 L 406.5 646" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 337 670 L 337 710" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="request">

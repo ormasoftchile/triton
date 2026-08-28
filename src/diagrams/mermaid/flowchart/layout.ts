@@ -332,7 +332,7 @@ export function layoutFlowchart(
     const toL = nodeLayerMap.get(edge.to) ?? 0;
     const isBypassSkip = toL >= fromL + 2 && fromNode?.shape !== 'diamond';
 
-    const defaultExitWall = isBypassSkip ? (isLR ? 'S' : 'E') : undefined;
+    const defaultExitWall = isBypassSkip ? (isLR ? 'N' : 'W') : undefined;
 
     const fA = edge.exitWall
       ? wallAnchor(fromRect, edge.exitWall)

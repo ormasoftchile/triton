@@ -232,17 +232,63 @@ class OrthogonalRouter implements Router {
         }
         path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
       } else if (exitH && !entryH) {
-        // Exit horizontal, enter vertical — single bend
+        // Exit horizontal, enter vertical
         const corner: Point = { x: to.x, y: from.y };
-        points = [from, corner, to];
-        path = `M ${from.x} ${from.y} L ${corner.x} ${corner.y} L ${to.x} ${to.y}`;
-        return { points, path, labelPosition: { x: (from.x + to.x) / 2, y: from.y } };
+        const leavesOk = fromDir === 'E' ? to.x >= from.x : to.x <= from.x;
+        const arrivesOk = toDir === 'N' ? from.y <= to.y : from.y >= to.y;
+        const directRoute = [from, corner, to];
+        const isClear = leavesOk && arrivesOk && (!obstacles || countRouteCollisions(directRoute, obstacles) === 0);
+
+        if (isClear) {
+          points = directRoute;
+        } else {
+          const sign = fromDir === 'E' ? 1 : -1;
+          const obsEdge =
+            obstacles && obstacles.length > 0
+              ? fromDir === 'E'
+                ? Math.max(...obstacles.map((o) => o.x + o.width))
+                : Math.min(...obstacles.map((o) => o.x))
+              : from.x;
+          const span = Math.abs(to.y - from.y);
+          const spanOffset = Math.min(20, Math.max(0, (span - 100) * 0.08));
+          const baseX =
+            fromDir === 'E'
+              ? Math.max(from.x + STUB, obsEdge + pad) + spanOffset
+              : Math.min(from.x - STUB, obsEdge - pad) - spanOffset;
+          const bendX = clearBendXOutboard(baseX, from, to, obstacles, pad, sign);
+          const bendY = toDir === 'N' ? to.y - STUB : to.y + STUB;
+          points = [from, { x: bendX, y: from.y }, { x: bendX, y: bendY }, { x: to.x, y: bendY }, to];
+        }
+        path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+        return { points, path, labelPosition: { x: (points[0]!.x + points[1]!.x) / 2, y: points[0]!.y } };
       } else {
-        // Exit vertical, enter horizontal — single bend
+        // Exit vertical, enter horizontal
         const corner: Point = { x: from.x, y: to.y };
-        points = [from, corner, to];
-        path = `M ${from.x} ${from.y} L ${corner.x} ${corner.y} L ${to.x} ${to.y}`;
-        return { points, path, labelPosition: { x: (from.x + to.x) / 2, y: to.y } };
+        const leavesOk = fromDir === 'S' ? to.y >= from.y : to.y <= from.y;
+        const arrivesOk = toDir === 'W' ? from.x <= to.x : from.x >= to.x;
+        const directRoute = [from, corner, to];
+        const isClear = leavesOk && arrivesOk && (!obstacles || countRouteCollisions(directRoute, obstacles) === 0);
+
+        if (isClear) {
+          points = directRoute;
+        } else {
+          const sign = fromDir === 'S' ? 1 : -1;
+          const obsEdge =
+            obstacles && obstacles.length > 0
+              ? fromDir === 'S'
+                ? Math.max(...obstacles.map((o) => o.y + o.height))
+                : Math.min(...obstacles.map((o) => o.y))
+              : from.y;
+          const baseY =
+            fromDir === 'S'
+              ? Math.max(from.y + STUB, obsEdge + pad)
+              : Math.min(from.y - STUB, obsEdge - pad);
+          const bendY = clearBendYOutboard(baseY, from, to, obstacles, pad, sign);
+          const bendX = toDir === 'W' ? to.x - STUB : to.x + STUB;
+          points = [from, { x: from.x, y: bendY }, { x: bendX, y: bendY }, { x: bendX, y: to.y }, to];
+        }
+        path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+        return { points, path, labelPosition: { x: points[0]!.x, y: (points[0]!.y + points[1]!.y) / 2 } };
       }
 
       return { points, path, labelPosition: { x: midX, y: midY } };
