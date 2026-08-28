@@ -1,0 +1,16 @@
+architecture-beta
+  group outer(server)[Vardent Loom :: Orin Talvek Frame]
+  service first(server)[mirelhost] in outer
+  service wrapper(server)[QValence :: lumenframe.h] in outer
+  service marshal(server)[ARC Folding :: token arrangement] in outer
+
+  group inner(cloud)[Selent Arvon Chamber]
+  service dispatch(server)[ARC Router :: varin_core.c] in inner
+  service handlers(server)[Vector Units :: cadence, flux, prism] in inner
+  service memory(database)[Chamber Store :: VEK lattice and cadence state] in inner
+
+  first:B --> T:wrapper
+  wrapper:B --> T:marshal
+  marshal:R --> L:dispatch
+  dispatch:B --> T:handlers
+  handlers:B --> T:memory

@@ -1,0 +1,18 @@
+flowchart TD
+  capture["Mark gathering :: queue settled fragment"] --> credits{"Pass token available?"}
+
+  subgraph happy_path [Conveyance Pipeline]
+    consume["Convey fragment :: consume one token"]
+    receive["Arrival chamber :: inspect & settle"]
+    ack["ARC grant :: announce movement & replenish"]
+    consume --> receive --> ack
+  end
+
+  subgraph throttle [Flow Control]
+    pause["Counter-flow :: pause without expansion"]
+  end
+
+  credits -->|Aye| consume
+  credits -->|Nay| pause
+  ack --> resume["Renewed aperture :: resume conveyance"]
+  pause --> resume

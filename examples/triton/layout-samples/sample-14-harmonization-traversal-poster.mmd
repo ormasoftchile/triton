@@ -1,0 +1,30 @@
+poster "Repeatable folding with harmonization mark records"
+  columns 2
+  gap 28
+
+  cell traversal "MARK TRAVERSAL" :: flow
+    flowchart TD
+      start["Vessel latest ZEN"] --> read["Inspect active trail mark"]
+      read --> flag{"HARMONIZATION glyph set?"}
+      flag -->|aye| skip["Leap to ARC.nextVelaZEN"]
+      flag -->|nay| compensate["Create ARC :: apply mirrored gesture"]
+      compensate --> previous["Set nextVelaZEN = prior trailZEN"]
+      skip --> done{"Opening of vessel?"}
+      previous --> done
+      done -->|nay| read
+      done -->|aye| finish["Folding complete"]
+  end
+
+  cell restart "FRACTURE-STABLE RETURN" :: nodegraph
+    nodegraph
+      directed
+      node original : Initial gesture
+      node arc : ARC :: initial sigil · mirror marks
+      node durable : ARC reaches the vessel trail
+      node replay : Renewal repeats ARC gesture
+      node continue : Folding resumes at nextVelaZEN
+      original -> arc : register mirrored gesture
+      arc -> durable : invariant trail
+      durable -> replay : repeat gesture
+      replay -> continue : bypass harmonized weave
+  end

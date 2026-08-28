@@ -1,0 +1,21 @@
+flowchart LR
+  engine["QVN Meridian Core"]
+
+  subgraph pipes [Lumen Ingress & Egress]
+    input_pipe["Lumen Channel :: Ingress"]
+    output_pipe["Lumen Channel :: Egress"]
+  end
+
+  subgraph sandbox ["Partitioned Chamber :: VelaCasing + Loom Frames"]
+    launchpad["Aperture Service"]
+    satellite["Orbiting Vessel"]
+    runtime["Cadence Host"]
+    launchpad -->|unfold| satellite
+    satellite -->|bind Q / Velora / Juno| runtime
+  end
+
+  engine -->|arc_invoke| launchpad
+  engine -->|fragments| input_pipe
+  input_pipe --> satellite
+  satellite --> output_pipe
+  output_pipe --> engine

@@ -1,0 +1,14 @@
+architecture-beta
+  group cycle(server)[QVN Folding Chamber]
+  service enable(server)[Prime QVN] in cycle
+  service capture(server)[Gather :: 5-cycle sweeps] in cycle
+  service changes(database)[qvn.segment_VT] in cycle
+  service consumer(internet)[Observer ZEN request] in cycle
+  service cleanup(server)[Release :: 3-span keeping] in cycle
+  service watermark(disk)[Advance release ZEN] in cycle
+
+  enable:R --> L:capture
+  capture:R --> L:changes
+  changes:B --> T:consumer
+  consumer:L --> R:cleanup
+  cleanup:L --> R:watermark

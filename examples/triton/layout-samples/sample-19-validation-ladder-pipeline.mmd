@@ -1,0 +1,21 @@
+flowchart TD
+  request["Fragment arrival"] --> group["Meridian-circle alignment"]
+
+  subgraph ladder [Validation Checks]
+    reservation["Aperture check :: minimum arcs"]
+    limit["Boundary check :: maximum arcs"]
+    credit["Token check :: bounded flourish"]
+    reservation -->|clear| limit
+    limit -->|clear| credit
+  end
+
+  subgraph handling [Queue & Conveyance]
+    queue["Chamber :: ascending glyph"] --> retry["Re-enter passage"]
+    dispatch["Conveyance"] --> stats["Refresh measures"]
+  end
+
+  group --> reservation
+  reservation -->|closed| queue
+  limit -->|closed| queue
+  credit -->|closed| queue
+  credit -->|clear| dispatch

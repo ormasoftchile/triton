@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 490 634" width="490" height="634">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="490" height="634" fill="#FFFFFF" />
+  <path d="M 263 72 L 263 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 133.5 346 L 133.5 366 L 198.25 366 L 198.25 386" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 198.25 434 L 198.25 474" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 153.5 185 L 133.5 185 L 133.5 298" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="143.5" y="181" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
+  <path d="M 372.5 185 L 392.5 185 L 392.5 298" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="382.5" y="181" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
+  <path d="M 198.25 522 L 198.25 542 L 263 542 L 263 562" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 392.5 346 L 392.5 454 L 263 454 L 263 562" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <g id="capture">
+    <rect x="193.5" y="24" width="139" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="263" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Mark gathering</text>
+    <text x="263" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">queue settled fragment</text>
+  </g>
+  <g id="credits">
+    <path d="M 263 112 L 372.5 185 L 263 258 L 153.5 185 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+    <text x="263" y="189.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Pass token available?</text>
+  </g>
+  <g id="consume">
+    <rect x="64.5" y="298" width="138" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="133.5" y="318.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Convey fragment</text>
+    <text x="133.5" y="335.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">consume one token</text>
+  </g>
+  <g id="receive">
+    <rect x="134.25" y="386" width="128" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="198.25" y="406.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Arrival chamber</text>
+    <text x="198.25" y="423.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">inspect &amp; settle</text>
+  </g>
+  <g id="ack">
+    <rect x="105.25" y="474" width="186" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="198.25" y="494.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ARC grant</text>
+    <text x="198.25" y="511.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">announce movement &amp; replenish</text>
+  </g>
+  <g id="pause">
+    <rect x="319" y="298" width="147" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="392.5" y="318.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Counter-flow</text>
+    <text x="392.5" y="335.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">pause without expansion</text>
+  </g>
+  <g id="resume">
+    <rect x="189.5" y="562" width="147" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="263" y="582.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Renewed aperture</text>
+    <text x="263" y="599.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">resume conveyance</text>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -34 732 511" width="732" height="511">
+  <defs>
+    <marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>
+    <marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="-24" y="-34" width="732" height="511" fill="#FFFFFF" />
+  <rect x="4" y="-10" width="170" height="437" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
+  <text x="16" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="start" font-weight="bold">Vardent Loom :: Orin Talvek Frame</text>
+  <rect x="444" y="-10" width="214" height="437" fill="#0EA5A814" stroke="#0EA5A8" stroke-width="1.4" rx="10" />
+  <text x="456" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0EA5A8" text-anchor="start" font-weight="bold">Selent Arvon Chamber</text>
+  <path d="M 89 80 L 89 173" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 89 258 L 89 322" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 154 364.5 L 309 364.5 L 309 66.5 L 464 66.5" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 529 109 L 529 173" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 529 258 L 529 290 L 551 290 L 551 322" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <rect x="24" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <rect x="79" y="35" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="79" y="42" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="79" y="49" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <text x="89" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">mirelhost</text>
+  <rect x="24" y="173" width="130" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="173" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
+  <rect x="79" y="184" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="79" y="191" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="79" y="198" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <text x="89" y="230.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QValence</text>
+  <text x="89" y="248.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">lumenframe.h</text>
+  <rect x="24" y="322" width="130" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="322" width="130" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
+  <rect x="79" y="333" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <rect x="79" y="340" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <rect x="79" y="347" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <text x="89" y="379.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ARC Folding</text>
+  <text x="89" y="397.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">token arrangement</text>
+  <rect x="464" y="24" width="130" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="464" y="24" width="130" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
+  <rect x="519" y="35" width="20" height="5" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="1" />
+  <rect x="519" y="42" width="20" height="5" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="1" />
+  <rect x="519" y="49" width="20" height="5" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="1" />
+  <text x="529" y="81.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ARC Router</text>
+  <text x="529" y="99.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">varin_core.c</text>
+  <rect x="464" y="173" width="130" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="464" y="173" width="130" height="8" fill="#DB2777" stroke="#DB2777" stroke-width="0" rx="4" />
+  <rect x="519" y="184" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <rect x="519" y="191" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <rect x="519" y="198" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <text x="529" y="230.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vector Units</text>
+  <text x="529" y="248.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">cadence, flux, prism</text>
+  <rect x="464" y="322" width="174" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="464" y="322" width="174" height="8" fill="#2563EB" stroke="#2563EB" stroke-width="0" rx="4" />
+  <rect x="542" y="333" width="18" height="18" fill="#F8FAFC" stroke="#2563EB" stroke-width="1.3" rx="5" />
+  <path d="M 542 339 Q 551 343, 560 339" stroke="#2563EB" stroke-width="1.3" fill="none" />
+  <text x="551" y="379.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Chamber Store</text>
+  <text x="551" y="397.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">VEK lattice and cadence state</text>
+</svg>

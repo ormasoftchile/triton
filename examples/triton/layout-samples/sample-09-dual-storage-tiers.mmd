@@ -1,0 +1,16 @@
+flowchart TD
+  application["Velora Aperture"] -->|OpenGlyph| share["Lumen Gate :: \nexus\qv"]
+  share -->|Trail align| nso["QFtVela Meridian Object"]
+
+  subgraph storage [Dual Storage Engines]
+    subgraph lattice_tier [Lattice Tier]
+      qvn_store["QVN Lattice Chamber"] -->|Strand weave| table["Lattice Strands :: trail_marker + glyph"]
+    end
+    subgraph vessel_tier [Vessel Tier]
+      arc_store["ARCF Vessel Chamber"] -->|Vessel etch| vessel["ARCF Capsule :: ZEN-named LUMEN vessel"]
+    end
+  end
+
+  nso -->|ENGAGE · flux harmonized| qvn_store
+  nso -->|Alternate| arc_store
+  table -.->|LUMENFRAME reservation| vessel

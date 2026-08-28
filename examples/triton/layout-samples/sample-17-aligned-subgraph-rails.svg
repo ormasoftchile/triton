@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 873 272" width="873" height="272">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="873" height="272" fill="#FFFFFF" />
+  <path d="M 436.5 72 L 436.5 112" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
+  <path d="M 263.5 160 L 263.5 200" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
+  <path d="M 90.5 72 L 90.5 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="90.5" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN align</text>
+  <path d="M 436.5 72 L 436.5 92 L 263.5 92 L 263.5 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="350" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN align</text>
+  <path d="M 609.5 72 L 609.5 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="609.5" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN align</text>
+  <path d="M 263.5 72 L 263.5 112" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
+  <text x="263.5" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">circle glyph</text>
+  <g id="arc-entry">
+    <rect x="30.5" y="24" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="90.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Arc Entry</text>
+    <text x="90.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">S</text>
+  </g>
+  <g id="vela-entry">
+    <rect x="376.5" y="24" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="436.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vela Entry</text>
+    <text x="436.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">U</text>
+  </g>
+  <g id="vela-circle">
+    <rect x="203.5" y="24" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="263.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vela Circle</text>
+    <text x="263.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">G</text>
+  </g>
+  <g id="lumen-entry">
+    <rect x="549.5" y="24" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="609.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">LUM Glyph</text>
+    <text x="609.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">E/X</text>
+  </g>
+  <g id="upper-order">
+    <rect x="375" y="112" width="123" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="436.5" y="132.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Meridian Order</text>
+    <text x="436.5" y="149.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">R</text>
+  </g>
+  <g id="chamber-arc">
+    <rect x="30.5" y="112" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="90.5" y="132.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QV Strand</text>
+    <text x="90.5" y="149.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">aligned</text>
+  </g>
+  <g id="chamber-vela">
+    <rect x="203.5" y="112" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="263.5" y="132.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QV Strand</text>
+    <text x="263.5" y="149.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">aligned</text>
+  </g>
+  <g id="enclosed-strand">
+    <rect x="716" y="24" width="133" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="782.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Enclosed Strand</text>
+    <text x="782.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">no entry</text>
+  </g>
+  <g id="lumen-strand">
+    <rect x="549.5" y="112" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="609.5" y="132.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">LUM Strand</text>
+    <text x="609.5" y="149.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">aligned</text>
+  </g>
+  <g id="chamber-order">
+    <rect x="200" y="200" width="127" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="263.5" y="220.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Chamber Order</text>
+    <text x="263.5" y="237.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">R</text>
+  </g>
+</svg>

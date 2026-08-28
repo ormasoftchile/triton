@@ -1,0 +1,15 @@
+flowchart LR
+  executor["Meridian Walker :: Spiral Cadence"]
+
+  subgraph cadence_pipeline [Cadence Alignment Engine]
+    predict["HARMONIZE Vessel :: lattice gesture"]
+    context_cache["VELA Context Lattice :: state cache"]
+    runtime["VELA Cadence :: alignment core"]
+    predict -->|Locate Vessel| context_cache
+    context_cache -->|Engage Align| runtime
+  end
+
+  input_rows["Ingress Strands :: QVN Chambers"] --> predict
+  executor -->|NextArc| predict
+  predict -->|Marked Strands| output_rows["Aligned Fragments :: QVN Chambers"]
+  output_rows -->|Feedback| executor

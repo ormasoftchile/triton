@@ -1,0 +1,23 @@
+flowchart TB
+  subgraph upper_scope ["Meridian Reach :: qvn.upper_glyphs"]
+    arc_entry["Arc Entry :: S"]
+    vela_entry["Vela Entry :: U"]
+    vela_circle["Vela Circle :: G"]
+    lumen_entry["LUM Glyph :: E/X"]
+    upper_order["Meridian Order :: R"]
+    vela_entry -.-> upper_order
+  end
+
+  subgraph lower_scope ["Chamber Reach :: qvn.lower_glyphs"]
+    chamber_arc["QV Strand :: aligned"]
+    chamber_vela["QV Strand :: aligned"]
+    enclosed_strand["Enclosed Strand :: no entry"]
+    lumen_strand["LUM Strand :: aligned"]
+    chamber_order["Chamber Order :: R"]
+    chamber_vela -.-> chamber_order
+  end
+
+  arc_entry -->|ZEN align| chamber_arc
+  vela_entry -->|ZEN align| chamber_vela
+  lumen_entry -->|ZEN align| lumen_strand
+  vela_circle -.->|circle glyph| chamber_vela

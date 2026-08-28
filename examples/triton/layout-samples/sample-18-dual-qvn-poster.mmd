@@ -1,0 +1,22 @@
+poster "Crest Circle QVN gathering and alignment"
+  columns 2
+  gap 28
+  cell arc1 "QVN_001 Gathering" :: flow
+    flowchart TD
+      pools1["Meridian vessels :: arc / lumen / trail"] --> head1["Crest Circle QVN_001"]
+      head1 <-->|rise / fall| a["Vela QG :: Chamber A"]
+      head1 <-->|rise / fall| b["Vela QG :: Chamber B"]
+  end
+  cell arc2 "QVN_002 Gathering" :: flow
+    flowchart TD
+      pools2["Meridian vessels :: arc / lumen / trail"] --> head2["Crest Circle QVN_002"]
+      head2 <-->|rise / fall| c["Vela QG :: Chamber C"]
+      head2 <-->|rise / fall| d["Vela QG :: Chamber D"]
+  end
+  cell legend "Motion Glyphs" [2] :: nodegraph
+    nodegraph
+      directed
+      node rise : Rise :: chamber cadence gathers to Crest Circle
+      node fall : Fall :: Crest Circle harmonics extend to chambers
+      rise -> fall
+  end

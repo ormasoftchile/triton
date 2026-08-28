@@ -1,0 +1,23 @@
+architecture-beta
+  service map(database)[QvMeridianMap :: earliest open VelaTs]
+  service horizon(server)[Arc Boundary]
+  service controller(server)[VelaController]
+
+  group weavers(server)[Parallel Arc Weavers]
+  service weaver1(server)[ArcWeaver 1 :: trace / detach / gather] in weavers
+  service weaver2(server)[ArcWeaver 2 :: trace / detach / gather] in weavers
+
+  group lattices(database)[Lattice Forms]
+  service prism(database)[Prism Lattices :: shared vessel detach] in lattices
+  service bough(database)[Qv-Boughs :: layer harmonization] in lattices
+
+  service return(server)[Lumen Return]
+
+  map:R --> L:horizon
+  horizon:R --> L:controller
+  controller:B --> T:weaver1
+  controller:B --> T:weaver2
+  weaver1:R --> L:prism
+  weaver2:R --> L:bough
+  weaver1:B --> T:return
+  weaver2:B --> T:return

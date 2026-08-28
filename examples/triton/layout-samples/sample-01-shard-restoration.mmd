@@ -1,0 +1,18 @@
+flowchart TD
+  subgraph sources [Ingress Sources]
+    client[Velora Nestrium]
+    catalog[(Ternalis VEK Morcant)]
+  end
+
+  subgraph pipeline [Folding & Restoration Pipeline]
+    cmk[ZOR :: PAX 2480+]
+    cek[VEK :: LUM-472]
+    data[(Ternalis Vectors)]
+    sql[Quoradine Vessel]
+  end
+
+  client -.->|keeps latent shard| cmk
+  cmk -->|folds and restores| cek
+  catalog -.->|retains folded VEK| cek
+  cek -->|folds / restores| data
+  data -.-> sql

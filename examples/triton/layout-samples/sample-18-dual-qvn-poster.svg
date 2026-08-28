@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 869.4000000000001 557.6" width="869.4000000000001" height="557.6">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="869.4000000000001" height="557.6" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Crest Circle QVN gathering and alignment</text>
+  <rect x="24" y="58" width="529.3000000000001" height="201.6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="581.3000000000001" y="58" width="264.1" height="201.6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="24" y="287.6" width="821.4000000000001" height="246" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">QVN_001 Gathering</text>
+  <g transform="translate(28, 138.6) scale(0.6500000000000001)">
+    <g id="pools1">
+      <rect x="39" y="24" width="134" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="106" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Meridian vessels</text>
+      <text x="106" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">arc / lumen / trail</text>
+    </g>
+    <g id="head1">
+      <rect x="228" y="28" width="164" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="310" y="52.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Crest Circle QVN_001</text>
+    </g>
+    <g id="a">
+      <rect x="454" y="24" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="514" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vela QG</text>
+      <text x="514" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Chamber A</text>
+    </g>
+    <g id="b">
+      <rect x="658" y="24" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="718" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vela QG</text>
+      <text x="718" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Chamber B</text>
+    </g>
+  </g>
+  <text x="589.3000000000001" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">QVN_002 Gathering</text>
+  <g transform="translate(585.3000000000001, 84) scale(0.65)">
+    <path d="M 208 72 L 208 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 208 152 L 208 172 L 106 172 L 106 192" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <text x="157" y="168" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rise / fall</text>
+    <path d="M 208 152 L 208 172 L 310 172 L 310 192" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <text x="259" y="168" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rise / fall</text>
+    <g id="pools2">
+      <rect x="141" y="24" width="134" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="208" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Meridian vessels</text>
+      <text x="208" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">arc / lumen / trail</text>
+    </g>
+    <g id="head2">
+      <rect x="126" y="112" width="164" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="208" y="136.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Crest Circle QVN_002</text>
+    </g>
+    <g id="c">
+      <rect x="46" y="192" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="106" y="212.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vela QG</text>
+      <text x="106" y="229.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Chamber C</text>
+    </g>
+    <g id="d">
+      <rect x="250" y="192" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+      <text x="310" y="212.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vela QG</text>
+      <text x="310" y="229.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Chamber D</text>
+    </g>
+  </g>
+  <text x="32" y="302.8" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Motion Glyphs</text>
+  <g transform="translate(366.70000000000005, 313.6) scale(1)">
+    <path d="M 56 64 L 56 128" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="24" y="24" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="56" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Rise</text>
+    <rect x="24" y="128" width="64" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="56" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Fall</text>
+  </g>
+</svg>

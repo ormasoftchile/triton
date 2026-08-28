@@ -1,0 +1,23 @@
+flowchart TD
+  rejoin["Prior vessel returns :: compare marks with active"] --> ancestry{"Trail lineage :: shared sequence at marker?"}
+
+  subgraph trailing_check [Lineage Match]
+    behind{"Returning vessel trailing?"}
+    catchup["Routine harmonization :: carry reserved marks"]
+    companion["Companion prepared :: resume folding"]
+    behind -->|Aye| catchup
+    behind -->|Nay| companion
+  end
+
+  subgraph fractured_check [Fracture Recovery]
+    suspend["Fractured trail branch :: joining unstable"]
+    repair["Custodian adjustment :: recast from active"]
+    suspend --> repair
+  end
+
+  ancestry -->|Aye| behind
+  ancestry -->|Nay| suspend
+
+  catchup --> resume["Harmonization Complete :: Resume Active Vessel"]
+  companion --> resume
+  repair --> resume

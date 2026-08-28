@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 665.5050100000001 387.6" width="665.5050100000001" height="387.6">
+  <defs>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="triton-crosslink-arrow-e11d48" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#E11D48" /></marker>
+  </defs>
+  <rect x="0" y="0" width="665.5050100000001" height="387.6" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Lateral shard renewal</text>
+  <rect x="24" y="58" width="383.66685" height="305.6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="435.66685" y="58" width="205.83816000000002" height="305.6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <path d="M 287.7061675 315.4 L 376.44532625 315.4 L 376.44532625 180.2 L 465.184485 180.2" stroke="#E11D48" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-e11d48)" />
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Locate and renew a stable shard</text>
+  <g transform="translate(28, 84) scale(0.65)">
+    <path d="M 391.55 64 L 391.55 128" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 391.55 168 L 391.55 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 225.15 50.67 L 553.95 50.67 L 553.95 349.33 L 399.55 349.33" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 365.88 272 L 283.73 336" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="269.15340000000003" y="24" width="244.79559999999995" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="391.5512" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Harmonic fracture or split 8 QV tile</text>
+    <rect x="273.8567" y="128" width="235.389" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="391.5512" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Register varin.luma.fracture_tiles</text>
+    <rect x="328.421" y="232" width="126.26039999999999" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="391.5512" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">RenewTile gate</text>
+    <rect x="24.000000000000014" y="24" width="201.1534" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="124.57670000000002" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Broad or incremental lattice</text>
+    <rect x="116.57995" y="336" width="282.96799999999996" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="258.06395" y="360.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Recover stable tile at lattice marker ZEN</text>
+  </g>
+  <text x="443.66685" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Align and return active</text>
+  <g transform="translate(439.66685, 84) scale(0.65)">
+    <path d="M 140.18 64 L 140.18 128" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 140.18 168 L 140.18 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 140.18 272 L 140.18 336" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="23.999999999999986" y="24" width="232.36640000000003" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="140.1832" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Sequence trail through latest rim</text>
+    <rect x="39.25789999999999" y="128" width="201.85060000000001" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="140.1832" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Recast tile sequence marks</text>
+    <rect x="94.2317" y="232" width="91.90299999999999" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="140.1832" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Tile active</text>
+    <rect x="40.4059" y="336" width="199.5546" height="40" fill="#F8FAFC" stroke="#4A90D9" stroke-width="2" rx="8" />
+    <text x="140.1832" y="360.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Remove fracture-tile record</text>
+  </g>
+  <text x="332.075746875" y="296.4" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#E11D48" text-anchor="middle" font-weight="bold">bring tile aligned</text>
+</svg>

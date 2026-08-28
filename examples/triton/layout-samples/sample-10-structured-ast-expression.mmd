@@ -1,0 +1,15 @@
+flowchart TD
+  query_spec["QVrOp MeridianSpec :: Root Query"]
+  and_sequence["ARC :: Conjunction Operation"]
+  near_sequence["NEXA :: Proximity Scope"]
+  forms_of["HARMONICAL :: Form Matrix"]
+  qvn_term(["QVN :: fixed"])
+  lumen_term(["Lumen :: fixed"])
+  cadence_term(["cadence :: variant"])
+
+  query_spec --> and_sequence
+  and_sequence --> near_sequence
+  and_sequence --> forms_of
+  near_sequence --> qvn_term
+  near_sequence --> lumen_term
+  forms_of --> cadence_term

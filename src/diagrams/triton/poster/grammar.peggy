@@ -122,7 +122,7 @@ CellKind
 // ─── Cross-Link Declarations ─────────────────────────────────────────────────
 
 LinkDecl
-  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef preAnns:(_ "@" Annotation)* label:(_ QuotedString)? postAnns:(_ "@" Annotation)* block:(_ PropBlock)? _ NL {
+  = _ "link" __ from:NodeRef __ arrow:Arrow __ to:NodeRef preAnns:(_ "@" Annotation)* label:(_ QuotedString)? postAnns:(_ "@" Annotation)* block:(_ PropBlock)? _ (NL / !.) {
       // Start with props from { } block (lower precedence)
       const result = {};
       if (block) {

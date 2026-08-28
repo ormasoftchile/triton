@@ -1,0 +1,17 @@
+architecture-beta
+  group core(server)[QVN Meridian Frame :: qvnframe.exe]
+  service process(server)[QVN Meridian Engine] in core
+  service hostif(server)[IVarControl / ILumControl] in core
+  service runtime(server)[.QVN Arc Runtime v2 / v4] in core
+  service chambers(cloud)[Per-Lattice Chambers] in core
+
+  group resources(server)[QVLOS Vector Control]
+  service qvlos(server)[QVLOS :: VEC_Loom + RMO] in resources
+  service managers(server)[Lattice / Loom / Flux Managers] in resources
+
+  process:B --> T:hostif
+  hostif:B --> T:runtime
+  runtime:B --> T:chambers
+  qvlos:B --> T:managers
+  managers:L --> R:runtime
+  core:R --> L:resources

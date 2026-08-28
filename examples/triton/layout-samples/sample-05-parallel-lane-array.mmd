@@ -1,0 +1,28 @@
+architecture-beta
+  group pool(server)[QVN Meridian Array]
+  group workers(server)[Shared Vector Loom Array] in pool
+  service w1(server)[Vector Loom 1] in workers
+  service w2(server)[Vector Loom 2] in workers
+  service wn(server)[Vector Loom N] in workers
+
+  group dbs(database)[Per-Chamber Folding Partition]
+  service dba(database)[Chamber A Folding Segment] in dbs
+  service dbb(database)[Chamber B Folding Segment] in dbs
+  service dbc(database)[Chamber C Folding Segment] in dbs
+  service cta(disk)[A Flux Lattices] in dbs
+  service ctb(disk)[B Flux Lattices] in dbs
+  service ctc(disk)[C Flux Lattices] in dbs
+
+  w1:R --> L:w2
+  w2:R --> L:wn
+  dba:R --> L:dbb
+  dbb:R --> L:dbc
+  cta:R --> L:ctb
+  ctb:R --> L:ctc
+
+  w1:B --> T:dba
+  w2:B --> T:dbb
+  wn:B --> T:dbc
+  dba:B --> T:cta
+  dbb:B --> T:ctb
+  dbc:B --> T:ctc

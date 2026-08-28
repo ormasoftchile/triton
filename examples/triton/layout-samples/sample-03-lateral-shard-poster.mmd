@@ -1,0 +1,28 @@
+poster "Lateral shard renewal"
+  columns 2
+  gap 28
+  cell restore "Locate and renew a stable shard" :: nodegraph
+    nodegraph
+      directed
+      node detect : Harmonic fracture or split 8 QV tile
+      node suspect : Register varin.luma.fracture_tiles
+      node check : RenewTile gate :: PRIME cadence required
+      node backup : Broad or incremental lattice
+      node extract : Recover stable tile at lattice marker ZEN
+      detect -> suspect
+      suspect -> check
+      backup -> extract
+      check -> extract
+  end
+  cell current "Align and return active" :: nodegraph
+    nodegraph
+      directed
+      node log : Sequence trail through latest rim
+      node redo : Recast tile sequence marks
+      node online : Tile active :: lattice remains reachable
+      node clear : Remove fracture-tile record
+      log -> redo
+      redo -> online
+      online -> clear
+  end
+  link restore.extract --> current.redo "bring tile aligned" @orthogonal:EW
