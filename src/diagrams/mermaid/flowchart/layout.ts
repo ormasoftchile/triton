@@ -1136,11 +1136,17 @@ function edgeAnchor(
   const isLR = dir === 'LR' || dir === 'RL';
 
   if (isLR) {
-    // Decision diamond lateral exits in LR (West/East is main axis; North/South is lateral)
-    if (nodeShape === 'diamond' && role === 'exit') {
-      if (dy < -1) return { point: { x: cx, y: r.y }, portDir: 'N' };
-      if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
-      return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+    // Decision diamond lateral ports in LR (West/East is main axis; North/South is lateral)
+    if (nodeShape === 'diamond') {
+      if (role === 'exit') {
+        if (dy < -1) return { point: { x: cx, y: r.y }, portDir: 'N' };
+        if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+        return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+      } else {
+        if (dy < -1) return { point: { x: cx, y: r.y }, portDir: 'N' };
+        if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+        return { point: { x: r.x, y: cy }, portDir: 'W' };
+      }
     }
 
     // Primary axis is horizontal
@@ -1162,11 +1168,17 @@ function edgeAnchor(
       ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
       : { point: { x: r.x, y: cy }, portDir: 'W' };
   } else {
-    // Decision diamond lateral exits in TD/TB/BT (North/South is main axis; West/East is lateral)
-    if (nodeShape === 'diamond' && role === 'exit') {
-      if (dx < -1) return { point: { x: r.x, y: cy }, portDir: 'W' };
-      if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
-      return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+    // Decision diamond lateral ports in TD/TB/BT (North/South is main axis; West/East is lateral)
+    if (nodeShape === 'diamond') {
+      if (role === 'exit') {
+        if (dx < -1) return { point: { x: r.x, y: cy }, portDir: 'W' };
+        if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+        return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+      } else {
+        if (dx < -1) return { point: { x: r.x, y: cy }, portDir: 'W' };
+        if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+        return { point: { x: cx, y: r.y }, portDir: 'N' };
+      }
     }
 
     // Primary axis is vertical

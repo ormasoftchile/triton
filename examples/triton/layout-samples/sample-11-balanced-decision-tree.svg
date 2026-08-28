@@ -9,8 +9,8 @@
   <path d="M 762.25 392 L 782.25 392 L 782.25 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="772.25" y="388" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
   <path d="M 923.75 416 L 923.75 464.5 L 1065.25 464.5 L 1065.25 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 662.75 191.5 L 640.75 191.5 L 640.75 311" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="651.75" y="187.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
+  <path d="M 662.75 191.5 L 712.5 191.5 L 712.5 392 L 762.25 392" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="712.5" y="287.75" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
   <path d="M 901.75 191.5 L 923.75 191.5 L 923.75 368" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="912.75" y="187.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
   <path d="M 499.25 561 L 499.25 581 L 782.25 581 L 782.25 601" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
