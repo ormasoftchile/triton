@@ -3,16 +3,16 @@
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
   <rect x="0" y="0" width="693" height="493.45" fill="#FFFFFF" />
-  <path d="M 340 268 L 360 268 L 360 224 L 380 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="360" y="242" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">unfold</text>
-  <path d="M 500 224 L 522.25 224 L 522.25 356 L 544.5 356" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="522.25" y="286" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">bind Q / Velora / Juno</text>
-  <path d="M 171 136 L 191 136 L 191 268 L 211 268" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="191" y="198" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">arc_invoke</text>
-  <path d="M 171 136 L 191 136 L 191 180 L 211 180" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="191" y="154" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fragments</text>
-  <path d="M 340 180 L 360 180 L 360 224 L 380 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 500 224 L 520 224 L 520 268 L 540 268" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 340 268 L 360 268 L 360 230.66666666666666 L 380 230.66666666666666" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="360" y="245.33333333333331" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">unfold</text>
+  <path d="M 500 230.66666666666666 L 522.25 230.66666666666666 L 522.25 356 L 544.5 356" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="522.25" y="289.3333333333333" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">bind Q / Velora / Juno</text>
+  <path d="M 171 142.66666666666666 L 191 142.66666666666666 L 191 268 L 211 268" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="191" y="201.33333333333331" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">arc_invoke</text>
+  <path d="M 171 129.33333333333334 L 191 129.33333333333334 L 191 180 L 211 180" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="191" y="150.66666666666669" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fragments</text>
+  <path d="M 340 180 L 360 180 L 360 217.33333333333334 L 380 217.33333333333334" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 500 217.33333333333334 L 520 217.33333333333334 L 520 268 L 540 268" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 604.5 292 C 604.5 469.45, 97.5 333.45, 97.5 156" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="engine">
     <rect x="24" y="116" width="147" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />

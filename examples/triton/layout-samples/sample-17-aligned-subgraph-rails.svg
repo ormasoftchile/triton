@@ -3,16 +3,16 @@
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
   <rect x="0" y="0" width="1046" height="272" fill="#FFFFFF" />
-  <path d="M 609.5 72 L 609.5 92 L 696 92 L 696 112" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
+  <path d="M 629.5 72 L 629.5 92 L 696 92 L 696 112" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
   <path d="M 523 160 L 523 200" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
   <path d="M 177 72 L 177 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="177" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN align</text>
-  <path d="M 609.5 72 L 609.5 92 L 523 92 L 523 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 589.5 72 L 589.5 92 L 543 92 L 543 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="566.25" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN align</text>
   <path d="M 782.5 72 L 782.5 92 L 869 92 L 869 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="825.75" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN align</text>
-  <path d="M 436.5 72 L 436.5 92 L 523 92 L 523 112" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
-  <text x="479.75" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">circle glyph</text>
+  <path d="M 436.5 72 L 436.5 92 L 503 92 L 503 112" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
+  <text x="469.75" y="88" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">circle glyph</text>
   <g id="arc-entry">
     <rect x="117" y="24" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
     <text x="177" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Arc Entry</text>

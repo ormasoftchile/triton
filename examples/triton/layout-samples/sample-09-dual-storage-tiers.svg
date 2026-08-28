@@ -11,10 +11,10 @@
   <text x="114" y="328" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Strand weave</text>
   <path d="M 334 312 L 334 352" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="334" y="328" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Vessel etch</text>
-  <path d="M 224 232 L 224 252 L 114 252 L 114 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="169" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ENGAGE · flux harmonized</text>
-  <path d="M 224 232 L 224 252 L 334 252 L 334 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="279" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Alternate</text>
+  <path d="M 134 212 L 164.75 212 L 164.75 292 L 195.5 292" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="164.75" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ENGAGE · flux harmonized</text>
+  <path d="M 314 212 L 281.5 212 L 281.5 292 L 249 292" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="281.5" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Alternate</text>
   <path d="M 176 376 L 254 376" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
   <text x="215" y="372" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">LUMENFRAME reservation</text>
   <g id="application">

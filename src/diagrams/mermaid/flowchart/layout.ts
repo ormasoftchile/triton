@@ -305,6 +305,70 @@ export function layoutFlowchart(
   let bowMaxX = -Infinity;
   let bowMaxY = -Infinity;
 
+  // ── Multi-Port Distribution Pre-Pass ──────────────────────────────────────
+  interface EdgeWallInfo {
+    fromWall: CardinalSide;
+    toWall: CardinalSide;
+    fromPeerCoord: number;
+    toPeerCoord: number;
+  }
+  const nodeLayerMap = new Map<string, number>();
+  for (const [l, nodes] of orderedByLayer) {
+    for (const n of nodes) nodeLayerMap.set(n.id, l);
+  }
+
+  const edgeWalls = new Map<number, EdgeWallInfo>();
+  for (let ei = 0; ei < ir.edges.length; ei++) {
+    if (backEdges.has(ei)) continue;
+    const edge = ir.edges[ei]!;
+    if (edge.from === edge.to) continue;
+    const fromRect = nodePos.get(edge.from);
+    const toRect = nodePos.get(edge.to);
+    if (!fromRect || !toRect) continue;
+    const fromNode = ir.nodes.find((n) => n.id === edge.from);
+    const toNode = ir.nodes.find((n) => n.id === edge.to);
+
+    const fromL = nodeLayerMap.get(edge.from) ?? 0;
+    const toL = nodeLayerMap.get(edge.to) ?? 0;
+    const isBypassSkip = toL >= fromL + 2 && fromNode?.shape !== 'diamond';
+
+    const defaultExitWall = isBypassSkip ? (isLR ? 'S' : 'E') : undefined;
+
+    const fA = edge.exitWall
+      ? wallAnchor(fromRect, edge.exitWall)
+      : defaultExitWall
+      ? wallAnchor(fromRect, defaultExitWall)
+      : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape);
+    const tA = edge.entryWall
+      ? wallAnchor(toRect, edge.entryWall)
+      : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape);
+
+    const fromWall = fA.portDir as CardinalSide;
+    const toWall = tA.portDir as CardinalSide;
+    const toPeerCoord = fromWall === 'N' || fromWall === 'S' ? toRect.x + toRect.width / 2 : toRect.y + toRect.height / 2;
+    const fromPeerCoord = toWall === 'N' || toWall === 'S' ? fromRect.x + fromRect.width / 2 : fromRect.y + fromRect.height / 2;
+    edgeWalls.set(ei, { fromWall, toWall, fromPeerCoord, toPeerCoord });
+  }
+
+  const nodeWallOut = new Map<string, number[]>();
+  const nodeWallIn = new Map<string, number[]>();
+  for (const [ei, ew] of edgeWalls) {
+    const edge = ir.edges[ei]!;
+    const outKey = `${edge.from}:${ew.fromWall}`;
+    const inKey = `${edge.to}:${ew.toWall}`;
+    if (!nodeWallOut.has(outKey)) nodeWallOut.set(outKey, []);
+    if (!nodeWallIn.has(inKey)) nodeWallIn.set(inKey, []);
+    nodeWallOut.get(outKey)!.push(ei);
+    nodeWallIn.get(inKey)!.push(ei);
+  }
+
+  for (const [, list] of nodeWallOut) {
+    list.sort((a, b) => edgeWalls.get(a)!.toPeerCoord - edgeWalls.get(b)!.toPeerCoord);
+  }
+  for (const [, list] of nodeWallIn) {
+    list.sort((a, b) => edgeWalls.get(a)!.fromPeerCoord - edgeWalls.get(b)!.fromPeerCoord);
+  }
+
   for (let ei = 0; ei < ir.edges.length; ei++) {
     const edge = ir.edges[ei]!;
     const fromRect = nodePos.get(edge.from);
@@ -369,12 +433,21 @@ export function layoutFlowchart(
 
     const fromNode = ir.nodes.find((n) => n.id === edge.from);
     const toNode = ir.nodes.find((n) => n.id === edge.to);
+
+    const ew = edgeWalls.get(ei);
+    const outList = ew ? nodeWallOut.get(`${edge.from}:${ew.fromWall}`) : undefined;
+    const inList = ew ? nodeWallIn.get(`${edge.to}:${ew.toWall}`) : undefined;
+    const outIdx = outList && outList.length > 1 ? outList.indexOf(ei) : 0;
+    const outTot = outList ? outList.length : 1;
+    const inIdx = inList && inList.length > 1 ? inList.indexOf(ei) : 0;
+    const inTot = inList ? inList.length : 1;
+
     const fromAnchor = edge.exitWall
       ? wallAnchor(fromRect, edge.exitWall)
-      : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape);
+      : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape, outIdx, outTot);
     const toAnchor = edge.entryWall
       ? wallAnchor(toRect, edge.entryWall)
-      : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape);
+      : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape, inIdx, inTot);
 
     const obstacles: Rect[] = [];
     for (const [id, r] of nodePos) {
@@ -1159,6 +1232,8 @@ function edgeAnchor(
   role: 'exit' | 'enter',
   peer: Rect,
   nodeShape?: string,
+  portIndex: number = 0,
+  portTotal: number = 1,
 ): AnchorResult {
   const cx = r.x + r.width / 2;
   const cy = r.y + r.height / 2;
@@ -1169,79 +1244,74 @@ function edgeAnchor(
   const dy = pcy - cy;
 
   const isLR = dir === 'LR' || dir === 'RL';
+  const t = portTotal <= 1 ? 0.5 : (portIndex + 1) / (portTotal + 1);
+
+  const getPort = (wall: 'N' | 'S' | 'E' | 'W'): AnchorResult => {
+    switch (wall) {
+      case 'N':
+        return { point: { x: r.x + t * r.width, y: r.y }, portDir: 'N' };
+      case 'S':
+        return { point: { x: r.x + t * r.width, y: r.y + r.height }, portDir: 'S' };
+      case 'E':
+        return { point: { x: r.x + r.width, y: r.y + t * r.height }, portDir: 'E' };
+      case 'W':
+        return { point: { x: r.x, y: r.y + t * r.height }, portDir: 'W' };
+    }
+  };
 
   if (isLR) {
-    // Decision diamond lateral ports in LR (West/East is main axis; North/South is lateral)
     if (nodeShape === 'diamond') {
       if (role === 'exit') {
-        if (dy < -1) return { point: { x: cx, y: r.y }, portDir: 'N' };
-        if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
-        return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+        if (dy < -1) return getPort('N');
+        if (dy > 1) return getPort('S');
+        return getPort('E');
       } else {
         if (dx < -r.width) {
-          if (peer.y + peer.height <= r.y) return { point: { x: cx, y: r.y }, portDir: 'N' };
-          if (peer.y >= r.y + r.height) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
-          return { point: { x: r.x, y: cy }, portDir: 'W' };
+          if (peer.y + peer.height <= r.y) return getPort('N');
+          if (peer.y >= r.y + r.height) return getPort('S');
+          return getPort('W');
         }
-        if (dy < -1) return { point: { x: cx, y: r.y }, portDir: 'N' };
-        if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
-        return { point: { x: r.x, y: cy }, portDir: 'W' };
+        if (dy < -1) return getPort('N');
+        if (dy > 1) return getPort('S');
+        return getPort('W');
       }
     }
 
-    // Primary axis is horizontal
     const offAxis = Math.abs(dy);
     const onAxis = Math.abs(dx);
 
-    // If the peer is more off-axis than on-axis AND the nodes are close on
-    // the main axis (same or overlapping layer), use top/bottom port.
-    // The onAxis < r.width guard prevents wide nodes in clearly different
-    // layers from incorrectly flipping to off-axis ports.
-    if (offAxis > onAxis && offAxis > r.height / 2 && onAxis < r.width) {
-      return dy > 0
-        ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
-        : { point: { x: cx, y: r.y }, portDir: 'N' };
+    if (offAxis > onAxis && offAxis > r.height / 2) {
+      return dy > 0 ? getPort('S') : getPort('N');
     }
 
-    // Otherwise use the flow-direction side
-    return role === 'exit'
-      ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
-      : { point: { x: r.x, y: cy }, portDir: 'W' };
+    return role === 'exit' ? getPort('E') : getPort('W');
   } else {
-    // Decision diamond lateral ports in TD/TB/BT (North/South is main axis; West/East is lateral)
     if (nodeShape === 'diamond') {
       if (role === 'exit') {
-        if (dx < -1) return { point: { x: r.x, y: cy }, portDir: 'W' };
-        if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
-        return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+        if (dx < -1) return getPort('W');
+        if (dx > 1) return getPort('E');
+        return getPort('S');
       } else {
         if (dy < -r.height) {
-          if (peer.x + peer.width <= r.x) return { point: { x: r.x, y: cy }, portDir: 'W' };
-          if (peer.x >= r.x + r.width) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
-          return { point: { x: cx, y: r.y }, portDir: 'N' };
+          if (peer.x + peer.width <= r.x) return getPort('W');
+          if (peer.x >= r.x + r.width) return getPort('E');
+          return getPort('N');
         }
-        if (dx < -1) return { point: { x: r.x, y: cy }, portDir: 'W' };
-        if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
-        return { point: { x: cx, y: r.y }, portDir: 'N' };
+        if (dx < -1) return getPort('W');
+        if (dx > 1) return getPort('E');
+        return getPort('N');
       }
     }
 
-    // Primary axis is vertical
     const offAxis = Math.abs(dx);
     const onAxis = Math.abs(dy);
 
-    // Only flip to E/W port when the peer is close on the main axis (within
-    // one node-height vertically), indicating same-layer or overlapping nodes.
-    // Cross-layer forward edges always use S/N (flow-direction) ports.
-    if (offAxis > onAxis && offAxis > r.width / 2 && onAxis < r.height) {
-      return dx > 0
-        ? { point: { x: r.x + r.width, y: cy }, portDir: 'E' }
-        : { point: { x: r.x, y: cy }, portDir: 'W' };
+    // Lateral ports for off-axis peers or side branches
+    if (offAxis > onAxis && offAxis > r.width / 2) {
+      return dx > 0 ? getPort('E') : getPort('W');
     }
 
-    return role === 'exit'
-      ? { point: { x: cx, y: r.y + r.height }, portDir: 'S' }
-      : { point: { x: cx, y: r.y }, portDir: 'N' };
+    return role === 'exit' ? getPort('S') : getPort('N');
   }
 }
 

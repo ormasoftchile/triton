@@ -4,11 +4,11 @@
   </defs>
   <rect x="0" y="0" width="649" height="360" fill="#FFFFFF" />
   <path d="M 361 72 L 361 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 361 160 L 361 180 L 259 180 L 259 200" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 361 160 L 361 180 L 463 180 L 463 200" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 259 248 L 259 268 L 157 268 L 157 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 259 248 L 259 268 L 361 268 L 361 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 463 248 L 463 268 L 565 268 L 565 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 293.5 136 L 306.25 136 L 306.25 224 L 319 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 428.5 136 L 415 136 L 415 224 L 401.5 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 199 224 L 208 224 L 208 312 L 217 312" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 319 224 L 310 224 L 310 312 L 301 312" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 524.5 224 L 514.75 224 L 514.75 312 L 505 312" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="query-spec">
     <rect x="279" y="24" width="164" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
     <text x="361" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QVrOp MeridianSpec</text>

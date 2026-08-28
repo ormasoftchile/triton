@@ -3,15 +3,15 @@
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
   <rect x="0" y="0" width="753" height="408.67499999999995" fill="#FFFFFF" />
-  <path d="M 356 180 L 376 180 L 376 136 L 396 136" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="376" y="154" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Locate Vessel</text>
+  <path d="M 356 172 L 376 172 L 376 136 L 396 136" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="376" y="150" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Locate Vessel</text>
   <path d="M 564 136 L 604 136" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="584" y="132" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Engage Align</text>
-  <path d="M 153.5 224 L 174.25 224 L 174.25 180 L 195 180" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 155 136 L 175 136 L 175 180 L 195 180" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="175" y="154" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">NextArc</text>
-  <path d="M 356 180 L 380.75 180 L 380.75 224 L 405.5 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="380.75" y="198" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Marked Strands</text>
+  <path d="M 153.5 224 L 174.25 224 L 174.25 188 L 195 188" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 155 136 L 175 136 L 175 172 L 195 172" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="175" y="150" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">NextArc</text>
+  <path d="M 356 188 L 380.75 188 L 380.75 224 L 405.5 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="380.75" y="202" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Marked Strands</text>
   <path d="M 480 248 C 480 384.67499999999995, 89.5 296.67499999999995, 89.5 160" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="284.75" y="346.50625" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Feedback</text>
   <g id="executor">

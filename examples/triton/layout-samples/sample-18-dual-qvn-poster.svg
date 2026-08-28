@@ -34,10 +34,10 @@
   <text x="589.3000000000001" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">QVN_002 Gathering</text>
   <g transform="translate(585.3000000000001, 84) scale(0.65)">
     <path d="M 208 72 L 208 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-    <path d="M 208 152 L 208 172 L 106 172 L 106 192" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-    <text x="157" y="168" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rise / fall</text>
-    <path d="M 208 152 L 208 172 L 310 172 L 310 192" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-    <text x="259" y="168" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rise / fall</text>
+    <path d="M 126 132 L 146 132 L 146 216 L 166 216" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <text x="146" y="170" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rise / fall</text>
+    <path d="M 290 132 L 270 132 L 270 216 L 250 216" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <text x="270" y="170" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">rise / fall</text>
     <g id="pools2">
       <rect x="141" y="24" width="134" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
       <text x="208" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Meridian vessels</text>

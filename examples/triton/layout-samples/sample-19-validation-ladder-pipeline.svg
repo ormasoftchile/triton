@@ -11,14 +11,14 @@
   <text x="142.125" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
   <path d="M 363.125 492 L 363.125 536" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 142.125 144 L 142.125 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 142.125 232 L 142.125 256 L 215.125 256 L 215.125 424 L 142.125 424 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="142.125" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
+  <path d="M 142.125 232 L 142.125 256 L 69.125 256 L 69.125 424 L 112.125 424 L 112.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="127.125" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
   <path d="M 142.125 320 L 142.125 344 L 210.125 344 L 210.125 424 L 142.125 424 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="142.125" y="380" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
-  <path d="M 142.125 408 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="142.125" y="424" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
-  <path d="M 142.125 408 L 142.125 430 L 363.125 430 L 363.125 452" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="252.625" y="426" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
+  <path d="M 142.125 408 L 142.125 428 L 172.125 428 L 172.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="157.125" y="424" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
+  <path d="M 202.125 384 L 252.625 384 L 252.625 472 L 303.125 472" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="252.625" y="424" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
   <g id="request">
     <rect x="78.625" y="24" width="127" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
     <text x="142.125" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Fragment arrival</text>
