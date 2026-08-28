@@ -178,39 +178,4 @@ describe('flowchart grammar', () => {
     expect(r.flow.edges[0]!.style).toBe('thick');
     expect(r.flow.edges[0]!.bidirectional).toBe(true);
   });
-
-  describe(':: syntax extensions', () => {
-    it('parses header title with ::', () => {
-      const r = parse(`flowchart TD :: "User Authentication Pipeline"\nA --> B\n`);
-      expect(r.metadata.title).toBe('User Authentication Pipeline');
-      expect(r.direction).toBe('TD');
-    });
-
-    it('parses header with :: and default direction', () => {
-      const r = parse(`flowchart :: "Pipeline Overview"\nA --> B\n`);
-      expect(r.metadata.title).toBe('Pipeline Overview');
-      expect(r.direction).toBe('TD');
-    });
-
-    it('parses title statement with ::', () => {
-      const r = parse(`flowchart LR\ntitle :: "Data Ingestion Flow"\nA --> B\n`);
-      expect(r.metadata.title).toBe('Data Ingestion Flow');
-      expect(r.direction).toBe('LR');
-    });
-
-    it('parses subgraph with :: syntax', () => {
-      const r = parse(`flowchart TD\nsubgraph auth :: "Authentication Layer"\n  A --> B\nend\n`);
-      expect(r.flow.nodes).toHaveLength(2);
-    });
-
-    it('parses node labels and decorations with ::', () => {
-      const r = parse(`flowchart LR\nsrv :: "API Gateway" :: icon(fa:server) --> db :: "Customer Database" :: icon(fa-database)\n`);
-      const srv = r.flow.nodes.find((n: any) => n.id === 'srv');
-      const db = r.flow.nodes.find((n: any) => n.id === 'db');
-      expect(srv?.label).toBe('API Gateway');
-      expect(srv?.iconToken).toBe('fa:server');
-      expect(db?.label).toBe('Customer Database');
-      expect(db?.iconToken).toBe('fa-database');
-    });
-  });
 });

@@ -394,24 +394,22 @@ describe('card node — grammar integration', () => {
     expect(svg).not.toMatch(/rx="6"/);
   });
 
-  it('renders flowchart using :: for header title, subgraphs, and node decorations', () => {
-    const src = `flowchart LR :: "Infrastructure Pipeline"
-subgraph compute :: "Compute Layer"
-  api :: "API Gateway" :: icon(mdi:server) --> worker :: "Worker Node"
-end
-subgraph storage :: "Persistence"
-  db :: "Primary Database" :: icon(mdi:database)
-end
+  it('renders Title :: Subtitle content separation in card nodes and regular nodes', () => {
+    const src = `flowchart LR
+api ["API Gateway :: Public Router"] @shape:card @icon:mdi:server
+worker ["Worker Node :: Background Job"]
+db [("Primary Database :: PostgreSQL Storage")]
+api --> worker
 worker --> db
 `;
     const result = renderSync(src, undefined, 'svg', undefined, PACK_MAP);
     expect(result.ok).toBe(true);
     const svg = result.ok ? result.value : '';
-    expect(svg).toContain('Infrastructure Pipeline');
-    expect(svg).toContain('Compute Layer');
-    expect(svg).toContain('Persistence');
     expect(svg).toContain('API Gateway');
+    expect(svg).toContain('Public Router');
     expect(svg).toContain('Worker Node');
+    expect(svg).toContain('Background Job');
     expect(svg).toContain('Primary Database');
+    expect(svg).toContain('PostgreSQL Storage');
   });
 });
