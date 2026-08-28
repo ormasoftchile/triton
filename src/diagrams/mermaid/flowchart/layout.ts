@@ -915,29 +915,41 @@ function assignCoordinatesBK(
       // Compute preference for each node: mean of neighbor cross-axis positions.
       const pref: number[] = nodes.map((node, i) => {
         const nbrs = neighborMap.get(node.id) ?? [];
-        const nbrPos = nbrs
-          .map((nid) => crossPos.get(nid))
-          .filter((p): p is number => p !== undefined);
-        if (nbrPos.length === 0) {
+        if (nbrs.length === 0) {
           if (fallbackPositions && fallbackPositions.has(node.id)) {
             return fallbackPositions.get(node.id)!;
           }
           return centeredStart + i * crossStep;
         }
+        if (topDown && nbrs.length === 1) {
+          const p = nbrs[0]!;
+          const siblings = succMap.get(p) ?? [];
+          if (siblings.length > 1) {
+            const sIdx = siblings.indexOf(node.id);
+            const pPos = crossPos.get(p) ?? centeredStart;
+            return pPos + (sIdx - (siblings.length - 1) / 2) * crossStep;
+          }
+        }
+        const nbrPos = nbrs
+          .map((nid) => crossPos.get(nid))
+          .filter((p): p is number => p !== undefined);
         return nbrPos.reduce((s, p) => s + p, 0) / nbrPos.length;
       });
 
-      // Block centre = median of individual preferences.
-      const sortedPrefs = [...pref].sort((a, b) => a - b);
-      const medianPref =
-        sortedPrefs.length % 2 === 1
-          ? sortedPrefs[Math.floor(sortedPrefs.length / 2)]!
-          : (sortedPrefs[sortedPrefs.length / 2 - 1]! + sortedPrefs[sortedPrefs.length / 2]!) / 2;
-
-      // Centre block on medianPref; clamp so nothing goes left/above margin.
-      const blockStart = Math.max(margin, medianPref - ((count - 1) * crossStep) / 2);
+      // Place nodes at their natural preferred positions with minimum crossStep separation
+      const pos = [...pref];
+      pos[0] = Math.max(margin, pos[0]!);
+      for (let i = 1; i < count; i++) {
+        pos[i] = Math.max(pos[i]!, pos[i - 1]! + crossStep);
+      }
+      for (let i = count - 2; i >= 0; i--) {
+        const maxAllowed = pos[i + 1]! - crossStep;
+        if (pos[i]! > maxAllowed) pos[i] = maxAllowed;
+      }
+      const minX = Math.min(...pos);
+      const shift = minX < margin ? margin - minX : 0;
       for (let i = 0; i < count; i++) {
-        crossPos.set(nodes[i]!.id, blockStart + i * crossStep);
+        crossPos.set(nodes[i]!.id, pos[i]! + shift);
       }
     }
     return crossPos;
@@ -962,7 +974,6 @@ function assignCoordinatesBK(
       const c1 = pass1.get(node.id) ?? margin;
       const c2 = pass2.get(node.id) ?? margin;
       const preds = predMap.get(node.id) ?? [];
-      const succs = succMap.get(node.id) ?? [];
 
       const slotLeft = preds.length === 0 ? c2 : c1;
 

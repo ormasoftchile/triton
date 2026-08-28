@@ -1,43 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 693 313.45" width="693" height="313.45">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 693 493.45" width="693" height="493.45">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="693" height="313.45" fill="#FFFFFF" />
-  <path d="M 340 136 L 360 136 L 360 92 L 380 92" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="360" y="110" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">unfold</text>
-  <path d="M 500 92 L 522.25 92 L 522.25 136 L 544.5 136" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="522.25" y="110" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">bind Q / Velora / Juno</text>
-  <path d="M 171 92 L 191 92 L 191 136 L 211 136" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="191" y="110" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">arc_invoke</text>
-  <path d="M 171 92 L 191 92 L 191 48 L 211 48" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="191" y="66" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fragments</text>
-  <path d="M 340 48 L 360 48 L 360 92 L 380 92" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 500 92 L 520 92 L 520 48 L 540 48" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 604.5 72 C 604.5 249.45, 97.5 289.45, 97.5 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="0" y="0" width="693" height="493.45" fill="#FFFFFF" />
+  <path d="M 340 268 L 360 268 L 360 224 L 380 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="360" y="242" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">unfold</text>
+  <path d="M 500 224 L 522.25 224 L 522.25 356 L 544.5 356" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="522.25" y="286" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">bind Q / Velora / Juno</text>
+  <path d="M 171 136 L 191 136 L 191 268 L 211 268" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="191" y="198" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">arc_invoke</text>
+  <path d="M 171 136 L 191 136 L 191 180 L 211 180" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="191" y="154" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fragments</text>
+  <path d="M 340 180 L 360 180 L 360 224 L 380 224" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 500 224 L 520 224 L 520 268 L 540 268" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 604.5 292 C 604.5 469.45, 97.5 333.45, 97.5 156" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="engine">
-    <rect x="24" y="72" width="147" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="97.5" y="96.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QVN Meridian Core</text>
+    <rect x="24" y="116" width="147" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="97.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QVN Meridian Core</text>
   </g>
   <g id="input-pipe">
-    <rect x="211" y="24" width="129" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="275.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen Channel</text>
-    <text x="275.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Ingress</text>
+    <rect x="211" y="156" width="129" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="275.5" y="176.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen Channel</text>
+    <text x="275.5" y="193.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Ingress</text>
   </g>
   <g id="output-pipe">
-    <rect x="540" y="24" width="129" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="604.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen Channel</text>
-    <text x="604.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Egress</text>
+    <rect x="540" y="244" width="129" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="604.5" y="264.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen Channel</text>
+    <text x="604.5" y="281.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Egress</text>
   </g>
   <g id="launchpad">
-    <rect x="211" y="116" width="129" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="275.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Aperture Service</text>
+    <rect x="211" y="248" width="129" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="275.5" y="272.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Aperture Service</text>
   </g>
   <g id="satellite">
-    <rect x="380" y="72" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="440" y="96.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Orbiting Vessel</text>
+    <rect x="380" y="204" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="440" y="228.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Orbiting Vessel</text>
   </g>
   <g id="runtime">
-    <rect x="544.5" y="116" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="604.5" y="140.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Cadence Host</text>
+    <rect x="544.5" y="336" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="604.5" y="360.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Cadence Host</text>
   </g>
 </svg>

@@ -1,58 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 673" width="820" height="673">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1173.75 673" width="1173.75" height="673">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="820" height="673" fill="#FFFFFF" />
-  <path d="M 499.25 72 L 499.25 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 236.25 392 L 145.5 392 L 145.5 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="190.875" y="388" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
-  <path d="M 479.25 392 L 428.5 392 L 428.5 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="453.875" y="388" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
-  <path d="M 640.75 416 L 640.75 464.5 L 711.5 464.5 L 711.5 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 379.75 191.5 L 357.75 191.5 L 357.75 311" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="368.75" y="187.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
-  <path d="M 618.75 191.5 L 640.75 191.5 L 640.75 368" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="629.75" y="187.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
-  <path d="M 145.5 561 L 145.5 581 L 428.5 581 L 428.5 601" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 428.5 561 L 428.5 601" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 711.5 561 L 711.5 581 L 428.5 581 L 428.5 601" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="0" y="0" width="1173.75" height="673" fill="#FFFFFF" />
+  <path d="M 782.25 72 L 782.25 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 519.25 392 L 499.25 392 L 499.25 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="509.25" y="388" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
+  <path d="M 762.25 392 L 782.25 392 L 782.25 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="772.25" y="388" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
+  <path d="M 923.75 416 L 923.75 464.5 L 1065.25 464.5 L 1065.25 513" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 662.75 191.5 L 640.75 191.5 L 640.75 311" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="651.75" y="187.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
+  <path d="M 901.75 191.5 L 923.75 191.5 L 923.75 368" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="912.75" y="187.5" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
+  <path d="M 499.25 561 L 499.25 581 L 782.25 581 L 782.25 601" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 782.25 561 L 782.25 601" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 1065.25 561 L 1065.25 581 L 782.25 581 L 782.25 601" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="rejoin">
-    <rect x="421.25" y="24" width="156" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="499.25" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Prior vessel returns</text>
-    <text x="499.25" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">compare marks with active</text>
+    <rect x="704.25" y="24" width="156" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="782.25" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Prior vessel returns</text>
+    <text x="782.25" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">compare marks with active</text>
   </g>
   <g id="ancestry">
-    <path d="M 499.25 112 L 618.75 191.5 L 499.25 271 L 379.75 191.5 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
-    <text x="499.25" y="187.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Trail lineage</text>
-    <text x="499.25" y="205.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">shared sequence at marker?</text>
+    <path d="M 782.25 112 L 901.75 191.5 L 782.25 271 L 662.75 191.5 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+    <text x="782.25" y="187.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Trail lineage</text>
+    <text x="782.25" y="205.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">shared sequence at marker?</text>
   </g>
   <g id="behind">
-    <path d="M 357.75 311 L 479.25 392 L 357.75 473 L 236.25 392 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
-    <text x="357.75" y="396.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Returning vessel trailing?</text>
+    <path d="M 640.75 311 L 762.25 392 L 640.75 473 L 519.25 392 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+    <text x="640.75" y="396.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Returning vessel trailing?</text>
   </g>
   <g id="catchup">
-    <rect x="58.5" y="513" width="174" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="145.5" y="533.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Routine harmonization</text>
-    <text x="145.5" y="550.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">carry reserved marks</text>
+    <rect x="412.25" y="513" width="174" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="499.25" y="533.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Routine harmonization</text>
+    <text x="499.25" y="550.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">carry reserved marks</text>
   </g>
   <g id="companion">
-    <rect x="347" y="513" width="163" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="428.5" y="533.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Companion prepared</text>
-    <text x="428.5" y="550.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">resume folding</text>
+    <rect x="700.75" y="513" width="163" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="782.25" y="533.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Companion prepared</text>
+    <text x="782.25" y="550.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">resume folding</text>
   </g>
   <g id="suspend">
-    <rect x="557.75" y="368" width="166" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="640.75" y="388.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Fractured trail branch</text>
-    <text x="640.75" y="405.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">joining unstable</text>
+    <rect x="840.75" y="368" width="166" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="923.75" y="388.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Fractured trail branch</text>
+    <text x="923.75" y="405.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">joining unstable</text>
   </g>
   <g id="repair">
-    <rect x="627" y="513" width="169" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="711.5" y="533.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Custodian adjustment</text>
-    <text x="711.5" y="550.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">recast from active</text>
+    <rect x="980.75" y="513" width="169" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="1065.25" y="533.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Custodian adjustment</text>
+    <text x="1065.25" y="550.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">recast from active</text>
   </g>
   <g id="resume">
-    <rect x="334.5" y="601" width="188" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="428.5" y="621.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Harmonization Complete</text>
-    <text x="428.5" y="638.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Resume Active Vessel</text>
+    <rect x="688.25" y="601" width="188" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="782.25" y="621.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Harmonization Complete</text>
+    <text x="782.25" y="638.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Resume Active Vessel</text>
   </g>
 </svg>

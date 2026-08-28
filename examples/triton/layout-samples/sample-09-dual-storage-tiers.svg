@@ -1,51 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 443 512" width="443" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 553 512" width="553" height="512">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="443" height="512" fill="#FFFFFF" />
-  <path d="M 224 64 L 224 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="224" y="80" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">OpenGlyph</text>
-  <path d="M 224 152 L 224 192" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="224" y="168" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Trail align</text>
-  <path d="M 114 312 L 114 332 L 169 332 L 169 352" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="141.5" y="328" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Strand weave</text>
-  <path d="M 334 312 L 334 376 L 224 376 L 224 440" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="279" y="372" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Vessel etch</text>
-  <path d="M 224 232 L 224 252 L 114 252 L 114 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="169" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ENGAGE · flux harmonized</text>
-  <path d="M 224 232 L 224 252 L 334 252 L 334 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="279" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Alternate</text>
-  <path d="M 169 400 L 169 420 L 224 420 L 224 440" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
-  <text x="196.5" y="416" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">LUMENFRAME reservation</text>
+  <rect x="0" y="0" width="553" height="512" fill="#FFFFFF" />
+  <path d="M 334 64 L 334 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="334" y="80" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">OpenGlyph</text>
+  <path d="M 334 152 L 334 192" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="334" y="168" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Trail align</text>
+  <path d="M 224 312 L 224 352" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="224" y="328" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Strand weave</text>
+  <path d="M 444 312 L 444 376 L 334 376 L 334 440" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="389" y="372" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Vessel etch</text>
+  <path d="M 334 232 L 334 252 L 224 252 L 224 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="279" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ENGAGE · flux harmonized</text>
+  <path d="M 334 232 L 334 252 L 444 252 L 444 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="389" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Alternate</text>
+  <path d="M 224 400 L 224 420 L 334 420 L 334 440" stroke="#64748B" stroke-width="1.5" fill="none" stroke-dasharray="6 3" marker-end="url(#triton-arrow)" />
+  <text x="279" y="416" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">LUMENFRAME reservation</text>
   <g id="application">
-    <rect x="162" y="24" width="124" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="224" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Velora Aperture</text>
+    <rect x="272" y="24" width="124" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="334" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Velora Aperture</text>
   </g>
   <g id="share">
-    <rect x="164" y="104" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="224" y="124.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen Gate</text>
-    <text x="224" y="141.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">exus\qv</text>
+    <rect x="274" y="104" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="334" y="124.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen Gate</text>
+    <text x="334" y="141.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">exus\qv</text>
   </g>
   <g id="nso">
-    <rect x="134" y="192" width="180" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="224" y="216.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QFtVela Meridian Object</text>
+    <rect x="244" y="192" width="180" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="334" y="216.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QFtVela Meridian Object</text>
   </g>
   <g id="qvn-store">
-    <rect x="32.5" y="272" width="163" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="114" y="296.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QVN Lattice Chamber</text>
+    <rect x="142.5" y="272" width="163" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="224" y="296.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QVN Lattice Chamber</text>
   </g>
   <g id="table">
-    <rect x="107" y="352" width="124" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="169" y="372.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lattice Strands</text>
-    <text x="169" y="389.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">trail_marker + glyph</text>
+    <rect x="162" y="352" width="124" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="224" y="372.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lattice Strands</text>
+    <text x="224" y="389.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">trail_marker + glyph</text>
   </g>
   <g id="arc-store">
-    <rect x="249" y="272" width="170" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="334" y="296.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">ARCF Vessel Chamber</text>
+    <rect x="359" y="272" width="170" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="444" y="296.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">ARCF Vessel Chamber</text>
   </g>
   <g id="vessel">
-    <rect x="144" y="440" width="160" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="224" y="460.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ARCF Capsule</text>
-    <text x="224" y="477.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN-named LUMEN vessel</text>
+    <rect x="254" y="440" width="160" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="334" y="460.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ARCF Capsule</text>
+    <text x="334" y="477.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ZEN-named LUMEN vessel</text>
   </g>
 </svg>

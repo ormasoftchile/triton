@@ -1,47 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 598 360" width="598" height="360">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 649 360" width="649" height="360">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="598" height="360" fill="#FFFFFF" />
-  <path d="M 335.5 72 L 335.5 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 335.5 160 L 335.5 180 L 233.5 180 L 233.5 200" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 335.5 160 L 335.5 180 L 437.5 180 L 437.5 200" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 233.5 248 L 233.5 268 L 106 268 L 106 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 233.5 248 L 233.5 268 L 310 268 L 310 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 437.5 248 L 437.5 268 L 514 268 L 514 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="0" y="0" width="649" height="360" fill="#FFFFFF" />
+  <path d="M 361 72 L 361 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 361 160 L 361 180 L 259 180 L 259 200" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 361 160 L 361 180 L 463 180 L 463 200" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 259 248 L 259 268 L 157 268 L 157 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 259 248 L 259 268 L 361 268 L 361 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 463 248 L 463 268 L 565 268 L 565 288" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="query-spec">
-    <rect x="253.5" y="24" width="164" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="335.5" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QVrOp MeridianSpec</text>
-    <text x="335.5" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Root Query</text>
+    <rect x="279" y="24" width="164" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="361" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QVrOp MeridianSpec</text>
+    <text x="361" y="61.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Root Query</text>
   </g>
   <g id="and-sequence">
-    <rect x="268" y="112" width="135" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="335.5" y="132.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ARC</text>
-    <text x="335.5" y="149.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Conjunction Operation</text>
+    <rect x="293.5" y="112" width="135" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="361" y="132.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">ARC</text>
+    <text x="361" y="149.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Conjunction Operation</text>
   </g>
   <g id="near-sequence">
-    <rect x="173.5" y="200" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="233.5" y="220.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">NEXA</text>
-    <text x="233.5" y="237.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Proximity Scope</text>
+    <rect x="199" y="200" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="259" y="220.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">NEXA</text>
+    <text x="259" y="237.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Proximity Scope</text>
   </g>
   <g id="forms-of">
-    <rect x="376" y="200" width="123" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="437.5" y="220.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">HARMONICAL</text>
-    <text x="437.5" y="237.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Form Matrix</text>
+    <rect x="401.5" y="200" width="123" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="463" y="220.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">HARMONICAL</text>
+    <text x="463" y="237.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Form Matrix</text>
   </g>
   <g id="qvn-term">
-    <rect x="46" y="288" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="24" />
-    <text x="106" y="308.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QVN</text>
-    <text x="106" y="325.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fixed</text>
+    <rect x="97" y="288" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="24" />
+    <text x="157" y="308.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QVN</text>
+    <text x="157" y="325.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fixed</text>
   </g>
   <g id="lumen-term">
-    <rect x="250" y="288" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="24" />
-    <text x="310" y="308.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen</text>
-    <text x="310" y="325.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fixed</text>
+    <rect x="301" y="288" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="24" />
+    <text x="361" y="308.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lumen</text>
+    <text x="361" y="325.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">fixed</text>
   </g>
   <g id="cadence-term">
-    <rect x="454" y="288" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="24" />
-    <text x="514" y="308.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">cadence</text>
-    <text x="514" y="325.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">variant</text>
+    <rect x="505" y="288" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="24" />
+    <text x="565" y="308.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">cadence</text>
+    <text x="565" y="325.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">variant</text>
   </g>
 </svg>
