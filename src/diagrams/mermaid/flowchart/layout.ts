@@ -443,10 +443,14 @@ export function layoutFlowchart(
     const inTot = inList ? inList.length : 1;
 
     const fromAnchor = edge.exitWall
-      ? wallAnchor(fromRect, edge.exitWall)
+      ? wallAnchor(fromRect, edge.exitWall, outIdx, outTot)
+      : ew
+      ? wallAnchor(fromRect, ew.fromWall, outIdx, outTot)
       : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape, outIdx, outTot);
     const toAnchor = edge.entryWall
-      ? wallAnchor(toRect, edge.entryWall)
+      ? wallAnchor(toRect, edge.entryWall, inIdx, inTot)
+      : ew
+      ? wallAnchor(toRect, ew.toWall, inIdx, inTot)
       : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape, inIdx, inTot);
 
     const obstacles: Rect[] = [];
@@ -1211,18 +1215,19 @@ type AnchorResult = { point: Point; portDir: import('../../../contracts/index.js
 function wallAnchor(
   r: Rect,
   wall: import('../../../contracts/index.js').CardinalSide,
+  portIndex: number = 0,
+  portTotal: number = 1,
 ): AnchorResult {
-  const cx = r.x + r.width / 2;
-  const cy = r.y + r.height / 2;
+  const t = portTotal <= 1 ? 0.5 : (portIndex + 1) / (portTotal + 1);
   switch (wall) {
     case 'N':
-      return { point: { x: cx, y: r.y }, portDir: 'N' };
+      return { point: { x: r.x + t * r.width, y: r.y }, portDir: 'N' };
     case 'S':
-      return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+      return { point: { x: r.x + t * r.width, y: r.y + r.height }, portDir: 'S' };
     case 'E':
-      return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+      return { point: { x: r.x + r.width, y: r.y + t * r.height }, portDir: 'E' };
     case 'W':
-      return { point: { x: r.x, y: cy }, portDir: 'W' };
+      return { point: { x: r.x, y: r.y + t * r.height }, portDir: 'W' };
   }
 }
 

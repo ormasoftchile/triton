@@ -17,7 +17,7 @@
     <path d="M 608 274.5 L 584.25 274.5 L 584.25 429 L 560.5 429" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
     <text x="584.25" y="347.75" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">nay</text>
     <path d="M 628 453 L 628 493" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-    <path d="M 316 449 L 316 511 L 472 511 L 472 573" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <path d="M 412.5 429 L 472 429 L 472 573" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
     <path d="M 512 513 L 542.5 513 L 542.5 640 L 573 640" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
     <path d="M 573 640 C 753.6 640, 739.6 124, 559 124" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
     <text x="708.45" y="378" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">nay</text>

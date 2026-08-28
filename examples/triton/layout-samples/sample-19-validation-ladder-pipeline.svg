@@ -11,10 +11,10 @@
   <text x="142.125" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
   <path d="M 363.125 492 L 363.125 536" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 142.125 144 L 142.125 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 142.125 232 L 142.125 256 L 69.125 256 L 69.125 424 L 112.125 424 L 112.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="127.125" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
-  <path d="M 142.125 320 L 142.125 344 L 210.125 344 L 210.125 424 L 142.125 424 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="142.125" y="380" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
+  <path d="M 204.125 208 L 112.125 208 L 112.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="158.125" y="204" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
+  <path d="M 207.125 296 L 142.125 296 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="174.625" y="292" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
   <path d="M 142.125 408 L 142.125 428 L 172.125 428 L 172.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="157.125" y="424" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
   <path d="M 202.125 384 L 252.625 384 L 252.625 472 L 303.125 472" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
