@@ -389,8 +389,11 @@ export function layoutArchitecture(
   const rectOf = (id: string): Rect | undefined => {
     const pos = positions.get(id);
     const sz = nodeSizes.get(id);
+    const cell = gridCells.get(id);
     if (!pos || !sz) return undefined;
-    return { x: pos.x, y: pos.y + yOff, width: sz.width, height: sz.height };
+    const isJct = ir.junctions.some((j) => j.id === id);
+    const width = isJct ? sz.width : cell ? colWidths.get(cell.col) ?? sz.width : sz.width;
+    return { x: pos.x, y: pos.y + yOff, width, height: sz.height };
   };
 
   // ── Compute group rects (memoised, recursive for nested groups) ───────────
