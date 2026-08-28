@@ -376,6 +376,13 @@ export function layoutFlowchart(
       ? wallAnchor(toRect, edge.entryWall)
       : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape);
 
+    const obstacles: Rect[] = [];
+    for (const [id, r] of nodePos) {
+      if (id !== edge.from && id !== edge.to) {
+        obstacles.push(r);
+      }
+    }
+
     const style: RouteStyle = edge.routing ?? 'orthogonal';
     const router = getRouter(style) ?? defaultRouter;
     const route = router.route({
@@ -383,7 +390,7 @@ export function layoutFlowchart(
       to: toAnchor.point,
       style,
       curveStyle: 'linear',
-      obstacles: [],
+      obstacles,
       padding: 8,
       fromDir: fromAnchor.portDir,
       toDir: toAnchor.portDir,
@@ -951,7 +958,7 @@ function assignCoordinatesBK(
         }
         if (topDown && nbrs.length === 1) {
           const p = nbrs[0]!;
-          const siblings = succMap.get(p) ?? [];
+          const siblings = (succMap.get(p) ?? []).filter((sid) => nodes.some((n) => n.id === sid));
           if (siblings.length > 1) {
             const sIdx = siblings.indexOf(node.id);
             const pPos = crossPos.get(p) ?? centeredStart;

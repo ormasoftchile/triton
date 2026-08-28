@@ -1,24 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 438.20833333333337 600" width="438.20833333333337" height="600">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 456.625 600" width="456.625" height="600">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="438.20833333333337" height="600" fill="#FFFFFF" />
+  <rect x="0" y="0" width="456.625" height="600" fill="#FFFFFF" />
   <path d="M 142.125 64 L 142.125 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 123.70833333333334 496 L 123.70833333333334 536" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 142.125 232 L 142.125 252 L 114.5 252 L 114.5 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="128.3125" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
-  <path d="M 114.5 320 L 114.5 360" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="114.5" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
-  <path d="M 344.70833333333337 492 L 344.70833333333337 536" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 142.125 496 L 142.125 536" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 142.125 232 L 142.125 272" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="142.125" y="248" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
+  <path d="M 142.125 320 L 142.125 360" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="142.125" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
+  <path d="M 363.125 492 L 363.125 536" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 142.125 144 L 142.125 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 142.125 232 L 142.125 340 L 123.70833333333334 340 L 123.70833333333334 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="132.91666666666669" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
-  <path d="M 114.5 320 L 114.5 384 L 123.70833333333334 384 L 123.70833333333334 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="119.10416666666667" y="380" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
-  <path d="M 114.5 408 L 114.5 428 L 123.70833333333334 428 L 123.70833333333334 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="119.10416666666667" y="424" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
-  <path d="M 114.5 408 L 114.5 430 L 344.70833333333337 430 L 344.70833333333337 452" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="229.60416666666669" y="426" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
+  <path d="M 142.125 232 L 142.125 256 L 215.125 256 L 215.125 424 L 142.125 424 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="142.125" y="336" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
+  <path d="M 142.125 320 L 142.125 344 L 210.125 344 L 210.125 424 L 142.125 424 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="142.125" y="380" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
+  <path d="M 142.125 408 L 142.125 448" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="142.125" y="424" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">closed</text>
+  <path d="M 142.125 408 L 142.125 430 L 363.125 430 L 363.125 452" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="252.625" y="426" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">clear</text>
   <g id="request">
     <rect x="78.625" y="24" width="127" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
     <text x="142.125" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Fragment arrival</text>
@@ -28,13 +28,13 @@
     <text x="142.125" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Meridian-circle alignment</text>
   </g>
   <g id="queue">
-    <rect x="63.708333333333336" y="448" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="123.71" y="468.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Chamber</text>
-    <text x="123.71" y="485.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ascending glyph</text>
+    <rect x="82.125" y="448" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="142.13" y="468.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Chamber</text>
+    <text x="142.13" y="485.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">ascending glyph</text>
   </g>
   <g id="retry">
-    <rect x="55.208333333333336" y="536" width="137" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="123.70833333333334" y="560.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Re-enter passage</text>
+    <rect x="73.625" y="536" width="137" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="142.125" y="560.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Re-enter passage</text>
   </g>
   <g id="reservation">
     <rect x="80.125" y="184" width="124" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
@@ -42,21 +42,21 @@
     <text x="142.13" y="221.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">minimum arcs</text>
   </g>
   <g id="limit">
-    <rect x="49.5" y="272" width="130" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="114.5" y="292.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Boundary check</text>
-    <text x="114.5" y="309.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">maximum arcs</text>
+    <rect x="77.125" y="272" width="130" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="142.13" y="292.27" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Boundary check</text>
+    <text x="142.13" y="309.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">maximum arcs</text>
   </g>
   <g id="credit">
-    <rect x="54.5" y="360" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="114.5" y="380.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Token check</text>
-    <text x="114.5" y="397.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">bounded flourish</text>
+    <rect x="82.125" y="360" width="120" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="142.13" y="380.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Token check</text>
+    <text x="142.13" y="397.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">bounded flourish</text>
   </g>
   <g id="dispatch">
-    <rect x="284.70833333333337" y="452" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="344.70833333333337" y="476.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Conveyance</text>
+    <rect x="303.125" y="452" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="363.125" y="476.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Conveyance</text>
   </g>
   <g id="stats">
-    <rect x="275.20833333333337" y="536" width="139" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="344.70833333333337" y="560.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Refresh measures</text>
+    <rect x="293.625" y="536" width="139" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="363.125" y="560.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Refresh measures</text>
   </g>
 </svg>
