@@ -1,50 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -34 755 362" width="755" height="362">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -34 284 842" width="284" height="842">
   <defs>
     <marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>
     <marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="-24" y="-34" width="755" height="362" fill="#FFFFFF" />
-  <rect x="4" y="-10" width="677" height="288" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
+  <rect x="-24" y="-34" width="284" height="842" fill="#FFFFFF" />
+  <rect x="4" y="-10" width="206" height="768" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
   <text x="16" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="start" font-weight="bold">QVN Folding Chamber</text>
-  <path d="M 154 52 L 214.5 52 L 214.5 66.5 L 275 66.5" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 405 66.5 L 450 66.5 L 450 52 L 495 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 560.5 80 L 560.5 126.5 L 578 126.5 L 578 173" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 495 201 L 450 201 L 450 215.5 L 405 215.5" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 275 215.5 L 230 215.5 L 230 201 L 185 201" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <rect x="24" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="24" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
-  <rect x="79" y="35" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <rect x="79" y="42" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <rect x="79" y="49" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <text x="89" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Prime QVN</text>
-  <rect x="275" y="24" width="130" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="275" y="24" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
-  <rect x="330" y="35" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
-  <rect x="330" y="42" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
-  <rect x="330" y="49" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
-  <text x="340" y="81.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Gather</text>
-  <text x="340" y="99.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">5-cycle sweeps</text>
-  <rect x="495" y="24" width="131" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="495" y="24" width="131" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
-  <rect x="551.5" y="35" width="18" height="18" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="5" />
-  <path d="M 551.5 41 Q 560.5 45, 569.5 41" stroke="#D97706" stroke-width="1.3" fill="none" />
-  <text x="560.5" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">qvn.segment_VT</text>
-  <rect x="495" y="173" width="166" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="495" y="173" width="166" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
-  <circle cx="578" cy="193" r="9" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" />
-  <path d="M 578 184 L 578 202 M 569 193 L 587 193" stroke="#5B4FCF" stroke-width="1" fill="none" />
-  <path d="M 569 193 Q 578 182, 587 193 Q 578 204, 569 193" stroke="#5B4FCF" stroke-width="1" fill="none" />
-  <text x="578" y="224.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Observer ZEN request</text>
-  <rect x="275" y="173" width="130" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="275" y="173" width="130" height="8" fill="#DB2777" stroke="#DB2777" stroke-width="0" rx="4" />
-  <rect x="330" y="184" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
-  <rect x="330" y="191" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
-  <rect x="330" y="198" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
-  <text x="340" y="230.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Release</text>
-  <text x="340" y="248.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">3-span keeping</text>
-  <rect x="24" y="173" width="161" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="24" y="173" width="161" height="8" fill="#2563EB" stroke="#2563EB" stroke-width="0" rx="4" />
-  <rect x="95.5" y="184" width="18" height="18" fill="#F8FAFC" stroke="#2563EB" stroke-width="1.3" rx="5" />
-  <path d="M 95.5 190 Q 104.5 194, 113.5 190" stroke="#2563EB" stroke-width="1.3" fill="none" />
-  <text x="104.5" y="224.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Advance release ZEN</text>
+  <path d="M 107 80 L 107 144" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 107 229 L 107 293" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 107 349 L 107 413" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 107 469 L 107 533" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 107 618 L 107 682" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <rect x="24" y="24" width="166" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="24" width="166" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <rect x="97" y="35" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="97" y="42" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="97" y="49" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <text x="107" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Prime QVN</text>
+  <rect x="24" y="144" width="166" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="144" width="166" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
+  <rect x="97" y="155" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="97" y="162" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="97" y="169" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <text x="107" y="201.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Gather</text>
+  <text x="107" y="219.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">5-cycle sweeps</text>
+  <rect x="24" y="293" width="166" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="293" width="166" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
+  <rect x="98" y="304" width="18" height="18" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="5" />
+  <path d="M 98 310 Q 107 314, 116 310" stroke="#D97706" stroke-width="1.3" fill="none" />
+  <text x="107" y="344.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">qvn.segment_VT</text>
+  <rect x="24" y="413" width="166" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="413" width="166" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
+  <circle cx="107" cy="433" r="9" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" />
+  <path d="M 107 424 L 107 442 M 98 433 L 116 433" stroke="#5B4FCF" stroke-width="1" fill="none" />
+  <path d="M 98 433 Q 107 422, 116 433 Q 107 444, 98 433" stroke="#5B4FCF" stroke-width="1" fill="none" />
+  <text x="107" y="464.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Observer ZEN request</text>
+  <rect x="24" y="533" width="166" height="85" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="533" width="166" height="8" fill="#DB2777" stroke="#DB2777" stroke-width="0" rx="4" />
+  <rect x="97" y="544" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <rect x="97" y="551" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <rect x="97" y="558" width="20" height="5" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.3" rx="1" />
+  <text x="107" y="590.78" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Release</text>
+  <text x="107" y="608.28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">3-span keeping</text>
+  <rect x="24" y="682" width="166" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="682" width="166" height="8" fill="#2563EB" stroke="#2563EB" stroke-width="0" rx="4" />
+  <rect x="98" y="693" width="18" height="18" fill="#F8FAFC" stroke="#2563EB" stroke-width="1.3" rx="5" />
+  <path d="M 98 699 Q 107 703, 116 699" stroke="#2563EB" stroke-width="1.3" fill="none" />
+  <text x="107" y="733.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Advance release ZEN</text>
 </svg>

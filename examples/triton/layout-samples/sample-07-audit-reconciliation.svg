@@ -1,47 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 518.3333333333333 488" width="518.3333333333333" height="488">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 578 391" width="578" height="391">
   <defs>
-    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="block-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="block-arrow-start" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="518.3333333333333" height="488" fill="#FFFFFF" />
-  <path d="M 248.83333333333331 64 L 248.83333333333331 84 L 343 84 L 343 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 343 144 L 343 164 L 192.33333333333331 164 L 192.33333333333331 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 267.66666666666663 384 L 267.66666666666663 424" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 248.83333333333331 64 L 248.83333333333331 84 L 135.83333333333331 84 L 135.83333333333331 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 343 144 L 343 164 L 418.3333333333333 164 L 418.3333333333333 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 192.33333333333331 224 L 192.33333333333331 244 L 248.83333333333331 244 L 248.83333333333331 264" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 135.83333333333331 144 L 135.83333333333331 244 L 267.66666666666663 244 L 267.66666666666663 344" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 418.3333333333333 224 L 418.3333333333333 284 L 267.66666666666663 284 L 267.66666666666663 344" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 248.83333333333331 304 L 248.83333333333331 324 L 267.66666666666663 324 L 267.66666666666663 344" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <g id="allocation">
-    <rect x="188.83333333333331" y="24" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="248.83333333333331" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">1 · Meridian</text>
-  </g>
-  <g id="object-audit">
-    <rect x="280.5" y="104" width="125" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="343" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">2 · Vessel / Tile</text>
-  </g>
-  <g id="catalog">
-    <rect x="132.33333333333331" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="192.33333333333331" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">3 · Archive</text>
-  </g>
-  <g id="allocation-facts">
-    <rect x="42.833333333333314" y="104" width="186" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="135.83333333333331" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">QVN / ZLUM / RFS / VAR</text>
-  </g>
-  <g id="object-facts">
-    <rect x="342.3333333333333" y="184" width="152" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="418.3333333333333" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">K-loom / tile / strand</text>
-  </g>
-  <g id="catalog-facts">
-    <rect x="171.83333333333331" y="264" width="154" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="248.83333333333331" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Archive-frame marks</text>
-  </g>
-  <g id="reconcile">
-    <rect x="200.66666666666666" y="344" width="134" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="267.66666666666663" y="368.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Harmonize marks</text>
-  </g>
-  <g id="report">
-    <rect x="198.16666666666666" y="424" width="139" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="267.66666666666663" y="448.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Fracture summary</text>
-  </g>
+  <rect x="0" y="0" width="578" height="391" fill="#FFFFFF" />
+  <path d="M 174 52 L 214 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 364 52 L 404 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 99 80 L 99 120" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 289 80 L 289 120" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 479 80 L 479 120" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 153.71 175 L 233.29 215" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 289 175 L 289 215" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 424.29 175 L 344.71 215" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <path d="M 289 271 L 289 311" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#block-arrow)" />
+  <rect x="24" y="24" width="150" height="56" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.6" rx="8" />
+  <text x="99" y="56.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">1 · Meridian</text>
+  <rect x="214" y="24" width="150" height="56" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.6" rx="8" />
+  <text x="289" y="56.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">2 · Vessel / Tile</text>
+  <rect x="404" y="24" width="150" height="56" fill="#F8FAFC" stroke="#D97706" stroke-width="1.6" rx="8" />
+  <text x="479" y="56.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">3 · Archive</text>
+  <rect x="24" y="120" width="150" height="55" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.6" rx="8" />
+  <text x="99" y="143.51" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">QVN / ZLUM / RFS</text>
+  <text x="99" y="161.01" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">/ VAR</text>
+  <rect x="214" y="120" width="150" height="55" fill="#F8FAFC" stroke="#DB2777" stroke-width="1.6" rx="8" />
+  <text x="289" y="143.51" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">K-loom / tile /</text>
+  <text x="289" y="161.01" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">strand</text>
+  <rect x="404" y="120" width="150" height="55" fill="#F8FAFC" stroke="#2563EB" stroke-width="1.6" rx="8" />
+  <text x="479" y="143.51" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Archive-frame</text>
+  <text x="479" y="161.01" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">marks</text>
+  <rect x="24" y="215" width="530" height="56" fill="#F8FAFC" stroke="#16A34A" stroke-width="1.6" rx="8" />
+  <text x="289" y="247.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Harmonize marks</text>
+  <rect x="24" y="311" width="530" height="56" fill="#F8FAFC" stroke="#CA8A04" stroke-width="1.6" rx="8" />
+  <text x="289" y="343.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Fracture summary</text>
 </svg>

@@ -1,45 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -68 932 578" width="932" height="578">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -68 952 578" width="952" height="578">
   <defs>
     <marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>
     <marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="-40" y="-68" width="932" height="578" fill="#FFFFFF" />
-  <rect x="-16" y="-44" width="802" height="164" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
+  <rect x="-40" y="-68" width="952" height="578" fill="#FFFFFF" />
+  <rect x="-16" y="-44" width="878" height="164" fill="#7C3AED14" stroke="#7C3AED" stroke-width="1.4" rx="10" />
   <text x="-4" y="-28" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#7C3AED" text-anchor="start" font-weight="bold">QVN Meridian Array</text>
-  <rect x="4" y="-10" width="762" height="110" fill="#0EA5A814" stroke="#0EA5A8" stroke-width="1.4" rx="10" />
+  <rect x="4" y="-10" width="838" height="110" fill="#0EA5A814" stroke="#0EA5A8" stroke-width="1.4" rx="10" />
   <text x="16" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#0EA5A8" text-anchor="start" font-weight="bold">Shared Vector Loom Array</text>
   <rect x="4" y="230" width="838" height="230" fill="#D9770614" stroke="#D97706" stroke-width="1.4" rx="10" />
   <text x="16" y="246" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#D97706" text-anchor="start" font-weight="bold">Per-Chamber Folding Partition</text>
-  <path d="M 154 52 L 320 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 450 52 L 616 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 230 52 L 320 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 526 52 L 616 52" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
   <path d="M 230 292 L 320 292" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
   <path d="M 526 292 L 616 292" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 154 412 L 320 412" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 450 412 L 616 412" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 89 80 L 89 172 L 127 172 L 127 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 385 80 L 385 172 L 423 172 L 423 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 681 80 L 681 172 L 719 172 L 719 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 127 320 L 127 352 L 89 352 L 89 384" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 423 320 L 423 352 L 385 352 L 385 384" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <path d="M 719 320 L 719 352 L 681 352 L 681 384" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
-  <rect x="24" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="24" y="24" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
-  <rect x="79" y="35" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <rect x="79" y="42" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <rect x="79" y="49" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
-  <text x="89" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vector Loom 1</text>
-  <rect x="320" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="320" y="24" width="130" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
-  <rect x="375" y="35" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
-  <rect x="375" y="42" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
-  <rect x="375" y="49" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
-  <text x="385" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vector Loom 2</text>
-  <rect x="616" y="24" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="616" y="24" width="130" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
-  <rect x="671" y="35" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
-  <rect x="671" y="42" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
-  <rect x="671" y="49" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
-  <text x="681" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vector Loom N</text>
+  <path d="M 230 412 L 320 412" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 526 412 L 616 412" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 127 80 L 127 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 423 80 L 423 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 719 80 L 719 264" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 127 320 L 127 384" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 423 320 L 423 384" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 719 320 L 719 384" stroke="#4A90D9" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <rect x="24" y="24" width="206" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="24" width="206" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <rect x="117" y="35" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="117" y="42" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <rect x="117" y="49" width="20" height="5" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="1" />
+  <text x="127" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vector Loom 1</text>
+  <rect x="320" y="24" width="206" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="320" y="24" width="206" height="8" fill="#0EA5A8" stroke="#0EA5A8" stroke-width="0" rx="4" />
+  <rect x="413" y="35" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="413" y="42" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <rect x="413" y="49" width="20" height="5" fill="#F8FAFC" stroke="#0EA5A8" stroke-width="1.3" rx="1" />
+  <text x="423" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vector Loom 2</text>
+  <rect x="616" y="24" width="206" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="616" y="24" width="206" height="8" fill="#D97706" stroke="#D97706" stroke-width="0" rx="4" />
+  <rect x="709" y="35" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <rect x="709" y="42" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <rect x="709" y="49" width="20" height="5" fill="#F8FAFC" stroke="#D97706" stroke-width="1.3" rx="1" />
+  <text x="719" y="75.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Vector Loom N</text>
   <rect x="24" y="264" width="206" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
   <rect x="24" y="264" width="206" height="8" fill="#5B4FCF" stroke="#5B4FCF" stroke-width="0" rx="4" />
   <rect x="118" y="275" width="18" height="18" fill="#F8FAFC" stroke="#5B4FCF" stroke-width="1.3" rx="5" />
@@ -55,19 +55,19 @@
   <rect x="710" y="275" width="18" height="18" fill="#F8FAFC" stroke="#2563EB" stroke-width="1.3" rx="5" />
   <path d="M 710 281 Q 719 285, 728 281" stroke="#2563EB" stroke-width="1.3" fill="none" />
   <text x="719" y="315.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Chamber C Folding Segment</text>
-  <rect x="24" y="384" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="24" y="384" width="130" height="8" fill="#16A34A" stroke="#16A34A" stroke-width="0" rx="4" />
-  <rect x="80" y="395" width="18" height="18" fill="#F8FAFC" stroke="#16A34A" stroke-width="1.3" rx="5" />
-  <path d="M 80 401 Q 89 405, 98 401" stroke="#16A34A" stroke-width="1.3" fill="none" />
-  <text x="89" y="435.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">A Flux Lattices</text>
-  <rect x="320" y="384" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="320" y="384" width="130" height="8" fill="#CA8A04" stroke="#CA8A04" stroke-width="0" rx="4" />
-  <rect x="376" y="395" width="18" height="18" fill="#F8FAFC" stroke="#CA8A04" stroke-width="1.3" rx="5" />
-  <path d="M 376 401 Q 385 405, 394 401" stroke="#CA8A04" stroke-width="1.3" fill="none" />
-  <text x="385" y="435.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">B Flux Lattices</text>
-  <rect x="616" y="384" width="130" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
-  <rect x="616" y="384" width="130" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
-  <rect x="672" y="395" width="18" height="18" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="5" />
-  <path d="M 672 401 Q 681 405, 690 401" stroke="#7C3AED" stroke-width="1.3" fill="none" />
-  <text x="681" y="435.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">C Flux Lattices</text>
+  <rect x="24" y="384" width="206" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="24" y="384" width="206" height="8" fill="#16A34A" stroke="#16A34A" stroke-width="0" rx="4" />
+  <rect x="118" y="395" width="18" height="18" fill="#F8FAFC" stroke="#16A34A" stroke-width="1.3" rx="5" />
+  <path d="M 118 401 Q 127 405, 136 401" stroke="#16A34A" stroke-width="1.3" fill="none" />
+  <text x="127" y="435.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">A Flux Lattices</text>
+  <rect x="320" y="384" width="206" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="320" y="384" width="206" height="8" fill="#CA8A04" stroke="#CA8A04" stroke-width="0" rx="4" />
+  <rect x="414" y="395" width="18" height="18" fill="#F8FAFC" stroke="#CA8A04" stroke-width="1.3" rx="5" />
+  <path d="M 414 401 Q 423 405, 432 401" stroke="#CA8A04" stroke-width="1.3" fill="none" />
+  <text x="423" y="435.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">B Flux Lattices</text>
+  <rect x="616" y="384" width="206" height="56" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4" rx="8" />
+  <rect x="616" y="384" width="206" height="8" fill="#7C3AED" stroke="#7C3AED" stroke-width="0" rx="4" />
+  <rect x="710" y="395" width="18" height="18" fill="#F8FAFC" stroke="#7C3AED" stroke-width="1.3" rx="5" />
+  <path d="M 710 401 Q 719 405, 728 401" stroke="#7C3AED" stroke-width="1.3" fill="none" />
+  <text x="719" y="435.76" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">C Flux Lattices</text>
 </svg>

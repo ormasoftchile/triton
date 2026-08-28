@@ -7,8 +7,8 @@ architecture-beta
   service cleanup(server)[Release :: 3-span keeping] in cycle
   service watermark(disk)[Advance release ZEN] in cycle
 
-  enable:R --> L:capture
-  capture:R --> L:changes
+  enable:B --> T:capture
+  capture:B --> T:changes
   changes:B --> T:consumer
-  consumer:L --> R:cleanup
-  cleanup:L --> R:watermark
+  consumer:B --> T:cleanup
+  cleanup:B --> T:watermark

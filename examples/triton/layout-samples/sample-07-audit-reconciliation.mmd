@@ -1,22 +1,16 @@
-flowchart TD
-  subgraph stages [Audit Pipeline Stages]
-    allocation["1 · Meridian"] --> object_audit["2 · Vessel / Tile"] --> catalog["3 · Archive"]
-  end
+block-beta
+  columns 3
+  s1["1 · Meridian"] s2["2 · Vessel / Tile"] s3["3 · Archive"]
+  f1["QVN / ZLUM / RFS / VAR"] f2["K-loom / tile / strand"] f3["Archive-frame marks"]
+  rec["Harmonize marks"]:3
+  rep["Fracture summary"]:3
 
-  subgraph facts [Extracted Facts]
-    allocation_facts["QVN / ZLUM / RFS / VAR"]
-    object_facts["K-loom / tile / strand"]
-    catalog_facts["Archive-frame marks"]
-  end
-
-  subgraph reconciliation [Harmonization]
-    reconcile["Harmonize marks"] --> report["Fracture summary"]
-  end
-
-  allocation --> allocation_facts
-  object_audit --> object_facts
-  catalog --> catalog_facts
-
-  allocation_facts --> reconcile
-  object_facts --> reconcile
-  catalog_facts --> reconcile
+  s1 --> s2
+  s2 --> s3
+  s1 --> f1
+  s2 --> f2
+  s3 --> f3
+  f1 --> rec
+  f2 --> rec
+  f3 --> rec
+  rec --> rep
