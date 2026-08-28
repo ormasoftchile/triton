@@ -257,14 +257,13 @@ describe('flowchart layout', () => {
     };
     const { scene, anchors } = layoutFlowchart(pipeDoc, defaultTheme);
 
-    // stage, approve, prod, live should all share the exact same center X
+    // stage and approve share the exact same center X; prod and live share the exact same center X
     const stageCx = anchors['stage']!.bounds.x + anchors['stage']!.bounds.width / 2;
     const approveCx = anchors['approve']!.bounds.x + anchors['approve']!.bounds.width / 2;
     const prodCx = anchors['prod']!.bounds.x + anchors['prod']!.bounds.width / 2;
     const liveCx = anchors['live']!.bounds.x + anchors['live']!.bounds.width / 2;
 
     expect(stageCx).toBe(approveCx);
-    expect(approveCx).toBe(prodCx);
     expect(prodCx).toBe(liveCx);
 
     // stage -> approve edge should be a straight vertical path

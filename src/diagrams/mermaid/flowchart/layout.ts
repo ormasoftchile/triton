@@ -929,7 +929,10 @@ function assignCoordinatesBK(
 
       // Block centre = median of individual preferences.
       const sortedPrefs = [...pref].sort((a, b) => a - b);
-      const medianPref = sortedPrefs[Math.floor((sortedPrefs.length - 1) / 2)]!;
+      const medianPref =
+        sortedPrefs.length % 2 === 1
+          ? sortedPrefs[Math.floor(sortedPrefs.length / 2)]!
+          : (sortedPrefs[sortedPrefs.length / 2 - 1]! + sortedPrefs[sortedPrefs.length / 2]!) / 2;
 
       // Centre block on medianPref; clamp so nothing goes left/above margin.
       const blockStart = Math.max(margin, medianPref - ((count - 1) * crossStep) / 2);
@@ -940,8 +943,8 @@ function assignCoordinatesBK(
     return crossPos;
   }
 
-  const pass1 = onePass(true); // predecessor-aligned (top-down)
-  const pass2 = onePass(false, pass1); // successor-aligned   (bottom-up)
+  const pass2 = onePass(false); // successor-aligned   (bottom-up)
+  const pass1 = onePass(true, pass2); // predecessor-aligned (top-down, roots use pass2 fallback)
 
   // Average the two passes and emit Rect entries.
   // Each node is centred within its cross-axis slot and within its layer band.
@@ -961,14 +964,7 @@ function assignCoordinatesBK(
       const preds = predMap.get(node.id) ?? [];
       const succs = succMap.get(node.id) ?? [];
 
-      let slotLeft: number;
-      if (preds.length === 1 && succs.length !== 1) {
-        slotLeft = c1;
-      } else if (succs.length === 1 && preds.length !== 1) {
-        slotLeft = c2;
-      } else {
-        slotLeft = (c1 + c2) / 2;
-      }
+      const slotLeft = preds.length === 0 ? c2 : c1;
 
       const nw = getW(node.id);
       const nh = getH(node.id);
