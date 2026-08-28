@@ -19,6 +19,7 @@ import { pen } from '../../../scene/build.js';
 import { resolveIcon } from '../../../icons/resolver.js';
 import { measureText } from '../../../text/metrics.js';
 import { wrapText } from '../../../text/wrap.js';
+import { measureFormattedText, renderFormattedText } from '../../../text/formatted.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -65,11 +66,15 @@ export function splitAndWrapLabel(label: string, fontSize: number): string[] {
 // ─── Card Node Helpers ────────────────────────────────────────────────────────
 
 /**
- * Split a card node label into title and body at the first `\n` boundary.
- * Handles both actual newline characters and the two-char `\n` escape sequence.
- * Title = first line; body = everything after (empty string if no separator).
+ * Split a card node label into title and body at `::` or the first `\n` boundary.
+ * Handles `::`, actual newline characters and the two-char `\n` escape sequence.
+ * Title = first line / pre-`::`; body = everything after (empty string if no separator).
  */
 function splitCardLabel(label: string): { title: string; body: string } {
+  const sepIdx = label.indexOf('::');
+  if (sepIdx !== -1) {
+    return { title: label.slice(0, sepIdx).trim(), body: label.slice(sepIdx + 2).trim() };
+  }
   const idx = label.search(/\\n|\n/);
   if (idx === -1) return { title: label.trim(), body: '' };
   const sep = label[idx] === '\n' ? 1 : 2; // actual newline=1, backslash-n escape=2
@@ -128,10 +133,24 @@ export function measureNode(
   }
 
   const fontSize = typography.baseFontSize;
-  const lines = splitAndWrapLabel(node.label, fontSize);
-  const lineH = fontSize * 1.2;
-  const totalTextHeight = lines.length * lineH;
-  const maxLineWidth = lines.reduce((max, l) => Math.max(max, measureText(l, fontSize).width), 0);
+  const smallFont = typography.smallFontSize;
+
+  let totalTextHeight: number;
+  let maxLineWidth: number;
+
+  if (node.label.includes('::')) {
+    const info = measureFormattedText(node.label, fontSize, smallFont);
+    const titleLinesCount = info.titleLines?.length ?? 1;
+    const subLinesCount = info.subtitleLines?.length ?? 0;
+    totalTextHeight = titleLinesCount * fontSize * 1.25 + subLinesCount * smallFont * 1.25;
+    maxLineWidth = info.maxLineWidth;
+  } else {
+    const lines = splitAndWrapLabel(node.label, fontSize);
+    const lineH = fontSize * 1.2;
+    totalTextHeight = lines.length * lineH;
+    maxLineWidth = lines.reduce((max, l) => Math.max(max, measureText(l, fontSize).width), 0);
+  }
+
   const iconPad = node.icon ? 36 : 0;
 
   const padX = 24;
@@ -451,11 +470,8 @@ export function layoutFlowchart(
       // ── Default single-region composition (all non-card shapes) ──────────
       nodeElements.push(...renderNodeShape(node, r, fill, stroke, sw));
 
-      const lines = splitAndWrapLabel(node.label, typography.baseFontSize);
-      const totalLines = lines.length;
-      const lineH = typography.baseFontSize * 1.2;
-
-      let textCenterX = r.x + r.width / 2;
+      let textRegionX = r.x;
+      let textRegionW = r.width;
 
       // Generic icon placement (P6 behaviour for non-card nodes with @icon)
       if (node.icon !== undefined && icons !== undefined) {
@@ -465,23 +481,53 @@ export function layoutFlowchart(
           const ix = r.x + 8;
           const iy = r.y + (r.height - iconSize) / 2;
           nodeElements.push(p.icon(resolved.value, ix, iy, iconSize, { color: palette.text }));
-          textCenterX = ix + iconSize + (r.x + r.width - (ix + iconSize)) / 2;
+          textRegionX = ix + iconSize;
+          textRegionW = r.width - (iconSize + 8);
         }
       }
 
-      for (let i = 0; i < totalLines; i++) {
-        const lineY =
-          r.y +
-          r.height / 2 -
-          ((totalLines - 1) * lineH) / 2 +
-          i * lineH +
-          typography.baseFontSize * 0.35;
-
-        nodeElements.push(
-          p.text(lines[i]!, textCenterX, lineY, typography.baseFontSize, palette.text, {
-            anchor: 'middle',
-          }),
+      if (node.label.includes('::')) {
+        const info = measureFormattedText(
+          node.label,
+          typography.baseFontSize,
+          typography.smallFontSize,
+          textRegionW - 16,
         );
+        nodeElements.push(
+          ...renderFormattedText(
+            p,
+            info,
+            textRegionX,
+            r.y,
+            textRegionW,
+            r.height,
+            typography.baseFontSize,
+            typography.smallFontSize,
+            palette.text,
+            palette.textMuted,
+            { align: 'middle', defaultBold: true },
+          ),
+        );
+      } else {
+        const lines = splitAndWrapLabel(node.label, typography.baseFontSize);
+        const totalLines = lines.length;
+        const lineH = typography.baseFontSize * 1.2;
+        const textCenterX = textRegionX + textRegionW / 2;
+
+        for (let i = 0; i < totalLines; i++) {
+          const lineY =
+            r.y +
+            r.height / 2 -
+            ((totalLines - 1) * lineH) / 2 +
+            i * lineH +
+            typography.baseFontSize * 0.35;
+
+          nodeElements.push(
+            p.text(lines[i]!, textCenterX, lineY, typography.baseFontSize, palette.text, {
+              anchor: 'middle',
+            }),
+          );
+        }
       }
     }
 

@@ -117,4 +117,21 @@ describe('Unified Formatted Text & Title :: Subtitle across diagram types', () =
     expect(svg).toContain('GA Release');
     expect(svg).toContain('Global Launch');
   });
+
+  it('renders Title :: Subtitle and breaks in flowchart nodes and cards', () => {
+    const src = `flowchart LR
+  api["API Gateway :: Public Entrypoint<br>v2.1"] --> worker["Worker Service :: Background Processor"]
+  worker --> db[("Primary DB :: PostgreSQL Storage")]
+`;
+    const res = renderSync(src);
+    expect(res.ok).toBe(true);
+    const svg = res.value;
+    expect(svg).toContain('API Gateway');
+    expect(svg).toContain('Public Entrypoint');
+    expect(svg).toContain('v2.1');
+    expect(svg).toContain('Worker Service');
+    expect(svg).toContain('Background Processor');
+    expect(svg).toContain('Primary DB');
+    expect(svg).toContain('PostgreSQL Storage');
+  });
 });
