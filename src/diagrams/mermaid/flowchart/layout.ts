@@ -659,16 +659,20 @@ function assignLayers(nodes: readonly FlowNode[], edges: readonly FlowEdge[]): M
   const backEdges = findBackEdges(nodes, edges);
   const forwardEdges = edges.filter((_, i) => !backEdges.has(i));
 
-  const predecessors = new Map<string, Set<string>>();
-  for (const n of nodes) predecessors.set(n.id, new Set());
-  for (const e of forwardEdges) predecessors.get(e.to)?.add(e.from);
+  // Solid edges define primary structural hierarchy; dotted/dashed edges serve as lateral/reference links
+  const solidEdges = forwardEdges.filter((e) => e.style !== 'dotted' && e.style !== 'dashed');
+  const dottedEdges = forwardEdges.filter((e) => e.style === 'dotted' || e.style === 'dashed');
+
+  const solidPreds = new Map<string, Set<string>>();
+  for (const n of nodes) solidPreds.set(n.id, new Set());
+  for (const e of solidEdges) solidPreds.get(e.to)?.add(e.from);
 
   const layers = new Map<string, number>();
   const queue: Array<{ id: string; layer: number }> = [];
 
-  // Roots: nodes with no predecessors (in the acyclic edge subset)
+  // Roots: nodes with no solid predecessors
   for (const n of nodes) {
-    if ((predecessors.get(n.id)?.size ?? 0) === 0) {
+    if ((solidPreds.get(n.id)?.size ?? 0) === 0) {
       queue.push({ id: n.id, layer: 0 });
     }
   }
@@ -678,12 +682,26 @@ function assignLayers(nodes: readonly FlowNode[], edges: readonly FlowEdge[]): M
     const current = layers.get(item.id) ?? -1;
     if (item.layer <= current) continue;
     layers.set(item.id, item.layer);
-    for (const e of forwardEdges) {
+    for (const e of solidEdges) {
       if (e.from === item.id) queue.push({ id: e.to, layer: item.layer + 1 });
     }
   }
 
-  // Assign disconnected nodes to layer 0
+  // Nodes with ONLY dotted/dashed incoming edges advance to follow their source layer
+  for (const e of dottedEdges) {
+    if ((solidPreds.get(e.to)?.size ?? 0) === 0) {
+      const srcLayer = layers.get(e.from) ?? 0;
+      const cur = layers.get(e.to) ?? 0;
+      if (cur < srcLayer + 1) {
+        layers.set(e.to, srcLayer + 1);
+        for (const f of solidEdges) {
+          if (f.from === e.to) queue.push({ id: f.to, layer: srcLayer + 2 });
+        }
+      }
+    }
+  }
+
+  // Assign any remaining unvisited nodes to layer 0
   for (const n of nodes) {
     if (!layers.has(n.id)) layers.set(n.id, 0);
   }
@@ -830,7 +848,13 @@ function assignCoordinatesBK(
   const getW = (id: string) => nodeSizes?.get(id)?.width ?? nodeW;
   const getH = (id: string) => nodeSizes?.get(id)?.height ?? nodeH;
 
-  // Forward-edge predecessor and successor maps.
+  // Build node -> layer index map
+  const nodeLayer = new Map<string, number>();
+  for (const [l, nodes] of byLayer) {
+    for (const n of nodes) nodeLayer.set(n.id, l);
+  }
+
+  // Forward-edge predecessor and successor maps (strictly cross-layer)
   const predMap = new Map<string, string[]>();
   const succMap = new Map<string, string[]>();
   for (const [, nodes] of byLayer) {
@@ -841,8 +865,12 @@ function assignCoordinatesBK(
   }
   edges.forEach((e, i) => {
     if (backEdgeSet.has(i) || e.from === e.to) return;
-    predMap.get(e.to)?.push(e.from);
-    succMap.get(e.from)?.push(e.to);
+    const fromL = nodeLayer.get(e.from);
+    const toL = nodeLayer.get(e.to);
+    if (fromL !== undefined && toL !== undefined && fromL < toL) {
+      predMap.get(e.to)?.push(e.from);
+      succMap.get(e.from)?.push(e.to);
+    }
   });
 
   const layerKeys = [...byLayer.keys()].sort((a, b) => a - b);
@@ -1143,6 +1171,11 @@ function edgeAnchor(
         if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
         return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
       } else {
+        if (dx < -r.width) {
+          if (peer.y + peer.height <= r.y) return { point: { x: cx, y: r.y }, portDir: 'N' };
+          if (peer.y >= r.y + r.height) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
+          return { point: { x: r.x, y: cy }, portDir: 'W' };
+        }
         if (dy < -1) return { point: { x: cx, y: r.y }, portDir: 'N' };
         if (dy > 1) return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
         return { point: { x: r.x, y: cy }, portDir: 'W' };
@@ -1175,6 +1208,11 @@ function edgeAnchor(
         if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
         return { point: { x: cx, y: r.y + r.height }, portDir: 'S' };
       } else {
+        if (dy < -r.height) {
+          if (peer.x + peer.width <= r.x) return { point: { x: r.x, y: cy }, portDir: 'W' };
+          if (peer.x >= r.x + r.width) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
+          return { point: { x: cx, y: r.y }, portDir: 'N' };
+        }
         if (dx < -1) return { point: { x: r.x, y: cy }, portDir: 'W' };
         if (dx > 1) return { point: { x: r.x + r.width, y: cy }, portDir: 'E' };
         return { point: { x: cx, y: r.y }, portDir: 'N' };

@@ -1,6 +1,10 @@
 flowchart TD
   request["Fragment arrival"] --> group["Meridian-circle alignment"]
 
+  subgraph handling_reject [Rejection & Retry]
+    queue["Chamber :: ascending glyph"] --> retry["Re-enter passage"]
+  end
+
   subgraph ladder [Validation Checks]
     reservation["Aperture check :: minimum arcs"]
     limit["Boundary check :: maximum arcs"]
@@ -9,8 +13,7 @@ flowchart TD
     limit -->|clear| credit
   end
 
-  subgraph handling [Queue & Conveyance]
-    queue["Chamber :: ascending glyph"] --> retry["Re-enter passage"]
+  subgraph handling_dispatch [Conveyance Pipeline]
     dispatch["Conveyance"] --> stats["Refresh measures"]
   end
 

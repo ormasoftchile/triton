@@ -2,6 +2,8 @@ flowchart TD
   request["Meridian request :: chamber and vessel runes"] --> lock["BindVessel :: hold candidate against release"]
   lock --> hit{"Glyph lattice :: vessel present?"}
 
+  cached["Lattice match :: reuse revealed QVELArc"]
+
   subgraph miss_path [Uncached Resolution Pipeline]
     read["Foundation weave :: inspect vessel & prisms"]
     build["Form QVELArc :: harmonize strands into QV"]
@@ -9,7 +11,7 @@ flowchart TD
     read --> build --> insert
   end
 
-  hit -->|Aye| cached["Lattice match :: reuse revealed QVELArc"]
+  hit -->|Aye| cached
   hit -->|Nay| read
 
   cached --> retain["Atomic tether :: retain settled QVELArc"]

@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 782" width="767" height="782">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 563 782" width="563" height="782">
   <defs>
     <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
   </defs>
-  <rect x="0" y="0" width="767" height="782" fill="#FFFFFF" />
+  <rect x="0" y="0" width="563" height="782" fill="#FFFFFF" />
   <path d="M 337 72 L 337 112" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 337 160 L 337 200" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 448 406 L 448 446" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <path d="M 448 494 L 448 534" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 426 259 L 670 259 L 670 358" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <text x="548" y="255" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
+  <path d="M 248 259 L 226 259 L 226 358" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="237" y="255" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Aye</text>
   <path d="M 426 259 L 448 259 L 448 358" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <text x="437" y="255" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">Nay</text>
-  <path d="M 670 406 L 670 514 L 559 514 L 559 622" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 448 582 L 448 602 L 559 602 L 559 622" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
-  <path d="M 559 670 L 559 710" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 226 406 L 226 514 L 337 514 L 337 622" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 448 582 L 448 602 L 337 602 L 337 622" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <path d="M 337 670 L 337 710" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
   <g id="request">
     <rect x="260" y="24" width="154" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
     <text x="337" y="44.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Meridian request</text>
@@ -28,6 +28,11 @@
     <path d="M 337 200 L 426 259 L 337 318 L 248 259 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
     <text x="337" y="255.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Glyph lattice</text>
     <text x="337" y="272.77" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">vessel present?</text>
+  </g>
+  <g id="cached">
+    <rect x="153" y="358" width="146" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="226" y="378.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lattice match</text>
+    <text x="226" y="395.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">reuse revealed QVELArc</text>
   </g>
   <g id="read">
     <rect x="375" y="358" width="146" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
@@ -44,19 +49,14 @@
     <text x="448" y="554.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Per-chamber placement</text>
     <text x="448" y="571.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">reveal in lattice</text>
   </g>
-  <g id="cached">
-    <rect x="597" y="358" width="146" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="670" y="378.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Lattice match</text>
-    <text x="670" y="395.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">reuse revealed QVELArc</text>
-  </g>
   <g id="retain">
-    <rect x="489.5" y="622" width="139" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="559" y="642.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Atomic tether</text>
-    <text x="559" y="659.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">retain settled QVELArc</text>
+    <rect x="267.5" y="622" width="139" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="337" y="642.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Atomic tether</text>
+    <text x="337" y="659.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">retain settled QVELArc</text>
   </g>
   <g id="iface">
-    <rect x="487.5" y="710" width="143" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
-    <text x="559" y="730.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">IIQVELArc handle</text>
-    <text x="559" y="747.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">return meridian contract</text>
+    <rect x="265.5" y="710" width="143" height="48" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="2" />
+    <text x="337" y="730.28" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">IIQVELArc handle</text>
+    <text x="337" y="747.78" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">return meridian contract</text>
   </g>
 </svg>
