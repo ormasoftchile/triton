@@ -393,4 +393,25 @@ describe('card node — grammar integration', () => {
     // Should not have rx=6 (card-style corners)
     expect(svg).not.toMatch(/rx="6"/);
   });
+
+  it('renders flowchart using :: for header title, subgraphs, and node decorations', () => {
+    const src = `flowchart LR :: "Infrastructure Pipeline"
+subgraph compute :: "Compute Layer"
+  api :: "API Gateway" :: icon(mdi:server) --> worker :: "Worker Node"
+end
+subgraph storage :: "Persistence"
+  db :: "Primary Database" :: icon(mdi:database)
+end
+worker --> db
+`;
+    const result = renderSync(src, undefined, 'svg', undefined, PACK_MAP);
+    expect(result.ok).toBe(true);
+    const svg = result.ok ? result.value : '';
+    expect(svg).toContain('Infrastructure Pipeline');
+    expect(svg).toContain('Compute Layer');
+    expect(svg).toContain('Persistence');
+    expect(svg).toContain('API Gateway');
+    expect(svg).toContain('Worker Node');
+    expect(svg).toContain('Primary Database');
+  });
 });

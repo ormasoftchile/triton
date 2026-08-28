@@ -17,6 +17,18 @@ export type {
   EdgeEndMarker,
 } from './ir.js';
 
+function normalizeIconToken(token: string): string {
+  const trimmed = token.trim();
+  if (trimmed.includes(':')) return trimmed;
+  const faMatch = trimmed.match(/^fa(?:\s+fa|-)?-([a-z0-9-]+)$/i);
+  if (faMatch) return `fa:${faMatch[1]}`;
+  const hyphenIdx = trimmed.indexOf('-');
+  if (hyphenIdx > 0) {
+    return `${trimmed.slice(0, hyphenIdx)}:${trimmed.slice(hyphenIdx + 1)}`;
+  }
+  return trimmed;
+}
+
 export const flowchart: DiagramModule<FlowDocument> = {
   parseMermaid(input: string): FlowDocument {
     const raw = parser.parse(input) as any;
@@ -29,7 +41,8 @@ export const flowchart: DiagramModule<FlowDocument> = {
         ...(n.subgraph !== undefined ? { subgraph: n.subgraph as string } : {}),
       };
       if (n.iconToken !== undefined) {
-        const result = parseIconRef(String(n.iconToken));
+        const token = normalizeIconToken(String(n.iconToken));
+        const result = parseIconRef(token);
         if (!result.ok) {
           throw new Error(
             `Flowchart parse error: invalid @icon value "${n.iconToken}": ${result.error.message}`,

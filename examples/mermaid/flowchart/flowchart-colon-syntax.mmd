@@ -1,0 +1,14 @@
+flowchart LR :: "Modern Microservice Pipeline"
+  subgraph ingestion :: "Event Ingestion"
+    client :: "Client App" --> gateway :: "API Gateway"
+  end
+
+  subgraph processing :: "Stream Processing"
+    gateway --> queue :: "Message Queue"
+    queue --> worker :: "Worker Service"
+  end
+
+  subgraph storage :: "Data Tier"
+    worker --> db :: "Primary Database"
+    worker --> cache :: "Redis Cache"
+  end

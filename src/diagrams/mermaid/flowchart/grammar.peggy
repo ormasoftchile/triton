@@ -42,15 +42,23 @@
   const edges    = [];
   const overlays = [];
   const idCounts = new Map();
+  let currentSubgraph = null;
 
   function registerNode(rawId, label, shape) {
     const id = sanitizeId(rawId);
     if (!nodeMap.has(id)) {
-      nodeMap.set(id, { id, label: label || rawId, shape: shape || 'rect', status: 'default' });
-    } else if (label !== null && label !== undefined) {
+      nodeMap.set(id, {
+        id,
+        label: label || rawId,
+        shape: shape || 'rect',
+        status: 'default',
+        ...(currentSubgraph ? { subgraph: currentSubgraph } : {}),
+      });
+    } else {
       const n = nodeMap.get(id);
-      n.label = label;
+      if (label !== null && label !== undefined) n.label = label;
       if (shape) n.shape = shape;
+      if (currentSubgraph && !n.subgraph) n.subgraph = currentSubgraph;
     }
     return id;
   }
@@ -75,6 +83,7 @@
     edges.length = 0;
     overlays.length = 0;
     idCounts.clear();
+    currentSubgraph = null;
   }
 }}
 
@@ -86,11 +95,22 @@
 
 Document
   = frontmatter:Frontmatter? _ header:Header _ statements:Statements _ {
+      const meta = { ...(frontmatter || {}) };
+      if (header.title && !meta.title) meta.title = header.title;
+      const subgraphs = [];
+      for (const s of statements) {
+        if (s && s.type === 'title' && !meta.title) meta.title = s.title;
+        if (s && s.type === 'subgraph') {
+          const sgNodeIds = [...nodeMap.values()].filter((n) => n.subgraph === s.id).map((n) => n.id);
+          subgraphs.push({ id: s.id, label: s.label, nodeIds: sgNodeIds });
+        }
+      }
       return {
         version:   '1.0',
-        metadata:  frontmatter || {},
+        metadata:  meta,
         direction: header.direction,
         flow: { nodes: [...nodeMap.values()], edges },
+        subgraphs,
         overlays,
       };
     }
@@ -106,7 +126,14 @@ Frontmatter
     }
 
 Header
-  = ("flowchart" / "graph") __ dir:Direction { return { direction: dir }; }
+  = ("flowchart" / "graph") dir:(__ d:Direction { return d; })? title:(_ "::" _ t:HeaderTitle { return t; })? {
+      return { direction: dir || 'TD', ...(title ? { title } : {}) };
+    }
+
+HeaderTitle
+  = '"' t:$[^"]* '"' { return t; }
+  / "'" t:$[^']* "'" { return t; }
+  / t:$[^\r\n;]+ { return t.trim(); }
 
 Direction
   = "TD" / "TB" / "BT" / "LR" / "RL"
@@ -117,8 +144,13 @@ Statements
   = stmts:(Statement / BlankLine)* { return stmts.filter(Boolean); }
 
 Statement
-  = _ stmt:(NoteDirective / LegendBlock / SubgraphBlock / EdgeChain / NodeDecl / StyleDirective / ClassDirective / ClickDirective) _ Comment? (NL / ";" / &"end" / !.) {
+  = _ stmt:(TitleDirective / NoteDirective / LegendBlock / SubgraphBlock / EdgeChain / NodeDecl / StyleDirective / ClassDirective / ClickDirective) _ Comment? (NL / ";" / &"end" / !.) {
       return stmt;
+    }
+
+TitleDirective
+  = "title" (_ "::" _ / __) text:$[^\r\n;]+ {
+      return { type: 'title', title: stripQuotes(text.trim()) };
     }
 
 BlankLine
@@ -130,10 +162,23 @@ Comment
 // ─── Subgraph ─────────────────────────────────────────────────────────────────
 
 SubgraphBlock
-  = "subgraph" __ id:SubgraphId _ label:SubgraphLabel? _ NL
+  = "subgraph" __ id:SubgraphId _ ("::" _)? label:SubgraphLabel? _ NL
+    &{ currentSubgraph = id; return true; }
     body:Statements
     _ "end" {
+      currentSubgraph = null;
       return { type: 'subgraph', id, label: label || id, body };
+    }
+  / "subgraph" _ "::" _ label:SubgraphLabel _ NL
+    &{
+      currentSubgraph = sanitizeId(label);
+      return true;
+    }
+    body:Statements
+    _ "end" {
+      const sgId = sanitizeId(label);
+      currentSubgraph = null;
+      return { type: 'subgraph', id: sgId, label, body };
     }
 
 SubgraphId    = $([a-zA-Z_][a-zA-Z0-9_]*)
@@ -208,18 +253,45 @@ Wall
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 
 NodeRef
-  = id:NodeId _ shape:Shape? cls:(":::" c:$([a-zA-Z0-9_-]+) { return c; })? {
+  = id:NodeId _ shape:Shape? cls:(":::" c:$([a-zA-Z0-9_-]+) { return c; })? deco:(_ "::" !":" _ d:NodeDecoration { return d; })* {
       const registeredId = registerNode(id, shape ? shape.label : null, shape ? shape.shape : null);
-      if (cls) {
-        const node = nodeMap.get(registeredId);
-        if (node) {
+      const node = nodeMap.get(registeredId);
+      if (node) {
+        if (cls) {
           node.classes = node.classes || [];
           node.classes.push(cls);
           if (cls === 'focal') node.status = 'active';
         }
+        if (deco && deco.length > 0) {
+          for (const d of deco) {
+            if (d.type === 'label' && !shape) {
+              node.label = d.value;
+            } else if (d.type === 'icon') {
+              node.iconToken = d.value;
+            } else if (d.type === 'shape') {
+              node.shape = d.value;
+            } else if (d.type === 'status') {
+              node.status = d.value;
+            } else if (d.type === 'class') {
+              node.classes = node.classes || [];
+              node.classes.push(d.value);
+              if (d.value === 'focal') node.status = 'active';
+            }
+          }
+        }
       }
       return { id: registeredId };
     }
+
+NodeDecoration
+  = "icon" "(" _ token:$[^)]+ _ ")" { return { type: 'icon', value: token.trim() }; }
+  / "icon:" _ token:$[^\s,;@\[\](){}|]+ { return { type: 'icon', value: token.trim() }; }
+  / "class" "(" _ c:$[a-zA-Z0-9_-]+ _ ")" { return { type: 'class', value: c }; }
+  / "shape" "(" _ s:$[a-zA-Z0-9_-]+ _ ")" { return { type: 'shape', value: s }; }
+  / "status" "(" _ st:$[a-zA-Z0-9_-]+ _ ")" { return { type: 'status', value: st }; }
+  / "\"" label:$[^"]* "\"" { return { type: 'label', value: label }; }
+  / "'" label:$[^']* "'" { return { type: 'label', value: label }; }
+  / cls:$([a-zA-Z0-9_-]+) { return { type: 'class', value: cls }; }
 
 NodeDecl
   = ref:NodeRef anns:(_ "@" key:$([a-z][a-z0-9-]*) ":" value:AnnotationValue { return { key, value }; })* !(_ EdgeArrow) {
@@ -240,7 +312,7 @@ AnnotationValue
   / $([^ \t\r\n@\[\](){};]+)
 
 NodeId
-  = !("end" ![a-zA-Z0-9_]) !("subgraph" ![a-zA-Z0-9_]) id:$([a-zA-Z_][a-zA-Z0-9_]*) { return id; }
+  = !("end" ![a-zA-Z0-9_]) !("subgraph" ![a-zA-Z0-9_]) !("title" ![a-zA-Z0-9_]) id:$([a-zA-Z_][a-zA-Z0-9_]*) { return id; }
 
 Shape
   = "(("  text:$[^)]+  "))"  { return { shape: 'circle',           label: stripQuotes(text.trim()) }; }
