@@ -124,7 +124,7 @@ export const bwLightTheme: ResolvedTheme = {
   },
   typography: {
     ...baseTypography,
-    titleFontSize: 17,
+    baseFontSize: 13,
   },
   spacing: baseSpacing,
   edges: baseEdges,
@@ -148,7 +148,7 @@ export const bwDarkTheme: ResolvedTheme = {
   },
   typography: {
     ...baseTypography,
-    titleFontSize: 17,
+    baseFontSize: 13,
   },
   spacing: baseSpacing,
   edges: baseEdges,
