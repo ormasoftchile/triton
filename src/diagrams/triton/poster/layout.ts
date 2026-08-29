@@ -87,7 +87,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     if ((cell.rowSpan ?? 1) === 1) {
       const row = cell.row ?? 0;
       const col = cell.col ?? 0;
-      const cellTitleH = cell.title ? reservedTitleHeight(cellTheme) : 0;
+      const cellTitleH = cell.title ? reservedTitleHeight(cellTheme, cell.title) : 0;
       const inset = unit / 2;
       const colW = colWidths[col] ?? MIN_CELL_W;
       const contentW = colW - inset * 2;
@@ -120,7 +120,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       const rowSpan = cell.rowSpan ?? 1;
       const cellW = sumWithGaps(colWidths, col, col + colSpan, gap) - gap;
       const cellH = sumWithGaps(rowHeights, row, row + rowSpan, gap) - gap;
-      const reservedTop = cell.title ? reservedTitleHeight(cellTheme) : 0;
+      const reservedTop = cell.title ? reservedTitleHeight(cellTheme, cell.title) : 0;
       const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
       const inset = unit / 2;
       const contentW = cellW - inset * 2;
@@ -140,7 +140,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       const rowSpan = cell.rowSpan ?? 1;
       const cellW = sumWithGaps(colWidths, col, col + colSpan, gap) - gap;
       const cellH = sumWithGaps(rowHeights, row, row + rowSpan, gap) - gap;
-      const reservedTop = cell.title ? reservedTitleHeight(cellTheme) : 0;
+      const reservedTop = cell.title ? reservedTitleHeight(cellTheme, cell.title) : 0;
       const captionH = cell.caption ? reservedCaptionHeight(cellTheme) : 0;
       const inset = unit / 2;
       const contentW = cellW - inset * 2;
@@ -227,7 +227,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     // Record the full cell bounding box for corridor-based cross-link routing.
     cellRects.set(cellId, { x: cellX, y: cellY, width: cellW, height: cellH });
 
-    const reservedTop = cell.title ? reservedTitleHeight(cellTheme) : 0;
+    const reservedTop = cell.title ? reservedTitleHeight(cellTheme, cell.title) : 0;
     if (cell.title) {
       const t = buildCellTitle(cell.title, cellX, cellY, cellW, cellTheme);
       cellContent.push(...t.elements);
@@ -666,15 +666,33 @@ function embedScene(scene: Scene, into: Rect, overrideScale?: number): SceneElem
 // ─── Cell Title (theme.panel) ─────────────────────────────────────────────────
 
 /**
+ * Parse a cell title into constituent lines, supporting `::` subtitle syntax
+ * (Primary Title :: Subtitle) and `<br/>`, `\n`, `\n` line breaks.
+ */
+export function parseCellTitle(raw: string): Array<{ text: string; isSubtitle: boolean }> {
+  const sepIdx = raw.indexOf('::');
+  if (sepIdx !== -1) {
+    return [
+      { text: raw.slice(0, sepIdx).trim(), isSubtitle: false },
+      { text: raw.slice(sepIdx + 2).trim(), isSubtitle: true },
+    ];
+  }
+  const parts = raw.split(/<br\s*\/?>|\n|\\n/g).map((s) => s.trim()).filter(Boolean);
+  if (parts.length > 1) {
+    return parts.map((p, i) => ({ text: p, isSubtitle: i > 0 }));
+  }
+  return [{ text: raw.trim(), isSubtitle: false }];
+}
+
+/**
  * Interior height a cell must reserve at its top for the title, given the
- * theme's panel placement. 'above' titles live outside the frame (0 reserved);
+ * theme's panel placement and title line count. 'above' titles live outside the frame (0 reserved);
  * 'on-border' titles straddle the edge (half reserved); 'inside' titles sit
  * fully within the frame (full reserved).
  */
-function reservedTitleHeight(theme: ResolvedTheme): number {
-  const { typography, spacing, panel } = theme;
-  const fs = typography.baseFontSize;
-  const boxH = titleBoxHeight(theme);
+function reservedTitleHeight(theme: ResolvedTheme, title?: string): number {
+  const { spacing, panel } = theme;
+  const boxH = titleBoxHeight(theme, title);
   switch (panel.titlePosition) {
     case 'above':
       return 0;
@@ -682,14 +700,18 @@ function reservedTitleHeight(theme: ResolvedTheme): number {
       return boxH / 2 + spacing.unit * 0.5;
     case 'inside':
     default:
-      return fs + spacing.unit;
+      return boxH + spacing.unit * 0.5;
   }
 }
 
-function titleBoxHeight(theme: ResolvedTheme): number {
+function titleBoxHeight(theme: ResolvedTheme, title?: string): number {
   const fs = theme.typography.baseFontSize;
   const padY = theme.panel.titleChrome === 'none' ? 0 : theme.spacing.unit * 0.4;
-  return fs + padY * 2;
+  if (!title) return fs + padY * 2;
+  const lines = parseCellTitle(title);
+  if (lines.length <= 1) return fs + padY * 2;
+  const subtitleFs = theme.typography.smallFontSize;
+  return fs + (lines.length - 1) * (subtitleFs * 1.35) + padY * 2;
 }
 
 /** Height reserved at the bottom of a cell for a caption line. */
@@ -762,8 +784,8 @@ function buildNoteOverlay(note: PosterNote, rect: Rect, theme: ResolvedTheme): S
 
 /**
  * Build the SceneElements for a cell title (optional chrome rect + text),
- * honouring the theme's panel alignment / vertical position / chrome. Returns
- * the elements plus an occupied rect used for cross-link label de-collision.
+ * honouring the theme's panel alignment / vertical position / chrome.
+ * Supports multi-line and `::` subtitle hierarchy.
  */
 function buildCellTitle(
   title: string,
@@ -775,12 +797,20 @@ function buildCellTitle(
   const { palette, typography, panel, spacing } = theme;
   const unit = spacing.unit;
   const fs = typography.baseFontSize;
+  const smallFs = typography.smallFontSize;
 
   const padX = panel.titleChrome === 'none' ? 0 : unit * 0.75;
   const padY = panel.titleChrome === 'none' ? 0 : unit * 0.4;
-  const tw = measureText(title, fs).width;
-  const boxW = tw + padX * 2;
-  const boxH = fs + padY * 2;
+  const lines = parseCellTitle(title);
+
+  // Measure max width across all title lines
+  const maxTw = Math.max(
+    ...lines.map((l) => measureText(l.text, l.isSubtitle ? smallFs : fs).width),
+  );
+  const boxW = maxTw + padX * 2;
+  const lineSpacing = smallFs * 1.35;
+  const boxH =
+    lines.length <= 1 ? fs + padY * 2 : fs + (lines.length - 1) * lineSpacing + padY * 2;
   const wall = unit; // inset of the title from the left/right wall
 
   // Horizontal: box origin + text anchor point.
@@ -810,7 +840,6 @@ function buildCellTitle(
   } else {
     boxTop = cellY + unit * 0.5;
   }
-  const baselineY = boxTop + padY + fs * 0.8;
 
   const elements: SceneElement[] = [];
   if (panel.titleChrome !== 'none') {
@@ -824,16 +853,22 @@ function buildCellTitle(
       rx,
     });
   }
-  elements.push({
-    type: 'text',
-    content: title,
-    position: { x: anchorX, y: baselineY },
-    fontSize: fs,
-    fontFamily: typography.fontFamily,
-    fontWeight: 'bold',
-    fill: palette.text,
-    anchor,
-  });
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+    const lineFs = line.isSubtitle ? smallFs : fs;
+    const lineBaselineY = boxTop + padY + fs * 0.8 + i * lineSpacing;
+    elements.push({
+      type: 'text',
+      content: line.text,
+      position: { x: anchorX, y: lineBaselineY },
+      fontSize: lineFs,
+      fontFamily: typography.fontFamily,
+      fontWeight: line.isSubtitle ? 'normal' : 'bold',
+      fill: line.isSubtitle ? palette.textMuted : palette.text,
+      anchor,
+    });
+  }
 
   return { elements, occupied: { x: boxX, y: boxTop, width: boxW, height: boxH } };
 }

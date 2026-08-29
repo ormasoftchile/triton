@@ -819,5 +819,45 @@ describe('poster scale homologation', () => {
     expect(scales[0]).toBeCloseTo(0.905, 2);
     expect(scales[1]).toBeCloseTo(0.65, 2);
   });
+
+  it('renders cell titles with :: as bold primary title and muted subtitle', () => {
+    const src = `poster "Subtitle Test"
+  columns 2
+  cell c1 "QValence Chamber :: LUM-472" :: flow
+    flowchart LR
+      A --> B
+  end
+`;
+    const doc = poster.parseMermaid(src);
+    const { scene } = layoutPoster(doc, defaultTheme);
+    const texts = scene.elements.filter((e) => e.type === 'text') as any[];
+    const primary = texts.find((t) => t.content === 'QValence Chamber');
+    const subtitle = texts.find((t) => t.content === 'LUM-472');
+    expect(primary).toBeDefined();
+    expect(primary.fontWeight).toBe('bold');
+    expect(primary.fontSize).toBe(14);
+    expect(subtitle).toBeDefined();
+    expect(subtitle.fontWeight).toBe('normal');
+    expect(subtitle.fontSize).toBe(11);
+  });
+
+  it('renders cell titles with line separators (<br/> and \\n)', () => {
+    const src = `poster "Line Break Test"
+  columns 2
+  cell c1 "Primary Header<br/>Second Line Details" :: flow
+    flowchart LR
+      A --> B
+  end
+`;
+    const doc = poster.parseMermaid(src);
+    const { scene } = layoutPoster(doc, defaultTheme);
+    const texts = scene.elements.filter((e) => e.type === 'text') as any[];
+    const line1 = texts.find((t) => t.content === 'Primary Header');
+    const line2 = texts.find((t) => t.content === 'Second Line Details');
+    expect(line1).toBeDefined();
+    expect(line1.fontWeight).toBe('bold');
+    expect(line2).toBeDefined();
+    expect(line2.fontWeight).toBe('normal');
+  });
 });
 
