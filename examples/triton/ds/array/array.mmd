@@ -11,8 +11,8 @@ array
 %%   literal ... in cells = one elided-middle cell rendered as …
 %%   At most one; it must be between concrete cells, not first or last.
 %% Axis:    axis horizontal (default) · axis vertical
-%% Index:   index · index bottom · index reverse · index bottom reverse
-%%          bottom uses the opposite side; reverse numbers n-1 → 0.
+%% Index:   index · index bottom · index reverse · index range <start>..<end> · pad <N>
+%%          bottom uses the opposite side; reverse numbers backwards; range sets logical range.
 %% Pointers:
 %%   ptr <name> -> <target> ["quoted label"]
 %%   <target> = logical index value (not physical slot; reverse/gap-aware), cN, cfirst, clast, cgap.

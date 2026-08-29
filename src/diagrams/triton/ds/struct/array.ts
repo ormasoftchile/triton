@@ -30,6 +30,14 @@ export type ArrayAxis = 'horizontal' | 'vertical';
 export type ArrayIndexSide = 'before' | 'after';
 export type ArrayIndexOrder = 'normal' | 'reverse';
 
+export interface ArrayIndexConfig {
+  readonly show: boolean;
+  readonly side: ArrayIndexSide;
+  readonly order: ArrayIndexOrder;
+  readonly range?: { readonly start: number; readonly end: number };
+  readonly pad?: number;
+}
+
 export interface ArrayValueCell {
   readonly kind: 'value';
   readonly value: string;
@@ -56,11 +64,7 @@ export interface ArrayPointer {
 export interface ArrayDoc {
   readonly title?: string;
   readonly axis: ArrayAxis;
-  readonly index: {
-    readonly show: boolean;
-    readonly side: ArrayIndexSide;
-    readonly order: ArrayIndexOrder;
-  };
+  readonly index: ArrayIndexConfig;
   readonly cells: readonly ArrayCell[];
   readonly ptrs: readonly ArrayPointer[];
   /** Logical indices of cells to render with an accent highlight fill. */
@@ -71,6 +75,7 @@ export interface ArrayDoc {
 
 interface ArrayIndexMetadata {
   readonly physicalToLogical: readonly (number | null)[];
+  readonly physicalLabels: readonly (string | null)[];
   readonly indexToPhysical: ReadonlyMap<number, number>;
   readonly nonGapPhysicals: readonly number[];
   readonly gapPhysical?: number;
@@ -87,6 +92,14 @@ interface LabelLaneInput {
   readonly end: number;
 }
 
+function formatIndex(n: number, pad?: number): string {
+  if (pad === undefined || pad <= 0) return String(n);
+  if (n < 0) {
+    return '-' + String(Math.abs(n)).padStart(pad, '0');
+  }
+  return String(n).padStart(pad, '0');
+}
+
 function parse(input: string): ArrayDoc {
   let title: string | undefined;
   let cells: ArrayCell[] = [];
@@ -94,6 +107,8 @@ function parse(input: string): ArrayDoc {
   let indexShow = false;
   let indexSide: ArrayIndexSide = 'before';
   let indexOrder: ArrayIndexOrder = 'normal';
+  let indexRange: { start: number; end: number } | undefined;
+  let indexPad: number | undefined;
   const ptrs: ArrayPointer[] = [];
   let highlights: number[] | undefined;
   let win: { start: number; end: number } | undefined;
@@ -124,11 +139,61 @@ function parse(input: string): ArrayDoc {
 
     if (t[0] === 'index') {
       indexShow = true;
-      for (const mod of t.slice(1)) {
-        if (mod === 'bottom') indexSide = 'after';
-        if (mod === 'top') indexSide = 'before';
-        if (mod === 'reverse') indexOrder = 'reverse';
+      for (let i = 1; i < t.length; i++) {
+        const mod = t[i]!;
+        if (mod === 'bottom' || mod === 'after') {
+          indexSide = 'after';
+        } else if (mod === 'top' || mod === 'before') {
+          indexSide = 'before';
+        } else if (mod === 'reverse') {
+          indexOrder = 'reverse';
+        } else if (mod === 'normal') {
+          indexOrder = 'normal';
+        } else if (mod === 'range') {
+          const next = t[i + 1];
+          if (next) {
+            const m = next.match(/^(-?\d+)\.\.(-?\d+)$/);
+            if (m) {
+              indexRange = { start: Number(m[1]), end: Number(m[2]) };
+              i++;
+            }
+          }
+        } else if (mod === 'pad') {
+          const next = t[i + 1];
+          if (next && /^\d+$/.test(next)) {
+            indexPad = Number(next);
+            i++;
+          }
+        } else {
+          const mRange = mod.match(/^(-?\d+)\.\.(-?\d+)$/);
+          if (mRange) {
+            indexRange = { start: Number(mRange[1]), end: Number(mRange[2]) };
+            continue;
+          }
+          const mPad = mod.match(/^pad(\d+)$/);
+          if (mPad) {
+            indexPad = Number(mPad[1]);
+            continue;
+          }
+        }
       }
+      continue;
+    }
+
+    if (t[0] === 'range') {
+      indexShow = true;
+      const token = t[1] === 'range' ? t[2] : t[1];
+      if (token) {
+        const m = token.match(/^(-?\d+)\.\.(-?\d+)$/);
+        if (m) indexRange = { start: Number(m[1]), end: Number(m[2]) };
+      } else if (t.length >= 3 && /^-?\d+$/.test(t[1]!) && /^-?\d+$/.test(t[2]!)) {
+        indexRange = { start: Number(t[1]), end: Number(t[2]) };
+      }
+      continue;
+    }
+
+    if (t[0] === 'pad' && t[1] && /^\d+$/.test(t[1])) {
+      indexPad = Number(t[1]);
       continue;
     }
 
@@ -141,7 +206,7 @@ function parse(input: string): ArrayDoc {
     }
 
     if (t[0] === 'window' && t[1]) {
-      const m = t[1].match(/^(\d+)-(\d+)$/);
+      const m = t[1].match(/^(-?\d+)(?:-|\.\.)(-?\d+)$/);
       if (m) win = { start: Number(m[1]), end: Number(m[2]) };
       continue;
     }
@@ -158,7 +223,13 @@ function parse(input: string): ArrayDoc {
   return {
     ...(title !== undefined ? { title } : {}),
     axis,
-    index: { show: indexShow, side: indexSide, order: indexOrder },
+    index: {
+      show: indexShow,
+      side: indexSide,
+      order: indexOrder,
+      ...(indexRange !== undefined ? { range: indexRange } : {}),
+      ...(indexPad !== undefined ? { pad: indexPad } : {}),
+    },
     cells,
     ptrs,
     ...(highlights !== undefined && highlights.length > 0 ? { highlights } : {}),
@@ -183,14 +254,15 @@ function parseCells(tokens: readonly string[]): ArrayCell[] {
 }
 
 function parsePointerTarget(raw: string): ArrayPointerTarget {
-  if (/^\d+$/.test(raw)) return { raw, value: Number(raw) };
-  if (/^c\d+$/.test(raw) || raw === 'cfirst' || raw === 'clast' || raw === 'cgap')
+  if (/^-?\d+$/.test(raw)) return { raw, value: Number(raw) };
+  if (/^c-?\d+$/.test(raw) || raw === 'cfirst' || raw === 'clast' || raw === 'cgap')
     return { raw, anchor: raw };
   return { raw, anchor: raw };
 }
 
 function metadataFor(doc: ArrayDoc): ArrayIndexMetadata {
   const physicalToLogical = new Array<number | null>(doc.cells.length).fill(null);
+  const physicalLabels = new Array<string | null>(doc.cells.length).fill(null);
   const indexToPhysical = new Map<number, number>();
   const nonGapPhysicals: number[] = [];
   let gapPhysical: number | undefined;
@@ -204,14 +276,118 @@ function metadataFor(doc: ArrayDoc): ArrayIndexMetadata {
   });
 
   const logicalCount = nonGapPhysicals.length;
-  nonGapPhysicals.forEach((physical, rank) => {
-    const logical = doc.index.order === 'reverse' ? logicalCount - 1 - rank : rank;
-    physicalToLogical[physical] = logical;
-    indexToPhysical.set(logical, physical);
-  });
+  const range = doc.index.range;
+  const pad = doc.index.pad;
+
+  if (range) {
+    const { start, end } = range;
+    if (start > end) {
+      throw new Error(`Array index range start (${start}) cannot be greater than end (${end})`);
+    }
+
+    if (gapPhysical !== undefined) {
+      const beforeGapCount = gapPhysical;
+      const afterGapCount = doc.cells.length - 1 - gapPhysical;
+      const concreteCount = beforeGapCount + afterGapCount;
+      const rangeSpan = end - start + 1;
+
+      if (rangeSpan < concreteCount + 1) {
+        throw new Error(
+          `Array index range ${start}..${end} is too small for ${concreteCount} concrete cells and gap`,
+        );
+      }
+
+      if (doc.index.order === 'reverse') {
+        // Cells before gap count down from end
+        for (let p = 0; p < beforeGapCount; p++) {
+          const logical = end - p;
+          physicalToLogical[p] = logical;
+          indexToPhysical.set(logical, p);
+          physicalLabels[p] = formatIndex(logical, pad);
+        }
+
+        // Gap cell
+        const gapHigh = end - beforeGapCount;
+        const gapLow = start + afterGapCount;
+        const gapLabel =
+          gapHigh === gapLow
+            ? formatIndex(gapHigh, pad)
+            : `${formatIndex(gapHigh, pad)}-${formatIndex(gapLow, pad)}`;
+        physicalLabels[gapPhysical] = gapLabel;
+
+        // Cells after gap count down to start
+        for (let p = gapPhysical + 1; p < doc.cells.length; p++) {
+          const k = doc.cells.length - 1 - p;
+          const logical = start + k;
+          physicalToLogical[p] = logical;
+          indexToPhysical.set(logical, p);
+          physicalLabels[p] = formatIndex(logical, pad);
+        }
+      } else {
+        // Normal order: cells before gap count up from start
+        for (let p = 0; p < beforeGapCount; p++) {
+          const logical = start + p;
+          physicalToLogical[p] = logical;
+          indexToPhysical.set(logical, p);
+          physicalLabels[p] = formatIndex(logical, pad);
+        }
+
+        // Gap cell
+        const gapStart = start + beforeGapCount;
+        const gapEnd = end - afterGapCount;
+        const gapLabel =
+          gapStart === gapEnd
+            ? formatIndex(gapStart, pad)
+            : `${formatIndex(gapStart, pad)}-${formatIndex(gapEnd, pad)}`;
+        physicalLabels[gapPhysical] = gapLabel;
+
+        // Cells after gap count up to end
+        for (let p = gapPhysical + 1; p < doc.cells.length; p++) {
+          const k = doc.cells.length - 1 - p;
+          const logical = end - k;
+          physicalToLogical[p] = logical;
+          indexToPhysical.set(logical, p);
+          physicalLabels[p] = formatIndex(logical, pad);
+        }
+      }
+    } else {
+      // No gap
+      const rangeSpan = end - start + 1;
+      if (rangeSpan < doc.cells.length) {
+        throw new Error(
+          `Array index range ${start}..${end} is too small for ${doc.cells.length} cells`,
+        );
+      }
+
+      if (doc.index.order === 'reverse') {
+        doc.cells.forEach((_, physical) => {
+          const logical = end - physical;
+          physicalToLogical[physical] = logical;
+          indexToPhysical.set(logical, physical);
+          physicalLabels[physical] = formatIndex(logical, pad);
+        });
+      } else {
+        doc.cells.forEach((_, physical) => {
+          const logical = start + physical;
+          physicalToLogical[physical] = logical;
+          indexToPhysical.set(logical, physical);
+          physicalLabels[physical] = formatIndex(logical, pad);
+        });
+      }
+    }
+  } else {
+    // Existing behavior (no range)
+    nonGapPhysicals.forEach((physical, rank) => {
+      const logical = doc.index.order === 'reverse' ? logicalCount - 1 - rank : rank;
+      physicalToLogical[physical] = logical;
+      indexToPhysical.set(logical, physical);
+      physicalLabels[physical] = formatIndex(logical, pad);
+    });
+  }
 
   return {
     physicalToLogical,
+    physicalLabels,
     indexToPhysical,
     nonGapPhysicals,
     ...(gapPhysical !== undefined ? { gapPhysical } : {}),
@@ -229,7 +405,9 @@ export function resolveArrayElementAnchorId(
     const fromEnd = Math.abs(elementIndex);
     if (fromEnd < 1 || fromEnd > logicalCount) return undefined;
     if (fromEnd === 1) return meta.nonGapPhysicals.length > 0 ? 'clast' : undefined;
-    return `c${logicalCount - fromEnd}`;
+    const targetPhysical = meta.nonGapPhysicals[meta.nonGapPhysicals.length - fromEnd]!;
+    const logical = meta.physicalToLogical[targetPhysical];
+    return logical !== null && logical !== undefined ? `c${logical}` : `c${logicalCount - fromEnd}`;
   }
 
   if (doc.cells[elementIndex]?.kind === 'gap') return 'cgap';
@@ -244,9 +422,15 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
   const font = typography.baseFontSize;
   const smallFont = typography.smallFontSize;
   const cellH = 40;
+  const meta = metadataFor(doc);
   const cellW = Math.max(
     40,
     ...doc.cells.map((c) => measureText(c.kind === 'gap' ? '…' : c.value, font).width + 24),
+    ...(doc.index.show
+      ? meta.physicalLabels
+          .filter((l): l is string => Boolean(l))
+          .map((l) => measureText(l, smallFont).width + 16)
+      : []),
   );
   const titleH = doc.title ? typography.titleFontSize + 14 : 0;
   const indexBand = doc.index.show ? smallFont + 12 : 0;
@@ -254,7 +438,6 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
   const labelGap = 6;
   const indexPad = 6;
   const horizontal = doc.axis === 'horizontal';
-  const meta = metadataFor(doc);
   const resolvedPtrs = doc.ptrs
     .map((ptr): ResolvedPointer | null => {
       const physical = resolvePointerPhysical(ptr.target, doc, meta);
@@ -280,8 +463,17 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
     ? (doc.index.show && doc.index.side === 'before' ? indexBand : 0) +
       (pointerSide === 'before' ? pointerBand : 0)
     : 0;
+  const maxIndexLabelW =
+    doc.index.show && !horizontal
+      ? Math.max(
+          smallFont * 2,
+          ...meta.physicalLabels
+            .filter((l): l is string => Boolean(l))
+            .map((l) => measureText(l, smallFont).width),
+        )
+      : smallFont * 2;
   const leftBand = !horizontal
-    ? (doc.index.show && doc.index.side === 'before' ? smallFont * 2 + indexPad : 0) +
+    ? (doc.index.show && doc.index.side === 'before' ? maxIndexLabelW + indexPad : 0) +
       (pointerSide === 'before' ? pointerBand : 0)
     : 0;
   const origin = {
@@ -314,48 +506,50 @@ export function layoutArray(inputDoc: ArrayDoc, theme: ResolvedTheme): LayoutRes
           weight: 'bold',
         }),
       );
-      return;
-    }
-
-    const logicalMaybe = meta.physicalToLogical[physical];
-    const logical: number | null = logicalMaybe ?? null;
-    const isHighlit =
-      logical !== null &&
-      ((doc.highlights?.includes(logical) ?? false) ||
-        (doc.window !== undefined && logical >= doc.window.start && logical <= doc.window.end));
-
-    if (isHighlit) {
-      elements.push(
-        p.rect(slot, palette.primary, palette.primary, 2, { rx: 3, fillOpacity: 0.22 }),
-      );
     } else {
-      elements.push(p.rect(slot, palette.surface, palette.border, 1.5, { rx: 3 }));
-    }
-    elements.push(
-      p.text(
-        cell.value,
-        slot.x + cellW / 2,
-        slot.y + cellH / 2 + 5,
-        font,
-        isHighlit ? palette.primary : palette.text,
-        { anchor: 'middle', weight: 'bold' },
-      ),
-    );
+      const logicalMaybe = meta.physicalToLogical[physical];
+      const logical: number | null = logicalMaybe ?? null;
+      const isHighlit =
+        logical !== null &&
+        ((doc.highlights?.includes(logical) ?? false) ||
+          (doc.window !== undefined && logical >= doc.window.start && logical <= doc.window.end));
 
-    if (doc.index.show && logical !== null) {
+      if (isHighlit) {
+        elements.push(
+          p.rect(slot, palette.primary, palette.primary, 2, { rx: 3, fillOpacity: 0.22 }),
+        );
+      } else {
+        elements.push(p.rect(slot, palette.surface, palette.border, 1.5, { rx: 3 }));
+      }
       elements.push(
-        renderIndexText(
-          p,
-          theme,
-          String(logical),
-          slot,
-          cellW,
-          cellH,
-          doc.axis,
-          doc.index.side,
-          indexPad,
+        p.text(
+          cell.value,
+          slot.x + cellW / 2,
+          slot.y + cellH / 2 + 5,
+          font,
+          isHighlit ? palette.primary : palette.text,
+          { anchor: 'middle', weight: 'bold' },
         ),
       );
+    }
+
+    if (doc.index.show) {
+      const label = meta.physicalLabels[physical];
+      if (label !== null && label !== undefined) {
+        elements.push(
+          renderIndexText(
+            p,
+            theme,
+            label,
+            slot,
+            cellW,
+            cellH,
+            doc.axis,
+            doc.index.side,
+            indexPad,
+          ),
+        );
+      }
     }
   });
 
@@ -424,13 +618,15 @@ function normalizeArrayDoc(doc: ArrayDoc | any): ArrayDoc {
         : { kind: 'value', value: cell }
       : cell,
   );
-  const index =
+  const index: ArrayIndexConfig =
     typeof doc.index === 'boolean'
       ? { show: doc.index, side: 'before' as const, order: 'normal' as const }
       : {
           show: Boolean(doc.index?.show),
           side: doc.index?.side === 'after' ? ('after' as const) : ('before' as const),
           order: doc.index?.order === 'reverse' ? ('reverse' as const) : ('normal' as const),
+          ...(doc.index?.range !== undefined ? { range: doc.index.range } : {}),
+          ...(doc.index?.pad !== undefined ? { pad: doc.index.pad } : {}),
         };
   return {
     ...(doc.title !== undefined ? { title: doc.title } : {}),

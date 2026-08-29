@@ -232,6 +232,111 @@ describe('array', () => {
     // logical indices 1 and 2 should be highlighted
     expect(highlightRects.length).toBe(2);
   });
+
+  // ── Logical Index Ranges for Sparse Arrays ──────────────────────────────
+
+  it('supports logical index range for sparse arrays with a gap', () => {
+    const src = `array
+  title "Worker registry"
+  cells "idle" "busy" "offline" ... "reserved"
+  axis horizontal
+  index range 10..249
+`;
+    const ir = array.parseMermaid(src);
+    expect(ir.index.range).toEqual({ start: 10, end: 249 });
+    const { scene, anchors } = layoutArray(ir, defaultTheme);
+    const texts = collectTexts(scene.elements);
+    expect(texts).toContain('10');
+    expect(texts).toContain('11');
+    expect(texts).toContain('12');
+    expect(texts).toContain('13-248');
+    expect(texts).toContain('249');
+    expect(anchors.c10).toBeDefined();
+    expect(anchors.c11).toBeDefined();
+    expect(anchors.c12).toBeDefined();
+    expect(anchors.c249).toBeDefined();
+    expect(anchors.cgap).toBeDefined();
+  });
+
+  it('supports pad modifier with index range', () => {
+    const src = `array
+  cells "idle" "busy" "offline" ... "reserved"
+  index range 10..249 pad 3
+`;
+    const ir = array.parseMermaid(src);
+    expect(ir.index.pad).toBe(3);
+    const { scene } = layoutArray(ir, defaultTheme);
+    const texts = collectTexts(scene.elements);
+    expect(texts).toContain('010');
+    expect(texts).toContain('011');
+    expect(texts).toContain('012');
+    expect(texts).toContain('013-248');
+    expect(texts).toContain('249');
+  });
+
+  it('supports reverse index range with gap', () => {
+    const src = `array
+  cells "A" "B" ... "Z"
+  index range 10..20 reverse
+`;
+    const ir = array.parseMermaid(src);
+    const { scene, anchors } = layoutArray(ir, defaultTheme);
+    const texts = collectTexts(scene.elements);
+    expect(texts).toContain('20');
+    expect(texts).toContain('19');
+    expect(texts).toContain('18-11');
+    expect(texts).toContain('10');
+    expect(anchors.c20).toEqual({ bounds: anchors.cfirst!.bounds });
+    expect(anchors.c10).toEqual({ bounds: anchors.clast!.bounds });
+  });
+
+  it('ptr, highlight, and window use logical indexes with range', () => {
+    const src = `array
+  cells "idle" "busy" "offline" ... "reserved"
+  index range 10..249
+  ptr p -> 10 "first"
+  ptr q -> 249 "last"
+  highlight 11
+  window 12..249
+`;
+    const ir = array.parseMermaid(src);
+    const { scene, anchors } = layoutArray(ir, defaultTheme);
+    const texts = collectTexts(scene.elements);
+    expect(texts).toContain('first');
+    expect(texts).toContain('last');
+
+    // Pointer paths attach to c10 (slot 0) and c249 (slot 4)
+    const paths = scene.elements.filter((e): e is ScenePath => e.type === 'path');
+    expect(paths).toHaveLength(2);
+    const x0 = Number(paths[0]!.d.match(/[-\d.]+/g)![0]);
+    const x1 = Number(paths[1]!.d.match(/[-\d.]+/g)![0]);
+    expect(x0).toBeCloseTo(anchors.c10!.bounds.x + anchors.c10!.bounds.width / 2);
+    expect(x1).toBeCloseTo(anchors.c249!.bounds.x + anchors.c249!.bounds.width / 2);
+
+    // Highlit rects (11 from highlight, 12 and 249 from window)
+    const highlightRects = scene.elements.filter(
+      (e): e is SceneRect => e.type === 'rect' && e.fillOpacity !== undefined,
+    );
+    expect(highlightRects.length).toBe(3);
+  });
+
+  it('rejects ranges too small for the rendered cells', () => {
+    // 4 concrete cells + 1 gap requires at least 5 slots (end - start + 1 >= 5)
+    expect(() =>
+      layoutArray(
+        array.parseMermaid('array\n  cells 1 2 3 ... 4\n  index range 10..13\n'),
+        defaultTheme,
+      ),
+    ).toThrow(/too small/i);
+
+    // without gap: 4 cells requires at least 4 slots
+    expect(() =>
+      layoutArray(
+        array.parseMermaid('array\n  cells 1 2 3 4\n  index range 10..12\n'),
+        defaultTheme,
+      ),
+    ).toThrow(/too small/i);
+  });
 });
 
 describe('linkedlist', () => {
