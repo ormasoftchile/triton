@@ -454,7 +454,8 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     elements.push(p.path(pathData(points), edgeColor, edgeWidth, pathOpts));
     if (e.label) {
       const { x: mx, y: my } = pathMidpoint(points);
-      const w = measureText(e.label, small).width + 8;
+      const edgeFont = theme.edges?.labelFontSize ?? 12;
+      const w = measureText(e.label, edgeFont).width + 8;
       maxRouteX = Math.max(maxRouteX, mx + w / 2);
       labelElements.push(
         p.rect(
@@ -466,9 +467,8 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
         ),
       );
       labelElements.push(
-        p.text(e.label, mx, my + 3, small, isActive ? palette.primary : palette.textMuted, {
+        p.text(e.label, mx, my + 3, edgeFont, isActive ? palette.primary : palette.textMuted, {
           anchor: 'middle',
-          weight: 'bold',
         }),
       );
     }
@@ -481,9 +481,11 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     const b = box(n.id);
     const isActive = n.kind === 'active';
     const fill = isActive ? palette.primary : palette.surface;
-    const stroke = palette.primary;
+    const stroke = isActive ? palette.primary : palette.border;
+    const sw = isActive ? 2 : (theme.nodes?.standard.borderWidth ?? 1.5);
+    const rx = theme.nodes?.standard.cornerRadius ?? 6;
     const textColor = isActive ? readableText(fill, theme) : palette.text;
-    elements.push(p.rect(b, fill, stroke, 2, { rx: 8 }));
+    elements.push(p.rect(b, fill, stroke, sw, { rx }));
     elements.push(
       p.text(n.label, b.x + b.width / 2, b.y + b.height / 2 + font * 0.35, font, textColor, {
         anchor: 'middle',

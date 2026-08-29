@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 213.0514 456" width="213.0514" height="456">
+  <defs>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="213.0514" height="456" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Record Processing</text>
+  <path d="M 94.53 96 L 94.53 160" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+  <path d="M 94.53 200 L 94.53 264" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+  <path d="M 94.53 304 L 94.53 368" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+  <rect x="75.4849" y="119" width="38.0816" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="94.5257" y="131" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">batch</text>
+  <rect x="46.7563" y="223" width="95.5388" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="94.5257" y="235" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">normalized rows</text>
+  <rect x="51.432100000000005" y="327" width="86.18719999999999" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="94.5257" y="339" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">accepted rows</text>
+  <rect x="24" y="56" width="141.0514" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+  <text x="94.5257" y="80.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Incoming Records</text>
+  <rect x="35.67530000000001" y="160" width="117.70079999999999" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+  <text x="94.5257" y="184.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Parse Payload</text>
+  <rect x="34.123400000000004" y="264" width="120.8046" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+  <text x="94.5257" y="288.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Validate Fields</text>
+  <rect x="57.140100000000004" y="368" width="74.7712" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+  <text x="94.5257" y="392.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Archive</text>
+</svg>

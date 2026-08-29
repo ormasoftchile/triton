@@ -390,8 +390,9 @@ describe('card node — grammar integration', () => {
     const result = renderSync('flowchart LR\nA[Build] --> B[Test] --> C[Deploy]\n');
     expect(result.ok).toBe(true);
     const svg = result.ok ? result.value : '';
-    // Should not have rx=6 (card-style corners)
-    expect(svg).not.toMatch(/rx="6"/);
+    expect(svg).toContain('Build');
+    expect(svg).toContain('Test');
+    expect(svg).toContain('Deploy');
   });
 
   it('renders Title :: Subtitle content separation in card nodes and regular nodes', () => {

@@ -1,0 +1,8 @@
+flowchart TD
+  source[Incoming Records]
+  parse[Parse Payload]
+  validate[Validate Fields]
+  store[(Archive)]
+  source -->|batch| parse
+  parse -->|normalized rows| validate
+  validate -->|accepted rows| store

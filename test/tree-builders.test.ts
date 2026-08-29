@@ -167,9 +167,9 @@ describe('rbtree builder', () => {
       const rbCircles = nodeCircles(rb, theme);
       const redIndex = rb.nodes.findIndex((n) => n.kinds.includes('red'));
 
-      // Default/plain nodes now use palette.primary border (matches nodegraph default nodes)
-      expect(plain.stroke).toBe(theme.palette.primary);
-      expect(avlRoot.stroke).toBe(theme.palette.primary);
+      // Default/plain nodes use palette.border (matches flowchart and nodegraph default nodes)
+      expect(plain.stroke).toBe(theme.palette.border);
+      expect(avlRoot.stroke).toBe(theme.palette.border);
       // Semantic kinds (RB red/black) keep their outlineStroke-based borders
       expect(rbCircles[0]!.stroke).toBe(outlineStroke(rbCircles[0]!.fill, theme));
       expect(rbCircles[redIndex]!.stroke).toBe(outlineStroke(rbCircles[redIndex]!.fill, theme));

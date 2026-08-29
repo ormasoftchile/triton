@@ -38,6 +38,23 @@ const basePanel = {
   titleChrome: 'none',
 } as const;
 
+export const baseNodes = {
+  standard: {
+    borderWidth: 1.5,
+    cornerRadius: 6,
+    padding: 12,
+  },
+  leaf: {
+    borderWidth: 1.2,
+    cornerRadius: 18,
+    padding: 10,
+  },
+  datastore: {
+    borderWidth: 1.5,
+    padding: 12,
+  },
+} as const;
+
 // ─── Themes ─────────────────────────────────────────────────────────────────────
 
 export const defaultTheme: ResolvedTheme = {
@@ -58,6 +75,7 @@ export const defaultTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: basePanel,
+  nodes: baseNodes,
 } as const;
 
 /** Boardroom / presentation aesthetic — deep navy canvas, light text. */
@@ -79,6 +97,7 @@ export const executiveTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'center', titlePosition: 'on-border', titleChrome: 'box' },
+  nodes: baseNodes,
 } as const;
 
 /** Greyscale, ink-on-paper minimalism. */
@@ -100,6 +119,7 @@ export const minimalTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: basePanel,
+  nodes: baseNodes,
 } as const;
 
 /**
@@ -129,6 +149,7 @@ export const bwLightTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: basePanel,
+  nodes: baseNodes,
 } as const;
 
 /** Greyscale, ink-on-paper minimalism — dark canvas variant of `minimal`. */
@@ -153,6 +174,7 @@ export const bwDarkTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: basePanel,
+  nodes: baseNodes,
 } as const;
 
 /** Navy + amber on white — classic consulting deck. */
@@ -174,6 +196,7 @@ export const consultingTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'left', titlePosition: 'on-border', titleChrome: 'none' },
+  nodes: baseNodes,
 } as const;
 
 /** Modern SaaS product — violet + blue on white. */
@@ -195,6 +218,7 @@ export const productTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'center', titlePosition: 'inside', titleChrome: 'pill' },
+  nodes: baseNodes,
 } as const;
 
 /** Release-management palette — vivid status hues. */
@@ -216,6 +240,7 @@ export const releaseTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'left', titlePosition: 'inside', titleChrome: 'box' },
+  nodes: baseNodes,
 } as const;
 
 /** Indigo accent on near-white — the AI-timeline editorial look. */
@@ -237,6 +262,7 @@ export const aiTimelineTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'left', titlePosition: 'above', titleChrome: 'none' },
+  nodes: baseNodes,
 } as const;
 
 /** ByteByteGo-style dark infographic — navy canvas, vivid teal accent. */
@@ -258,6 +284,7 @@ export const byteByteGoTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'center', titlePosition: 'on-border', titleChrome: 'pill' },
+  nodes: baseNodes,
 } as const;
 
 /** Gitline dark-card look — deep navy canvas, periwinkle-blue accent. */
@@ -279,6 +306,7 @@ export const gitlineTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'left', titlePosition: 'on-border', titleChrome: 'box' },
+  nodes: baseNodes,
 } as const;
 
 /** "Our Timeline" infographic — white canvas, navy + amber. */
@@ -300,6 +328,7 @@ export const ourTimelineTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'center', titlePosition: 'above', titleChrome: 'none' },
+  nodes: baseNodes,
 } as const;
 
 /** Subject Timeline dark theme — deep navy, vivid cyan + pink accents. */
@@ -321,6 +350,7 @@ export const subjectTimelineTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'center', titlePosition: 'on-border', titleChrome: 'pill' },
+  nodes: baseNodes,
 } as const;
 
 /** Showcase Tier-3 aesthetic — deep navy canvas, electric-cyan accent. */
@@ -342,6 +372,7 @@ export const showcaseTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'center', titlePosition: 'on-border', titleChrome: 'box' },
+  nodes: baseNodes,
 } as const;
 
 /** Editorial light aesthetic — warm paper, jet-black ink, atomic-tangerine accent, editorial blue link. */
@@ -368,6 +399,7 @@ export const editorialTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'left', titlePosition: 'inside', titleChrome: 'none' },
+  nodes: baseNodes,
 } as const;
 
 /** Editorial dark aesthetic — jet-black paper, warm white-smoke ink, luminous tangerine accent. */
@@ -394,6 +426,7 @@ export const editorialDarkTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'left', titlePosition: 'inside', titleChrome: 'none' },
+  nodes: baseNodes,
 } as const;
 
 /** Spectrum vibrant infographic aesthetic — obsidian tech canvas, multi-hue neon accents. */
@@ -415,6 +448,7 @@ export const spectrumTheme: ResolvedTheme = {
   spacing: baseSpacing,
   edges: baseEdges,
   panel: { titleAlign: 'center', titlePosition: 'on-border', titleChrome: 'pill' },
+  nodes: baseNodes,
 } as const;
 
 // ─── Registry ─────────────────────────────────────────────────────────────────

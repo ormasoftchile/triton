@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 186 336" width="186" height="336">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="186" height="336" fill="#FFFFFF" />
+  <path d="M 93 64 L 93 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="93" y="80" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">batch</text>
+  <path d="M 93 144 L 93 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="93" y="160" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">normalized rows</text>
+  <path d="M 93 224 L 93 264" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <text x="93" y="240" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">accepted rows</text>
+  <g id="source">
+    <rect x="24" y="24" width="138" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="93" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Incoming Records</text>
+  </g>
+  <g id="parse">
+    <rect x="33" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="93" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Parse Payload</text>
+  </g>
+  <g id="validate">
+    <rect x="33" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="93" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Validate Fields</text>
+  </g>
+  <g id="store">
+    <path d="M 33 271.2 A 60 7.199999999999999 0 0 1 153 271.2 L 153 304.8 A 60 7.199999999999999 0 0 1 33 304.8 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+    <path d="M 33 271.2 A 60 7.199999999999999 0 0 0 153 271.2" stroke="#CBD5E1" stroke-width="1.5" fill="none" />
+    <text x="93" y="292.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Archive</text>
+  </g>
+</svg>

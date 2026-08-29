@@ -175,7 +175,7 @@ function nodeStyle(kinds: readonly string[], theme: ResolvedTheme): NodeStyle {
   if (has('build') || has('muted'))
     return { shape, fill: palette.surface, stroke: palette.textMuted, text: palette.text };
   const fill = palette.surface;
-  return { shape, fill, stroke: palette.primary, text: palette.text };
+  return { shape, fill, stroke: palette.border, text: palette.text };
 }
 
 /** Build the muted info sub-line from a node's parsed attributes. */
@@ -252,22 +252,24 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
     margin,
   });
 
-  const titleH = ir.metadata['title'] ? typography.titleFontSize + 18 : 0;
+  const titleText = ir.metadata['title'] ? String(ir.metadata['title']) : undefined;
+  const titleW = titleText ? measureText(titleText, typography.titleFontSize).width : 0;
+  const titleH = titleText ? typography.titleFontSize + 14 : 0;
   const box = (id: string) => {
     const b = placed.boxes.get(id)!;
     return { x: b.x, y: b.y + titleH, width: b.width, height: b.height };
   };
 
   const elements: SceneElement[] = [];
-  if (titleH > 0) {
+  if (titleText) {
     elements.push(
       p.text(
-        String(ir.metadata['title']),
-        placed.width / 2,
+        titleText,
+        margin,
         margin + typography.titleFontSize,
         typography.titleFontSize,
         palette.text,
-        { anchor: 'middle', weight: 'bold' },
+        { weight: 'bold' },
       ),
     );
   }
@@ -330,7 +332,8 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
       if (child.edgeLabel) {
         const mx = (start.x + end.x) / 2,
           my = (start.y + end.y) / 2;
-        const w = measureText(child.edgeLabel, smallFont).width + 8;
+        const edgeFont = theme.edges?.labelFontSize ?? 12;
+        const w = measureText(child.edgeLabel, edgeFont).width + 8;
         elements.push(
           p.rect(
             { x: mx - w / 2, y: my - 9, width: w, height: 16 },
@@ -345,9 +348,9 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
             child.edgeLabel,
             mx,
             my + 3,
-            smallFont,
+            edgeFont,
             isActive ? palette.primary : palette.textMuted,
-            { anchor: 'middle', weight: 'bold' },
+            { anchor: 'middle' },
           ),
         );
       }
@@ -361,9 +364,17 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
     const info = infoLine(node);
     const cx = b.x + b.width / 2,
       cy = b.y + b.height / 2;
+    const isLeaf = node.kinds.includes('leaf') || node.kinds.includes('pill');
+    const sw = isLeaf
+      ? (theme.nodes?.leaf.borderWidth ?? 1.2)
+      : (theme.nodes?.standard.borderWidth ?? 1.5);
 
     if (st.shape === 'strip') {
-      elements.push(p.rect(b, st.fill, st.stroke, 2, { rx: 4 }));
+      elements.push(
+        p.rect(b, st.fill, st.stroke, sw, {
+          rx: theme.nodes?.standard.cornerRadius ?? 4,
+        }),
+      );
       let sx = b.x;
       stripCells(node.label, font).forEach((cell, idx) => {
         if (idx > 0)
@@ -383,19 +394,23 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
         sx += cell.width;
       });
     } else if (st.shape === 'circle') {
-      elements.push(p.circle({ x: cx, y: cy }, b.width / 2, st.fill, st.stroke, 2));
+      elements.push(p.circle({ x: cx, y: cy }, b.width / 2, st.fill, st.stroke, sw));
     } else {
-      const rx = st.shape === 'pill' ? b.height / 2 : 8;
-      elements.push(p.rect(b, st.fill, st.stroke, 2, { rx }));
+      const rx =
+        st.shape === 'pill'
+          ? (theme.nodes?.leaf.cornerRadius ?? b.height / 2)
+          : (theme.nodes?.standard.cornerRadius ?? 6);
+      elements.push(p.rect(b, st.fill, st.stroke, sw, { rx }));
     }
 
+    const textWeight = isLeaf ? 'normal' : 'bold';
     if (st.shape !== 'strip') {
       if (info) {
         const topPad = 10;
         elements.push(
           p.text(node.label, cx, rhu(b.y + topPad + font * 0.75), font, st.text, {
             anchor: 'middle',
-            weight: 'bold',
+            weight: textWeight,
           }),
         );
         elements.push(
@@ -412,7 +427,7 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
         elements.push(
           p.text(node.label, cx, rhu(cy + font * 0.35), font, st.text, {
             anchor: 'middle',
-            weight: 'bold',
+            weight: textWeight,
           }),
         );
       }
@@ -444,9 +459,10 @@ export function layoutTree(ir: TreeDocument, theme: ResolvedTheme): LayoutResult
   > = {};
   for (const node of ir.nodes) anchors[node.id] = { bounds: box(node.id) };
 
+  const viewWidth = Math.max(placed.width, titleW + margin * 2);
   const scene: Scene = applyOverlays(
     {
-      viewBox: { x: 0, y: 0, width: placed.width, height: placed.height + titleH },
+      viewBox: { x: 0, y: 0, width: viewWidth, height: placed.height + titleH },
       background: palette.background,
       elements,
     },

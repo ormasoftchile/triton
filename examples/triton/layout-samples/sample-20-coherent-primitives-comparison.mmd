@@ -1,0 +1,31 @@
+poster "Coherent primitive comparison"
+  columns 3
+  gap 28
+  cell flow "Flowchart Pipeline" :: flowchart
+    flowchart TD
+      source[Incoming Records]
+      parse[Parse Payload]
+      validate[Validate Fields]
+      store[(Archive)]
+      source -->|batch| parse
+      parse -->|normalized rows| validate
+      validate -->|accepted rows| store
+  end
+  cell tr "Tree Hierarchy" :: tree
+    tree TD
+      Incoming Records :box
+        Parse Payload :box
+          Validate Fields :box
+            Archive :leaf
+  end
+  cell ng "Node Graph" :: nodegraph
+    nodegraph
+      directed
+      node source : Incoming Records
+      node parse : Parse Payload
+      node validate : Validate Fields
+      node archive : Archive
+      source -> parse : batch
+      parse -> validate : normalized rows
+      validate -> archive : accepted rows
+  end

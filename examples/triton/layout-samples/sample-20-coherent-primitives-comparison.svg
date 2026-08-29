@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 584 410.4997723554034" width="584" height="410.4997723554034">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#64748B" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#4A90D9" /></marker>
+  </defs>
+  <rect x="0" y="0" width="584" height="410.4997723554034" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" font-weight="bold">Coherent primitive comparison</text>
+  <rect x="24" y="58" width="160" height="328.4997723554034" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="212" y="58" width="160" height="328.4997723554034" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <rect x="400" y="58" width="160" height="328.4997723554034" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1" rx="6" />
+  <text x="32" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Flowchart Pipeline</text>
+  <g transform="translate(28, 93.95956359705653) scale(0.8172043010752689)">
+    <path d="M 93 64 L 93 104" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <text x="93" y="80" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">batch</text>
+    <path d="M 93 144 L 93 184" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <text x="93" y="160" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">normalized rows</text>
+    <path d="M 93 224 L 93 264" stroke="#4A90D9" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+    <text x="93" y="240" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">accepted rows</text>
+    <g id="source">
+      <rect x="24" y="24" width="138" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+      <text x="93" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Incoming Records</text>
+    </g>
+    <g id="parse">
+      <rect x="33" y="104" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+      <text x="93" y="128.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Parse Payload</text>
+    </g>
+    <g id="validate">
+      <rect x="33" y="184" width="120" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+      <text x="93" y="208.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Validate Fields</text>
+    </g>
+    <g id="store">
+      <path d="M 33 271.2 A 60 7.199999999999999 0 0 1 153 271.2 L 153 304.8 A 60 7.199999999999999 0 0 1 33 304.8 Z" stroke="#CBD5E1" stroke-width="1.5" fill="#F8FAFC" />
+      <path d="M 33 271.2 A 60 7.199999999999999 0 0 0 153 271.2" stroke="#CBD5E1" stroke-width="1.5" fill="none" />
+      <text x="93" y="292.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle">Archive</text>
+    </g>
+  </g>
+  <text x="220" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Tree Hierarchy</text>
+  <g transform="translate(216, 91.35142470108741) scale(0.8040141464173235)">
+    <path d="M 94.53 60 L 94.53 112" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 94.53 148 L 94.53 200" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <path d="M 94.53 236 L 94.53 288" stroke="#64748B" stroke-width="1.5" fill="none" />
+    <rect x="24" y="24" width="141.0514" height="36" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="94.5257" y="46.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Incoming Records</text>
+    <rect x="35.67530000000001" y="112" width="117.70079999999999" height="36" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="94.5257" y="134.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Parse Payload</text>
+    <rect x="34.123400000000004" y="200" width="120.8046" height="36" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="94.5257" y="222.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Validate Fields</text>
+    <rect x="57.140100000000004" y="288" width="74.7712" height="36" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2" rx="18" />
+    <text x="94.5257" y="310.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="normal">Archive</text>
+  </g>
+  <text x="408" y="73.2" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="start" font-weight="bold">Node Graph</text>
+  <g transform="translate(404, 80) scale(0.7134428593287817)">
+    <path d="M 94.53 64 L 94.53 128" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 94.53 168 L 94.53 232" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 94.53 272 L 94.53 336" stroke="#64748B" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="75.4849" y="87" width="38.0816" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="94.5257" y="99" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">batch</text>
+    <rect x="46.7563" y="191" width="95.5388" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="94.5257" y="203" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">normalized rows</text>
+    <rect x="51.432100000000005" y="295" width="86.18719999999999" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="94.5257" y="307" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#64748B" text-anchor="middle">accepted rows</text>
+    <rect x="24" y="24" width="141.0514" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="94.5257" y="48.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Incoming Records</text>
+    <rect x="35.67530000000001" y="128" width="117.70079999999999" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="94.5257" y="152.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Parse Payload</text>
+    <rect x="34.123400000000004" y="232" width="120.8046" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="94.5257" y="256.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Validate Fields</text>
+    <rect x="57.140100000000004" y="336" width="74.7712" height="40" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5" rx="6" />
+    <text x="94.5257" y="360.9" font-size="14" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#1E293B" text-anchor="middle" font-weight="bold">Archive</text>
+  </g>
+</svg>

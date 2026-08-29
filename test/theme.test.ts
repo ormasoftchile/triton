@@ -109,6 +109,57 @@ describe('resolveTheme', () => {
     expect(result.edges.arrowSize).toBe(defaultTheme.edges.arrowSize);
   });
 
+  it('merges nodes semantic tokens partially', () => {
+    const result = resolveTheme(
+      { nodes: { standard: { cornerRadius: 10, borderWidth: 2.5 } } },
+      defaultTheme,
+    );
+    expect(result.nodes?.standard.cornerRadius).toBe(10);
+    expect(result.nodes?.standard.borderWidth).toBe(2.5);
+    expect(result.nodes?.standard.padding).toBe(defaultTheme.nodes?.standard.padding);
+    expect(result.nodes?.leaf.cornerRadius).toBe(defaultTheme.nodes?.leaf.cornerRadius);
+  });
+
+  it('renders coherent borders and typography across flowchart, tree, and nodegraph', () => {
+    const flow = renderSync(`flowchart TD
+  source[Incoming Records]
+  parse[Parse Payload]
+  source -->|batch| parse
+`);
+    const tree = renderSync(`tree TD
+  title Record Processing
+  Incoming Records :box
+    Parse Payload :box
+`);
+    const graph = renderSync(`nodegraph
+  directed
+  title Record Processing
+  node source : Incoming Records
+  node parse : Parse Payload
+  source -> parse : batch
+`);
+
+    expect(flow.ok && tree.ok && graph.ok).toBe(true);
+    if (!flow.ok || !tree.ok || !graph.ok) return;
+
+    // Standard nodes have rx=6, strokeWidth=1.5, stroke=#CBD5E1 across all three
+    expect(flow.value).toContain('rx="6"');
+    expect(flow.value).toContain('stroke="#CBD5E1"');
+    expect(flow.value).toContain('stroke-width="1.5"');
+
+    expect(tree.value).toContain('rx="6"');
+    expect(tree.value).toContain('stroke="#CBD5E1"');
+    expect(tree.value).toContain('stroke-width="1.5"');
+
+    expect(graph.value).toContain('rx="6"');
+    expect(graph.value).toContain('stroke="#CBD5E1"');
+    expect(graph.value).toContain('stroke-width="1.5"');
+
+    // Edge labels use font-size="12"
+    expect(flow.value).toContain('font-size="12"');
+    expect(graph.value).toContain('font-size="12"');
+  });
+
   it('full override produces independent object (does not mutate base)', () => {
     const input = {
       palette: {

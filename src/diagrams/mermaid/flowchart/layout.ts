@@ -552,7 +552,7 @@ export function layoutFlowchart(
       }
     } else {
       // ── Default single-region composition (all non-card shapes) ──────────
-      nodeElements.push(...renderNodeShape(node, r, fill, stroke, sw));
+      nodeElements.push(...renderNodeShape(node, r, fill, stroke, sw, theme));
 
       let textRegionX = r.x;
       let textRegionW = r.width;
@@ -1116,8 +1116,14 @@ function renderNodeShape(
   fill: string,
   stroke: string,
   sw: number,
+  theme?: ResolvedTheme,
 ): SceneElement[] {
   const { x, y, width: w, height: h } = r;
+  const stdRadius = theme?.nodes?.standard.cornerRadius ?? 6;
+  const stdSw = theme?.nodes?.standard.borderWidth ?? sw;
+  const leafRadius = theme?.nodes?.leaf.cornerRadius ?? h / 2;
+  const leafSw = theme?.nodes?.leaf.borderWidth ?? sw;
+  const dsSw = theme?.nodes?.datastore.borderWidth ?? sw;
 
   switch (node.shape) {
     case 'diamond': {
@@ -1129,7 +1135,7 @@ function renderNodeShape(
           d: `M ${cx} ${y} L ${x + w} ${cy} L ${cx} ${y + h} L ${x} ${cy} Z`,
           fill,
           stroke,
-          strokeWidth: sw,
+          strokeWidth: stdSw,
         },
       ];
     }
@@ -1141,22 +1147,31 @@ function renderNodeShape(
           radius: Math.min(w, h) / 2,
           fill,
           stroke,
-          strokeWidth: sw,
+          strokeWidth: stdSw,
         },
       ];
     case 'rounded-rect':
-      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 6 }];
+      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: stdSw, rx: stdRadius }];
     case 'stadium':
-      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: h / 2 }];
+      return [
+        {
+          type: 'rect',
+          bounds: r,
+          fill,
+          stroke,
+          strokeWidth: leafSw,
+          rx: Math.min(h / 2, leafRadius),
+        },
+      ];
     case 'subroutine':
       return [
-        { type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 2 },
+        { type: 'rect', bounds: r, fill, stroke, strokeWidth: stdSw, rx: 2 },
         {
           type: 'path',
           d: `M ${x + 8} ${y} L ${x + 8} ${y + h} M ${x + w - 8} ${y} L ${x + w - 8} ${y + h}`,
           fill: 'none',
           stroke,
-          strokeWidth: sw * 0.7,
+          strokeWidth: stdSw * 0.7,
         },
       ];
     case 'cylinder': {
@@ -1164,34 +1179,34 @@ function renderNodeShape(
       const dBody = `M ${x} ${y + ry} A ${w / 2} ${ry} 0 0 1 ${x + w} ${y + ry} L ${x + w} ${y + h - ry} A ${w / 2} ${ry} 0 0 1 ${x} ${y + h - ry} Z`;
       const dRim = `M ${x} ${y + ry} A ${w / 2} ${ry} 0 0 0 ${x + w} ${y + ry}`;
       return [
-        { type: 'path', d: dBody, fill, stroke, strokeWidth: sw },
-        { type: 'path', d: dRim, fill: 'none', stroke, strokeWidth: sw },
+        { type: 'path', d: dBody, fill, stroke, strokeWidth: dsSw },
+        { type: 'path', d: dRim, fill: 'none', stroke, strokeWidth: dsSw },
       ];
     }
     case 'hexagon': {
       const chamfer = Math.min(w * 0.15, h * 0.4);
       const d = `M ${x + chamfer} ${y} L ${x + w - chamfer} ${y} L ${x + w} ${y + h / 2} L ${x + w - chamfer} ${y + h} L ${x + chamfer} ${y + h} L ${x} ${y + h / 2} Z`;
-      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+      return [{ type: 'path', d, fill, stroke, strokeWidth: stdSw }];
     }
     case 'parallelogram': {
       const slant = Math.min(w * 0.2, 16);
       const d = `M ${x + slant} ${y} L ${x + w} ${y} L ${x + w - slant} ${y + h} L ${x} ${y + h} Z`;
-      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+      return [{ type: 'path', d, fill, stroke, strokeWidth: stdSw }];
     }
     case 'parallelogram-alt': {
       const slant = Math.min(w * 0.2, 16);
       const d = `M ${x} ${y} L ${x + w - slant} ${y} L ${x + w} ${y + h} L ${x + slant} ${y + h} Z`;
-      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+      return [{ type: 'path', d, fill, stroke, strokeWidth: stdSw }];
     }
     case 'asymmetric': {
       const point = Math.min(w * 0.15, 14);
       const d = `M ${x} ${y} L ${x + w - point} ${y} L ${x + w} ${y + h / 2} L ${x + w - point} ${y + h} L ${x} ${y + h} Z`;
-      return [{ type: 'path', d, fill, stroke, strokeWidth: sw }];
+      return [{ type: 'path', d, fill, stroke, strokeWidth: stdSw }];
     }
     case 'card':
-      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 6 }];
+      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: stdSw, rx: stdRadius }];
     default:
-      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: sw, rx: 2 }];
+      return [{ type: 'rect', bounds: r, fill, stroke, strokeWidth: stdSw, rx: stdRadius }];
   }
 }
 

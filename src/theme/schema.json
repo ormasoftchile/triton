@@ -189,6 +189,42 @@
           "description": "Decorative container drawn behind the title."
         }
       }
+    },
+    "nodes": {
+      "type": "object",
+      "description": "Semantic node styling overrides across diagram primitives.",
+      "additionalProperties": false,
+      "properties": {
+        "standard": {
+          "type": "object",
+          "description": "Standard node shape styling (:box, rect).",
+          "additionalProperties": false,
+          "properties": {
+            "borderWidth": { "type": "number", "minimum": 0 },
+            "cornerRadius": { "type": "number", "minimum": 0 },
+            "padding": { "type": "number", "minimum": 0 }
+          }
+        },
+        "leaf": {
+          "type": "object",
+          "description": "Terminal / leaf node styling (:leaf, pill).",
+          "additionalProperties": false,
+          "properties": {
+            "borderWidth": { "type": "number", "minimum": 0 },
+            "cornerRadius": { "type": "number", "minimum": 0 },
+            "padding": { "type": "number", "minimum": 0 }
+          }
+        },
+        "datastore": {
+          "type": "object",
+          "description": "Data store / database node styling.",
+          "additionalProperties": false,
+          "properties": {
+            "borderWidth": { "type": "number", "minimum": 0 },
+            "padding": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
     }
   }
 }

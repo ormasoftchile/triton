@@ -101,6 +101,34 @@ export interface ThemePanel {
   readonly titleChrome: 'none' | 'box' | 'pill';
 }
 
+export interface NodeSemanticStyle {
+  /** Stroke width for node borders in px. */
+  readonly borderWidth: number;
+  /** Corner radius for rectangular nodes in px. */
+  readonly cornerRadius: number;
+  /** Inner padding inside node shapes in px. */
+  readonly padding: number;
+}
+
+export interface DatastoreNodeStyle {
+  /** Stroke width for datastore cylinder borders in px. */
+  readonly borderWidth: number;
+  /** Inner padding inside datastore shapes in px. */
+  readonly padding: number;
+}
+
+/**
+ * Shared semantic styles for nodes across diagram primitives (flowchart, tree, nodegraph, etc.).
+ */
+export interface ThemeNodes {
+  /** Standard / ordinary processing nodes and :box nodes. */
+  readonly standard: NodeSemanticStyle;
+  /** Terminal / leaf nodes (:leaf, pill). */
+  readonly leaf: NodeSemanticStyle;
+  /** Data-store / storage nodes (cylinder, database). */
+  readonly datastore: DatastoreNodeStyle;
+}
+
 // ─── Resolved Theme (consumed by layout engines) ──────────────────────────────
 
 /** Fully resolved — every field is present and required. Layout engines receive this. */
@@ -111,6 +139,7 @@ export interface ResolvedTheme {
   readonly spacing: ThemeSpacing;
   readonly edges: ThemeEdges;
   readonly panel: ThemePanel;
+  readonly nodes?: ThemeNodes;
 }
 
 // ─── Theme Input (provided by callers) ────────────────────────────────────────
@@ -123,4 +152,9 @@ export type ThemeInput = {
   readonly spacing?: Partial<ThemeSpacing>;
   readonly edges?: Partial<ThemeEdges>;
   readonly panel?: Partial<ThemePanel>;
+  readonly nodes?: {
+    readonly standard?: Partial<NodeSemanticStyle>;
+    readonly leaf?: Partial<NodeSemanticStyle>;
+    readonly datastore?: Partial<DatastoreNodeStyle>;
+  };
 };
