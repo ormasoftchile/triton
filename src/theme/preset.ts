@@ -122,7 +122,10 @@ export const bwLightTheme: ResolvedTheme = {
     warning: '#A3A3A3',
     error: '#404040',
   },
-  typography: baseTypography,
+  typography: {
+    ...baseTypography,
+    titleFontSize: 17,
+  },
   spacing: baseSpacing,
   edges: baseEdges,
   panel: basePanel,
@@ -143,7 +146,10 @@ export const bwDarkTheme: ResolvedTheme = {
     warning: '#8B8B8B',
     error: '#E5E5E5',
   },
-  typography: baseTypography,
+  typography: {
+    ...baseTypography,
+    titleFontSize: 17,
+  },
   spacing: baseSpacing,
   edges: baseEdges,
   panel: basePanel,
