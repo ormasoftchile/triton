@@ -1,5 +1,6 @@
 import type { BaseIR, CardinalSide, RouteStyle } from '../../../contracts/index.js';
 import type { IconRef } from '../../../contracts/icons.js';
+import type { CrossLinkAnimation } from '../../../contracts/animations.js';
 
 export type NodeShape =
   | 'rect'
@@ -38,6 +39,7 @@ export interface FlowEdge {
   readonly to: string;
   readonly label?: string;
   readonly style: EdgeStyle;
+  readonly animation?: CrossLinkAnimation;
   readonly bidirectional?: boolean;
   readonly endMarker?: EdgeEndMarker;
   /** Optional routing style hint (straight | orthogonal | bezier | polyline). */

@@ -63,6 +63,7 @@
       if (edgeProps.endMarker)     e.endMarker     = edgeProps.endMarker;
     }
     if (ann) {
+      if (ann.animation) e.animation = ann.animation;
       if (ann.routing)   e.routing   = ann.routing;
       if (ann.exitWall)  e.exitWall  = ann.exitWall;
       if (ann.entryWall) e.entryWall = ann.entryWall;
@@ -144,7 +145,11 @@ SubgraphLabel
 // ─── Edge Chains ──────────────────────────────────────────────────────────────
 
 EdgeChain
-  = head:NodeRef rest:(_ edge:EdgeOp _ target:NodeRef ann:(_ "@" RouteAnnotation)? { return { edge, target, ann: ann ? ann[2] : null }; })+ {
+  = head:NodeRef rest:(_ edge:EdgeOp _ target:NodeRef anns:(_ "@" EdgeAnnotation)* props:(_ AnimationProperties)? {
+      const ann = props ? { ...props[1] } : {};
+      for (const annotation of anns) Object.assign(ann, annotation[2]);
+      return { edge, target, ann };
+    })+ {
       let prev = head;
       for (const { edge, target, ann } of rest) {
         addEdge(prev.id, target.id, edge.label, edge.style, ann, edge);
@@ -187,6 +192,16 @@ EdgeArrow
 // ─── Route Annotations (wall hints) ───────────────────────────────────────────
 // Attach a routing/wall hint to an edge, e.g. A -->|label| B @orthogonal:EW
 // EW = exit East wall of A, enter West wall of B.
+
+EdgeAnnotation
+  = "anim:" value:AnimationValue { return { animation: value }; }
+  / RouteAnnotation
+
+AnimationValue
+  = value:("march" / "particle" / "draw" / "pulse" / "glow" / "comet" / "stream" / "flow" / "colorcycle" / "none") ![a-zA-Z0-9_-] { return value; }
+
+AnimationProperties
+  = "{" _ "anim" _ ":" _ value:AnimationValue _ "}" { return { animation: value }; }
 
 RouteAnnotation
   = route:RouteWord walls:(":" WallPair)? { return { routing: route, ...(walls ? walls[1] : {}) }; }
