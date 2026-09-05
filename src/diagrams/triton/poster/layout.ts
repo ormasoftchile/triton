@@ -16,6 +16,7 @@ import type {
   OccupiedPort,
 } from '../../../contracts/index.js';
 import type { ResolvedTheme } from '../../../contracts/index.js';
+import type { RevealStep } from '../../../contracts/reveal.js';
 import { getModule } from '../../../frontend/registry.js';
 import { getThemePreset } from '../../../theme/preset.js';
 import { crossLinksToConnectorSpecs, routeConnectors } from '../../../crosslink/connectors.js';
@@ -163,6 +164,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
   const headerElements: SceneElement[] = [];
   const cellBg: SceneElement[] = [];
   const cellContent: SceneElement[] = [];
+  const revealSteps: RevealStep[] = [];
   // Track text bounding rects so cross-link labels can avoid them
   const textOccupied: Array<{ x: number; y: number; width: number; height: number }> = [];
   // Track cell border edges as thin obstacles so connectors don't run along cell walls
@@ -252,7 +254,24 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
     const offsetX = contentRect.x + (contentRect.width - result.scene.viewBox.width * scale) / 2;
     const offsetY = contentRect.y + (contentRect.height - result.scene.viewBox.height * scale) / 2;
 
-    cellContent.push(embedScene(result.scene, contentRect, scale));
+    let childScene = result.scene;
+    if (result.reveal?.steps.length) {
+      const prefixIds = (ids: readonly string[]) => ids.map(id => `${cellId}.${id}`);
+      const prefixGroups = (element: SceneElement): SceneElement => element.type === 'group'
+        ? { ...element, ...(element.id ? { id: `${cellId}.${element.id}` } : {}), children: element.children.map(prefixGroups) }
+        : element;
+      childScene = { ...result.scene, elements: result.scene.elements.map(prefixGroups) };
+      for (const step of result.reveal.steps) {
+        revealSteps.push({
+          ...step,
+          index: revealSteps.length + 1,
+          enter: prefixIds(step.enter),
+          ...(step.emphasize ? { emphasize: prefixIds(step.emphasize) } : {}),
+          ...(step.exit ? { exit: prefixIds(step.exit) } : {}),
+        });
+      }
+    }
+    cellContent.push(embedScene(childScene, contentRect, scale));
 
     // Caption — muted text below the sub-diagram
     if (cell.caption) {
@@ -398,6 +417,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
         ...(allDefs.length > 0 ? { defs: allDefs } : {}),
       },
       anchors: mergedAnchors,
+      ...(revealSteps.length > 0 ? { reveal: { steps: revealSteps } } : {}),
     };
   }
 
@@ -412,6 +432,7 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       ...(allDefs.length > 0 ? { defs: allDefs } : {}),
     },
     anchors: mergedAnchors,
+    ...(revealSteps.length > 0 ? { reveal: { steps: revealSteps } } : {}),
   };
 }
 

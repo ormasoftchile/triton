@@ -384,6 +384,7 @@ export function layoutFlowchart(
       const loop = selfLoopRoute(fromRect, isLR);
       elements.push(
         p.path(loop.path, color, sw, {
+          ...(edge.animation && edge.animation !== 'none' ? { animated: edge.animation } : {}),
           ...(dash !== undefined ? { dash } : {}),
           markerEnd: ARROW_MARKER_ID,
         }),
@@ -410,6 +411,7 @@ export function layoutFlowchart(
       const bow = backEdgeRoute(fromRect, toRect, isLR);
       elements.push(
         p.path(bow.path, color, sw, {
+          ...(edge.animation && edge.animation !== 'none' ? { animated: edge.animation } : {}),
           ...(dash !== undefined ? { dash } : {}),
           markerEnd: ARROW_MARKER_ID,
         }),
@@ -475,6 +477,7 @@ export function layoutFlowchart(
 
     elements.push(
       p.path(route.path, color, sw, {
+        ...(edge.animation && edge.animation !== 'none' ? { animated: edge.animation } : {}),
         ...(dash !== undefined ? { dash } : {}),
         markerEnd: ARROW_MARKER_ID,
       }),
