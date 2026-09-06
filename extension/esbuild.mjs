@@ -110,13 +110,15 @@ function copyResvgWasm() {
 }
 
 function copyBundledFonts() {
-  const sourceDir = join(repoRoot, 'assets', 'fonts', 'inter');
-  const targetDir = join(here, 'dist', 'fonts', 'inter');
-  mkdirSync(targetDir, { recursive: true });
-  for (const name of ['Inter-Regular.ttf', 'Inter-Bold.ttf', 'OFL.txt', 'NOTICE']) {
-    copyFileSync(join(sourceDir, name), join(targetDir, name));
+  for (const [directory, prefix] of [['inter', 'Inter'], ['source-sans-3', 'SourceSans3']]) {
+    const sourceDir = join(repoRoot, 'assets', 'fonts', directory);
+    const targetDir = join(here, 'dist', 'fonts', directory);
+    mkdirSync(targetDir, { recursive: true });
+    for (const name of [`${prefix}-Regular.ttf`, `${prefix}-Bold.ttf`, 'OFL.txt', 'NOTICE']) {
+      copyFileSync(join(sourceDir, name), join(targetDir, name));
+    }
+    console.log(`✓ copied extension/dist/fonts/${directory}`);
   }
-  console.log('✓ copied extension/dist/fonts/inter');
 }
 
 // ── Plugin: rewrite NodeNext `*.js` specifiers to the real `*.ts` source ────────

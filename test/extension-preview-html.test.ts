@@ -3,6 +3,13 @@ import { shellHtml } from '../extension/src/preview-html.js';
 import { themePresetNames } from '../src/theme/preset.js';
 
 describe('preview webview shell HTML', () => {
+  it('allows bundled font data while keeping scripts nonce-restricted', () => {
+    const html = shellHtml({ cspSource: 'vscode-resource:' }, 'Preview');
+    expect(html).toContain('font-src vscode-resource: data:');
+    expect(html).toContain("default-src 'none'");
+    expect(html).toMatch(/script-src 'nonce-[A-Za-z0-9]+'/);
+  });
+
   it('renders the theme dropdown with Auto and all preset options', () => {
     const html = shellHtml({ cspSource: 'vscode-resource:' }, 'Preview', 'minimal');
 

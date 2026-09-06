@@ -54,6 +54,7 @@ export function shellHtml(webview: PreviewWebview, title: string, selectedTheme 
     `default-src 'none'`,
     `img-src ${webview.cspSource} data:`,
     `style-src ${webview.cspSource} 'unsafe-inline'`,
+    `font-src ${webview.cspSource} data:`,
     `script-src 'nonce-${n}'`,
   ].join('; ');
 

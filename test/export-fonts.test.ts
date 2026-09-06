@@ -42,6 +42,17 @@ async function fakeRead(path: string): Promise<Uint8Array> {
 }
 
 describe('theme font resolver', () => {
+  it('resolves the default Source Sans 3 faces without installed fonts', async () => {
+    const resolved = await resolveThemeFontFromIndex('"Source Sans 3", sans-serif', []);
+    expect(resolved?.family).toBe('Source Sans 3');
+    expect(resolved?.buffers).toHaveLength(2);
+    for (const [index, weight] of ['Regular', 'Bold'].entries()) {
+      const expected = await readFile(join(process.cwd(), 'assets', 'fonts',
+        'source-sans-3', `SourceSans3-${weight}.ttf`));
+      expect(Buffer.from(resolved?.buffers[index] ?? []).equals(expected)).toBe(true);
+    }
+  });
+
   it('parses CSS font-family stacks with quoted names', () => {
     expect(parseFontFamilyStack('Inter, "Theme Sans", \'Theme Serif\', sans-serif')).toEqual([
       'Inter',
@@ -96,8 +107,8 @@ describe('theme font resolver', () => {
     const resolved = await resolveThemeFont('Inter, system-ui, -apple-system, sans-serif');
     expect(resolved?.family).toBe('Inter');
     expect(resolved?.buffers).toHaveLength(2);
-    expect(resolved?.buffers[0]).toEqual(regular);
-    expect(resolved?.buffers[1]).toEqual(bold);
+    expect(Buffer.from(resolved?.buffers[0] ?? []).equals(regular)).toBe(true);
+    expect(Buffer.from(resolved?.buffers[1] ?? []).equals(bold)).toBe(true);
 
     const fakeSystemInter: IndexedFontFace[] = [
       {
@@ -113,7 +124,7 @@ describe('theme font resolver', () => {
       fakeSystemInter,
       fakeRead,
     );
-    expect(fromIndex?.buffers[0]).toEqual(regular);
-    expect(fromIndex?.buffers[1]).toEqual(bold);
+    expect(Buffer.from(fromIndex?.buffers[0] ?? []).equals(regular)).toBe(true);
+    expect(Buffer.from(fromIndex?.buffers[1] ?? []).equals(bold)).toBe(true);
   }, 20000);
 });

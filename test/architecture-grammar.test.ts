@@ -189,8 +189,8 @@ describe('connector rendering', () => {
   it('uses fixed-size architecture arrow markers independent of stroke width', () => {
     const scene = layoutFor('-->');
     expect(scene.defs).toEqual([
-      '<marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>',
-      '<marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#4A90D9" /></marker>',
+      `<marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="${defaultTheme.palette.primary}" /></marker>`,
+      `<marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="${defaultTheme.palette.primary}" /></marker>`,
     ]);
   });
 
