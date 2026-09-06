@@ -7,6 +7,7 @@ import type {
   RevealTrack,
 } from '../contracts/index.js';
 import type { IconTransforms } from '../contracts/icons.js';
+import { sourceSans3FontCss } from '../theme/sourceSans3.generated.js';
 import {
   animationDuration,
   colorCycleStrokeValues,
@@ -28,22 +29,29 @@ import {
  * Contract: the caller must have already incorporated all overlay geometry
  * into Scene.elements before calling this. The renderer is diagram-agnostic.
  */
-export function renderSVG(scene: Scene): string {
+export interface SvgRenderOptions {
+  readonly background?: 'opaque' | 'transparent';
+  readonly fonts?: 'embedded' | 'external';
+}
+
+export function renderSVG(scene: Scene, options: SvgRenderOptions = {}): string {
   const { viewBox, background, elements, defs } = scene;
   const vb = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
   const markerMetrics = markerMetricsById(defs ?? []);
+  const embedFont = options.fonts !== 'external' && usesSourceSans3(elements);
 
   const lines: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${viewBox.width}" height="${viewBox.height}">`,
   ];
 
-  if (defs && defs.length > 0) {
+  if ((defs && defs.length > 0) || embedFont) {
     lines.push('  <defs>');
-    for (const def of defs) lines.push(`    ${def}`);
+    if (embedFont) lines.push(`    <style>${escapeXml(sourceSans3FontCss)}</style>`);
+    for (const def of defs ?? []) lines.push(`    ${def}`);
     lines.push('  </defs>');
   }
 
-  if (background) {
+  if (background && options.background !== 'transparent') {
     // Use explicit x/width to cover the full viewBox, including negative x origins.
     lines.push(
       `  <rect x="${viewBox.x}" y="${viewBox.y}" width="${viewBox.width}" height="${viewBox.height}" fill="${background}" />`,
@@ -56,6 +64,12 @@ export function renderSVG(scene: Scene): string {
 
   lines.push('</svg>');
   return lines.join('\n');
+}
+
+function usesSourceSans3(elements: readonly SceneElement[]): boolean {
+  return elements.some(element => element.type === 'group'
+    ? usesSourceSans3(element.children)
+    : element.type === 'text' && element.fontFamily.includes('Source Sans 3'));
 }
 
 // ─── Element Rendering ────────────────────────────────────────────────────────

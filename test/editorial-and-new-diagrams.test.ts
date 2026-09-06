@@ -52,7 +52,8 @@ flowchart LR
     const res = renderSync(src);
     expect(res.ok).toBe(true);
     if (res.ok) {
-      expect(res.value).toContain('Bottleneck under peak load');
+      expect(res.value).toContain('Bottleneck under peak');
+      expect(res.value).toContain('>load</text>');
       expect(res.value).toContain('Instrument Serif');
     }
   });

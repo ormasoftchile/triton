@@ -1,0 +1,15 @@
+Source Sans 3
+
+Typeface by Adobe, distributed under the SIL Open Font License 1.1.
+See OFL.txt in this directory.
+
+Browser fonts: @fontsource/source-sans-3 version 5.3.0, Latin subset,
+regular (400) and bold (700), unmodified WOFF2 files.
+https://www.npmjs.com/package/@fontsource/source-sans-3
+
+Native export fonts: Adobe Source Sans 3 release branch, regular and bold,
+unmodified TTF files.
+https://github.com/adobe-fonts/source-sans/tree/release/TTF
+
+Regenerate the embedded browser-font module with:
+node scripts/build-font-assets.mjs

@@ -658,6 +658,35 @@ export function renderItemText(
   return elements;
 }
 
+function measureTaperedBands(items: ListItem[], font: number, smallFont: number, reversed: boolean) {
+  const count = Math.max(items.length, 1);
+  const padding = rhu(font * 0.8);
+  const rawInfos = items.map(item => measureItemLines(item.text, font, smallFont, Infinity));
+  const initialWidth = Math.max(font * 14, ...rawInfos.map(info => Math.min(info.maxLineWidth, 260) * 1.5));
+  const narrowRatios = items.map((_item, index) => count === 1 ? 1
+    : 0.28 + 0.72 * (reversed ? count - index - 1 : index) / count);
+  const itemInfos = rawInfos.map((info, index): ItemTextLines => {
+    const available = Math.max(font * 6, initialWidth * narrowRatios[index]! - 2 * padding);
+    const wrap = (lines: string[], size: number) => lines.flatMap(line => {
+      const width = Math.max(available, ...line.split(/\s+/).map(word => measureText(word, size).width));
+      return wrapText(line, size, width, Math.max(line.length, 1)).lines;
+    });
+    const titleLines = info.titleLines ? wrap(info.titleLines, font) : undefined;
+    const subtitleLines = info.subtitleLines ? wrap(info.subtitleLines, smallFont) : undefined;
+    const lines = titleLines ? [...titleLines, ...(subtitleLines ?? [])] : wrap(info.lines, font);
+    const maxLineWidth = titleLines
+      ? Math.max(0, ...titleLines.map(line => measureText(line, font).width * 1.05),
+        ...(subtitleLines ?? []).map(line => measureText(line, smallFont).width))
+      : Math.max(0, ...lines.map(line => measureText(line, font).width));
+    return { ...info, titleLines, subtitleLines, lines, maxLineWidth };
+  });
+  const maxLines = Math.max(1, ...itemInfos.map(getItemLineCount));
+  const bandH = maxLines > 1 ? rhu(maxLines * font * 1.3 + font * 1.4) : rhu(font * 2.8);
+  const baseW = Math.ceil(Math.max(initialWidth, ...itemInfos.map((info, index) =>
+    (info.maxLineWidth * 1.1 + 2 * padding + 2) / narrowRatios[index]!)));
+  return { itemInfos, bandH, baseW };
+}
+
 export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
   const { palette, typography, spacing } = theme;
   const p = pen(theme);
@@ -853,7 +882,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
 
     doc.items.forEach((it, i) => {
       const x = rhu(margin + i * stepX);
-      const fill = i % 2 === 0 ? palette.primary : palette.secondary;
+      const fill = theme.name === 'default' || i % 2 === 0 ? palette.primary : palette.secondary;
       const k = notch;
       const tipR = rhu(x + boxW);
       const innerR = rhu(x + boxW - k);
@@ -1234,17 +1263,8 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
 
     height = rhu(axisY + dotR + font + labelH + margin);
   } else if (doc.style === 'pyramid') {
-    const itemInfos = doc.items.map((it) => measureItemLines(it.text, font, smallFont));
-    let maxTextW = 0;
-    let maxLines = 1;
-    itemInfos.forEach((info) => {
-      maxTextW = Math.max(maxTextW, info.maxLineWidth);
-      const lc = getItemLineCount(info);
-      maxLines = Math.max(maxLines, lc);
-    });
-    const bandH = maxLines > 1 ? rhu(maxLines * (font * 1.3) + font * 1.4) : rhu(font * 2.8);
+    const { itemInfos, bandH, baseW } = measureTaperedBands(doc.items, font, smallFont, false);
     const vGap = rhu(font * 0.4);
-    const baseW = rhu(Math.max(maxTextW * 1.5, font * 14));
     const apexW = rhu(baseW * 0.28);
     const cxCenter = rhu(margin + baseW / 2);
     const widthAt = (frac: number) => apexW + (baseW - apexW) * frac;
@@ -1259,7 +1279,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       const tr = rhu(cxCenter + wTop / 2);
       const bl = rhu(cxCenter - wBot / 2);
       const br = rhu(cxCenter + wBot / 2);
-      const fill = i % 2 === 0 ? palette.primary : palette.secondary;
+      const fill = theme.name === 'default' || i % 2 === 0 ? palette.primary : palette.secondary;
       const d = `M ${tl} ${yTop} L ${tr} ${yTop} L ${br} ${yBot} L ${bl} ${yBot} Z`;
       const txtColor = readableText(fill, theme);
       const mutedTxtColor = txtColor === '#ffffff' ? 'rgba(255, 255, 255, 0.8)' : palette.textMuted;
@@ -1268,9 +1288,9 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
         ...renderItemText(
           p,
           itemInfos[i]!,
-          bl,
+          tl,
           yTop,
-          rhu(br - bl),
+          rhu(tr - tl),
           bandH,
           font,
           smallFont,
@@ -1524,17 +1544,8 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
 
     height = rhu(top + rows * (tileH + gap) - gap + margin);
   } else if (doc.style === 'funnel') {
-    const itemInfos = doc.items.map((it) => measureItemLines(it.text, font, smallFont));
-    let maxTextW = 0;
-    let maxLines = 1;
-    itemInfos.forEach((info) => {
-      maxTextW = Math.max(maxTextW, info.maxLineWidth);
-      const lc = getItemLineCount(info);
-      maxLines = Math.max(maxLines, lc);
-    });
-    const bandH = maxLines > 1 ? rhu(maxLines * (font * 1.3) + font * 1.4) : rhu(font * 2.8);
+    const { itemInfos, bandH, baseW } = measureTaperedBands(doc.items, font, smallFont, true);
     const vGap = rhu(font * 0.4);
-    const baseW = rhu(Math.max(maxTextW * 1.5, font * 14));
     const apexW = rhu(baseW * 0.28);
     const cxCenter = rhu(margin + baseW / 2);
     const widthAt = (frac: number) => apexW + (baseW - apexW) * frac;
@@ -1549,7 +1560,7 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
       const tr = rhu(cxCenter + wTop / 2);
       const bl = rhu(cxCenter - wBot / 2);
       const br = rhu(cxCenter + wBot / 2);
-      const fill = i % 2 === 0 ? palette.primary : palette.secondary;
+      const fill = theme.name === 'default' || i % 2 === 0 ? palette.primary : palette.secondary;
       const d = `M ${tl} ${yTop} L ${tr} ${yTop} L ${br} ${yBot} L ${bl} ${yBot} Z`;
       const txtColor = readableText(fill, theme);
       const mutedTxtColor = txtColor === '#ffffff' ? 'rgba(255, 255, 255, 0.8)' : palette.textMuted;
@@ -1558,9 +1569,9 @@ export function layoutList(doc: ListDoc, theme: ResolvedTheme): LayoutResult {
         ...renderItemText(
           p,
           itemInfos[i]!,
-          tl,
+          bl,
           yTop,
-          rhu(tr - tl),
+          rhu(br - bl),
           bandH,
           font,
           smallFont,

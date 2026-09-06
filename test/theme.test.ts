@@ -142,25 +142,17 @@ describe('resolveTheme', () => {
     expect(flow.ok && tree.ok && graph.ok).toBe(true);
     if (!flow.ok || !tree.ok || !graph.ok) return;
 
-    // Standard nodes have rx=6, strokeWidth=1.5, stroke=#CBD5E1 across all three
-    expect(flow.value).toContain('rx="6"');
-    expect(flow.value).toContain('stroke="#CBD5E1"');
-    expect(flow.value).toContain('stroke-width="1.5"');
-
-    expect(tree.value).toContain('rx="6"');
-    expect(tree.value).toContain('stroke="#CBD5E1"');
-    expect(tree.value).toContain('stroke-width="1.5"');
-
-    expect(graph.value).toContain('rx="6"');
-    expect(graph.value).toContain('stroke="#CBD5E1"');
-    expect(graph.value).toContain('stroke-width="1.5"');
-
-    // Edge labels use font-size="12"
-    expect(flow.value).toContain('font-size="12"');
-    expect(graph.value).toContain('font-size="12"');
+    for (const svg of [flow.value, tree.value, graph.value]) {
+      expect(svg).toContain(`rx="${defaultTheme.nodes!.standard.cornerRadius}"`);
+      expect(svg).toContain(`stroke="${defaultTheme.palette.border}"`);
+      expect(svg).toContain(`stroke-width="${defaultTheme.nodes!.standard.borderWidth}"`);
+    }
+    expect(flow.value).toContain(`font-size="${defaultTheme.edges.labelFontSize}"`);
+    expect(graph.value).toContain(`font-size="${defaultTheme.edges.labelFontSize}"`);
   });
 
   it('full override produces independent object (does not mutate base)', () => {
+    const originalPalette = { ...defaultTheme.palette };
     const input = {
       palette: {
         primary: '#aaa',
@@ -176,6 +168,6 @@ describe('resolveTheme', () => {
       },
     };
     resolveTheme(input, defaultTheme);
-    expect(defaultTheme.palette.primary).toBe('#4A90D9'); // unchanged
+    expect(defaultTheme.palette).toEqual(originalPalette);
   });
 });

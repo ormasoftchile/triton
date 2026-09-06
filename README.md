@@ -55,6 +55,23 @@ Diagrams render with a built-in theme preset (`default`, `executive`, `minimal`,
 and more). You can author a custom `.triton-theme.json` file that works in both
 the VS Code extension and the LaTeX package — same file, both hosts.
 
+The default preset uses charcoal text, teal and coral accents, a white canvas,
+and higher-contrast connectors. Source Sans 3 provides its regular and bold
+diagram typography. Default-theme SVGs embed the Latin web fonts, so they work
+offline without a system-font installation; native exports bundle the full TTF
+faces. Other scripts can use the declared sans-serif fallbacks. The font is
+distributed under the SIL Open Font License in
+[`assets/fonts/source-sans-3/`](assets/fonts/source-sans-3/).
+Other named presets retain their own palettes and typefaces.
+
+The adaptive API separates style from mode: `resolveThemeFamily('default',
+'dark', 'normal')` resolves a concrete theme, while `renderWithAppearance(source,
+{ mode: 'dark' })` returns SVG and a replayable appearance snapshot. The default
+family supports light/dark and normal/high contrast with identical typography
+and geometry tokens. Existing `getThemePreset('default')` callers retain a concrete
+light preset. SVG background painting is explicit; transparent output does not
+erase the palette's background token used for contrast calculations.
+
 → **[External Themes guide](docs/external-themes.md)**
 
 ## Development

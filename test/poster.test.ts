@@ -835,10 +835,10 @@ describe('poster scale homologation', () => {
     const subtitle = texts.find((t) => t.content === 'LUM-472');
     expect(primary).toBeDefined();
     expect(primary.fontWeight).toBe('bold');
-    expect(primary.fontSize).toBe(14);
+    expect(primary.fontSize).toBe(defaultTheme.typography.baseFontSize);
     expect(subtitle).toBeDefined();
     expect(subtitle.fontWeight).toBe('normal');
-    expect(subtitle.fontSize).toBe(11);
+    expect(subtitle.fontSize).toBe(defaultTheme.typography.smallFontSize);
   });
 
   it('renders cell titles with line separators (<br/> and \\n)', () => {

@@ -106,7 +106,7 @@ describe('flowchart layout', () => {
     expect(scene.background).toBe('#1a1a2e');
   });
 
-  it('long single-line text expands the node box width', () => {
+  it('long text expands the node box and wraps without losing words', () => {
     const longDoc: FlowDocument = {
       version: '1.0',
       metadata: {},
@@ -118,13 +118,22 @@ describe('flowchart layout', () => {
       edges: [{ from: 'short', to: 'long', style: 'solid' }],
       subgraphs: [],
     };
-    const { anchors } = layoutFlowchart(longDoc, defaultTheme);
+    const { scene, anchors } = layoutFlowchart(longDoc, defaultTheme);
     const shortBounds = anchors['short']!.bounds;
     const longBounds = anchors['long']!.bounds;
 
     expect(shortBounds.width).toBe(120); // Default min width
     expect(longBounds.width).toBeGreaterThan(200); // Expanded to fit text
-    expect(longBounds.height).toBe(40);
+    expect(longBounds.height).toBeGreaterThan(shortBounds.height);
+    const group = scene.elements.find(element => element.type === 'group' && element.id === 'long');
+    expect(group?.type).toBe('group');
+    if (group?.type !== 'group') return;
+    const lines = group.children.filter(element => element.type === 'text');
+    expect(lines.map(line => line.content).join(' ')).toBe(longDoc.nodes[1]!.label);
+    for (const line of lines) {
+      expect(line.position.y).toBeGreaterThan(longBounds.y);
+      expect(line.position.y).toBeLessThan(longBounds.y + longBounds.height);
+    }
   });
 
   it('multiline text with \\n and <br/> expands node height and renders multiple text elements', () => {

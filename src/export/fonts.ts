@@ -177,14 +177,19 @@ function getFontIndex(): Promise<readonly IndexedFontFace[]> {
 }
 
 function defaultBundledFontFaces(): IndexedFontFace[] {
-  const dir = join(process.cwd(), 'assets', 'fonts', 'inter');
-  const regular = join(dir, 'Inter-Regular.ttf');
-  const bold = join(dir, 'Inter-Bold.ttf');
-  if (!existsSync(regular) || !existsSync(bold)) return [];
   return [
-    { family: 'Inter', subfamily: 'Regular', fullName: 'Inter Regular', path: regular },
-    { family: 'Inter', subfamily: 'Bold', fullName: 'Inter Bold', path: bold },
-  ];
+    { directory: 'source-sans-3', prefix: 'SourceSans3', family: 'Source Sans 3' },
+    { directory: 'inter', prefix: 'Inter', family: 'Inter' },
+  ].flatMap(({ directory, prefix, family }) => {
+    const dir = join(process.cwd(), 'assets', 'fonts', directory);
+    const regular = join(dir, `${prefix}-Regular.ttf`);
+    const bold = join(dir, `${prefix}-Bold.ttf`);
+    if (!existsSync(regular) || !existsSync(bold)) return [];
+    return [
+      { family, subfamily: 'Regular', fullName: `${family} Regular`, path: regular },
+      { family, subfamily: 'Bold', fullName: `${family} Bold`, path: bold },
+    ];
+  });
 }
 
 function fontDirectories(): string[] {

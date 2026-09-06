@@ -22,6 +22,12 @@ export {
 // Reveal / anchor manifest embedding — used by presentation hosts (e.g. Deckpilot)
 // on the interactive path. Plain renderSync output stays manifest-free.
 export { embedAnchorManifest, embedRevealManifest } from './render/svg.js';
+export { renderSVG } from './render/svg.js';
+export { defaultAppearanceManifest, resolveThemeFamily } from './theme/family.js';
+export { renderWithAppearance } from './frontend/appearance.js';
+export type { AppearanceRenderOptions } from './frontend/appearance.js';
+export { sourceSans3FontCss } from './theme/sourceSans3.generated.js';
+export type { ColorMode, ContrastMode, ResolvedThemeFamily } from './theme/family.js';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type {
