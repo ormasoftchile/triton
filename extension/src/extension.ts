@@ -242,6 +242,14 @@ class PreviewManager {
     );
   }
 
+  getThemeRegistry(): ThemeRegistry {
+    return this.registry;
+  }
+
+  getIconRegistry(): IconRegistry {
+    return this.iconRegistry;
+  }
+
   /** Open or reveal the preview, bound to the active editor's document. */
   show(editor: vscode.TextEditor | undefined, column: vscode.ViewColumn): void {
     if (!editor) {
@@ -419,9 +427,9 @@ class PreviewManager {
   }
 
   private ensureExportWasm(): Promise<void> {
-    this.exportWasmPromise ??= vscode.workspace.fs
-      .readFile(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'index_bg.wasm'))
-      .then(bytes => initExportWasm(bytes));
+    this.exportWasmPromise ??= Promise.resolve(
+      vscode.workspace.fs.readFile(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'index_bg.wasm')),
+    ).then(bytes => initExportWasm(bytes));
     return this.exportWasmPromise;
   }
 
@@ -787,9 +795,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<{ exte
 
   context.subscriptions.push(manager);
 
-  // Phase 3 — IntelliSense: diagram-header + per-kind keyword completion, plus
-  // live parse/render diagnostics. Both are self-contained and disposable.
-  registerCompletion(context);
+  // Phase 3 — IntelliSense: context-aware symbol/keyword/theme/icon completion,
+  // plus live parse/render diagnostics.
+  registerCompletion(context, manager.getThemeRegistry(), manager.getIconRegistry());
   registerDiagnostics(context);
 
   // Keep the markdown-it fallback baseDir pointed at the current Markdown file's

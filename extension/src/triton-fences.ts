@@ -35,7 +35,7 @@ export function findTritonFences(text: string): TritonFence[] {
     const bodyStart = i + 1;
     let j = bodyStart;
     while (j < lines.length && !FENCE.test(lines[j]!)) j++;
-    if (lang === 'triton') {
+    if (lang === 'triton' || lang === 'mermaid') {
       out.push({ bodyStartLine: bodyStart, bodyEndLine: j, body: lines.slice(bodyStart, j).join('\n') });
     }
     i = j + 1; // resume past the closing fence

@@ -25,6 +25,9 @@
   "main": "./dist/extension.cjs",
   "activationEvents": [
     "onStartupFinished",
+    "onLanguage:triton",
+    "onLanguage:mermaid",
+    "onLanguage:markdown",
     "onCommand:triton.openPreview",
     "onCommand:triton.openPreviewToSide",
     "onCommand:triton.exportSvg",
@@ -41,8 +44,20 @@
           "Triton"
         ],
         "extensions": [
-          ".triton"
-        ]
+          ".triton",
+          ".mmd"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "triton",
+        "path": "./snippets/diagrams.json"
+      },
+      {
+        "language": "mermaid",
+        "path": "./snippets/diagrams.json"
       }
     ],
     "commands": [

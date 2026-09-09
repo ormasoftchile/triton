@@ -98,6 +98,17 @@ export const DIAGRAM_HEADERS: readonly HeaderKeyword[] = [
   { insert: 'trie', kind: 'trie', detail: 'Trie', doc: '`trie insert cat car card …`.' },
   { insert: 'nodegraph', kind: 'nodegraph', detail: 'Node graph', doc: 'General graph; `directed`, `node`, edges.' },
   { insert: 'unionfind', kind: 'unionfind', detail: 'Union-find (DSU)', doc: 'Disjoint sets: `unionfind 7`, `parent …`.' },
+  { insert: 'bplustree', kind: 'bplustree', detail: 'B+ tree', doc: 'B+ tree: `bplustree order 3 insert 10 20 5 …`.' },
+  { insert: 'list', kind: 'list', detail: 'List', doc: 'Indented or bulleted list.' },
+  { insert: 'fishbone', kind: 'fishbone', detail: 'Fishbone (Ishikawa)', doc: 'Cause-and-effect diagram.' },
+  { insert: 'pyramid', kind: 'pyramid', detail: 'Pyramid', doc: 'Hierarchical pyramid or funnel diagram.' },
+  { insert: 'loop', kind: 'loop', detail: 'Loop / Flywheel', doc: 'Cyclical loop or flywheel diagram.' },
+  { insert: 'merkletree', kind: 'merkletree', detail: 'Merkle tree', doc: 'Cryptographic hash tree with proof paths.' },
+  { insert: 'lsmtree', kind: 'lsmtree', detail: 'LSM tree', doc: 'Log-Structured Merge-tree diagram.' },
+  { insert: 'behaviortree', kind: 'behaviortree', detail: 'Behavior tree', doc: 'AI behavior tree with composite and action nodes.' },
+  { insert: 'quadtree', kind: 'quadtree', detail: 'Quadtree', doc: '2D spatial partitioning tree.' },
+  { insert: 'treap', kind: 'treap', detail: 'Treap', doc: 'Cartesian tree combining BST keys and heap priorities.' },
+  { insert: '234tree', kind: '234tree', detail: '2-3-4 tree', doc: 'Self-balancing B-tree of order 4.' },
 ];
 
 // ─── 2. Per-kind body keywords (modest, grounded) ───────────────────────────────
@@ -317,6 +328,64 @@ const UNIONFIND: KeywordEntry[] = [
   { label: 'parent', insert: 'parent ${1:0 0 1 3 3 5 5}', snippet: true, detail: 'Parent array', doc: 'Parent pointer per element.' },
 ];
 
+const POSTER: KeywordEntry[] = [
+  { label: 'columns', insert: 'columns ${1:2}', snippet: true, detail: 'Grid column count', doc: 'Number of columns in the poster grid.' },
+  { label: 'rows', insert: 'rows ${1:2}', snippet: true, detail: 'Grid row count', doc: 'Number of rows in the poster grid.' },
+  { label: 'gap', insert: 'gap ${1:16}', snippet: true, detail: 'Grid gap', doc: 'Spacing between cells in pixels.' },
+  { label: 'cell (named)', insert: 'cell "${1:Title}"\n\t${2:flowchart LR}\n\t\t$0\nend', snippet: true, detail: 'Named poster cell block', doc: 'Embed a diagram within a named poster cell.' },
+  { label: 'cell [col,row]', insert: 'cell [${1:0}, ${2:0}]:\n\t$0', snippet: true, detail: 'Positioned cell', doc: 'Cell with explicit grid coordinates: `cell [0, 0]:`.' },
+  { label: 'cell [col,row,w,h]', insert: 'cell [${1:0}, ${2:0}, ${3:2}, ${4:1}]:\n\t$0', snippet: true, detail: 'Spanning cell', doc: 'Cell spanning multiple columns/rows: `cell [col, row, width, height]:`.' },
+  { label: 'cell A1', insert: 'cell ${1:A1}:\n\t$0', snippet: true, detail: 'Excel-style cell', doc: 'Cell addressed by Excel coordinates: `cell A1:`.' },
+  { label: 'link', insert: 'link ${1:cell1}:${2:nodeA} --> ${3:cell2}:${4:nodeB}', snippet: true, detail: 'Cross-diagram link', doc: 'Connect nodes across different poster cells.' },
+  { label: 'trace', insert: 'trace ${1:TraceName} ${2:cell1}:${3:nodeA} --> ${4:cell2}:${5:nodeB}', snippet: true, detail: 'Cross-diagram trace', doc: 'Multi-hop named trace across diagram cells.' },
+  { label: '@anim:march', detail: 'Marching-ants animation', doc: 'Marching-ants edge animation: `--> @anim:march`.' },
+  { label: '@anim:flow', detail: 'Flow animation', doc: 'Flow edge animation: `--> @anim:flow`.' },
+  { label: '@anim:pulse', detail: 'Pulse animation', doc: 'Pulse edge animation: `--> @anim:pulse`.' },
+  { label: '@orthogonal', detail: 'Orthogonal routing', doc: 'Manhattan 90-degree routing for crosslinks.' },
+  { label: '@bezier', detail: 'Smooth curved routing', doc: 'Cubic bezier curve routing for crosslinks.' },
+  { label: '@straight', detail: 'Direct straight routing', doc: 'Direct line routing for crosslinks.' },
+];
+
+const BPLUSTREE: KeywordEntry[] = [
+  { label: 'order', insert: 'order ${1:3}', snippet: true, detail: 'B+ tree order', doc: '`bplustree order 3 insert …`.' },
+  { label: 'insert', insert: 'insert ${1:10 20 5 30}', snippet: true, detail: 'Insert values', doc: 'Values to insert.' },
+];
+
+const LIST: KeywordEntry[] = [
+  { label: 'title', insert: 'title ${1:Agenda}', snippet: true, detail: 'List title', doc: 'Top title for the list diagram.' },
+  { label: '-', insert: '- ${1:Item}', snippet: true, detail: 'Bullet item', doc: 'Bullet list item: `- Item`.' },
+  { label: '*', insert: '* ${1:Item}', snippet: true, detail: 'Bullet item', doc: 'Bullet list item: `* Item`.' },
+];
+
+const FISHBONE: KeywordEntry[] = [
+  { label: 'title', insert: 'title ${1:Problem Statement}', snippet: true, detail: 'Fishbone title', doc: 'Top title.' },
+  { label: 'cause', insert: 'cause ${1:Category} : ${2:Detail}', snippet: true, detail: 'Cause branch', doc: '`cause Methods : Manual Deploy`.' },
+];
+
+const PYRAMID: KeywordEntry[] = [
+  { label: 'title', insert: 'title ${1:Hierarchy}', snippet: true, detail: 'Pyramid title', doc: 'Top title.' },
+  { label: 'level', insert: 'level ${1:Label}', snippet: true, detail: 'Pyramid tier', doc: '`level Strategy`' },
+];
+
+const LOOP: KeywordEntry[] = [
+  { label: 'title', insert: 'title ${1:Flywheel}', snippet: true, detail: 'Loop title', doc: 'Top title.' },
+  { label: 'step', insert: 'step ${1:Action}', snippet: true, detail: 'Loop step', doc: '`step Acquire Users`' },
+];
+
+const MERKLETREE: KeywordEntry[] = [
+  { label: 'title', insert: 'title ${1:Title}', snippet: true, detail: 'Merkle tree title', doc: 'Top title.' },
+  { label: 'data', insert: 'data "${1:Tx1}" "${2:Tx2}" "${3:Tx3}" "${4:Tx4}"', snippet: true, detail: 'Data items', doc: 'Leaves to hash.' },
+  { label: 'proof', insert: 'proof "${1:Tx3}"', snippet: true, detail: 'Highlight proof path', doc: 'Audited leaf.' },
+  { label: 'root', insert: 'root [${1:H_root}] -> ${2:h1}, ${3:h2}', snippet: true, detail: 'Manual root', doc: '`root [H_root] -> h1, h2`' },
+  { label: 'node', insert: 'node ${1:h12} [${2:H_12}] -> ${3:h1}, ${4:h2}', snippet: true, detail: 'Internal node', doc: '`node h12 [H_12] -> h1, h2`' },
+  { label: 'leaf', insert: 'leaf ${1:h1} [${2:H_1: "Tx1"}]', snippet: true, detail: 'Leaf node', doc: '`leaf h1 [H_1: "Tx1"]`' },
+];
+
+const TREE_GENERIC: KeywordEntry[] = [
+  { label: 'title', insert: 'title ${1:Tree}', snippet: true, detail: 'Tree title', doc: 'Top title.' },
+  { label: 'insert', insert: 'insert ${1:10 20 5}', snippet: true, detail: 'Insert values', doc: 'Values to insert.' },
+];
+
 export const KIND_KEYWORDS: Partial<Record<DiagramKind, readonly KeywordEntry[]>> = {
   flowchart: FLOWCHART,
   sequence: SEQUENCE,
@@ -326,6 +395,9 @@ export const KIND_KEYWORDS: Partial<Record<DiagramKind, readonly KeywordEntry[]>
   gantt: GANTT,
   journey: JOURNEY,
   gitgraph: GITGRAPH,
+  sankey: [{ label: 'source,target,value', insert: '${1:Source},${2:Target},${3:10}', snippet: true, detail: 'Flow row', doc: 'CSV row: source,target,value' }],
+  kanban: [{ label: 'column', insert: '${1:Column Name}\n  ${2:id}[${3:Card Title}]', snippet: true, detail: 'Kanban column', doc: 'Column with cards' }],
+  architecture: [{ label: 'group', insert: 'group ${1:api}(${2:cloud})[${3:API Group}]', snippet: true, detail: 'Architecture group', doc: 'Service group' }, { label: 'service', insert: 'service ${1:db}(${2:database})[${3:Database}] in ${4:api}', snippet: true, detail: 'Architecture service', doc: 'Service' }],
   requirement: REQUIREMENT,
   mindmap: MINDMAP,
   pie: PIE,
@@ -337,11 +409,14 @@ export const KIND_KEYWORDS: Partial<Record<DiagramKind, readonly KeywordEntry[]>
   radar: RADAR,
   packet: PACKET,
   topology: TOPOLOGY,
+  poster: POSTER,
   tree: TREE,
   plan: PLAN,
   avl: INSERT_ONLY,
   rbtree: INSERT_ONLY,
   btree: BTREE,
+  bplustree: BPLUSTREE,
+  'b+tree': BPLUSTREE,
   radix: INSERT_ONLY,
   segtree: SEGTREE,
   heap: HEAP,
@@ -359,4 +434,75 @@ export const KIND_KEYWORDS: Partial<Record<DiagramKind, readonly KeywordEntry[]>
   matrix: MATRIX,
   nodegraph: NODEGRAPH,
   unionfind: UNIONFIND,
+  list: LIST,
+  fishbone: FISHBONE,
+  pyramid: PYRAMID,
+  loop: LOOP,
+  merkletree: MERKLETREE,
+  lsmtree: TREE_GENERIC,
+  behaviortree: TREE_GENERIC,
+  quadtree: TREE_GENERIC,
+  treap: TREE_GENERIC,
+  '234tree': TREE_GENERIC,
+  '2-3-4tree': TREE_GENERIC,
 };
+
+// ─── 3. Shape Snippets ─────────────────────────────────────────────────────────
+
+export interface ShapeSnippet {
+  readonly label: string;
+  readonly insert: string;
+  readonly detail: string;
+}
+
+export const FLOWCHART_SHAPES: readonly ShapeSnippet[] = [
+  { label: '[Rectangle]', insert: '[${1:Label}]', detail: 'Standard box node' },
+  { label: '(Rounded)', insert: '(${1:Label})', detail: 'Rounded rectangle node' },
+  { label: '([Stadium])', insert: '([${1:Label}])', detail: 'Pill / stadium node' },
+  { label: '[[(Subroutine)]]', insert: '[[${1:Label}]]', detail: 'Subroutine dual-border node' },
+  { label: '[(Database)]', insert: '[(${1:Label})]', detail: 'Cylindrical database node' },
+  { label: '((Circle))', insert: '((${1:Label}))', detail: 'Circular node' },
+  { label: '{{Hexagon}}', insert: '{{${1:Label}}}', detail: 'Hexagonal node' },
+  { label: '{Rhombus / Decision}', insert: '{${1:Label}}', detail: 'Diamond / decision node' },
+  { label: '>Flag / Asymmetric]', insert: '>${1:Label}]', detail: 'Flag / asymmetric node' },
+  { label: '[/Parallelogram/]', insert: '[/${1:Label}/]', detail: 'Parallelogram node' },
+  { label: '[\\Inverted Parallelogram\\]', insert: '[\\${1:Label}\\]', detail: 'Inverted parallelogram node' },
+  { label: '[/Trapezoid\\]', insert: '[/${1:Label}\\]', detail: 'Trapezoid node' },
+  { label: '[\\Inverted Trapezoid/]', insert: '[\\${1:Label}/]', detail: 'Inverted trapezoid node' },
+  { label: '(((Double Circle)))', insert: '(((${1:Label})))', detail: 'Double circle node' },
+];
+
+// ─── 4. Arrow / Edge Snippets ──────────────────────────────────────────────────
+
+export const FLOWCHART_ARROWS: readonly KeywordEntry[] = [
+  { label: '-->', insert: '--> ${1:Target}', snippet: true, detail: 'Directed edge', doc: '`A --> B`' },
+  { label: '---', insert: '--- ${1:Target}', snippet: true, detail: 'Open link', doc: '`A --- B`' },
+  { label: '-->|label|', insert: '-->|${1:label}| ${2:Target}', snippet: true, detail: 'Labelled arrow', doc: '`A -->|yes| B`' },
+  { label: '-.->', insert: '-.-> ${1:Target}', snippet: true, detail: 'Dotted arrow', doc: '`A -.-> B`' },
+  { label: '-.-', insert: '-.- ${1:Target}', snippet: true, detail: 'Dotted link', doc: '`A -.- B`' },
+  { label: '==>', insert: '==> ${1:Target}', snippet: true, detail: 'Thick arrow', doc: '`A ==> B`' },
+  { label: '===', insert: '=== ${1:Target}', snippet: true, detail: 'Thick line', doc: '`A === B`' },
+  { label: '<-->', insert: '<--> ${1:Target}', snippet: true, detail: 'Bi-directional arrow', doc: '`A <--> B`' },
+  { label: '-~->', insert: '-~-> ${1:Target}', snippet: true, detail: 'Wavy arrow', doc: '`A -~-> B`' },
+];
+
+export const SEQUENCE_ARROWS: readonly KeywordEntry[] = [
+  { label: '->>', insert: '->>${1:Target}: ${2:Message}', snippet: true, detail: 'Solid message', doc: '`A->>B: text`' },
+  { label: '-->>', insert: '-->>${1:Target}: ${2:Response}', snippet: true, detail: 'Dashed reply', doc: '`B-->>A: reply`' },
+  { label: '->', insert: '->${1:Target}: ${2:Message}', snippet: true, detail: 'Solid without arrow', doc: '`A->B: text`' },
+  { label: '-->', insert: '-->${1:Target}: ${2:Response}', snippet: true, detail: 'Dashed without arrow', doc: '`B-->A: reply`' },
+  { label: '-x', insert: '-x${1:Target}: ${2:Message}', snippet: true, detail: 'Lost message', doc: '`A-xB: text`' },
+  { label: '--x', insert: '--x${1:Target}: ${2:Response}', snippet: true, detail: 'Dashed lost message', doc: '`B--xA: reply`' },
+  { label: '-)', insert: '-)${1:Target}: ${2:Message}', snippet: true, detail: 'Async message', doc: '`A-)B: text`' },
+  { label: '--)', insert: '--)${1:Target}: ${2:Response}', snippet: true, detail: 'Dashed async message', doc: '`B--)A: reply`' },
+];
+
+// ─── 5. Frontmatter / Config Keys ──────────────────────────────────────────────
+
+export const FRONTMATTER_KEYS: readonly KeywordEntry[] = [
+  { label: 'title:', insert: 'title: "${1:Diagram Title}"', snippet: true, detail: 'Diagram title', doc: 'Document title shown on export and preview.' },
+  { label: 'theme:', insert: 'theme: ${1|default,executive,minimal,dark,midnight,forest,neutral,base,bw|}', snippet: true, detail: 'Theme preset', doc: 'Apply a visual theme preset.' },
+  { label: 'themeVariables:', insert: 'themeVariables:\n  ${1:primaryColor}: "${2:#326ce5}"', snippet: true, detail: 'Theme variables', doc: 'Override palette variables.' },
+  { label: 'look:', insert: 'look: ${1|classic,handDrawn|}', snippet: true, detail: 'Render look', doc: 'Choose between classic crisp vectors or handDrawn look.' },
+];
+

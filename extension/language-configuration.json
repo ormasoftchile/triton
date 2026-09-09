@@ -1,0 +1,30 @@
+{
+  "comments": {
+    "lineComment": "%%"
+  },
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"]
+  ],
+  "autoClosingPairs": [
+    { "open": "{", "close": "}" },
+    { "open": "[", "close": "]" },
+    { "open": "(", "close": ")" },
+    { "open": "\"", "close": "\"" },
+    { "open": "'", "close": "'" },
+    { "open": "`", "close": "`" }
+  ],
+  "surroundingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"],
+    ["\"", "\""],
+    ["'", "'"],
+    ["`", "`"]
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*(?:subgraph|state\\s+.*\\{|class\\s+.*\\{|cell\\b.*|poster\\b.*|loop\\b.*|alt\\b.*|opt\\b.*|par\\b.*|critical\\b.*|.*\\{\\s*)$",
+    "decreaseIndentPattern": "^\\s*(?:end\\b|else\\b|and\\b|\\}\\s*)$"
+  }
+}

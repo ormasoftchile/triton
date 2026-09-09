@@ -1,6 +1,6 @@
 poster "Coherent primitive comparison"
   columns 3
-  gap 28
+  
   cell flow "Flowchart Pipeline" :: flowchart
     flowchart TD
       source[Incoming Records]
@@ -14,7 +14,7 @@ poster "Coherent primitive comparison"
   cell tr "Tree Hierarchy" :: tree
     tree TD
       Incoming Records :box
-        Parse Payload :box
+        Parse Payload 
           Validate Fields :box
             Archive :leaf
   end

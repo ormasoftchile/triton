@@ -1,0 +1,193 @@
+{
+  "Triton Flowchart (LR)": {
+    "prefix": ["flowchart", "flowchart-lr"],
+    "body": [
+      "flowchart LR",
+      "    start([Start]) --> validate{Validate}",
+      "    validate -->|valid| process[Process Order]",
+      "    validate -->|invalid| reject[Reject Order]",
+      "    process --> notify(Notify Customer)",
+      "    notify --> done([Done])"
+    ],
+    "description": "Create a new Flowchart diagram (Left to Right)"
+  },
+  "Triton Flowchart (TD)": {
+    "prefix": ["flowchart-td", "graph-td"],
+    "body": [
+      "flowchart TD",
+      "    client[Client Application] --> api[API Gateway]",
+      "    api --> auth[Auth Service]",
+      "    api --> backend[Backend Service]",
+      "    backend --> db[(Database)]"
+    ],
+    "description": "Create a new Flowchart diagram (Top to Down)"
+  },
+  "Triton Sequence Diagram": {
+    "prefix": ["sequence", "sequenceDiagram"],
+    "body": [
+      "sequenceDiagram",
+      "    autonumber",
+      "    actor User",
+      "    participant Client as Web Client",
+      "    participant API as API Service",
+      "    participant DB as Database",
+      "",
+      "    User->>+Client: Request action",
+      "    Client->>+API: POST /resource",
+      "    API->>+DB: Query record",
+      "    DB-->>-API: Result set",
+      "    API-->>-Client: 200 OK",
+      "    Client-->>-User: Show confirmation"
+    ],
+    "description": "Create a new Sequence diagram"
+  },
+  "Triton State Diagram": {
+    "prefix": ["state", "stateDiagram", "stateDiagram-v2"],
+    "body": [
+      "stateDiagram-v2",
+      "    [*] --> Idle",
+      "    Idle --> Processing : submit",
+      "    state Processing {",
+      "        [*] --> Validating",
+      "        Validating --> Executing : valid",
+      "        Executing --> [*]",
+      "    }",
+      "    Processing --> Completed : success",
+      "    Processing --> Failed : error",
+      "    Completed --> [*]",
+      "    Failed --> [*]"
+    ],
+    "description": "Create a new State diagram"
+  },
+  "Triton Class Diagram": {
+    "prefix": ["class", "classDiagram"],
+    "body": [
+      "classDiagram",
+      "    class User {",
+      "        +String id",
+      "        +String name",
+      "        +String email",
+      "        +login() bool",
+      "    }",
+      "    class Order {",
+      "        +String orderId",
+      "        +float total",
+      "        +submit()",
+      "    }",
+      "    User \"1\" --> \"*\" Order : places"
+    ],
+    "description": "Create a new Class diagram"
+  },
+  "Triton ER Diagram": {
+    "prefix": ["er", "erDiagram"],
+    "body": [
+      "erDiagram",
+      "    CUSTOMER ||--o{ ORDER : places",
+      "    CUSTOMER {",
+      "        string id PK",
+      "        string name",
+      "        string email",
+      "    }",
+      "    ORDER ||--|{ LINE_ITEM : contains",
+      "    ORDER {",
+      "        int id PK",
+      "        int customer_id FK",
+      "        float total",
+      "    }"
+    ],
+    "description": "Create a new Entity-Relationship diagram"
+  },
+  "Triton Poster (Composition)": {
+    "prefix": ["poster", "poster-composition"],
+    "body": [
+      "poster \"${1:System Architecture Overview}\"",
+      "  columns 2",
+      "  gap 16",
+      "",
+      "  cell \"${2:Services}\"",
+      "    flowchart LR",
+      "      api[API Gateway] --> auth[Auth Service]",
+      "      api --> orders[Orders Service]",
+      "  end",
+      "",
+      "  cell \"${3:Lifecycle}\"",
+      "    stateDiagram-v2",
+      "      [*] --> Draft",
+      "      Draft --> Active : publish",
+      "      Active --> [*]",
+      "  end",
+      "",
+      "  link cell1:orders --> cell2:Active"
+    ],
+    "description": "Create a new Poster composition combining multiple diagrams"
+  },
+  "Triton C4 Context": {
+    "prefix": ["c4", "C4Context"],
+    "body": [
+      "C4Context",
+      "    title System Context diagram for Internet Banking System",
+      "    Person(customer, \"Personal Banking Customer\", \"A customer of the bank.\")",
+      "    System(banking_system, \"Internet Banking System\", \"Allows customers to view information about their bank accounts.\")",
+      "    System_Ext(mail_system, \"E-mail System\", \"The internal Microsoft Exchange e-mail system.\")",
+      "",
+      "    Rel(customer, banking_system, \"Views account balances, and makes payments using\")",
+      "    Rel(banking_system, mail_system, \"Sends e-mails using\")"
+    ],
+    "description": "Create a C4 Context diagram"
+  },
+  "Triton Mindmap": {
+    "prefix": ["mindmap"],
+    "body": [
+      "mindmap",
+      "    root((System Architecture))",
+      "        Compute",
+      "            Kubernetes",
+      "            Serverless",
+      "        Storage",
+      "            PostgreSQL",
+      "            Redis Cache",
+      "        Networking",
+      "            CloudFront CDN",
+      "            API Gateway"
+    ],
+    "description": "Create a Mindmap diagram"
+  },
+  "Triton Timeline": {
+    "prefix": ["timeline"],
+    "body": [
+      "timeline",
+      "    title Product Roadmap",
+      "    section 2025 Q1",
+      "        Design System : Requirements",
+      "        Core Engine : Prototyping",
+      "    section 2025 Q2",
+      "        Beta Release : Testing",
+      "        GA Launch : Production"
+    ],
+    "description": "Create a Timeline diagram"
+  },
+  "Triton B+ Tree": {
+    "prefix": ["bplustree", "b+tree"],
+    "body": [
+      "bplustree",
+      "    order 3",
+      "    insert 10 20 5 6 12 30 7 17"
+    ],
+    "description": "Create a self-balancing B+ tree diagram"
+  },
+  "Triton List": {
+    "prefix": ["list"],
+    "body": [
+      "list",
+      "    title Project Agenda",
+      "    Introduction",
+      "    - Background context",
+      "    - Target architecture",
+      "    Implementation",
+      "    - Core pipeline",
+      "    - VS Code extension",
+      "    Deliverables"
+    ],
+    "description": "Create a List presentation diagram"
+  }
+}

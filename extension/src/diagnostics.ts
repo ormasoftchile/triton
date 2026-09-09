@@ -75,9 +75,9 @@ export function registerDiagnostics(context: vscode.ExtensionContext): void {
 }
 
 function isTarget(doc: vscode.TextDocument): boolean {
-  if (doc.languageId === 'triton') return true;
+  if (doc.languageId === 'triton' || doc.languageId === 'mermaid') return true;
   const path = doc.uri.path.toLowerCase();
-  if (path.endsWith('.triton')) return true;
+  if (path.endsWith('.triton') || path.endsWith('.mmd')) return true;
   return doc.languageId === 'markdown' || path.endsWith('.md') || path.endsWith('.markdown');
 }
 
