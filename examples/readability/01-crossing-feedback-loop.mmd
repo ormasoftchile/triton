@@ -1,0 +1,16 @@
+flowchart TB
+  coordinator["Coordinator"]
+  inbound["Incoming items"]
+  worker["Processing stage"]
+  outbound["Completed items"]
+  cache["Reusable context"]
+  helper["External helper"]
+
+  coordinator -->|request| worker
+  inbound -->|batch| worker
+  worker -->|lookup| cache
+  cache -->|invoke| helper
+  helper -->|result| cache
+  cache -->|enriched batch| worker
+  worker -->|emit| outbound
+  outbound -->|next request| coordinator

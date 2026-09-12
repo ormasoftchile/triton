@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 571.13814 543.8" width="571.13814" height="543.8">
+  <defs>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#737373" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+    <marker id="triton-crosslink-arrow-525252" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="571.13814" height="543.8" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Workflow with durable restart</text>
+  <rect x="24" y="58" width="244.98167999999998" height="461.8" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="296.98168" y="58" width="250.15645999999998" height="461.8" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <path d="M 174.84520500000002 321.6666666666667 L 186.84520500000002 321.6666666666667 L 186.84520500000002 266.6 L 408.78252999999995 266.6 L 408.78252999999995 221.13333333333333 L 420.78252999999995 221.13333333333333" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 420.78252999999995 212.46666666666664 L 402.18253 212.46666666666664 L 402.18253 176.06666666666666 L 180.99258000000003 176.06666666666666" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 316.58168 216.79999999999998 L 248.78713000000002 216.79999999999998 L 248.78713000000002 184.73333333333335 L 180.99258000000003 184.73333333333335" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 174.84520500000002 330.3333333333333 L 275.71318499999995 330.3333333333333 L 275.71318499999995 358.06666666666666 L 376.58116499999994 358.06666666666666" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 177.922695 398.8 L 277.25192999999996 398.8 L 277.25192999999996 366.7333333333333 L 376.58116499999994 366.7333333333333" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <text x="32" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Execution loop</text>
+  <g transform="translate(28.000000000000014, 79) scale(0.65)">
+    <path d="M 163.06 64 L 163.06 136" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 163.06 176 L 163.06 248" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 163.06 288 L 163.06 360" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 163.06 400 L 163.06 472" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 214.65 512 L 193.83 584" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 111.48 512 L 117.83 584" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="186.8596" y="539" width="34.7648" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="204.242" y="552" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">done</text>
+    <rect x="87.59315000000001" y="539" width="54.124399999999994" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="114.65535000000001" y="552" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">continue</text>
+    <rect x="98.72765000000001" y="24" width="128.67199999999997" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Incoming request</text>
+    <rect x="90.7541" y="136" width="144.6191" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="160.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Create or load state</text>
+    <rect x="105.61439999999999" y="248" width="114.8985" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="272.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Execute action</text>
+    <rect x="100.2116" y="360" width="125.7041" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="384.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Persist transition</text>
+    <rect x="95.477" y="472" width="135.17329999999998" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="496.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Choose next state</text>
+    <rect x="177.8337" y="584" width="138.75349999999997" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="247.21044999999998" y="608.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Workflow complete</text>
+    <rect x="24.000000000000014" y="584" width="109.8337" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="78.91685000000001" y="608.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Repeat action</text>
+  </g>
+  <text x="304.98168" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Storage, restart, and telemetry</text>
+  <g transform="translate(300.98168, 188.2) scale(0.65)">
+    <path d="M 200.31 64 L 215.9 136" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 124.31 64 L 120.68 136" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 168.29 176 L 168.29 248" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="101.78034999999997" y="91" width="41.4332" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="122.49694999999997" y="104" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">reload</text>
+    <rect x="134.88379999999995" y="203" width="66.8156" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="168.29159999999996" y="216" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">observable</text>
+    <rect x="184.30899999999997" y="24" width="140.2394" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="254.42869999999996" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Durable state store</text>
+    <rect x="23.999999999999993" y="24" width="116.30899999999998" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="82.15449999999998" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Process restart</text>
+    <rect x="116.30689999999996" y="248" width="103.9694" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="168.29159999999996" y="272.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Activity trace</text>
+    <rect x="104.68489999999997" y="136" width="127.2134" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="168.29159999999996" y="160.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Last stored state</text>
+  </g>
+  <rect x="278.2138675" y="248.60000000000002" width="39.2" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="297.8138675" y="264.6" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">save</text>
+  <rect x="264.18755500000003" y="158.06666666666666" width="54.800000000000004" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="291.587555" y="174.06666666666666" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">reload</text>
+  <rect x="255.28440500000005" y="198.79999999999998" width="54.800000000000004" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="282.684405" y="214.79999999999998" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">resume</text>
+  <rect x="208.33496944444443" y="312.3333333333333" width="86" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="251.33496944444443" y="328.3333333333333" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">transition</text>
+  <rect x="276.172786111111" y="348.7333333333333" width="47" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="299.672786111111" y="364.7333333333333" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">state</text>
+</svg>

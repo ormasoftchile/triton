@@ -34,7 +34,7 @@ import type { CardinalSide, NodeAnchorRegistry, OccupiedPort } from '../contract
 import type { PortDirection } from '../contracts/routing.js';
 import type { Point, Rect } from '../contracts/primitives.js';
 import type { ResolvedTheme } from '../contracts/theme.js';
-import { createRouter } from '../routing/router.js';
+import { createRouter, countRouteCollisions } from '../routing/router.js';
 import { wavifyPath } from './render.js';
 import { crossLinkMarkerId } from './markers.js';
 import { rhu } from '../util/round.js';
@@ -213,14 +213,23 @@ export function routeAndRenderCrossLinks3(
       committed,
       intraPorts ?? [],
       hint,
+      occupiedRects,
     );
     if (!best) continue;
+    if (countRouteCollisions(best.committed.points, allNodeBounds) > 0) {
+      console.warn(
+        `[routing] No clear route for cross-link between ${addrKey(link.from)} and ${addrKey(link.to)}: route intersects obstacles.`,
+      );
+    }
     committed.push(best.committed);
 
     let color: string;
     const explicitColor = typeof link.props?.color === 'string' ? link.props.color : undefined;
+    const isMono = theme.name.startsWith('bw-') || theme.name.includes('mono');
     if (explicitColor) {
       color = explicitColor;
+    } else if (isMono) {
+      color = palette.primary;
     } else {
       color = PALETTE[explicitColorIdx % PALETTE.length]!;
       explicitColorIdx++;
@@ -279,6 +288,7 @@ export function routeAndRenderCrossLinks3(
     links,
     portHints,
     resolvable,
+    occupiedRects,
   );
 
   // Reconstruct workingRoutes in original link order
@@ -401,6 +411,19 @@ export function routeAndRenderCrossLinks3(
     const l = pendingLabels[i]!;
     const r = labelRects[i]!;
     elements.push({
+      type: 'rect',
+      bounds: {
+        x: r.x,
+        y: r.y,
+        width: r.width,
+        height: r.height,
+      },
+      fill: palette.background,
+      stroke: 'none',
+      strokeWidth: 0,
+      rx: 3,
+    });
+    elements.push({
       type: 'text',
       content: l.content,
       position: { x: r.x + r.width / 2, y: r.y + r.height - LABEL_PAD },
@@ -443,6 +466,7 @@ function findBestRoute(
   committed: readonly CommittedRoute[],
   intraPorts: readonly OccupiedPort[],
   portHint?: PortHint,
+  occupiedRects?: readonly Rect[],
 ): { committed: CommittedRoute; rawPts: readonly Point[] } | null {
   const addrKey = (addr: { cellPath: readonly string[]; nodeId: string }): string =>
     [...addr.cellPath, addr.nodeId].join('.');
@@ -474,10 +498,19 @@ function findBestRoute(
   const sameTargetCell = (key: string): boolean =>
     dstCellId.length > 0 && key.startsWith(dstCellId + '.');
   const linkObstacles: Rect[] = Object.entries(anchors)
-    .filter(
-      ([key]) => !sameSourceCell(key) && !sameTargetCell(key) && key !== srcKey && key !== dstKey,
-    )
-    .map(([, a]) => a.bounds);
+    .filter(([key]) => key !== srcKey && key !== dstKey)
+    .map(([key, a]) => {
+      if (sameSourceCell(key) || sameTargetCell(key)) {
+        const pad = 2;
+        return {
+          x: a.bounds.x + pad,
+          y: a.bounds.y + pad,
+          width: Math.max(0, a.bounds.width - 2 * pad),
+          height: Math.max(0, a.bounds.height - 2 * pad),
+        };
+      }
+      return a.bounds;
+    });
   if (cellRects) {
     for (const [cellId, r] of cellRects) {
       if (cellId === srcCellId || cellId === dstCellId) continue;
@@ -488,8 +521,12 @@ function findBestRoute(
       }
     }
   }
+  if (occupiedRects && occupiedRects.length > 0) {
+    linkObstacles.push(...occupiedRects);
+  }
 
   const routeStyle = link.routing ?? 'orthogonal';
+  const isStraight = routeStyle === 'straight';
   const sides: CardinalSide[] = ['N', 'S', 'E', 'W'];
   // Collapse search dimensions. Precedence: explicit user exit/entry walls win,
   // then phase-0 shared-port fan hints, then full 4-wall search.
@@ -497,17 +534,37 @@ function findBestRoute(
     ? [link.exitWall]
     : portHint?.srcWall
       ? [portHint.srcWall]
-      : sides;
+      : isStraight
+        ? [idealSrcWall(srcCenter, dstCenter)]
+        : sides;
   const dstWalls: CardinalSide[] = link.entryWall
     ? [link.entryWall]
     : portHint?.dstWall
       ? [portHint.dstWall]
-      : sides;
+      : isStraight
+        ? [idealDstWall(srcCenter, dstCenter)]
+        : sides;
   // Honor a phase-0 fan t whenever one was assigned. Pinned walls always get a
   // fan slot (centre when alone, evenly spread when several share the wall), so
   // this is what centres the port on the wall.
-  const srcTs: readonly number[] = portHint?.srcT !== undefined ? [portHint.srcT] : WALL_TS;
-  const dstTs: readonly number[] = portHint?.dstT !== undefined ? [portHint.dstT] : WALL_TS;
+  const srcTs: readonly number[] =
+    portHint?.srcT !== undefined ? [portHint.srcT] : isStraight ? [0.5] : WALL_TS;
+  const dstTs: readonly number[] =
+    portHint?.dstT !== undefined ? [portHint.dstT] : isStraight ? [0.5] : WALL_TS;
+
+  let gridMinX = Infinity,
+    gridMaxX = -Infinity,
+    gridMinY = Infinity,
+    gridMaxY = -Infinity;
+  if (cellRects && cellRects.size > 0) {
+    for (const r of cellRects.values()) {
+      if (r.x < gridMinX) gridMinX = r.x;
+      if (r.x + r.width > gridMaxX) gridMaxX = r.x + r.width;
+      if (r.y < gridMinY) gridMinY = r.y;
+      if (r.y + r.height > gridMaxY) gridMaxY = r.y + r.height;
+    }
+  }
+  const hasGridBounds = gridMinX < gridMaxX;
 
   let bestScore = Infinity;
   let bestCommitted!: CommittedRoute;
@@ -554,7 +611,8 @@ function findBestRoute(
             padding: routePadding,
             fromDir: ss as PortDirection,
             toDir: ds as PortDirection,
-          });
+            noWarn: true,
+          } as any);
           const rawPts = route.points as Point[];
 
           const isBez = routeStyle === 'bezier' && rawPts.length === 4;
@@ -565,7 +623,21 @@ function findBestRoute(
           const { hSegs, vSegs } = decomposeHV(pts, routeStyle);
 
           // ── Unified cost function ─────────────────────────────────────
+          const collisions = countRouteCollisions(pts, routeObstacles);
+          const marginPenalty =
+            hasGridBounds &&
+            pts.some(
+              (p) =>
+                p.x < gridMinX - 1 ||
+                p.x > gridMaxX + 1 ||
+                p.y < gridMinY - 1 ||
+                p.y > gridMaxY + 1,
+            )
+              ? 50_000
+              : 0;
           const score =
+            collisions * 100000 +
+            marginPenalty +
             sidePenalty(ss, ds, srcCenter, dstCenter) +
             crossingScore(pts, hSegs, vSegs, isBez, committed) +
             portConflictScore(
@@ -668,6 +740,7 @@ function repairCrossings(
   links: readonly CrossLink[],
   portHints: ReadonlyMap<number, PortHint>,
   resolvable: readonly CrossLink[],
+  occupiedRects?: readonly Rect[],
 ): void {
   // One repair pass: for each crossing pair (i committed before j), try re-routing j
   for (let j = 1; j < committed.length; j++) {
@@ -696,6 +769,7 @@ function repairCrossings(
       committedWithoutJ,
       intraPorts,
       hint,
+      occupiedRects,
     );
     if (!result) continue;
 
@@ -1212,6 +1286,10 @@ function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void
     NUDGE = 8;
   const hBorderYs = borders.filter((b) => b.width > b.height).map((b) => b.y + b.height / 2);
   const vBorderXs = borders.filter((b) => b.height >= b.width).map((b) => b.x + b.width / 2);
+  const minBorderX = vBorderXs.length > 0 ? Math.min(...vBorderXs) : -Infinity;
+  const maxBorderX = vBorderXs.length > 0 ? Math.max(...vBorderXs) : Infinity;
+  const minBorderY = hBorderYs.length > 0 ? Math.min(...hBorderYs) : -Infinity;
+  const maxBorderY = hBorderYs.length > 0 ? Math.max(...hBorderYs) : Infinity;
 
   for (const route of routes) {
     if (route.isBezier) continue;
@@ -1222,8 +1300,16 @@ function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void
       if (Math.abs(b.y - a.y) < 1 && Math.abs(b.x - a.x) > 1) {
         for (const borderY of hBorderYs) {
           if (Math.abs(a.y - borderY) < TOLERANCE) {
-            const midY = (Math.min(...pts.map((p) => p.y)) + Math.max(...pts.map((p) => p.y))) / 2;
-            const nd = a.y < midY ? -NUDGE : NUDGE;
+            let nd: number;
+            if (Math.abs(borderY - minBorderY) < TOLERANCE) {
+              nd = NUDGE;
+            } else if (Math.abs(borderY - maxBorderY) < TOLERANCE) {
+              nd = -NUDGE;
+            } else {
+              const midY =
+                (Math.min(...pts.map((p) => p.y)) + Math.max(...pts.map((p) => p.y))) / 2;
+              nd = a.y < midY ? -NUDGE : NUDGE;
+            }
             pts[i] = { x: a.x, y: a.y + nd };
             pts[i + 1] = { x: b.x, y: b.y + nd };
             break;
@@ -1232,8 +1318,16 @@ function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void
       } else if (Math.abs(b.x - a.x) < 1 && Math.abs(b.y - a.y) > 1) {
         for (const borderX of vBorderXs) {
           if (Math.abs(a.x - borderX) < TOLERANCE) {
-            const midX = (Math.min(...pts.map((p) => p.x)) + Math.max(...pts.map((p) => p.x))) / 2;
-            const nd = a.x < midX ? -NUDGE : NUDGE;
+            let nd: number;
+            if (Math.abs(borderX - minBorderX) < TOLERANCE) {
+              nd = NUDGE;
+            } else if (Math.abs(borderX - maxBorderX) < TOLERANCE) {
+              nd = -NUDGE;
+            } else {
+              const midX =
+                (Math.min(...pts.map((p) => p.x)) + Math.max(...pts.map((p) => p.x))) / 2;
+              nd = a.x < midX ? -NUDGE : NUDGE;
+            }
             pts[i] = { x: a.x + nd, y: a.y };
             pts[i + 1] = { x: b.x + nd, y: b.y };
             break;
@@ -1259,7 +1353,7 @@ function separateChannels(routes: WorkingRoute[]): void {
   for (let ri = 0; ri < routes.length; ri++) {
     if (routes[ri]!.isBezier) continue;
     const pts = routes[ri]!.points;
-    for (let si = 0; si < pts.length - 1; si++) {
+    for (let si = 1; si < pts.length - 2; si++) {
       const a = pts[si]!,
         b = pts[si + 1]!;
       const dx = Math.abs(b.x - a.x),

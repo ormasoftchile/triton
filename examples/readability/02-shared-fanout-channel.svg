@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -34 1355 904" width="1355" height="904">
+  <defs>
+    <marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#525252" /></marker>
+    <marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#525252" /></marker>
+  </defs>
+  <rect x="-24" y="-34" width="1355" height="904" fill="#FFFFFF" />
+  <rect x="4" y="-10" width="397" height="230" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="10" />
+  <text x="16" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Intake</text>
+  <rect x="4" y="350" width="170" height="230" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="10" />
+  <text x="16" y="366" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Queued delivery</text>
+  <rect x="4" y="710" width="1277" height="110" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="10" />
+  <text x="16" y="726" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Output types</text>
+  <path d="M 89 80 L 89 144" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 154 172 L 244 172" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 89 200 L 89 384" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 89 440 L 89 504" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 42.57 560 L 42.57 682 L 89 682 L 89 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 61.14 560 L 61.14 670 L 312.5 670 L 312.5 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 79.71 560 L 79.71 658 L 536 658 L 536 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 98.29 560 L 98.29 646 L 756 646 L 756 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 116.86 560 L 116.86 634 L 976 634 L 976 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 135.43 560 L 135.43 622 L 1196 622 L 1196 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <rect x="24" y="24" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="24" width="130" height="8" fill="#525252" stroke="#525252" stroke-width="0" rx="4" />
+  <rect x="79" y="35" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="42" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="49" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="89" y="75.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Event source</text>
+  <rect x="24" y="144" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="144" width="130" height="8" fill="#737373" stroke="#737373" stroke-width="0" rx="4" />
+  <rect x="79" y="155" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="162" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="169" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="89" y="195.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Router</text>
+  <rect x="244" y="144" width="137" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="244" y="144" width="137" height="8" fill="#404040" stroke="#404040" stroke-width="0" rx="4" />
+  <rect x="302.5" y="155" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="302.5" y="162" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="302.5" y="169" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="312.5" y="195.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Immediate callback</text>
+  <rect x="24" y="384" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="384" width="130" height="8" fill="#8A8A8A" stroke="#8A8A8A" stroke-width="0" rx="4" />
+  <rect x="80" y="395" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 80 401 Q 89 405, 98 401" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="89" y="435.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Work queue</text>
+  <rect x="24" y="504" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="504" width="130" height="8" fill="#262626" stroke="#262626" stroke-width="0" rx="4" />
+  <rect x="79" y="515" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="522" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="529" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="89" y="555.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Worker pool</text>
+  <rect x="24" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="744" width="130" height="8" fill="#5E5E5E" stroke="#5E5E5E" stroke-width="0" rx="4" />
+  <rect x="80" y="755" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 80 761 Q 89 765, 98 761" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="89" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output one</text>
+  <rect x="244" y="744" width="137" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="244" y="744" width="137" height="8" fill="#525252" stroke="#525252" stroke-width="0" rx="4" />
+  <rect x="303.5" y="755" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 303.5 761 Q 312.5 765, 321.5 761" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="312.5" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output two</text>
+  <rect x="471" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="471" y="744" width="130" height="8" fill="#737373" stroke="#737373" stroke-width="0" rx="4" />
+  <rect x="526" y="755" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="526" y="762" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="526" y="769" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="536" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output three</text>
+  <rect x="691" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="691" y="744" width="130" height="8" fill="#404040" stroke="#404040" stroke-width="0" rx="4" />
+  <rect x="746" y="755" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="746" y="762" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="746" y="769" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="756" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output four</text>
+  <rect x="911" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="911" y="744" width="130" height="8" fill="#8A8A8A" stroke="#8A8A8A" stroke-width="0" rx="4" />
+  <rect x="966" y="755" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="966" y="762" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="966" y="769" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="976" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output five</text>
+  <rect x="1131" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="1131" y="744" width="130" height="8" fill="#262626" stroke="#262626" stroke-width="0" rx="4" />
+  <circle cx="1196" cy="764" r="9" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" />
+  <path d="M 1196 755 L 1196 773 M 1187 764 L 1205 764" stroke="#171717" stroke-width="1" fill="none" />
+  <path d="M 1187 764 Q 1196 753, 1205 764 Q 1196 775, 1187 764" stroke="#171717" stroke-width="1" fill="none" />
+  <text x="1196" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output six</text>
+</svg>

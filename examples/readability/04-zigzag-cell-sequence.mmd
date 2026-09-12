@@ -1,0 +1,56 @@
+poster
+  columns 2
+
+  cell observe
+    nodegraph
+      node step : Observe state
+  end
+
+  cell detect
+    nodegraph
+      node step : Detect timeout
+  end
+
+  cell validate
+    nodegraph
+      node step : Validate prerequisites
+  end
+
+  cell select
+    nodegraph
+      node step : Select candidate
+  end
+
+  cell stop
+    nodegraph
+      node step : Stop old owner
+  end
+
+  cell start
+    nodegraph
+      node step : Start new owner
+  end
+
+  cell compare
+    nodegraph
+      node step : Compare checkpoints
+  end
+
+  cell recover
+    nodegraph
+      node step : Recover pending work
+  end
+
+  cell complete [2]
+    nodegraph
+      node step : Complete transition
+  end
+
+  link observe.step --> detect.step
+  link detect.step --> validate.step
+  link validate.step --> select.step
+  link select.step --> stop.step
+  link stop.step --> start.step
+  link start.step --> compare.step
+  link compare.step --> recover.step
+  link recover.step --> complete.step

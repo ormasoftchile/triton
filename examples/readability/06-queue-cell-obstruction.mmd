@@ -1,0 +1,50 @@
+poster
+  columns 3
+
+  cell producer1 "Producer A"
+    nodegraph
+      node p1 : Producer A / partition 1
+  end
+
+  cell producer2 "Producer B"
+    nodegraph
+      node p2 : Producer B / partition 2
+  end
+
+  cell producer3 "Producer C"
+    nodegraph
+      node p3 : Producer C / partition 3
+  end
+
+  cell queue1 "Per-producer queue"
+    queue
+      cells packets
+      capacity 3
+      axis vertical
+  end
+
+  cell queue2 "Per-producer queue"
+    queue
+      cells packets
+      capacity 3
+      axis vertical
+  end
+
+  cell queue3 "Per-producer queue"
+    queue
+      cells packets
+      capacity 3
+      axis vertical
+  end
+
+  cell consumer "Consumer" [3]
+    nodegraph
+      node gather : Gather all partitions
+  end
+
+  link producer1.p1 --> queue1.c2
+  link producer2.p2 --> queue2.c2
+  link producer3.p3 --> queue3.c2
+  link queue1.c0 --> consumer.gather
+  link queue2.c0 --> consumer.gather
+  link queue3.c0 --> consumer.gather

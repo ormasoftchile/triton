@@ -182,7 +182,8 @@ export function routeAndRenderCrossLinks2(
   // workingByOriginalIdx preserves the original link order for colour assignment
   const workingByOriginalIdx = new Map<number, WorkingRoute>();
 
-  for (const link of sortedLinks) {
+  for (let si = 0; si < sortedLinks.length; si++) {
+    const link = sortedLinks[si]!;
     const srcKey = addrKey(link.from);
     const dstKey = addrKey(link.to);
     const srcAnchor = anchors[srcKey]!;
@@ -203,6 +204,9 @@ export function routeAndRenderCrossLinks2(
           linkObstacles.push({ x: r.x + CELL_SHRINK, y: r.y + CELL_SHRINK, width: sw, height: sh });
         }
       }
+    }
+    if (occupiedRects && occupiedRects.length > 0) {
+      linkObstacles.push(...occupiedRects);
     }
 
     const sides: CardinalSide[] = ['N', 'S', 'E', 'W'];
@@ -289,8 +293,11 @@ export function routeAndRenderCrossLinks2(
     // Colour
     let color: string;
     const explicitColor = typeof link.props?.color === 'string' ? link.props.color : undefined;
+    const isMono = theme.name.startsWith('bw-') || theme.name.includes('mono');
     if (explicitColor) {
       color = explicitColor;
+    } else if (isMono) {
+      color = palette.primary;
     } else {
       color = PALETTE[explicitColorIdx % PALETTE.length]!;
       explicitColorIdx++;
@@ -454,6 +461,19 @@ export function routeAndRenderCrossLinks2(
   for (let i = 0; i < pendingLabels.length; i++) {
     const l = pendingLabels[i]!;
     const r = labelRects[i]!;
+    elements.push({
+      type: 'rect',
+      bounds: {
+        x: r.x,
+        y: r.y,
+        width: r.width,
+        height: r.height,
+      },
+      fill: palette.background,
+      stroke: 'none',
+      strokeWidth: 0,
+      rx: 3,
+    });
     elements.push({
       type: 'text',
       content: l.content,
@@ -809,6 +829,11 @@ function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void
     else vBorderXs.push(b.x + b.width / 2);
   }
 
+  const minBorderX = vBorderXs.length > 0 ? Math.min(...vBorderXs) : -Infinity;
+  const maxBorderX = vBorderXs.length > 0 ? Math.max(...vBorderXs) : Infinity;
+  const minBorderY = hBorderYs.length > 0 ? Math.min(...hBorderYs) : -Infinity;
+  const maxBorderY = hBorderYs.length > 0 ? Math.max(...hBorderYs) : Infinity;
+
   for (const route of routes) {
     if (route.isBezier) continue; // bezier control points are not path segments
     const pts = route.points;
@@ -821,8 +846,16 @@ function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void
       if (dy < 1 && dx > 1) {
         for (const borderY of hBorderYs) {
           if (Math.abs(a.y - borderY) < TOLERANCE) {
-            const midY = (Math.min(...pts.map((p) => p.y)) + Math.max(...pts.map((p) => p.y))) / 2;
-            const nudgeD = a.y < midY ? -NUDGE : NUDGE;
+            let nudgeD: number;
+            if (Math.abs(borderY - minBorderY) < TOLERANCE) {
+              nudgeD = NUDGE;
+            } else if (Math.abs(borderY - maxBorderY) < TOLERANCE) {
+              nudgeD = -NUDGE;
+            } else {
+              const midY =
+                (Math.min(...pts.map((p) => p.y)) + Math.max(...pts.map((p) => p.y))) / 2;
+              nudgeD = a.y < midY ? -NUDGE : NUDGE;
+            }
             pts[i] = { x: a.x, y: a.y + nudgeD };
             pts[i + 1] = { x: b.x, y: b.y + nudgeD };
             break;
@@ -831,8 +864,16 @@ function nudgeOffBorders(routes: WorkingRoute[], borders: readonly Rect[]): void
       } else if (dx < 1 && dy > 1) {
         for (const borderX of vBorderXs) {
           if (Math.abs(a.x - borderX) < TOLERANCE) {
-            const midX = (Math.min(...pts.map((p) => p.x)) + Math.max(...pts.map((p) => p.x))) / 2;
-            const nudgeD = a.x < midX ? -NUDGE : NUDGE;
+            let nudgeD: number;
+            if (Math.abs(borderX - minBorderX) < TOLERANCE) {
+              nudgeD = NUDGE;
+            } else if (Math.abs(borderX - maxBorderX) < TOLERANCE) {
+              nudgeD = -NUDGE;
+            } else {
+              const midX =
+                (Math.min(...pts.map((p) => p.x)) + Math.max(...pts.map((p) => p.x))) / 2;
+              nudgeD = a.x < midX ? -NUDGE : NUDGE;
+            }
             pts[i] = { x: a.x + nudgeD, y: a.y };
             pts[i + 1] = { x: b.x + nudgeD, y: b.y };
             break;

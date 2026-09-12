@@ -104,6 +104,7 @@ export interface LayeredResult {
 function assignLayers(
   nodes: readonly GraphNode[],
   edges: readonly GraphEdge[],
+  backEdgeSet?: Set<number>,
 ): Map<string, number> {
   const layer = new Map<string, number>();
   for (const n of nodes) layer.set(n.id, 0);
@@ -111,7 +112,9 @@ function assignLayers(
   // Relax edges up to N passes (caps cycles).
   for (let pass = 0; pass < nodes.length; pass++) {
     let changed = false;
-    for (const e of edges) {
+    for (let i = 0; i < edges.length; i++) {
+      if (backEdgeSet?.has(i)) continue;
+      const e = edges[i]!;
       if (!present(e.from) || !present(e.to)) continue;
       const want = layer.get(e.from)! + 1;
       if (layer.get(e.to)! < want) {
@@ -911,11 +914,11 @@ export function layeredLayout(
       dummyChainIds: new Map(),
     };
 
-  // Phase 1: Layer assignment.
-  const layer = assignLayers(nodes, edges);
-
-  // Phase 2a: Back-edge detection (DFS).
+  // Phase 1: Back-edge detection (DFS).
   const backEdges = detectBackEdges(nodes, edges);
+
+  // Phase 2a: Layer assignment (ignoring back-edges so cycles don't inflate layers).
+  const layer = assignLayers(nodes, edges, backEdges);
 
   // Phase 2b: Dummy node insertion for skip edges (spans > 1 layer).
   // `layer` is mutated to include dummy node layer assignments.

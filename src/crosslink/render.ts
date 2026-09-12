@@ -106,10 +106,13 @@ export function renderCrossLinks(
   for (const rLink of resolved) {
     const { link, fromPort, toPort, fromSide, toSide } = rLink;
 
+    const isMono = theme.name.startsWith('bw-') || theme.name.includes('mono');
     let color: string;
     const explicitColor = typeof link.props?.color === 'string' ? link.props.color : undefined;
     if (explicitColor) {
       color = explicitColor;
+    } else if (isMono) {
+      color = palette.primary;
     } else {
       color = categoricalPalette[explicitColorIdx % categoricalPalette.length]!;
       explicitColorIdx++;
@@ -140,6 +143,9 @@ export function renderCrossLinks(
         }
       }
       if (extra.length > 0) linkObstacles = [...obstacles, ...extra];
+    }
+    if (occupiedRects && occupiedRects.length > 0) {
+      linkObstacles = [...linkObstacles, ...occupiedRects];
     }
 
     const route = router.route({
@@ -318,6 +324,19 @@ export function renderCrossLinks(
     // Recover center position from adjusted rect
     const finalX = r.x + r.width / 2;
     const finalY = r.y + r.height - LABEL_PAD;
+    elements.push({
+      type: 'rect',
+      bounds: {
+        x: r.x,
+        y: r.y,
+        width: r.width,
+        height: r.height,
+      },
+      fill: palette.background,
+      stroke: 'none',
+      strokeWidth: 0,
+      rx: 3,
+    });
     elements.push({
       type: 'text',
       content: l.content,
@@ -1118,6 +1137,11 @@ function nudgeOffBorders(routes: PendingRoute[], borders: readonly Rect[]): void
     }
   }
 
+  const minBorderX = vBorderXs.length > 0 ? Math.min(...vBorderXs) : -Infinity;
+  const maxBorderX = vBorderXs.length > 0 ? Math.max(...vBorderXs) : Infinity;
+  const minBorderY = hBorderYs.length > 0 ? Math.min(...hBorderYs) : -Infinity;
+  const maxBorderY = hBorderYs.length > 0 ? Math.max(...hBorderYs) : Infinity;
+
   for (const route of routes) {
     const pts = route.points as Point[];
     for (let i = 0; i < pts.length - 1; i++) {
@@ -1130,11 +1154,17 @@ function nudgeOffBorders(routes: PendingRoute[], borders: readonly Rect[]): void
         // Horizontal segment — check against horizontal borders
         for (const borderY of hBorderYs) {
           if (Math.abs(a.y - borderY) < TOLERANCE) {
-            // Nudge toward the midpoint between from/to Y of the full route
-            const routeMinY = Math.min(...pts.map((p) => p.y));
-            const routeMaxY = Math.max(...pts.map((p) => p.y));
-            const routeMidY = (routeMinY + routeMaxY) / 2;
-            const nudgeDir = a.y < routeMidY ? -NUDGE : NUDGE;
+            let nudgeDir: number;
+            if (Math.abs(borderY - minBorderY) < TOLERANCE) {
+              nudgeDir = NUDGE;
+            } else if (Math.abs(borderY - maxBorderY) < TOLERANCE) {
+              nudgeDir = -NUDGE;
+            } else {
+              const routeMinY = Math.min(...pts.map((p) => p.y));
+              const routeMaxY = Math.max(...pts.map((p) => p.y));
+              const routeMidY = (routeMinY + routeMaxY) / 2;
+              nudgeDir = a.y < routeMidY ? -NUDGE : NUDGE;
+            }
             pts[i] = { x: a.x, y: a.y + nudgeDir };
             pts[i + 1] = { x: b.x, y: b.y + nudgeDir };
             // Also adjust adjacent vertical segment endpoints
@@ -1148,10 +1178,17 @@ function nudgeOffBorders(routes: PendingRoute[], borders: readonly Rect[]): void
         // Vertical segment — check against vertical borders
         for (const borderX of vBorderXs) {
           if (Math.abs(a.x - borderX) < TOLERANCE) {
-            const routeMinX = Math.min(...pts.map((p) => p.x));
-            const routeMaxX = Math.max(...pts.map((p) => p.x));
-            const routeMidX = (routeMinX + routeMaxX) / 2;
-            const nudgeDir = a.x < routeMidX ? -NUDGE : NUDGE;
+            let nudgeDir: number;
+            if (Math.abs(borderX - minBorderX) < TOLERANCE) {
+              nudgeDir = NUDGE;
+            } else if (Math.abs(borderX - maxBorderX) < TOLERANCE) {
+              nudgeDir = -NUDGE;
+            } else {
+              const routeMinX = Math.min(...pts.map((p) => p.x));
+              const routeMaxX = Math.max(...pts.map((p) => p.x));
+              const routeMidX = (routeMinX + routeMaxX) / 2;
+              nudgeDir = a.x < routeMidX ? -NUDGE : NUDGE;
+            }
             pts[i] = { x: a.x + nudgeDir, y: a.y };
             pts[i + 1] = { x: b.x + nudgeDir, y: b.y };
             break;

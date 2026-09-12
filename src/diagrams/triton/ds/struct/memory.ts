@@ -24,6 +24,7 @@ import type {
 import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { connectSlots } from '../../../../graph/connect.js';
+import { countRouteCollisions } from '../../../../routing/router.js';
 import { rhu } from '../../../../util/round.js';
 import { ARROW_ID, arrowDef, lines, tokenizeDirective } from './shared.js';
 
@@ -145,12 +146,12 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
     if (item.kind === 'var') {
       return { w: Math.max(130, measureText(item.name, font).width + 56), h: 34 };
     }
-    const titleW = measureText(item.title, font).width;
+    const titleW = measureText(item.title, font).width * 1.1;
     const fieldW = Math.max(
       0,
       ...item.fields.map((f) => measureText(`${f.k}: ${f.v}`, small).width),
     );
-    return { w: Math.max(120, titleW + 24, fieldW + 24), h: 24 + item.fields.length * 20 + 8 };
+    return { w: Math.max(120, titleW + 28, fieldW + 32), h: 24 + item.fields.length * 20 + 8 };
   };
 
   const elements: SceneElement[] = [];
@@ -252,25 +253,79 @@ export function layoutMemory(doc: MemoryDoc, theme: ResolvedTheme): LayoutResult
   }
 
   // cross-region pointers (resolved after all boxes are placed)
-  for (const { from, target } of pending) {
-    const key = target.includes('.') ? target.slice(target.indexOf('.') + 1) : target;
-    const to = idBox.get(key);
-    if (!to) continue;
-    const startX = from.x + from.width - 12;
-    const startY = from.y + from.height / 2;
-    const start = { x: startX, y: startY };
-    // Connect to the near horizontal wall of target object at header height
-    const endX = startX <= to.x ? to.x : to.x + to.width;
-    const endY = to.y + Math.min(to.height / 2, 18);
-    const end = { x: endX, y: endY };
-    elements.push(
-      p.path(
-        `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`,
-        palette.primary,
-        1.5,
-        { markerEnd: ARROW_ID },
-      ),
-    );
+  const resolvedPending = pending
+    .map(({ from, target }) => {
+      const key = target.includes('.') ? target.slice(target.indexOf('.') + 1) : target;
+      const to = idBox.get(key);
+      return to ? { from, to, target } : null;
+    })
+    .filter((p): p is { from: Rect; to: Rect; target: string } => p !== null);
+
+  const allObstacles = [...idBox.values()];
+
+  // Group pending pointers by corridor
+  const corridorGroups = new Map<string, typeof resolvedPending>();
+  for (const p of resolvedPending) {
+    const isForward = p.from.x + p.from.width <= p.to.x;
+    const key = isForward
+      ? `${Math.round(p.from.x + p.from.width)}:${Math.round(p.to.x)}`
+      : `${Math.round(p.to.x + p.to.width)}:${Math.round(p.from.x)}`;
+    if (!corridorGroups.has(key)) corridorGroups.set(key, []);
+    corridorGroups.get(key)!.push(p);
+  }
+
+  for (const group of corridorGroups.values()) {
+    const N = group.length;
+    for (let i = 0; i < N; i++) {
+      const { from, to, target } = group[i]!;
+      const startX = from.x + from.width - 12;
+      const startY = from.y + from.height / 2;
+      const start = { x: startX, y: startY };
+      const isForward = startX <= to.x;
+      const endX = isForward ? to.x : to.x + to.width;
+      const targetHeaderY = to.y + Math.min(to.height / 2, 18);
+      const endY = startY >= to.y + 6 && startY <= to.y + 24 ? startY : targetHeaderY;
+      const end = { x: endX, y: endY };
+
+      const obstacles = allObstacles.filter((b) => b !== from && b !== to);
+      const hitsObstacles = countRouteCollisions([start, end], obstacles) > 0;
+
+      let points: { x: number; y: number }[];
+      let d: string;
+
+      if (!hitsObstacles) {
+        points = [start, end];
+        d = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
+      } else {
+        const corridorLeft = isForward ? from.x + from.width : to.x + to.width;
+        const corridorRight = isForward ? to.x : from.x;
+        const corridorCenter = (corridorLeft + corridorRight) / 2;
+        const laneSpacing = Math.min(
+          10,
+          Math.max(6, (corridorRight - corridorLeft - 16) / (N + 1)),
+        );
+        const laneX = corridorCenter + (i - (N - 1) / 2) * laneSpacing;
+        points = [start, { x: laneX, y: start.y }, { x: laneX, y: end.y }, end];
+        const R = Math.min(
+          6,
+          Math.abs(end.y - start.y) / 3,
+          Math.abs(laneX - start.x) / 2,
+          Math.abs(end.x - laneX) / 2,
+        );
+        const signY = end.y > start.y ? 1 : -1;
+        const sx = isForward ? laneX - R : laneX + R;
+        const ex = isForward ? laneX + R : laneX - R;
+        d = `M ${rhu(start.x)} ${rhu(start.y)} L ${rhu(sx)} ${rhu(start.y)} Q ${rhu(laneX)} ${rhu(start.y)}, ${rhu(laneX)} ${rhu(start.y + signY * R)} L ${rhu(laneX)} ${rhu(end.y - signY * R)} Q ${rhu(laneX)} ${rhu(end.y)}, ${rhu(ex)} ${rhu(end.y)} L ${rhu(end.x)} ${rhu(end.y)}`;
+      }
+
+      if (countRouteCollisions(points, obstacles) > 0) {
+        console.warn(
+          `[routing] No clear route between var and ${target}: route intersects rendered objects.`,
+        );
+      }
+
+      elements.push(p.path(d, palette.primary, 1.5, { markerEnd: ARROW_ID }));
+    }
   }
 
   const scene: Scene = {

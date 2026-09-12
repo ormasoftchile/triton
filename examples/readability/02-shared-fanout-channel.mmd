@@ -1,0 +1,28 @@
+architecture-beta
+  group intake(server)[Intake]
+  service source(server)[Event source] in intake
+  service router(server)[Router] in intake
+  service callback(server)[Immediate callback] in intake
+
+  group delivery(server)[Queued delivery]
+  service queue(disk)[Work queue] in delivery
+  service workers(server)[Worker pool] in delivery
+
+  group outputs(cloud)[Output types]
+  service first(database)[Output one] in outputs
+  service second(disk)[Output two] in outputs
+  service third(server)[Output three] in outputs
+  service fourth(server)[Output four] in outputs
+  service fifth(server)[Output five] in outputs
+  service sixth(internet)[Output six] in outputs
+
+  source:B --> T:router
+  router:R --> L:callback
+  router:B --> T:queue
+  queue:B --> T:workers
+  workers:B --> T:first
+  workers:B --> T:second
+  workers:B --> T:third
+  workers:B --> T:fourth
+  workers:B --> T:fifth
+  workers:B --> T:sixth

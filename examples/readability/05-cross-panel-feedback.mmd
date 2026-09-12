@@ -1,0 +1,41 @@
+poster "Workflow with durable restart"
+  columns 2
+  gap 28
+
+  cell execution "Execution loop" :: nodegraph
+    nodegraph
+      directed
+      node request : Incoming request
+      node create : Create or load state
+      node action : Execute action
+      node persist : Persist transition
+      node next : Choose next state
+      node complete : Workflow complete
+      node repeat : Repeat action
+
+      request -> create
+      create -> action
+      action -> persist
+      persist -> next
+      next -> complete : done
+      next -> repeat : continue
+  end
+
+  cell support "Storage, restart, and telemetry" :: nodegraph
+    nodegraph
+      directed
+      node store : Durable state store
+      node restart : Process restart
+      node trace : Activity trace
+      node durable : Last stored state
+
+      store -> durable
+      restart -> durable : reload
+      durable -> trace : observable
+  end
+
+  link execution.persist -.-> support.store "save" @orthogonal:EW
+  link support.store -.-> execution.create "reload" @orthogonal:WE
+  link support.restart -.-> execution.create "resume" @orthogonal:WE
+  link execution.persist -.-> support.trace "transition" @orthogonal:EW
+  link execution.next -.-> support.trace "state" @orthogonal:EW

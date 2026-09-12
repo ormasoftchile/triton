@@ -4,7 +4,9 @@ import type { Point, Rect } from '../contracts/index.js';
 // ─── Straight ─────────────────────────────────────────────────────────────────
 
 class StraightRouter implements Router {
-  route({ from, to, obstacles, padding }: RouteRequest): Route {
+  route(req: RouteRequest): Route {
+    const { from, to, obstacles, padding } = req;
+    const noWarn = (req as { noWarn?: boolean }).noWarn;
     const pad = padding ?? 12;
 
     // If no obstacles or no crossing, use a direct line
@@ -50,6 +52,16 @@ class StraightRouter implements Router {
     }
 
     // Fallback: direct line (best effort)
+    if (
+      !noWarn &&
+      obstacles &&
+      obstacles.length > 0 &&
+      straightHitsObstacles(from, to, obstacles, pad)
+    ) {
+      console.warn(
+        `[routing] No clear route between (${from.x}, ${from.y}) and (${to.x}, ${to.y}): route intersects obstacles.`,
+      );
+    }
     return {
       points: [from, to],
       path: `M ${from.x} ${from.y} L ${to.x} ${to.y}`,
@@ -88,7 +100,9 @@ function straightHitsObstacles(
 // ─── Orthogonal ───────────────────────────────────────────────────────────────
 
 class OrthogonalRouter implements Router {
-  route({ from, to, fromDir, toDir, obstacles, padding }: RouteRequest): Route {
+  route(req: RouteRequest): Route {
+    const { from, to, fromDir, toDir, obstacles, padding } = req;
+    const noWarn = (req as { noWarn?: boolean }).noWarn;
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const midX = (from.x + to.x) / 2;
@@ -237,58 +251,64 @@ class OrthogonalRouter implements Router {
         const leavesOk = fromDir === 'E' ? to.x >= from.x : to.x <= from.x;
         const arrivesOk = toDir === 'N' ? from.y <= to.y : from.y >= to.y;
         const directRoute = [from, corner, to];
-        const isClear = leavesOk && arrivesOk && (!obstacles || countRouteCollisions(directRoute, obstacles) === 0);
+        const isClear =
+          leavesOk &&
+          arrivesOk &&
+          (!obstacles || countRouteCollisions(directRoute, obstacles) === 0);
 
         if (isClear) {
           points = directRoute;
         } else {
           const sign = fromDir === 'E' ? 1 : -1;
-          const obsEdge =
-            obstacles && obstacles.length > 0
-              ? fromDir === 'E'
-                ? Math.max(...obstacles.map((o) => o.x + o.width))
-                : Math.min(...obstacles.map((o) => o.x))
-              : from.x;
-          const span = Math.abs(to.y - from.y);
-          const spanOffset = Math.min(20, Math.max(0, (span - 100) * 0.08));
-          const baseX =
-            fromDir === 'E'
-              ? Math.max(from.x + STUB, obsEdge + pad) + spanOffset
-              : Math.min(from.x - STUB, obsEdge - pad) - spanOffset;
+          const baseX = fromDir === 'E' ? from.x + pad : from.x - pad;
           const bendX = clearBendXOutboard(baseX, from, to, obstacles, pad, sign);
-          const bendY = toDir === 'N' ? to.y - STUB : to.y + STUB;
-          points = [from, { x: bendX, y: from.y }, { x: bendX, y: bendY }, { x: to.x, y: bendY }, to];
+          const bendY = toDir === 'N' ? to.y - pad : to.y + pad;
+          points = [
+            from,
+            { x: bendX, y: from.y },
+            { x: bendX, y: bendY },
+            { x: to.x, y: bendY },
+            to,
+          ];
         }
         path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-        return { points, path, labelPosition: { x: (points[0]!.x + points[1]!.x) / 2, y: points[0]!.y } };
+        return {
+          points,
+          path,
+          labelPosition: { x: (points[0]!.x + points[1]!.x) / 2, y: points[0]!.y },
+        };
       } else {
         // Exit vertical, enter horizontal
         const corner: Point = { x: from.x, y: to.y };
         const leavesOk = fromDir === 'S' ? to.y >= from.y : to.y <= from.y;
         const arrivesOk = toDir === 'W' ? from.x <= to.x : from.x >= to.x;
         const directRoute = [from, corner, to];
-        const isClear = leavesOk && arrivesOk && (!obstacles || countRouteCollisions(directRoute, obstacles) === 0);
+        const isClear =
+          leavesOk &&
+          arrivesOk &&
+          (!obstacles || countRouteCollisions(directRoute, obstacles) === 0);
 
         if (isClear) {
           points = directRoute;
         } else {
           const sign = fromDir === 'S' ? 1 : -1;
-          const obsEdge =
-            obstacles && obstacles.length > 0
-              ? fromDir === 'S'
-                ? Math.max(...obstacles.map((o) => o.y + o.height))
-                : Math.min(...obstacles.map((o) => o.y))
-              : from.y;
-          const baseY =
-            fromDir === 'S'
-              ? Math.max(from.y + STUB, obsEdge + pad)
-              : Math.min(from.y - STUB, obsEdge - pad);
+          const baseY = fromDir === 'S' ? from.y + pad : from.y - pad;
           const bendY = clearBendYOutboard(baseY, from, to, obstacles, pad, sign);
-          const bendX = toDir === 'W' ? to.x - STUB : to.x + STUB;
-          points = [from, { x: from.x, y: bendY }, { x: bendX, y: bendY }, { x: bendX, y: to.y }, to];
+          const bendX = toDir === 'W' ? to.x - pad : to.x + pad;
+          points = [
+            from,
+            { x: from.x, y: bendY },
+            { x: bendX, y: bendY },
+            { x: bendX, y: to.y },
+            to,
+          ];
         }
         path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-        return { points, path, labelPosition: { x: points[0]!.x, y: (points[0]!.y + points[1]!.y) / 2 } };
+        return {
+          points,
+          path,
+          labelPosition: { x: points[0]!.x, y: (points[0]!.y + points[1]!.y) / 2 },
+        };
       }
 
       return { points, path, labelPosition: { x: midX, y: midY } };
@@ -312,6 +332,17 @@ class OrthogonalRouter implements Router {
       const v2: Point = { x: bendX, y: to.y };
       points = [from, v1, v2, to];
       path = `M ${from.x} ${from.y} L ${v1.x} ${v1.y} L ${v2.x} ${v2.y} L ${to.x} ${to.y}`;
+    }
+
+    if (
+      !noWarn &&
+      obstacles &&
+      obstacles.length > 0 &&
+      countRouteCollisions(points, obstacles) > 0
+    ) {
+      console.warn(
+        `[routing] No clear route between (${from.x}, ${from.y}) and (${to.x}, ${to.y}): route intersects obstacles.`,
+      );
     }
 
     return { points, path, labelPosition: { x: midX, y: midY } };
@@ -886,8 +917,7 @@ function buildVVRouteWithStubs(
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): Point[] {
-  // Stub must be long enough to look intentional (at least 24px)
-  const stubLen = Math.max(pad, 24);
+  const stubLen = pad;
   const stub1: Point = {
     x: from.x + (fromDir === 'W' ? -stubLen : fromDir === 'E' ? stubLen : 0),
     y: from.y + (fromDir === 'N' ? -stubLen : fromDir === 'S' ? stubLen : 0),
@@ -917,7 +947,7 @@ function buildHHRouteWithStubs(
   obstacles: ReadonlyArray<import('../contracts/index.js').Rect>,
   pad: number,
 ): Point[] {
-  const stubLen = Math.max(pad, 24);
+  const stubLen = pad;
   const stub1: Point = {
     x: from.x + (fromDir === 'W' ? -stubLen : fromDir === 'E' ? stubLen : 0),
     y: from.y + (fromDir === 'N' ? -stubLen : fromDir === 'S' ? stubLen : 0),
@@ -967,10 +997,10 @@ function avoidObstaclesWithPortTangents(
   pad: number,
 ): { cp1: Point; cp2: Point } {
   if (!fromDir && !toDir) return { cp1, cp2 };
-  if (!bezierSegmentsHitObstacles(from, cp1, cp2, to, obstacles, 96)) return { cp1, cp2 };
+  if (!bezierSegmentsHitObstacles(from, cp1, cp2, to, obstacles, 16)) return { cp1, cp2 };
 
   const maxPull = Math.max(basePull, Math.min(pointDistance(from, to) * 0.6, 600));
-  const step = Math.max(pad / 2, 6);
+  const step = Math.max(pad * 2, (maxPull - basePull) / 6, 24);
   const fromPulls = fromDir ? portPullCandidates(basePull, maxPull, step) : [basePull];
   const toPulls = toDir ? portPullCandidates(basePull, maxPull, step) : [basePull];
   const pairs = fromPulls
@@ -987,7 +1017,7 @@ function avoidObstaclesWithPortTangents(
   for (const { fromPull, toPull } of pairs) {
     const candidateCp1 = fromDir ? controlPointForPort(from, fromDir, fromPull) : cp1;
     const candidateCp2 = toDir ? controlPointForPort(to, toDir, toPull) : cp2;
-    if (!bezierSegmentsHitObstacles(from, candidateCp1, candidateCp2, to, obstacles, 96)) {
+    if (!bezierSegmentsHitObstacles(from, candidateCp1, candidateCp2, to, obstacles, 16)) {
       return { cp1: candidateCp1, cp2: candidateCp2 };
     }
   }
@@ -1071,7 +1101,7 @@ class BezierRouter implements Router {
       );
       cp1 = portAdjusted.cp1;
       cp2 = portAdjusted.cp2;
-      if (bezierSegmentsHitObstacles(from, cp1, cp2, to, obstacles, 96)) {
+      if (bezierSegmentsHitObstacles(from, cp1, cp2, to, obstacles, 16)) {
         const fallbackRequest: RouteRequest = {
           from,
           to,

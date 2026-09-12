@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 653.6816000000001 650" width="653.6816000000001" height="650">
+  <defs>
+    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="653.6816000000001" height="650" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Fixed header indexes variable payload</text>
+  <rect x="24" y="56" width="186.81959999999998" height="570" fill="#F5F5F5" fill-opacity="0.26" stroke="#D4D4D4" stroke-width="1.5" rx="8" />
+  <text x="36" y="73" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" font-weight="bold">Fixed header</text>
+  <rect x="38" y="96" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="117.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Group offsets</text>
+  <circle cx="184.81959999999998" cy="113" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="144" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="165.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Context offsets</text>
+  <circle cx="184.81959999999998" cy="161" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="192" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="213.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Credential offsets</text>
+  <circle cx="184.81959999999998" cy="209" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="240" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="261.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Extension offsets</text>
+  <circle cx="184.81959999999998" cy="257" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="288" width="158.81959999999998" height="112" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="50" y="306" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Scalar fields</text>
+  <text x="50" y="330" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Size: 4 bytes</text>
+  <text x="50" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Version: 4 bytes</text>
+  <text x="50" y="366" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Window: 4 bytes</text>
+  <text x="50" y="384" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Process: 4 bytes</text>
+  <rect x="38" y="414" width="158.81959999999998" height="112" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="50" y="432" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Session fields</text>
+  <text x="50" y="456" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Flags: options</text>
+  <text x="50" y="474" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Zone: offset</text>
+  <text x="50" y="492" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Locale: identifier</text>
+  <text x="50" y="510" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Client: 6 bytes</text>
+  <rect x="38" y="540" width="158.81959999999998" height="72" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="50" y="558" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Special lengths</text>
+  <text x="50" y="582" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">ShortLength: 16 bit</text>
+  <text x="50" y="600" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">LongLength: 32 bit</text>
+  <rect x="300.8196" y="56" width="328.8620000000001" height="304" fill="#F5F5F5" fill-opacity="0.26" stroke="#D4D4D4" stroke-width="1.5" rx="8" />
+  <text x="312.8196" y="73" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" font-weight="bold">Variable payload</text>
+  <rect x="314.8196" y="96" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="114" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Group strings</text>
+  <text x="326.8196" y="138" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Host + User + Label</text>
+  <rect x="314.8196" y="162" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="180" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Request context</text>
+  <text x="326.8196" y="204" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Application + Endpoint + Language + Catalog</text>
+  <rect x="314.8196" y="228" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="246" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Credential data</text>
+  <text x="326.8196" y="270" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Token + Reset data</text>
+  <rect x="314.8196" y="294" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="312" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Optional data</text>
+  <text x="326.8196" y="336" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Feature blocks + attachment</text>
+  <path d="M 184.82 113 L 314.82 113" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 184.82 161 L 314.82 180" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 184.82 209 L 314.82 246" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 184.82 257 L 314.82 312" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+</svg>

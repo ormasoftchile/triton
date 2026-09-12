@@ -33,7 +33,7 @@ import { pen } from '../../../../scene/build.js';
 import { measureText } from '../../../../text/metrics.js';
 import { layeredLayout, type GraphNode, type GraphEdge } from '../../../../graph/layered.js';
 import { borderPoint, connectSlots } from '../../../../graph/connect.js';
-import { orthogonalRouter } from '../../../../routing/router.js';
+import { orthogonalRouter, countRouteCollisions } from '../../../../routing/router.js';
 import { rhu } from '../../../../util/round.js';
 
 const ARROW_ID = 'dsgraph-arrow';
@@ -156,9 +156,13 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   const sizeOf = (n: GNode): number => Math.max(64, measureText(n.label, font).width + 28);
   const gNodes: GraphNode[] = doc.nodes.map((n) => ({ id: n.id, width: sizeOf(n), height: nodeH }));
   const gEdges: GraphEdge[] = doc.edges.map((e) => ({ from: e.from, to: e.to }));
+  const hasOpposingEdges = doc.edges.some((e, i) =>
+    doc.edges.some((other, j) => i !== j && e.from === other.to && e.to === other.from),
+  );
+  const layerGap = hasOpposingEdges ? 88 : doc.edges.some((e) => e.label) ? 72 : 64;
   const placed = layeredLayout(gNodes, gEdges, {
     direction: 'TB',
-    layerGap: 64,
+    layerGap,
     nodeGap: 44,
     margin,
   });
@@ -171,26 +175,32 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
   type PortDir = 'N' | 'S' | 'E' | 'W';
   const pathData = (points: readonly Pt[]): string =>
     points.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${rhu(pt.x)} ${rhu(pt.y)}`).join(' ');
-  const pathMidpoint = (points: readonly Pt[]): Pt => {
-    if (points.length === 0) return { x: 0, y: 0 };
+  const pathPointAtFraction = (points: readonly Pt[], frac = 0.5): { pt: Pt; normal: Pt } => {
+    if (points.length === 0) return { pt: { x: 0, y: 0 }, normal: { x: 0, y: 0 } };
     let total = 0;
     for (let i = 1; i < points.length; i++) {
       total += Math.hypot(points[i]!.x - points[i - 1]!.x, points[i]!.y - points[i - 1]!.y);
     }
-    if (total === 0) return points[0]!;
+    if (total === 0) return { pt: points[0]!, normal: { x: 0, y: 0 } };
     let walked = 0;
-    const target = total / 2;
+    const target = total * frac;
     for (let i = 1; i < points.length; i++) {
       const from = points[i - 1]!;
       const to = points[i]!;
       const segment = Math.hypot(to.x - from.x, to.y - from.y);
       if (walked + segment >= target && segment > 0) {
         const t = (target - walked) / segment;
-        return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
+        const dx = (to.x - from.x) / segment;
+        const dy = (to.y - from.y) / segment;
+        return {
+          pt: { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t },
+          normal: { x: dy, y: -dx }, // right-hand normal
+        };
       }
       walked += segment;
     }
-    return points[points.length - 1]!;
+    const last = points[points.length - 1]!;
+    return { pt: last, normal: { x: 0, y: 0 } };
   };
   type Wall = 'top' | 'bottom' | 'left' | 'right';
   const dirForWall = (wall: Wall): PortDir => {
@@ -332,17 +342,47 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     skipLaneOrdinal++;
   }
 
-  const fromGroups = new Map<string, Array<{ edgeIndex: number; ideal: number }>>();
-  const toGroups = new Map<string, Array<{ edgeIndex: number; ideal: number }>>();
+  // Detect opposing edge pairs (antiparallel edges)
+  const opposingEdges = new Map<number, number>();
+  for (let i = 0; i < doc.edges.length; i++) {
+    for (let j = i + 1; j < doc.edges.length; j++) {
+      const e1 = doc.edges[i]!,
+        e2 = doc.edges[j]!;
+      if (e1.from === e2.to && e1.to === e2.from) {
+        opposingEdges.set(i, j);
+        opposingEdges.set(j, i);
+      }
+    }
+  }
+
+  const wallGroups = new Map<string, Array<{ edgeIndex: number; ideal: number }>>();
   const fromWallByEdge = new Map<number, Wall>();
   const toWallByEdge = new Map<number, Wall>();
   const groupKey = (id: string, wall: Wall): string => `${id}\0${wall}`;
-  const axisIdeal = (wall: Wall, other: Rect, edgeIndex: number): number => {
+  const axisIdeal = (
+    wall: Wall,
+    self: Rect,
+    other: Rect,
+    edgeIndex: number,
+    isSource: boolean,
+  ): number => {
     const lane = skipLaneX.get(edgeIndex);
     if (lane !== undefined && (wall === 'top' || wall === 'bottom')) return lane;
-    return wall === 'top' || wall === 'bottom'
-      ? other.x + other.width / 2
-      : other.y + other.height / 2;
+    const isOpposing = opposingEdges.has(edgeIndex);
+    if (wall === 'top' || wall === 'bottom') {
+      const mid = other.x + other.width / 2;
+      if (!isOpposing) return mid;
+      const dy = other.y + other.height / 2 - (self.y + self.height / 2);
+      // Traffic drives on the right: outgoing goes +X if dy > 0, -X if dy < 0
+      const sign = isSource ? (dy >= 0 ? 1 : -1) : dy >= 0 ? -1 : 1;
+      return mid + sign * 14;
+    } else {
+      const mid = other.y + other.height / 2;
+      if (!isOpposing) return mid;
+      const dx = other.x + other.width / 2 - (self.x + self.width / 2);
+      const sign = isSource ? (dx >= 0 ? -1 : 1) : dx >= 0 ? 1 : -1;
+      return mid + sign * 14;
+    }
   };
   for (const [i, e] of doc.edges.entries()) {
     const a = placed.boxes.has(e.from) ? box(e.from) : undefined;
@@ -350,36 +390,26 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     if (!a || !b) continue;
     const lane = skipLaneX.get(i);
     const fw =
-      lane !== undefined
-        ? lane > a.x + a.width / 2
-          ? 'right'
-          : 'left'
-        : sourceWall(a, b);
+      lane !== undefined ? (lane > a.x + a.width / 2 ? 'right' : 'left') : sourceWall(a, b);
     const tw =
-      lane !== undefined
-        ? lane > b.x + b.width / 2
-          ? 'right'
-          : 'left'
-        : targetWall(a, b);
+      lane !== undefined ? (lane > b.x + b.width / 2 ? 'right' : 'left') : targetWall(a, b);
     fromWallByEdge.set(i, fw);
     toWallByEdge.set(i, tw);
     const fk = groupKey(e.from, fw);
     const tk = groupKey(e.to, tw);
-    if (!fromGroups.has(fk)) fromGroups.set(fk, []);
-    if (!toGroups.has(tk)) toGroups.set(tk, []);
-    fromGroups.get(fk)!.push({ edgeIndex: i, ideal: axisIdeal(fw, b, i) });
-    toGroups.get(tk)!.push({ edgeIndex: i, ideal: axisIdeal(tw, a, i) });
+    if (!wallGroups.has(fk)) wallGroups.set(fk, []);
+    if (!wallGroups.has(tk)) wallGroups.set(tk, []);
+    wallGroups.get(fk)!.push({ edgeIndex: i, ideal: axisIdeal(fw, a, b, i, true) });
+    wallGroups.get(tk)!.push({ edgeIndex: i, ideal: axisIdeal(tw, b, a, i, false) });
   }
 
   const fromPorts = new Map<string, Map<number, Pt>>();
   const toPorts = new Map<string, Map<number, Pt>>();
-  for (const [key, group] of fromGroups) {
+  for (const [key, group] of wallGroups) {
     const [id, wall] = key.split('\0') as [string, Wall];
-    fromPorts.set(key, assignPorts(box(id), wall, group));
-  }
-  for (const [key, group] of toGroups) {
-    const [id, wall] = key.split('\0') as [string, Wall];
-    toPorts.set(key, assignPorts(box(id), wall, group));
+    const ports = assignPorts(box(id), wall, group);
+    fromPorts.set(key, ports);
+    toPorts.set(key, ports);
   }
 
   const elements: SceneElement[] = [];
@@ -440,9 +470,20 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
               }).points;
             })()
           : (() => {
+              if (fromPt && toPt) {
+                return [fromPt, toPt];
+              }
               const { start, end } = connectSlots(a, b);
               return [start, end];
             })();
+    const obstacles = [...placed.boxes.values()]
+      .filter((ob) => ob.id !== e.from && ob.id !== e.to)
+      .map((ob) => ({ x: ob.x, y: ob.y + titleH, width: ob.width, height: ob.height }));
+    if (countRouteCollisions(points, obstacles) > 0) {
+      console.warn(
+        `[routing] No clear route between ${e.from} and ${e.to}: route intersects obstacles.`,
+      );
+    }
     maxRouteX = Math.max(maxRouteX, ...points.map((pt) => pt.x));
     const isActive = e.kind === 'active';
     const edgeColor = isActive ? palette.primary : palette.textMuted;
@@ -453,13 +494,18 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
     };
     elements.push(p.path(pathData(points), edgeColor, edgeWidth, pathOpts));
     if (e.label) {
-      const { x: mx, y: my } = pathMidpoint(points);
+      const isOpposing = opposingEdges.has(i);
+      const frac = isOpposing ? 0.28 : 0.5;
+      const { pt, normal } = pathPointAtFraction(points, frac);
+      const lateralShift = isOpposing ? 16 : 0;
+      const mx = pt.x + normal.x * lateralShift;
+      const my = pt.y + normal.y * lateralShift;
       const edgeFont = theme.edges?.labelFontSize ?? 12;
       const w = measureText(e.label, edgeFont).width + 8;
       maxRouteX = Math.max(maxRouteX, mx + w / 2);
       labelElements.push(
         p.rect(
-          { x: mx - w / 2, y: my - 9, width: w, height: 16 },
+          { x: mx - w / 2, y: my - 9, width: w, height: 18 },
           palette.background,
           palette.background,
           0,
@@ -467,7 +513,7 @@ export function layoutGraph(doc: GraphDoc, theme: ResolvedTheme): LayoutResult {
         ),
       );
       labelElements.push(
-        p.text(e.label, mx, my + 3, edgeFont, isActive ? palette.primary : palette.textMuted, {
+        p.text(e.label, mx, my + 4, edgeFont, isActive ? palette.primary : palette.textMuted, {
           anchor: 'middle',
         }),
       );

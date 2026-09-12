@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 443.63777999999996 550.7187843668285" width="443.63777999999996" height="550.7187843668285">
+  <defs>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#737373" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="443.63777999999996" height="550.7187843668285" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Parent aggregation and enforcement</text>
+  <rect x="24" y="58" width="183.81888999999998" height="264.20000000000005" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="235.81888999999998" y="58" width="183.81888999999998" height="264.20000000000005" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="350.20000000000005" width="395.63777999999996" height="176.51878436682844" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <text x="32" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">GROUP_A</text>
+  <g transform="translate(28, 79.00000000000001) scale(0.65)">
+    <path d="M 123.25 64 L 123.25 152" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 161.25 280 L 131.62 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 57.25 280 L 98.13 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 148.36 192 L 189.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 114.87 192 L 85.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="80.82549999999999" y="99" width="84.83959999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="123.24529999999999" y="112" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">capacity down</text>
+    <rect x="109.03622347497723" y="251.4654582901528" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="137.78562347497723" y="264.4654582901528" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="25.433894574408768" y="239.6182099595032" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="54.18329457440876" y="252.6182099595032" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="138.91675742559121" y="200.89820995950316" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="174.3171574255912" y="213.89820995950316" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="86.34129252502277" y="212.74545829015278" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="121.74169252502276" y="225.74545829015278" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="62.53954999999999" y="24" width="121.41149999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Shared capacity</text>
+    <rect x="65.38979999999998" y="152" width="115.711" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="176.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Parent group A</text>
+    <rect x="145.2453" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="183.86794999999998" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child A1</text>
+    <rect x="24" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="62.62265" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child A2</text>
+  </g>
+  <text x="243.81888999999998" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">GROUP_B</text>
+  <g transform="translate(239.81888999999998, 79.00000000000001) scale(0.65)">
+    <path d="M 123.25 64 L 123.25 152" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 161.25 280 L 131.62 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 57.25 280 L 98.13 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 148.36 192 L 189.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 114.87 192 L 85.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="80.82549999999999" y="99" width="84.83959999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="123.24529999999999" y="112" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">capacity down</text>
+    <rect x="109.03622347497723" y="251.4654582901528" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="137.78562347497723" y="264.4654582901528" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="25.433894574408768" y="239.6182099595032" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="54.18329457440876" y="252.6182099595032" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="138.91675742559121" y="200.89820995950316" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="174.3171574255912" y="213.89820995950316" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="86.34129252502277" y="212.74545829015278" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="121.74169252502276" y="225.74545829015278" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="62.53954999999999" y="24" width="121.41149999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Shared capacity</text>
+    <rect x="65.38979999999998" y="152" width="115.711" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="176.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Parent group B</text>
+    <rect x="145.2453" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="183.86794999999998" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child B1</text>
+    <rect x="24" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="62.62265" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child B2</text>
+  </g>
+  <text x="32" y="364.6" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Direction key</text>
+  <g transform="translate(133.909445, 371.20000000000005) scale(0.7014758535501316)">
+    <path d="M 113.32 64 L 113.32 128" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="34.13090000000001" y="24" width="158.3796" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="113.32070000000002" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Upstream aggregation</text>
+    <rect x="24" y="128" width="178.64140000000003" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="113.32070000000002" y="152.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Downstream enforcement</text>
+  </g>
+</svg>

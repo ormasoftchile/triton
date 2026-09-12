@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triton Readability Handoff Review (bw-light theme)</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --radius: 12px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 32px 24px;
+      line-height: 1.5;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 36px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .lead {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin: 0 0 16px;
+    }
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .toc a {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .toc a:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbfc;
+    }
+    .card-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 4px;
+    }
+    .card-header .desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin: 0 0 12px;
+    }
+    .links {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 5px 12px;
+      background: var(--primary);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+    .btn.secondary {
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .btn.secondary:hover {
+      background: #cbd5e1;
+    }
+    .card-body {
+      padding: 24px;
+    }
+    .svg-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+    .svg-container svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .source-details {
+      margin-top: 20px;
+    }
+    .source-details summary {
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      user-select: none;
+    }
+    .source-details pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Triton Readability Handoff Review (bw-light theme)</h1>
+    <p class="lead">All 7 synthetic test cases reproducing readability defects in Triton 0.3.32 are resolved under the <code>bw-light</code> theme.</p>
+    <nav class="toc">
+      <a href="#01-crossing-feedback-loop">01. Feedback Loop Gutter</a>
+      <a href="#02-shared-fanout-channel">02. Fanout Lanes</a>
+      <a href="#03-region-connector-obstruction">03. Memory Corridors</a>
+      <a href="#04-zigzag-cell-sequence">04. Serpentine Non-Overlap</a>
+      <a href="#05-cross-panel-feedback">05. Poster Feedback</a>
+      <a href="#06-queue-cell-obstruction">06. Queue Cells</a>
+      <a href="#07-antiparallel-direction-pairs">07. Opposing Pairs</a>
+    </nav>
+  </header>
+  <main>
+    
+  <section class="card" id="01-crossing-feedback-loop">
+    <div class="card-header">
+      <h2>Case 01: Return Path Gutter Routing & Cycle Avoidance</h2>
+      <p class="desc">Long return paths (outbound -> coordinator) route through outside gutters without penetrating intervening nodes; 2-node cycles route with local curved lanes.</p>
+      <div class="links">
+        <a href="./01-crossing-feedback-loop.svg" target="_blank" class="btn">Open SVG</a>
+        <a href="./01-crossing-feedback-loop.mmd" target="_blank" class="btn secondary">View Source (.mmd)</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="svg-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624.5 328" width="624.5" height="328">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="624.5" height="328" fill="#FFFFFF" />
+  <path d="M 171 64 L 171 84 L 233.83333333333331 84 L 233.83333333333331 104" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="178.02626666666666" y="72" width="48.7808" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="202.41666666666666" y="82" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">request</text>
+  <path d="M 338 64 L 338 84 L 275.16666666666663 84 L 275.16666666666663 104" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="287.5425333333333" y="72" width="38.0816" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="306.5833333333333" y="82" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">batch</text>
+  <path d="M 316.5 124 L 408 124 L 408 204 L 441.5 204" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="357.2874" y="152" width="43.4252" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="379" y="162" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">lookup</text>
+  <path d="M 505 224 L 505 264" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="483.633" y="232" width="42.733999999999995" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="505" y="242" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">invoke</text>
+  <path d="M 565 284 L 592.5 284 C 600.5 284, 600.5 276, 600.5 276 L 600.5 212 C 600.5 204, 592.5 204, 592.5 204 L 568.5 204" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="581.4706" y="232" width="38.0588" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="600.5" y="242" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">result</text>
+  <path d="M 441.5 198 L 431.5 198 C 423.5 198, 423.5 190, 423.5 190 L 423.5 138 C 423.5 130, 415.5 130, 415.5 130 L 316.5 130" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="326.2212" y="118" width="87.55759999999998" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="370" y="128" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">enriched batch</text>
+  <path d="M 254.5 144 L 254.5 164 L 338 164 L 338 184" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="280.5548" y="152" width="31.3904" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="296.25" y="162" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">emit</text>
+  <path d="M 276 204 L 71 204 C 63 204, 63 196, 63 196 L 63 52 C 63 44, 71 44, 71 44 L 111 44" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="25.238600000000005" y="112" width="75.52279999999999" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="63" y="122" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">next request</text>
+  <g id="coordinator">
+    <rect x="111" y="24" width="120" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="171" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Coordinator</text>
+  </g>
+  <g id="inbound">
+    <rect x="278" y="24" width="120" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="338" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Incoming items</text>
+  </g>
+  <g id="worker">
+    <rect x="192.5" y="104" width="124" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="254.5" y="128.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Processing stage</text>
+  </g>
+  <g id="outbound">
+    <rect x="276" y="184" width="124" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="338" y="208.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Completed items</text>
+  </g>
+  <g id="cache">
+    <rect x="441.5" y="184" width="127" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="505" y="208.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Reusable context</text>
+  </g>
+  <g id="helper">
+    <rect x="445" y="264" width="120" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="505" y="288.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">External helper</text>
+  </g>
+</svg>
+      </div>
+      <details class="source-details">
+        <summary>Triton Source DSL</summary>
+        <pre><code>flowchart TB
+  coordinator["Coordinator"]
+  inbound["Incoming items"]
+  worker["Processing stage"]
+  outbound["Completed items"]
+  cache["Reusable context"]
+  helper["External helper"]
+
+  coordinator --&gt;|request| worker
+  inbound --&gt;|batch| worker
+  worker --&gt;|lookup| cache
+  cache --&gt;|invoke| helper
+  helper --&gt;|result| cache
+  cache --&gt;|enriched batch| worker
+  worker --&gt;|emit| outbound
+  outbound --&gt;|next request| coordinator
+</code></pre>
+      </details>
+    </div>
+  </section>
+  <section class="card" id="02-shared-fanout-channel">
+    <div class="card-header">
+      <h2>Case 02: Concentric Staggered Fan-Out Lanes</h2>
+      <p class="desc">Services fanning out to parallel destinations allocate concentric staggered bend offsets along the tangent axis without collinear trunk overlaps.</p>
+      <div class="links">
+        <a href="./02-shared-fanout-channel.svg" target="_blank" class="btn">Open SVG</a>
+        <a href="./02-shared-fanout-channel.mmd" target="_blank" class="btn secondary">View Source (.mmd)</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="svg-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -34 1355 904" width="1355" height="904">
+  <defs>
+    <marker id="arch-arrow-end" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="14.4" refY="6.5" orient="auto"><polygon points="0 0, 16 6.5, 0 13" fill="#525252" /></marker>
+    <marker id="arch-arrow-start" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="13" refX="1.6" refY="6.5" orient="auto-start-reverse"><polygon points="0 0, 16 6.5, 0 13" fill="#525252" /></marker>
+  </defs>
+  <rect x="-24" y="-34" width="1355" height="904" fill="#FFFFFF" />
+  <rect x="4" y="-10" width="397" height="230" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="10" />
+  <text x="16" y="6" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Intake</text>
+  <rect x="4" y="350" width="170" height="230" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="10" />
+  <text x="16" y="366" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Queued delivery</text>
+  <rect x="4" y="710" width="1277" height="110" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="10" />
+  <text x="16" y="726" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Output types</text>
+  <path d="M 89 80 L 89 144" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 154 172 L 244 172" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 89 200 L 89 384" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 89 440 L 89 504" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 42.57 560 L 42.57 682 L 89 682 L 89 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 61.14 560 L 61.14 670 L 312.5 670 L 312.5 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 79.71 560 L 79.71 658 L 536 658 L 536 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 98.29 560 L 98.29 646 L 756 646 L 756 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 116.86 560 L 116.86 634 L 976 634 L 976 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <path d="M 135.43 560 L 135.43 622 L 1196 622 L 1196 744" stroke="#525252" stroke-width="1.6" fill="none" marker-end="url(#arch-arrow-end)" />
+  <rect x="24" y="24" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="24" width="130" height="8" fill="#525252" stroke="#525252" stroke-width="0" rx="4" />
+  <rect x="79" y="35" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="42" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="49" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="89" y="75.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Event source</text>
+  <rect x="24" y="144" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="144" width="130" height="8" fill="#737373" stroke="#737373" stroke-width="0" rx="4" />
+  <rect x="79" y="155" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="162" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="169" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="89" y="195.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Router</text>
+  <rect x="244" y="144" width="137" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="244" y="144" width="137" height="8" fill="#404040" stroke="#404040" stroke-width="0" rx="4" />
+  <rect x="302.5" y="155" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="302.5" y="162" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="302.5" y="169" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="312.5" y="195.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Immediate callback</text>
+  <rect x="24" y="384" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="384" width="130" height="8" fill="#8A8A8A" stroke="#8A8A8A" stroke-width="0" rx="4" />
+  <rect x="80" y="395" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 80 401 Q 89 405, 98 401" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="89" y="435.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Work queue</text>
+  <rect x="24" y="504" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="504" width="130" height="8" fill="#262626" stroke="#262626" stroke-width="0" rx="4" />
+  <rect x="79" y="515" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="522" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="79" y="529" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="89" y="555.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Worker pool</text>
+  <rect x="24" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="24" y="744" width="130" height="8" fill="#5E5E5E" stroke="#5E5E5E" stroke-width="0" rx="4" />
+  <rect x="80" y="755" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 80 761 Q 89 765, 98 761" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="89" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output one</text>
+  <rect x="244" y="744" width="137" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="244" y="744" width="137" height="8" fill="#525252" stroke="#525252" stroke-width="0" rx="4" />
+  <rect x="303.5" y="755" width="18" height="18" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="5" />
+  <path d="M 303.5 761 Q 312.5 765, 321.5 761" stroke="#171717" stroke-width="1.3" fill="none" />
+  <text x="312.5" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output two</text>
+  <rect x="471" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="471" y="744" width="130" height="8" fill="#737373" stroke="#737373" stroke-width="0" rx="4" />
+  <rect x="526" y="755" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="526" y="762" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="526" y="769" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="536" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output three</text>
+  <rect x="691" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="691" y="744" width="130" height="8" fill="#404040" stroke="#404040" stroke-width="0" rx="4" />
+  <rect x="746" y="755" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="746" y="762" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="746" y="769" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="756" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output four</text>
+  <rect x="911" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="911" y="744" width="130" height="8" fill="#8A8A8A" stroke="#8A8A8A" stroke-width="0" rx="4" />
+  <rect x="966" y="755" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="966" y="762" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <rect x="966" y="769" width="20" height="5" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" rx="1" />
+  <text x="976" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output five</text>
+  <rect x="1131" y="744" width="130" height="56" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.4" rx="8" />
+  <rect x="1131" y="744" width="130" height="8" fill="#262626" stroke="#262626" stroke-width="0" rx="4" />
+  <circle cx="1196" cy="764" r="9" fill="#F5F5F5" stroke="#171717" stroke-width="1.3" />
+  <path d="M 1196 755 L 1196 773 M 1187 764 L 1205 764" stroke="#171717" stroke-width="1" fill="none" />
+  <path d="M 1187 764 Q 1196 753, 1205 764 Q 1196 775, 1187 764" stroke="#171717" stroke-width="1" fill="none" />
+  <text x="1196" y="795.42" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Output six</text>
+</svg>
+      </div>
+      <details class="source-details">
+        <summary>Triton Source DSL</summary>
+        <pre><code>architecture-beta
+  group intake(server)[Intake]
+  service source(server)[Event source] in intake
+  service router(server)[Router] in intake
+  service callback(server)[Immediate callback] in intake
+
+  group delivery(server)[Queued delivery]
+  service queue(disk)[Work queue] in delivery
+  service workers(server)[Worker pool] in delivery
+
+  group outputs(cloud)[Output types]
+  service first(database)[Output one] in outputs
+  service second(disk)[Output two] in outputs
+  service third(server)[Output three] in outputs
+  service fourth(server)[Output four] in outputs
+  service fifth(server)[Output five] in outputs
+  service sixth(internet)[Output six] in outputs
+
+  source:B --&gt; T:router
+  router:R --&gt; L:callback
+  router:B --&gt; T:queue
+  queue:B --&gt; T:workers
+  workers:B --&gt; T:first
+  workers:B --&gt; T:second
+  workers:B --&gt; T:third
+  workers:B --&gt; T:fourth
+  workers:B --&gt; T:fifth
+  workers:B --&gt; T:sixth
+</code></pre>
+      </details>
+    </div>
+  </section>
+  <section class="card" id="03-region-connector-obstruction">
+    <div class="card-header">
+      <h2>Case 03: Memory Diagram Object Avoidance & Corridor Routing</h2>
+      <p class="desc">Fixed header pointers route through inter-region corridors to variable payload objects without penetrating intervening objects.</p>
+      <div class="links">
+        <a href="./03-region-connector-obstruction.svg" target="_blank" class="btn">Open SVG</a>
+        <a href="./03-region-connector-obstruction.mmd" target="_blank" class="btn secondary">View Source (.mmd)</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="svg-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 653.6816000000001 650" width="653.6816000000001" height="650">
+  <defs>
+    <marker id="struct-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 z" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="653.6816000000001" height="650" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="18" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Fixed header indexes variable payload</text>
+  <rect x="24" y="56" width="186.81959999999998" height="570" fill="#F5F5F5" fill-opacity="0.26" stroke="#D4D4D4" stroke-width="1.5" rx="8" />
+  <text x="36" y="73" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" font-weight="bold">Fixed header</text>
+  <rect x="38" y="96" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="117.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Group offsets</text>
+  <circle cx="184.81959999999998" cy="113" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="144" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="165.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Context offsets</text>
+  <circle cx="184.81959999999998" cy="161" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="192" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="213.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Credential offsets</text>
+  <circle cx="184.81959999999998" cy="209" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="240" width="158.81959999999998" height="34" fill="#F5F5F5" fill-opacity="0.56" stroke="#D4D4D4" stroke-width="1.5" rx="4" />
+  <text x="50" y="261.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Extension offsets</text>
+  <circle cx="184.81959999999998" cy="257" r="3" fill="#525252" stroke="#525252" stroke-width="1" />
+  <rect x="38" y="288" width="158.81959999999998" height="112" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="50" y="306" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Scalar fields</text>
+  <text x="50" y="330" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Size: 4 bytes</text>
+  <text x="50" y="348" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Version: 4 bytes</text>
+  <text x="50" y="366" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Window: 4 bytes</text>
+  <text x="50" y="384" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Process: 4 bytes</text>
+  <rect x="38" y="414" width="158.81959999999998" height="112" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="50" y="432" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Session fields</text>
+  <text x="50" y="456" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Flags: options</text>
+  <text x="50" y="474" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Zone: offset</text>
+  <text x="50" y="492" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Locale: identifier</text>
+  <text x="50" y="510" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">Client: 6 bytes</text>
+  <rect x="38" y="540" width="158.81959999999998" height="72" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="50" y="558" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Special lengths</text>
+  <text x="50" y="582" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">ShortLength: 16 bit</text>
+  <text x="50" y="600" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">LongLength: 32 bit</text>
+  <rect x="300.8196" y="56" width="328.8620000000001" height="304" fill="#F5F5F5" fill-opacity="0.26" stroke="#D4D4D4" stroke-width="1.5" rx="8" />
+  <text x="312.8196" y="73" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" font-weight="bold">Variable payload</text>
+  <rect x="314.8196" y="96" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="114" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Group strings</text>
+  <text x="326.8196" y="138" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Host + User + Label</text>
+  <rect x="314.8196" y="162" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="180" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Request context</text>
+  <text x="326.8196" y="204" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Application + Endpoint + Language + Catalog</text>
+  <rect x="314.8196" y="228" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="246" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Credential data</text>
+  <text x="326.8196" y="270" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Token + Reset data</text>
+  <rect x="314.8196" y="294" width="300.8620000000001" height="52" fill="#F5F5F5" fill-opacity="0.62" stroke="#525252" stroke-width="2" rx="6" />
+  <text x="326.8196" y="312" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" font-weight="bold">Optional data</text>
+  <text x="326.8196" y="336" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717">payload: Feature blocks + attachment</text>
+  <path d="M 184.82 113 L 314.82 113" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 184.82 161 L 314.82 180" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 184.82 209 L 314.82 246" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+  <path d="M 184.82 257 L 314.82 312" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#struct-arrow)" />
+</svg>
+      </div>
+      <details class="source-details">
+        <summary>Triton Source DSL</summary>
+        <pre><code>memory
+  title Fixed header indexes variable payload
+
+  region "Fixed header"
+    var "Group offsets" -&gt; group
+    var "Context offsets" -&gt; context
+    var "Credential offsets" -&gt; credential
+    var "Extension offsets" -&gt; extension
+
+    object core : Scalar fields : Size=4 bytes, Version=4 bytes, Window=4 bytes, Process=4 bytes
+    object session : Session fields : Flags=options, Zone=offset, Locale=identifier, Client=6 bytes
+    object special : Special lengths : ShortLength=16 bit, LongLength=32 bit
+
+  region "Variable payload"
+    object group : Group strings : payload=Host + User + Label
+    object context : Request context : payload=Application + Endpoint + Language + Catalog
+    object credential : Credential data : payload=Token + Reset data
+    object extension : Optional data : payload=Feature blocks + attachment
+</code></pre>
+      </details>
+    </div>
+  </section>
+  <section class="card" id="04-zigzag-cell-sequence">
+    <div class="card-header">
+      <h2>Case 04: Serpentine Poster Non-Overlap & Texture Differentiation</h2>
+      <p class="desc">Serpentine cell chain routes with 0 collinear overlaps at shared ports, and links use distinct monochrome dash patterns under bw-light.</p>
+      <div class="links">
+        <a href="./04-zigzag-cell-sequence.svg" target="_blank" class="btn">Open SVG</a>
+        <a href="./04-zigzag-cell-sequence.mmd" target="_blank" class="btn secondary">View Source (.mmd)</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="svg-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 388 728" width="388" height="728">
+  <defs>
+    <marker id="triton-crosslink-arrow-525252" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="388" height="728" fill="#FFFFFF" />
+  <rect x="24" y="24" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="24" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="164" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="164" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="304" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="304" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="444" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="444" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="584" width="340" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <path d="M 140.02888263853202 64.75070945068433 L 227.51983767713932 64.75070945068433" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 227.51983767713932 79.66225829396905 L 187.66987102713375 79.66225829396905 L 187.66987102713375 211.48551836888316 L 147.81990437712815 211.48551836888316" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 147.81990437712815 215.0124128744315 L 226.51378180533732 215.0124128744315" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 226.51378180533732 219.8858262654806 L 192 219.8858262654806 L 192 348.82202162041676 L 140.97091273821465 348.82202162041676" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 140.97091273821465 354.552236803597 L 226.71866432478114 354.552236803597" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 226.71866432478114 359.84029681671524 L 187.26743898291832 359.84029681671524 L 187.26743898291832 491.4840830826327 L 147.8162136410555 491.4840830826327" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 147.8162136410555 503.53601850465975 L 223.88807962854645 503.53601850465975" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 236.64030786999126 509.2960265428488 L 236.64030786999126 612" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <g transform="translate(28, 37.367029744954024) scale(0.8327316116972496)">
+    <rect x="24" y="24" width="110.53179999999998" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="79.26589999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Observe state</text>
+  </g>
+  <g transform="translate(208, 38.453712086674926) scale(0.8133265698808049)">
+    <rect x="24" y="24" width="114.8868" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="81.4434" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Detect timeout</text>
+  </g>
+  <g transform="translate(28, 186.4565551066495) scale(0.6704186588098305)">
+    <rect x="24" y="24" width="154.724" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="101.362" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Validate prerequisites</text>
+  </g>
+  <g transform="translate(208, 180.80117578754624) scale(0.7714075752223888)">
+    <rect x="24" y="24" width="125.04239999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="86.5212" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Select candidate</text>
+  </g>
+  <g transform="translate(28, 318.4660648612504) scale(0.8131059846205283)">
+    <rect x="24.000000000000007" y="24" width="114.93749999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="81.46875" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Stop old owner</text>
+  </g>
+  <g transform="translate(208, 320.32311657551065) scale(0.7799443468658809)">
+    <rect x="24" y="24" width="122.88569999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="85.44284999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Start new owner</text>
+  </g>
+  <g transform="translate(28, 466.45224924789807) scale(0.670495549144677)">
+    <rect x="24" y="24" width="154.698" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="101.349" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Compare checkpoints</text>
+  </g>
+  <g transform="translate(208, 466.92781420005826) scale(0.6620033178561022)">
+    <rect x="24" y="24" width="157.6061" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="102.80305" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Recover pending work</text>
+  </g>
+  <g transform="translate(86.8013, 588) scale(1)">
+    <rect x="24" y="24" width="142.3974" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="95.1987" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Complete transition</text>
+  </g>
+</svg>
+      </div>
+      <details class="source-details">
+        <summary>Triton Source DSL</summary>
+        <pre><code>poster
+  columns 2
+
+  cell observe
+    nodegraph
+      node step : Observe state
+  end
+
+  cell detect
+    nodegraph
+      node step : Detect timeout
+  end
+
+  cell validate
+    nodegraph
+      node step : Validate prerequisites
+  end
+
+  cell select
+    nodegraph
+      node step : Select candidate
+  end
+
+  cell stop
+    nodegraph
+      node step : Stop old owner
+  end
+
+  cell start
+    nodegraph
+      node step : Start new owner
+  end
+
+  cell compare
+    nodegraph
+      node step : Compare checkpoints
+  end
+
+  cell recover
+    nodegraph
+      node step : Recover pending work
+  end
+
+  cell complete [2]
+    nodegraph
+      node step : Complete transition
+  end
+
+  link observe.step --&gt; detect.step
+  link detect.step --&gt; validate.step
+  link validate.step --&gt; select.step
+  link select.step --&gt; stop.step
+  link stop.step --&gt; start.step
+  link start.step --&gt; compare.step
+  link compare.step --&gt; recover.step
+  link recover.step --&gt; complete.step
+</code></pre>
+      </details>
+    </div>
+  </section>
+  <section class="card" id="05-cross-panel-feedback">
+    <div class="card-header">
+      <h2>Case 05: Poster Cross-Panel Feedback Links</h2>
+      <p class="desc">Bi-directional and feedback cross-links between execution loop and storage panels route orthogonally without collinear overlap.</p>
+      <div class="links">
+        <a href="./05-cross-panel-feedback.svg" target="_blank" class="btn">Open SVG</a>
+        <a href="./05-cross-panel-feedback.mmd" target="_blank" class="btn secondary">View Source (.mmd)</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="svg-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 571.13814 543.8" width="571.13814" height="543.8">
+  <defs>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#737373" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+    <marker id="triton-crosslink-arrow-525252" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="571.13814" height="543.8" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Workflow with durable restart</text>
+  <rect x="24" y="58" width="244.98167999999998" height="461.8" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="296.98168" y="58" width="250.15645999999998" height="461.8" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <path d="M 174.84520500000002 321.6666666666667 L 186.84520500000002 321.6666666666667 L 186.84520500000002 266.6 L 408.78252999999995 266.6 L 408.78252999999995 221.13333333333333 L 420.78252999999995 221.13333333333333" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 420.78252999999995 212.46666666666664 L 402.18253 212.46666666666664 L 402.18253 176.06666666666666 L 180.99258000000003 176.06666666666666" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 316.58168 216.79999999999998 L 248.78713000000002 216.79999999999998 L 248.78713000000002 184.73333333333335 L 180.99258000000003 184.73333333333335" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 174.84520500000002 330.3333333333333 L 275.71318499999995 330.3333333333333 L 275.71318499999995 358.06666666666666 L 376.58116499999994 358.06666666666666" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 177.922695 398.8 L 277.25192999999996 398.8 L 277.25192999999996 366.7333333333333 L 376.58116499999994 366.7333333333333" stroke="#525252" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <text x="32" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Execution loop</text>
+  <g transform="translate(28.000000000000014, 79) scale(0.65)">
+    <path d="M 163.06 64 L 163.06 136" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 163.06 176 L 163.06 248" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 163.06 288 L 163.06 360" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 163.06 400 L 163.06 472" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 214.65 512 L 193.83 584" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 111.48 512 L 117.83 584" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="186.8596" y="539" width="34.7648" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="204.242" y="552" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">done</text>
+    <rect x="87.59315000000001" y="539" width="54.124399999999994" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="114.65535000000001" y="552" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">continue</text>
+    <rect x="98.72765000000001" y="24" width="128.67199999999997" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Incoming request</text>
+    <rect x="90.7541" y="136" width="144.6191" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="160.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Create or load state</text>
+    <rect x="105.61439999999999" y="248" width="114.8985" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="272.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Execute action</text>
+    <rect x="100.2116" y="360" width="125.7041" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="384.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Persist transition</text>
+    <rect x="95.477" y="472" width="135.17329999999998" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="163.06365" y="496.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Choose next state</text>
+    <rect x="177.8337" y="584" width="138.75349999999997" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="247.21044999999998" y="608.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Workflow complete</text>
+    <rect x="24.000000000000014" y="584" width="109.8337" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="78.91685000000001" y="608.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Repeat action</text>
+  </g>
+  <text x="304.98168" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Storage, restart, and telemetry</text>
+  <g transform="translate(300.98168, 188.2) scale(0.65)">
+    <path d="M 200.31 64 L 215.9 136" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 124.31 64 L 120.68 136" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 168.29 176 L 168.29 248" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="101.78034999999997" y="91" width="41.4332" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="122.49694999999997" y="104" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">reload</text>
+    <rect x="134.88379999999995" y="203" width="66.8156" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="168.29159999999996" y="216" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">observable</text>
+    <rect x="184.30899999999997" y="24" width="140.2394" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="254.42869999999996" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Durable state store</text>
+    <rect x="23.999999999999993" y="24" width="116.30899999999998" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="82.15449999999998" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Process restart</text>
+    <rect x="116.30689999999996" y="248" width="103.9694" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="168.29159999999996" y="272.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Activity trace</text>
+    <rect x="104.68489999999997" y="136" width="127.2134" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="168.29159999999996" y="160.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Last stored state</text>
+  </g>
+  <rect x="278.2138675" y="248.60000000000002" width="39.2" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="297.8138675" y="264.6" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">save</text>
+  <rect x="264.18755500000003" y="158.06666666666666" width="54.800000000000004" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="291.587555" y="174.06666666666666" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">reload</text>
+  <rect x="255.28440500000005" y="198.79999999999998" width="54.800000000000004" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="282.684405" y="214.79999999999998" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">resume</text>
+  <rect x="208.33496944444443" y="312.3333333333333" width="86" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="251.33496944444443" y="328.3333333333333" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">transition</text>
+  <rect x="276.172786111111" y="348.7333333333333" width="47" height="20" fill="#FFFFFF" stroke="none" stroke-width="0" rx="3" />
+  <text x="299.672786111111" y="364.7333333333333" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">state</text>
+</svg>
+      </div>
+      <details class="source-details">
+        <summary>Triton Source DSL</summary>
+        <pre><code>poster "Workflow with durable restart"
+  columns 2
+  gap 28
+
+  cell execution "Execution loop" :: nodegraph
+    nodegraph
+      directed
+      node request : Incoming request
+      node create : Create or load state
+      node action : Execute action
+      node persist : Persist transition
+      node next : Choose next state
+      node complete : Workflow complete
+      node repeat : Repeat action
+
+      request -&gt; create
+      create -&gt; action
+      action -&gt; persist
+      persist -&gt; next
+      next -&gt; complete : done
+      next -&gt; repeat : continue
+  end
+
+  cell support "Storage, restart, and telemetry" :: nodegraph
+    nodegraph
+      directed
+      node store : Durable state store
+      node restart : Process restart
+      node trace : Activity trace
+      node durable : Last stored state
+
+      store -&gt; durable
+      restart -&gt; durable : reload
+      durable -&gt; trace : observable
+  end
+
+  link execution.persist -.-&gt; support.store "save" @orthogonal:EW
+  link support.store -.-&gt; execution.create "reload" @orthogonal:WE
+  link support.restart -.-&gt; execution.create "resume" @orthogonal:WE
+  link execution.persist -.-&gt; support.trace "transition" @orthogonal:EW
+  link execution.next -.-&gt; support.trace "state" @orthogonal:EW
+</code></pre>
+      </details>
+    </div>
+  </section>
+  <section class="card" id="06-queue-cell-obstruction">
+    <div class="card-header">
+      <h2>Case 06: Composite Queue Cell Obstacle Avoidance</h2>
+      <p class="desc">Cross-links to queue slot c2 steer around sibling cells c0 and c1 instead of cutting straight through them.</p>
+      <div class="links">
+        <a href="./06-queue-cell-obstruction.svg" target="_blank" class="btn">Open SVG</a>
+        <a href="./06-queue-cell-obstruction.mmd" target="_blank" class="btn secondary">View Source (.mmd)</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="svg-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569.684305 576.4027484408894" width="569.684305" height="576.4027484408894">
+  <defs>
+    <marker id="queue-arrow-fwd" markerWidth="9" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#525252" /></marker><marker id="queue-arrow-rev" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto"><path d="M8 0 L0 4 L8 8 z" fill="#525252" /></marker>
+    <marker id="triton-crosslink-arrow-525252" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="569.684305" height="576.4027484408894" fill="#FFFFFF" />
+  <rect x="24" y="24" width="160.41271500000002" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204.41271500000002" y="24" width="160.41271500000002" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="384.82543000000004" y="24" width="160.858875" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="164" width="160.41271500000002" height="248.40274844088935" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204.41271500000002" y="164" width="160.41271500000002" height="248.40274844088935" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="384.82543000000004" y="164" width="160.858875" height="248.40274844088935" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="432.40274844088935" width="521.684305" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <path d="M 149.21271500000003 95.10000000000001 L 161.21271500000003 95.10000000000001 L 161.21271500000003 205.8190850494848 L 35.83679587852495 205.8190850494848 L 35.83679587852495 316.5381700989696 L 47.83679587852495 316.5381700989696" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 224.01271500000001 95.10000000000001 L 192.41271500000002 95.10000000000001 L 192.41271500000002 316.5381700989696 L 228.24951087852497 316.5381700989696" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 510.48430500000006 95.10000000000001 L 530.4843050000001 95.10000000000001 L 530.4843050000001 316.59623864560734 L 466.4057854069957 316.59623864560734" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 105.35391614157268 276.8645783419197 L 117.35391614157268 276.8645783419197 L 117.35391614157268 461.7598912980322 L 244.31415584821428 461.7598912980322 L 244.31415584821428 473.7598912980322" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 285.7666311415727 276.8645783419197 L 297.7666311415727 276.8645783419197 L 297.7666311415727 461.7598912980322 L 274.66358107142855 461.7598912980322 L 274.66358107142855 473.7598912980322" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 408.7202944251627 276.806509795282 L 396.7202944251627 276.806509795282 L 396.7202944251627 461.7598912980322 L 305.0130062946429 461.7598912980322 L 305.0130062946429 473.7598912980322" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <text x="32" y="38.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Producer A</text>
+  <g transform="translate(28, 56.1) scale(0.65)">
+    <rect x="24" y="24" width="162.48110000000003" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="105.24055000000001" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Producer A / partition 1</text>
+  </g>
+  <text x="212.41271500000002" y="38.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Producer B</text>
+  <g transform="translate(208.41271500000002, 56.1) scale(0.65)">
+    <rect x="24" y="24" width="162.48110000000003" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="105.24055000000001" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Producer B / partition 2</text>
+  </g>
+  <text x="392.82543000000004" y="38.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Producer C</text>
+  <g transform="translate(388.82543000000004, 56.1) scale(0.65)">
+    <rect x="24" y="24" width="163.16750000000002" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="105.58375000000001" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Producer C / partition 3</text>
+  </g>
+  <text x="32" y="178.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Per-producer queue</text>
+  <g transform="translate(28, 185.32603069414313) scale(0.8265331616052062)">
+    <rect x="24" y="74.75" width="69.5884" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <text x="58.79" y="99.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">packets</text>
+    <rect x="24" y="114.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <rect x="24" y="154.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <path d="M 58.79 74.75 L 58.79 24.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="43.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">dequeue</text>
+    <path d="M 58.79 244.75 L 58.79 194.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="232.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">enqueue</text>
+    <path d="M 127.59 94.75 L 97.59 94.75" stroke="#A3A3A3" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="98.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#A3A3A3" text-anchor="start" font-weight="bold">front</text>
+    <path d="M 127.59 113.75 L 97.59 113.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="117.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="start" font-weight="bold">rear</text>
+  </g>
+  <text x="212.41271500000002" y="178.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Per-producer queue</text>
+  <g transform="translate(208.41271500000002, 185.32603069414313) scale(0.8265331616052062)">
+    <rect x="24" y="74.75" width="69.5884" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <text x="58.79" y="99.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">packets</text>
+    <rect x="24" y="114.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <rect x="24" y="154.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <path d="M 58.79 74.75 L 58.79 24.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="43.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">dequeue</text>
+    <path d="M 58.79 244.75 L 58.79 194.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="232.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">enqueue</text>
+    <path d="M 127.59 94.75 L 97.59 94.75" stroke="#A3A3A3" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="98.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#A3A3A3" text-anchor="start" font-weight="bold">front</text>
+    <path d="M 127.59 113.75 L 97.59 113.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="117.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="start" font-weight="bold">rear</text>
+  </g>
+  <text x="392.82543000000004" y="178.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Per-producer queue</text>
+  <g transform="translate(388.82543000000004, 185) scale(0.8289526843817787)">
+    <rect x="24" y="74.75" width="69.5884" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <text x="58.79" y="99.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">packets</text>
+    <rect x="24" y="114.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <rect x="24" y="154.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <path d="M 58.79 74.75 L 58.79 24.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="43.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">dequeue</text>
+    <path d="M 58.79 244.75 L 58.79 194.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="232.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">enqueue</text>
+    <path d="M 127.59 94.75 L 97.59 94.75" stroke="#A3A3A3" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="98.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#A3A3A3" text-anchor="start" font-weight="bold">front</text>
+    <path d="M 127.59 113.75 L 97.59 113.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="117.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="start" font-weight="bold">rear</text>
+  </g>
+  <text x="32" y="446.80274844088933" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Consumer</text>
+  <g transform="translate(193.60758776785713, 453.40274844088935) scale(0.8482142857142857)">
+    <rect x="24" y="24" width="143.1215" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="95.56075" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Gather all partitions</text>
+  </g>
+</svg>
+      </div>
+      <details class="source-details">
+        <summary>Triton Source DSL</summary>
+        <pre><code>poster
+  columns 3
+
+  cell producer1 "Producer A"
+    nodegraph
+      node p1 : Producer A / partition 1
+  end
+
+  cell producer2 "Producer B"
+    nodegraph
+      node p2 : Producer B / partition 2
+  end
+
+  cell producer3 "Producer C"
+    nodegraph
+      node p3 : Producer C / partition 3
+  end
+
+  cell queue1 "Per-producer queue"
+    queue
+      cells packets
+      capacity 3
+      axis vertical
+  end
+
+  cell queue2 "Per-producer queue"
+    queue
+      cells packets
+      capacity 3
+      axis vertical
+  end
+
+  cell queue3 "Per-producer queue"
+    queue
+      cells packets
+      capacity 3
+      axis vertical
+  end
+
+  cell consumer "Consumer" [3]
+    nodegraph
+      node gather : Gather all partitions
+  end
+
+  link producer1.p1 --&gt; queue1.c2
+  link producer2.p2 --&gt; queue2.c2
+  link producer3.p3 --&gt; queue3.c2
+  link queue1.c0 --&gt; consumer.gather
+  link queue2.c0 --&gt; consumer.gather
+  link queue3.c0 --&gt; consumer.gather
+</code></pre>
+      </details>
+    </div>
+  </section>
+  <section class="card" id="07-antiparallel-direction-pairs">
+    <div class="card-header">
+      <h2>Case 07: Nodegraph Opposing Direction Pairs</h2>
+      <p class="desc">Antiparallel edge pairs (e.g. usage up vs policy down) automatically separate into distinct parallel lanes.</p>
+      <div class="links">
+        <a href="./07-antiparallel-direction-pairs.svg" target="_blank" class="btn">Open SVG</a>
+        <a href="./07-antiparallel-direction-pairs.mmd" target="_blank" class="btn secondary">View Source (.mmd)</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="svg-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 443.63777999999996 550.7187843668285" width="443.63777999999996" height="550.7187843668285">
+  <defs>
+    <marker id="dsgraph-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#737373" /></marker>
+    <marker id="dsgraph-arrow-active" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="443.63777999999996" height="550.7187843668285" fill="#FFFFFF" />
+  <text x="24" y="42" font-size="20" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" font-weight="bold">Parent aggregation and enforcement</text>
+  <rect x="24" y="58" width="183.81888999999998" height="264.20000000000005" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="235.81888999999998" y="58" width="183.81888999999998" height="264.20000000000005" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="350.20000000000005" width="395.63777999999996" height="176.51878436682844" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <text x="32" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">GROUP_A</text>
+  <g transform="translate(28, 79.00000000000001) scale(0.65)">
+    <path d="M 123.25 64 L 123.25 152" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 161.25 280 L 131.62 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 57.25 280 L 98.13 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 148.36 192 L 189.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 114.87 192 L 85.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="80.82549999999999" y="99" width="84.83959999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="123.24529999999999" y="112" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">capacity down</text>
+    <rect x="109.03622347497723" y="251.4654582901528" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="137.78562347497723" y="264.4654582901528" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="25.433894574408768" y="239.6182099595032" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="54.18329457440876" y="252.6182099595032" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="138.91675742559121" y="200.89820995950316" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="174.3171574255912" y="213.89820995950316" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="86.34129252502277" y="212.74545829015278" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="121.74169252502276" y="225.74545829015278" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="62.53954999999999" y="24" width="121.41149999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Shared capacity</text>
+    <rect x="65.38979999999998" y="152" width="115.711" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="176.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Parent group A</text>
+    <rect x="145.2453" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="183.86794999999998" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child A1</text>
+    <rect x="24" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="62.62265" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child A2</text>
+  </g>
+  <text x="243.81888999999998" y="72.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">GROUP_B</text>
+  <g transform="translate(239.81888999999998, 79.00000000000001) scale(0.65)">
+    <path d="M 123.25 64 L 123.25 152" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 161.25 280 L 131.62 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 57.25 280 L 98.13 192" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 148.36 192 L 189.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <path d="M 114.87 192 L 85.25 280" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="80.82549999999999" y="99" width="84.83959999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="123.24529999999999" y="112" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">capacity down</text>
+    <rect x="109.03622347497723" y="251.4654582901528" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="137.78562347497723" y="264.4654582901528" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="25.433894574408768" y="239.6182099595032" width="57.49879999999999" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="54.18329457440876" y="252.6182099595032" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">usage up</text>
+    <rect x="138.91675742559121" y="200.89820995950316" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="174.3171574255912" y="213.89820995950316" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="86.34129252502277" y="212.74545829015278" width="70.8008" height="18" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+    <text x="121.74169252502276" y="225.74545829015278" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">policy down</text>
+    <rect x="62.53954999999999" y="24" width="121.41149999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Shared capacity</text>
+    <rect x="65.38979999999998" y="152" width="115.711" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="123.24529999999999" y="176.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Parent group B</text>
+    <rect x="145.2453" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="183.86794999999998" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child B1</text>
+    <rect x="24" y="280" width="77.2453" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="62.62265" y="304.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Child B2</text>
+  </g>
+  <text x="32" y="364.6" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Direction key</text>
+  <g transform="translate(133.909445, 371.20000000000005) scale(0.7014758535501316)">
+    <path d="M 113.32 64 L 113.32 128" stroke="#737373" stroke-width="1.5" fill="none" marker-end="url(#dsgraph-arrow)" />
+    <rect x="34.13090000000001" y="24" width="158.3796" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="113.32070000000002" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Upstream aggregation</text>
+    <rect x="24" y="128" width="178.64140000000003" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="113.32070000000002" y="152.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Downstream enforcement</text>
+  </g>
+</svg>
+      </div>
+      <details class="source-details">
+        <summary>Triton Source DSL</summary>
+        <pre><code>poster "Parent aggregation and enforcement"
+  columns 2
+  gap 28
+
+  cell group1 "GROUP_A" :: nodegraph
+    nodegraph
+      directed
+      node supply : Shared capacity
+      node parent : Parent group A
+      node first : Child A1
+      node second : Child A2
+
+      supply -&gt; parent : capacity down
+      first -&gt; parent : usage up
+      second -&gt; parent : usage up
+      parent -&gt; first : policy down
+      parent -&gt; second : policy down
+  end
+
+  cell group2 "GROUP_B" :: nodegraph
+    nodegraph
+      directed
+      node supply : Shared capacity
+      node parent : Parent group B
+      node first : Child B1
+      node second : Child B2
+
+      supply -&gt; parent : capacity down
+      first -&gt; parent : usage up
+      second -&gt; parent : usage up
+      parent -&gt; first : policy down
+      parent -&gt; second : policy down
+  end
+
+  cell legend "Direction key" [2] :: nodegraph
+    nodegraph
+      directed
+      node up : Upstream aggregation
+      node down : Downstream enforcement
+      up -&gt; down
+  end
+</code></pre>
+      </details>
+    </div>
+  </section>
+  </main>
+</body>
+</html>

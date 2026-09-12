@@ -256,10 +256,15 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
 
     let childScene = result.scene;
     if (result.reveal?.steps.length) {
-      const prefixIds = (ids: readonly string[]) => ids.map(id => `${cellId}.${id}`);
-      const prefixGroups = (element: SceneElement): SceneElement => element.type === 'group'
-        ? { ...element, ...(element.id ? { id: `${cellId}.${element.id}` } : {}), children: element.children.map(prefixGroups) }
-        : element;
+      const prefixIds = (ids: readonly string[]) => ids.map((id) => `${cellId}.${id}`);
+      const prefixGroups = (element: SceneElement): SceneElement =>
+        element.type === 'group'
+          ? {
+              ...element,
+              ...(element.id ? { id: `${cellId}.${element.id}` } : {}),
+              children: element.children.map(prefixGroups),
+            }
+          : element;
       childScene = { ...result.scene, elements: result.scene.elements.map(prefixGroups) };
       for (const step of result.reveal.steps) {
         revealSteps.push({
@@ -390,9 +395,9 @@ export function layoutPoster(ir: PosterDocument, theme: ResolvedTheme): LayoutRe
       }
     }
 
-    // Split link elements: paths go behind cell content, labels go on top.
-    const linkPaths = linkElements.filter((e) => e.type !== 'text');
-    const linkLabels = linkElements.filter((e) => e.type === 'text');
+    // Split link elements: paths go behind cell content, labels and badges go on top.
+    const linkPaths = linkElements.filter((e) => e.type === 'path');
+    const linkLabels = linkElements.filter((e) => e.type !== 'path');
 
     // Expand the viewBox to include all cross-link route and label extents.
     const ext = connectorResult.extents;
@@ -698,7 +703,10 @@ export function parseCellTitle(raw: string): Array<{ text: string; isSubtitle: b
       { text: raw.slice(sepIdx + 2).trim(), isSubtitle: true },
     ];
   }
-  const parts = raw.split(/<br\s*\/?>|\n|\\n/g).map((s) => s.trim()).filter(Boolean);
+  const parts = raw
+    .split(/<br\s*\/?>|\n|\\n/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (parts.length > 1) {
     return parts.map((p, i) => ({ text: p, isSubtitle: i > 0 }));
   }
@@ -830,8 +838,7 @@ function buildCellTitle(
   );
   const boxW = maxTw + padX * 2;
   const lineSpacing = smallFs * 1.35;
-  const boxH =
-    lines.length <= 1 ? fs + padY * 2 : fs + (lines.length - 1) * lineSpacing + padY * 2;
+  const boxH = lines.length <= 1 ? fs + padY * 2 : fs + (lines.length - 1) * lineSpacing + padY * 2;
   const wall = unit; // inset of the title from the left/right wall
 
   // Horizontal: box origin + text anchor point.
@@ -891,7 +898,11 @@ function buildCellTitle(
     });
   }
 
-  return { elements, occupied: { x: boxX, y: boxTop, width: boxW, height: boxH } };
+  const occX = anchor === 'start' ? cellX : boxX;
+  const occW = anchor === 'start' ? boxW + (boxX - cellX) : boxW;
+  const occY = Math.min(cellY, boxTop);
+  const occH = boxH + (boxTop - occY);
+  return { elements, occupied: { x: occX, y: occY, width: occW, height: occH } };
 }
 
 // ─── Grid Helpers ─────────────────────────────────────────────────────────────

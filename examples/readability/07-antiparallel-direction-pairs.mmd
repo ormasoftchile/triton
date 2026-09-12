@@ -1,0 +1,41 @@
+poster "Parent aggregation and enforcement"
+  columns 2
+  gap 28
+
+  cell group1 "GROUP_A" :: nodegraph
+    nodegraph
+      directed
+      node supply : Shared capacity
+      node parent : Parent group A
+      node first : Child A1
+      node second : Child A2
+
+      supply -> parent : capacity down
+      first -> parent : usage up
+      second -> parent : usage up
+      parent -> first : policy down
+      parent -> second : policy down
+  end
+
+  cell group2 "GROUP_B" :: nodegraph
+    nodegraph
+      directed
+      node supply : Shared capacity
+      node parent : Parent group B
+      node first : Child B1
+      node second : Child B2
+
+      supply -> parent : capacity down
+      first -> parent : usage up
+      second -> parent : usage up
+      parent -> first : policy down
+      parent -> second : policy down
+  end
+
+  cell legend "Direction key" [2] :: nodegraph
+    nodegraph
+      directed
+      node up : Upstream aggregation
+      node down : Downstream enforcement
+      up -> down
+  end

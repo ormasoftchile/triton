@@ -302,8 +302,11 @@ export function layoutFlowchart(
   // Every OTHER (forward / acyclic) edge takes the unchanged orthogonal-router
   // path below, so acyclic diagrams render byte-identically.
   // (backEdges was computed in the layout phase above — reused here.)
+  let bowMinX = Infinity;
   let bowMaxX = -Infinity;
+  let bowMinY = Infinity;
   let bowMaxY = -Infinity;
+  let gutterLaneIdx = 0;
 
   // ── Multi-Port Distribution Pre-Pass ──────────────────────────────────────
   interface EdgeWallInfo {
@@ -337,36 +340,46 @@ export function layoutFlowchart(
     const fA = edge.exitWall
       ? wallAnchor(fromRect, edge.exitWall)
       : defaultExitWall
-      ? wallAnchor(fromRect, defaultExitWall)
-      : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape);
+        ? wallAnchor(fromRect, defaultExitWall)
+        : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape);
     const tA = edge.entryWall
       ? wallAnchor(toRect, edge.entryWall)
       : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape);
 
     const fromWall = fA.portDir as CardinalSide;
     const toWall = tA.portDir as CardinalSide;
-    const toPeerCoord = fromWall === 'N' || fromWall === 'S' ? toRect.x + toRect.width / 2 : toRect.y + toRect.height / 2;
-    const fromPeerCoord = toWall === 'N' || toWall === 'S' ? fromRect.x + fromRect.width / 2 : fromRect.y + fromRect.height / 2;
+    const toPeerCoord =
+      fromWall === 'N' || fromWall === 'S'
+        ? toRect.x + toRect.width / 2
+        : toRect.y + toRect.height / 2;
+    const fromPeerCoord =
+      toWall === 'N' || toWall === 'S'
+        ? fromRect.x + fromRect.width / 2
+        : fromRect.y + fromRect.height / 2;
     edgeWalls.set(ei, { fromWall, toWall, fromPeerCoord, toPeerCoord });
   }
 
-  const nodeWallOut = new Map<string, number[]>();
-  const nodeWallIn = new Map<string, number[]>();
+  interface WallPortEntry {
+    ei: number;
+    role: 'out' | 'in';
+    peerCoord: number;
+  }
+  const wallPorts = new Map<string, WallPortEntry[]>();
   for (const [ei, ew] of edgeWalls) {
     const edge = ir.edges[ei]!;
     const outKey = `${edge.from}:${ew.fromWall}`;
     const inKey = `${edge.to}:${ew.toWall}`;
-    if (!nodeWallOut.has(outKey)) nodeWallOut.set(outKey, []);
-    if (!nodeWallIn.has(inKey)) nodeWallIn.set(inKey, []);
-    nodeWallOut.get(outKey)!.push(ei);
-    nodeWallIn.get(inKey)!.push(ei);
+    if (!wallPorts.has(outKey)) wallPorts.set(outKey, []);
+    if (!wallPorts.has(inKey)) wallPorts.set(inKey, []);
+    wallPorts.get(outKey)!.push({ ei, role: 'out', peerCoord: ew.toPeerCoord });
+    wallPorts.get(inKey)!.push({ ei, role: 'in', peerCoord: ew.fromPeerCoord });
   }
 
-  for (const [, list] of nodeWallOut) {
-    list.sort((a, b) => edgeWalls.get(a)!.toPeerCoord - edgeWalls.get(b)!.toPeerCoord);
-  }
-  for (const [, list] of nodeWallIn) {
-    list.sort((a, b) => edgeWalls.get(a)!.fromPeerCoord - edgeWalls.get(b)!.fromPeerCoord);
+  for (const [, list] of wallPorts) {
+    list.sort((a, b) => {
+      if (Math.abs(a.peerCoord - b.peerCoord) > 0.5) return a.peerCoord - b.peerCoord;
+      return a.role === 'out' ? -1 : 1;
+    });
   }
 
   for (let ei = 0; ei < ir.edges.length; ei++) {
@@ -408,7 +421,15 @@ export function layoutFlowchart(
 
     // Back-edge (feedback): bow out to one side around the intervening nodes.
     if (backEdges.has(ei)) {
-      const bow = backEdgeRoute(fromRect, toRect, isLR);
+      const allRects = [...nodePos.values()];
+      const obstacles: Rect[] = [];
+      for (const [id, r] of nodePos) {
+        if (id !== edge.from && id !== edge.to) {
+          obstacles.push(r);
+        }
+      }
+      const bow = backEdgeRoute(fromRect, toRect, isLR, allRects, obstacles, gutterLaneIdx);
+      if (bow.usedGutter) gutterLaneIdx++;
       elements.push(
         p.path(bow.path, color, sw, {
           ...(edge.animation && edge.animation !== 'none' ? { animated: edge.animation } : {}),
@@ -416,14 +437,26 @@ export function layoutFlowchart(
           markerEnd: ARROW_MARKER_ID,
         }),
       );
+      bowMinX = Math.min(bowMinX, bow.minX);
       bowMaxX = Math.max(bowMaxX, bow.maxX);
+      bowMinY = Math.min(bowMinY, bow.minY);
       bowMaxY = Math.max(bowMaxY, bow.maxY);
       if (edge.label) {
+        const w = measureText(edge.label, edgeTheme.labelFontSize).width + 8;
+        elements.push(
+          p.rect(
+            { x: bow.labelPos.x - w / 2, y: bow.labelPos.y - 12, width: w, height: 16 },
+            palette.background,
+            palette.background,
+            0,
+            { rx: 3 },
+          ),
+        );
         elements.push(
           p.text(
             edge.label,
             bow.labelPos.x,
-            bow.labelPos.y - 4,
+            bow.labelPos.y - 2,
             edgeTheme.labelFontSize,
             palette.textMuted,
             { anchor: 'middle' },
@@ -437,23 +470,35 @@ export function layoutFlowchart(
     const toNode = ir.nodes.find((n) => n.id === edge.to);
 
     const ew = edgeWalls.get(ei);
-    const outList = ew ? nodeWallOut.get(`${edge.from}:${ew.fromWall}`) : undefined;
-    const inList = ew ? nodeWallIn.get(`${edge.to}:${ew.toWall}`) : undefined;
-    const outIdx = outList && outList.length > 1 ? outList.indexOf(ei) : 0;
+    const outList = ew ? wallPorts.get(`${edge.from}:${ew.fromWall}`) : undefined;
+    const inList = ew ? wallPorts.get(`${edge.to}:${ew.toWall}`) : undefined;
+    const outIdx =
+      outList && outList.length > 1
+        ? Math.max(
+            0,
+            outList.findIndex((x) => x.ei === ei && x.role === 'out'),
+          )
+        : 0;
     const outTot = outList ? outList.length : 1;
-    const inIdx = inList && inList.length > 1 ? inList.indexOf(ei) : 0;
+    const inIdx =
+      inList && inList.length > 1
+        ? Math.max(
+            0,
+            inList.findIndex((x) => x.ei === ei && x.role === 'in'),
+          )
+        : 0;
     const inTot = inList ? inList.length : 1;
 
     const fromAnchor = edge.exitWall
       ? wallAnchor(fromRect, edge.exitWall, outIdx, outTot)
       : ew
-      ? wallAnchor(fromRect, ew.fromWall, outIdx, outTot)
-      : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape, outIdx, outTot);
+        ? wallAnchor(fromRect, ew.fromWall, outIdx, outTot)
+        : edgeAnchor(fromRect, ir.direction, 'exit', toRect, fromNode?.shape, outIdx, outTot);
     const toAnchor = edge.entryWall
       ? wallAnchor(toRect, edge.entryWall, inIdx, inTot)
       : ew
-      ? wallAnchor(toRect, ew.toWall, inIdx, inTot)
-      : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape, inIdx, inTot);
+        ? wallAnchor(toRect, ew.toWall, inIdx, inTot)
+        : edgeAnchor(toRect, ir.direction, 'enter', fromRect, toNode?.shape, inIdx, inTot);
 
     const obstacles: Rect[] = [];
     for (const [id, r] of nodePos) {
@@ -485,8 +530,18 @@ export function layoutFlowchart(
 
     if (edge.label) {
       const lp = route.labelPosition;
+      const w = measureText(edge.label, edgeTheme.labelFontSize).width + 8;
       elements.push(
-        p.text(edge.label, lp.x, lp.y - 4, edgeTheme.labelFontSize, palette.textMuted, {
+        p.rect(
+          { x: lp.x - w / 2, y: lp.y - 12, width: w, height: 16 },
+          palette.background,
+          palette.background,
+          0,
+          { rx: 3 },
+        ),
+      );
+      elements.push(
+        p.text(edge.label, lp.x, lp.y - 2, edgeTheme.labelFontSize, palette.textMuted, {
           anchor: 'middle',
         }),
       );
@@ -623,15 +678,23 @@ export function layoutFlowchart(
 
   // ── Compute viewBox ────────────────────────────────────────────────────────
   const allRects = [...nodePos.values()];
+  const nodeMinX = Math.min(...allRects.map((r) => r.x));
   const nodeRight = Math.max(...allRects.map((r) => r.x + r.width));
+  const nodeMinY = Math.min(...allRects.map((r) => r.y));
   const nodeBottom = Math.max(...allRects.map((r) => r.y + r.height));
+
+  const minBoundX = Number.isFinite(bowMinX) ? Math.min(nodeMinX, bowMinX) : nodeMinX;
+  const left = minBoundX < margin ? minBoundX - margin : 0;
+  const minBoundY = Number.isFinite(bowMinY) ? Math.min(nodeMinY, bowMinY) : nodeMinY;
+  const top = minBoundY < margin ? minBoundY - margin : 0;
+
   // Grow only for back-edge / self-loop bows; with none, this is byte-identical.
   const right = (Number.isFinite(bowMaxX) ? Math.max(nodeRight, bowMaxX) : nodeRight) + margin;
   const bottom = (Number.isFinite(bowMaxY) ? Math.max(nodeBottom, bowMaxY) : nodeBottom) + margin;
   const titleOffset = ir.metadata.title ? typography.titleFontSize + 12 : 0;
 
   let scene: Scene = {
-    viewBox: { x: 0, y: 0, width: right, height: bottom + titleOffset },
+    viewBox: { x: left, y: top, width: right - left, height: bottom - top + titleOffset },
     background: palette.background,
     elements,
     defs: [arrowMarkerDef(palette.primary, edgeTheme.arrowSize)],
@@ -1007,10 +1070,7 @@ function assignCoordinatesBK(
    * (Individual nodes may be narrower; they are centred within their slot
    *  in the final rect-emission loop below.)
    */
-  function onePass(
-    topDown: boolean,
-    fallbackPositions?: Map<string, number>,
-  ): Map<string, number> {
+  function onePass(topDown: boolean, fallbackPositions?: Map<string, number>): Map<string, number> {
     const crossPos = new Map<string, number>();
     const neighborMap = topDown ? predMap : succMap;
     const indices = topDown
@@ -1307,7 +1367,7 @@ function edgeAnchor(
       return dy > 0 ? getPort('S') : getPort('N');
     }
 
-    return role === 'exit' ? getPort('E') : getPort('W');
+    return dx > 0 ? getPort('E') : getPort('W');
   } else {
     if (nodeShape === 'diamond') {
       if (role === 'exit') {
@@ -1326,15 +1386,16 @@ function edgeAnchor(
       }
     }
 
-    const offAxis = Math.abs(dx);
-    const onAxis = Math.abs(dy);
-
-    // Lateral ports for off-axis peers or side branches
-    if (offAxis > onAxis && offAxis > r.width / 2) {
+    // In TB layout: vertical flow is primary. Forward edges between different layers
+    // (peer is below source) MUST exit South and enter North.
+    // Lateral ports ('E' / 'W') are reserved for nodes on the same layer (|dy| <= r.height)
+    // or when the peer is strictly lateral.
+    const sameLayer = Math.abs(dy) <= r.height;
+    if ((sameLayer && Math.abs(dx) > r.width / 2) || Math.abs(dx) > Math.abs(dy) * 2) {
       return dx > 0 ? getPort('E') : getPort('W');
     }
 
-    return role === 'exit' ? getPort('S') : getPort('N');
+    return dy > 0 ? getPort('S') : getPort('N');
   }
 }
 
@@ -1342,50 +1403,233 @@ function edgeAnchor(
 interface EdgeRoute {
   path: string;
   labelPos: Point;
+  minX: number;
   maxX: number;
+  minY: number;
   maxY: number;
+  usedGutter?: boolean;
+}
+
+function curveCollides(p0: Point, p1: Point, p2: Point, p3: Point, obs: Rect[]): boolean {
+  for (let t = 0.05; t <= 0.95; t += 0.05) {
+    const it = 1 - t;
+    const x =
+      it * it * it * p0.x + 3 * it * it * t * p1.x + 3 * it * t * t * p2.x + t * t * t * p3.x;
+    const y =
+      it * it * it * p0.y + 3 * it * it * t * p1.y + 3 * it * t * t * p2.y + t * t * t * p3.y;
+    for (const r of obs) {
+      if (x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function backEdgeFilletV(
+  start: Point,
+  end: Point,
+  gutterX: number,
+  isWest: boolean,
+): { path: string; labelPos: Point } {
+  const R = Math.min(8, Math.abs(end.y - start.y) / 4);
+  const signY = end.y > start.y ? 1 : -1;
+  const gTurn1X = isWest ? gutterX + R : gutterX - R;
+  const gTurn2X = isWest ? gutterX + R : gutterX - R;
+  const path = `M ${start.x} ${start.y} L ${gTurn1X} ${start.y} C ${gutterX} ${start.y}, ${gutterX} ${start.y + signY * R}, ${gutterX} ${start.y + signY * R} L ${gutterX} ${end.y - signY * R} C ${gutterX} ${end.y}, ${gTurn2X} ${end.y}, ${gTurn2X} ${end.y} L ${end.x} ${end.y}`;
+  const labelPos: Point = { x: gutterX, y: (start.y + end.y) / 2 };
+  return { path, labelPos };
+}
+
+function backEdgeFilletH(
+  start: Point,
+  end: Point,
+  gutterY: number,
+  isNorth: boolean,
+): { path: string; labelPos: Point } {
+  const R = Math.min(8, Math.abs(end.x - start.x) / 4);
+  const signX = end.x > start.x ? 1 : -1;
+  const gTurn1Y = isNorth ? gutterY + R : gutterY - R;
+  const gTurn2Y = isNorth ? gutterY + R : gutterY - R;
+  const path = `M ${start.x} ${start.y} L ${start.x} ${gTurn1Y} C ${start.x} ${gutterY}, ${start.x + signX * R} ${gutterY}, ${start.x + signX * R} ${gutterY} L ${end.x - signX * R} ${gutterY} C ${end.x} ${gutterY}, ${end.x} ${gTurn2Y}, ${end.x} ${gTurn2Y} L ${end.x} ${end.y}`;
+  const labelPos: Point = { x: (start.x + end.x) / 2, y: gutterY };
+  return { path, labelPos };
 }
 
 /**
  * Back-edge ("feedback") route. A back-edge runs against the layer flow (a lower
  * layer back up to an ancestor); drawn like a forward edge it slices straight
- * through the intervening node column. Instead we bow it out to one lateral side
- * with a cubic Bézier: endpoints sit on the side wall (East for vertical flow,
- * South for horizontal flow) and the control points push further out, so the arc
- * stays clear of the centered node column. The arrowhead still lands on the
- * target wall (the tangent at the end points back into the node).
- *
- * This is intentionally a simple offset arc, not an obstacle-avoiding router:
- * the bar is "reads as feedback and doesn't cut through a node".
+ * through the intervening node column. Instead we route it around intervening nodes
+ * or through the outside gutter with a clean orthogonal/fillet path.
  */
-function backEdgeRoute(from: Rect, to: Rect, isLR: boolean): EdgeRoute {
+function backEdgeRoute(
+  from: Rect,
+  to: Rect,
+  isLR: boolean,
+  allRects?: Rect[],
+  obstacles?: Rect[],
+  laneIndex: number = 0,
+): EdgeRoute {
+  const laneOffset = laneIndex * 16;
+  const allR = allRects && allRects.length > 0 ? allRects : [from, to];
+  const obs = obstacles ?? [];
+
   if (isLR) {
-    // Horizontal flow → bow downward, off the South walls.
-    const start: Point = { x: from.x + from.width / 2, y: from.y + from.height };
-    const end: Point = { x: to.x + to.width / 2, y: to.y + to.height };
-    const span = Math.abs(end.x - start.x);
-    const bow = Math.max(NODE_H * 0.9, span * 0.35);
-    const c1: Point = { x: start.x, y: start.y + bow };
-    const c2: Point = { x: end.x, y: end.y + bow };
+    const minY = Math.min(...allR.map((r) => r.y));
+    const maxY = Math.max(...allR.map((r) => r.y + r.height));
+    const midY = (minY + maxY) / 2;
+    const edgeMidY = (from.y + from.height / 2 + to.y + to.height / 2) / 2;
+
+    const s_start: Point = { x: from.x + from.width / 2, y: from.y + from.height };
+    const s_end: Point = { x: to.x + to.width / 2, y: to.y + to.height };
+    const s_gutter = maxY + 32 + laneOffset;
+
+    const n_start: Point = { x: from.x + from.width / 2, y: from.y };
+    const n_end: Point = { x: to.x + to.width / 2, y: to.y };
+    const n_gutter = minY - 32 - laneOffset;
+
+    const useNorth = edgeMidY < midY;
+    const chosenGutter = useNorth ? n_gutter : s_gutter;
+    const startPt = useNorth ? n_start : s_start;
+    const endPt = useNorth ? n_end : s_end;
+    const fillet = backEdgeFilletH(startPt, endPt, chosenGutter, useNorth);
+
     return {
-      path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`,
-      labelPos: { x: (start.x + end.x) / 2, y: Math.max(start.y, end.y) + bow * 0.75 },
-      maxX: Math.max(start.x, end.x),
-      maxY: Math.max(c1.y, c2.y),
+      path: fillet.path,
+      labelPos: fillet.labelPos,
+      minX: Math.min(startPt.x, endPt.x),
+      maxX: Math.max(startPt.x, endPt.x),
+      minY: Math.min(startPt.y, endPt.y, chosenGutter),
+      maxY: Math.max(startPt.y, endPt.y, chosenGutter),
+      usedGutter: true,
     };
   }
-  // Vertical flow → bow to the right, off the East walls.
-  const start: Point = { x: from.x + from.width, y: from.y + from.height / 2 };
-  const end: Point = { x: to.x + to.width, y: to.y + to.height / 2 };
-  const span = Math.abs(end.y - start.y);
-  const bow = Math.max(NODE_W * 0.75, span * 0.35);
-  const c1: Point = { x: start.x + bow, y: start.y };
-  const c2: Point = { x: end.x + bow, y: end.y };
+
+  // Vertical flow → corridor or gutter routing
+  const minX = Math.min(...allR.map((r) => r.x));
+  const maxX = Math.max(...allR.map((r) => r.x + r.width));
+  const midX = (minX + maxX) / 2;
+  const edgeMidX = (from.x + from.width / 2 + to.x + to.width / 2) / 2;
+
+  // Check if there is an unobstructed lateral corridor directly between from and to
+  const targetIsWest = to.x + to.width <= from.x - 24;
+  const targetIsEast = from.x + from.width <= to.x - 24;
+
+  function segmentIntersectsRect(p1: Point, p2: Point, r: Rect): boolean {
+    const minX = Math.min(p1.x, p2.x);
+    const maxX = Math.max(p1.x, p2.x);
+    const minY = Math.min(p1.y, p2.y);
+    const maxY = Math.max(p1.y, p2.y);
+
+    if (maxX <= r.x || minX >= r.x + r.width || maxY <= r.y || minY >= r.y + r.height) {
+      return false;
+    }
+    if (Math.abs(p1.x - p2.x) < 1e-3) {
+      return p1.x > r.x && p1.x < r.x + r.width && minY < r.y + r.height && maxY > r.y;
+    }
+    if (Math.abs(p1.y - p2.y) < 1e-3) {
+      return p1.y > r.y && p1.y < r.y + r.height && minX < r.x + r.width && maxX > r.x;
+    }
+    return true;
+  }
+
+  function pathIntersectsObstacles(points: readonly Point[], obs: readonly Rect[]): boolean {
+    for (const r of obs) {
+      for (let i = 0; i < points.length - 1; i++) {
+        if (segmentIntersectsRect(points[i]!, points[i + 1]!, r)) return true;
+      }
+    }
+    return false;
+  }
+
+  if (targetIsWest) {
+    const cStartX = from.x;
+    const cStartY = from.y + from.height * 0.35;
+    const cEndX = to.x + to.width;
+    const cEndY = to.y + to.height * 0.65;
+    const xMin = cEndX + 10;
+    const xMax = cStartX - 10;
+    if (xMax >= xMin) {
+      // Try mid, close-to-from, and close-to-to candidates
+      const candidates = [(xMin + xMax) / 2, xMax - 8, xMin + 8];
+      for (const midXCandidate of candidates) {
+        const testPoints = [
+          { x: cStartX, y: cStartY },
+          { x: midXCandidate, y: cStartY },
+          { x: midXCandidate, y: cEndY },
+          { x: cEndX, y: cEndY },
+        ];
+        if (!pathIntersectsObstacles(testPoints, obs)) {
+          const R = 8;
+          const path = `M ${cStartX} ${cStartY} L ${midXCandidate + R} ${cStartY} C ${midXCandidate} ${cStartY}, ${midXCandidate} ${cStartY - R}, ${midXCandidate} ${cStartY - R} L ${midXCandidate} ${cEndY + R} C ${midXCandidate} ${cEndY}, ${midXCandidate - R} ${cEndY}, ${midXCandidate - R} ${cEndY} L ${cEndX} ${cEndY}`;
+          return {
+            path,
+            labelPos: { x: (cEndX + midXCandidate) / 2, y: cEndY },
+            minX: cEndX,
+            maxX: cStartX,
+            minY: Math.min(cStartY, cEndY),
+            maxY: Math.max(cStartY, cEndY),
+            usedGutter: false,
+          };
+        }
+      }
+    }
+  } else if (targetIsEast) {
+    const cStartX = from.x + from.width;
+    const cStartY = from.y + from.height * 0.35;
+    const cEndX = to.x;
+    const cEndY = to.y + to.height * 0.65;
+    const xMin = cStartX + 10;
+    const xMax = cEndX - 10;
+    if (xMax >= xMin) {
+      const candidates = [(xMin + xMax) / 2, xMin + 8, xMax - 8];
+      for (const midXCandidate of candidates) {
+        const testPoints = [
+          { x: cStartX, y: cStartY },
+          { x: midXCandidate, y: cStartY },
+          { x: midXCandidate, y: cEndY },
+          { x: cEndX, y: cEndY },
+        ];
+        if (!pathIntersectsObstacles(testPoints, obs)) {
+          const R = 8;
+          const path = `M ${cStartX} ${cStartY} L ${midXCandidate - R} ${cStartY} C ${midXCandidate} ${cStartY}, ${midXCandidate} ${cStartY - R}, ${midXCandidate} ${cStartY - R} L ${midXCandidate} ${cEndY + R} C ${midXCandidate} ${cEndY}, ${midXCandidate + R} ${cEndY}, ${midXCandidate + R} ${cEndY} L ${cEndX} ${cEndY}`;
+          return {
+            path,
+            labelPos: { x: (cStartX + midXCandidate) / 2, y: cStartY },
+            minX: cStartX,
+            maxX: cEndX,
+            minY: Math.min(cStartY, cEndY),
+            maxY: Math.max(cStartY, cEndY),
+            usedGutter: false,
+          };
+        }
+      }
+    }
+  }
+
+  // Fallback: outside gutter routing with clean fillets
+  const useWest = edgeMidX <= midX;
+  const w_start: Point = { x: from.x, y: from.y + from.height / 2 };
+  const w_end: Point = { x: to.x, y: to.y + to.height / 2 };
+  const w_gutter = minX - 32 - laneOffset;
+
+  const e_start: Point = { x: from.x + from.width, y: from.y + from.height / 2 };
+  const e_end: Point = { x: to.x + to.width, y: to.y + to.height / 2 };
+  const e_gutter = maxX + 32 + laneOffset;
+
+  const chosenGutter = useWest ? w_gutter : e_gutter;
+  const startPt = useWest ? w_start : e_start;
+  const endPt = useWest ? w_end : e_end;
+  const fillet = backEdgeFilletV(startPt, endPt, chosenGutter, useWest);
+
   return {
-    path: `M ${start.x} ${start.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${end.x} ${end.y}`,
-    labelPos: { x: Math.max(start.x, end.x) + bow * 0.75, y: (start.y + end.y) / 2 },
-    maxX: Math.max(c1.x, c2.x),
-    maxY: Math.max(start.y, end.y),
+    path: fillet.path,
+    labelPos: fillet.labelPos,
+    minX: Math.min(startPt.x, endPt.x, chosenGutter),
+    maxX: Math.max(startPt.x, endPt.x, chosenGutter),
+    minY: Math.min(startPt.y, endPt.y),
+    maxY: Math.max(startPt.y, endPt.y),
+    usedGutter: true,
   };
 }
 
@@ -1405,7 +1649,9 @@ function selfLoopRoute(r: Rect, isLR: boolean): EdgeRoute {
     return {
       path: `M ${x1} ${sy} C ${x1 - loop} ${sy + loop}, ${x2 + loop} ${sy + loop}, ${x2} ${sy}`,
       labelPos: { x: r.x + r.width / 2, y: sy + loop + 4 },
+      minX: x1 - loop,
       maxX: x2 + loop,
+      minY: sy,
       maxY: sy + loop,
     };
   }
@@ -1416,7 +1662,9 @@ function selfLoopRoute(r: Rect, isLR: boolean): EdgeRoute {
   return {
     path: `M ${ex} ${y1} C ${ex + loop} ${y1 - loop}, ${ex + loop} ${y2 + loop}, ${ex} ${y2}`,
     labelPos: { x: ex + loop, y: r.y + r.height / 2 },
+    minX: ex,
     maxX: ex + loop,
+    minY: y1 - loop,
     maxY: y2 + loop,
   };
 }

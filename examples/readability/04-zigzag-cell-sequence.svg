@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 388 728" width="388" height="728">
+  <defs>
+    <marker id="triton-crosslink-arrow-525252" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="388" height="728" fill="#FFFFFF" />
+  <rect x="24" y="24" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="24" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="164" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="164" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="304" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="304" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="444" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204" y="444" width="160" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="584" width="340" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <path d="M 140.02888263853202 64.75070945068433 L 227.51983767713932 64.75070945068433" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 227.51983767713932 79.66225829396905 L 187.66987102713375 79.66225829396905 L 187.66987102713375 211.48551836888316 L 147.81990437712815 211.48551836888316" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 147.81990437712815 215.0124128744315 L 226.51378180533732 215.0124128744315" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 226.51378180533732 219.8858262654806 L 192 219.8858262654806 L 192 348.82202162041676 L 140.97091273821465 348.82202162041676" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 140.97091273821465 354.552236803597 L 226.71866432478114 354.552236803597" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 226.71866432478114 359.84029681671524 L 187.26743898291832 359.84029681671524 L 187.26743898291832 491.4840830826327 L 147.8162136410555 491.4840830826327" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 147.8162136410555 503.53601850465975 L 223.88807962854645 503.53601850465975" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 236.64030786999126 509.2960265428488 L 236.64030786999126 612" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <g transform="translate(28, 37.367029744954024) scale(0.8327316116972496)">
+    <rect x="24" y="24" width="110.53179999999998" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="79.26589999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Observe state</text>
+  </g>
+  <g transform="translate(208, 38.453712086674926) scale(0.8133265698808049)">
+    <rect x="24" y="24" width="114.8868" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="81.4434" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Detect timeout</text>
+  </g>
+  <g transform="translate(28, 186.4565551066495) scale(0.6704186588098305)">
+    <rect x="24" y="24" width="154.724" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="101.362" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Validate prerequisites</text>
+  </g>
+  <g transform="translate(208, 180.80117578754624) scale(0.7714075752223888)">
+    <rect x="24" y="24" width="125.04239999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="86.5212" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Select candidate</text>
+  </g>
+  <g transform="translate(28, 318.4660648612504) scale(0.8131059846205283)">
+    <rect x="24.000000000000007" y="24" width="114.93749999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="81.46875" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Stop old owner</text>
+  </g>
+  <g transform="translate(208, 320.32311657551065) scale(0.7799443468658809)">
+    <rect x="24" y="24" width="122.88569999999999" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="85.44284999999999" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Start new owner</text>
+  </g>
+  <g transform="translate(28, 466.45224924789807) scale(0.670495549144677)">
+    <rect x="24" y="24" width="154.698" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="101.349" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Compare checkpoints</text>
+  </g>
+  <g transform="translate(208, 466.92781420005826) scale(0.6620033178561022)">
+    <rect x="24" y="24" width="157.6061" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="102.80305" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Recover pending work</text>
+  </g>
+  <g transform="translate(86.8013, 588) scale(1)">
+    <rect x="24" y="24" width="142.3974" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="95.1987" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Complete transition</text>
+  </g>
+</svg>

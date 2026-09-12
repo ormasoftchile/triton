@@ -1,0 +1,18 @@
+memory
+  title Fixed header indexes variable payload
+
+  region "Fixed header"
+    var "Group offsets" -> group
+    var "Context offsets" -> context
+    var "Credential offsets" -> credential
+    var "Extension offsets" -> extension
+
+    object core : Scalar fields : Size=4 bytes, Version=4 bytes, Window=4 bytes, Process=4 bytes
+    object session : Session fields : Flags=options, Zone=offset, Locale=identifier, Client=6 bytes
+    object special : Special lengths : ShortLength=16 bit, LongLength=32 bit
+
+  region "Variable payload"
+    object group : Group strings : payload=Host + User + Label
+    object context : Request context : payload=Application + Endpoint + Language + Catalog
+    object credential : Credential data : payload=Token + Reset data
+    object extension : Optional data : payload=Feature blocks + attachment

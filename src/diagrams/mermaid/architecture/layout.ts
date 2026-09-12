@@ -36,7 +36,7 @@ import { pen } from '../../../scene/build.js';
 import { applyOverlays } from '../../../overlay/apply.js';
 import { categoricalHue } from '../../../palette/categorical.js';
 import { groupAwareDirectionalGridPlacer } from './gridPlacer.js';
-import { createRouter } from '../../../routing/router.js';
+import { createRouter, countRouteCollisions } from '../../../routing/router.js';
 import { rhu, rhuInt } from '../../../util/round.js';
 import { parseIconRef, resolveIcon } from '../../../icons/resolver.js';
 import { wavifyPath } from '../../../crosslink/render.js';
@@ -392,7 +392,7 @@ export function layoutArchitecture(
     const cell = gridCells.get(id);
     if (!pos || !sz) return undefined;
     const isJct = ir.junctions.some((j) => j.id === id);
-    const width = isJct ? sz.width : cell ? colWidths.get(cell.col) ?? sz.width : sz.width;
+    const width = isJct ? sz.width : cell ? (colWidths.get(cell.col) ?? sz.width) : sz.width;
     return { x: pos.x, y: pos.y + yOff, width, height: sz.height };
   };
 
@@ -480,10 +480,17 @@ export function layoutArchitecture(
       );
     }
     elements.push(
-      p.text(g.label, rhu(header.label.x), rhu(header.label.y), typography.smallFontSize, groupLabelColor, {
-        weight: 'bold',
-        anchor: header.label.anchor,
-      }),
+      p.text(
+        g.label,
+        rhu(header.label.x),
+        rhu(header.label.y),
+        typography.smallFontSize,
+        groupLabelColor,
+        {
+          weight: 'bold',
+          anchor: header.label.anchor,
+        },
+      ),
     );
   });
 
@@ -586,14 +593,45 @@ export function layoutArchitecture(
       const targetKey = `${e.to}:${toSide}`;
       const sourceCount = endpointGroups.get(sourceKey)?.length ?? 1;
       const targetCount = endpointGroups.get(targetKey)?.length ?? 1;
-      const slot = endpointSlots.get(edgeIndex);
-      if (sourceCount > 1 && targetCount === 1 && slot?.sourceT !== undefined) {
-        endpointSlots.set(edgeIndex, { ...slot, targetT: slot.sourceT });
-      } else if (targetCount > 1 && sourceCount === 1 && slot?.targetT !== undefined) {
-        endpointSlots.set(edgeIndex, { ...slot, sourceT: slot.targetT });
-      }
+      // Single-endpoint targets remain centered (targetT = 0.5)
     }
   });
+
+  // ── Fan-out / fan-in lane allocation ─────────────────────────────────────
+  const fanBendOffsets = new Map<number, { axis: 'x' | 'y'; offset: number }>();
+  for (const [key, members] of endpointGroups) {
+    if (members.length < 2) continue;
+    const sources = members.filter((m) => m.isSource);
+    if (sources.length < 2) continue;
+
+    const [, side] = key.split(':') as [string, string];
+    const isVertical = side === 'B' || side === 'T';
+    const N = sources.length;
+
+    // Rank members by distance to target along the tangent axis
+    const ranked = sources
+      .map((m) => {
+        const e = ir.edges[m.edgeIndex]!;
+        const fR = endpointRect(e, true);
+        const tR = endpointRect(e, false);
+        if (!fR || !tR) return { edgeIndex: m.edgeIndex, dist: 0, dir: 1 };
+        const fC = rectCenter(fR);
+        const tC = rectCenter(tR);
+        const dist = isVertical ? Math.abs(tC.x - fC.x) : Math.abs(tC.y - fC.y);
+        const dir = isVertical ? (tC.y >= fC.y ? 1 : -1) : tC.x >= fC.x ? 1 : -1;
+        return { edgeIndex: m.edgeIndex, dist, dir };
+      })
+      .sort((a, b) => b.dist - a.dist);
+
+    for (let r = 0; r < N; r++) {
+      const item = ranked[r]!;
+      const laneOffset = (r - (N - 1) / 2) * 12 * item.dir;
+      fanBendOffsets.set(item.edgeIndex, {
+        axis: isVertical ? 'y' : 'x',
+        offset: laneOffset,
+      });
+    }
+  }
 
   for (let edgeIndex = 0; edgeIndex < ir.edges.length; edgeIndex++) {
     const e = ir.edges[edgeIndex]!;
@@ -625,11 +663,47 @@ export function layoutArchitecture(
       fromDir,
       toDir,
     });
-    const routedPoints =
+    let routedPoints =
       routing === 'orthogonal' && isHorizontalDir(fromDir) !== isHorizontalDir(toDir)
         ? mixedOrthogonalRoutePoints(pa, pb, fromDir, toDir, obstacles, 10)
         : route.points;
+
+    const fanOffset = fanBendOffsets.get(edgeIndex);
+    if (
+      fanOffset &&
+      routing === 'orthogonal' &&
+      route.points.length === 4 &&
+      isHorizontalDir(fromDir) === isHorizontalDir(toDir)
+    ) {
+      const p0 = route.points[0]!;
+      const p1 = { ...route.points[1]! };
+      const p2 = { ...route.points[2]! };
+      const p3 = route.points[3]!;
+      if (fanOffset.axis === 'y') {
+        const newY = p1.y + fanOffset.offset;
+        const testCandidate = [p0, { x: p1.x, y: newY }, { x: p2.x, y: newY }, p3];
+        if (countRouteCollisions(testCandidate, obstacles) === 0) {
+          p1.y = newY;
+          p2.y = newY;
+          routedPoints = [p0, p1, p2, p3];
+        }
+      } else {
+        const newX = p1.x + fanOffset.offset;
+        const testCandidate = [p0, { x: newX, y: p1.y }, { x: newX, y: p2.y }, p3];
+        if (countRouteCollisions(testCandidate, obstacles) === 0) {
+          p1.x = newX;
+          p2.x = newX;
+          routedPoints = [p0, p1, p2, p3];
+        }
+      }
+    }
+
     const routePoints = cleanRoutePoints(routedPoints);
+    if (countRouteCollisions(routePoints, obstacles) > 0) {
+      console.warn(
+        `[routing] No clear route between ${e.from} and ${e.to}: route intersects obstacles.`,
+      );
+    }
 
     const style = e.style ?? 'solid';
 
@@ -797,8 +871,8 @@ function cleanRoutePoints(
 
 function routePointsToPath(points: readonly { x: number; y: number }[], fallback: string): string {
   if (points.length === 0) return fallback;
-  if (points.length === 1) return `M ${points[0]!.x} ${points[0]!.y}`;
-  return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  if (points.length === 1) return `M ${rhu(points[0]!.x)} ${rhu(points[0]!.y)}`;
+  return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${rhu(p.x)} ${rhu(p.y)}`).join(' ');
 }
 
 function isHorizontalDir(dir: PortDirection): boolean {

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569.684305 576.4027484408894" width="569.684305" height="576.4027484408894">
+  <defs>
+    <marker id="queue-arrow-fwd" markerWidth="9" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#525252" /></marker><marker id="queue-arrow-rev" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto"><path d="M8 0 L0 4 L8 8 z" fill="#525252" /></marker>
+    <marker id="triton-crosslink-arrow-525252" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="569.684305" height="576.4027484408894" fill="#FFFFFF" />
+  <rect x="24" y="24" width="160.41271500000002" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204.41271500000002" y="24" width="160.41271500000002" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="384.82543000000004" y="24" width="160.858875" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="164" width="160.41271500000002" height="248.40274844088935" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="204.41271500000002" y="164" width="160.41271500000002" height="248.40274844088935" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="384.82543000000004" y="164" width="160.858875" height="248.40274844088935" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <rect x="24" y="432.40274844088935" width="521.684305" height="120" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1" rx="6" />
+  <path d="M 149.21271500000003 95.10000000000001 L 161.21271500000003 95.10000000000001 L 161.21271500000003 205.8190850494848 L 35.83679587852495 205.8190850494848 L 35.83679587852495 316.5381700989696 L 47.83679587852495 316.5381700989696" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 224.01271500000001 95.10000000000001 L 192.41271500000002 95.10000000000001 L 192.41271500000002 316.5381700989696 L 228.24951087852497 316.5381700989696" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 510.48430500000006 95.10000000000001 L 530.4843050000001 95.10000000000001 L 530.4843050000001 316.59623864560734 L 466.4057854069957 316.59623864560734" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 105.35391614157268 276.8645783419197 L 117.35391614157268 276.8645783419197 L 117.35391614157268 461.7598912980322 L 244.31415584821428 461.7598912980322 L 244.31415584821428 473.7598912980322" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 285.7666311415727 276.8645783419197 L 297.7666311415727 276.8645783419197 L 297.7666311415727 461.7598912980322 L 274.66358107142855 461.7598912980322 L 274.66358107142855 473.7598912980322" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <path d="M 408.7202944251627 276.806509795282 L 396.7202944251627 276.806509795282 L 396.7202944251627 461.7598912980322 L 305.0130062946429 461.7598912980322 L 305.0130062946429 473.7598912980322" stroke="#525252" stroke-width="2" fill="none" marker-end="url(#triton-crosslink-arrow-525252)" />
+  <text x="32" y="38.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Producer A</text>
+  <g transform="translate(28, 56.1) scale(0.65)">
+    <rect x="24" y="24" width="162.48110000000003" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="105.24055000000001" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Producer A / partition 1</text>
+  </g>
+  <text x="212.41271500000002" y="38.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Producer B</text>
+  <g transform="translate(208.41271500000002, 56.1) scale(0.65)">
+    <rect x="24" y="24" width="162.48110000000003" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="105.24055000000001" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Producer B / partition 2</text>
+  </g>
+  <text x="392.82543000000004" y="38.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Producer C</text>
+  <g transform="translate(388.82543000000004, 56.1) scale(0.65)">
+    <rect x="24" y="24" width="163.16750000000002" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="105.58375000000001" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Producer C / partition 3</text>
+  </g>
+  <text x="32" y="178.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Per-producer queue</text>
+  <g transform="translate(28, 185.32603069414313) scale(0.8265331616052062)">
+    <rect x="24" y="74.75" width="69.5884" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <text x="58.79" y="99.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">packets</text>
+    <rect x="24" y="114.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <rect x="24" y="154.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <path d="M 58.79 74.75 L 58.79 24.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="43.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">dequeue</text>
+    <path d="M 58.79 244.75 L 58.79 194.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="232.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">enqueue</text>
+    <path d="M 127.59 94.75 L 97.59 94.75" stroke="#A3A3A3" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="98.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#A3A3A3" text-anchor="start" font-weight="bold">front</text>
+    <path d="M 127.59 113.75 L 97.59 113.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="117.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="start" font-weight="bold">rear</text>
+  </g>
+  <text x="212.41271500000002" y="178.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Per-producer queue</text>
+  <g transform="translate(208.41271500000002, 185.32603069414313) scale(0.8265331616052062)">
+    <rect x="24" y="74.75" width="69.5884" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <text x="58.79" y="99.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">packets</text>
+    <rect x="24" y="114.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <rect x="24" y="154.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <path d="M 58.79 74.75 L 58.79 24.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="43.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">dequeue</text>
+    <path d="M 58.79 244.75 L 58.79 194.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="232.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">enqueue</text>
+    <path d="M 127.59 94.75 L 97.59 94.75" stroke="#A3A3A3" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="98.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#A3A3A3" text-anchor="start" font-weight="bold">front</text>
+    <path d="M 127.59 113.75 L 97.59 113.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="117.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="start" font-weight="bold">rear</text>
+  </g>
+  <text x="392.82543000000004" y="178.4" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Per-producer queue</text>
+  <g transform="translate(388.82543000000004, 185) scale(0.8289526843817787)">
+    <rect x="24" y="74.75" width="69.5884" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <text x="58.79" y="99.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">packets</text>
+    <rect x="24" y="114.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <rect x="24" y="154.75" width="69.5884" height="40" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1.5" rx="3" />
+    <path d="M 58.79 74.75 L 58.79 24.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="43.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">dequeue</text>
+    <path d="M 58.79 244.75 L 58.79 194.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="58.79" y="232.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="middle" font-weight="bold">enqueue</text>
+    <path d="M 127.59 94.75 L 97.59 94.75" stroke="#A3A3A3" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="98.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#A3A3A3" text-anchor="start" font-weight="bold">front</text>
+    <path d="M 127.59 113.75 L 97.59 113.75" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#queue-arrow-fwd)" />
+    <text x="133.59" y="117.75" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#525252" text-anchor="start" font-weight="bold">rear</text>
+  </g>
+  <text x="32" y="446.80274844088933" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="start" font-weight="bold">Consumer</text>
+  <g transform="translate(193.60758776785713, 453.40274844088935) scale(0.8482142857142857)">
+    <rect x="24" y="24" width="143.1215" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="95.56075" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle" font-weight="bold">Gather all partitions</text>
+  </g>
+</svg>

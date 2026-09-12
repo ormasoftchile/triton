@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624.5 328" width="624.5" height="328">
+  <defs>
+    <marker id="triton-arrow" markerWidth="8" markerHeight="5.6" refX="7" refY="2.8" orient="auto"><polygon points="0 0, 8 2.8, 0 5.6" fill="#525252" /></marker>
+  </defs>
+  <rect x="0" y="0" width="624.5" height="328" fill="#FFFFFF" />
+  <path d="M 171 64 L 171 84 L 233.83333333333331 84 L 233.83333333333331 104" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="178.02626666666666" y="72" width="48.7808" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="202.41666666666666" y="82" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">request</text>
+  <path d="M 338 64 L 338 84 L 275.16666666666663 84 L 275.16666666666663 104" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="287.5425333333333" y="72" width="38.0816" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="306.5833333333333" y="82" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">batch</text>
+  <path d="M 316.5 124 L 408 124 L 408 204 L 441.5 204" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="357.2874" y="152" width="43.4252" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="379" y="162" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">lookup</text>
+  <path d="M 505 224 L 505 264" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="483.633" y="232" width="42.733999999999995" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="505" y="242" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">invoke</text>
+  <path d="M 565 284 L 592.5 284 C 600.5 284, 600.5 276, 600.5 276 L 600.5 212 C 600.5 204, 592.5 204, 592.5 204 L 568.5 204" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="581.4706" y="232" width="38.0588" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="600.5" y="242" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">result</text>
+  <path d="M 441.5 198 L 431.5 198 C 423.5 198, 423.5 190, 423.5 190 L 423.5 138 C 423.5 130, 415.5 130, 415.5 130 L 316.5 130" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="326.2212" y="118" width="87.55759999999998" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="370" y="128" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">enriched batch</text>
+  <path d="M 254.5 144 L 254.5 164 L 338 164 L 338 184" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="280.5548" y="152" width="31.3904" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="296.25" y="162" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">emit</text>
+  <path d="M 276 204 L 71 204 C 63 204, 63 196, 63 196 L 63 52 C 63 44, 71 44, 71 44 L 111 44" stroke="#525252" stroke-width="1.5" fill="none" marker-end="url(#triton-arrow)" />
+  <rect x="25.238600000000005" y="112" width="75.52279999999999" height="16" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0" rx="3" />
+  <text x="63" y="122" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#737373" text-anchor="middle">next request</text>
+  <g id="coordinator">
+    <rect x="111" y="24" width="120" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="171" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Coordinator</text>
+  </g>
+  <g id="inbound">
+    <rect x="278" y="24" width="120" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="338" y="48.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Incoming items</text>
+  </g>
+  <g id="worker">
+    <rect x="192.5" y="104" width="124" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="254.5" y="128.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Processing stage</text>
+  </g>
+  <g id="outbound">
+    <rect x="276" y="184" width="124" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="338" y="208.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Completed items</text>
+  </g>
+  <g id="cache">
+    <rect x="441.5" y="184" width="127" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="505" y="208.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">Reusable context</text>
+  </g>
+  <g id="helper">
+    <rect x="445" y="264" width="120" height="40" fill="#F5F5F5" stroke="#D4D4D4" stroke-width="1.5" rx="6" />
+    <text x="505" y="288.55" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#171717" text-anchor="middle">External helper</text>
+  </g>
+</svg>
