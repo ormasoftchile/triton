@@ -270,6 +270,11 @@ export function layoutFlowchart(
   }
 
   // Subgraph backgrounds (drawn first — behind nodes)
+  let sgMinX = Infinity;
+  let sgMaxX = -Infinity;
+  let sgMinY = Infinity;
+  let sgMaxY = -Infinity;
+
   for (const sg of ir.subgraphs) {
     const sgRects = sg.nodeIds
       .map((id) => nodePos.get(id))
@@ -280,6 +285,10 @@ export function layoutFlowchart(
     const minY = Math.min(...sgRects.map((r) => r.y)) - pad - 20;
     const maxX = Math.max(...sgRects.map((r) => r.x + r.width)) + pad;
     const maxY = Math.max(...sgRects.map((r) => r.y + r.height)) + pad;
+    sgMinX = Math.min(sgMinX, minX);
+    sgMaxX = Math.max(sgMaxX, maxX);
+    sgMinY = Math.min(sgMinY, minY);
+    sgMaxY = Math.max(sgMaxY, maxY);
     elements.push(
       p.rect(
         { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
@@ -678,19 +687,33 @@ export function layoutFlowchart(
 
   // ── Compute viewBox ────────────────────────────────────────────────────────
   const allRects = [...nodePos.values()];
-  const nodeMinX = Math.min(...allRects.map((r) => r.x));
-  const nodeRight = Math.max(...allRects.map((r) => r.x + r.width));
-  const nodeMinY = Math.min(...allRects.map((r) => r.y));
-  const nodeBottom = Math.max(...allRects.map((r) => r.y + r.height));
+  const nodeMinX = allRects.length > 0 ? Math.min(...allRects.map((r) => r.x)) : margin;
+  const nodeRight = allRects.length > 0 ? Math.max(...allRects.map((r) => r.x + r.width)) : margin;
+  const nodeMinY = allRects.length > 0 ? Math.min(...allRects.map((r) => r.y)) : margin;
+  const nodeBottom =
+    allRects.length > 0 ? Math.max(...allRects.map((r) => r.y + r.height)) : margin;
 
-  const minBoundX = Number.isFinite(bowMinX) ? Math.min(nodeMinX, bowMinX) : nodeMinX;
+  let minBoundX = nodeMinX;
+  if (Number.isFinite(bowMinX)) minBoundX = Math.min(minBoundX, bowMinX);
+  if (Number.isFinite(sgMinX)) minBoundX = Math.min(minBoundX, sgMinX);
+
+  let minBoundY = nodeMinY;
+  if (Number.isFinite(bowMinY)) minBoundY = Math.min(minBoundY, bowMinY);
+  if (Number.isFinite(sgMinY)) minBoundY = Math.min(minBoundY, sgMinY);
+
+  let maxBoundX = nodeRight;
+  if (Number.isFinite(bowMaxX)) maxBoundX = Math.max(maxBoundX, bowMaxX);
+  if (Number.isFinite(sgMaxX)) maxBoundX = Math.max(maxBoundX, sgMaxX);
+
+  let maxBoundY = nodeBottom;
+  if (Number.isFinite(bowMaxY)) maxBoundY = Math.max(maxBoundY, bowMaxY);
+  if (Number.isFinite(sgMaxY)) maxBoundY = Math.max(maxBoundY, sgMaxY);
+
   const left = minBoundX < margin ? minBoundX - margin : 0;
-  const minBoundY = Number.isFinite(bowMinY) ? Math.min(nodeMinY, bowMinY) : nodeMinY;
   const top = minBoundY < margin ? minBoundY - margin : 0;
 
-  // Grow only for back-edge / self-loop bows; with none, this is byte-identical.
-  const right = (Number.isFinite(bowMaxX) ? Math.max(nodeRight, bowMaxX) : nodeRight) + margin;
-  const bottom = (Number.isFinite(bowMaxY) ? Math.max(nodeBottom, bowMaxY) : nodeBottom) + margin;
+  const right = maxBoundX + margin;
+  const bottom = maxBoundY + margin;
   const titleOffset = ir.metadata.title ? typography.titleFontSize + 12 : 0;
 
   let scene: Scene = {
@@ -1165,6 +1188,27 @@ function assignCoordinatesBK(
         width: nw,
         height: nh,
       });
+    }
+  }
+
+  // Normalize cross-axis and main-axis coordinates so the bounding box starts at margin.
+  if (nodePos.size > 0) {
+    const minCross = Math.min(...[...nodePos.values()].map((r) => (isLR ? r.y : r.x)));
+    const crossShift = margin - minCross;
+    const minMain = Math.min(...[...nodePos.values()].map((r) => (isLR ? r.x : r.y)));
+    const mainShift = margin - minMain;
+
+    if (crossShift !== 0 || mainShift !== 0) {
+      const shiftX = isLR ? mainShift : crossShift;
+      const shiftY = isLR ? crossShift : mainShift;
+      for (const [id, r] of nodePos) {
+        nodePos.set(id, {
+          x: r.x + shiftX,
+          y: r.y + shiftY,
+          width: r.width,
+          height: r.height,
+        });
+      }
     }
   }
 

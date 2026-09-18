@@ -267,13 +267,15 @@ describe('Readability Handoff Test Suite', () => {
     const scene = res.value.scene;
     const paths = scene.elements.filter((e) => e.type === 'path' && e.markerEnd != null) as any[];
 
-    // 1. Return path (outbound -> coordinator) routes through outside West gutter (outside coordinator.x = 111)
-    const returnPath = paths.find((p) => p.d.includes('C') && p.d.includes('111'));
+    // 1. Return path (outbound -> coordinator) routes through outside West gutter (outside coordinator.x = 24)
+    const returnPath = paths.find(
+      (p) => p.d.includes('C') && (p.d.includes('L 24 44') || p.d.endsWith('24 44')),
+    );
     expect(returnPath).toBeDefined();
-    expect(returnPath!.d).toMatch(/L (63|71)/); // routes through West gutter (x = 63 or 71 < 111)
+    expect(returnPath!.d).toMatch(/L (-16|-24)/); // routes through West gutter (x = -16 or -24 < 24)
 
     // 2. Return path does NOT penetrate cache
-    expect(returnPath!.d.includes('490')).toBe(false);
+    expect(returnPath!.d.includes('490') || returnPath!.d.includes('481')).toBe(false);
   });
 
   it('Case 06: queue links do not penetrate sibling slots', () => {

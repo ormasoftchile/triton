@@ -125,11 +125,13 @@ describe('flowchart layout', () => {
     expect(shortBounds.width).toBe(120); // Default min width
     expect(longBounds.width).toBeGreaterThan(200); // Expanded to fit text
     expect(longBounds.height).toBeGreaterThan(shortBounds.height);
-    const group = scene.elements.find(element => element.type === 'group' && element.id === 'long');
+    const group = scene.elements.find(
+      (element) => element.type === 'group' && element.id === 'long',
+    );
     expect(group?.type).toBe('group');
     if (group?.type !== 'group') return;
-    const lines = group.children.filter(element => element.type === 'text');
-    expect(lines.map(line => line.content).join(' ')).toBe(longDoc.nodes[1]!.label);
+    const lines = group.children.filter((element) => element.type === 'text');
+    expect(lines.map((line) => line.content).join(' ')).toBe(longDoc.nodes[1]!.label);
     for (const line of lines) {
       expect(line.position.y).toBeGreaterThan(longBounds.y);
       expect(line.position.y).toBeLessThan(longBounds.y + longBounds.height);
@@ -278,9 +280,46 @@ describe('flowchart layout', () => {
     // stage -> approve edge should be a straight vertical path
     const paths = scene.elements.filter((e) => e.type === 'path') as any[];
     const straightEdge = paths.find(
-      (p) => p.d === `M ${stageCx} ${anchors['stage']!.bounds.y + anchors['stage']!.bounds.height} L ${approveCx} ${anchors['approve']!.bounds.y}`,
+      (p) =>
+        p.d ===
+        `M ${stageCx} ${anchors['stage']!.bounds.y + anchors['stage']!.bounds.height} L ${approveCx} ${anchors['approve']!.bounds.y}`,
     );
     expect(straightEdge).toBeDefined();
+
+    // Diagram has symmetrical left and right margins with no excess left blank space
+    const allBounds = Object.values(anchors).map((a) => a.bounds);
+    const minX = Math.min(...allBounds.map((b) => b.x));
+    const maxX = Math.max(...allBounds.map((b) => b.x + b.width));
+    const leftMargin = minX - scene.viewBox.x;
+    const rightMargin = scene.viewBox.x + scene.viewBox.width - maxX;
+    expect(leftMargin).toBe(defaultTheme.spacing.diagramMargin);
+    expect(rightMargin).toBe(defaultTheme.spacing.diagramMargin);
+  });
+
+  it('flowchart with subgraphs computes viewBox accommodating subgraph padding without clipping', () => {
+    const subDoc: FlowDocument = {
+      version: '1.0',
+      metadata: {},
+      direction: 'TD',
+      nodes: [
+        { id: 's1', label: 'Step 1', shape: 'rect' },
+        { id: 's2', label: 'Step 2', shape: 'rect' },
+      ],
+      edges: [{ from: 's1', to: 's2', style: 'solid' }],
+      subgraphs: [{ id: 'cluster', label: 'Pipeline Stage', nodeIds: ['s1', 's2'] }],
+    };
+    const { scene } = layoutFlowchart(subDoc, defaultTheme);
+    const sgRect = scene.elements.find((e: any) => e.type === 'rect' && e.rx === 6) as any;
+    expect(sgRect).toBeDefined();
+
+    // Subgraph top must be >= scene.viewBox.y (never clipped)
+    expect(sgRect.bounds.y).toBeGreaterThanOrEqual(scene.viewBox.y);
+    // Subgraph left must be >= scene.viewBox.x
+    expect(sgRect.bounds.x).toBeGreaterThanOrEqual(scene.viewBox.x);
+    // Subgraph right must be <= viewBox right edge
+    expect(sgRect.bounds.x + sgRect.bounds.width).toBeLessThanOrEqual(
+      scene.viewBox.x + scene.viewBox.width,
+    );
   });
 });
 
