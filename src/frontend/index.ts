@@ -74,6 +74,7 @@ import { tree234 } from '../diagrams/triton/ds/tree/tree234.js';
 import { fishbone } from '../diagrams/triton/fishbone/index.js';
 import { pyramid } from '../diagrams/triton/pyramid/index.js';
 import { loop } from '../diagrams/triton/loop/index.js';
+import { platform } from '../diagrams/triton/platform/index.js';
 import { svgRenderer, embedAnchorManifest } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
@@ -143,6 +144,7 @@ registerDiagram('quadtree', quadtree);
 registerDiagram('treap', treap);
 registerDiagram('234tree', tree234);
 registerDiagram('2-3-4tree', tree234);
+registerDiagram('platform', platform);
 registerRenderer(svgRenderer);
 registerRouter('straight', straightRouter);
 registerRouter('orthogonal', orthogonalRouter);

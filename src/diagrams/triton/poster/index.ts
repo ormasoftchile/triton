@@ -103,6 +103,7 @@ const DEFAULT_HEADERS: Partial<Record<DiagramKind, string>> = {
   treap: 'treap\n',
   '234tree': '234tree\n',
   '2-3-4tree': '234tree\n',
+  platform: 'platform\n',
 };
 
 function canonicalDiagramKind(rawKind: string): DiagramKind | undefined {

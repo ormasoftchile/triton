@@ -6,10 +6,24 @@ import type { ThemeInput } from '../../src/contracts/index.js';
 // whole graph into a single CJS file; its `.js`→`.ts` resolve plugin follows
 // the NodeNext `.js` specifier below into `src/frontend/index.ts`.
 import { compileAndRenderSync, compileAndRenderWithThemeSync } from '../../src/frontend/index.js';
-import { ExportCancelledError, exportAnimatedPng, exportStaticPng, initExportWasm } from '../../src/export/index.js';
-import { registerBundledFont, resolveThemeFont, type ResolvedThemeFont } from '../../src/export/fonts.js';
+import {
+  ExportCancelledError,
+  exportAnimatedPng,
+  exportStaticPng,
+  initExportWasm,
+} from '../../src/export/index.js';
+import {
+  registerBundledFont,
+  resolveThemeFont,
+  type ResolvedThemeFont,
+} from '../../src/export/fonts.js';
 import { themePresetNames } from '../../src/theme/preset.js';
-import { extendMarkdownIt, extractFencedBlocks, renderFencedBlock, setMarkdownBaseDir } from './markdown.js';
+import {
+  extendMarkdownIt,
+  extractFencedBlocks,
+  renderFencedBlock,
+  setMarkdownBaseDir,
+} from './markdown.js';
 import { editorThemeInput } from './editor-theme.js';
 import { registerCompletion } from './completion.js';
 import { registerDiagnostics } from './diagnostics.js';
@@ -78,7 +92,10 @@ function readConfig(): PreviewConfig {
     animatedExport: {
       fps: cfg.get<number>('export.animated.fps', DEFAULT_ANIMATED_EXPORT.fps),
       speed: cfg.get<number>('export.animated.speed', DEFAULT_ANIMATED_EXPORT.speed),
-      motionBlurSamples: cfg.get<number>('export.animated.motionBlurSamples', DEFAULT_ANIMATED_EXPORT.motionBlurSamples),
+      motionBlurSamples: cfg.get<number>(
+        'export.animated.motionBlurSamples',
+        DEFAULT_ANIMATED_EXPORT.motionBlurSamples,
+      ),
       shutter: cfg.get<number>('export.animated.shutter', DEFAULT_ANIMATED_EXPORT.shutter),
     },
   };
@@ -139,10 +156,7 @@ function pickRenderable(
 // ─── Webview HTML ──────────────────────────────────────────────────────────────
 
 function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ─── Preview manager ───────────────────────────────────────────────────────────
@@ -195,10 +209,21 @@ interface Preview {
 }
 
 type WebviewMessage =
-  | { readonly type: 'svg'; readonly svg: string; readonly anchors?: string; readonly docUri: string; readonly doc: boolean }
+  | {
+      readonly type: 'svg';
+      readonly svg: string;
+      readonly anchors?: string;
+      readonly docUri: string;
+      readonly doc: boolean;
+    }
   | { readonly type: 'error'; readonly message: string }
   | { readonly type: 'theme'; readonly name: string }
-  | { readonly type: 'themeOptions'; readonly builtins: readonly string[]; readonly custom: readonly string[]; readonly selected: string };
+  | {
+      readonly type: 'themeOptions';
+      readonly builtins: readonly string[];
+      readonly custom: readonly string[];
+      readonly selected: string;
+    };
 
 class PreviewManager {
   // A single live preview that FOLLOWS the active editor, like the built-in
@@ -224,14 +249,10 @@ class PreviewManager {
     this.iconRegistry.refresh();
 
     // When themes change: refresh dropdown + re-render; drop vanished selection
-    this.disposables.push(
-      this.registry.onDidChange(() => this.onThemeRegistryChange()),
-    );
+    this.disposables.push(this.registry.onDidChange(() => this.onThemeRegistryChange()));
 
     // When icon packs change: re-render so the new icons are picked up immediately
-    this.disposables.push(
-      this.iconRegistry.onDidChange(() => this.onIconRegistryChange()),
-    );
+    this.disposables.push(this.iconRegistry.onDidChange(() => this.onIconRegistryChange()));
 
     this.disposables.push(
       vscode.workspace.onDidChangeTextDocument((e) => this.onDocChange(e.document)),
@@ -265,7 +286,12 @@ class PreviewManager {
         { viewColumn: column, preserveFocus: true },
         { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [] },
       );
-      panel.webview.html = shellHtml(panel.webview, this.label(doc.uri), this.selectedTheme(), this.registry.customNames());
+      panel.webview.html = shellHtml(
+        panel.webview,
+        this.label(doc.uri),
+        this.selectedTheme(),
+        this.registry.customNames(),
+      );
       this.bindPanel(panel, doc.uri);
     } else {
       this.preview.docUri = doc.uri;
@@ -303,7 +329,11 @@ class PreviewManager {
       const outputUri = this.animatedExportOutputUri(prepared.doc.uri);
       const options = readConfig().animatedExport;
       const png = await vscode.window.withProgress(
-        { location: vscode.ProgressLocation.Notification, cancellable: true, title: 'Exporting animated PNG…' },
+        {
+          location: vscode.ProgressLocation.Notification,
+          cancellable: true,
+          title: 'Exporting animated PNG…',
+        },
         async (progress, token) => {
           const controller = new AbortController();
           const disposable = token.onCancellationRequested(() => controller.abort());
@@ -315,7 +345,10 @@ class PreviewManager {
               signal: controller.signal,
               onProgress: (framesDone, frameTotal) => {
                 const next = frameTotal > 0 ? (framesDone / frameTotal) * 100 : 100;
-                progress.report({ increment: Math.max(0, next - reported), message: `frame ${framesDone}/${frameTotal}` });
+                progress.report({
+                  increment: Math.max(0, next - reported),
+                  message: `frame ${framesDone}/${frameTotal}`,
+                });
                 reported = next;
               },
             });
@@ -357,7 +390,12 @@ class PreviewManager {
         return;
       }
 
-      await this.writeExport(prepared.svg, target, extension === '.png' ? 'png' : 'svg', prepared.fontFamily);
+      await this.writeExport(
+        prepared.svg,
+        target,
+        extension === '.png' ? 'png' : 'svg',
+        prepared.fontFamily,
+      );
       await this.showExported(target);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -365,7 +403,10 @@ class PreviewManager {
     }
   }
 
-  private async exportToSibling(resource: vscode.Uri | undefined, format: 'svg' | 'png'): Promise<void> {
+  private async exportToSibling(
+    resource: vscode.Uri | undefined,
+    format: 'svg' | 'png',
+  ): Promise<void> {
     const prepared = await this.prepareExport(resource, `exporting ${format.toUpperCase()}`);
     if (!prepared) return;
     const { outputUri } = this.exportOutputUri(prepared.doc.uri, format);
@@ -376,10 +417,15 @@ class PreviewManager {
   private async prepareExport(
     resource: vscode.Uri | undefined,
     action: string,
-  ): Promise<{ readonly doc: vscode.TextDocument; readonly svg: string; readonly fontFamily: string } | undefined> {
+  ): Promise<
+    | { readonly doc: vscode.TextDocument; readonly svg: string; readonly fontFamily: string }
+    | undefined
+  > {
     const doc = await this.exportDocument(resource);
     if (!doc) {
-      void vscode.window.showInformationMessage('Triton: open a .triton or .mmd diagram first, then export.');
+      void vscode.window.showInformationMessage(
+        'Triton: open a .triton or .mmd diagram first, then export.',
+      );
       return undefined;
     }
     if (doc.uri.scheme === 'untitled') {
@@ -391,23 +437,40 @@ class PreviewManager {
     return rendered == null ? undefined : { doc, ...rendered };
   }
 
-  private renderExportSvg(doc: vscode.TextDocument): { readonly svg: string; readonly fontFamily: string } | undefined {
+  private renderExportSvg(
+    doc: vscode.TextDocument,
+  ): { readonly svg: string; readonly fontFamily: string } | undefined {
     const renderable = pickRenderable(doc, readConfig(), 'explicit');
     if (!renderable) {
-      void vscode.window.showInformationMessage('Triton: no exportable diagram found in the active document.');
+      void vscode.window.showInformationMessage(
+        'Triton: no exportable diagram found in the active document.',
+      );
       return undefined;
     }
 
     const { themeInput, forcedThemeName } = this.themeArgs();
-    const result = compileAndRenderWithThemeSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks());
+    const result = compileAndRenderWithThemeSync(
+      renderable.text,
+      themeInput,
+      'svg',
+      forcedThemeName,
+      this.iconRegistry.iconPacks(),
+    );
     if (!result.ok) {
-      void vscode.window.showErrorMessage(`Triton: export failed: [${result.error.code}] ${result.error.message}`);
+      void vscode.window.showErrorMessage(
+        `Triton: export failed: [${result.error.code}] ${result.error.message}`,
+      );
       return undefined;
     }
     return { svg: result.value.svg, fontFamily: result.value.theme.typography.fontFamily };
   }
 
-  private async writeExport(svg: string, outputUri: vscode.Uri, format: 'svg' | 'png', fontFamily: string): Promise<void> {
+  private async writeExport(
+    svg: string,
+    outputUri: vscode.Uri,
+    format: 'svg' | 'png',
+    fontFamily: string,
+  ): Promise<void> {
     if (format === 'svg') {
       await vscode.workspace.fs.writeFile(outputUri, Buffer.from(svg, 'utf8'));
       return;
@@ -428,16 +491,26 @@ class PreviewManager {
 
   private ensureExportWasm(): Promise<void> {
     this.exportWasmPromise ??= Promise.resolve(
-      vscode.workspace.fs.readFile(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'index_bg.wasm')),
-    ).then(bytes => initExportWasm(bytes));
+      vscode.workspace.fs.readFile(
+        vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'index_bg.wasm'),
+      ),
+    ).then((bytes) => initExportWasm(bytes));
     return this.exportWasmPromise;
   }
 
   private async showExported(outputUri: vscode.Uri): Promise<void> {
     const outputName = basename(outputUri.scheme === 'file' ? outputUri.fsPath : outputUri.path);
     const reveal =
-      process.platform === 'darwin' ? 'Reveal in Finder' : process.platform === 'win32' ? 'Reveal in Explorer' : 'Reveal in File Manager';
-    const action = await vscode.window.showInformationMessage(`Exported ${outputName}`, 'Open', reveal);
+      process.platform === 'darwin'
+        ? 'Reveal in Finder'
+        : process.platform === 'win32'
+          ? 'Reveal in Explorer'
+          : 'Reveal in File Manager';
+    const action = await vscode.window.showInformationMessage(
+      `Exported ${outputName}`,
+      'Open',
+      reveal,
+    );
     if (action === 'Open') {
       await vscode.commands.executeCommand('vscode.open', outputUri);
     } else if (action === reveal) {
@@ -457,7 +530,9 @@ class PreviewManager {
 
     const preview = this.preview;
     if (!preview) return undefined;
-    const existing = vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+    const existing = vscode.workspace.textDocuments.find(
+      (d) => d.uri.toString() === preview.docUri.toString(),
+    );
     const doc = existing ?? (await vscode.workspace.openTextDocument(preview.docUri));
     return isDiagramDoc(doc, config) ? doc : undefined;
   }
@@ -466,27 +541,47 @@ class PreviewManager {
     const sourcePath = source.scheme === 'file' ? source.fsPath : source.path;
     const sourceName = basename(sourcePath);
     const sourceExt = extname(source);
-    const outputBase = sourceExt && sourceName.toLowerCase().endsWith(sourceExt) ? sourceName.slice(0, -sourceExt.length) : sourceName;
+    const outputBase =
+      sourceExt && sourceName.toLowerCase().endsWith(sourceExt)
+        ? sourceName.slice(0, -sourceExt.length)
+        : sourceName;
     const outputName = `${outputBase}.animated.png`;
     if (source.scheme === 'file') {
       return vscode.Uri.joinPath(vscode.Uri.file(dirname(source.fsPath)), outputName);
     }
     const slash = source.path.lastIndexOf('/');
-    const dir = source.with({ path: slash >= 0 ? source.path.slice(0, slash) || '/' : '/', query: '', fragment: '' });
+    const dir = source.with({
+      path: slash >= 0 ? source.path.slice(0, slash) || '/' : '/',
+      query: '',
+      fragment: '',
+    });
     return vscode.Uri.joinPath(dir, outputName);
   }
 
-  private exportOutputUri(source: vscode.Uri, format: 'svg' | 'png'): { readonly outputName: string; readonly outputUri: vscode.Uri } {
+  private exportOutputUri(
+    source: vscode.Uri,
+    format: 'svg' | 'png',
+  ): { readonly outputName: string; readonly outputUri: vscode.Uri } {
     const sourcePath = source.scheme === 'file' ? source.fsPath : source.path;
     const sourceName = basename(sourcePath);
     const sourceExt = extname(source);
-    const outputBase = sourceExt && sourceName.toLowerCase().endsWith(sourceExt) ? sourceName.slice(0, -sourceExt.length) : sourceName;
+    const outputBase =
+      sourceExt && sourceName.toLowerCase().endsWith(sourceExt)
+        ? sourceName.slice(0, -sourceExt.length)
+        : sourceName;
     const outputName = `${outputBase}.${format}`;
     if (source.scheme === 'file') {
-      return { outputName, outputUri: vscode.Uri.joinPath(vscode.Uri.file(dirname(source.fsPath)), outputName) };
+      return {
+        outputName,
+        outputUri: vscode.Uri.joinPath(vscode.Uri.file(dirname(source.fsPath)), outputName),
+      };
     }
     const slash = source.path.lastIndexOf('/');
-    const dir = source.with({ path: slash >= 0 ? source.path.slice(0, slash) || '/' : '/', query: '', fragment: '' });
+    const dir = source.with({
+      path: slash >= 0 ? source.path.slice(0, slash) || '/' : '/',
+      query: '',
+      fragment: '',
+    });
     return { outputName, outputUri: vscode.Uri.joinPath(dir, outputName) };
   }
 
@@ -531,9 +626,16 @@ class PreviewManager {
 
   /** Restore a preview panel after a window reload (WebviewPanelSerializer). */
   async restore(panel: vscode.WebviewPanel, state: unknown): Promise<void> {
-    panel.webview.html = shellHtml(panel.webview, 'Triton', this.selectedTheme(), this.registry.customNames());
+    panel.webview.html = shellHtml(
+      panel.webview,
+      'Triton',
+      this.selectedTheme(),
+      this.registry.customNames(),
+    );
     const stateDocUri =
-      state && typeof state === 'object' && typeof (state as { docUri?: unknown }).docUri === 'string'
+      state &&
+      typeof state === 'object' &&
+      typeof (state as { docUri?: unknown }).docUri === 'string'
         ? (state as { docUri: string }).docUri
         : undefined;
 
@@ -593,7 +695,9 @@ class PreviewManager {
     const doc =
       editor && editor.document.uri.toString() === preview.docUri.toString()
         ? editor.document
-        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+        : vscode.workspace.textDocuments.find(
+            (d) => d.uri.toString() === preview.docUri.toString(),
+          );
     if (doc) void this.renderInto(doc, 'explicit');
   }
 
@@ -616,7 +720,9 @@ class PreviewManager {
     const doc =
       editor && editor.document.uri.toString() === preview.docUri.toString()
         ? editor.document
-        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+        : vscode.workspace.textDocuments.find(
+            (d) => d.uri.toString() === preview.docUri.toString(),
+          );
     if (doc) void this.renderInto(doc, 'explicit');
   }
 
@@ -628,7 +734,9 @@ class PreviewManager {
     const doc =
       editor && editor.document.uri.toString() === preview.docUri.toString()
         ? editor.document
-        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+        : vscode.workspace.textDocuments.find(
+            (d) => d.uri.toString() === preview.docUri.toString(),
+          );
     if (doc) void this.renderInto(doc, 'explicit');
   }
 
@@ -638,10 +746,13 @@ class PreviewManager {
 
     const { debounceMs } = readConfig();
     if (this.debounce) clearTimeout(this.debounce);
-    this.debounce = setTimeout(() => {
-      this.debounce = undefined;
-      void this.renderInto(doc, 'explicit');
-    }, Math.max(0, debounceMs));
+    this.debounce = setTimeout(
+      () => {
+        this.debounce = undefined;
+        void this.renderInto(doc, 'explicit');
+      },
+      Math.max(0, debounceMs),
+    );
   }
 
   private selectedTheme(): string {
@@ -664,11 +775,16 @@ class PreviewManager {
     const doc =
       editor && editor.document.uri.toString() === preview.docUri.toString()
         ? editor.document
-        : vscode.workspace.textDocuments.find((d) => d.uri.toString() === preview.docUri.toString());
+        : vscode.workspace.textDocuments.find(
+            (d) => d.uri.toString() === preview.docUri.toString(),
+          );
     if (doc) await this.renderInto(doc, 'explicit');
   }
 
-  private themeArgs(): { readonly themeInput: ThemeInput; readonly forcedThemeName: string | undefined } {
+  private themeArgs(): {
+    readonly themeInput: ThemeInput;
+    readonly forcedThemeName: string | undefined;
+  } {
     const selected = this.selectedTheme();
     if (!selected) {
       // Auto — adaptive colors from the editor theme
@@ -726,12 +842,24 @@ class PreviewManager {
     // Anchors travel as a separate JSON payload so the SVG string is byte-
     // identical to renderSync output — safe to inject via innerHTML under CSP.
     const { themeInput, forcedThemeName } = this.themeArgs();
-    const result = compileAndRenderSync(renderable.text, themeInput, 'svg', forcedThemeName, this.iconRegistry.iconPacks());
+    const result = compileAndRenderSync(
+      renderable.text,
+      themeInput,
+      'svg',
+      forcedThemeName,
+      this.iconRegistry.iconPacks(),
+    );
     // The active document may have changed while we were processing; only post
     // if the preview is still bound to the document we rendered.
     if (!this.preview || this.preview.docUri.toString() !== doc.uri.toString()) return;
     if (result.ok) {
-      this.post({ type: 'svg', svg: result.value.svg, anchors: JSON.stringify(result.value.anchors), docUri: doc.uri.toString(), doc: false });
+      this.post({
+        type: 'svg',
+        svg: result.value.svg,
+        anchors: JSON.stringify(result.value.anchors),
+        docUri: doc.uri.toString(),
+        doc: false,
+      });
     } else {
       this.post({ type: 'error', message: `[${result.error.code}] ${result.error.message}` });
     }
@@ -743,7 +871,11 @@ class PreviewManager {
    * is more than one. Fully synchronous (renderSync under the hood), so no
    * stale-document guard is needed.
    */
-  private renderMarkdownInto(doc: vscode.TextDocument, config: PreviewConfig, mode: RenderMode): void {
+  private renderMarkdownInto(
+    doc: vscode.TextDocument,
+    config: PreviewConfig,
+    mode: RenderMode,
+  ): void {
     const preview = this.preview;
     if (!preview) return;
 
@@ -765,7 +897,18 @@ class PreviewManager {
     const { themeInput, forcedThemeName } = this.themeArgs();
     const html = blocks
       .map((b, i) =>
-        labelBlock(i, blocks.length, b.lang, renderFencedBlock(b.body, baseDir, themeInput, forcedThemeName, this.iconRegistry.iconPacks())),
+        labelBlock(
+          i,
+          blocks.length,
+          b.lang,
+          renderFencedBlock(
+            b.body,
+            baseDir,
+            themeInput,
+            forcedThemeName,
+            this.iconRegistry.iconPacks(),
+          ),
+        ),
       )
       .join('\n');
 
@@ -789,31 +932,13 @@ class PreviewManager {
 
 // ─── Activation ────────────────────────────────────────────────────────────────
 
-export async function activate(context: vscode.ExtensionContext): Promise<{ extendMarkdownIt(md: unknown): unknown }> {
-  await registerBundledFonts(context.extensionUri);
+export async function activate(
+  context: vscode.ExtensionContext,
+): Promise<{ extendMarkdownIt(md: unknown): unknown }> {
   const manager = new PreviewManager(context);
-
   context.subscriptions.push(manager);
 
-  // Phase 3 — IntelliSense: context-aware symbol/keyword/theme/icon completion,
-  // plus live parse/render diagnostics.
-  registerCompletion(context, manager.getThemeRegistry(), manager.getIconRegistry());
-  registerDiagnostics(context);
-
-  // Keep the markdown-it fallback baseDir pointed at the current Markdown file's
-  // folder, so relative `file:` embeds resolve in the built-in preview (whose
-  // markdown-it `env` usually omits the document path).
-  const updateBaseDir = (editor: vscode.TextEditor | undefined): void => {
-    const doc = editor?.document;
-    if (doc && isMarkdownDoc(doc) && doc.uri.scheme === 'file') {
-      setMarkdownBaseDir(dirname(doc.uri.fsPath));
-    }
-  };
-  updateBaseDir(vscode.window.activeTextEditor);
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((e) => updateBaseDir(e)),
-  );
-
+  // Register commands immediately so they are available right away
   context.subscriptions.push(
     vscode.commands.registerCommand('triton.openPreview', () => {
       manager.show(vscode.window.activeTextEditor, vscode.ViewColumn.Active);
@@ -833,9 +958,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<{ exte
     vscode.commands.registerCommand('triton.exportAs', (resource?: vscode.Uri) => {
       void manager.exportAs(resource);
     }),
-    // Reclaim and re-render the preview panel after a window reload, so the
-    // diagram redraws from the live document (Mermaid included) instead of
-    // showing only the webview's last restored paint.
     vscode.window.registerWebviewPanelSerializer('tritonPreview', {
       async deserializeWebviewPanel(panel: vscode.WebviewPanel, state: unknown) {
         await manager.restore(panel, state);
@@ -843,9 +965,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<{ exte
     }),
   );
 
-  // Contributed to the built-in Markdown preview (contributes.markdown.
-  // markdownItPlugins). Overrides the fence renderer so ```triton (always) and
-  // ```mermaid (when triton.enableMermaid) blocks compile to inline SVG.
+  try {
+    await registerBundledFonts(context.extensionUri);
+  } catch (err) {
+    console.warn('[Triton] Failed to load bundled fonts:', err);
+  }
+
+  // Phase 3 — IntelliSense: context-aware symbol/keyword/theme/icon completion,
+  // plus live parse/render diagnostics.
+  registerCompletion(context, manager.getThemeRegistry(), manager.getIconRegistry());
+  registerDiagnostics(context);
+
+  // Keep the markdown-it fallback baseDir pointed at the current Markdown file's
+  // folder, so relative `file:` embeds resolve in the built-in preview (whose
+  // markdown-it `env` usually omits the document path).
+  const updateBaseDir = (editor: vscode.TextEditor | undefined): void => {
+    const doc = editor?.document;
+    if (doc && isMarkdownDoc(doc) && doc.uri.scheme === 'file') {
+      setMarkdownBaseDir(dirname(doc.uri.fsPath));
+    }
+  };
+  updateBaseDir(vscode.window.activeTextEditor);
+  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((e) => updateBaseDir(e)));
+
   return {
     extendMarkdownIt(md: unknown): unknown {
       return extendMarkdownIt(md as Parameters<typeof extendMarkdownIt>[0]);

@@ -76,6 +76,7 @@ const MERMAID_PATTERNS: [RegExp, DiagramKind][] = [
   [/^quadtree\b/i, 'quadtree'],
   [/^treap\b/i, 'treap'],
   [/^(2-3-4tree|234tree)\b/i, '234tree'],
+  [/^platform\b/i, 'platform'],
 ];
 
 export function matchMermaid(text: string): DiagramKind | undefined {

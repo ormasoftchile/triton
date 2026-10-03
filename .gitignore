@@ -38,3 +38,4 @@ coverage/
 # Local dev workspace / tooling (machine-specific)
 .vscode/focus-space.json
 *.code-workspace
+/image.png
