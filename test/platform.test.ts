@@ -78,4 +78,29 @@ platform "Online storage platform"
     expect(res.value).toContain('Online storage platform');
     expect(res.value).toContain('id="platform-dots"');
   });
+
+  it('renders high-contrast styling in bw-dark theme', () => {
+    const res = renderSync(sample, undefined, 'svg', 'bw-dark');
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    const svg = res.value;
+    // Dark canvas background
+    expect(svg).toContain('#171717');
+    // Crisp white borders, titles, and bus lines
+    expect(svg).toContain('#FAFAFA');
+    // Card surface fill
+    expect(svg).toContain('#262626');
+  });
+
+  it('renders high-contrast styling in bw-light theme', () => {
+    const res = renderSync(sample, undefined, 'svg', 'bw-light');
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    const svg = res.value;
+    // Light canvas background
+    expect(svg).toContain('#FFFFFF');
+    // Inverted routing bar with black fill and white text
+    expect(svg).toContain('fill="#171717"');
+    expect(svg).toContain('fill="#FFFFFF"');
+  });
 });
