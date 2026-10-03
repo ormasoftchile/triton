@@ -1,0 +1,52 @@
+platform "Online storage platform"
+  figure "FIGURE 01 · WHAT IS HABITAT?"
+  desc "Habitat is the online storage platform we built so OpenAI products can quickly and reliably access needed information."
+
+  legend
+    square request "Request" #3b82f6
+    circle response "Response" #10b981
+    diamond cdc "Changes (CDC)" #8b5cf6
+  end
+
+  tier clients "CLIENTS"
+    card chatgpt "ChatGPT" @icon:openai
+    card api "API" @icon:api
+    card codex "Codex" @icon:codex
+    card internal "Internal services" @icon:server
+    card more "... And more"
+  end
+
+  tier platform "ONLINE STORAGE PLATFORM"
+    box habitat "Habitat"
+      grid 3
+        card caching "Caching" [Caches data for faster access]
+        card acl "ACL policies" [Authorization]
+        card placement "Placement & data residency" [Data residency]
+        card encryption "Encryption" [Data security]
+        card isolation "Isolation" [Multi-tenancy]
+        card ratelimit "Rate limiting" [Request shaping]
+      end
+      card routing "Routing" [Schema lookup · Data residency]
+    end
+
+    box cdc "CDC Services" [Change Data Capture]
+      branch
+        card databricks "Databricks" @icon:databricks
+        card rockset "Rockset" @icon:rockset
+        card kafka "Kafka" @icon:kafka
+        card more_cdc "And more"
+      end
+    end
+  end
+
+  tier storage "STORAGE RESOURCES"
+    card cosmos "Azure Cosmos DB" [Online storage] @icon:database
+    card nanobase "Nanobase" [Online storage] @icon:database
+    card valkey "Valkey" [Caches] @icon:lightning
+    card blob "Blob storage" [Storage resources] @icon:storage
+  end
+
+  bus clients --> habitat.routing @anim:stream
+  bus habitat.routing --> storage @anim:stream
+  bus habitat.routing --> cdc @anim:particle
+  bus cdc --> databricks, rockset, kafka, more_cdc

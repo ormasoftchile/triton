@@ -48,6 +48,17 @@
           ".mmd"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "mermaid",
+        "aliases": [
+          "Mermaid",
+          "mermaid"
+        ],
+        "extensions": [
+          ".mermaid"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "snippets": [
@@ -64,6 +75,7 @@
       {
         "command": "triton.openPreview",
         "title": "Open Preview",
+        "category": "Triton",
         "icon": {
           "light": "./resources/preview-light.svg",
           "dark": "./resources/preview-dark.svg"
@@ -72,6 +84,7 @@
       {
         "command": "triton.openPreviewToSide",
         "title": "Open Preview to the Side",
+        "category": "Triton",
         "icon": {
           "light": "./resources/preview-side-light.svg",
           "dark": "./resources/preview-side-dark.svg"

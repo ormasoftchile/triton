@@ -5,14 +5,10 @@
       "name": "Run Triton Extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/extension",
-        "--extensions-dir=${workspaceFolder}/.vscode-dev-extensions",
-        "--disable-extensions"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/extension"],
       "outFiles": ["${workspaceFolder}/extension/dist/**/*.cjs"],
       "sourceMaps": true,
-      "preLaunchTask": "watch-extension"
+      "preLaunchTask": "build-extension"
     },
     {
       "name": "Run Triton + Deckpilot Extensions (local Triton)",

@@ -168,11 +168,7 @@
   },
   "Triton B+ Tree": {
     "prefix": ["bplustree", "b+tree"],
-    "body": [
-      "bplustree",
-      "    order 3",
-      "    insert 10 20 5 6 12 30 7 17"
-    ],
+    "body": ["bplustree", "    order 3", "    insert 10 20 5 6 12 30 7 17"],
     "description": "Create a self-balancing B+ tree diagram"
   },
   "Triton List": {
@@ -189,5 +185,43 @@
       "    Deliverables"
     ],
     "description": "Create a List presentation diagram"
+  },
+  "Triton Platform Architecture": {
+    "prefix": ["platform"],
+    "body": [
+      "platform \"${1:Architecture Overview}\"",
+      "  figure \"${2:FIGURE 01 · SYSTEM TOPOLOGY}\"",
+      "  desc \"${3:High-level platform and data flow architecture.}\"",
+      "",
+      "  legend",
+      "    square request \"Request\" #3b82f6",
+      "    circle response \"Response\" #10b981",
+      "    diamond cdc \"Changes (CDC)\" #8b5cf6",
+      "  end",
+      "",
+      "  tier clients \"CLIENTS\"",
+      "    card client1 \"Web Client\"",
+      "    card client2 \"Mobile App\"",
+      "  end",
+      "",
+      "  tier platform \"CORE PLATFORM\"",
+      "    box core \"Core Services\"",
+      "      grid 2",
+      "        card s1 \"API Gateway\" [Routing]",
+      "        card s2 \"Auth Service\" [Security]",
+      "      end",
+      "      card routing \"Event Router\" [Message distribution]",
+      "    end",
+      "  end",
+      "",
+      "  tier storage \"STORAGE\"",
+      "    card db1 \"Primary DB\" [Online storage]",
+      "    card cache \"Redis\" [Caches]",
+      "  end",
+      "",
+      "  bus clients --> core.routing @anim:stream",
+      "  bus core.routing --> storage @anim:stream"
+    ],
+    "description": "Create a multi-tier Platform Architecture diagram"
   }
 }

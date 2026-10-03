@@ -175,6 +175,7 @@ export type DiagramKind =
   | 'behaviortree'
   | 'quadtree'
   | 'treap'
+  | 'platform'
   | '234tree'
   | '2-3-4tree';
 
