@@ -56,7 +56,7 @@ type RenderMode = 'explicit' | 'passive';
 // default frameless (transparent) rendering applied to every other preset. A
 // framed preset paints its palette.background so the diagram stays readable on
 // its intended canvas regardless of the editor theme.
-const FRAMED_PRESETS: ReadonlySet<string> = new Set(['bw-light']);
+const FRAMED_PRESETS: ReadonlySet<string> = new Set(['bw-light', 'bw-dark']);
 
 const PREVIEW_THEME_KEY = 'triton.previewTheme';
 const DEFAULT_ANIMATED_EXPORT: AnimatedExportConfig = {
