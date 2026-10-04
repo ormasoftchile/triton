@@ -1,5 +1,5 @@
 platform "Event Pipeline & Feature Store"
-  figure "FIGURE 04 · MULTI-TIER EVENT TOPOLOGY"
+  figure "FIGURE 07 · MULTI-TIER EVENT TOPOLOGY"
   desc "Multi-tier data ingestion pipeline with multi-source fan-in gathering rails and stream distribution."
 
   legend
@@ -28,6 +28,6 @@ platform "Event Pipeline & Feature Store"
     card snowflake "Snowflake" [OLAP Warehouse] @icon:cloud
   end
 
-  bus sources --> kafka @anim:stream
-  bus kafka --> flink, spark
-  bus flink, spark --> iceberg, feast, snowflake @anim:flow
+  bus sources -->|"Syslog & MQTT"| kafka @anim:stream
+  bus kafka -->|"Partition Consumers"| flink, spark
+  bus flink, spark -->|"Feature Vectors / Parquet"| iceberg, feast, snowflake @anim:flow

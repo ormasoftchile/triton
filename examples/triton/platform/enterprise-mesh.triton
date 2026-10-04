@@ -1,0 +1,43 @@
+platform "Enterprise Cloud Service Mesh"
+  figure "FIGURE 02 · ZERO-TRUST SERVICE FABRIC"
+  desc "End-to-end multi-tier platform architecture demonstrating edge ingress, identity-aware service mesh, event streaming, and polyglot persistence."
+
+  legend
+    square request "User Request" #3b82f6
+    circle mtls "mTLS Encrypted" #10b981
+    diamond event "Async Event" #8b5cf6
+  end
+
+  tier edge "EDGE & CDN"
+    card cdn "Cloudflare Edge" [Global Anycast · DDoS Shield] @icon:globe
+    card dns "Route53 DNS" [Latency Routing] @icon:web
+    card waf "Cloud Armor WAF" [Layer 7 Threat Filter] @icon:shield
+  end
+
+  tier ingress "INGRESS & API GATEWAY"
+    card envoy "Envoy Ingress" [TLS Termination · Rate Limiting] @icon:cloud
+    card kong "Kong API Gateway" [OAuth2 / JWT · Plugins] @icon:api
+  end
+
+  tier services "MICROSERVICES MESH"
+    card auth "Auth Service" [OIDC / IAM Provider] @icon:shield
+    card orders "Order Service" [Transactional Sagas] @icon:lightning
+    card catalog "Catalog Service" [Search & Inventory] @icon:server
+    card billing "Billing Service" [Payment Clearing] @icon:api
+  end
+
+  tier eventbus "EVENT BACKBONE & CACHE"
+    card kafka "Kafka Cluster" [Event Log · Partitioned] @icon:queue
+    card redis "Redis Sentinel" [Distributed Cache & Locks] @icon:lightning
+  end
+
+  tier persistence "MULTI-REGION DATASTORES"
+    card postgres "CockroachDB" [Distributed SQL · Multi-AZ] @icon:database
+    card mongo "MongoDB Atlas" [Document Store] @icon:database
+    card s3 "S3 Data Lake" [Object Store & Cold Archive] @icon:storage
+  end
+
+  bus edge -->|"HTTPS / TLS 1.3"| ingress @anim:stream
+  bus ingress -->|"mTLS / gRPC"| services @anim:stream
+  bus services -->|"Event Stream / TCP"| eventbus @anim:particle
+  bus eventbus -->|"Change Data Capture (CDC)"| persistence

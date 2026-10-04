@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1845.5 780" width="1845.5" height="780">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1982.5 780" width="1982.5" height="780">
   <defs>
     <style>/* Google Inc.
 
@@ -97,179 +97,205 @@ OTHER DEALINGS IN THE FONT SOFTWARE. */
 @font-face{font-family:'Source Sans 3';font-style:normal;font-weight:700;font-display:swap;src:url(data:font/woff2;base64,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) format('woff2');}</style>
     <pattern id="platform-dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#CBD5E1" opacity="0.8"/></pattern>
   </defs>
-  <rect x="0" y="0" width="1845.5" height="780" fill="#FFFFFF" />
-  <rect x="0" y="0" width="1845.5" height="780" fill="#FFFFFF" stroke="none" stroke-width="0" />
-  <rect x="0" y="0" width="1845.5" height="780" fill="url(#platform-dots)" stroke="none" stroke-width="0" />
-  <text x="50" y="40" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567" font-weight="bold">FIGURE 04 · MULTI-AGENT INFERENCE ARCHITECTURE</text>
-  <text x="50" y="72" font-size="22" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Agentic AI &amp; Retrieval Platform</text>
-  <text x="50" y="102" font-size="13" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Low-latency inference pipeline orchestrating intent classification, tool execution via MCP, and hybrid vector retrieval for enterprise reasoning agents.</text>
-  <rect x="1715.5" y="36" width="80" height="28" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <rect x="1731.5" y="45" width="2.5" height="10" fill="#20282B" stroke="#20282B" stroke-width="0" />
-  <rect x="1736.5" y="45" width="2.5" height="10" fill="#20282B" stroke="#20282B" stroke-width="0" />
-  <text x="1763.5" y="54" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Pause</text>
+  <rect x="0" y="0" width="1982.5" height="780" fill="#FFFFFF" />
+  <rect x="0" y="0" width="1982.5" height="780" fill="#FFFFFF" stroke="none" stroke-width="0" />
+  <rect x="0" y="0" width="1982.5" height="780" fill="url(#platform-dots)" stroke="none" stroke-width="0" />
+  <text x="50" y="40" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567" font-weight="bold">FIGURE 02 · ZERO-TRUST SERVICE FABRIC</text>
+  <text x="50" y="72" font-size="22" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Enterprise Cloud Service Mesh</text>
+  <text x="50" y="102" font-size="13" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">End-to-end multi-tier platform architecture demonstrating edge ingress, identity-aware service mesh, event streaming, and polyglot persistence.</text>
+  <rect x="1852.5" y="36" width="80" height="28" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <rect x="1868.5" y="45" width="2.5" height="10" fill="#20282B" stroke="#20282B" stroke-width="0" />
+  <rect x="1873.5" y="45" width="2.5" height="10" fill="#20282B" stroke="#20282B" stroke-width="0" />
+  <text x="1900.5" y="54" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Pause</text>
   <rect x="50" y="126" width="10" height="10" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <text x="66" y="134" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">User Prompt / Intent</text>
-  <circle cx="231" cy="131" r="5" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <text x="242" y="134" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Tool Execution (MCP)</text>
-  <path d="M 407 125 L 412 131 L 407 137 L 402 131 Z" stroke="#6d28d9" stroke-width="1.2" fill="#8b5cf6" />
-  <text x="418" y="134" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Retrieved Context</text>
-  <text x="155" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">USER CHANNELS</text>
+  <text x="66" y="134" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">User Request</text>
+  <circle cx="176.6" cy="131" r="5" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <text x="187.6" y="134" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">mTLS Encrypted</text>
+  <path d="M 311.79999999999995 125 L 316.79999999999995 131 L 311.79999999999995 137 L 306.79999999999995 131 Z" stroke="#6d28d9" stroke-width="1.2" fill="#8b5cf6" />
+  <text x="322.79999999999995" y="134" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Async Event</text>
+  <text x="155" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">EDGE &amp; CDN</text>
   <rect x="50" y="199" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
   <circle cx="71" cy="226" r="7" fill="none" stroke="#20282B" stroke-width="1.2" />
   <path d="M 64 226 H 78 M 71 219 Q 67 226 71 233 M 71 219 Q 75 226 71 233" stroke="#20282B" stroke-width="1.1" fill="none" />
-  <text x="88" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Web Copilot</text>
-  <text x="88" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Streaming UI</text>
+  <text x="88" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Cloudflare Edge</text>
+  <text x="88" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Global Anycast · DDoS Shield</text>
   <rect x="50" y="267" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <rect x="64" y="288" width="14" height="12" fill="none" stroke="#20282B" stroke-width="1.2" rx="3" />
-  <circle cx="68" cy="293" r="1.5" fill="#20282B" stroke="#20282B" stroke-width="1" />
-  <circle cx="74" cy="293" r="1.5" fill="#20282B" stroke="#20282B" stroke-width="1" />
-  <path d="M 71 288 V 285" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="88" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">IDE Coding Agent</text>
-  <text x="88" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Language Server Protocol</text>
+  <circle cx="71" cy="294" r="7" fill="none" stroke="#20282B" stroke-width="1.2" />
+  <path d="M 64 294 H 78 M 71 287 Q 67 294 71 301 M 71 287 Q 75 294 71 301" stroke="#20282B" stroke-width="1.1" fill="none" />
+  <text x="88" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Route53 DNS</text>
+  <text x="88" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Latency Routing</text>
   <rect x="50" y="335" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <circle cx="67" cy="358" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <circle cx="75" cy="357" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <circle cx="75" cy="367" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <path d="M 67 361 V 367 M 67 361 Q 71 361 75 359" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="88" y="359" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">ChatOps Bot</text>
-  <text x="88" y="375" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Enterprise Webhooks</text>
-  <text x="688.5" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">AGENT REASONING CORE</text>
-  <rect x="466.5" y="199" width="444" height="244" fill="#FFFFFF" stroke="#899796" stroke-width="1.8" rx="8" />
-  <text x="688.5" y="221" font-size="13" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Cognitive Engine</text>
-  <rect x="482.5" y="235" width="200" height="56" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" rx="6" />
-  <text x="494.5" y="257" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Prompt Guardrails</text>
-  <text x="494.5" y="275" font-size="10" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Injection &amp; PII Filter</text>
-  <rect x="694.5" y="235" width="200" height="56" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" rx="6" />
-  <text x="706.5" y="257" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Session Memory</text>
-  <text x="706.5" y="275" font-size="10" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Conversation Window</text>
-  <rect x="482.5" y="301" width="200" height="56" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" rx="6" />
-  <text x="494.5" y="323" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Intent Classifier</text>
-  <text x="494.5" y="341" font-size="10" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Semantic Router</text>
-  <rect x="694.5" y="301" width="200" height="56" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" rx="6" />
-  <text x="706.5" y="323" font-size="11.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Factuality &amp; Eval</text>
-  <text x="706.5" y="341" font-size="10" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Grounding Check</text>
-  <rect x="482.5" y="373" width="412" height="54" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" rx="6" />
-  <text x="498.5" y="395" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">ReAct Planner</text>
-  <text x="498.5" y="413" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Autonomous Task Decomposition</text>
-  <text x="1241.5" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">TOOL EXECUTION (MCP)</text>
-  <rect x="1136.5" y="199" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <rect x="1150.5" y="220" width="14" height="12" fill="none" stroke="#20282B" stroke-width="1.2" rx="3" />
-  <circle cx="1154.5" cy="225" r="1.5" fill="#20282B" stroke="#20282B" stroke-width="1" />
-  <circle cx="1160.5" cy="225" r="1.5" fill="#20282B" stroke="#20282B" stroke-width="1" />
-  <path d="M 1157.5 220 V 217" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="1174.5" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Python Sandbox</text>
-  <text x="1174.5" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Isolated Docker Runtime</text>
-  <rect x="1136.5" y="267" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <circle cx="1157.5" cy="294" r="7" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <path d="M 1150.5 294 H 1164.5 M 1157.5 287 Q 1153.5 294 1157.5 301 M 1157.5 287 Q 1161.5 294 1157.5 301" stroke="#20282B" stroke-width="1.1" fill="none" />
-  <text x="1174.5" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Web Search MCP</text>
-  <text x="1174.5" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Live Web Scraping</text>
-  <rect x="1136.5" y="335" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <rect x="1150.5" y="355" width="14" height="14" fill="none" stroke="#20282B" stroke-width="1.2" rx="3" />
-  <path d="M 1150.5 360 Q 1157.5 362 1164.5 360" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <path d="M 1150.5 364 Q 1157.5 366 1164.5 364" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="1174.5" y="359" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">SQL Analytics Engine</text>
-  <text x="1174.5" y="375" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Read-Only Database</text>
-  <rect x="1136.5" y="403" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <circle cx="1153.5" cy="426" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <circle cx="1161.5" cy="425" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <circle cx="1161.5" cy="435" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <path d="M 1153.5 429 V 435 M 1153.5 429 Q 1157.5 429 1161.5 427" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="1174.5" y="427" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">GitHub API Tool</text>
-  <text x="1174.5" y="443" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Repository Context</text>
-  <text x="1690.5" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">MODELS &amp; KNOWLEDGE FABRIC</text>
-  <rect x="1585.5" y="199" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <circle cx="1606.5" cy="226" r="8" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <circle cx="1606.5" cy="226" r="4" fill="none" stroke="#20282B" stroke-width="1.2" />
-  <text x="1623.5" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Frontier LLM Cluster</text>
-  <text x="1623.5" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Reasoning &amp; Tool Use</text>
-  <rect x="1585.5" y="267" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <rect x="1599.5" y="287" width="14" height="14" fill="none" stroke="#20282B" stroke-width="1.2" rx="3" />
-  <path d="M 1599.5 292 Q 1606.5 294 1613.5 292" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <path d="M 1599.5 296 Q 1606.5 298 1613.5 296" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="1623.5" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Qdrant Vector DB</text>
-  <text x="1623.5" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Hybrid Dense/Sparse Search</text>
-  <rect x="1585.5" y="335" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <path d="M 1601.5 366 H 1611.5 A 2.5 2.5 0 0 0 1611.5 361 A 3.5 3.5 0 0 0 1604.5 361 A 2.5 2.5 0 0 0 1601.5 366 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="1623.5" y="359" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Neo4j Knowledge Graph</text>
-  <text x="1623.5" y="375" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Entity Ontology</text>
-  <rect x="1585.5" y="403" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
-  <path d="M 1607.5 421 L 1601.5 430 H 1606.5 L 1604.5 439 L 1612.5 429 H 1607.5 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
-  <text x="1623.5" y="427" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Valkey KV Store</text>
-  <text x="1623.5" y="443" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Checkpoint Cache</text>
-  <path d="M 260 226 H 287 Q 295 226 295 234" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 260 294 H 287 Q 295 294 295 302" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 260 362 H 287 Q 295 362 295 370" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 295 234 V 354" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 295 400 L 482.5 400" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 71 355 L 77 358 V 362 Q 77 368 71 370 Q 65 368 65 362 V 358 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="88" y="359" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Cloud Armor WAF</text>
+  <text x="88" y="375" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Layer 7 Threat Filter</text>
+  <text x="558.5" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">INGRESS &amp; API GATEWAY</text>
+  <rect x="453.5" y="199" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <path d="M 469.5 230 H 479.5 A 2.5 2.5 0 0 0 479.5 225 A 3.5 3.5 0 0 0 472.5 225 A 2.5 2.5 0 0 0 469.5 230 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="491.5" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Envoy Ingress</text>
+  <text x="491.5" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">TLS Termination · Rate Limiting</text>
+  <rect x="453.5" y="267" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <circle cx="470.5" cy="290" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
+  <circle cx="478.5" cy="289" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
+  <circle cx="478.5" cy="299" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
+  <path d="M 470.5 293 V 299 M 470.5 293 Q 474.5 293 478.5 291" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="491.5" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Kong API Gateway</text>
+  <text x="491.5" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">OAuth2 / JWT · Plugins</text>
+  <text x="936" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">MICROSERVICES MESH</text>
+  <rect x="831" y="199" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <path d="M 852 219 L 858 222 V 226 Q 858 232 852 234 Q 846 232 846 226 V 222 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="869" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Auth Service</text>
+  <text x="869" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">OIDC / IAM Provider</text>
+  <rect x="831" y="267" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <path d="M 853 285 L 847 294 H 852 L 850 303 L 858 293 H 853 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="869" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Order Service</text>
+  <text x="869" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Transactional Sagas</text>
+  <rect x="831" y="335" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <rect x="845" y="355" width="14" height="14" fill="none" stroke="#20282B" stroke-width="1.2" rx="2" />
+  <path d="M 845 359 H 859 M 845 364 H 859" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="869" y="359" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Catalog Service</text>
+  <text x="869" y="375" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Search &amp; Inventory</text>
+  <rect x="831" y="403" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <circle cx="848" cy="426" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
+  <circle cx="856" cy="425" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
+  <circle cx="856" cy="435" r="2.5" fill="none" stroke="#20282B" stroke-width="1.2" />
+  <path d="M 848 429 V 435 M 848 429 Q 852 429 856 427" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="869" y="427" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Billing Service</text>
+  <text x="869" y="443" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Payment Clearing</text>
+  <text x="1359" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">EVENT BACKBONE &amp; CACHE</text>
+  <rect x="1254" y="199" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <circle cx="1271" cy="226" r="2" fill="#20282B" stroke="#20282B" stroke-width="1" />
+  <circle cx="1275" cy="226" r="2" fill="#20282B" stroke="#20282B" stroke-width="1" />
+  <circle cx="1279" cy="226" r="2" fill="#20282B" stroke="#20282B" stroke-width="1" />
+  <path d="M 1268 221 H 1282 M 1268 231 H 1282" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="1292" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Kafka Cluster</text>
+  <text x="1292" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Event Log · Partitioned</text>
+  <rect x="1254" y="267" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <path d="M 1276 285 L 1270 294 H 1275 L 1273 303 L 1281 293 H 1276 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="1292" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">Redis Sentinel</text>
+  <text x="1292" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Distributed Cache &amp; Locks</text>
+  <text x="1827.5" y="175" font-size="11" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">MULTI-REGION DATASTORES</text>
+  <rect x="1722.5" y="199" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <rect x="1736.5" y="219" width="14" height="14" fill="none" stroke="#20282B" stroke-width="1.2" rx="3" />
+  <path d="M 1736.5 224 Q 1743.5 226 1750.5 224" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <path d="M 1736.5 228 Q 1743.5 230 1750.5 228" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="1760.5" y="223" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">CockroachDB</text>
+  <text x="1760.5" y="239" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Distributed SQL · Multi-AZ</text>
+  <rect x="1722.5" y="267" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <rect x="1736.5" y="287" width="14" height="14" fill="none" stroke="#20282B" stroke-width="1.2" rx="3" />
+  <path d="M 1736.5 292 Q 1743.5 294 1750.5 292" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <path d="M 1736.5 296 Q 1743.5 298 1750.5 296" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="1760.5" y="291" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">MongoDB Atlas</text>
+  <text x="1760.5" y="307" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Document Store</text>
+  <rect x="1722.5" y="335" width="210" height="54" fill="#FFFFFF" stroke="#899796" stroke-width="1.5" rx="6" />
+  <path d="M 1743.5 354 L 1750.5 358 L 1743.5 362 L 1736.5 358 Z" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <path d="M 1736.5 358 V 366 L 1743.5 370 V 362 M 1750.5 358 V 366 L 1743.5 370" stroke="#20282B" stroke-width="1.2" fill="none" />
+  <text x="1760.5" y="359" font-size="12" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" font-weight="bold">S3 Data Lake</text>
+  <text x="1760.5" y="375" font-size="10.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#576567">Object Store &amp; Cold Archive</text>
+  <path d="M 260 226 H 319.725 Q 327.725 226 327.725 234" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 260 294 H 319.725 Q 327.725 294 327.725 286" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 260 362 H 319.725 Q 327.725 362 327.725 354" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 327.725 234 V 354" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 327.725 277 L 385.775 277" stroke="#334155" stroke-width="1.6" fill="none" />
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 295 400 L 482.5 400"/>
+    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 327.725 277 L 385.775 277"/>
   </circle>
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 295 400 L 482.5 400"/>
+    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 327.725 277 L 385.775 277"/>
   </circle>
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 295 400 L 482.5 400"/>
+    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 327.725 277 L 385.775 277"/>
   </circle>
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 295 400 L 482.5 400"/>
+    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 327.725 277 L 385.775 277"/>
   </circle>
-  <rect x="256" y="222" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <circle cx="260" cy="294" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <rect x="256" y="358" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <rect x="313" y="396" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <circle cx="337" cy="400" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <circle cx="349" cy="400" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <rect x="326.35" y="377" width="124.80000000000001" height="18" fill="#FFFFFF" stroke="#899796" stroke-width="1.2" rx="4" />
-  <text x="388.75" y="389.5" font-size="9.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Prompts &amp; Context</text>
-  <path d="M 894.5 400 L 1101.5 400" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 385.775 234 V 286" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 385.775 234 Q 385.775 226 393.775 226 H 453.5" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 385.775 286 Q 385.775 294 393.775 294 H 453.5" stroke="#334155" stroke-width="1.6" fill="none" />
+  <rect x="298.725" y="222" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <circle cx="302.725" cy="294" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="298.725" y="358" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <path d="M 356.75 272 L 361.75 277 L 356.75 282 L 351.75 277 Z" stroke="#6d28d9" stroke-width="1.2" fill="#8b5cf6" />
+  <circle cx="410.775" cy="226" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="406.775" y="290" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <rect x="300.75" y="254" width="112" height="18" fill="#FFFFFF" stroke="#899796" stroke-width="1.2" rx="4" />
+  <text x="356.75" y="266.5" font-size="9.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">HTTPS / TLS 1.3</text>
+  <path d="M 663.5 226 H 714.125 Q 722.125 226 722.125 234" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 663.5 294 H 722.125" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 722.125 234 V 286" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 722.125 294 L 772.375 294" stroke="#334155" stroke-width="1.6" fill="none" />
+  <circle r="3.2" fill="#334155" opacity="0.9">
+    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 722.125 294 L 772.375 294"/>
+  </circle>
+  <circle r="3.2" fill="#334155" opacity="0.9">
+    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 722.125 294 L 772.375 294"/>
+  </circle>
+  <circle r="3.2" fill="#334155" opacity="0.9">
+    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 722.125 294 L 772.375 294"/>
+  </circle>
+  <circle r="3.2" fill="#334155" opacity="0.9">
+    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 722.125 294 L 772.375 294"/>
+  </circle>
+  <path d="M 772.375 234 V 422" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 772.375 234 Q 772.375 226 780.375 226 H 831" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 772.375 294 H 831" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 772.375 354 Q 772.375 362 780.375 362 H 831" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 772.375 422 Q 772.375 430 780.375 430 H 831" stroke="#334155" stroke-width="1.6" fill="none" />
+  <rect x="693.125" y="222" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <circle cx="697.125" cy="294" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <path d="M 747.25 289 L 752.25 294 L 747.25 299 L 742.25 294 Z" stroke="#6d28d9" stroke-width="1.2" fill="#8b5cf6" />
+  <circle cx="797.375" cy="226" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="793.375" y="290" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <circle cx="797.375" cy="362" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="793.375" y="426" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <rect x="704.05" y="271" width="86.4" height="18" fill="#FFFFFF" stroke="#899796" stroke-width="1.2" rx="4" />
+  <text x="747.25" y="283.5" font-size="9.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">mTLS / gRPC</text>
+  <path d="M 1041 226 H 1107.55 Q 1115.55 226 1115.55 234" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1041 294 H 1115.55" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1041 362 H 1107.55 Q 1115.55 362 1115.55 354" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1041 430 H 1107.55 Q 1115.55 430 1115.55 422" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1115.55 234 V 422" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1115.55 294 L 1179.45 294" stroke="#334155" stroke-width="1.6" fill="none" />
   <circle r="4" fill="#334155">
-    <animateMotion dur="1.6s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 894.5 400 L 1101.5 400"/>
+    <animateMotion dur="1.6s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 1115.55 294 L 1179.45 294"/>
   </circle>
-  <path d="M 1101.5 234 V 422" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1101.5 234 Q 1101.5 226 1109.5 226 H 1136.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1101.5 302 Q 1101.5 294 1109.5 294 H 1136.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1101.5 370 Q 1101.5 362 1109.5 362 H 1136.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1101.5 422 Q 1101.5 430 1109.5 430 H 1136.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <circle cx="914.5" cy="400" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <rect x="924.5" y="396" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <rect x="938.5" y="396" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <circle cx="1119.5" cy="294" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <rect x="1115.5" y="358" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <rect x="926" y="377" width="144" height="18" fill="#FFFFFF" stroke="#899796" stroke-width="1.2" rx="4" />
-  <text x="998" y="389.5" font-size="9.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Tool Execution (MCP)</text>
-  <path d="M 1346.5 226 H 1422.15 Q 1430.15 226 1430.15 234" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1346.5 294 H 1422.15 Q 1430.15 294 1430.15 302" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1346.5 362 H 1422.15 Q 1430.15 362 1430.15 354" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1346.5 430 H 1422.15 Q 1430.15 430 1430.15 422" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1430.15 234 V 422" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1430.15 328 L 1501.85 328" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1179.45 234 V 286" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1179.45 234 Q 1179.45 226 1187.45 226 H 1254" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1179.45 294 H 1254" stroke="#334155" stroke-width="1.6" fill="none" />
+  <rect x="1086.55" y="222" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <circle cx="1090.55" cy="294" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="1086.55" y="358" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <circle cx="1090.55" cy="430" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <path d="M 1147.5 289 L 1152.5 294 L 1147.5 299 L 1142.5 294 Z" stroke="#6d28d9" stroke-width="1.2" fill="#8b5cf6" />
+  <circle cx="1204.45" cy="226" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="1200.45" y="290" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <rect x="1081.9" y="271" width="131.2" height="18" fill="#FFFFFF" stroke="#899796" stroke-width="1.2" rx="4" />
+  <text x="1147.5" y="283.5" font-size="9.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Event Stream / TCP</text>
+  <path d="M 1464 226 H 1546.475 Q 1554.475 226 1554.475 234" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1464 294 H 1546.475 Q 1554.475 294 1554.475 286" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1554.475 234 V 286" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1554.475 277 L 1632.025 277" stroke="#334155" stroke-width="1.6" fill="none" />
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 1430.15 328 L 1501.85 328"/>
+    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 1554.475 277 L 1632.025 277"/>
   </circle>
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 1430.15 328 L 1501.85 328"/>
+    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 1554.475 277 L 1632.025 277"/>
   </circle>
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 1430.15 328 L 1501.85 328"/>
+    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 1554.475 277 L 1632.025 277"/>
   </circle>
   <circle r="3.2" fill="#334155" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 1430.15 328 L 1501.85 328"/>
+    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 1554.475 277 L 1632.025 277"/>
   </circle>
-  <path d="M 1501.85 234 V 422" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1501.85 234 Q 1501.85 226 1509.85 226 H 1585.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1501.85 302 Q 1501.85 294 1509.85 294 H 1585.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1501.85 354 Q 1501.85 362 1509.85 362 H 1585.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <path d="M 1501.85 422 Q 1501.85 430 1509.85 430 H 1585.5" stroke="#334155" stroke-width="1.6" fill="none" />
-  <rect x="1401.15" y="222" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <circle cx="1405.15" cy="294" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <rect x="1401.15" y="358" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <circle cx="1405.15" cy="430" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <path d="M 1466 323 L 1471 328 L 1466 333 L 1461 328 Z" stroke="#6d28d9" stroke-width="1.2" fill="#8b5cf6" />
-  <circle cx="1526.85" cy="226" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <rect x="1522.85" y="290" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <circle cx="1526.85" cy="362" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
-  <rect x="1522.85" y="426" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
-  <rect x="1387.6" y="305" width="156.8" height="18" fill="#FFFFFF" stroke="#899796" stroke-width="1.2" rx="4" />
-  <text x="1466" y="317.5" font-size="9.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Inference &amp; Embeddings</text>
+  <path d="M 1632.025 234 V 354" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1632.025 234 Q 1632.025 226 1640.025 226 H 1722.5" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1632.025 286 Q 1632.025 294 1640.025 294 H 1722.5" stroke="#334155" stroke-width="1.6" fill="none" />
+  <path d="M 1632.025 354 Q 1632.025 362 1640.025 362 H 1722.5" stroke="#334155" stroke-width="1.6" fill="none" />
+  <rect x="1525.475" y="222" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <circle cx="1529.475" cy="294" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <path d="M 1593.25 272 L 1598.25 277 L 1593.25 282 L 1588.25 277 Z" stroke="#6d28d9" stroke-width="1.2" fill="#8b5cf6" />
+  <circle cx="1657.025" cy="226" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="1653.025" y="290" width="8" height="8" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2" rx="1.5" />
+  <circle cx="1657.025" cy="362" r="4" fill="#10b981" stroke="#047857" stroke-width="1.2" />
+  <rect x="1505.25" y="254" width="176" height="18" fill="#FFFFFF" stroke="#899796" stroke-width="1.2" rx="4" />
+  <text x="1593.25" y="266.5" font-size="9.5" font-family="&quot;Source Sans 3&quot;, &quot;Segoe UI&quot;, sans-serif" fill="#20282B" text-anchor="middle" font-weight="bold">Change Data Capture (CDC)</text>
 </svg>

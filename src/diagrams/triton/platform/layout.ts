@@ -268,11 +268,61 @@ export function layoutPlatform(
 
   const isHabitatProfile =
     numTiers === 3 && tierWidths[0] === 195 && tierWidths[1] === 660 && tierWidths[2] === 210;
+
+  const endpointTierMap = new Map<string, number>();
+  for (let i = 0; i < doc.tiers.length; i++) {
+    const tier = doc.tiers[i]!;
+    endpointTierMap.set(tier.id, i);
+    for (const item of tier.items) {
+      if ('grid' in item || 'branch' in item || 'cards' in item) {
+        const box = item as PlatformBox;
+        endpointTierMap.set(box.id, i);
+        endpointTierMap.set(`${tier.id}.${box.id}`, i);
+        const subCards = [
+          ...(box.cards ?? []),
+          ...(box.grid?.cards ?? []),
+          ...(box.branch?.cards ?? []),
+        ];
+        for (const c of subCards) {
+          endpointTierMap.set(c.id, i);
+          endpointTierMap.set(`${box.id}.${c.id}`, i);
+          endpointTierMap.set(`${tier.id}.${box.id}.${c.id}`, i);
+        }
+      } else {
+        const card = item as PlatformCard;
+        endpointTierMap.set(card.id, i);
+        endpointTierMap.set(`${tier.id}.${card.id}`, i);
+      }
+    }
+  }
+
+  const getTierIndex = (ep: string): number | undefined => {
+    if (endpointTierMap.has(ep)) return endpointTierMap.get(ep);
+    for (const [key, idx] of endpointTierMap) {
+      if (key.endsWith(`.${ep}`)) return idx;
+    }
+    return undefined;
+  };
+
   const colXs: number[] = [];
   let curColX = 50;
   for (let i = 0; i < numTiers; i++) {
     colXs.push(curColX);
-    const gutter = isHabitatProfile ? (i === 0 ? 105 : 100) : 110;
+    let gutter = isHabitatProfile ? (i === 0 ? 105 : 100) : 110;
+    if (i < numTiers - 1 && !isHabitatProfile) {
+      for (const bus of doc.buses) {
+        if (bus.label) {
+          const fromList = Array.isArray(bus.from) ? bus.from : [bus.from];
+          const toList = Array.isArray(bus.to) ? bus.to : [bus.to];
+          const fromTier = fromList.map(getTierIndex).find((idx) => idx !== undefined);
+          const toTier = toList.map(getTierIndex).find((idx) => idx !== undefined);
+          if (fromTier === i && toTier === i + 1) {
+            const badgeW = Math.max(36, bus.label.length * 6.5 + 16);
+            gutter = Math.max(gutter, badgeW + 80);
+          }
+        }
+      }
+    }
     curColX += tierWidths[i]! + gutter;
   }
 
@@ -289,9 +339,9 @@ export function layoutPlatform(
       (it): it is PlatformCard => !('grid' in it) && !('branch' in it) && !('cards' in it),
     );
     let curY = tierY + 24;
-    if (simpleCards.length > 0 && boxes.length === 0) {
+    if (simpleCards.length > 0) {
       const cardH = simpleCards.some((c) => !!c.subtitle) ? 54 : 46;
-      curY += simpleCards.length * (cardH + 14);
+      curY += simpleCards.length * (cardH + 14) + (boxes.length > 0 ? 10 : 0);
     }
     for (const b of boxes) {
       if (b.grid) {
@@ -301,9 +351,14 @@ export function layoutPlatform(
         const routing = (b.cards ?? []).find((c) => c.id === 'routing') ?? b.cards?.[0];
         const boxH = Math.max(160, 36 + gridH + (routing ? 70 : 0) + 16);
         curY += boxH + 20;
-      }
-      if (b.branch || b.id === 'cdc') {
+      } else if (b.branch || b.id === 'cdc') {
         curY = Math.max(curY, isHabitatProfile ? tierY + 310 : curY + 10) + 150;
+      } else {
+        const boxCards = b.cards ?? [];
+        const cardH = boxCards.some((c) => !!c.subtitle) ? 52 : 46;
+        const cardsH = boxCards.length * cardH + Math.max(0, boxCards.length - 1) * 12;
+        const boxH = Math.max(90, 38 + cardsH + 16);
+        curY += boxH + 20;
       }
     }
     maxTierBottom = Math.max(maxTierBottom, curY);
@@ -409,7 +464,8 @@ export function layoutPlatform(
       elements.push(
         p.text(item.label, legX + 16, legY, 11.5, colors.primaryText, { weight: 'bold' }),
       );
-      legX += 130;
+      const itemWidth = 16 + item.label.length * 6.8;
+      legX += Math.max(120, itemWidth + 24);
     }
   }
 
@@ -478,7 +534,7 @@ export function layoutPlatform(
     let curItemY = tierY + 24;
 
     // Render simple cards
-    if (simpleCards.length > 0 && boxes.length === 0) {
+    if (simpleCards.length > 0) {
       const cardH = simpleCards.some((c) => !!c.subtitle) ? 54 : 46;
       const gap = 14;
       simpleCards.forEach((card, idx) => {
@@ -511,7 +567,7 @@ export function layoutPlatform(
           elements.push(p.text(card.subtitle, b.x + 38, b.y + 40, 10.5, colors.cardSubtitle));
         }
       });
-      curItemY += simpleCards.length * (cardH + gap);
+      curItemY += simpleCards.length * (cardH + gap) + (boxes.length > 0 ? 10 : 0);
     }
 
     // Render boxes
@@ -640,6 +696,59 @@ export function layoutPlatform(
         } else {
           curItemY = cdcY + cdcH + 20;
         }
+      } else {
+        // Plain container box with stacked cards (e.g. cluster, service group, or custom node box)
+        const boxCards = box.cards ?? [];
+        const cardH = boxCards.some((c) => !!c.subtitle) ? 52 : 46;
+        const gap = 12;
+        const cardsH = boxCards.length * cardH + Math.max(0, boxCards.length - 1) * gap;
+        const boxH = Math.max(90, 38 + cardsH + 16);
+        const boxBounds: Rect = { x: colX, y: curItemY, width: colW, height: boxH };
+        const placedBox = registerPlacedNode(box.id, boxBounds);
+        registerPlacedNode(`${tier.id}.${box.id}`, boxBounds);
+        cardsList.push(placedBox);
+
+        elements.push(p.rect(boxBounds, colors.habitatBg, colors.habitatBorder, 1.5, { rx: 8 }));
+        elements.push(
+          p.text(box.title, colX + colW / 2, curItemY + 22, 12.5, colors.habitatTitle, {
+            weight: 'bold',
+            anchor: 'middle',
+          }),
+        );
+
+        let cardY = curItemY + 38;
+        boxCards.forEach((c) => {
+          const cb: Rect = { x: colX + 16, y: cardY, width: colW - 32, height: cardH };
+          const placed = registerPlacedNode(c.id, cb);
+          registerPlacedNode(`${box.id}.${c.id}`, cb);
+          registerPlacedNode(`${tier.id}.${box.id}.${c.id}`, cb);
+          cardsList.push(placed);
+
+          elements.push(p.rect(cb, colors.cardBg, colors.cardBorder, 1.3, { rx: 6 }));
+          drawIcon(
+            elements,
+            p,
+            c.icon ?? (c.subtitle ? 'database' : 'server'),
+            cb.x + 12,
+            cb.y + (c.subtitle ? 18 : 14),
+            colors.cardIcon,
+          );
+          elements.push(
+            p.text(
+              c.title,
+              cb.x + 38,
+              cb.y + (c.subtitle ? 23 : 26),
+              c.subtitle ? 11.5 : 12.5,
+              colors.cardTitle,
+              { weight: 'bold' },
+            ),
+          );
+          if (c.subtitle) {
+            elements.push(p.text(c.subtitle, cb.x + 38, cb.y + 39, 10, colors.cardSubtitle));
+          }
+          cardY += cardH + gap;
+        });
+        curItemY += boxH + 20;
       }
     }
   }
@@ -672,14 +781,21 @@ export function layoutPlatform(
   for (const bus of doc.buses) {
     const fromNodes = resolveEndpointNodes(bus.from);
     const toNodes = resolveEndpointNodes(bus.to);
-    if (fromNodes.length === 0 || toNodes.length === 0) continue;
+    if (fromNodes.length === 0 || toNodes.length === 0) {
+      const fromStr = Array.isArray(bus.from) ? bus.from.join(', ') : bus.from;
+      const toStr = Array.isArray(bus.to) ? bus.to.join(', ') : bus.to;
+      console.warn(
+        `[triton/platform] Warning: Unmatched bus endpoint in "${fromStr} --> ${toStr}". One or more endpoints could not be resolved and was skipped.`,
+      );
+      continue;
+    }
 
     const anim = bus.animation ?? 'stream';
     const isAnim = anim !== 'none';
     const tokenShape = bus.tokenShape ?? doc.legend?.[2]?.shape ?? 'diamond';
     const tokenColor = bus.tokenColor ?? doc.legend?.[2]?.color ?? '#8b5cf6';
 
-    // Case 1: Downstream branch (source node above horizontally aligned target cards)
+    // Case 1: Downstream branch (source node above target cards)
     const isDownstream =
       fromNodes.length === 1 &&
       toNodes.length > 1 &&
@@ -687,89 +803,138 @@ export function layoutPlatform(
 
     if (isDownstream) {
       const src = fromNodes[0]!;
-      const srcX = src.bottom.x;
-      const bYs = toNodes.map((t) => t.top);
-      const branchRailY = src.bottom.y + 24;
+      const minBX = Math.min(...toNodes.map((t) => t.top.x));
+      const maxBX = Math.max(...toNodes.map((t) => t.top.x));
+      const isHorizSeparated = maxBX - minBX >= 50;
 
-      // Stem from source
-      elements.push(
-        p.path(`M ${srcX} ${src.bottom.y} V ${branchRailY}`, colors.busLine, colors.busLineWidth),
-      );
+      if (isHorizSeparated) {
+        const srcX = src.bottom.x;
+        const bYs = toNodes.map((t) => t.top);
+        const minTgtTopY = Math.min(...toNodes.map((t) => t.top.y));
+        const branchRailY = Math.min(src.bottom.y + 24, minTgtTopY - 10);
 
-      // Horizontal branch rail
-      const minBX = Math.min(...bYs.map((pt) => pt.x));
-      const maxBX = Math.max(...bYs.map((pt) => pt.x));
-      elements.push(
-        p.path(`M ${minBX + 8} ${branchRailY} H ${maxBX - 8}`, colors.busLine, colors.busLineWidth),
-      );
+        // Stem from source
+        elements.push(
+          p.path(`M ${srcX} ${src.bottom.y} V ${branchRailY}`, colors.busLine, colors.busLineWidth),
+        );
 
-      // Drops into each card with rounded bends
-      for (const pt of bYs) {
-        if (pt.x < srcX) {
+        // Horizontal branch rail
+        elements.push(
+          p.path(
+            `M ${minBX + 8} ${branchRailY} H ${maxBX - 8}`,
+            colors.busLine,
+            colors.busLineWidth,
+          ),
+        );
+
+        // Drops into each card with rounded bends
+        for (const pt of bYs) {
+          if (pt.x < srcX) {
+            elements.push(
+              p.path(
+                `M ${pt.x + 8} ${branchRailY} Q ${pt.x} ${branchRailY} ${pt.x} ${branchRailY + 8} V ${pt.y}`,
+                colors.busLine,
+                colors.busLineWidth,
+              ),
+            );
+          } else if (pt.x > srcX) {
+            elements.push(
+              p.path(
+                `M ${pt.x - 8} ${branchRailY} Q ${pt.x} ${branchRailY} ${pt.x} ${branchRailY + 8} V ${pt.y}`,
+                colors.busLine,
+                colors.busLineWidth,
+              ),
+            );
+          } else {
+            elements.push(
+              p.path(`M ${pt.x} ${branchRailY} V ${pt.y}`, colors.busLine, colors.busLineWidth),
+            );
+          }
+          addTokenBead(elements, p, tokenShape, pt.x, branchRailY + 12, tokenColor, colors.isDark);
+        }
+
+        // Token beads along branch rail
+        addTokenBead(
+          elements,
+          p,
+          tokenShape,
+          (minBX + srcX) / 2 - 40,
+          branchRailY,
+          tokenColor,
+          colors.isDark,
+        );
+        addTokenBead(
+          elements,
+          p,
+          tokenShape,
+          (minBX + srcX) / 2 + 30,
+          branchRailY,
+          tokenColor,
+          colors.isDark,
+        );
+        addTokenBead(
+          elements,
+          p,
+          tokenShape,
+          (maxBX + srcX) / 2 - 30,
+          branchRailY,
+          tokenColor,
+          colors.isDark,
+        );
+        addTokenBead(
+          elements,
+          p,
+          tokenShape,
+          (maxBX + srcX) / 2 + 40,
+          branchRailY,
+          tokenColor,
+          colors.isDark,
+        );
+        if (bus.label) {
+          addBusLabel(elements, p, bus.label, srcX, branchRailY - 14, colors, nodeMap);
+        }
+        continue;
+      } else {
+        // Vertically stacked target cards in the same column (Issue #5 fix)
+        // Route down the right column margin rather than cutting through cards
+        const railX = src.right.x + 20;
+        const targetYs = toNodes.map((t) => t.right.y);
+        const minY = Math.min(...targetYs);
+        const maxY = Math.max(...targetYs);
+
+        elements.push(
+          p.path(
+            `M ${src.right.x} ${src.right.y} H ${railX - 8} Q ${railX} ${src.right.y} ${railX} ${src.right.y + 8} V ${maxY - 8}`,
+            colors.busLine,
+            colors.busLineWidth,
+            { ...(isAnim ? { animated: anim } : {}) },
+          ),
+        );
+
+        for (const ty of targetYs) {
           elements.push(
             p.path(
-              `M ${pt.x + 8} ${branchRailY} Q ${pt.x} ${branchRailY} ${pt.x} ${branchRailY + 8} V ${pt.y}`,
+              `M ${railX} ${ty - 8} Q ${railX} ${ty} ${railX - 8} ${ty} H ${src.right.x}`,
               colors.busLine,
               colors.busLineWidth,
             ),
           );
-        } else if (pt.x > srcX) {
-          elements.push(
-            p.path(
-              `M ${pt.x - 8} ${branchRailY} Q ${pt.x} ${branchRailY} ${pt.x} ${branchRailY + 8} V ${pt.y}`,
-              colors.busLine,
-              colors.busLineWidth,
-            ),
-          );
-        } else {
-          elements.push(
-            p.path(`M ${pt.x} ${branchRailY} V ${pt.y}`, colors.busLine, colors.busLineWidth),
+          addTokenBead(elements, p, tokenShape, railX, ty, tokenColor, colors.isDark);
+        }
+
+        if (bus.label) {
+          addBusLabel(
+            elements,
+            p,
+            bus.label,
+            railX + 30,
+            (src.right.y + minY) / 2,
+            colors,
+            nodeMap,
           );
         }
-        addTokenBead(elements, p, tokenShape, pt.x, branchRailY + 12, tokenColor, colors.isDark);
+        continue;
       }
-
-      // Token beads along branch rail
-      addTokenBead(
-        elements,
-        p,
-        tokenShape,
-        (minBX + srcX) / 2 - 40,
-        branchRailY,
-        tokenColor,
-        colors.isDark,
-      );
-      addTokenBead(
-        elements,
-        p,
-        tokenShape,
-        (minBX + srcX) / 2 + 30,
-        branchRailY,
-        tokenColor,
-        colors.isDark,
-      );
-      addTokenBead(
-        elements,
-        p,
-        tokenShape,
-        (maxBX + srcX) / 2 - 30,
-        branchRailY,
-        tokenColor,
-        colors.isDark,
-      );
-      addTokenBead(
-        elements,
-        p,
-        tokenShape,
-        (maxBX + srcX) / 2 + 40,
-        branchRailY,
-        tokenColor,
-        colors.isDark,
-      );
-      if (bus.label) {
-        addBusLabel(elements, p, bus.label, srcX, branchRailY - 14, colors);
-      }
-      continue;
     }
 
     // Case 2: Vertical Pipeline (Single source directly above single target)
@@ -790,9 +955,165 @@ export function layoutPlatform(
       );
       addTokenBead(elements, p, tokenShape, cdcX, (connY1 + connY2) / 2, tokenColor, colors.isDark);
       if (bus.label) {
-        addBusLabel(elements, p, bus.label, cdcX, (connY1 + connY2) / 2, colors);
+        addBusLabel(elements, p, bus.label, cdcX, (connY1 + connY2) / 2, colors, nodeMap);
       }
       continue;
+    }
+
+    // Case 2b: Multi-to-Multi Dual-Rail Bus (Multiple sources on left to multiple targets on right)
+    const isMultiToMulti = fromNodes.length > 1 && toNodes.length > 1;
+
+    if (isMultiToMulti) {
+      const maxSrcX = Math.max(...fromNodes.map((s) => s.right.x));
+      const minTgtX = Math.min(...toNodes.map((t) => t.left.x));
+
+      if (minTgtX > maxSrcX) {
+        const gutterW = minTgtX - maxSrcX;
+        const railGatherX = maxSrcX + gutterW * 0.35;
+        const railDistributeX = minTgtX - gutterW * 0.35;
+
+        const sourceYs = fromNodes.map((s) => s.right.y);
+        const targetYs = toNodes.map((t) => t.left.y);
+        const minSrcY = Math.min(...sourceYs);
+        const maxSrcY = Math.max(...sourceYs);
+        const minTgtY = Math.min(...targetYs);
+        const maxTgtY = Math.max(...targetYs);
+
+        const bridgeY = (minSrcY + maxSrcY + minTgtY + maxTgtY) / 4;
+
+        // 1. Gathering stubs from sources into railGatherX
+        for (const cy of sourceYs) {
+          if (cy < bridgeY) {
+            elements.push(
+              p.path(
+                `M ${maxSrcX} ${cy} H ${railGatherX - 8} Q ${railGatherX} ${cy} ${railGatherX} ${cy + 8}`,
+                colors.busLine,
+                colors.busLineWidth,
+              ),
+            );
+          } else if (cy > bridgeY) {
+            elements.push(
+              p.path(
+                `M ${maxSrcX} ${cy} H ${railGatherX - 8} Q ${railGatherX} ${cy} ${railGatherX} ${cy - 8}`,
+                colors.busLine,
+                colors.busLineWidth,
+              ),
+            );
+          } else {
+            elements.push(
+              p.path(`M ${maxSrcX} ${cy} H ${railGatherX}`, colors.busLine, colors.busLineWidth),
+            );
+          }
+        }
+
+        // 2. Gathering vertical trunk
+        elements.push(
+          p.path(
+            `M ${railGatherX} ${Math.min(minSrcY, bridgeY) + 8} V ${Math.max(maxSrcY, bridgeY) - 8}`,
+            colors.busLine,
+            colors.busLineWidth,
+          ),
+        );
+
+        // 3. Central horizontal bridging bus
+        elements.push(
+          p.path(
+            `M ${railGatherX} ${bridgeY} L ${railDistributeX} ${bridgeY}`,
+            colors.busLine,
+            colors.busLineWidth,
+            { ...(isAnim ? { animated: anim } : {}) },
+          ),
+        );
+
+        // 4. Distribution vertical trunk
+        elements.push(
+          p.path(
+            `M ${railDistributeX} ${Math.min(minTgtY, bridgeY) + 8} V ${Math.max(maxTgtY, bridgeY) - 8}`,
+            colors.busLine,
+            colors.busLineWidth,
+          ),
+        );
+
+        // 5. Distribution stubs into targets
+        for (const sy of targetYs) {
+          if (sy < bridgeY) {
+            elements.push(
+              p.path(
+                `M ${railDistributeX} ${sy + 8} Q ${railDistributeX} ${sy} ${railDistributeX + 8} ${sy} H ${minTgtX}`,
+                colors.busLine,
+                colors.busLineWidth,
+              ),
+            );
+          } else if (sy > bridgeY) {
+            elements.push(
+              p.path(
+                `M ${railDistributeX} ${sy - 8} Q ${railDistributeX} ${sy} ${railDistributeX + 8} ${sy} H ${minTgtX}`,
+                colors.busLine,
+                colors.busLineWidth,
+              ),
+            );
+          } else {
+            elements.push(
+              p.path(
+                `M ${railDistributeX} ${sy} H ${minTgtX}`,
+                colors.busLine,
+                colors.busLineWidth,
+              ),
+            );
+          }
+        }
+
+        // Beads on gathering stubs & bridge
+        const b1 = doc.legend?.[0] ?? { shape: 'square' as const, color: '#3b82f6' };
+        const b2 = doc.legend?.[1] ?? { shape: 'circle' as const, color: '#10b981' };
+        sourceYs.forEach((sy, i) => {
+          const item = i % 2 === 0 ? b1 : b2;
+          addTokenBead(elements, p, item.shape, railGatherX - 25, sy, item.color, colors.isDark);
+        });
+
+        // Beads on bridge
+        addTokenBead(
+          elements,
+          p,
+          tokenShape,
+          (railGatherX + railDistributeX) / 2,
+          bridgeY,
+          tokenColor,
+          colors.isDark,
+        );
+
+        targetYs.forEach((ty, i) => {
+          const item = i % 2 === 0 ? b2 : b1;
+          addTokenBead(
+            elements,
+            p,
+            item.shape,
+            railDistributeX + 25,
+            ty,
+            item.color,
+            colors.isDark,
+          );
+        });
+
+        // Bus label on the bridge
+        if (bus.label) {
+          addBusLabel(
+            elements,
+            p,
+            bus.label,
+            (railGatherX + railDistributeX) / 2,
+            bridgeY - 14,
+            colors,
+            nodeMap,
+          );
+        }
+        continue;
+      } else {
+        console.warn(
+          `[triton/platform] Warning: Bus "${Array.isArray(bus.from) ? bus.from.join(', ') : bus.from} --> ${Array.isArray(bus.to) ? bus.to.join(', ') : bus.to}" (${fromNodes.length} -> ${toNodes.length} nodes) has unsupported multi-to-many geometry and was skipped.`,
+        );
+        continue;
+      }
     }
 
     // Case 3: Horizontal Fan-In (Multiple sources on left converging into single target on right)
@@ -806,7 +1127,11 @@ export function layoutPlatform(
       const targetX = tgt.left.x;
       const targetY = tgt.left.y;
       const maxSrcX = Math.max(...fromNodes.map((s) => s.right.x));
-      const railX = isHabitatProfile ? 295 : maxSrcX + (targetX - maxSrcX) * 0.45;
+      const railX = isHabitatProfile
+        ? 295
+        : bus.label
+          ? maxSrcX + 35
+          : maxSrcX + (targetX - maxSrcX) * 0.45;
 
       const sourceYs = fromNodes.map((c) => c.right.y);
       const minY = Math.min(...sourceYs);
@@ -863,7 +1188,7 @@ export function layoutPlatform(
       addTokenBead(elements, p, b2.shape, railX + 54, targetY, b2.color, colors.isDark);
 
       if (bus.label) {
-        addBusLabel(elements, p, bus.label, (railX + targetX) / 2, targetY, colors);
+        addBusLabel(elements, p, bus.label, (railX + targetX) / 2, targetY - 14, colors, nodeMap);
       }
       continue;
     }
@@ -879,7 +1204,11 @@ export function layoutPlatform(
       const exitX = src.right.x;
       const startY = src.right.y;
       const minTgtX = Math.min(...toNodes.map((t) => t.left.x));
-      const railX = isHabitatProfile ? 1060 : exitX + (minTgtX - exitX) * 0.5;
+      const railX = isHabitatProfile
+        ? 1060
+        : bus.label
+          ? minTgtX - 35
+          : exitX + (minTgtX - exitX) * 0.5;
 
       // Main trunk
       const egressPath = `M ${exitX} ${startY} L ${railX} ${startY}`;
@@ -936,7 +1265,7 @@ export function layoutPlatform(
         addTokenBead(elements, p, b1.shape, railX + 18, targetYs[2]!, b1.color, colors.isDark);
 
       if (bus.label) {
-        addBusLabel(elements, p, bus.label, (exitX + railX) / 2, startY, colors);
+        addBusLabel(elements, p, bus.label, (exitX + railX) / 2, startY - 14, colors, nodeMap);
       }
       continue;
     }
@@ -946,6 +1275,72 @@ export function layoutPlatform(
       const src = fromNodes[0]!;
       const tgt = toNodes[0]!;
       if (tgt.left.x > src.right.x) {
+        // Detect intervening cards (nodes in intervening tiers)
+        const intervening = Array.from(nodeMap.values()).filter(
+          (n) =>
+            n.id !== src.id &&
+            n.id !== tgt.id &&
+            n.bounds.x > src.right.x + 10 &&
+            n.bounds.x + n.bounds.width < tgt.left.x - 10,
+        );
+
+        const midX = (src.right.x + tgt.left.x) / 2;
+        const straightY = src.right.y;
+
+        const hasCollision = intervening.some(
+          (n) =>
+            (straightY >= n.bounds.y - 8 &&
+              straightY <= n.bounds.y + n.bounds.height + 8 &&
+              n.bounds.x < tgt.left.x &&
+              n.bounds.x + n.bounds.width > src.right.x) ||
+            (midX >= n.bounds.x - 8 &&
+              midX <= n.bounds.x + n.bounds.width + 8 &&
+              Math.max(src.right.y, tgt.left.y) >= n.bounds.y - 8 &&
+              Math.min(src.right.y, tgt.left.y) <= n.bounds.y + n.bounds.height + 8),
+        );
+
+        if (hasCollision && intervening.length > 0) {
+          // Obstacle-aware bypass routing (Issue #2 fix)
+          const maxInterveningBottom = Math.max(
+            ...intervening.map((n) => n.bounds.y + n.bounds.height),
+          );
+          const minInterveningTop = Math.min(...intervening.map((n) => n.bounds.y));
+
+          const useTop =
+            (src.right.y + tgt.left.y) / 2 <= (minInterveningTop + maxInterveningBottom) / 2;
+          const bypassY = useTop
+            ? Math.max(140, minInterveningTop - 24)
+            : Math.min(canvasH - 40, maxInterveningBottom + 24);
+
+          const g1X = src.right.x + 20;
+          const g2X = tgt.left.x - 20;
+          const sign1 = bypassY > src.right.y ? 1 : -1;
+          const sign2 = tgt.left.y > bypassY ? 1 : -1;
+
+          elements.push(
+            p.path(
+              `M ${src.right.x} ${src.right.y} H ${g1X - 8} Q ${g1X} ${src.right.y} ${g1X} ${src.right.y + sign1 * 8} V ${bypassY - sign1 * 8} Q ${g1X} ${bypassY} ${g1X + 8} ${bypassY} H ${g2X - 8} Q ${g2X} ${bypassY} ${g2X} ${bypassY + sign2 * 8} V ${tgt.left.y - sign2 * 8} Q ${g2X} ${tgt.left.y} ${g2X + 8} ${tgt.left.y} H ${tgt.left.x}`,
+              colors.busLine,
+              colors.busLineWidth,
+              { ...(isAnim ? { animated: anim } : {}) },
+            ),
+          );
+
+          addTokenBead(
+            elements,
+            p,
+            tokenShape,
+            (g1X + g2X) / 2,
+            bypassY,
+            tokenColor,
+            colors.isDark,
+          );
+          if (bus.label) {
+            addBusLabel(elements, p, bus.label, (g1X + g2X) / 2, bypassY - 14, colors, nodeMap);
+          }
+          continue;
+        }
+
         if (Math.abs(tgt.left.y - src.right.y) < 4) {
           elements.push(
             p.path(
@@ -956,7 +1351,6 @@ export function layoutPlatform(
             ),
           );
         } else {
-          const midX = (src.right.x + tgt.left.x) / 2;
           const dy = tgt.left.y - src.right.y;
           const sign = dy > 0 ? 1 : -1;
           elements.push(
@@ -983,8 +1377,9 @@ export function layoutPlatform(
             p,
             bus.label,
             (src.right.x + tgt.left.x) / 2,
-            (src.right.y + tgt.left.y) / 2,
+            (src.right.y + tgt.left.y) / 2 - 14,
             colors,
+            nodeMap,
           );
         }
       }
@@ -1010,13 +1405,42 @@ function addBusLabel(
   x: number,
   y: number,
   colors: ReturnType<typeof resolvePlatformColors>,
+  nodeMap?: Map<string, PlacedNode>,
 ) {
   const padH = 8;
-  const charWidth = 6.2;
+  const charWidth = 6.4;
   const badgeW = Math.max(36, text.length * charWidth + padH * 2);
   const badgeH = 18;
-  const rx = x - badgeW / 2;
-  const ry = y - badgeH / 2;
+
+  let safeX = x;
+  let safeY = y;
+
+  if (nodeMap) {
+    for (const node of nodeMap.values()) {
+      // Ignore large enclosing boxes (cards have width <= 220 and height <= 85)
+      if (node.bounds.width > 220 || node.bounds.height > 85) continue;
+      const b = node.bounds;
+      const rx = safeX - badgeW / 2;
+      const ry = safeY - badgeH / 2;
+      // Check AABB overlap with card
+      if (
+        rx < b.x + b.width + 4 &&
+        rx + badgeW > b.x - 4 &&
+        ry < b.y + b.height + 4 &&
+        ry + badgeH > b.y - 4
+      ) {
+        // Shift safeY outside card bounds vertically
+        if (safeY <= b.y + b.height / 2) {
+          safeY = b.y - badgeH / 2 - 4;
+        } else {
+          safeY = b.y + b.height + badgeH / 2 + 4;
+        }
+      }
+    }
+  }
+
+  const rx = safeX - badgeW / 2;
+  const ry = safeY - badgeH / 2;
 
   elements.push(
     p.rect({ x: rx, y: ry, width: badgeW, height: badgeH }, colors.cardBg, colors.cardBorder, 1.2, {
@@ -1024,7 +1448,7 @@ function addBusLabel(
     }),
   );
   elements.push(
-    p.text(text, x, y + 3.5, 9.5, colors.cardTitle, {
+    p.text(text, safeX, safeY + 3.5, 9.5, colors.cardTitle, {
       weight: 'bold',
       anchor: 'middle',
     }),

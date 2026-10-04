@@ -1,0 +1,33 @@
+platform "Ultra-Low Latency Matching Engine"
+  figure "FIGURE 03 · EQUITIES & DERIVATIVES CORE"
+  desc "Deterministic in-memory matching engine decoupled from market gateways via shared memory ring buffers and binary protocol decoders."
+
+  legend
+    square order "Order Ingress" #3b82f6
+    circle fill "Trade Execution" #10b981
+    diamond dropcopy "Drop Copy / Clearing" #8b5cf6
+  end
+
+  tier gateways "MARKET GATEWAYS"
+    card fix "FIX 4.4 Ingress" [Institutional Order Feed] @icon:server
+    card ws "Market Data Feed" [Binary WebSocket] @icon:lightning
+    card dma "Direct Market Access" [Sub-microsecond FPGA] @icon:api
+    card dropcopy "Drop Copy Gateway" [Execution Reports] @icon:shield
+  end
+
+  tier matching "MATCHING ENGINE CORE"
+    box engine "Deterministic Matching Core" [In-Memory Order Routing]
+      grid 3
+        card book "Limit Order Book" [Price-Time Priority]
+        card risk "Pre-Trade Risk" [Position Limits]
+        card sequencer "Aeron Sequencer" [Deterministic Ordering]
+        card cross "Crossing Network" [Dark Liquidity Pool]
+        card pnl "Margin Evaluator" [Portfolio VaR]
+        card audit "Chronicle Queue" [Microsecond Audit]
+      end
+      card clearing "Clearing & Settlement Link" [Post-Trade Allocation]
+    end
+  end
+
+  bus gateways -->|"TCP / SBE Binary Protocol"| engine.clearing @anim:stream
+  bus engine.clearing -->|"Shared Memory IPC"| dropcopy @anim:particle
