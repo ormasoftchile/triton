@@ -16,6 +16,7 @@ import type {
 } from './ir.js';
 import { pen } from '../../../scene/build.js';
 import { isDarkTheme } from '../../../theme/contrast.js';
+import { defaultTheme } from '../../../theme/preset.js';
 
 interface PlacedNode {
   readonly id: string;
@@ -215,7 +216,10 @@ function resolvePlatformColors(theme: ResolvedTheme): PlatformColors {
   };
 }
 
-export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): LayoutResult {
+export function layoutPlatform(
+  doc: PlatformDocument,
+  theme: ResolvedTheme = defaultTheme,
+): LayoutResult {
   const p = pen(theme);
   const colors = resolvePlatformColors(theme);
   const elements: SceneElement[] = [];
@@ -273,7 +277,38 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
   }
 
   const canvasW = isHabitatProfile ? 1380 : Math.max(1200, curColX - 60);
-  const canvasH = 780;
+
+  // Compute dynamic canvas height based on contents
+  const tierY = 175;
+  let maxTierBottom = 720;
+  for (const t of doc.tiers) {
+    const boxes = t.items.filter(
+      (it): it is PlatformBox => 'grid' in it || 'branch' in it || 'cards' in it,
+    );
+    const simpleCards = t.items.filter(
+      (it): it is PlatformCard => !('grid' in it) && !('branch' in it) && !('cards' in it),
+    );
+    let curY = tierY + 24;
+    if (simpleCards.length > 0 && boxes.length === 0) {
+      const cardH = simpleCards.some((c) => !!c.subtitle) ? 54 : 46;
+      curY += simpleCards.length * (cardH + 14);
+    }
+    for (const b of boxes) {
+      if (b.grid) {
+        const cols = b.grid.columns || 3;
+        const rows = Math.ceil(b.grid.cards.length / cols);
+        const gridH = rows > 0 ? rows * 56 + (rows - 1) * 10 : 0;
+        const routing = (b.cards ?? []).find((c) => c.id === 'routing') ?? b.cards?.[0];
+        const boxH = Math.max(160, 36 + gridH + (routing ? 70 : 0) + 16);
+        curY += boxH + 20;
+      }
+      if (b.branch || b.id === 'cdc') {
+        curY = Math.max(curY, isHabitatProfile ? tierY + 310 : curY + 10) + 150;
+      }
+    }
+    maxTierBottom = Math.max(maxTierBottom, curY);
+  }
+  const canvasH = isHabitatProfile ? 780 : Math.max(780, maxTierBottom + 60);
 
   // Background with dot pattern
   if (theme.palette.background !== '') {
@@ -405,7 +440,6 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
   }
 
   // ─── Tiers & Node Placement ─────────────────────────────────────────────────
-  const tierY = 175;
   const tierCardMap = new Map<string, PlacedNode[]>();
 
   interface TierLayoutInfo {
@@ -483,7 +517,23 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
     // Render boxes
     for (const box of boxes) {
       if (box.grid) {
-        const boxH = 250;
+        const gridCols = box.grid.columns || 3;
+        const colGap = 12;
+        const rowGap = 10;
+        const cellW = (colW - 32 - (gridCols - 1) * colGap) / gridCols;
+        const cellH = 56;
+        const gridStartX = colX + 16;
+        const gridStartY = curItemY + 36;
+        const gridRows = Math.ceil(box.grid.cards.length / gridCols);
+        const gridHeight = gridRows > 0 ? gridRows * cellH + (gridRows - 1) * rowGap : 0;
+
+        const routingCard = (box.cards ?? []).find((c) => c.id === 'routing') ?? box.cards?.[0];
+        const rH = routingCard ? 54 : 0;
+        const routingGap = routingCard ? 16 : 0;
+        const boxH =
+          isHabitatProfile && gridRows <= 2
+            ? 250
+            : Math.max(160, 36 + gridHeight + (routingCard ? routingGap + rH : 0) + 16);
         const boxBounds: Rect = { x: colX, y: curItemY, width: colW, height: boxH };
         registerPlacedNode(box.id, boxBounds);
         registerPlacedNode(`${tier.id}.${box.id}`, boxBounds);
@@ -498,14 +548,6 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
         );
 
         // Capability Grid
-        const gridCols = box.grid.columns || 3;
-        const colGap = 12;
-        const rowGap = 10;
-        const cellW = (colW - 32 - (gridCols - 1) * colGap) / gridCols;
-        const cellH = 56;
-        const gridStartX = colX + 16;
-        const gridStartY = curItemY + 36;
-
         box.grid.cards.forEach((card, idx) => {
           const col = idx % gridCols;
           const row = Math.floor(idx / gridCols);
@@ -527,7 +569,6 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
         });
 
         // Spanning Routing Bar at bottom
-        const routingCard = (box.cards ?? []).find((c) => c.id === 'routing') ?? box.cards?.[0];
         if (routingCard) {
           const rW = colW - 32;
           const rH = 54;
@@ -556,7 +597,7 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
         const cdcW = Math.min(230, colW);
         const cdcH = 50;
         const cdcX = colX + (colW - cdcW) / 2;
-        const cdcY = Math.max(curItemY, tierY + 310);
+        const cdcY = isHabitatProfile ? Math.max(curItemY, tierY + 310) : curItemY + 10;
         const cdcBounds: Rect = { x: cdcX, y: cdcY, width: cdcW, height: cdcH };
         const placedBox = registerPlacedNode(box.id, cdcBounds);
         registerPlacedNode(`${tier.id}.${box.id}`, cdcBounds);
@@ -725,6 +766,9 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
         tokenColor,
         colors.isDark,
       );
+      if (bus.label) {
+        addBusLabel(elements, p, bus.label, srcX, branchRailY - 14, colors);
+      }
       continue;
     }
 
@@ -745,6 +789,9 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
         }),
       );
       addTokenBead(elements, p, tokenShape, cdcX, (connY1 + connY2) / 2, tokenColor, colors.isDark);
+      if (bus.label) {
+        addBusLabel(elements, p, bus.label, cdcX, (connY1 + connY2) / 2, colors);
+      }
       continue;
     }
 
@@ -814,6 +861,10 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
       addTokenBead(elements, p, b1.shape, railX + 22, targetY, b1.color, colors.isDark);
       addTokenBead(elements, p, b2.shape, railX + 42, targetY, b2.color, colors.isDark);
       addTokenBead(elements, p, b2.shape, railX + 54, targetY, b2.color, colors.isDark);
+
+      if (bus.label) {
+        addBusLabel(elements, p, bus.label, (railX + targetX) / 2, targetY, colors);
+      }
       continue;
     }
 
@@ -883,6 +934,10 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
         addTokenBead(elements, p, b2.shape, railX + 18, targetYs[1]!, b2.color, colors.isDark);
       if (targetYs[2] !== undefined)
         addTokenBead(elements, p, b1.shape, railX + 18, targetYs[2]!, b1.color, colors.isDark);
+
+      if (bus.label) {
+        addBusLabel(elements, p, bus.label, (exitX + railX) / 2, startY, colors);
+      }
       continue;
     }
 
@@ -922,6 +977,16 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
           tokenColor,
           colors.isDark,
         );
+        if (bus.label) {
+          addBusLabel(
+            elements,
+            p,
+            bus.label,
+            (src.right.x + tgt.left.x) / 2,
+            (src.right.y + tgt.left.y) / 2,
+            colors,
+          );
+        }
       }
     }
   }
@@ -937,6 +1002,34 @@ export function layoutPlatform(doc: PlatformDocument, theme: ResolvedTheme): Lay
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function addBusLabel(
+  elements: SceneElement[],
+  p: ReturnType<typeof pen>,
+  text: string,
+  x: number,
+  y: number,
+  colors: ReturnType<typeof resolvePlatformColors>,
+) {
+  const padH = 8;
+  const charWidth = 6.2;
+  const badgeW = Math.max(36, text.length * charWidth + padH * 2);
+  const badgeH = 18;
+  const rx = x - badgeW / 2;
+  const ry = y - badgeH / 2;
+
+  elements.push(
+    p.rect({ x: rx, y: ry, width: badgeW, height: badgeH }, colors.cardBg, colors.cardBorder, 1.2, {
+      rx: 4,
+    }),
+  );
+  elements.push(
+    p.text(text, x, y + 3.5, 9.5, colors.cardTitle, {
+      weight: 'bold',
+      anchor: 'middle',
+    }),
+  );
+}
 
 function addTokenBead(
   elements: SceneElement[],
