@@ -71,6 +71,13 @@ export function parsePlatform(input: string): PlatformDocument {
   let title = typeof metadata.title === 'string' ? metadata.title : undefined;
   let figure: string | undefined;
   let desc: string | undefined;
+  let direction: 'LR' | 'TB' | undefined =
+    typeof metadata.direction === 'string' &&
+    (metadata.direction.toUpperCase() === 'TB' || metadata.direction.toUpperCase() === 'BT')
+      ? 'TB'
+      : typeof metadata.direction === 'string'
+        ? 'LR'
+        : undefined;
   const legend: PlatformLegendItem[] = [];
   const tiers: PlatformTier[] = [];
   const buses: PlatformBus[] = [];
@@ -168,6 +175,13 @@ export function parsePlatform(input: string): PlatformDocument {
         continue;
       }
 
+      const dirMatch = trimmed.match(/^direction\s+(LR|TB|RL|BT)\b/i);
+      if (dirMatch) {
+        const d = dirMatch[1]!.toUpperCase();
+        direction = d === 'TB' || d === 'BT' ? 'TB' : 'LR';
+        continue;
+      }
+
       // Tier: tier id "Title"
       const tierMatch = trimmed.match(/^tier\s+([\w-]+)\s+(.+)$/i);
       if (tierMatch) {
@@ -178,10 +192,15 @@ export function parsePlatform(input: string): PlatformDocument {
         continue;
       }
 
-      // Bus declaration: bus from --> to1, to2 [@anim:stream] [@shape:diamond]
-      const busMatch = trimmed.match(/^bus\s+([\w.-]+)\s*(-->|==>|->)\s*(.+)$/i);
+      // Bus declaration: bus from1, from2 --> to1, to2 [@anim:stream] [@shape:diamond]
+      const busMatch = trimmed.match(/^bus\s+([\w., -]+?)\s*(-->|==>|->)\s*(.+)$/i);
       if (busMatch) {
-        const from = busMatch[1]!.trim();
+        const fromRaw = busMatch[1]!.trim();
+        const fromList = fromRaw
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const from = fromList.length === 1 ? fromList[0]! : fromList;
         let rest = busMatch[3]!.trim();
 
         let animation: PlatformBus['animation'];
@@ -335,6 +354,7 @@ export function parsePlatform(input: string): PlatformDocument {
     ...(figure ? { figure } : {}),
     ...(title ? { title } : {}),
     ...(desc ? { desc } : {}),
+    ...(direction ? { direction } : {}),
     ...(legend.length > 0 ? { legend } : {}),
     tiers,
     buses,

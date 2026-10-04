@@ -43,7 +43,7 @@ export interface PlatformLegendItem {
 }
 
 export interface PlatformBus {
-  readonly from: string;
+  readonly from: string | readonly string[];
   readonly to: readonly string[];
   readonly label?: string;
   readonly animation?: 'stream' | 'particle' | 'march' | 'flow' | 'none';
@@ -55,6 +55,7 @@ export interface PlatformDocument extends BaseIR {
   readonly figure?: string;
   readonly title?: string;
   readonly desc?: string;
+  readonly direction?: 'LR' | 'TB';
   readonly legend?: readonly PlatformLegendItem[];
   readonly tiers: readonly PlatformTier[];
   readonly buses: readonly PlatformBus[];

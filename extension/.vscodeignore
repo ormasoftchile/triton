@@ -3,6 +3,8 @@
 !dist/*.wasm
 !dist/fonts/**
 !resources/**
+!snippets/**
+!language-configuration.json
 !package.json
 !README.md
 !CHANGELOG.md
