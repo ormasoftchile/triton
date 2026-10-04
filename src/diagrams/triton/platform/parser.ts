@@ -193,15 +193,36 @@ export function parsePlatform(input: string): PlatformDocument {
       }
 
       // Bus declaration: bus from1, from2 --> to1, to2 [@anim:stream] [@shape:diamond]
-      const busMatch = trimmed.match(/^bus\s+([\w., -]+?)\s*(-->|==>|->)\s*(.+)$/i);
-      if (busMatch) {
-        const fromRaw = busMatch[1]!.trim();
-        const fromList = fromRaw
+      // Also supports: bus from -->|label| to, bus from -- label --> to, bus from --> to "label"
+      let busFromRaw: string | undefined;
+      let busRest: string | undefined;
+      let busLabel: string | undefined;
+
+      const inlineMatch = trimmed.match(/^bus\s+([\w., -]+?)\s*--\s*([^->]+?)\s*-->\s*(.+)$/i);
+      if (inlineMatch) {
+        busFromRaw = inlineMatch[1]!.trim();
+        busLabel = stripQuotes(inlineMatch[2]!.trim());
+        busRest = inlineMatch[3]!.trim();
+      } else {
+        const busMatch = trimmed.match(/^bus\s+([\w., -]+?)\s*(-->|==>|->)\s*(.+)$/i);
+        if (busMatch) {
+          busFromRaw = busMatch[1]!.trim();
+          busRest = busMatch[3]!.trim();
+          const pipeMatch = busRest.match(/^\|([^|]+)\|\s*(.+)$/);
+          if (pipeMatch) {
+            busLabel = stripQuotes(pipeMatch[1]!.trim());
+            busRest = pipeMatch[2]!.trim();
+          }
+        }
+      }
+
+      if (busFromRaw && busRest) {
+        const fromList = busFromRaw
           .split(',')
           .map((s) => s.trim())
           .filter(Boolean);
         const from = fromList.length === 1 ? fromList[0]! : fromList;
-        let rest = busMatch[3]!.trim();
+        let rest = busRest;
 
         let animation: PlatformBus['animation'];
         const animMatch = rest.match(/@anim:(\w+)/i);
@@ -224,6 +245,14 @@ export function parsePlatform(input: string): PlatformDocument {
           rest = rest.replace(/@color:[#\w]+/i, '').trim();
         }
 
+        if (!busLabel) {
+          const quotedEnd = rest.match(/^(.*?)\s*["']([^"']+)["']\s*$/);
+          if (quotedEnd && !quotedEnd[1]!.includes(',')) {
+            busLabel = quotedEnd[2]!.trim();
+            rest = quotedEnd[1]!.trim();
+          }
+        }
+
         const toList = rest
           .split(',')
           .map((s) => s.trim())
@@ -232,6 +261,7 @@ export function parsePlatform(input: string): PlatformDocument {
         buses.push({
           from,
           to: toList,
+          ...(busLabel ? { label: busLabel } : {}),
           ...(animation ? { animation } : {}),
           ...(tokenShape ? { tokenShape } : {}),
           ...(tokenColor ? { tokenColor } : {}),

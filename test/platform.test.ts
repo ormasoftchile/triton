@@ -173,4 +173,64 @@ platform "Data Ingestion Pipeline"
     expect(res.value).toContain('STREAM PROCESSING');
     expect(res.value).toContain('LAKEHOUSE');
   });
+
+  it('parses and renders protocol labels on buses', () => {
+    const labeled = `
+platform "Service Mesh"
+  tier edge "CLIENTS"
+    card app "Mobile App"
+  end
+
+  tier mesh "SERVICES"
+    card gw "API Gateway"
+    card srv "User Service"
+  end
+
+  bus app -->|"HTTPS / TLS 1.3"| gw @anim:stream
+  bus gw -->|"gRPC / Protobuf"| srv
+`;
+    const doc = parsePlatform(labeled);
+    expect(doc.buses).toHaveLength(2);
+    expect(doc.buses[0]!.label).toBe('HTTPS / TLS 1.3');
+    expect(doc.buses[1]!.label).toBe('gRPC / Protobuf');
+
+    const res = renderSync(labeled);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value).toContain('HTTPS / TLS 1.3');
+    expect(res.value).toContain('gRPC / Protobuf');
+  });
+
+  it('dynamically computes box height and expands canvas for 3-row capability grids', () => {
+    const bigGrid = `
+platform "Enterprise Gateway"
+  tier core "CORE PLATFORM"
+    box engine "Platform Engine"
+      grid 3
+        card c1 "Auth"
+        card c2 "Rate Limit"
+        card c3 "Cache"
+        card c4 "Metrics"
+        card c5 "Tracing"
+        card c6 "Audit"
+        card c7 "Encryption"
+        card c8 "Validation"
+        card c9 "Routing"
+      end
+      card egress "Egress Router" [Cross-region]
+    end
+  end
+`;
+    const doc = parsePlatform(bigGrid);
+    expect(doc.tiers[0]!.items[0]).toBeDefined();
+
+    const { scene } = layoutPlatform(doc);
+    expect(scene.viewBox.height).toBeGreaterThanOrEqual(780);
+    const engineBox = scene.elements.find(
+      (el) => el.type === 'rect' && el.bounds && el.bounds.width === 660,
+    );
+    expect(engineBox).toBeDefined();
+    // 3 rows = 3 * 56 + 2 * 10 = 188px grid height + header + routing bar (54) + padding > 300px
+    expect(engineBox!.bounds.height).toBeGreaterThan(290);
+  });
 });
