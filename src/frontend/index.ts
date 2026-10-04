@@ -74,7 +74,13 @@ import { tree234 } from '../diagrams/triton/ds/tree/tree234.js';
 import { fishbone } from '../diagrams/triton/fishbone/index.js';
 import { pyramid } from '../diagrams/triton/pyramid/index.js';
 import { loop } from '../diagrams/triton/loop/index.js';
-import { platform } from '../diagrams/triton/platform/index.js';
+import {
+  platform,
+  parsePlatform,
+  lintPlatform,
+  type PlatformDiagnostic,
+} from '../diagrams/triton/platform/index.js';
+import type { PlatformDocument } from '../diagrams/triton/platform/ir.js';
 import { svgRenderer, embedAnchorManifest } from '../render/svg.js';
 import { registerRouter } from '../routing/registry.js';
 import {
@@ -366,3 +372,66 @@ export async function render(
 export { validateThemeInput, isBuiltinThemeName } from '../theme/validate.js';
 export { getThemePreset, themePresetNames, THEMES } from '../theme/preset.js';
 export { resolveTheme } from '../theme/resolver.js';
+export { lintPlatform, type PlatformDiagnostic } from '../diagrams/triton/platform/lint.js';
+
+export interface DiagramDiagnostic {
+  readonly rule: string;
+  readonly severity: 'error' | 'warning';
+  readonly message: string;
+  readonly nodeOrBusId?: string;
+}
+
+/**
+ * Lint a Triton diagram source text for semantic anomalies, syntax errors,
+ * unmatched endpoints, dangling nodes, or layout collisions.
+ */
+export function lintDiagram(
+  input: string,
+  themeInput?: ThemeInput,
+  forcedThemeName?: string,
+  icons?: IconPackMap,
+): DiagramDiagnostic[] {
+  const cleaned = stripComments(input);
+  const { metadata: fmMeta, body: fmBody } = extractFrontmatter(cleaned);
+  const { diagramType } = detect(cleaned);
+
+  if (diagramType === 'platform') {
+    try {
+      let doc: PlatformDocument;
+      try {
+        doc = parsePlatform(cleaned);
+      } catch (err1) {
+        if (Object.keys(fmMeta).length > 0) {
+          doc = parsePlatform(fmBody);
+        } else {
+          throw err1;
+        }
+      }
+      const compileRes = compileSync(input, themeInput, forcedThemeName, icons);
+      const layoutResult = compileRes.ok ? compileRes.value : undefined;
+      return lintPlatform(doc, layoutResult);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      return [
+        {
+          rule: 'syntax-error',
+          severity: 'error',
+          message,
+        },
+      ];
+    }
+  }
+
+  // General compilation fallback for all diagram types
+  const compileRes = compileSync(input, themeInput, forcedThemeName, icons);
+  if (!compileRes.ok) {
+    return [
+      {
+        rule: compileRes.error.code.toLowerCase().replace(/_/g, '-'),
+        severity: 'error',
+        message: compileRes.error.message,
+      },
+    ];
+  }
+  return [];
+}

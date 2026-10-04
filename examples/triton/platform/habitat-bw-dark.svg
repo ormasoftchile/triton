@@ -14,10 +14,10 @@
   <text x="1298" y="54" font-size="12" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" text-anchor="middle" font-weight="bold">Pause</text>
   <rect x="50" y="126" width="10" height="10" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
   <text x="66" y="134" font-size="11.5" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Request</text>
-  <circle cx="185" cy="131" r="5" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
-  <text x="196" y="134" font-size="11.5" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Response</text>
-  <path d="M 315 125 L 320 131 L 315 137 L 310 131 Z" stroke="#ddd6fe" stroke-width="1.2" fill="#8b5cf6" />
-  <text x="326" y="134" font-size="11.5" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Changes (CDC)</text>
+  <circle cx="175" cy="131" r="5" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
+  <text x="186" y="134" font-size="11.5" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Response</text>
+  <path d="M 295 125 L 300 131 L 295 137 L 290 131 Z" stroke="#ddd6fe" stroke-width="1.2" fill="#8b5cf6" />
+  <text x="306" y="134" font-size="11.5" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Changes (CDC)</text>
   <text x="147.5" y="175" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" text-anchor="middle" font-weight="bold">CLIENTS</text>
   <rect x="50" y="199" width="195" height="46" fill="#262626" stroke="#FAFAFA" stroke-width="1.5" rx="6" />
   <circle cx="71" cy="222" r="8" fill="none" stroke="#FAFAFA" stroke-width="1.2" />
@@ -40,8 +40,8 @@
   <path d="M 64 399 H 78 M 64 404 H 78" stroke="#FAFAFA" stroke-width="1.2" fill="none" />
   <text x="88" y="406" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Internal services</text>
   <rect x="50" y="439" width="195" height="46" fill="#262626" stroke="#FAFAFA" stroke-width="1.5" rx="6" />
-  <rect x="64" y="455" width="14" height="14" fill="none" stroke="#FAFAFA" stroke-width="1.2" rx="2" />
-  <path d="M 64 459 H 78 M 64 464 H 78" stroke="#FAFAFA" stroke-width="1.2" fill="none" />
+  <circle cx="71" cy="462" r="7" fill="none" stroke="#FAFAFA" stroke-width="1.2" />
+  <path d="M 64 462 H 78 M 71 455 Q 67 462 71 469 M 71 455 Q 75 462 71 469" stroke="#FAFAFA" stroke-width="1.1" fill="none" />
   <text x="88" y="466" font-size="13" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">... And more</text>
   <text x="680" y="175" font-size="11" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" text-anchor="middle" font-weight="bold">ONLINE STORAGE PLATFORM</text>
   <rect x="350" y="199" width="660" height="250" fill="#1E1E1E" stroke="#FAFAFA" stroke-width="1.8" rx="8" />
@@ -83,8 +83,10 @@
   <path d="M 551 595 H 565 M 551 600 H 565" stroke="#FAFAFA" stroke-width="1.2" fill="none" />
   <text x="573" y="603" font-size="11.5" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Rockset</text>
   <rect x="687" y="575" width="136" height="46" fill="#262626" stroke="#FAFAFA" stroke-width="1.5" rx="6" />
-  <rect x="701" y="591" width="14" height="14" fill="none" stroke="#FAFAFA" stroke-width="1.2" rx="2" />
-  <path d="M 701 595 H 715 M 701 600 H 715" stroke="#FAFAFA" stroke-width="1.2" fill="none" />
+  <circle cx="704" cy="598" r="2" fill="#FAFAFA" stroke="#FAFAFA" stroke-width="1" />
+  <circle cx="708" cy="598" r="2" fill="#FAFAFA" stroke="#FAFAFA" stroke-width="1" />
+  <circle cx="712" cy="598" r="2" fill="#FAFAFA" stroke="#FAFAFA" stroke-width="1" />
+  <path d="M 701 593 H 715 M 701 603 H 715" stroke="#FAFAFA" stroke-width="1.2" fill="none" />
   <text x="723" y="603" font-size="11.5" font-family="Inter, system-ui, -apple-system, sans-serif" fill="#FAFAFA" font-weight="bold">Kafka</text>
   <rect x="837" y="575" width="136" height="46" fill="#262626" stroke="#FAFAFA" stroke-width="1.5" rx="6" />
   <circle cx="853" cy="593" r="2" fill="none" stroke="#FAFAFA" stroke-width="1.2" />
@@ -120,54 +122,55 @@
   <path d="M 245 402 H 287 Q 295 402 295 410" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 245 462 H 287 Q 295 462 295 454" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 295 230 V 454" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
-  <path d="M 295 406 L 350 406" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
+  <path d="M 295 406 L 366 406" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 350 406"/>
+    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 366 406"/>
   </circle>
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 350 406"/>
+    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 366 406"/>
   </circle>
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 350 406"/>
+    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 366 406"/>
   </circle>
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 350 406"/>
+    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 295 406 L 366 406"/>
   </circle>
   <rect x="256" y="218" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
-  <rect x="256" y="278" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
-  <circle cx="260" cy="342" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
+  <circle cx="260" cy="282" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
+  <rect x="256" y="338" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
   <circle cx="260" cy="402" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
+  <rect x="256" y="458" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
   <rect x="313" y="402" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
   <circle cx="337" cy="406" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
   <circle cx="349" cy="406" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
-  <path d="M 1010 406 L 1060 406" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
+  <path d="M 994 406 L 1060 406" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 1010 406 L 1060 406"/>
+    <animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 994 406 L 1060 406"/>
   </circle>
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 1010 406 L 1060 406"/>
+    <animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" rotate="auto" path="M 994 406 L 1060 406"/>
   </circle>
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 1010 406 L 1060 406"/>
+    <animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" rotate="auto" path="M 994 406 L 1060 406"/>
   </circle>
   <circle r="3.2" fill="#FAFAFA" opacity="0.9">
-    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 1010 406 L 1060 406"/>
+    <animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" rotate="auto" path="M 994 406 L 1060 406"/>
   </circle>
   <path d="M 1060 234 V 422" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 1060 234 Q 1060 226 1068 226 H 1110" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 1060 302 Q 1060 294 1068 294 H 1110" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 1060 370 Q 1060 362 1068 362 H 1110" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 1060 422 Q 1060 430 1068 430 H 1110" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
-  <circle cx="1030" cy="406" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
-  <rect x="1040" y="402" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
-  <rect x="1054" y="402" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
+  <circle cx="1014" cy="406" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
+  <rect x="1024" y="402" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
+  <rect x="1038" y="402" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
   <circle cx="1078" cy="294" r="4" fill="#10b981" stroke="#a7f3d0" stroke-width="1.2" />
   <rect x="1074" y="358" width="8" height="8" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.2" rx="1.5" />
-  <path d="M 680 449 L 680 485" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
+  <path d="M 680 433 L 680 485" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <circle r="4" fill="#FAFAFA">
-    <animateMotion dur="1.6s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 680 449 L 680 485"/>
+    <animateMotion dur="1.6s" begin="0s" repeatCount="indefinite" rotate="auto" path="M 680 433 L 680 485"/>
   </circle>
-  <path d="M 680 462 L 685 467 L 680 472 L 675 467 Z" stroke="#ddd6fe" stroke-width="1.2" fill="#8b5cf6" />
+  <path d="M 680 454 L 685 459 L 680 464 L 675 459 Z" stroke="#ddd6fe" stroke-width="1.2" fill="#8b5cf6" />
   <path d="M 680 535 V 559" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 463 559 H 897" stroke="#FAFAFA" stroke-width="1.8" fill="none" />
   <path d="M 463 559 Q 455 559 455 567 V 575" stroke="#FAFAFA" stroke-width="1.8" fill="none" />

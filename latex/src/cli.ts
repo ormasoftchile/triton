@@ -13,11 +13,11 @@
  * esbuild bundles the whole compiler graph in. The PDF toolchain stays external.
  */
 
-import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, statSync, existsSync } from 'node:fs';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { renderSync } from '../../src/frontend/index.js';
+import { renderSync, lintDiagram, type DiagramDiagnostic } from '../../src/frontend/index.js';
 import type { ResolvedTheme } from '../../src/contracts/theme.js';
 import type { IconPackMap } from '../../src/contracts/icons.js';
 import { svgToPdf } from './pdf.js';
@@ -36,6 +36,7 @@ interface Args {
   readonly iconPack?: string;
   readonly iconsDir?: string;
   readonly scale: number;
+  readonly check: boolean;
   readonly help: boolean;
 }
 
@@ -48,6 +49,7 @@ function parseArgs(argv: string[]): Args {
   let iconPack: string | undefined;
   let iconsDir: string | undefined;
   let scale = 1;
+  let check = false;
   let help = false;
 
   for (let i = 0; i < argv.length; i++) {
@@ -75,6 +77,9 @@ function parseArgs(argv: string[]): Args {
       case '--scale':
         scale = Number(argv[++i]) || 1;
         break;
+      case '--check':
+        check = true;
+        break;
       case '-h':
       case '--help':
         help = true;
@@ -84,17 +89,32 @@ function parseArgs(argv: string[]): Args {
     }
   }
 
-  return { command: positionals.shift(), positionals, out, theme, themeFile, themesDir, iconPack, iconsDir, scale, help };
+  return {
+    command: positionals.shift(),
+    positionals,
+    out,
+    theme,
+    themeFile,
+    themesDir,
+    iconPack,
+    iconsDir,
+    scale,
+    check,
+    help,
+  };
 }
 
-const USAGE = `triton-latex — render Triton diagrams to vector PDF for LaTeX.
+const USAGE = `triton-latex — render and lint Triton diagrams.
 
 Usage:
   triton-latex render <input.triton|.mmd> -o <out.pdf|.svg> [options]
   triton-latex render-dir <srcDir> -o <outDir> [options]
+  triton-latex lint <input.triton|.mmd|srcDir> [options]
+  triton-latex check <input.triton|.mmd|srcDir> [options]
 
 Options:
   -o, --out <path>          Output file (render) or output directory (render-dir).
+  --check                   Verify diagram diagnostics (fails on error) before rendering.
   --theme <name>            Theme preset name (default, executive, minimal, …) or
                             a name from the discovered/loaded custom theme registry.
   --theme-file <path>       Path to a .triton-theme.json file. Takes precedence over
@@ -157,8 +177,25 @@ async function renderFile(
   themeInput: ResolvedTheme | undefined,
   icons: IconPackMap,
   scale: number,
+  check = false,
 ): Promise<void> {
   const source = readFileSync(inputPath, 'utf8');
+
+  if (check) {
+    const diagnostics = lintDiagram(source, themeInput, undefined, icons);
+    const errors = diagnostics.filter((d) => d.severity === 'error');
+    const warnings = diagnostics.filter((d) => d.severity === 'warning');
+    for (const w of warnings) {
+      console.warn(`  ⚠ [${w.rule}] ${w.message}`);
+    }
+    if (errors.length > 0) {
+      for (const e of errors) {
+        console.error(`  ✗ [${e.rule}] ${e.message}`);
+      }
+      throw new Error(`Lint failed with ${errors.length} error(s).`);
+    }
+  }
+
   const svg = renderToSvg(source, themeInput, icons);
 
   // The inline LaTeX environment renders into a content-hashed cache dir
@@ -182,6 +219,7 @@ async function renderDir(
   themeInput: ResolvedTheme | undefined,
   icons: IconPackMap,
   scale: number,
+  check = false,
 ): Promise<{ rendered: number; failed: string[] }> {
   mkdirSync(outDir, { recursive: true });
 
@@ -198,7 +236,7 @@ async function renderDir(
     const name = basename(file, extname(file));
     const outPath = join(outDir, `${name}.pdf`);
     try {
-      await renderFile(inputPath, outPath, themeInput, icons, scale);
+      await renderFile(inputPath, outPath, themeInput, icons, scale, check);
       console.log(`  ✓ ${file} → ${name}.pdf`);
       rendered++;
     } catch (cause) {
@@ -211,6 +249,54 @@ async function renderDir(
   return { rendered, failed };
 }
 
+/** Lint a single file and output diagnostics. Returns error and warning counts. */
+function lintSingleFile(
+  inputPath: string,
+  themeInput: ResolvedTheme | undefined,
+  icons: IconPackMap,
+): { errors: number; warnings: number } {
+  const source = readFileSync(inputPath, 'utf8');
+  const diagnostics = lintDiagram(source, themeInput, undefined, icons);
+  const errors = diagnostics.filter((d) => d.severity === 'error');
+  const warnings = diagnostics.filter((d) => d.severity === 'warning');
+
+  const fileLabel = basename(inputPath);
+  if (diagnostics.length === 0) {
+    console.log(`  ✓ ${fileLabel}: clean`);
+    return { errors: 0, warnings: 0 };
+  }
+
+  const mark = errors.length > 0 ? '✗' : '⚠';
+  console.log(`  ${mark} ${fileLabel} (${errors.length} error(s), ${warnings.length} warning(s)):`);
+  for (const d of diagnostics) {
+    const icon = d.severity === 'error' ? '    ✗' : '    ⚠';
+    console.log(`${icon} [${d.rule}] ${d.message}`);
+  }
+  return { errors: errors.length, warnings: warnings.length };
+}
+
+/** Lint all diagram files in a directory. */
+function lintDirectory(
+  srcDir: string,
+  themeInput: ResolvedTheme | undefined,
+  icons: IconPackMap,
+): { totalFiles: number; errorCount: number; warningCount: number } {
+  const entries = readdirSync(srcDir).filter((f) => {
+    const full = join(srcDir, f);
+    return statSync(full).isFile() && DIAGRAM_EXTS.has(extname(f).toLowerCase());
+  });
+
+  let errorCount = 0;
+  let warningCount = 0;
+  for (const file of entries) {
+    const full = join(srcDir, file);
+    const res = lintSingleFile(full, themeInput, icons);
+    errorCount += res.errors;
+    warningCount += res.warnings;
+  }
+  return { totalFiles: entries.length, errorCount, warningCount };
+}
+
 // ─── Entry point ────────────────────────────────────────────────────────────────
 
 async function main(): Promise<number> {
@@ -219,6 +305,47 @@ async function main(): Promise<number> {
   if (args.help || !args.command) {
     console.log(USAGE);
     return args.help ? 0 : 1;
+  }
+
+  if (args.command === 'lint' || args.command === 'check') {
+    const target = args.positionals[0] || '.';
+    const resolvedTarget = resolve(target);
+    if (!existsSync(resolvedTarget)) {
+      console.error(`error: target path does not exist: "${target}"`);
+      return 1;
+    }
+    const isDir = statSync(resolvedTarget).isDirectory();
+    const baseDir = isDir ? resolvedTarget : dirname(resolvedTarget);
+
+    let themeInput: ResolvedTheme | undefined;
+    let icons: IconPackMap;
+    try {
+      themeInput = resolveCliTheme(args, baseDir);
+    } catch (e) {
+      console.error(`error: ${(e as Error).message}`);
+      return 1;
+    }
+    try {
+      icons = resolveCliIcons(args, baseDir);
+    } catch (e) {
+      console.error(`error: ${(e as Error).message}`);
+      return 1;
+    }
+
+    if (isDir) {
+      const { totalFiles, errorCount, warningCount } = lintDirectory(
+        resolvedTarget,
+        themeInput,
+        icons,
+      );
+      console.log(
+        `\nChecked ${totalFiles} file(s): ${errorCount} error(s), ${warningCount} warning(s).`,
+      );
+      return errorCount > 0 ? 1 : 0;
+    } else {
+      const res = lintSingleFile(resolvedTarget, themeInput, icons);
+      return res.errors > 0 ? 1 : 0;
+    }
   }
 
   if (args.command === 'render') {
@@ -243,7 +370,7 @@ async function main(): Promise<number> {
       console.error(`error: ${(e as Error).message}`);
       return 1;
     }
-    await renderFile(inputPath, resolve(args.out), themeInput, icons, args.scale);
+    await renderFile(inputPath, resolve(args.out), themeInput, icons, args.scale, args.check);
     console.log(`✓ ${input} → ${args.out}`);
     return 0;
   }
@@ -276,6 +403,7 @@ async function main(): Promise<number> {
       themeInput,
       icons,
       args.scale,
+      args.check,
     );
     console.log(`\n${rendered} rendered, ${failed.length} failed.`);
     return failed.length > 0 ? 1 : 0;
@@ -316,4 +444,3 @@ if (isDirectExecution()) {
       process.exit(1);
     });
 }
-

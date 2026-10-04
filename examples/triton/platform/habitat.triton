@@ -19,7 +19,7 @@ platform "Online storage platform"
   tier platform "ONLINE STORAGE PLATFORM"
     box habitat "Habitat"
       grid 3
-        card caching "Caching" [Caches]
+        card caching "Caching" [Caches data for faster access]
         card acl "ACL policies" [Authorization]
         card placement "Placement & data residency" [Data residency]
         card encryption "Encryption" [Data security]

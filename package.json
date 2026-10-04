@@ -20,7 +20,12 @@
     "preview": "node scripts/preview.mjs",
     "format": "prettier --write \"**/*.{ts,js,json,yaml,yml,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{ts,js,json,yaml,yml,md}\" --ignore-path .gitignore",
+    "lint:diagram": "node latex/dist/cli.cjs lint",
     "release:version": "node scripts/release-version.mjs"
+  },
+  "bin": {
+    "triton": "./latex/dist/cli.cjs",
+    "triton-latex": "./latex/dist/cli.cjs"
   },
   "dependencies": {
     "d3-path": "^3.1.0",

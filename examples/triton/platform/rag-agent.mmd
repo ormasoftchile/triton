@@ -1,51 +1,45 @@
 platform "Agentic AI & Retrieval Platform"
-  figure "FIGURE 02 · MULTI-AGENT INFERENCE ARCHITECTURE"
-  desc "Low-latency inference pipeline orchestrating intent classification, hybrid vector retrieval, and tool execution for enterprise reasoning agents."
+  figure "FIGURE 04 · MULTI-AGENT INFERENCE ARCHITECTURE"
+  desc "Low-latency inference pipeline orchestrating intent classification, tool execution via MCP, and hybrid vector retrieval for enterprise reasoning agents."
 
   legend
-    square query "User Prompt / Intent" #3b82f6
-    circle context "Retrieved Context" #10b981
-    diamond tools "Tool Execution (MCP)" #8b5cf6
+    square prompt "User Prompt / Intent" #3b82f6
+    circle tool "Tool Execution (MCP)" #10b981
+    diamond context "Retrieved Context" #8b5cf6
   end
 
-  tier clients "CLIENT TOUCHPOINTS"
-    card web "Web Assistant" [Copilot UI] @icon:globe
-    card ide "IDE Sidecar" [Coding Agent] @icon:robot
-    card slack "Slack Bot" [Ops Automation] @icon:api
-    card voice "Voice Gateway" [WebRTC Streaming] @icon:lightning
+  tier clients "USER CHANNELS"
+    card web "Web Copilot" [Streaming UI] @icon:globe
+    card ide "IDE Coding Agent" [Language Server Protocol] @icon:robot
+    card slack "ChatOps Bot" [Enterprise Webhooks] @icon:api
   end
 
-  tier orchestration "AGENT GATEWAY & ORCHESTRATION"
-    box router "Cognitive Orchestrator" [Reasoning & Planning Loop]
-      grid 3
-        card guardrails "Guardrails" [Prompt Injection · PII Filter]
-        card memory "Session Memory" [Conversation History]
-        card semantic_cache "Semantic Cache" [Embeddings Match]
-        card planner "Planner" [ReAct Loop · Task Decomposition]
-        card evaluator "Eval Harness" [Grounding & Fact Check]
-        card ratelimit "Token Budgets" [Fair Sharing]
+  tier orchestrator "AGENT REASONING CORE"
+    box engine "Cognitive Engine" [Autonomous Reasoning Loop]
+      grid 2
+        card guard "Prompt Guardrails" [Injection & PII Filter]
+        card memory "Session Memory" [Conversation Window]
+        card intent "Intent Classifier" [Semantic Router]
+        card eval "Factuality & Eval" [Grounding Check]
       end
-      card dispatcher "Dispatcher" [Dynamic Model Routing]
-    end
-
-    box mcp "Tool Execution Mesh" [Model Context Protocol]
-      branch
-        card websearch "Web Search" @icon:globe
-        card sandbox "Code Sandbox" @icon:robot
-        card sql "SQL Engine" @icon:database
-        card git "GitHub API" @icon:api
-      end
+      card planner "ReAct Planner" [Autonomous Task Decomposition]
     end
   end
 
-  tier models "FOUNDATION MODELS & INDEXES"
+  tier tools "TOOL EXECUTION (MCP)"
+    card sandbox "Python Sandbox" [Isolated Docker Runtime] @icon:robot
+    card search "Web Search MCP" [Live Web Scraping] @icon:globe
+    card sql "SQL Analytics Engine" [Read-Only Database] @icon:database
+    card git "GitHub API Tool" [Repository Context] @icon:api
+  end
+
+  tier models "MODELS & KNOWLEDGE FABRIC"
     card llm "Frontier LLM Cluster" [Reasoning & Tool Use] @icon:openai
-    card qdrant "Qdrant Vector DB" [HNSW Hybrid Dense/Sparse] @icon:database
-    card valkey "Valkey KV" [Fast Session & Checkpoints] @icon:lightning
-    card blob "Doc Vault" [Unstructured PDFs & Code] @icon:storage
+    card qdrant "Qdrant Vector DB" [Hybrid Dense/Sparse Search] @icon:database
+    card graph "Neo4j Knowledge Graph" [Entity Ontology] @icon:cloud
+    card valkey "Valkey KV Store" [Checkpoint Cache] @icon:lightning
   end
 
-  bus clients --> router.dispatcher @anim:stream
-  bus router.dispatcher --> models @anim:stream
-  bus router.dispatcher --> mcp @anim:particle
-  bus mcp --> websearch, sandbox, sql, git
+  bus clients -->|"Prompts & Context"| engine.planner @anim:stream
+  bus engine.planner -->|"Tool Execution (MCP)"| tools @anim:particle
+  bus tools -->|"Inference & Embeddings"| models @anim:stream

@@ -1,6 +1,6 @@
 platform "Fintech Payment & Settlement Platform"
-  figure "FIGURE 03 · TRANSACTION CLEARING MESH"
-  desc "Resilient multi-rail payment engine handling auth, tokenization, real-time fraud scoring, and idempotent ledger settlement."
+  figure "FIGURE 06 · MULTI-RAIL CLEARING MESH"
+  desc "Resilient multi-rail payment engine handling tokenization, real-time ML fraud scoring, and idempotent ledger settlement across global banking rails."
 
   legend
     square auth "Authorization" #3b82f6
@@ -9,43 +9,38 @@ platform "Fintech Payment & Settlement Platform"
   end
 
   tier channels "MERCHANT CHANNELS"
-    card ecom "Checkout SDK" [Web & Mobile] @icon:globe
     card pos "Smart POS" [EMV / Tap to Pay] @icon:lightning
-    card subscription "Recurring Billing" [Scheduled Cron] @icon:server
-    card payouts "Direct Payouts" [Treasury API] @icon:api
+    card ecom "Checkout SDK" [Web & Mobile] @icon:globe
+    card billing "Recurring Subscriptions" [Scheduled Cron] @icon:server
   end
 
-  tier core "CORE PAYMENT ENGINE"
-    box engine "Payment Switch" [Zero-Downtime Settlement Engine]
-      grid 3
-        card tokenization "Token Vault" [PCI-DSS Card Storage]
-        card fraud "Fraud Detection" [ML Risk Scoring <10ms]
-        card 3ds "3D Secure 2.0" [Strong Auth]
-        card smart_routing "Smart Router" [Least-Cost Routing]
-        card currency "FX Conversion" [Live Spot Rates]
-        card ledger "Double-Entry Ledger" [Immutable Auditing]
+  tier core "PAYMENT SWITCH & CLEARING"
+    box switch "Transaction Switch" [Zero-Downtime Settlement Engine]
+      grid 2
+        card token "Token Vault" [PCI-DSS Card Storage]
+        card fraud "Fraud AI" [ML Risk Scoring <10ms]
+        card auth3ds "3D Secure 2.0" [Strong Customer Auth]
+        card routing "Least-Cost Router" [Interchange Optimization]
       end
-      card gateway "Switchboard" [Idempotency & Replay Protection]
+      card gateway "Switchboard Gateway" [Idempotency & Replay Protection]
     end
 
-    box settlement_hub "Settlement Networks" [Downstream Clearing]
+    box clearing "Settlement Networks" [Downstream Clearing Rails]
       branch
-        card ach "FedNow & ACH" @icon:cloud
+        card fednow "FedNow Instant" @icon:cloud
         card visa "Visa Direct" @icon:lightning
         card sepa "SEPA Instant" @icon:globe
-        card swift "SWIFT Net" @icon:server
       end
     end
   end
 
-  tier persistence "RESILIENT PERSISTENCE"
-    card aurora "CockroachDB" [Globally Distributed SQL] @icon:database
-    card redis "Redis Enterprise" [Idempotency Locks] @icon:lightning
-    card kafka_bus "Event Backbone" [Audit Trail & Replay] @icon:queue
-    card vault "Cold Vault" [Encrypted Statement Archive] @icon:storage
+  tier persistence "IMMUTABLE LEDGER & AUDIT"
+    card ledger "CockroachDB" [Double-Entry Ledger] @icon:database
+    card audit_bus "Kafka Audit Log" [WORM Compliance Stream] @icon:queue
+    card hsm "Cloud HSM" [Hardware Key Store] @icon:shield
   end
 
-  bus channels --> engine.gateway @anim:stream
-  bus engine.gateway --> persistence @anim:stream
-  bus engine.gateway --> settlement_hub @anim:particle
-  bus settlement_hub --> ach, visa, sepa, swift
+  bus channels -->|"ISO 8583 / REST"| switch.gateway @anim:stream
+  bus switch.gateway -->|"FedNow & Card Rails"| clearing @anim:particle
+  bus switch.gateway -->|"mTLS / Double-Entry"| persistence @anim:stream
+  bus clearing --> fednow, visa, sepa

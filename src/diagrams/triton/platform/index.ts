@@ -10,3 +10,8 @@ export const platform: DiagramModule<PlatformDocument> = {
   },
   layout: layoutPlatform,
 };
+
+export { parsePlatform } from './parser.js';
+export { layoutPlatform } from './layout.js';
+export { lintPlatform } from './lint.js';
+export type { PlatformDiagnostic } from './lint.js';
