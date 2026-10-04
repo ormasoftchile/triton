@@ -1,0 +1,51 @@
+platform "Fintech Payment & Settlement Platform"
+  figure "FIGURE 03 · TRANSACTION CLEARING MESH"
+  desc "Resilient multi-rail payment engine handling auth, tokenization, real-time fraud scoring, and idempotent ledger settlement."
+
+  legend
+    square auth "Authorization" #3b82f6
+    circle settlement "Cleared & Settled" #10b981
+    diamond audit "Compliance & Audit" #8b5cf6
+  end
+
+  tier channels "MERCHANT CHANNELS"
+    card ecom "Checkout SDK" [Web & Mobile] @icon:globe
+    card pos "Smart POS" [EMV / Tap to Pay] @icon:lightning
+    card subscription "Recurring Billing" [Scheduled Cron] @icon:server
+    card payouts "Direct Payouts" [Treasury API] @icon:api
+  end
+
+  tier core "CORE PAYMENT ENGINE"
+    box engine "Payment Switch" [Zero-Downtime Settlement Engine]
+      grid 3
+        card tokenization "Token Vault" [PCI-DSS Card Storage]
+        card fraud "Fraud Detection" [ML Risk Scoring <10ms]
+        card 3ds "3D Secure 2.0" [Strong Auth]
+        card smart_routing "Smart Router" [Least-Cost Routing]
+        card currency "FX Conversion" [Live Spot Rates]
+        card ledger "Double-Entry Ledger" [Immutable Auditing]
+      end
+      card gateway "Switchboard" [Idempotency & Replay Protection]
+    end
+
+    box settlement_hub "Settlement Networks" [Downstream Clearing]
+      branch
+        card ach "FedNow & ACH" @icon:cloud
+        card visa "Visa Direct" @icon:lightning
+        card sepa "SEPA Instant" @icon:globe
+        card swift "SWIFT Net" @icon:server
+      end
+    end
+  end
+
+  tier persistence "RESILIENT PERSISTENCE"
+    card aurora "CockroachDB" [Globally Distributed SQL] @icon:database
+    card redis "Redis Enterprise" [Idempotency Locks] @icon:lightning
+    card kafka_bus "Event Backbone" [Audit Trail & Replay] @icon:queue
+    card vault "Cold Vault" [Encrypted Statement Archive] @icon:storage
+  end
+
+  bus channels --> engine.gateway @anim:stream
+  bus engine.gateway --> persistence @anim:stream
+  bus engine.gateway --> settlement_hub @anim:particle
+  bus settlement_hub --> ach, visa, sepa, swift

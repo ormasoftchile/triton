@@ -103,4 +103,74 @@ platform "Online storage platform"
     expect(svg).toContain('fill="#171717"');
     expect(svg).toContain('fill="#FFFFFF"');
   });
+
+  it('renders generalized 2-tier architecture diagram', () => {
+    const twoTier = `
+platform "Microservice Gateway"
+  tier edge "CLIENT APPS"
+    card web "Web Portal"
+    card ios "iOS App"
+    card android "Android App"
+  end
+
+  tier services "BACKEND MESH"
+    card gateway "API Gateway" [Kong Envoy]
+    card auth "Auth Service"
+    card orders "Orders Service"
+  end
+
+  bus edge --> gateway @anim:stream
+  bus gateway --> auth, orders
+`;
+    const doc = parsePlatform(twoTier);
+    expect(doc.tiers).toHaveLength(2);
+    expect(doc.buses).toHaveLength(2);
+
+    const res = renderSync(twoTier);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value).toContain('Microservice Gateway');
+    expect(res.value).toContain('CLIENT APPS');
+    expect(res.value).toContain('BACKEND MESH');
+  });
+
+  it('renders generalized 4-tier data platform with multi-source bus', () => {
+    const fourTier = `
+platform "Data Ingestion Pipeline"
+  tier producers "PRODUCERS"
+    card sensors "IoT Telemetry"
+    card clickstream "Web Clicks"
+  end
+
+  tier ingress "INGRESS"
+    card kafka "Event Broker"
+  end
+
+  tier compute "STREAM PROCESSING"
+    card flink "Apache Flink"
+    card spark "Apache Spark"
+  end
+
+  tier sink "LAKEHOUSE"
+    card iceberg "Apache Iceberg" [Data Lake]
+    card snowflake "Snowflake" [Analytics]
+  end
+
+  bus producers --> kafka @anim:stream
+  bus kafka --> flink, spark
+  bus flink, spark --> iceberg, snowflake @anim:flow
+`;
+    const doc = parsePlatform(fourTier);
+    expect(doc.tiers).toHaveLength(4);
+    expect(doc.buses).toHaveLength(3);
+    expect(Array.isArray(doc.buses[2]!.from)).toBe(true);
+    expect(doc.buses[2]!.from).toEqual(['flink', 'spark']);
+
+    const res = renderSync(fourTier);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value).toContain('Data Ingestion Pipeline');
+    expect(res.value).toContain('STREAM PROCESSING');
+    expect(res.value).toContain('LAKEHOUSE');
+  });
 });

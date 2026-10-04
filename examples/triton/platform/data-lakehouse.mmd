@@ -1,0 +1,48 @@
+platform "Real-Time Data Lakehouse"
+  figure "FIGURE 01 · STREAMING DATA ARCHITECTURE"
+  desc "End-to-end streaming and analytics pipeline decoupling high-velocity event producers from OLAP and AI consumers."
+
+  legend
+    square raw "Raw Ingestion" #3b82f6
+    circle transformed "Cleaned / Enriched" #10b981
+    diamond analytics "Real-time Queries" #8b5cf6
+  end
+
+  tier producers "INGESTION SOURCES"
+    card telemetry "IoT Sensors" [MQTT · Telemetry] @icon:robot
+    card mobile "Mobile Apps" [SDK Analytics] @icon:globe
+    card cdc_source "Transactional DBs" [Postgres Debezium] @icon:database
+    card webhooks "Partner Webhooks" [REST APIs] @icon:api
+  end
+
+  tier broker "EVENT INGESTION BUFFER"
+    box kafka "Apache Kafka Cluster" [High-throughput Distributed Log]
+      grid 2
+        card schema "Schema Registry" [Avro · Protobuf]
+        card partitions "Partition Buffer" [Distributed Log]
+        card auth "mTLS & ACLs" [Zero Trust]
+        card mirror "Cross-Region Mirror" [Disaster Recovery]
+      end
+      card ingress "Ingress Gateway" [Kafka Proxy · Rate Limiting]
+    end
+
+    box cdc_sink "Connector Hub" [Managed Connectors]
+      branch
+        card s3_sink "S3 Sink" @icon:storage
+        card elastic "Elasticsearch" @icon:database
+        card alerts "PagerDuty" @icon:server
+      end
+    end
+  end
+
+  tier storage "LAKEHOUSE & SERVING"
+    card iceberg "Apache Iceberg" [ACID Object Lakehouse] @icon:storage
+    card clickhouse "ClickHouse" [Sub-second OLAP] @icon:lightning
+    card snowflake "Snowflake" [Enterprise BI & Reporting] @icon:cloud
+    card pinecone "Vector Index" [Embeddings for RAG] @icon:database
+  end
+
+  bus producers --> kafka.ingress @anim:stream
+  bus kafka.ingress --> storage @anim:stream
+  bus kafka.ingress --> cdc_sink @anim:particle
+  bus cdc_sink --> s3_sink, elastic, alerts

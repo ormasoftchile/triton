@@ -1,0 +1,51 @@
+platform "Agentic AI & Retrieval Platform"
+  figure "FIGURE 02 · MULTI-AGENT INFERENCE ARCHITECTURE"
+  desc "Low-latency inference pipeline orchestrating intent classification, hybrid vector retrieval, and tool execution for enterprise reasoning agents."
+
+  legend
+    square query "User Prompt / Intent" #3b82f6
+    circle context "Retrieved Context" #10b981
+    diamond tools "Tool Execution (MCP)" #8b5cf6
+  end
+
+  tier clients "CLIENT TOUCHPOINTS"
+    card web "Web Assistant" [Copilot UI] @icon:globe
+    card ide "IDE Sidecar" [Coding Agent] @icon:robot
+    card slack "Slack Bot" [Ops Automation] @icon:api
+    card voice "Voice Gateway" [WebRTC Streaming] @icon:lightning
+  end
+
+  tier orchestration "AGENT GATEWAY & ORCHESTRATION"
+    box router "Cognitive Orchestrator" [Reasoning & Planning Loop]
+      grid 3
+        card guardrails "Guardrails" [Prompt Injection · PII Filter]
+        card memory "Session Memory" [Conversation History]
+        card semantic_cache "Semantic Cache" [Embeddings Match]
+        card planner "Planner" [ReAct Loop · Task Decomposition]
+        card evaluator "Eval Harness" [Grounding & Fact Check]
+        card ratelimit "Token Budgets" [Fair Sharing]
+      end
+      card dispatcher "Dispatcher" [Dynamic Model Routing]
+    end
+
+    box mcp "Tool Execution Mesh" [Model Context Protocol]
+      branch
+        card websearch "Web Search" @icon:globe
+        card sandbox "Code Sandbox" @icon:robot
+        card sql "SQL Engine" @icon:database
+        card git "GitHub API" @icon:api
+      end
+    end
+  end
+
+  tier models "FOUNDATION MODELS & INDEXES"
+    card llm "Frontier LLM Cluster" [Reasoning & Tool Use] @icon:openai
+    card qdrant "Qdrant Vector DB" [HNSW Hybrid Dense/Sparse] @icon:database
+    card valkey "Valkey KV" [Fast Session & Checkpoints] @icon:lightning
+    card blob "Doc Vault" [Unstructured PDFs & Code] @icon:storage
+  end
+
+  bus clients --> router.dispatcher @anim:stream
+  bus router.dispatcher --> models @anim:stream
+  bus router.dispatcher --> mcp @anim:particle
+  bus mcp --> websearch, sandbox, sql, git

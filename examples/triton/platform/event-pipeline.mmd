@@ -1,0 +1,33 @@
+platform "Event Pipeline & Feature Store"
+  figure "FIGURE 04 · MULTI-TIER EVENT TOPOLOGY"
+  desc "Multi-tier data ingestion pipeline with multi-source fan-in gathering rails and stream distribution."
+
+  legend
+    square stream "Live Stream" #3b82f6
+    circle features "ML Feature Vector" #10b981
+  end
+
+  tier sources "PRODUCERS"
+    card sensors "IoT Telemetry" @icon:robot
+    card clickstream "Web Clicks" @icon:globe
+    card logs "Syslog Ingress" @icon:server
+  end
+
+  tier ingress "INGRESS BUS"
+    card kafka "Apache Kafka" [Partitioned Event Log] @icon:queue
+  end
+
+  tier compute "STREAM PROCESSING"
+    card flink "Apache Flink" [Stateful Aggregations] @icon:lightning
+    card spark "Apache Spark" [Feature Engineering] @icon:lightning
+  end
+
+  tier storage "LAKEHOUSE & VECTOR"
+    card iceberg "Apache Iceberg" [Data Lake] @icon:storage
+    card feast "Feast Store" [Low Latency Features] @icon:database
+    card snowflake "Snowflake" [OLAP Warehouse] @icon:cloud
+  end
+
+  bus sources --> kafka @anim:stream
+  bus kafka --> flink, spark
+  bus flink, spark --> iceberg, feast, snowflake @anim:flow
