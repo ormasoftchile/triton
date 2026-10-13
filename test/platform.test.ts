@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { parsePlatform } from '../src/diagrams/triton/platform/parser.js';
 import { layoutPlatform } from '../src/diagrams/triton/platform/layout.js';
 import { lintPlatform } from '../src/diagrams/triton/platform/lint.js';
@@ -226,13 +227,37 @@ platform "Enterprise Gateway"
     expect(doc.tiers[0]!.items[0]).toBeDefined();
 
     const { scene } = layoutPlatform(doc);
-    expect(scene.viewBox.height).toBeGreaterThanOrEqual(780);
+    expect(scene.viewBox.height).toBeGreaterThan(450);
     const engineBox = scene.elements.find(
       (el) => el.type === 'rect' && el.bounds && el.bounds.width === 660,
     );
     expect(engineBox).toBeDefined();
     // 3 rows = 3 * 56 + 2 * 10 = 188px grid height + header + routing bar (54) + padding > 300px
     expect(engineBox!.bounds.height).toBeGreaterThan(290);
+  });
+
+  it('produces tight dynamic canvas bounds for compact diagrams and preserves Habitat bounds', () => {
+    const compactDoc = parsePlatform(`
+platform "Compact Gateway"
+  tier edge "CLIENTS"
+    card app "Client App"
+  end
+  tier backend "CORE"
+    card api "API Service"
+  end
+  bus app --> api
+`);
+    const compactLayout = layoutPlatform(compactDoc);
+    // 2 tiers should produce a tight viewBox (~610 x ~320), NOT hardcoded 1200 x 780
+    expect(compactLayout.scene.viewBox.width).toBeLessThan(750);
+    expect(compactLayout.scene.viewBox.height).toBeLessThan(450);
+
+    // Habitat reference benchmark preserves exact 1380 x 780 viewBox
+    const habitatContent = readFileSync('examples/triton/platform/habitat.mmd', 'utf8');
+    const habitatDoc = parsePlatform(habitatContent);
+    const habitatLayout = layoutPlatform(habitatDoc);
+    expect(habitatLayout.scene.viewBox.width).toBe(1380);
+    expect(habitatLayout.scene.viewBox.height).toBe(780);
   });
 
   it('renders multi-to-multi dual-rail bus with gathering trunk, bridge, and distribution trunk', () => {

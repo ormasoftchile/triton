@@ -326,11 +326,55 @@ export function layoutPlatform(
     curColX += tierWidths[i]! + gutter;
   }
 
-  const canvasW = isHabitatProfile ? 1380 : Math.max(1200, curColX - 60);
+  // Content width from tiers
+  const lastTierRight =
+    numTiers > 0 ? (colXs[numTiers - 1] ?? 50) + (tierWidths[numTiers - 1] ?? 200) : 50;
+  let maxContentRight = lastTierRight;
+  if (!isHabitatProfile) {
+    for (const bus of doc.buses) {
+      const fromList = Array.isArray(bus.from) ? bus.from : [bus.from];
+      const toList = Array.isArray(bus.to) ? bus.to : [bus.to];
+      const fromTier = fromList.map(getTierIndex).find((idx) => idx !== undefined);
+      // If same-tier downstream fan-out in the last tier, the rail routes down the right margin
+      if (fromTier === numTiers - 1 && toList.length > 1) {
+        const badgeW = bus.label ? Math.max(36, bus.label.length * 6.5 + 16) : 0;
+        const railRight = lastTierRight + 20 + (bus.label ? 30 + badgeW / 2 : 10);
+        maxContentRight = Math.max(maxContentRight, railRight);
+      }
+    }
+  }
+  const tiersRequiredW = maxContentRight + 50;
+
+  // Header content widths
+  let legendRequiredW = 0;
+  if (doc.legend && doc.legend.length > 0) {
+    let legX = 50;
+    for (const item of doc.legend) {
+      const itemWidth = 16 + item.label.length * 6.8;
+      legX += Math.max(120, itemWidth + 24);
+    }
+    legendRequiredW = legX + 30;
+  }
+
+  const titleRequiredW = doc.title ? 50 + doc.title.length * 13.5 + 160 : 0;
+  const figureRequiredW = doc.figure ? 50 + doc.figure.length * 7.5 + 160 : 0;
+  const descRequiredW = doc.desc ? 50 + doc.desc.length * 7.5 + 50 : 0;
+
+  const canvasW = isHabitatProfile
+    ? 1380
+    : Math.max(tiersRequiredW, legendRequiredW, titleRequiredW, figureRequiredW, descRequiredW, 500);
+
+  // Compute dynamic tier starting Y based on header contents
+  let headerContentBottom = 40;
+  if (doc.figure) headerContentBottom += 26;
+  if (doc.title) headerContentBottom += 32;
+  if (doc.desc) headerContentBottom += 28;
+  if (doc.legend && doc.legend.length > 0) headerContentBottom += 26;
+
+  const tierY = isHabitatProfile ? 175 : Math.max(100, headerContentBottom + 35);
 
   // Compute dynamic canvas height based on contents
-  const tierY = 175;
-  let maxTierBottom = 720;
+  let maxTierBottom = 0;
   for (const t of doc.tiers) {
     const boxes = t.items.filter(
       (it): it is PlatformBox => 'grid' in it || 'branch' in it || 'cards' in it,
@@ -363,7 +407,7 @@ export function layoutPlatform(
     }
     maxTierBottom = Math.max(maxTierBottom, curY);
   }
-  const canvasH = isHabitatProfile ? 780 : Math.max(780, maxTierBottom + 60);
+  const canvasH = isHabitatProfile ? 780 : Math.max(260, maxTierBottom + 40);
 
   // Background with dot pattern
   if (theme.palette.background !== '') {
@@ -1309,8 +1353,8 @@ export function layoutPlatform(
           const useTop =
             (src.right.y + tgt.left.y) / 2 <= (minInterveningTop + maxInterveningBottom) / 2;
           const bypassY = useTop
-            ? Math.max(140, minInterveningTop - 24)
-            : Math.min(canvasH - 40, maxInterveningBottom + 24);
+            ? Math.min(tierY - 14, minInterveningTop - 24)
+            : Math.min(canvasH - 30, maxInterveningBottom + 24);
 
           const g1X = src.right.x + 20;
           const g2X = tgt.left.x - 20;
